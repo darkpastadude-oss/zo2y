@@ -1,17 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zo2y</title>
+<style>
+  /* Reset some default stuff */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: white;
+    color: #333;
+  }
+
+  /* Top stripe */
+  .top-stripe {
+    height: 50px;
+    background-color: #FFA500; /* orange stripe */
+    width: 100%;
+  }
+
+  /* Navbar */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .logo {
+    height: 40px; /* adjust to your logo size */
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 20px;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+  }
+
+  .nav-links a:hover {
+    color: #FFA500;
+  }
+
+  /* Hero section */
+  .hero {
+    text-align: center;
+    padding: 100px 20px;
+  }
+
+  .hero h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .hero p {
+    font-size: 20px;
+    margin-bottom: 30px;
+  }
+
+  .hero button {
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #FFA500;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .hero button:hover {
+    background-color: #e69500;
+  }
+
+  /* Sign up page */
+  .signup-form {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #fff;
+  }
+
+  .signup-form h2 {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .signup-form input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+
+  .signup-form button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background-color: #FFA500;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .signup-form button:hover {
+    background-color: #e69500;
+  }
+
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Zo2y</h1>
-    <p>Rate food. Discover the best spots.</p>
-    <button id="startBtn">Get Started</button>
+
+  <div class="top-stripe"></div>
+
+  <nav>
+    <img src="your-logo.png" alt="Zo2y Logo" class="logo">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="signup.html">Sign Up</a>
+    </div>
+  </nav>
+
+  <!-- Home Page Hero -->
+  <div class="hero">
+    <h1>Welcome to Zo2y</h1>
+    <p>Rate restaurants, malls, and more in Egypt!</p>
+    <button onclick="window.location.href='signup.html'">Get Started</button>
   </div>
-  <script src="script.js"></script>
+
 </body>
 </html>
