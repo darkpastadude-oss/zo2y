@@ -1,33 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Get Started - Zo2y</title>
-<link rel="stylesheet" href="style.css">
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zo2y - Get Started</title>
 </head>
 <body>
-  <div class="top-stripe">
-    <img src="zo2y.png" alt="Zo2y Logo" class="logo">
-  </div>
-
-  <div class="content">
-    <h1>Get Started with Zo2y</h1>
-    
-    <h3>Sign in with your email</h3>
+  <h1>Sign Up / Login</h1>
+  
+  <div id="signup">
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
-    <button id="emailSignIn">Sign in</button>
-    <button id="emailRegister">Register</button>
-    
-    <p id="status"></p>
+    <button id="signup-btn">Sign Up</button>
+    <button id="login-btn">Login</button>
   </div>
+  
+  <div id="message"></div>
+  
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-  <script src="get-started.js"></script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpo6_nF3lXsFZw2tsNLJN9K7f1SDoMEPM",
+      authDomain: "zo2y-ea78c.firebaseapp.com",
+      projectId: "zo2y-ea78c",
+      storageBucket: "zo2y-ea78c.appspot.com",
+      messagingSenderId: "15520669969",
+      appId: "1:15520669969:web:00c6e74f0c7e3663a06cb0"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // DOM elements
+    const signupBtn = document.getElementById('signup-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const messageDiv = document.getElementById('message');
+
+    // Sign Up
+    signupBtn.addEventListener('click', () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          messageDiv.textContent = `Signed up as ${userCredential.user.email}`;
+        })
+        .catch((error) => {
+          messageDiv.textContent = `Error: ${error.message}`;
+        });
+    });
+
+    // Login
+    loginBtn.addEventListener('click', () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          messageDiv.textContent = `Logged in as ${userCredential.user.email}`;
+        })
+        .catch((error) => {
+          messageDiv.textContent = `Error: ${error.message}`;
+        });
+    });
+  </script>
 </body>
 </html>
 
