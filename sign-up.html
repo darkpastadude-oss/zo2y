@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zo2y - Sign Up</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Styles same as get-started page */
+  .login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; background-color: #fff; }
+  .login-container { width: 100%; max-width: 400px; padding: 40px 30px; border: 2px solid #000; border-radius: 12px; box-shadow: 8px 8px 0px #000; }
+  .login-container h1 { text-align: center; margin-bottom: 30px; }
+  .input-group { margin-bottom: 20px; }
+  .input-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+  .input-group input { width: 100%; padding: 12px 15px; border: 2px solid #000; font-size: 16px; outline: none; }
+  .input-group input:focus { box-shadow: 4px 4px 0px #000; }
+  button { width: 100%; padding: 12px; background-color: #FF5E5B; color: #fff; border: 2px solid #000; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+  button:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0px #000; }
+  .divider { display: flex; align-items: center; margin: 25px 0; color: #000; font-weight: bold; }
+  .divider::before, .divider::after { content: ""; flex: 1; border-bottom: 2px solid #000; margin: 0 10px; }
+  .social-login { display: flex; justify-content: center; gap: 15px; }
+  .social-btn { width: 50px; height: 50px; border: 2px solid #000; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+  .social-btn:hover { transform: translate(-2px,-2px); box-shadow: 4px 4px 0px #000; }
+  .footer { text-align: center; margin-top: 20px; }
+  .footer a { text-decoration: underline; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-container">
+    <h1>SIGN UP</h1>
+    <div class="input-group">
+      <label for="email">EMAIL</label>
+      <input type="email" id="email" placeholder="your@email.com">
+    </div>
+    <div class="input-group">
+      <label for="password">PASSWORD</label>
+      <input type="password" id="password" placeholder="••••••••">
+    </div>
+    <button>SIGN UP</button>
+    <div class="divider">OR</div>
+    <div class="social-login">
+      <div class="social-btn">G</div>
+      <div class="social-btn">F</div>
+      <div class="social-btn">X</div>
+    </div>
+    <div class="footer">
+      Already have an account? <a href="get-started.html">Login</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
