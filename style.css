@@ -1,139 +1,60 @@
 :root {
-  --primary: #1a1a1a;
-  --secondary: #ffffff;
-  --accent: #FF5E5B;
-  --shadow: 8px 8px 0px var(--primary);
+  --primary: #FFA500;  /* Orange */
+  --secondary: #ffffff; /* White */
 }
 
 /* Reset */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-/* Navbar */
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 50px;
-  background: var(--secondary);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+/* Top Orange Stripe */
+.top-stripe {
+  height: 50px;
+  background-color: var(--primary);
+  width: 100%;
 }
-
-.logo { height: 60px; transition: transform 0.3s; }
-.logo:hover { transform: scale(1.05); }
-
-.nav-links a {
-  margin-left: 30px;
-  text-decoration: none;
-  color: var(--primary);
-  font-weight: 600;
-  transition: color 0.3s;
-}
-.nav-links a:hover { color: var(--accent); }
 
 /* Hero Section */
 .hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  background-color: var(--secondary);
+  min-height: 90vh;
   text-align: center;
-  height: calc(100vh - 90px);
-  padding: 0 20px;
-  background: linear-gradient(135deg, #FFA500 0%, #FFB347 100%);
-  color: white;
+  padding: 50px 20px;
 }
-.hero h1 { font-size: 64px; font-weight: 700; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-.hero p { font-size: 22px; margin-bottom: 40px; max-width: 600px; }
+
+.hero-logo {
+  width: 150px;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: 48px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.hero .slogan {
+  font-size: 20px;
+  color: #666;
+  margin-bottom: 30px;
+}
+
 .hero button {
-  padding: 18px 45px;
+  padding: 15px 40px;
   font-size: 18px;
-  background-color: #1a1a1a;
-  color: white;
+  background-color: var(--primary);
+  color: var(--secondary);
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s;
 }
-.hero button:hover { background-color: #333; transform: translateY(-3px); }
 
-/* Login / Sign Up Pages */
-.login-container {
-  width: 100%;
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 40px 30px;
-  background-color: var(--secondary);
-  border: 1px solid var(--primary);
-  box-shadow: var(--shadow);
-  border-radius: 12px;
-  position: relative;
+.hero button:hover {
+  transform: translateY(-2px);
+  background-color: #e69500;
 }
-
-.login-container h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.input-group { margin-bottom: 20px; }
-label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary); }
-input {
-  width: 100%;
-  padding: 12px 15px;
-  border: 2px solid var(--primary);
-  border-radius: 5px;
-  outline: none;
-  font-size: 16px;
-  transition: all 0.3s;
-}
-input:focus { box-shadow: 4px 4px 0px var(--primary); }
-
-button {
-  width: 100%;
-  padding: 12px;
-  background-color: var(--accent);
-  color: var(--secondary);
-  border: 2px solid var(--primary);
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: all 0.3s;
-}
-button:hover { box-shadow: 4px 4px 0px var(--primary); transform: translate(-2px, -2px); }
-
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 25px 0;
-  color: var(--primary);
-  font-weight: bold;
-}
-.divider::before, .divider::after {
-  content: "";
-  flex: 1;
-  border-bottom: 2px solid var(--primary);
-  margin: 0 10px;
-}
-
-.social-login {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-.social-btn {
-  width: 50px;
-  height: 50px;
-  border: 2px solid var(--primary);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.social-btn:hover { box-shadow: 4px 4px 0px var(--primary); transform: translate(-2px, -2px); }
-
-.footer { text-align: center; margin-top: 20px; color: var(--primary); }
-.footer a { color: var(--primary); font-weight: bold; text-decoration: underline; }
