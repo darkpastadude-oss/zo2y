@@ -1,99 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zo2y</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <!-- Top stripe with logo inside -->
-  <div class="top-stripe">
-    <img src="zo2y.png" alt="Zo2y Logo" class="logo">
-  </div>
-
-  <div class="content">
-    <h1>Yo this is Zo2y</h1>
-    <p>Content goes here.</p>
 :root {
-  --primary: #000000;
-  --secondary: #FFFFFF;
+  --primary: #1a1a1a;
+  --secondary: #ffffff;
   --accent: #FF5E5B;
   --shadow: 8px 8px 0px var(--primary);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Courier New', monospace;
-}
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-body {
-  background-color: var(--secondary);
+/* Navbar */
+nav {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+  padding: 20px 50px;
+  background: var(--secondary);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
+.logo { height: 60px; transition: transform 0.3s; }
+.logo:hover { transform: scale(1.05); }
+
+.nav-links a {
+  margin-left: 30px;
+  text-decoration: none;
+  color: var(--primary);
+  font-weight: 600;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--accent); }
+
+/* Hero Section */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: calc(100vh - 90px);
+  padding: 0 20px;
+  background: linear-gradient(135deg, #FFA500 0%, #FFB347 100%);
+  color: white;
+}
+.hero h1 { font-size: 64px; font-weight: 700; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+.hero p { font-size: 22px; margin-bottom: 40px; max-width: 600px; }
+.hero button {
+  padding: 18px 45px;
+  font-size: 18px;
+  background-color: #1a1a1a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+.hero button:hover { background-color: #333; transform: translateY(-3px); }
+
+/* Login / Sign Up Pages */
 .login-container {
   width: 100%;
   max-width: 400px;
-  border: 1px solid var(--primary);
+  margin: 50px auto;
   padding: 40px 30px;
   background-color: var(--secondary);
-  box-shadow: var(--shadow);
-  position: relative;
-  border-radius: 12px;
-}
-
-.login-container::before {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  right: -6px;
-  bottom: -6px;
   border: 1px solid var(--primary);
-  z-index: -1;
+  box-shadow: var(--shadow);
   border-radius: 12px;
+  position: relative;
 }
 
-h1 {
-  color: var(--primary);
+.login-container h1 {
+  text-align: center;
   margin-bottom: 30px;
   font-size: 28px;
   font-weight: 700;
-  text-align: center;
 }
 
-.input-group {
-  margin-bottom: 20px;
-  position: relative;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: var(--primary);
-}
-
+.input-group { margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary); }
 input {
   width: 100%;
   padding: 12px 15px;
   border: 2px solid var(--primary);
-  background-color: var(--secondary);
-  font-size: 16px;
+  border-radius: 5px;
   outline: none;
+  font-size: 16px;
   transition: all 0.3s;
 }
-
-input:focus {
-  box-shadow: 4px 4px 0px var(--primary);
-}
+input:focus { box-shadow: 4px 4px 0px var(--primary); }
 
 button {
   width: 100%;
@@ -107,11 +102,7 @@ button {
   margin-top: 10px;
   transition: all 0.3s;
 }
-
-button:hover {
-  box-shadow: 4px 4px 0px var(--primary);
-  transform: translate(-2px, -2px);
-}
+button:hover { box-shadow: 4px 4px 0px var(--primary); transform: translate(-2px, -2px); }
 
 .divider {
   display: flex;
@@ -120,7 +111,6 @@ button:hover {
   color: var(--primary);
   font-weight: bold;
 }
-
 .divider::before, .divider::after {
   content: "";
   flex: 1;
@@ -133,7 +123,6 @@ button:hover {
   justify-content: center;
   gap: 15px;
 }
-
 .social-btn {
   width: 50px;
   height: 50px;
@@ -144,23 +133,7 @@ button:hover {
   cursor: pointer;
   transition: all 0.3s;
 }
+.social-btn:hover { box-shadow: 4px 4px 0px var(--primary); transform: translate(-2px, -2px); }
 
-.social-btn:hover {
-  box-shadow: 4px 4px 0px var(--primary);
-  transform: translate(-2px, -2px);
-}
-
-.footer {
-  text-align: center;
-  margin-top: 20px;
-  color: var(--primary);
-}
-
-.footer a {
-  color: var(--primary);
-  font-weight: bold;
-  text-decoration: underline;
-}
-  </div>
-</body>
-</html>
+.footer { text-align: center; margin-top: 20px; color: var(--primary); }
+.footer a { color: var(--primary); font-weight: bold; text-decoration: underline; }
