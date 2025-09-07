@@ -4,84 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zo2y</title>
-<style>
-  /* Reset default styles */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Arial', sans-serif;
-    background-color: white;
-    color: #333;
-  }
-
-  /* Top orange stripe */
-  .top-stripe { height: 50px; background-color: #FFA500; width: 100%; }
-
-  /* Navbar */
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .logo { height: 40px; }
-
-  .nav-links { display: flex; gap: 20px; }
-
-  .nav-links a {
-    text-decoration: none;
-    color: #333;
-    font-weight: bold;
-  }
-
-  .nav-links a:hover { color: #FFA500; }
-
-  /* Hero section */
-  .hero {
-    text-align: center;
-    padding: 100px 20px;
-  }
-
-  .hero h1 { font-size: 48px; margin-bottom: 20px; }
-
-  .hero p { font-size: 20px; margin-bottom: 30px; }
-
-  .hero button {
-    padding: 15px 30px;
-    font-size: 18px;
-    background-color: #FFA500;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .hero button:hover { background-color: #e69500; }
-</style>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <div class="top-stripe"></div>
-
-  <nav>
-    <img src="zo2y.png" alt="Zo2y Logo" class="logo">
-    <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="get-started.html">Sign Up</a>
-    </div>
-  </nav>
-
-  <!-- Home Page Hero -->
-  <div class="hero">
-    <h1>Welcome to Zo2y</h1>
-    <p>Rate restaurants, malls, and more in Egypt!</p>
-    <button onclick="window.location.href='get-started.html'">Get Started</button>
+<nav>
+  <img src="zo2y.png" alt="Zo2y Logo" class="logo">
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+    <a href="sign-up.html">Sign Up</a>
   </div>
+</nav>
+
+<div class="hero">
+  <h1>Welcome to Zo2y</h1>
+  <p>Rate restaurants, malls, and more across Egypt. Discover the best experiences and share your opinions effortlessly.</p>
+  <button onclick="window.location.href='sign-up.html'">Get Started</button>
+</div>
+
+<footer>
+  &copy; 2025 Zo2y. All Rights Reserved.
+</footer>
 
 </body>
 </html>
+
 
 
 
