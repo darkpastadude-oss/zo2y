@@ -125,7 +125,7 @@
 <section class="hero">
   <h1>Discover and Rate the Best Spots Around You</h1>
   <p>Restaurants, malls, cinemas, and more—your go-to rating app.</p>
-  <button class="get-started">Get Started</button>
+  <button class="get-started" onclick="window.location.href='login.html'">Get Started</button>
 </section>
 
 <!-- Restaurants Preview -->
@@ -141,11 +141,11 @@
 <script>
   // --- Sample Restaurant Data ---
   const restaurants = [
-    {name:"Mama’s Pizza", category:"Italian", img:"https://via.placeholder.com/250x150", rating:4.2},
-    {name:"Burger Town", category:"Fast Food", img:"https://via.placeholder.com/250x150", rating:4.5},
-    {name:"Sushi World", category:"Japanese", img:"https://via.placeholder.com/250x150", rating:4.7},
-    {name:"Café Latte", category:"Coffee", img:"https://via.placeholder.com/250x150", rating:4.0},
-    {name:"Taco Fiesta", category:"Mexican", img:"https://via.placeholder.com/250x150", rating:4.3}
+    {name:"Mori Sushi", category:"Japanese", img:"https://via.placeholder.com/250x150", rating:4.7},
+    {name:"Kilo Kebab", category:"Middle Eastern", img:"https://via.placeholder.com/250x150", rating:4.5},
+    {name:"Hameed", category:"Fast Food", img:"https://via.placeholder.com/250x150", rating:4.3},
+    {name:"Bazooka", category:"Burger", img:"https://via.placeholder.com/250x150", rating:4.2},
+    {name:"Mexican Corn", category:"Mexican", img:"https://via.placeholder.com/250x150", rating:4.0}
   ];
 
   const container = document.getElementById('restaurants');
@@ -171,7 +171,3 @@
 
 </body>
 </html>
-
-
-
-
