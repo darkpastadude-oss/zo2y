@@ -7,16 +7,26 @@
 <style>
   * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
   body {background:#fff; display:flex; justify-content:center; align-items:center; height:100vh;}
+  
   .form-container {
     background:#fff; padding:40px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.1);
     width:320px; text-align:center; border-top:6px solid #FF6F00; position:relative;
   }
+
   .home-button {
-    position:absolute; top:-40px; left:50%; transform:translateX(-50%);
+    position:absolute;
+    top:-40px;
+    left:50%;
+    transform: translateX(-50%) scale(1);
     background:#FF6F00; color:#fff; border:none; border-radius:30px; padding:10px 20px;
-    cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;
+    cursor:pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
   }
-  .home-button:hover {transform:scale(1.05); box-shadow:0 8px 20px rgba(255,111,0,0.5);}
+  .home-button:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 8px 20px rgba(255,111,0,0.5);
+  }
+
   .form-container img {width:80px; margin-bottom:20px;}
   .form-container h2 {margin-bottom:20px; color:#333;}
   .form-container input {
@@ -60,3 +70,4 @@ function login() {
 
 </body>
 </html>
+
