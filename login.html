@@ -3,46 +3,215 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zo2y - Login</title>
-<link rel="stylesheet" href="style.css">
+<title>Zo2y - Discover & Rate</title>
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9f9f9;
+    color: #333;
+  }
+
+  header {
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 50px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  header img {
+    height: 50px;
+  }
+
+  nav a {
+    margin-left: 20px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  nav a:hover {
+    color: #ff6600;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 100px 20px;
+    background: linear-gradient(135deg, #ff6600, #ff944d);
+    color: white;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+  }
+
+  .hero p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+  }
+
+  .hero button {
+    padding: 12px 30px;
+    font-size: 1rem;
+    background: white;
+    color: #ff6600;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+
+  .hero button:hover {
+    transform: scale(1.05);
+    background: #f2f2f2;
+  }
+
+  .restaurants {
+    display: flex;
+    gap: 20px;
+    padding: 50px 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .restaurant-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .restaurant-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .restaurant-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+
+  .restaurant-card h3 {
+    word-wrap: break-word;
+    font-size: 1.1rem;
+    margin: 5px 0;
+  }
+
+  .stars {
+    color: #ffb400;
+    margin-bottom: 10px;
+  }
+
+  .more-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #ff6600;
+  }
+
+  .more-card .circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px dashed #ff6600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: pulse 2s infinite;
+  }
+
+  .more-card:hover .circle {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255,102,0,0.5);
+  }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 rgba(255,102,0,0); }
+    50% { box-shadow: 0 0 20px rgba(255,102,0,0.5); }
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    background: #fff;
+    margin-top: 50px;
+    font-size: 0.9rem;
+    color: #777;
+  }
+</style>
 </head>
 <body>
+<header>
+  <img src="zo2y.png" alt="Zo2y Logo">
+  <nav>
+    <a href="login.html">Login</a>
+    <a href="signup.html">Sign Up</a>
+  </nav>
+</header>
 
-<nav>
-  <img src="zo2y.png" alt="Zo2y Logo" class="logo">
-  <div class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="sign-up.html">Sign Up</a>
+<section class="hero">
+  <h1>Discover & Rate</h1>
+  <p>Find the best spots, share your experiences, and see what’s trending in your city.</p>
+  <button onclick="location.href='get-started.html'">Get Started</button>
+</section>
+
+<section class="restaurants">
+  <div class="restaurant-card">
+    <img src="https://mori-sushi.com/wp-content/uploads/2023/05/MORI_LOGO_3copy_page-0001__2_-removebg-preview.png" alt="Mori Sushi">
+    <div class="stars">⭐⭐⭐⭐☆</div>
+    <h3>Mori Sushi</h3>
   </div>
-</nav>
 
-<div class="login-container">
-    <h1>Login</h1>
-    
-    <div class="input-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="your@email.com">
-    </div>
-    
-    <div class="input-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="••••••••">
-    </div>
-    
-    <button type="submit">Sign In</button>
-    
-    <div class="divider">OR</div>
-    
-    <div class="social-login">
-        <div class="social-btn">G</div>
-        <div class="social-btn">F</div>
-        <div class="social-btn">X</div>
-    </div>
-    
-    <div class="footer">
-        Don't have an account? <a href="sign-up.html">Sign Up</a>
-    </div>
-</div>
+  <div class="restaurant-card">
+    <img src="https://www.kilokabab.com/uploads/1/1/8/2/118230790/editor/kilo-kebab-logo-large-ntxt_14.png?1522659519" alt="Kilo Kebab">
+    <div class="stars">⭐⭐⭐⭐☆</div>
+    <h3>Kilo Kebab</h3>
+  </div>
 
+  <div class="restaurant-card">
+    <img src="https://images.deliveryhero.io/image/talabat/restaurants/Hameed638831570513723588.jpg?width=180" alt="Hameed">
+    <div class="stars">⭐⭐⭐☆☆</div>
+    <h3>Hameed</h3>
+  </div>
+
+  <div class="restaurant-card">
+    <img src="https://media.discordapp.net/attachments/1169675637716435034/1414986318580027392/kNE0cpllkMIFKAoophHZNRbt5hPIy6uZrOKgt5A5BPZJ6ft7hafvZOI7YGY7NQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuXj5P8ByBXy5wHoZR8AAAAASUVORK5CYII.png" alt="Bazooka">
+    <div class="stars">⭐⭐⭐⭐⭐</div>
+    <h3>Bazooka</h3>
+  </div>
+
+  <div class="restaurant-card">
+    <img src="images/mexican.png" alt="Mexican Corn">
+    <div class="stars">⭐⭐⭐⭐☆</div>
+    <h3>Mexican Corn</h3>
+  </div>
+
+  <div class="restaurant-card more-card" onclick="location.href='login.html'">
+    <div class="circle">+</div>
+    <h3>More</h3>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2025 Zo2y. All rights reserved.</p>
+</footer>
 </body>
 </html>
