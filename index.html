@@ -3,73 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zo2y - Discover & Rate</title>
+<title>Zo2y</title>
 <style>
-  body {
-    margin: 0;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background: #f9f9f9;
-    color: #333;
-  }
+  * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+  body {background:#fff;color:#333;overflow-x:hidden;}
 
-  header {
-    background: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 50px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  }
+  /* --- Top Stripe + Logo --- */
+  .top-stripe {background:#FF6F00; height:6px; position:relative;}
+  .logo {position:absolute; top:-30px; left:50%; transform:translateX(-50%); width:100px; animation: float 3s ease-in-out infinite; cursor:pointer;}
+  @keyframes float {0%,100%{transform:translate(-50%,-5px);}50%{transform:translate(-50%,5px);}}
 
-  header img {
-    height: 50px;
-  }
+  /* --- Hero Section --- */
+  .hero {text-align:center; padding:140px 20px 80px 20px; position:relative;}
+  .hero h1 {font-size:3rem; margin-bottom:20px; opacity:0; animation: fadeInUp 1s forwards;}
+  .hero p {font-size:1.2rem; color:#555; margin-bottom:40px; opacity:0; animation: fadeInUp 1s 0.3s forwards;}
+  .get-started {background:#FF6F00; color:#fff; padding:15px 50px; font-size:1.2rem; border:none; border-radius:30px; cursor:pointer; transition: transform 0.3s, box-shadow 0.3s; opacity:0; animation: fadeInUp 1s 0.6s forwards;}
+  .get-started:hover {transform: scale(1.1); box-shadow: 0 8px 20px rgba(255,111,0,0.5);}
+  @keyframes fadeInUp {from{opacity:0; transform:translateY(20px);}to{opacity:1; transform:translateY(0);}}
 
-  nav a {
-    margin-left: 20px;
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    transition: color 0.3s ease;
-  }
-
-  nav a:hover {
-    color: #ff6600;
-  }
-
-  .hero {
-    text-align: center;
-    padding: 100px 20px;
-    background: linear-gradient(135deg, #ff6600, #ff944d);
-    color: white;
-  }
-
-  .hero h1 {
-    font-size: 3rem;
-    margin-bottom: 20px;
-  }
-
-  .hero p {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-  }
-
-  .hero button {
-    padding: 12px 30px;
-    font-size: 1rem;
-    background: white;
-    color: #ff6600;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: transform 0.3s ease, background 0.3s ease;
-  }
-
-  .hero button:hover {
-    transform: scale(1.05);
-    background: #f2f2f2;
-  }
-
+  /* --- Restaurants Section --- */
   .restaurants {
     display: flex;
     gap: 20px;
@@ -77,135 +29,152 @@
     justify-content: center;
     flex-wrap: wrap;
   }
+  .restaurant-card {flex:0 0 180px; background:#fff; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1); padding:20px; text-align:center; transform:translateY(50px); opacity:0; transition: transform 0.6s, opacity 0.6s;}
+  .restaurant-card h3 {margin-bottom:5px;}
+  .restaurant-card p {margin-bottom:10px; color:#777; font-size:0.9rem;}
+  .restaurant-card:hover {transform:translateY(-5px) scale(1.03); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
 
-  .restaurant-card {
-    background: white;
-    border-radius: 20px;
-    padding: 20px;
-    width: 200px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+  /* --- Circular Icons --- */
+  .icon-wrapper {display:flex; justify-content:center; margin-bottom:10px;}
+  .restaurant-icon {width:60px; height:60px; border-radius:50%; border:2px solid #FF6F00;}
 
-  .restaurant-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  /* --- + More card --- */
+  .more-icon {
+    width:60px; height:60px; border-radius:50%; border:2px dashed #FF6F00;
+    display:flex; align-items:center; justify-content:center; font-size:2rem; color:#FF6F00;
+    transition: transform 0.3s, background 0.3s;
   }
+  .more-icon:hover {transform: scale(1.2); background: rgba(255,111,0,0.1);}
 
-  .restaurant-card img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 10px;
-  }
+  /* --- Stars --- */
+  .stars {color:#FF6F00; font-size:1.2rem; cursor:pointer;}
+  .star:hover, .star.active {color:#FF4500;}
 
-  .stars {
-    color: #ffb400;
-    margin-bottom: 10px;
-  }
-
-  .more-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    color: #ff6600;
-  }
-
-  .more-card .circle {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 2px dashed #ff6600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    transition: transform 0.3s, box-shadow 0.3s;
-    animation: pulse 2s infinite;
-  }
-
-  .more-card:hover .circle {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255,102,0,0.5);
-  }
-
-  @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 rgba(255,102,0,0); }
-    50% { box-shadow: 0 0 20px rgba(255,102,0,0.5); }
-  }
-
-  footer {
-    text-align: center;
-    padding: 20px;
-    background: #fff;
-    margin-top: 50px;
-    font-size: 0.9rem;
-    color: #777;
-  }
+  /* --- Footer --- */
+  footer {text-align:center; padding:40px 20px; border-top:1px solid #eee; font-size:0.9rem; color:#555;}
 </style>
 </head>
 <body>
-<header>
-  <img src="zo2y.png" alt="Zo2y Logo">
-  <nav>
-    <a href="login.html">Login</a>
-    <a href="signup.html">Sign Up</a>
-  </nav>
-</header>
 
+<!-- Top Stripe + Logo -->
+<div class="top-stripe">
+  <img src="zo2y.png" alt="Zo2y Logo" class="logo">
+</div>
+
+<!-- Hero Section -->
 <section class="hero">
-  <h1>Discover & Rate</h1>
-  <p>Find the best spots, share your experiences, and see what’s trending in your city.</p>
-  <button onclick="location.href='get-started.html'">Get Started</button>
+  <h1>Discover and Rate the Best Spots Around You</h1>
+  <p>Restaurants, malls, cinemas, and more—your go-to rating app.</p>
+  <button class="get-started" onclick="window.location.href='login.html'">Get Started</button>
 </section>
 
-<section class="restaurants">
-  <div class="restaurant-card">
-    <img src="https://media.discordapp.net/attachments/1169675637716435034/1414984922896007168/mori_sushi.png" alt="Mori Sushi">
-    <div class="stars">⭐⭐⭐⭐☆</div>
-    <h3>Mori Sushi</h3>
-  </div>
+<!-- Restaurants Preview -->
+<section class="restaurants" id="restaurants"></section>
 
-  <div class="restaurant-card">
-    <img src="https://media.discordapp.net/attachments/1169675637716435034/1414986055597297714/9k.png" alt="Kilo Kebab">
-    <div class="stars">⭐⭐⭐⭐☆</div>
-    <h3>Kilo Kebab</h3>
-  </div>
-
-  <div class="restaurant-card">
-    <img src="https://media.discordapp.net/attachments/1169675637716435034/1414981309666951329/hameed.png" alt="Hameed">
-    <div class="stars">⭐⭐⭐☆☆</div>
-    <h3>Hameed</h3>
-  </div>
-
-  <div class="restaurant-card">
-    <img src="https://media.discordapp.net/attachments/1169675637716435034/1414986318580027392/kNE0cpllkMIFKAoophHZNRbt5hPIy6uZrOKgt5A5BPZJ6ft7hafvZOI7YGY7NQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuXj5P8ByBXy5wHoZR8AAAAASUVORK5CYII.png" alt="Bazooka">
-    <div class="stars">⭐⭐⭐⭐⭐</div>
-    <h3>Bazooka</h3>
-  </div>
-
-  <div class="restaurant-card">
-    <img src="https://media.discordapp.net/attachments/1169675637716435034/1414986211898163356/images.png" alt="Mexican Corn">
-    <div class="stars">⭐⭐⭐⭐☆</div>
-    <h3>Mexican Corn</h3>
-  </div>
-
-  <div class="restaurant-card more-card" onclick="location.href='login.html'">
-    <div class="circle">+</div>
-    <h3>More</h3>
-  </div>
-</section>
-
+<!-- Footer -->
 <footer>
-  <p>&copy; 2025 Zo2y. All rights reserved.</p>
+  © 2025 Zo2y. All rights reserved.
 </footer>
+
+<script>
+const restaurants = [
+  {
+    name:"Mori Sushi",
+    category:"Japanese",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414984922896007168/mori_sushi.png?ex=68c18ee6&is=68c03d66&hm=3b696c52d03673eeb5505d7d1d110a250b8d53e5031f3ddc873bed390f76fbef&=&format=webp&quality=lossless&width=281&height=281",
+    rating:4.7, votes:1
+  },
+  {
+    name:"Kilo Kebab",
+    category:"Middle Eastern",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986055597297714/9k.png?ex=68c18ff4&is=68c03e74&hm=03cfb66fe4caa2e9431e2b0c62566750f93e73b31a28c18c5102302256f518ba&=&format=webp&quality=lossless&width=198&height=195",
+    rating:4.5, votes:1
+  },
+  {
+    name:"Hameed",
+    category:"Fast Food",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414981309666951329/hameed.png?ex=68c18b89&is=68c03a09&hm=6d505ecf122791edbd01da0287874982472f1407215f7c50b85a71e806c55cbc&=&format=webp&quality=lossless&width=281&height=281",
+    rating:4.3, votes:1
+  },
+  {
+    name:"Bazooka",
+    category:"Burger",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986318580027392/kNE0cpllkMIFKAoophHZNRbt5hPIy6uZrOKgt5A5BPZJ6ft7hafvZOI7YGY7NQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuXj5P8ByBXy5wHoZR8AAAAASUVORK5CYII.png?ex=68c19033&is=68c03eb3&hm=e0cab676eefc2bb09c4d13925a883b17a05dbc904eed6ebc2066b767b4058843&=&format=webp&quality=lossless&width=281&height=281",
+    rating:4.2, votes:1
+  },
+  {
+    name:"Mexican Corn",
+    category:"Mexican",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986211898163356/images.png?ex=68c1901a&is=68c03e9a&hm=eaa955010776c39fac36e16368ebf26cd52517c6bae378bc7f6b82fe3f57dce6&=&format=webp&quality=lossless&width=281&height=281",
+    rating:4.0, votes:1
+  }
+];
+
+const container = document.getElementById('restaurants');
+
+restaurants.forEach((r,i)=>{
+  const card = document.createElement('div');
+  card.className = 'restaurant-card';
+  card.innerHTML = `
+    <div class="icon-wrapper">
+      <img src="${r.icon}" alt="${r.name} Icon" class="restaurant-icon">
+    </div>
+    <h3>${r.name}</h3>
+    <p>${r.category}</p>
+    <div class="stars" data-index="${i}"></div>
+  `;
+  container.appendChild(card);
+
+  // Animate cards on load
+  setTimeout(()=>{
+    card.style.transform='translateY(0)';
+    card.style.opacity='1';
+  }, i*200);
+
+  // Initialize stars
+  const starsContainer = card.querySelector('.stars');
+  for(let s=1; s<=5; s++){
+    const star = document.createElement('span');
+    star.innerHTML='★';
+    star.className = s <= Math.round(r.rating)?'star active':'star';
+    star.dataset.value = s;
+    starsContainer.appendChild(star);
+  }
+
+  starsContainer.addEventListener('click', e=>{
+    if(e.target.classList.contains('star')){
+      const value=parseInt(e.target.dataset.value);
+      r.rating = ((r.rating*r.votes)+value)/(r.votes+1);
+      r.votes++;
+      Array.from(starsContainer.children).forEach((sElem,idx)=>{
+        sElem.classList.toggle('active', idx<Math.round(r.rating));
+      });
+    }
+  });
+});
+
+// Add "+ More" card
+const moreCard = document.createElement('div');
+moreCard.className = 'restaurant-card';
+moreCard.innerHTML = `
+  <div class="icon-wrapper">
+    <div class="more-icon">+</div>
+  </div>
+  <h3>More</h3>
+  <p>Explore all spots</p>
+`;
+moreCard.style.cursor = 'pointer';
+moreCard.addEventListener('click', () => { window.location.href = 'login.html'; });
+container.appendChild(moreCard);
+
+// Animate "+ More" card
+setTimeout(()=>{
+  moreCard.style.transform='translateY(0)';
+  moreCard.style.opacity='1';
+}, restaurants.length*200);
+</script>
+
 </body>
 </html>
+
+
