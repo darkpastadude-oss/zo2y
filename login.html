@@ -17,30 +17,22 @@
     position:absolute;
     top:-40px;
     left:50%;
-    transform: translateX(-50%) scale(1);
+    transform: translateX(-50%);
     background:#FF6F00; color:#fff; border:none; border-radius:30px; padding:10px 20px;
     cursor:pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
-  }
-  .home-button:hover {
-    transform: translateX(-50%) scale(1.05);
-    box-shadow: 0 8px 20px rgba(255,111,0,0.5);
   }
 
   .form-container img {width:80px; margin-bottom:20px;}
   .form-container h2 {margin-bottom:20px; color:#333;}
   .form-container input {
     width:100%; padding:12px 15px; margin:10px 0; border:1px solid #ccc; border-radius:10px;
-    font-size:1rem; transition: border 0.3s;
+    font-size:1rem;
   }
-  .form-container input:focus {border-color:#FF6F00; outline:none;}
   .form-container button {
     width:100%; padding:12px; margin-top:20px; background:#FF6F00; border:none; border-radius:30px;
-    color:#fff; font-size:1rem; cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;
+    color:#fff; font-size:1rem; cursor:pointer;
   }
-  .form-container button:hover {transform:scale(1.05); box-shadow:0 8px 20px rgba(255,111,0,0.5);}
   .form-container .link {margin-top:15px; display:block; color:#FF6F00; text-decoration:none;}
-  .form-container .link:hover {text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -70,4 +62,5 @@ function login() {
 
 </body>
 </html>
+
 
