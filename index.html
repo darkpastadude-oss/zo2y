@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -87,6 +87,10 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     .restaurant-card:hover {
@@ -100,6 +104,14 @@
       object-fit: cover;
       border-radius: 50%;
       margin-bottom: 15px;
+    }
+
+    .more-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #ff6600;
     }
 
     footer {
@@ -153,8 +165,8 @@
       <h3>Mexican Corn</h3>
     </div>
 
-    <div class="restaurant-card" onclick="location.href='login.html'">
-      <h3 style="font-size: 2rem; color: #ff6600;">+ More</h3>
+    <div class="restaurant-card more-card" onclick="location.href='login.html'">
+      <h3>+ More</h3>
     </div>
   </section>
 
@@ -163,3 +175,6 @@
   </footer>
 </body>
 </html>
+
+</html>
+
