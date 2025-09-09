@@ -5,21 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zo2y</title>
 <style>
-  * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
-  body {background:#fff;color:#333;overflow-x:hidden;}
+  * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
+  body {background:#fff; color:#333; overflow-x:hidden;}
 
   /* --- Top Stripe + Logo --- */
-  .top-stripe {background:#FF6F00; height:6px; position:relative;}
-  .logo {position:absolute; top:-30px; left:50%; transform:translateX(-50%); width:100px; animation: float 3s ease-in-out infinite; cursor:pointer;}
-  @keyframes float {0%,100%{transform:translate(-50%,-5px);}50%{transform:translate(-50%,5px);}}
+  .top-stripe {background:#FF6F00; height:20px; position:relative;}
+  .logo {position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:100px; cursor:pointer;}
 
   /* --- Hero Section --- */
-  .hero {text-align:center; padding:140px 20px 80px 20px; position:relative;}
-  .hero h1 {font-size:3rem; margin-bottom:20px; opacity:0; animation: fadeInUp 1s forwards;}
-  .hero p {font-size:1.2rem; color:#555; margin-bottom:40px; opacity:0; animation: fadeInUp 1s 0.3s forwards;}
-  .get-started {background:#FF6F00; color:#fff; padding:15px 50px; font-size:1.2rem; border:none; border-radius:30px; cursor:pointer; transition: transform 0.3s, box-shadow 0.3s; opacity:0; animation: fadeInUp 1s 0.6s forwards;}
-  .get-started:hover {transform: scale(1.1); box-shadow: 0 8px 20px rgba(255,111,0,0.5);}
-  @keyframes fadeInUp {from{opacity:0; transform:translateY(20px);}to{opacity:1; transform:translateY(0);}}
+  .hero {text-align:center; padding:140px 20px 80px 20px;}
+  .hero h1 {font-size:3rem; margin-bottom:20px;}
+  .hero p {font-size:1.2rem; color:#555; margin-bottom:40px;}
+  .get-started {background:#FF6F00; color:#fff; padding:15px 50px; font-size:1.2rem; border:none; border-radius:30px; cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;}
+  .get-started:hover {transform: scale(1.05); box-shadow: 0 8px 20px rgba(255,111,0,0.5);}
 
   /* --- Restaurants Section --- */
   .restaurants {
@@ -29,14 +27,22 @@
     justify-content: center;
     flex-wrap: wrap;
   }
-  .restaurant-card {flex:0 0 180px; background:#fff; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1); padding:20px; text-align:center; transform:translateY(50px); opacity:0; transition: transform 0.6s, opacity 0.6s;}
-  .restaurant-card h3 {margin-bottom:5px;}
+  .restaurant-card {
+    flex:0 0 180px;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    padding:20px;
+    text-align:center;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .restaurant-card:hover {transform: scale(1.05); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
+  .restaurant-card h3 {margin:10px 0 5px 0; font-size:1.1rem;}
   .restaurant-card p {margin-bottom:10px; color:#777; font-size:0.9rem;}
-  .restaurant-card:hover {transform:translateY(-5px) scale(1.03); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
 
   /* --- Circular Icons --- */
   .icon-wrapper {display:flex; justify-content:center; margin-bottom:10px;}
-  .restaurant-icon {width:60px; height:60px; border-radius:50%; border:2px solid #FF6F00;}
+  .restaurant-icon {width:60px; height:60px; border-radius:50%; border:2px solid #FF6F00; object-fit:cover;}
 
   /* --- + More card --- */
   .more-icon {
@@ -44,7 +50,7 @@
     display:flex; align-items:center; justify-content:center; font-size:2rem; color:#FF6F00;
     transition: transform 0.3s, background 0.3s;
   }
-  .more-icon:hover {transform: scale(1.2); background: rgba(255,111,0,0.1);}
+  .more-icon:hover {transform: scale(1.2); background: rgba(255,111,0,0.1); cursor:pointer;}
 
   /* --- Stars --- */
   .stars {color:#FF6F00; font-size:1.2rem; cursor:pointer;}
@@ -81,31 +87,31 @@ const restaurants = [
   {
     name:"Mori Sushi",
     category:"Japanese",
-    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414984922896007168/mori_sushi.png?ex=68c18ee6&is=68c03d66&hm=3b696c52d03673eeb5505d7d1d110a250b8d53e5031f3ddc873bed390f76fbef&=&format=webp&quality=lossless&width=281&height=281",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414984922896007168/mori_sushi.png",
     rating:4.7, votes:1
   },
   {
     name:"Kilo Kebab",
     category:"Middle Eastern",
-    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986055597297714/9k.png?ex=68c18ff4&is=68c03e74&hm=03cfb66fe4caa2e9431e2b0c62566750f93e73b31a28c18c5102302256f518ba&=&format=webp&quality=lossless&width=198&height=195",
+    icon:"https://www.kilokabab.com/uploads/1/1/8/2/118230790/editor/kilo-kebab-logo-large-ntxt_14.png?1522659519",
     rating:4.5, votes:1
   },
   {
     name:"Hameed",
     category:"Fast Food",
-    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414981309666951329/hameed.png?ex=68c18b89&is=68c03a09&hm=6d505ecf122791edbd01da0287874982472f1407215f7c50b85a71e806c55cbc&=&format=webp&quality=lossless&width=281&height=281",
+    icon:"https://images.deliveryhero.io/image/talabat/restaurants/Hameed638831570513723588.jpg?width=180",
     rating:4.3, votes:1
   },
   {
     name:"Bazooka",
     category:"Burger",
-    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986318580027392/kNE0cpllkMIFKAoophHZNRbt5hPIy6uZrOKgt5A5BPZJ6ft7hafvZOI7YGY7NQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuXj5P8ByBXy5wHoZR8AAAAASUVORK5CYII.png?ex=68c19033&is=68c03eb3&hm=e0cab676eefc2bb09c4d13925a883b17a05dbc904eed6ebc2066b767b4058843&=&format=webp&quality=lossless&width=281&height=281",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986318580027392/kNE0cpllkMIFKAoophHZNRbt5hPIy6uZrOKgt5A5BPZJ6ft7hafvZOI7YGY7NQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuVQDuXj5P8ByBXy5wHoZR8AAAAASUVORK5CYII.png",
     rating:4.2, votes:1
   },
   {
     name:"Mexican Corn",
     category:"Mexican",
-    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986211898163356/images.png?ex=68c1901a&is=68c03e9a&hm=eaa955010776c39fac36e16368ebf26cd52517c6bae378bc7f6b82fe3f57dce6&=&format=webp&quality=lossless&width=281&height=281",
+    icon:"mexican.png",
     rating:4.0, votes:1
   }
 ];
@@ -124,12 +130,6 @@ restaurants.forEach((r,i)=>{
     <div class="stars" data-index="${i}"></div>
   `;
   container.appendChild(card);
-
-  // Animate cards on load
-  setTimeout(()=>{
-    card.style.transform='translateY(0)';
-    card.style.opacity='1';
-  }, i*200);
 
   // Initialize stars
   const starsContainer = card.querySelector('.stars');
@@ -153,7 +153,7 @@ restaurants.forEach((r,i)=>{
   });
 });
 
-// Add "+ More" card
+// + More card
 const moreCard = document.createElement('div');
 moreCard.className = 'restaurant-card';
 moreCard.innerHTML = `
@@ -163,18 +163,9 @@ moreCard.innerHTML = `
   <h3>More</h3>
   <p>Explore all spots</p>
 `;
-moreCard.style.cursor = 'pointer';
 moreCard.addEventListener('click', () => { window.location.href = 'login.html'; });
 container.appendChild(moreCard);
-
-// Animate "+ More" card
-setTimeout(()=>{
-  moreCard.style.transform='translateY(0)';
-  moreCard.style.opacity='1';
-}, restaurants.length*200);
 </script>
 
 </body>
 </html>
-
-
