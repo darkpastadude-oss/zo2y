@@ -26,16 +26,25 @@
     display: flex;
     gap: 20px;
     padding: 50px 20px;
-    justify-content: center; /* center all cards */
-    flex-wrap: wrap;          /* wrap if screen smaller */
+    justify-content: center;
+    flex-wrap: wrap;
   }
   .restaurant-card {flex:0 0 180px; background:#fff; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1); padding:20px; text-align:center; transform:translateY(50px); opacity:0; transition: transform 0.6s, opacity 0.6s;}
   .restaurant-card h3 {margin-bottom:5px;}
   .restaurant-card p {margin-bottom:10px; color:#777; font-size:0.9rem;}
+  .restaurant-card:hover {transform:translateY(-5px) scale(1.03); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
 
   /* --- Circular Icons --- */
   .icon-wrapper {display:flex; justify-content:center; margin-bottom:10px;}
   .restaurant-icon {width:60px; height:60px; border-radius:50%; border:2px solid #FF6F00;}
+
+  /* --- + More card --- */
+  .more-icon {
+    width:60px; height:60px; border-radius:50%; border:2px dashed #FF6F00;
+    display:flex; align-items:center; justify-content:center; font-size:2rem; color:#FF6F00;
+    transition: transform 0.3s, background 0.3s;
+  }
+  .more-icon:hover {transform: scale(1.2); background: rgba(255,111,0,0.1);}
 
   /* --- Stars --- */
   .stars {color:#FF6F00; font-size:1.2rem; cursor:pointer;}
@@ -132,7 +141,6 @@ restaurants.forEach((r,i)=>{
     starsContainer.appendChild(star);
   }
 
-  // Star click event
   starsContainer.addEventListener('click', e=>{
     if(e.target.classList.contains('star')){
       const value=parseInt(e.target.dataset.value);
@@ -150,16 +158,20 @@ const moreCard = document.createElement('div');
 moreCard.className = 'restaurant-card';
 moreCard.innerHTML = `
   <div class="icon-wrapper">
-    <div style="width:60px;height:60px;border-radius:50%;border:2px dashed #FF6F00; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#FF6F00; cursor:pointer;">+</div>
+    <div class="more-icon">+</div>
   </div>
   <h3>More</h3>
   <p>Explore all spots</p>
 `;
 moreCard.style.cursor = 'pointer';
-moreCard.addEventListener('click', () => {
-  window.location.href = 'login.html';
-});
+moreCard.addEventListener('click', () => { window.location.href = 'login.html'; });
 container.appendChild(moreCard);
+
+// Animate "+ More" card
+setTimeout(()=>{
+  moreCard.style.transform='translateY(0)';
+  moreCard.style.opacity='1';
+}, restaurants.length*200);
 </script>
 
 </body>
