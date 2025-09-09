@@ -5,84 +5,168 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zo2y</title>
 <style>
-  /* Reset default styles */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Arial', sans-serif;
-    background-color: white;
-    color: #333;
+  /* --- Reset & Fonts --- */
+  * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+  body {background:#fff;color:#333;overflow-x:hidden;}
+  
+  /* --- Top Stripe + Logo --- */
+  .top-stripe {
+    background:#FF6F00;
+    height:6px;
+    position:relative;
+  }
+  .logo {
+    position:absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width:80px;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% {transform: translate(-50%,-5px);}
+    50% {transform: translate(-50%,5px);}
   }
 
-  /* Top orange stripe */
-  .top-stripe { height: 50px; background-color: #FFA500; width: 100%; }
-
-  /* Navbar */
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .logo { height: 40px; }
-
-  .nav-links { display: flex; gap: 20px; }
-
-  .nav-links a {
-    text-decoration: none;
-    color: #333;
-    font-weight: bold;
-  }
-
-  .nav-links a:hover { color: #FFA500; }
-
-  /* Hero section */
+  /* --- Hero Section --- */
   .hero {
-    text-align: center;
-    padding: 100px 20px;
+    text-align:center;
+    padding:120px 20px 80px 20px;
+    position:relative;
+  }
+  .hero h1 {
+    font-size:3rem;
+    margin-bottom:20px;
+    opacity:0;
+    animation: fadeInUp 1s forwards;
+  }
+  .hero p {
+    font-size:1.2rem;
+    color:#555;
+    margin-bottom:40px;
+    opacity:0;
+    animation: fadeInUp 1s 0.3s forwards;
+  }
+  .get-started {
+    background:#FF6F00;
+    color:#fff;
+    padding:15px 40px;
+    font-size:1.2rem;
+    border:none;
+    border-radius:30px;
+    cursor:pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    opacity:0;
+    animation: fadeInUp 1s 0.6s forwards;
+  }
+  .get-started:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(255,111,0,0.5);
   }
 
-  .hero h1 { font-size: 48px; margin-bottom: 20px; }
-
-  .hero p { font-size: 20px; margin-bottom: 30px; }
-
-  .hero button {
-    padding: 15px 30px;
-    font-size: 18px;
-    background-color: #FFA500;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+  @keyframes fadeInUp {
+    from {opacity:0; transform:translateY(20px);}
+    to {opacity:1; transform:translateY(0);}
   }
 
-  .hero button:hover { background-color: #e69500; }
+  /* --- Restaurants Section --- */
+  .restaurants {
+    display:flex;
+    gap:20px;
+    padding:50px 20px;
+    overflow-x:auto;
+    scroll-behavior:smooth;
+  }
+  .restaurant-card {
+    flex:0 0 250px;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    padding:20px;
+    text-align:center;
+    transform: translateY(50px);
+    opacity:0;
+    transition: transform 0.6s, opacity 0.6s;
+  }
+  .restaurant-card img {
+    width:100%;
+    border-radius:10px;
+    margin-bottom:15px;
+  }
+  .restaurant-card h3 {margin-bottom:10px;}
+  .restaurant-card p {margin-bottom:10px; color:#777;}
+  .restaurant-card .stars {color:#FF6F00; font-size:1.1rem;}
+
+  /* --- Footer CTA --- */
+  footer {
+    text-align:center;
+    padding:40px 20px;
+    border-top:1px solid #eee;
+  }
+
+  /* Scrollbar style for restaurant row */
+  .restaurants::-webkit-scrollbar {height:8px;}
+  .restaurants::-webkit-scrollbar-thumb {background:#FF6F00;border-radius:4px;}
+  .restaurants::-webkit-scrollbar-track {background:#f1f1f1;}
 </style>
 </head>
 <body>
 
-  <div class="top-stripe"></div>
+<!-- Top Stripe + Logo -->
+<div class="top-stripe">
+  <img src="logo.png" alt="Zo2y Logo" class="logo">
+</div>
 
-  <nav>
-    <img src="zo2y.png" alt="Zo2y Logo" class="logo">
-    <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="get-started.html">Sign Up</a>
-    </div>
-  </nav>
+<!-- Hero Section -->
+<section class="hero">
+  <h1>Discover and Rate the Best Spots Around You</h1>
+  <p>Restaurants, malls, cinemas, and more—your go-to rating app.</p>
+  <button class="get-started">Get Started</button>
+</section>
 
-  <!-- Home Page Hero -->
-  <div class="hero">
-    <h1>Welcome to Zo2y</h1>
-    <p>Rate restaurants, malls, and more in Egypt!</p>
-    <button onclick="window.location.href='get-started.html'">Get Started</button>
-  </div>
+<!-- Restaurants Preview -->
+<section class="restaurants" id="restaurants">
+  <!-- Cards added by JS -->
+</section>
+
+<!-- Footer -->
+<footer>
+  <button class="get-started">Get Started</button>
+</footer>
+
+<script>
+  // --- Sample Restaurant Data ---
+  const restaurants = [
+    {name:"Mama’s Pizza", category:"Italian", img:"https://via.placeholder.com/250x150", rating:4.2},
+    {name:"Burger Town", category:"Fast Food", img:"https://via.placeholder.com/250x150", rating:4.5},
+    {name:"Sushi World", category:"Japanese", img:"https://via.placeholder.com/250x150", rating:4.7},
+    {name:"Café Latte", category:"Coffee", img:"https://via.placeholder.com/250x150", rating:4.0},
+    {name:"Taco Fiesta", category:"Mexican", img:"https://via.placeholder.com/250x150", rating:4.3}
+  ];
+
+  const container = document.getElementById('restaurants');
+
+  restaurants.forEach((r, i)=>{
+    const card = document.createElement('div');
+    card.className = 'restaurant-card';
+    card.innerHTML = `
+      <img src="${r.img}" alt="${r.name}">
+      <h3>${r.name}</h3>
+      <p>${r.category}</p>
+      <div class="stars">${'★'.repeat(Math.round(r.rating))}</div>
+    `;
+    container.appendChild(card);
+
+    // Animate cards on load with delay
+    setTimeout(()=> {
+      card.style.transform = 'translateY(0)';
+      card.style.opacity = '1';
+    }, i*200);
+  });
+</script>
 
 </body>
 </html>
-
 
 
 
