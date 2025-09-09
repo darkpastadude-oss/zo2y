@@ -7,35 +7,35 @@
 <style>
   * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
   body {background:#fff; display:flex; justify-content:center; align-items:center; height:100vh;}
-  .login-container {
-    background:#fefefe; padding:40px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.1);
-    width:320px; text-align:center;
+  .form-container {
+    background:#fff; padding:40px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    width:320px; text-align:center; border-top:6px solid #FF6F00;
   }
-  .login-container img {width:80px; margin-bottom:20px;}
-  .login-container h2 {margin-bottom:20px; color:#333;}
-  .login-container input {
+  .form-container img {width:80px; margin-bottom:20px;}
+  .form-container h2 {margin-bottom:20px; color:#333;}
+  .form-container input {
     width:100%; padding:12px 15px; margin:10px 0; border:1px solid #ccc; border-radius:10px;
     font-size:1rem; transition: border 0.3s;
   }
-  .login-container input:focus {border-color:#FF6F00; outline:none;}
-  .login-container button {
+  .form-container input:focus {border-color:#FF6F00; outline:none;}
+  .form-container button {
     width:100%; padding:12px; margin-top:20px; background:#FF6F00; border:none; border-radius:30px;
     color:#fff; font-size:1rem; cursor:pointer; transition: transform 0.3s, box-shadow 0.3s;
   }
-  .login-container button:hover {transform:scale(1.05); box-shadow:0 8px 20px rgba(255,111,0,0.5);}
-  .login-container .signup-link {margin-top:15px; display:block; color:#FF6F00; text-decoration:none;}
-  .login-container .signup-link:hover {text-decoration:underline;}
+  .form-container button:hover {transform:scale(1.05); box-shadow:0 8px 20px rgba(255,111,0,0.5);}
+  .form-container .link {margin-top:15px; display:block; color:#FF6F00; text-decoration:none;}
+  .form-container .link:hover {text-decoration:underline;}
 </style>
 </head>
 <body>
 
-<div class="login-container">
+<div class="form-container">
   <img src="zo2y.png" alt="Zo2y Logo">
   <h2>Login to Zo2y</h2>
   <input type="email" placeholder="Email" id="email" required>
   <input type="password" placeholder="Password" id="password" required>
   <button onclick="login()">Login</button>
-  <a href="sign-up.html" class="signup-link">Don't have an account? Sign Up</a>
+  <a href="sign-up.html" class="link">Don't have an account? Sign Up</a>
 </div>
 
 <script>
@@ -46,8 +46,6 @@ function login() {
     alert('Please fill in all fields.');
     return;
   }
-  // Example logic: redirect to homepage after login
-  // Replace with real authentication logic if you have backend
   alert('Logged in successfully!');
   window.location.href = 'index.html';
 }
@@ -55,4 +53,5 @@ function login() {
 
 </body>
 </html>
+
 
