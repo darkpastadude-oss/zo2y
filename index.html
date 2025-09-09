@@ -144,9 +144,24 @@ restaurants.forEach((r,i)=>{
     }
   });
 });
+
+// Add "+ More" card
+const moreCard = document.createElement('div');
+moreCard.className = 'restaurant-card';
+moreCard.innerHTML = `
+  <div class="icon-wrapper">
+    <div style="width:60px;height:60px;border-radius:50%;border:2px dashed #FF6F00; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#FF6F00; cursor:pointer;">+</div>
+  </div>
+  <h3>More</h3>
+  <p>Explore all spots</p>
+`;
+moreCard.style.cursor = 'pointer';
+moreCard.addEventListener('click', () => {
+  window.location.href = 'login.html';
+});
+container.appendChild(moreCard);
 </script>
 
 </body>
 </html>
-
 
