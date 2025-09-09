@@ -27,6 +27,12 @@
   .restaurant-card img {width:100%; border-radius:10px; margin-bottom:15px;}
   .restaurant-card h3 {margin-bottom:10px;}
   .restaurant-card p {margin-bottom:10px; color:#777;}
+
+  /* --- Circular Icons --- */
+  .icon-wrapper {display:flex; justify-content:center; margin-bottom:10px;}
+  .restaurant-icon {width:50px; height:50px; border-radius:50%; border:2px solid #FF6F00;}
+
+  /* --- Stars --- */
   .stars {color:#FF6F00; font-size:1.3rem; cursor:pointer;}
   .star:hover, .star.active {color:#FF4500;}
 
@@ -63,19 +69,52 @@
 
 <script>
 const restaurants = [
-  {name:"Mori Sushi", category:"Japanese", img:"https://via.placeholder.com/250x150", rating:4.7, votes:1},
-  {name:"Kilo Kebab", category:"Middle Eastern", img:"https://via.placeholder.com/250x150", rating:4.5, votes:1},
-  {name:"Hameed", category:"Fast Food", img:"https://via.placeholder.com/250x150", rating:4.3, votes:1},
-  {name:"Bazooka", category:"Burger", img:"https://via.placeholder.com/250x150", rating:4.2, votes:1},
-  {name:"Mexican Corn", category:"Mexican", img:"https://via.placeholder.com/250x150", rating:4.0, votes:1}
+  {
+    name:"Mori Sushi",
+    category:"Japanese",
+    img:"https://via.placeholder.com/250x150",
+    icon:"https://via.placeholder.com/50", // temporary placeholder
+    rating:4.7, votes:1
+  },
+  {
+    name:"Kilo Kebab",
+    category:"Middle Eastern",
+    img:"https://via.placeholder.com/250x150",
+    icon:"https://via.placeholder.com/50", // placeholder
+    rating:4.5, votes:1
+  },
+  {
+    name:"Hameed",
+    category:"Fast Food",
+    img:"https://via.placeholder.com/250x150",
+    icon:"https://media.discordapp.net/attachments/1169675637716435034/1414981309666951329/hameed.png?ex=68c18b89&is=68c03a09&hm=6d505ecf122791edbd01da0287874982472f1407215f7c50b85a71e806c55cbc&=&format=webp&quality=lossless&width=281&height=281",
+    rating:4.3, votes:1
+  },
+  {
+    name:"Bazooka",
+    category:"Burger",
+    img:"https://via.placeholder.com/250x150",
+    icon:"https://via.placeholder.com/50",
+    rating:4.2, votes:1
+  },
+  {
+    name:"Mexican Corn",
+    category:"Mexican",
+    img:"https://via.placeholder.com/250x150",
+    icon:"https://via.placeholder.com/50",
+    rating:4.0, votes:1
+  }
 ];
 
 const container = document.getElementById('restaurants');
 
-restaurants.forEach((r, i)=>{
+restaurants.forEach((r,i)=>{
   const card = document.createElement('div');
   card.className = 'restaurant-card';
   card.innerHTML = `
+    <div class="icon-wrapper">
+      <img src="${r.icon}" alt="${r.name} Icon" class="restaurant-icon">
+    </div>
     <img src="${r.img}" alt="${r.name}">
     <h3>${r.name}</h3>
     <p>${r.category}</p>
@@ -84,31 +123,29 @@ restaurants.forEach((r, i)=>{
   container.appendChild(card);
 
   // Animate cards on load
-  setTimeout(()=> {
-    card.style.transform = 'translateY(0)';
-    card.style.opacity = '1';
+  setTimeout(()=>{
+    card.style.transform='translateY(0)';
+    card.style.opacity='1';
   }, i*200);
 
   // Initialize stars
   const starsContainer = card.querySelector('.stars');
   for(let s=1; s<=5; s++){
     const star = document.createElement('span');
-    star.innerHTML = '★';
-    star.className = s <= Math.round(r.rating) ? 'star active' : 'star';
+    star.innerHTML='★';
+    star.className = s <= Math.round(r.rating)?'star active':'star';
     star.dataset.value = s;
     starsContainer.appendChild(star);
   }
 
   // Star click event
-  starsContainer.addEventListener('click', e => {
+  starsContainer.addEventListener('click', e=>{
     if(e.target.classList.contains('star')){
-      const value = parseInt(e.target.dataset.value);
-      // Update rating
-      r.rating = ((r.rating * r.votes) + value) / (r.votes + 1);
+      const value=parseInt(e.target.dataset.value);
+      r.rating = ((r.rating*r.votes)+value)/(r.votes+1);
       r.votes++;
-      // Update stars visually
-      Array.from(starsContainer.children).forEach((sElem, idx)=>{
-        sElem.classList.toggle('active', idx < Math.round(r.rating));
+      Array.from(starsContainer.children).forEach((sElem,idx)=>{
+        sElem.classList.toggle('active', idx<Math.round(r.rating));
       });
     }
   });
@@ -117,5 +154,6 @@ restaurants.forEach((r, i)=>{
 
 </body>
 </html>
+
 
 
