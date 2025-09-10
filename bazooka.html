@@ -9,109 +9,58 @@
   body {background:#fff;color:#333;overflow-x:hidden;}
 
   /* --- Top Stripe + Logo --- */
-  .top-stripe {background:#FF6F00; height:50px; position:relative;}
-  .logo {position:absolute; top:10px; left:50%; transform:translateX(-50%); width:100px; cursor:pointer;}
+  .top-stripe {background:#FF6F00; height:20px; position:relative;}
+  .logo {position:absolute; top:-30px; left:50%; transform:translateX(-50%); width:100px; cursor:pointer;}
 
   /* --- Hero Section --- */
-  .hero {text-align:center; padding:120px 20px 40px 20px; position:relative;}
-  .hero h1 {font-size:2.5rem; margin-bottom:10px;}
-  .hero p {font-size:1rem; color:#555; margin-bottom:10px;}
-  .rating {color:#FF6F00; font-size:1.2rem; margin-bottom:20px;}
+  .hero {text-align:center; padding:140px 20px 80px 20px; position:relative;}
+  .hero h1 {font-size:3rem; margin-bottom:20px;}
+  .hero p {font-size:1.2rem; color:#555; margin-bottom:40px;}
 
-  /* --- Info Section --- */
-  .info {padding:20px; max-width:800px; margin:0 auto;}
-  .info h2 {margin-bottom:10px;}
-  .info p {margin-bottom:8px; color:#555;}
-
-  /* --- Menu Section --- */
-  .menu {padding:20px; max-width:800px; margin:0 auto;}
-  .menu h2 {margin-bottom:15px;}
-  .menu-item {display:flex; justify-content:space-between; margin-bottom:10px; padding:10px; border-bottom:1px solid #eee;}
-
-  /* --- Reviews Section --- */
-  .reviews {padding:20px; max-width:800px; margin:0 auto;}
-  .reviews h2 {margin-bottom:15px;}
-  .review {border-bottom:1px solid #eee; padding:10px 0;}
-  .review p {margin-bottom:5px;}
-  .review-form {margin-top:20px; display:flex; flex-direction:column; gap:10px;}
-  .review-form input, .review-form textarea {padding:10px; font-size:1rem; width:100%; border:1px solid #ccc; border-radius:5px;}
-  .review-form button {background:#FF6F00; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;}
-  .review-form button:hover {transform: scale(1.05);}
-  
-  /* --- Footer --- */
-  footer {text-align:center; padding:40px 20px; border-top:1px solid #eee; font-size:0.9rem; color:#555;}
+  /* --- Sections --- */
+  section {padding:40px 20px;}
+  h2 {font-size:2rem; margin-bottom:20px; color:#FF6F00;}
+  p {font-size:1rem; color:#555; margin-bottom:10px;}
+  .placeholder {font-style:italic; color:#aaa;}
 </style>
 </head>
 <body>
 
-<!-- Top Stripe + Logo -->
+<!-- Top Stripe + Bazooka Logo -->
 <div class="top-stripe">
-  <img src="zoey.png" alt="Zo2y Logo" class="logo" onclick="window.location.href='index.html'">
+  <img src="bazooka.jpg" alt="Bazooka Logo" class="logo" onclick="window.location.href='index.html'">
 </div>
 
-<!-- Hero / Header -->
+<!-- Hero Section -->
 <section class="hero">
   <h1>Bazooka</h1>
-  <p>Burger</p>
-  <div class="rating">★★★★☆ (4.2)</div>
+  <p class="placeholder">Description about Bazooka restaurant.</p>
 </section>
 
-<!-- Restaurant Info -->
-<section class="info">
-  <h2>Contact & Branches</h2>
-  <p><strong>Hotline:</strong> 0123-456-789</p>
-  <p><strong>Branches:</strong> Downtown, City Mall, Marina</p>
-  <p><strong>Address:</strong> 123 Burger Street, New Cairo</p>
-</section>
-
-<!-- Menu -->
-<section class="menu">
+<!-- Menu Section -->
+<section>
   <h2>Menu</h2>
-  <div class="menu-item"><span>Bazooka Burger</span><span>$5.50</span></div>
-  <div class="menu-item"><span>Cheese Burger</span><span>$6.00</span></div>
-  <div class="menu-item"><span>Fries</span><span>$2.00</span></div>
-  <div class="menu-item"><span>Soda</span><span>$1.50</span></div>
+  <p class="placeholder">Menu items will go here.</p>
 </section>
 
-<!-- Reviews -->
-<section class="reviews">
+<!-- Branches Section -->
+<section>
+  <h2>Branches</h2>
+  <p class="placeholder">Branches information will go here.</p>
+</section>
+
+<!-- Reviews Section -->
+<section>
   <h2>Reviews</h2>
-  <div id="reviews-list">
-    <div class="review">
-      <p><strong>Mohamed E.</strong></p>
-      <p>Best burger in town, fast service!</p>
-    </div>
-  </div>
-
-  <form class="review-form" id="review-form">
-    <input type="text" placeholder="Your Name" id="reviewer">
-    <textarea placeholder="Write your review..." id="review-text"></textarea>
-    <button type="submit">Submit Review</button>
-  </form>
+  <p class="placeholder">Reviews will go here.</p>
 </section>
 
-<!-- Footer -->
-<footer>
-  © 2025 Zo2y. All rights reserved.
-</footer>
-
-<script>
-const reviewForm = document.getElementById('review-form');
-const reviewsList = document.getElementById('reviews-list');
-
-reviewForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const name = document.getElementById('reviewer').value.trim();
-  const text = document.getElementById('review-text').value.trim();
-  if(name && text){
-    const reviewDiv = document.createElement('div');
-    reviewDiv.className = 'review';
-    reviewDiv.innerHTML = `<p><strong>${name}</strong></p><p>${text}</p>`;
-    reviewsList.appendChild(reviewDiv);
-    reviewForm.reset();
-  }
-});
-</script>
+<!-- Hotline / Ordering Section -->
+<section>
+  <h2>Hotline & Ordering</h2>
+  <p class="placeholder">Hotline number and ordering info will go here.</p>
+</section>
 
 </body>
 </html>
+
