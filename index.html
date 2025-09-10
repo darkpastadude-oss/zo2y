@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,23 +9,23 @@
   body {background:#fff;color:#333;overflow-x:hidden;}
 
   /* --- Top Stripe + Logo --- */
-  .top-stripe {background:#FF6F00; height:40px; position:relative;} /* taller stripe */
+  .top-stripe {background:#FF6F00; height:20px; position:relative;}
   .logo {
     position:absolute;
-    top:15px; /* lowered from previous -30px */
+    top:50px; /* pushed down safely */
     left:50%;
     transform:translateX(-50%);
-    width:120px; /* slightly bigger */
+    width:120px;
     animation: float 3s ease-in-out infinite;
     cursor:pointer;
   }
   @keyframes float {
-    0%,100%{transform:translate(-50%,0);}
-    50%{transform:translate(-50%,-5px);} /* only moves up slightly, no touching stripe */
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -5px); } /* small float */
   }
 
   /* --- Hero Section --- */
-  .hero {text-align:center; padding:140px 20px 80px 20px; position:relative;}
+  .hero {text-align:center; padding:160px 20px 80px 20px; position:relative;}
   .hero h1 {font-size:3rem; margin-bottom:20px; opacity:0; animation: fadeInUp 1s forwards;}
   .hero p {font-size:1.2rem; color:#555; margin-bottom:40px; opacity:0; animation: fadeInUp 1s 0.3s forwards;}
   .get-started {background:#FF6F00; color:#fff; padding:15px 50px; font-size:1.2rem; border:none; border-radius:30px; cursor:pointer; transition: transform 0.3s, box-shadow 0.3s; opacity:0; animation: fadeInUp 1s 0.6s forwards;}
@@ -170,3 +169,4 @@ setTimeout(()=>{
 
 </body>
 </html>
+
