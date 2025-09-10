@@ -9,8 +9,9 @@
   body {background:#fff;color:#333;overflow-x:hidden;}
 
   /* --- Top Stripe + Logo --- */
-  .top-stripe {background:#FF6F00; height:50px; position:relative;} /* taller stripe to fit logo */
-  .logo {position:absolute; top:10px; left:50%; transform:translateX(-50%); width:100px; cursor:pointer;}
+  .top-stripe {background:#FF6F00; height:20px; position:relative;}
+  .logo {position:absolute; top:-30px; left:50%; transform:translateX(-50%); width:100px; animation: float 3s ease-in-out infinite; cursor:pointer;}
+  @keyframes float {0%,100%{transform:translate(-50%,-5px);}50%{transform:translate(-50%,5px);}}
 
   /* --- Hero Section --- */
   .hero {text-align:center; padding:140px 20px 80px 20px; position:relative;}
@@ -28,7 +29,7 @@
     justify-content: center;
     flex-wrap: wrap;
   }
-  .restaurant-card {flex:0 0 180px; background:#fff; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1); padding:20px; text-align:center; transform:translateY(50px); opacity:0; transition: transform 0.6s, opacity 0.6s;}
+  .restaurant-card {flex:0 0 180px; background:#fff; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1); padding:20px; text-align:center; transform:translateY(50px); opacity:0; transition: transform 0.6s, opacity 0.6s; cursor:pointer;}
   .restaurant-card h3 {margin-bottom:5px;}
   .restaurant-card p {margin-bottom:10px; color:#777; font-size:0.9rem;}
   .restaurant-card:hover {transform:translateY(-5px) scale(1.03); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
@@ -57,7 +58,7 @@
 
 <!-- Top Stripe + Logo -->
 <div class="top-stripe">
-  <img src="zoey.png" alt="Zo2y Logo" class="logo">
+  <img src="zoey.png" alt="Zo2y Logo" class="logo" onclick="window.location.href='index.html'">
 </div>
 
 <!-- Hero Section -->
@@ -77,11 +78,11 @@
 
 <script>
 const restaurants = [
-  {name:"Mori Sushi", category:"Japanese", icon:"mori.png", rating:4.7, votes:1},
-  {name:"Kilo Kebab", category:"Middle Eastern", icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986055597297714/9k.png", rating:4.5, votes:1},
-  {name:"Hameed", category:"Fast Food", icon:"https://media.discordapp.net/attachments/1169675637716435034/1414981309666951329/hameed.png", rating:4.3, votes:1},
-  {name:"Bazooka", category:"Burger", icon:"bazooka.jpg", rating:4.2, votes:1},
-  {name:"Mexican Corn", category:"Mexican", icon:"https://media.discordapp.net/attachments/1169675637716435034/1414986211898163356/images.png", rating:4.0, votes:1}
+  { name:"Mori Sushi", category:"Japanese", icon:"mori.png", rating:4.7, votes:1 },
+  { name:"Kilo Kebab", category:"Middle Eastern", icon:"kilo.jpg", rating:4.5, votes:1 },
+  { name:"Hameed", category:"Fast Food", icon:"hameed.png", rating:4.3, votes:1 },
+  { name:"Bazooka", category:"Burger", icon:"bazooka.jpg", rating:4.2, votes:1 },
+  { name:"Mexican Corn", category:"Mexican", icon:"mexican.png", rating:4.0, votes:1 }
 ];
 
 const container = document.getElementById('restaurants');
@@ -125,6 +126,13 @@ restaurants.forEach((r,i)=>{
       });
     }
   });
+
+  // Card click for Bazooka
+  card.addEventListener('click', () => {
+    if(r.name === "Bazooka"){
+      window.location.href = 'bazooka.html';
+    }
+  });
 });
 
 // Add "+ More" card
@@ -150,4 +158,3 @@ setTimeout(()=>{
 
 </body>
 </html>
-
