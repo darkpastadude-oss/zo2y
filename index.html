@@ -12,7 +12,7 @@
   .top-stripe {background:#FF6F00; height:20px; position:relative;}
   .logo {
     position:absolute;
-    top:50px; /* pushed down safely */
+    top:50px;
     left:50%;
     transform:translateX(-50%);
     width:120px;
@@ -21,7 +21,7 @@
   }
   @keyframes float {
     0%, 100% { transform: translate(-50%, 0); }
-    50% { transform: translate(-50%, -5px); } /* small float */
+    50% { transform: translate(-50%, -5px); }
   }
 
   /* --- Hero Section --- */
@@ -89,11 +89,11 @@
 
 <script>
 const restaurants = [
-  { name:"Mori Sushi", category:"Japanese", icon:"mori.png", rating:4.7, votes:1 },
-  { name:"Kilo Kebab", category:"Middle Eastern", icon:"kilo.jpg", rating:4.5, votes:1 },
-  { name:"Hameed", category:"Fast Food", icon:"hameed.png", rating:4.3, votes:1 },
-  { name:"Bazooka", category:"Burger", icon:"bazooka.jpg", rating:4.2, votes:1 },
-  { name:"Mexican Corn", category:"Mexican", icon:"mexican.png", rating:4.0, votes:1 }
+  { name:"Mori Sushi", category:"Japanese", icon:"mori.png", rating:4.7, votes:1, page:"mori.html" },
+  { name:"Kilo Kebab", category:"Middle Eastern", icon:"kilo.jpg", rating:4.5, votes:1, page:"kilo.html" },
+  { name:"Hameed", category:"Fast Food", icon:"hameed.png", rating:4.3, votes:1, page:"hameed.html" },
+  { name:"Bazooka", category:"Burger", icon:"bazooka.jpg", rating:4.2, votes:1, page:"bazooka.html" },
+  { name:"Mexican Corn", category:"Mexican", icon:"mexican.png", rating:4.0, votes:1, page:"mexican.html" }
 ];
 
 const container = document.getElementById('restaurants');
@@ -138,11 +138,9 @@ restaurants.forEach((r,i)=>{
     }
   });
 
-  // Card click for Bazooka
+  // Card click => redirect to its page
   card.addEventListener('click', () => {
-    if(r.name === "Bazooka"){
-      window.location.href = 'bazooka.html';
-    }
+    window.location.href = r.page;
   });
 });
 
@@ -169,4 +167,3 @@ setTimeout(()=>{
 
 </body>
 </html>
-
