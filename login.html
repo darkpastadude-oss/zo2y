@@ -4,35 +4,98 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zo2y - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
-  body {background:#fff; display:flex; justify-content:center; align-items:center; height:100vh;}
+  * {margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif;}
+  body {
+    height:100vh;
+    display:flex; justify-content:center; align-items:center;
+    background:linear-gradient(135deg, #FF6F00, #FF8F00);
+  }
   
   .form-container {
-    background:#fff; padding:40px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.1);
-    width:320px; text-align:center; border-top:6px solid #FF6F00; position:relative;
+    background:#fff;
+    padding:50px 40px;
+    border-radius:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.15);
+    width:350px;
+    text-align:center;
+    position:relative;
   }
 
   .home-button {
     position:absolute;
-    top:-40px;
+    top:-25px;
     left:50%;
     transform: translateX(-50%);
-    background:#FF6F00; color:#fff; border:none; border-radius:30px; padding:10px 20px;
+    background:#fff;
+    color:#FF6F00;
+    border:2px solid #FF6F00;
+    border-radius:25px;
+    padding:8px 18px;
+    font-weight:600;
     cursor:pointer;
+    transition:0.3s ease;
+  }
+  .home-button:hover {
+    background:#FF6F00;
+    color:#fff;
   }
 
-  .form-container img {width:80px; margin-bottom:20px;}
-  .form-container h2 {margin-bottom:20px; color:#333;}
+  .form-container img {
+    width:80px;
+    margin-bottom:20px;
+  }
+
+  .form-container h2 {
+    margin-bottom:25px;
+    color:#333;
+    font-weight:600;
+  }
+
   .form-container input {
-    width:100%; padding:12px 15px; margin:10px 0; border:1px solid #ccc; border-radius:10px;
+    width:100%;
+    padding:14px 15px;
+    margin:12px 0;
+    border:1px solid #ddd;
+    border-radius:12px;
     font-size:1rem;
+    outline:none;
+    transition:0.3s;
   }
+  .form-container input:focus {
+    border-color:#FF6F00;
+    box-shadow:0 0 5px rgba(255,111,0,0.4);
+  }
+
   .form-container button {
-    width:100%; padding:12px; margin-top:20px; background:#FF6F00; border:none; border-radius:30px;
-    color:#fff; font-size:1rem; cursor:pointer;
+    width:100%;
+    padding:14px;
+    margin-top:20px;
+    background:#FF6F00;
+    border:none;
+    border-radius:30px;
+    color:#fff;
+    font-size:1rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
   }
-  .form-container .link {margin-top:15px; display:block; color:#FF6F00; text-decoration:none;}
+  .form-container button:hover {
+    background:#e65c00;
+  }
+
+  .form-container .link {
+    margin-top:18px;
+    display:block;
+    color:#FF6F00;
+    text-decoration:none;
+    font-size:0.95rem;
+    transition:0.3s;
+  }
+  .form-container .link:hover {
+    text-decoration:underline;
+  }
 </style>
 </head>
 <body>
@@ -62,3 +125,4 @@ function login() {
 
 </body>
 </html>
+
