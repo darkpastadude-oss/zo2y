@@ -63,6 +63,32 @@
 
   /* --- Footer --- */
   footer {text-align:center; padding:40px 20px; border-top:1px solid #eee; font-size:0.9rem; color:#555;}
+
+  /* --- Back to Top Button --- */
+  #backToTop {
+    position:fixed;
+    bottom:20px;
+    left:20px;
+    width:50px;
+    height:50px;
+    background:#FF6F00;
+    color:#000;
+    font-size:1.5rem;
+    border:none;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity 0.3s ease, visibility 0.3s ease;
+    z-index:1000;
+  }
+  #backToTop.show {
+    opacity:1;
+    visibility:visible;
+  }
 </style>
 </head>
 <body>
@@ -86,6 +112,9 @@
 <footer>
   © 2025 Zo2y. All rights reserved.
 </footer>
+
+<!-- Back to Top Button -->
+<button id="backToTop">↑</button>
 
 <script>
 const restaurants = [
@@ -111,13 +140,11 @@ restaurants.forEach((r,i)=>{
   `;
   container.appendChild(card);
 
-  // Animate cards on load
   setTimeout(()=>{
     card.style.transform='translateY(0)';
     card.style.opacity='1';
   }, i*200);
 
-  // Initialize stars
   const starsContainer = card.querySelector('.stars');
   for(let s=1; s<=5; s++){
     const star = document.createElement('span');
@@ -138,13 +165,11 @@ restaurants.forEach((r,i)=>{
     }
   });
 
-  // Card click => redirect to its page
   card.addEventListener('click', () => {
     window.location.href = r.page;
   });
 });
 
-// Add "+ More" card
 const moreCard = document.createElement('div');
 moreCard.className = 'restaurant-card';
 moreCard.innerHTML = `
@@ -158,11 +183,23 @@ moreCard.style.cursor = 'pointer';
 moreCard.addEventListener('click', () => { window.location.href = 'login.html'; });
 container.appendChild(moreCard);
 
-// Animate "+ More" card
 setTimeout(()=>{
   moreCard.style.transform='translateY(0)';
   moreCard.style.opacity='1';
 }, restaurants.length*200);
+
+// Back to Top Button
+const backToTop = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+  if(window.scrollY > 200){
+    backToTop.classList.add('show');
+  } else {
+    backToTop.classList.remove('show');
+  }
+});
+backToTop.addEventListener('click', () => {
+  window.scrollTo({top:0, behavior:'smooth'});
+});
 </script>
 
 </body>
