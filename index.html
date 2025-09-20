@@ -186,11 +186,11 @@
   <script>
     // ===== Restaurants Cards & Stars =====
     const restaurants = [
-      { name:"Mori Sushi", category:"Japanese", icon:"mori.png", rating:4.7, votes:1, page:"mori.html" },
-      { name:"Kilo Kebab", category:"Middle Eastern", icon:"kilo.jpg", rating:4.5, votes:1, page:"kilo.html" },
-      { name:"Hameed", category:"Fast Food", icon:"hameed.png", rating:4.3, votes:1, page:"hameed.html" },
-      { name:"Bazooka", category:"Burger", icon:"bazooka.jpg", rating:4.2, votes:1, page:"bazooka.html" },
-      { name:"Mexican Corn", category:"Mexican", icon:"mexican.png", rating:4.0, votes:1, page:"mexican.html" }
+      { name:"Mori Sushi", category:"Japanese", icon:"mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
+      { name:"Kilo Kebab", category:"Middle Eastern", icon:"kilo.jpg", rating:4.5, votes:1, page:"cards/kilo.html" },
+      { name:"Hameed", category:"Fast Food", icon:"hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
+      { name:"Bazooka", category:"Burger", icon:"bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
+      { name:"Mexican Corn", category:"Mexican", icon:"mexican.png", rating:4.0, votes:1, page:"cards/mexican.html" }
     ];
 
     const container = document.getElementById('restaurants');
@@ -268,7 +268,7 @@
       const token = localStorage.getItem('token');
       const headerButtons = document.getElementById('headerButtons');
 
-      if(!token) return; // not logged in, keep Login/SignUp
+      if(!token) return;
 
       try {
         const res = await fetch('/api/auth/me', {
@@ -277,7 +277,6 @@
         const data = await res.json();
 
         if(res.ok && data.user){
-          // replace buttons with welcome + logout
           headerButtons.innerHTML = `
             <span style="color:#fff; font-weight:600; margin-right:10px;">Welcome, ${data.user.username}</span>
             <button id="logoutBtn">Logout</button>
