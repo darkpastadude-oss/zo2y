@@ -25,7 +25,7 @@ body{height:100vh;display:flex;justify-content:center;align-items:center;backgro
 
 <div class="form-container">
   <button class="home-button" onclick="window.location.href='index.html'">Home</button>
-  <img src="zoey.png" alt="Zo2y Logo">
+  <img src="images/logo.png" alt ="Zo2y Logo">
   <h2>Create Your Account</h2>
   <input type="text" placeholder="Username" id="username" required>
   <input type="email" placeholder="Email" id="email" required>
@@ -67,6 +67,21 @@ async function signup() {
     alert('Something went wrong.');
   }
 }
+</script>
+<script>
+  // Apply saved dark mode immediately
+  if (localStorage.darkMode === "enabled") {
+    document.body.classList.add("dark");
+  }
+
+  // Toggle dark mode if button exists
+  const toggle = document.querySelector('.dark-toggle');
+  if(toggle){
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.darkMode = document.body.classList.contains('dark') ? "enabled" : "disabled";
+    });
+  }
 </script>
 
 </body>

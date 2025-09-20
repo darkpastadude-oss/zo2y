@@ -144,6 +144,21 @@ reviewForm.addEventListener('submit', e => {
   }
 });
 </script>
+<script>
+  // Apply saved dark mode immediately
+  if (localStorage.darkMode === "enabled") {
+    document.body.classList.add("dark");
+  }
+
+  // Toggle dark mode if button exists
+  const toggle = document.querySelector('.dark-toggle');
+  if(toggle){
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.darkMode = document.body.classList.contains('dark') ? "enabled" : "disabled";
+    });
+  }
+</script>
 
 </body>
 </html>

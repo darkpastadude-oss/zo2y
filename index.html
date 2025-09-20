@@ -57,9 +57,7 @@
       color:#333;
       transition: background 0.3s;
     }
-    .dark-toggle:hover {
-      background:#ddd;
-    }
+    .dark-toggle:hover {background:#ddd;}
 
     /* --- Hero Section --- */
     .hero {text-align:center; padding:160px 20px 80px 20px; position:relative;}
@@ -171,7 +169,7 @@
   <section class="hero">
     <h1>Discover and Rate the Best Spots Around You</h1>
     <p>Restaurants, malls, cinemas, and more—your go-to rating app.</p>
-    <button class="get-started" onclick="window.location.href='login.html'">Get Started</button>
+    <button class="get-started" onclick="window.location.href='signup.html'">Get Started</button>
   </section>
 
   <!-- Restaurants Preview -->
@@ -186,11 +184,11 @@
   <script>
     // ===== Restaurants Cards & Stars =====
     const restaurants = [
-      { name:"Mori Sushi", category:"Japanese", icon:"images/mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
-      { name:"Kilo Kebab", category:"Middle Eastern", icon:"images/kilo.png", rating:4.5, votes:1, page:"cards/kilo.html" },
-      { name:"Hameed", category:"Fast Food", icon:"images/hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
-      { name:"Bazooka", category:"Burger", icon:"images/bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
-      { name:"Mexican Corn", category:"Mexican", icon:"images/mexican.jpg", rating:4.0, votes:1, page:"cards/mexican.html" }
+      { name:"Mori Sushi", category:"Japanese", icon:"cards/mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
+      { name:"Kilo Kebab", category:"Middle Eastern", icon:"cards/kilo.png", rating:4.5, votes:1, page:"cards/kilo.html" },
+      { name:"Hameed", category:"Fast Food", icon:"cards/hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
+      { name:"Bazooka", category:"Burger", icon:"cards/bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
+      { name:"Mexican Corn", category:"Mexican", icon:"cards/mexican.jpg", rating:4.0, votes:1, page:"cards/mexican.html" }
     ];
 
     const container = document.getElementById('restaurants');
@@ -258,9 +256,22 @@
       window.scrollTo({top:0, behavior:'smooth'});
     });
 
-    // ===== Dark mode toggle =====
-    document.querySelector('.dark-toggle').addEventListener('click', () => {
+    // ===== Dark mode toggle (with persistence) =====
+    const darkToggle = document.querySelector('.dark-toggle');
+    function applyDarkMode(saved) {
+      if(saved === "true") {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+    }
+
+    // Load saved preference
+    applyDarkMode(localStorage.getItem("darkMode"));
+
+    darkToggle.addEventListener('click', () => {
       document.body.classList.toggle('dark');
+      localStorage.setItem("darkMode", document.body.classList.contains('dark'));
     });
 
     // ===== AUTH INTEGRATION =====
@@ -288,8 +299,12 @@
             location.reload();
           });
 
-          document.querySelector('.dark-toggle').addEventListener('click', () => {
+          // Dark toggle in auth mode
+          const authDarkToggle = document.querySelector('.dark-toggle');
+          applyDarkMode(localStorage.getItem("darkMode"));
+          authDarkToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark');
+            localStorage.setItem("darkMode", document.body.classList.contains('dark'));
           });
         }
       } catch(err){
