@@ -60,7 +60,8 @@
 <div class="top-stripe"></div>
 
 <section class="hero">
-  <img src="hameed.png" alt="Hameed Logo" class="logo" onclick="location.href='index.html'">
+  <!-- FIXED IMAGE PATH -->
+  <img src="../images/hameed.png" alt="Hameed Logo" class="logo" onclick="location.href='index.html'">
   <h1>Hameed</h1>
   <p>Fried Chicken & Shawarma</p>
   <div class="rating">⭐ 4.2/5 (based on Google reviews)</div>
@@ -115,7 +116,7 @@ reviewForm.addEventListener('submit', e => {
   const div = document.createElement('div');
   div.className = 'review';
   const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-  div.innerHTML = <p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>;
+  div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
   reviewsList.appendChild(div);
   reviewForm.reset();
 });
@@ -123,3 +124,4 @@ reviewForm.addEventListener('submit', e => {
 
 </body>
 </html>
+

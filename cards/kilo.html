@@ -69,7 +69,8 @@
 <div class="top-stripe"></div>
 
 <section class="hero">
-  <img src="kilo.jpg" alt="Kilo Kabab Logo" class="logo" onclick="window.location.href='index.html'">
+  <!-- ✅ Corrected path to cards folder -->
+  <img src="../images/kilo.png" alt="Kilo Kabab Logo" class="logo" onclick="window.location.href='index.html'">
   <h1>Kilo Kabab</h1>
   <p>Oriental Grill • Kebabs • Sandwiches</p>
   <div class="rating">⭐ 4.4/5</div>
@@ -137,7 +138,7 @@ reviewForm.addEventListener('submit', e => {
   if (name && text) {
     const reviewDiv = document.createElement('div');
     reviewDiv.className = 'review';
-    reviewDiv.innerHTML = <p><strong>${name}</strong></p><p>${text}</p>;
+    reviewDiv.innerHTML = `<p><strong>${name}</strong></p><p>${text}</p>`;
     reviewsList.appendChild(reviewDiv);
     reviewForm.reset();
   }

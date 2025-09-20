@@ -62,7 +62,8 @@
 <div class="top-stripe"></div>
 
 <section class="hero">
-  <img src="bazooka.jpg" alt="Bazooka Logo" class="logo" onclick="location.href='index.html'">
+  <!-- ✅ Fixed image path -->
+  <img src="../images/bazooka.jpg" alt="Bazooka Logo" class="logo" onclick="location.href='../index.html'">
   <h1>Bazooka</h1>
   <p>Fried Chicken & Sandwiches</p>
   <div class="rating">⭐ 4.3/5 (based on Google reviews)</div>
@@ -137,7 +138,7 @@ reviewForm.addEventListener('submit', e => {
   const div = document.createElement('div');
   div.className = 'review';
   const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-  div.innerHTML = <p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>;
+  div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
   reviewsList.appendChild(div);
   reviewForm.reset();
 });
