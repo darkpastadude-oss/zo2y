@@ -4,49 +4,51 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bazooka</title>
+<!-- 1. Link to the main CSS file for the variables -->
+<link rel="stylesheet" href="../style.css">
 <style>
   * {margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-  body {background:#fff; color:#333; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background-color: var(--bg-color-primary); color: var(--text-color-primary); transition: background-color 0.3s ease, color 0.3s ease;}
 
-  .top-stripe { background:#FF6F00; height:50px; }
+  .top-stripe { background:#FF6F00; height:50px; } /* Brand color stays */
 
   .hero { text-align:center; padding:50px 20px 30px; }
   .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.12); cursor:pointer; margin-bottom:30px; border:2px solid rgba(0,0,0,0.04); transition:transform .18s ease; }
   .logo:active { transform:scale(.98); }
   .hero h1 { font-size:2.3rem; font-weight:700; margin-bottom:8px; letter-spacing:0.4px; }
-  .hero p { font-size:1rem; color:#555; margin-bottom:10px; }
-  .rating { color:#FF6F00; font-size:1.1rem; margin-bottom:18px; }
+  .hero p { font-size:1rem; color: var(--text-color-secondary); margin-bottom:10px; } /* USING VARIABLE */
+  .rating { color:#FF6F00; font-size:1.1rem; margin-bottom:18px; } /* Brand color stays */
 
-  .btn { display:inline-block; padding:10px 18px; border-radius:8px; background:#FF6F00; color:#fff; text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease; }
-  .btn.secondary { background:#fff; color:#FF6F00; border:1px solid #FF6F00; }
+  .btn { display:inline-block; padding:10px 18px; border-radius:8px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease, color 0.3s ease; } /* USING VARIABLES */
+  .btn.secondary { background: var(--nav-bg); color: var(--text-color-primary); border:1px solid var(--text-color-primary); } /* USING VARIABLES */
   .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
 
   .section { max-width:900px; margin:0 auto; padding:20px; }
   h2 { margin-bottom:15px; font-size:1.3rem; }
-  p { margin-bottom:6px; color:#555; }
+  p { margin-bottom:6px; color: var(--text-color-secondary); } /* USING VARIABLE */
 
   .hotline { font-size:1.2rem; margin-bottom:24px; }
-  .hotline a { color:#FF6F00; font-weight:700; text-decoration:none; }
+  .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; } /* USING VARIABLE */
   .hotline a:hover { text-decoration:underline; }
 
   .branches { display:flex; flex-wrap:wrap; gap:12px; }
-  .branch-card { flex:1 1 45%; border:1px solid #eee; border-radius:8px; padding:15px; background:#fafafa; display:flex; flex-direction:column; }
-  .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color:#FF6F00; }
-  .branch-card a { font-size:0.95rem; color:#FF6F00; text-decoration:none; }
+  .branch-card { flex:1 1 45%; border:1px solid var(--nav-shadow); border-radius:8px; padding:15px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s ease; } /* USING VARIABLES */
+  .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color: var(--text-color-primary); } /* USING VARIABLE */
+  .branch-card a { font-size:0.95rem; color: var(--text-color-primary); text-decoration:none; } /* USING VARIABLE */
   .branch-card a:hover { text-decoration:underline; }
 
-  .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; margin-bottom:8px; }
-  .menu-item span { color:#666; }
-  .menu-item .price { color:#999; }
+  .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--nav-shadow); margin-bottom:8px; } /* USING VARIABLE */
+  .menu-item span { color: var(--text-color-secondary); } /* USING VARIABLE */
+  .menu-item .price { color: var(--text-color-secondary); } /* USING VARIABLE */
 
-  .review { padding:12px 0; border-bottom:1px solid #eee; }
-  .review p { margin-bottom:6px; color:#444; }
+  .review { padding:12px 0; border-bottom:1px solid var(--nav-shadow); } /* USING VARIABLE */
+  .review p { margin-bottom:6px; color: var(--text-color-secondary); } /* USING VARIABLE */
   .review-form { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
-  .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid #ddd; border-radius:6px; resize:vertical; }
-  .review-form button { background:#FF6F00; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease; }
+  .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid var(--text-color-secondary); border-radius:6px; resize:vertical; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s ease, color 0.3s ease; } /* USING VARIABLES */
+  .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease; } /* USING VARIABLES */
   .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
 
-  footer { text-align:center; padding:36px 20px; border-top:1px solid #eee; color:#666; font-size:0.95rem; }
+  footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; } /* USING VARIABLES */
 
   @media (max-width:640px) {
     .logo { width:120px; height:120px; margin-bottom:24px; }
@@ -56,19 +58,7 @@
     .menu-item { flex-direction:column; align-items:flex-start; }
   }
 
-  /* Dark mode */
-  body.dark { background:#0f172a; color:#e2e8f0; }
-  body.dark .hero h1, body.dark .hero p { color:#e2e8f0; }
-  body.dark .rating { color:#facc15; }
-  body.dark .btn { background:#334155; color:#f8fafc; }
-  body.dark .btn.secondary { background:#1e293b; color:#f1f5f9; border-color:#f1f5f9; }
-  body.dark .branch-card { background:#1e293b; color:#f1f5f9; border-color:#334155; }
-  body.dark .branch-card a { color:#f1f5f9; }
-  body.dark .menu-item span { color:#cbd5e1; }
-  body.dark footer { color:#94a3b8; border-color:#334155; }
-  body.dark .review p { color:#cbd5e1; }
-  body.dark .review-form input, body.dark .review-form textarea { background:#334155; color:#f1f5f9; border:1px solid #475569; }
-  body.dark .review-form button { background:#2563eb; }
+  /* REMOVED THE ENTIRE OLD DARK MODE CSS */
 </style>
 </head>
 <body>
@@ -155,12 +145,9 @@ reviewForm.addEventListener('submit', e => {
   reviewsList.appendChild(div);
   reviewForm.reset();
 });
-
-// Apply dark mode automatically
-if(localStorage.darkMode === "enabled") {
-  document.body.classList.add("dark");
-}
 </script>
 
+<!-- 2. Add the theme manager script to apply the theme -->
+<script src="../js/themeManager.js"></script>
 </body>
 </html>
