@@ -1,158 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y</title>
-  <style>
-    * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
-    body {background:#fff;color:#333;overflow-x:hidden;}
-    
-    /* --- Top Stripe + Logo --- */
-    .top-stripe {background:#FF6F00; height:20px; position:relative;}
-    .logo {
-      position:absolute;
-      top:50px;
-      left:50%;
-      transform:translateX(-50%);
-      width:120px;
-      animation: float 3s ease-in-out infinite;
-      cursor:pointer;
-      z-index:1;
-    }
-    @keyframes float {
-      0%,100% {transform: translate(-50%,0);}
-      50% {transform: translate(-50%,-5px);}
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zo2y</title>
+<style>
+  * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+  body {background:#fff;color:#333;overflow-x:hidden; transition: background 0.3s, color 0.3s;}
+  body.dark {background:#0f172a;color:#e2e8f0;}
 
-    /* --- Header Buttons --- */
-    .header-buttons {
-      position:absolute;
-      top:25px;
-      right:20px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      z-index:1000;
-    }
-    .header-buttons button {
-      background:#FF6F00;
-      color:#fff;
-      padding:8px 16px;
-      border:none;
-      border-radius:20px;
-      cursor:pointer;
-      font-size:0.9rem;
-      transition:background 0.3s;
-    }
-    .header-buttons button:hover {
-      background:#e65c00;
-    }
-    .dark-toggle {
-      font-size:1.2rem;
-      cursor:pointer;
-      padding:6px 10px;
-      border-radius:50%;
-      background:#f0f0f0;
-      color:#333;
-      transition: background 0.3s;
-    }
-    .dark-toggle:hover {background:#ddd;}
+  /* Top Stripe + Logo */
+  .top-stripe {background:#FF6F00; height:20px; position:relative;}
+  .logo {
+    position:absolute;
+    top:50px;
+    left:50%;
+    transform:translateX(-50%);
+    width:120px;
+    animation: float 3s ease-in-out infinite;
+    cursor:pointer;
+    z-index:1;
+  }
+  @keyframes float {0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-5px);}}
 
-    /* --- Hero Section --- */
-    .hero {text-align:center; padding:160px 20px 80px 20px; position:relative;}
-    .hero h1 {font-size:3rem; margin-bottom:20px; opacity:0; animation: fadeInUp 1s forwards;}
-    .hero p {font-size:1.2rem; color:#555; margin-bottom:40px; opacity:0; animation: fadeInUp 1s 0.3s forwards;}
-    .get-started {
-      background:#FF6F00;
-      color:#fff;
-      padding:15px 50px;
-      font-size:1.2rem;
-      border:none;
-      border-radius:30px;
-      cursor:pointer;
-      transition: transform 0.3s, box-shadow 0.3s;
-      opacity:0;
-      animation: fadeInUp 1s 0.6s forwards;
-    }
-    .get-started:hover {transform: scale(1.1); box-shadow: 0 8px 20px rgba(255,111,0,0.5);}
-    @keyframes fadeInUp {from{opacity:0; transform:translateY(20px);}to{opacity:1; transform:translateY(0);}}
+  /* Header Buttons */
+  .header-buttons {
+    position:absolute;
+    top:25px;
+    right:20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    z-index:1000;
+  }
+  .header-buttons button {
+    background:#FF6F00; color:#fff; padding:8px 16px;
+    border:none; border-radius:20px; cursor:pointer; font-size:0.9rem; transition:background 0.3s;
+  }
+  .header-buttons button:hover {background:#e65c00;}
+  .dark-toggle {
+    font-size:1.2rem; cursor:pointer; padding:6px 10px; border-radius:50%;
+    background:#f0f0f0; color:#333; transition:background 0.3s;
+  }
+  body.dark .dark-toggle {background:#334155;color:#f1f5f9;}
+  .dark-toggle:hover {background:#ddd;}
 
-    /* --- Restaurants Section --- */
-    .restaurants {
-      display:flex;
-      gap:20px;
-      padding:50px 20px;
-      justify-content:center;
-      flex-wrap:wrap;
-    }
-    .restaurant-card {
-      flex:0 0 180px;
-      background:#fff;
-      border-radius:15px;
-      box-shadow:0 5px 15px rgba(0,0,0,0.1);
-      padding:20px;
-      text-align:center;
-      transform:translateY(50px);
-      opacity:0;
-      transition: transform 0.6s, opacity 0.6s;
-      cursor:pointer;
-    }
-    .restaurant-card h3 {margin-bottom:5px;}
-    .restaurant-card p {margin-bottom:10px; color:#777; font-size:0.9rem;}
-    .restaurant-card:hover {transform:translateY(-5px) scale(1.03); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
+  /* Hero Section */
+  .hero {text-align:center; padding:160px 20px 80px 20px; position:relative;}
+  .hero h1 {font-size:3rem;margin-bottom:20px;opacity:0;animation:fadeInUp 1s forwards;}
+  .hero p {font-size:1.2rem;color:#555;margin-bottom:40px;opacity:0;animation:fadeInUp 1s 0.3s forwards;}
+  .get-started {
+    background:#FF6F00;color:#fff;padding:15px 50px;font-size:1.2rem;border:none;border-radius:30px;
+    cursor:pointer;transition: transform 0.3s, box-shadow 0.3s;opacity:0;animation:fadeInUp 1s 0.6s forwards;
+  }
+  .get-started:hover {transform:scale(1.1); box-shadow:0 8px 20px rgba(255,111,0,0.5);}
+  body.dark .get-started {background:#334155; color:#f8fafc;}
 
-    /* --- Circular Icons --- */
-    .icon-wrapper {display:flex; justify-content:center; margin-bottom:10px;}
-    .restaurant-icon {width:60px; height:60px; border-radius:50%; border:2px solid #FF6F00;}
+  @keyframes fadeInUp {from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 
-    /* --- + More card --- */
-    .more-icon {
-      width:60px; height:60px; border-radius:50%;
-      border:2px dashed #FF6F00;
-      display:flex; align-items:center; justify-content:center;
-      font-size:2rem; color:#FF6F00;
-      transition: transform 0.3s, background 0.3s;
-    }
-    .more-icon:hover {transform: scale(1.2); background: rgba(255,111,0,0.1);}
+  /* Restaurants Section */
+  .restaurants {display:flex;gap:20px;padding:50px 20px;justify-content:center;flex-wrap:wrap;}
+  .restaurant-card {
+    flex:0 0 180px;background:#fff;border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);padding:20px;text-align:center;
+    transform:translateY(50px);opacity:0;transition: transform 0.6s, opacity 0.6s;cursor:pointer;
+  }
+  body.dark .restaurant-card {background:#1e293b;color:#f1f5f9;box-shadow:0 5px 15px rgba(0,0,0,0.6);}
+  .restaurant-card p {margin-bottom:10px; color:#777; font-size:0.9rem;}
+  body.dark .restaurant-card p {color:#cbd5e1;}
+  .restaurant-card:hover {transform:translateY(-5px) scale(1.03); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
 
-    /* --- Stars --- */
-    .stars {color:#FF6F00; font-size:1.2rem; cursor:pointer;}
-    .star:hover, .star.active {color:#FF4500;}
+  .icon-wrapper {display:flex; justify-content:center; margin-bottom:10px;}
+  .restaurant-icon {width:60px;height:60px;border-radius:50%;border:2px solid #FF6F00;}
+  body.dark .restaurant-icon {border-color:#fbbf24;}
 
-    /* --- Footer --- */
-    footer {text-align:center; padding:40px 20px; border-top:1px solid #eee; font-size:0.9rem; color:#555;}
+  .more-icon {
+    width:60px;height:60px;border-radius:50%;border:2px dashed #FF6F00;
+    display:flex; align-items:center; justify-content:center;font-size:2rem;color:#FF6F00;
+    transition: transform 0.3s, background 0.3s;
+  }
+  .more-icon:hover {transform: scale(1.2); background: rgba(255,111,0,0.1);}
+  body.dark .more-icon {border-color:#fbbf24;color:#fbbf24;}
 
-    /* --- Back to Top Button --- */
-    #backToTop {
-      position:fixed; bottom:20px; left:20px;
-      width:50px; height:50px;
-      background:#FF6F00; color:#000;
-      font-size:1.5rem; border:none;
-      border-radius:8px;
-      display:flex; align-items:center; justify-content:center;
-      cursor:pointer;
-      opacity:0; visibility:hidden;
-      transition:opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease;
-      z-index:1000; box-shadow:0 6px 18px rgba(0,0,0,0.12);
-    }
-    #backToTop.show {opacity:1; visibility:visible;}
-    #backToTop span {display:inline-block; transform-origin:center; transition: transform 0.45s cubic-bezier(.2,.9,.2,1); font-weight:700; color:#000;}
-    #backToTop:hover {transform: translateY(-3px);}
-    #backToTop:hover span {transform: rotate(360deg);}
+  .stars {color:#FF6F00; font-size:1.2rem; cursor:pointer;}
+  .star:hover, .star.active {color:#FF4500;}
 
-    /* --- Dark Mode --- */
-    body.dark {background:#0f172a; color:#e2e8f0;}
-    body.dark .restaurant-card {
-      background:#1e293b;
-      color:#f1f5f9;
-      box-shadow:0 5px 15px rgba(0,0,0,0.6);
-    }
-    body.dark .restaurant-card p {color:#cbd5e1;}
-    body.dark .get-started {background:#334155; color:#f8fafc;}
-    body.dark footer {border-top:1px solid #334155; color:#94a3b8;}
-    body.dark .dark-toggle {background:#334155; color:#f1f5f9;}
-  </style>
+  /* Footer */
+  footer {text-align:center; padding:40px 20px; border-top:1px solid #eee; font-size:0.9rem; color:#555;}
+  body.dark footer {border-top:1px solid #334155; color:#94a3b8;}
+
+  /* Back to Top */
+  #backToTop {
+    position:fixed; bottom:20px; left:20px; width:50px; height:50px;
+    background:#FF6F00; color:#000; font-size:1.5rem; border:none;
+    border-radius:8px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; opacity:0; visibility:hidden;
+    transition:opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease;
+    z-index:1000; box-shadow:0 6px 18px rgba(0,0,0,0.12);
+  }
+  #backToTop.show {opacity:1; visibility:visible;}
+  #backToTop span {display:inline-block; transform-origin:center; transition: transform 0.45s cubic-bezier(.2,.9,.2,1); font-weight:700; color:#000;}
+  #backToTop:hover {transform: translateY(-3px);}
+  #backToTop:hover span {transform: rotate(360deg);}
+</style>
 </head>
 <body>
   <!-- Top Stripe + Logo -->
@@ -169,7 +119,7 @@
   <section class="hero">
     <h1>Discover and Rate the Best Spots Around You</h1>
     <p>Restaurants, malls, cinemas, and more—your go-to rating app.</p>
-    <button class="get-started" onclick="window.location.href='signup.html'">Get Started</button>
+    <button class="get-started" onclick="window.location.href='sign-up.html'">Get Started</button>
   </section>
 
   <!-- Restaurants Preview -->
@@ -178,17 +128,30 @@
   <!-- Footer -->
   <footer>© 2025 Zo2y. All rights reserved.</footer>
 
-  <!-- Back to Top Button -->
+  <!-- Back to Top -->
   <button id="backToTop" aria-label="Back to top"><span>↑</span></button>
 
   <script>
-    // ===== Restaurants Cards & Stars =====
+    // ===== Universal Dark Mode =====
+    const darkToggle = document.querySelector('.dark-toggle');
+    function applyDarkMode(saved) {
+      if(saved === "true"){ document.body.classList.add('dark'); }
+      else{ document.body.classList.remove('dark'); }
+    }
+    applyDarkMode(localStorage.getItem("darkMode"));
+
+    darkToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem("darkMode", document.body.classList.contains('dark'));
+    });
+
+    // ===== Restaurants Cards =====
     const restaurants = [
-      { name:"Mori Sushi", category:"Japanese", icon:"cards/mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
-      { name:"Kilo Kebab", category:"Middle Eastern", icon:"cards/kilo.png", rating:4.5, votes:1, page:"cards/kilo.html" },
-      { name:"Hameed", category:"Fast Food", icon:"cards/hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
-      { name:"Bazooka", category:"Burger", icon:"cards/bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
-      { name:"Mexican Corn", category:"Mexican", icon:"cards/mexican.jpg", rating:4.0, votes:1, page:"cards/mexican.html" }
+      { name:"Mori Sushi", category:"Japanese", icon:"images/mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
+      { name:"Kilo Kebab", category:"Middle Eastern", icon:"images/kilo.png", rating:4.5, votes:1, page:"cards/kilo.html" },
+      { name:"Hameed", category:"Fast Food", icon:"images/hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
+      { name:"Bazooka", category:"Burger", icon:"images/bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
+      { name:"Mexican Corn", category:"Mexican", icon:"images/mexican.jpg", rating:4.0, votes:1, page:"cards/mexican.html" }
     ];
 
     const container = document.getElementById('restaurants');
@@ -219,7 +182,7 @@
         if(e.target.classList.contains('star')){
           e.stopPropagation();
           const value = parseInt(e.target.dataset.value);
-          r.rating = ((r.rating * r.votes) + value) / (r.votes + 1);
+          r.rating = ((r.rating * r.votes) + value)/(r.votes+1);
           r.votes++;
           Array.from(starsContainer.children).forEach((sElem, idx) => {
             sElem.classList.toggle('active', idx < Math.round(r.rating));
@@ -227,22 +190,13 @@
         }
       });
 
-      card.addEventListener('click', () => {
-        window.location.href = r.page;
-      });
+      card.addEventListener('click', ()=>{ window.location.href = r.page; });
     });
 
     const moreCard = document.createElement('div');
     moreCard.className = 'restaurant-card';
-    moreCard.innerHTML = `
-      <div class="icon-wrapper"><div class="more-icon">+</div></div>
-      <h3>More</h3>
-      <p>Explore all spots</p>
-    `;
-    moreCard.style.cursor = 'pointer';
-    moreCard.addEventListener('click', () => {
-      window.location.href = 'login.html';
-    });
+    moreCard.innerHTML = `<div class="icon-wrapper"><div class="more-icon">+</div></div><h3>More</h3><p>Explore all spots</p>`;
+    moreCard.addEventListener('click', ()=>{ window.location.href='login.html'; });
     container.appendChild(moreCard);
     setTimeout(()=>{ moreCard.style.transform='translateY(0)'; moreCard.style.opacity='1'; }, restaurants.length*200);
 
@@ -250,69 +204,9 @@
     const backToTop = document.getElementById('backToTop');
     window.addEventListener('scroll', () => {
       if(window.scrollY > 200){ backToTop.classList.add('show'); }
-      else {backToTop.classList.remove('show');}
+      else{ backToTop.classList.remove('show'); }
     });
-    backToTop.addEventListener('click', () => {
-      window.scrollTo({top:0, behavior:'smooth'});
-    });
-
-    // ===== Dark mode toggle (with persistence) =====
-    const darkToggle = document.querySelector('.dark-toggle');
-    function applyDarkMode(saved) {
-      if(saved === "true") {
-        document.body.classList.add('dark');
-      } else {
-        document.body.classList.remove('dark');
-      }
-    }
-
-    // Load saved preference
-    applyDarkMode(localStorage.getItem("darkMode"));
-
-    darkToggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem("darkMode", document.body.classList.contains('dark'));
-    });
-
-    // ===== AUTH INTEGRATION =====
-    async function checkUser() {
-      const token = localStorage.getItem('token');
-      const headerButtons = document.getElementById('headerButtons');
-
-      if(!token) return;
-
-      try {
-        const res = await fetch('/api/auth/me', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-
-        if(res.ok && data.user){
-          headerButtons.innerHTML = `
-            <span style="color:#fff; font-weight:600; margin-right:10px;">Welcome, ${data.user.username}</span>
-            <button id="logoutBtn">Logout</button>
-            <div class="dark-toggle" title="Dark Mode">🌙</div>
-          `;
-
-          document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            location.reload();
-          });
-
-          // Dark toggle in auth mode
-          const authDarkToggle = document.querySelector('.dark-toggle');
-          applyDarkMode(localStorage.getItem("darkMode"));
-          authDarkToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-            localStorage.setItem("darkMode", document.body.classList.contains('dark'));
-          });
-        }
-      } catch(err){
-        console.error(err);
-      }
-    }
-
-    checkUser();
+    backToTop.addEventListener('click', () => { window.scrollTo({top:0, behavior:'smooth'}); });
   </script>
 </body>
 </html>

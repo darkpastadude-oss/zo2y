@@ -7,18 +7,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{height:100vh;display:flex;justify-content:center;align-items:center;background:#fff;}
-.form-container{background:#fff;padding:50px 40px;border-radius:20px;box-shadow:0 15px 40px rgba(0,0,0,0.15);width:350px;text-align:center;position:relative;border-top:6px solid #FF6F00;}
+body{height:100vh;display:flex;justify-content:center;align-items:center;background:#fff; transition: background 0.3s, color 0.3s;}
+body.dark{background:#0f172a;color:#e2e8f0;}
+.form-container{background:#fff;padding:50px 40px;border-radius:20px;box-shadow:0 15px 40px rgba(0,0,0,0.15);width:350px;text-align:center;position:relative;border-top:6px solid #FF6F00;transition: background 0.3s, color 0.3s;}
+body.dark .form-container{background:#1e293b;color:#f1f5f9;}
 .home-button{position:absolute;top:-25px;left:50%;transform:translateX(-50%);background:#fff;color:#FF6F00;border:2px solid #FF6F00;border-radius:25px;padding:8px 18px;font-weight:600;cursor:pointer;transition:0.3s ease;}
+body.dark .home-button{background:#334155;color:#f8fafc;border-color:#FF6F00;}
 .home-button:hover{background:#FF6F00;color:#fff;}
 .form-container img{width:80px;margin-bottom:20px;}
-.form-container h2{margin-bottom:25px;color:#333;font-weight:600;}
+.form-container h2{margin-bottom:25px;font-weight:600;}
+body.dark .form-container h2{color:#f1f5f9;}
 .form-container input{width:100%;padding:14px 15px;margin:12px 0;border:1px solid #ddd;border-radius:12px;font-size:1rem;outline:none;transition:0.3s;}
+body.dark .form-container input{background:#334155;color:#f1f5f9;border:1px solid #555;}
 .form-container input:focus{border-color:#FF6F00;box-shadow:0 0 5px rgba(255,111,0,0.4);}
 .form-container button{width:100%;padding:14px;margin-top:20px;background:#FF6F00;border:none;border-radius:30px;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:0.3s;}
 .form-container button:hover{background:#e65c00;}
 .form-container .link{margin-top:18px;display:block;color:#FF6F00;text-decoration:none;font-size:0.95rem;transition:0.3s;}
 .form-container .link:hover{text-decoration:underline;}
+body.dark .form-container .link{color:#fbbf24;}
 </style>
 </head>
 <body>
@@ -30,56 +36,47 @@ body{height:100vh;display:flex;justify-content:center;align-items:center;backgro
   <input type="email" placeholder="Email" id="email" required>
   <input type="password" placeholder="Password" id="password" required>
   <button onclick="login()">Login</button>
-  <a href="signup.html" class="link">Don’t have an account? Sign Up</a>
+  <a href="sign-up.html" class="link">Don’t have an account? Sign Up</a>
 </div>
 
 <script>
-if(localStorage.getItem('token')) {
-  window.location.href = 'index.html'; // redirect if already logged in
-}
-
-async function login() {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
-
-  if (!email || !password) {
-    alert('Please enter both email and password.');
-    return;
+  // Redirect if already logged in
+  if(localStorage.getItem('token')) {
+    window.location.href = 'index.html';
   }
 
-  try {
-    const res = await fetch('http://localhost:5000/api/auth/login', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email, password })
-    });
+  async function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
 
-    const data = await res.json();
-    alert(data.message);
-
-    if(res.ok && data.token){
-      localStorage.setItem('token', data.token);
-      window.location.href = 'index.html';
+    if (!email || !password) {
+      alert('Please enter both email and password.');
+      return;
     }
-  } catch(err) {
-    console.error(err);
-    alert('Something went wrong.');
-  }
-}
-</script>
-<script>
-  // Apply saved dark mode immediately
-  if (localStorage.darkMode === "enabled") {
-    document.body.classList.add("dark");
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+
+      if(res.ok && data.token){
+        localStorage.setItem('token', data.token);
+        window.location.href = 'index.html';
+      }
+    } catch(err) {
+      console.error(err);
+      alert('Something went wrong.');
+    }
   }
 
-  // Toggle dark mode if button exists
-  const toggle = document.querySelector('.dark-toggle');
-  if(toggle){
-    toggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.darkMode = document.body.classList.contains('dark') ? "enabled" : "disabled";
-    });
+  // ===== Universal Dark Mode =====
+  if(localStorage.getItem('darkMode') === 'enabled') {
+    document.body.classList.add('dark');
   }
 </script>
 
