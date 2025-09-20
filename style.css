@@ -36,89 +36,16 @@
   --card-bg: #2d3748; /* Navy blue for cards */
 }
 
-/* Apply the variables to your elements */
+/* Apply the variables to GLOBAL elements only */
 body {
   font-family: Arial, sans-serif;
   background-color: var(--bg-color-primary);
   color: var(--text-color-primary);
-  display: flex;
-  height: 100vh;
   margin: 0;
-  justify-content: center;
-  align-items: center;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.container {
-  text-align: center;
-}
+/* REMOVE the forced centering layout from here */
+/* .container, .navbar, etc. should NOT be in this global file */
 
-h1 {
-  font-size: 3rem;
-  margin-bottom: 10px;
-}
-
-p {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-  color: var(--text-color-secondary);
-}
-
-button {
-  background: var(--button-bg);
-  color: var(--button-text);
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  background: var(--button-bg-hover);
-}
-
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 24px;
-  background: var(--nav-bg);
-  box-shadow: 0 2px 6px var(--nav-shadow);
-}
-
-.logo {
-  height: 80px;
-  width: auto;
-}
-
-.links a {
-  margin-left: 20px;
-  text-decoration: none;
-  color: var(--link-color);
-  font-weight: 500;
-}
-
-.content input {
-  display: block;
-  margin: 10px 0;
-  padding: 10px;
-  width: 250px;
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  border: 1px solid var(--text-color-secondary);
-}
-
-.content button {
-  padding: 10px 20px;
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  border: none;
-  cursor: pointer;
-}
-
-.content button:hover {
-  background-color: var(--button-bg-hover);
-}
+/* Only keep truly global styles here */
