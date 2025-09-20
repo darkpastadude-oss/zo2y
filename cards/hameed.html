@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hameed</title>
+<style>
+  * {margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+  body {background:#fff; color:#333; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+
+  .top-stripe { background:#FF6F00; height:50px; }
+
+  .hero { text-align:center; padding:50px 20px 30px; }
+  .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.12); cursor:pointer; margin-bottom:30px; border:2px solid rgba(0,0,0,0.04); transition:transform .18s ease; }
+  .logo:active { transform:scale(.98); }
+  .hero h1 { font-size:2.3rem; font-weight:700; margin-bottom:8px; letter-spacing:0.4px; }
+  .hero p { font-size:1rem; color:#555; margin-bottom:10px; }
+  .rating { color:#FF6F00; font-size:1.1rem; margin-bottom:18px; }
+
+  .btn { display:inline-block; padding:10px 18px; border-radius:8px; background:#FF6F00; color:#fff; text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease; }
+  .btn.secondary { background:#fff; color:#FF6F00; border:1px solid #FF6F00; }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+  .section { max-width:900px; margin:0 auto; padding:20px; }
+  h2 { margin-bottom:15px; font-size:1.3rem; }
+  p { margin-bottom:6px; color:#555; }
+
+  .hotline { font-size:1.2rem; margin-bottom:24px; }
+  .hotline a { color:#FF6F00; font-weight:700; text-decoration:none; }
+  .hotline a:hover { text-decoration:underline; }
+
+  .branches { display:flex; flex-wrap:wrap; gap:12px; }
+  .branch-card { flex:1 1 100%; border:1px solid #eee; border-radius:8px; padding:15px; background:#fafafa; display:flex; flex-direction:column; }
+  .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color:#FF6F00; }
+  .branch-card a { font-size:0.95rem; color:#FF6F00; text-decoration:none; }
+  .branch-card a:hover { text-decoration:underline; }
+
+  .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; margin-bottom:8px; }
+  .menu-item span { color:#666; }
+  .menu-item .price { color:#999; }
+
+  .review { padding:12px 0; border-bottom:1px solid #eee; }
+  .review p { margin-bottom:6px; color:#444; }
+  .review-form { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+  .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid #ddd; border-radius:6px; resize:vertical; }
+  .review-form button { background:#FF6F00; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease; }
+  .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+  footer { text-align:center; padding:36px 20px; border-top:1px solid #eee; color:#666; font-size:0.95rem; }
+
+  @media (max-width:640px) {
+    .logo { width:120px; height:120px; margin-bottom:24px; }
+    .hero { padding:40px 16px 20px; }
+    .hero h1 { font-size:1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-stripe"></div>
+
+<section class="hero">
+  <img src="hameed.png" alt="Hameed Logo" class="logo" onclick="location.href='index.html'">
+  <h1>Hameed</h1>
+  <p>Fried Chicken & Shawarma</p>
+  <div class="rating">⭐ 4.2/5 (based on Google reviews)</div>
+  <a href="tel:17108" class="btn">Call Hotline</a>
+  <a href="https://www.elmenus.com/cairo/hameed-aq6x6" target="_blank" class="btn secondary">View Full Menu</a>
+</section>
+
+<main class="section">
+  <section class="info">
+    <h2>Contact & Branch</h2>
+    <div class="hotline"><strong>Hotline:</strong> <a href="tel:17108">17108</a></div>
+    <div class="branches">
+      <div class="branch-card">
+        <h3>New Cairo – CFC</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=CFC%20New%20Cairo" target="_blank">Open in Google Maps</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="menu">
+    <h2>Popular Items</h2>
+    <div class="menu-item"><span>Caramelized Onions & Mushroom Burger</span><span class="price">215 EGP</span></div>
+    <div class="menu-item"><span>Classic Double Cheese Burger</span><span class="price">195 EGP</span></div>
+    <div class="menu-item"><span>Original Maple Glazed Sandwich</span><span class="price">195 EGP</span></div>
+    <div class="menu-item"><span>French Fries</span><span class="price">65 EGP</span></div>
+    <div class="menu-item"><span>Double Original Burger</span><span class="price">195 EGP</span></div>
+    <a href="https://www.elmenus.com/cairo/hameed-aq6x6" target="_blank" class="btn secondary">View Full Menu</a>
+  </section>
+
+  <section class="reviews">
+    <h2>Reviews</h2>
+    <div id="reviews-list"></div>
+    <form class="review-form" id="review-form">
+      <input type="text" placeholder="Your Name" id="reviewer" required>
+      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+      <button type="submit">Submit Review</button>
+    </form>
+  </section>
+</main>
+
+<footer>© 2025 Zo2y. All rights reserved.</footer>
+
+<script>
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('reviewer').value.trim();
+  const text = document.getElementById('review-text').value.trim();
+  if (!name || !text) return;
+  const div = document.createElement('div');
+  div.className = 'review';
+  const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+  div.innerHTML = <p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>;
+  reviewsList.appendChild(div);
+  reviewForm.reset();
+});
+</script>
+
+</body>
+</html>

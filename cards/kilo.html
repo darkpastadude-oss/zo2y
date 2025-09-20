@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kilo Kabab</title>
+<style>
+  * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
+  body {background:#fff; color:#333; overflow-x:hidden;}
+
+  /* Top stripe */
+  .top-stripe { background:#FF6F00; height:50px; }
+
+  /* Hero */
+  .hero { text-align:center; padding:60px 20px 40px; }
+  .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,0.15); cursor:pointer; margin-bottom:30px; }
+  .hero h1 { font-size:2.5rem; margin-bottom:10px; font-weight:700; }
+  .hero p { font-size:1rem; color:#555; margin-bottom:10px; }
+  .rating { color:#FF6F00; font-size:1.2rem; margin-bottom:20px; }
+
+  /* Buttons */
+  .btn { display:inline-block; padding:10px 18px; border-radius:8px; background:#FF6F00; color:#fff; text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .2s ease, box-shadow .2s ease; }
+  .btn.secondary { background:#fff; color:#FF6F00; border:1px solid #FF6F00; }
+  .btn:hover { transform:scale(1.03); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+  /* Sections */
+  .section { max-width:900px; margin:0 auto; padding:20px; }
+  h2 { margin-bottom:15px; font-size:1.4rem; }
+
+  /* Hotline */
+  .hotline { font-size:1.2rem; margin-bottom:20px; }
+  .hotline a { color:#FF6F00; text-decoration:none; font-weight:700; }
+  .hotline a:hover { text-decoration:underline; }
+
+  /* Branch cards */
+  .branches { display:flex; flex-wrap:wrap; gap:12px; }
+  .branch-card { flex:1 1 45%; border:1px solid #eee; border-radius:8px; padding:15px; background:#fafafa; display:flex; flex-direction:column; justify-content:space-between; }
+  .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color:#FF6F00; }
+  .branch-card p { font-size:0.95rem; color:#555; margin-bottom:8px; }
+  .branch-card a { font-size:0.9rem; color:#FF6F00; text-decoration:none; }
+  .branch-card a:hover { text-decoration:underline; }
+
+  /* Menu */
+  .menu-item { display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; margin-bottom:8px; }
+  .menu-item span { color:#666; }
+
+  /* Reviews */
+  .review { border-bottom:1px solid #eee; padding:10px 0; }
+  .review p { margin-bottom:5px; }
+  .review-form { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid #ccc; border-radius:5px; }
+  .review-form button { background:#FF6F00; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; transition:transform .2s ease; }
+  .review-form button:hover { transform:scale(1.05); }
+
+  footer { text-align:center; padding:40px 20px; border-top:1px solid #eee; font-size:0.9rem; color:#555; margin-top:20px; }
+
+  /* Mobile */
+  @media (max-width:640px) {
+    .logo { width:120px; height:120px; margin-bottom:24px; }
+    .hero { padding:50px 16px 30px; }
+    .hero h1 { font-size:2rem; }
+    .btn { padding:9px 14px; font-size:0.95rem; margin:4px 2px; }
+    .branch-card { flex:1 1 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-stripe"></div>
+
+<section class="hero">
+  <img src="kilo.jpg" alt="Kilo Kabab Logo" class="logo" onclick="window.location.href='index.html'">
+  <h1>Kilo Kabab</h1>
+  <p>Oriental Grill • Kebabs • Sandwiches</p>
+  <div class="rating">⭐ 4.4/5</div>
+
+  <!-- Hero buttons -->
+  <a href="tel:01147000100" class="btn">Call Hotline</a>
+  <a href="https://www.kilokabab.com/" target="_blank" class="btn secondary">View Full Menu</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:01147000100">01147000100</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Mall of Arabia</h3>
+      <p>6th October City, Gate 2</p>
+    </div>
+    <div class="branch-card">
+      <h3>Nadi El Gezira</h3>
+      <p>Zamalek, Cairo</p>
+    </div>
+    <div class="branch-card">
+      <h3>Cairo Festival City Mall</h3>
+      <p>New Cairo, Tagamoa El Khames</p>
+    </div>
+    <div class="branch-card">
+      <h3>+ more branches across Cairo & 6th October</h3>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Popular Items</h2>
+  <div class="menu-item"><span>Mixed Grill Platter</span><span>EGP 350</span></div>
+  <div class="menu-item"><span>Shish Tawook Sandwich</span><span>EGP 150</span></div>
+  <div class="menu-item"><span>Kofta Kebabs (300g)</span><span>EGP 220</span></div>
+  <div class="menu-item"><span>Lamb Chops (1kg)</span><span>EGP 800</span></div>
+
+  <a href="https://www.kilokabab.com/" target="_blank" class="btn secondary">View Full Menu</a>
+</section>
+
+<section class="section reviews">
+  <h2>Reviews</h2>
+  <div id="reviews-list"></div>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
+
+<footer>© 2025 Zo2y. All rights reserved.</footer>
+
+<script>
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('reviewer').value.trim();
+  const text = document.getElementById('review-text').value.trim();
+  if (name && text) {
+    const reviewDiv = document.createElement('div');
+    reviewDiv.className = 'review';
+    reviewDiv.innerHTML = <p><strong>${name}</strong></p><p>${text}</p>;
+    reviewsList.appendChild(reviewDiv);
+    reviewForm.reset();
+  }
+});
+</script>
+
+</body>
+</html>
