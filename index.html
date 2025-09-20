@@ -159,7 +159,7 @@
 <body>
   <!-- Top Stripe + Logo -->
   <div class="top-stripe">
-    <img src="zoey.png" alt="Zo2y Logo" class="logo" onclick="window.location.href='index.html'">
+    <img src="images/logo.png" alt="Zo2y Logo" class="logo" onclick="window.location.href='index.html'">
     <div class="header-buttons" id="headerButtons">
       <button onclick="window.location.href='login.html'">Login</button>
       <button onclick="window.location.href='sign-up.html'">Sign Up</button>
@@ -186,11 +186,11 @@
   <script>
     // ===== Restaurants Cards & Stars =====
     const restaurants = [
-      { name:"Mori Sushi", category:"Japanese", icon:"mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
-      { name:"Kilo Kebab", category:"Middle Eastern", icon:"kilo.jpg", rating:4.5, votes:1, page:"cards/kilo.html" },
-      { name:"Hameed", category:"Fast Food", icon:"hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
-      { name:"Bazooka", category:"Burger", icon:"bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
-      { name:"Mexican Corn", category:"Mexican", icon:"mexican.png", rating:4.0, votes:1, page:"cards/mexican.html" }
+      { name:"Mori Sushi", category:"Japanese", icon:"images/mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
+      { name:"Kilo Kebab", category:"Middle Eastern", icon:"images/kilo.png", rating:4.5, votes:1, page:"cards/kilo.html" },
+      { name:"Hameed", category:"Fast Food", icon:"images/hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
+      { name:"Bazooka", category:"Burger", icon:"images/bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
+      { name:"Mexican Corn", category:"Mexican", icon:"images/mexican.jpg", rating:4.0, votes:1, page:"cards/mexican.html" }
     ];
 
     const container = document.getElementById('restaurants');
@@ -252,7 +252,7 @@
     const backToTop = document.getElementById('backToTop');
     window.addEventListener('scroll', () => {
       if(window.scrollY > 200){ backToTop.classList.add('show'); }
-      else { backToTop.classList.remove('show'); }
+      else {backToTop.classList.remove('show');}
     });
     backToTop.addEventListener('click', () => {
       window.scrollTo({top:0, behavior:'smooth'});
