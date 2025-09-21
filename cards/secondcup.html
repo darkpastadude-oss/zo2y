@@ -23,10 +23,23 @@
     h1 {margin-bottom:10px;}
     .desc {margin:15px 0; font-size:1rem; color:var(--text-color-secondary);}
     .stars {color:#FF6F00; font-size:1.2rem; margin:10px 0;}
+    .info {margin:20px 0;}
+    .info p {margin:8px 0;}
+    .popular {margin:30px 0;}
+    .popular h2 {margin-bottom:12px;}
+    .popular ul {list-style:disc; padding-left:20px; color:var(--text-color-secondary);}
+    .menu-btn {
+      display:inline-block; padding:12px 20px; margin-top:20px;
+      background:#FF6F00; color:white; border-radius:8px;
+      text-decoration:none; font-weight:bold;
+      transition:background .3s;
+    }
+    .menu-btn:hover {background:#e65f00;}
     footer {text-align:center; padding:40px 20px; border-top:1px solid var(--nav-shadow); font-size:0.9rem; color: var(--text-color-secondary);}
   </style>
 </head>
 <body>
+  <!-- Top Stripe -->
   <div class="top-stripe">
     <div class="home-btn" onclick="window.location.href='../restaurants.html'">
       <svg fill="none" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,14 +50,38 @@
   </div>
 
   <div class="container">
+    <!-- Banner -->
     <div class="banner">
       <img src="../images/secondcup.png" alt="Second Cup">
     </div>
+
+    <!-- Title + Desc -->
     <h1>Second Cup</h1>
-    <p class="desc">Canadian coffeehouse brand serving specialty coffee, teas, and fresh pastries in a cozy, relaxing environment.</p>
+    <p class="desc">Second Cup is a Canadian coffeehouse chain bringing premium coffee, teas, iced drinks, and fresh bakery treats to Egypt. Known for cozy interiors and a relaxed atmosphere — perfect for casual meetups or studying.</p>
     <div class="stars">★★★★☆</div>
-    <p><strong>Category:</strong> Cafe</p>
-    <p><strong>Rating:</strong> 4.4 / 5</p>
+
+    <!-- Info -->
+    <div class="info">
+      <p><strong>Category:</strong> Café</p>
+      <p><strong>Rating:</strong> 4.4 / 5</p>
+      <p><strong>Hotline:</strong> 19576</p>
+      <p><strong>Branches:</strong> New Cairo, Heliopolis, Sheikh Zayed, Zamalek, Mall of Arabia, City Stars, CFC Mall, and more.</p>
+    </div>
+
+    <!-- Popular Items -->
+    <div class="popular">
+      <h2>Popular Items</h2>
+      <ul>
+        <li>Caramel Macchiato</li>
+        <li>Ice Cap</li>
+        <li>Spanish Latte</li>
+        <li>Brownie Cheesecake</li>
+        <li>Cold Brew</li>
+      </ul>
+    </div>
+
+    <!-- Menu Button -->
+    <a href="https://secondcupcafes.com/" target="_blank" class="menu-btn">View Full Menu</a>
   </div>
 
   <footer>© 2025 Zo2y. All rights reserved.</footer>
