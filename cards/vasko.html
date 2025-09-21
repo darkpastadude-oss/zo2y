@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vasko - Zo2y</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+    body { background: var(--bg-color-primary); color: var(--text-color-primary); transition: background-color 0.3s, color 0.3s; }
+
+    .top-stripe { background:#FF6F00; height:50px; }
+
+    .hero { text-align:center; padding:50px 20px 30px; }
+    .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.12); cursor:pointer; margin-bottom:30px; border:2px solid rgba(0,0,0,0.04); transition:transform .18s ease; }
+    .logo:active { transform:scale(.98); }
+    .hero h1 { font-size:2.3rem; font-weight:700; margin-bottom:8px; letter-spacing:0.4px; }
+    .hero p { font-size:1rem; color: var(--text-color-secondary); margin-bottom:10px; }
+    .rating { color:#FF6F00; font-size:1.1rem; margin-bottom:18px; }
+
+    .btn { display:inline-block; padding:10px 18px; border-radius:8px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease; }
+    .btn.secondary { background: var(--nav-bg); color: var(--text-color-primary); border:1px solid var(--text-color-primary); }
+    .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+    .section { max-width:900px; margin:0 auto; padding:20px; }
+    h2 { margin-bottom:15px; font-size:1.3rem; }
+    p { margin-bottom:6px; color: var(--text-color-secondary); }
+
+    .hotline { font-size:1.2rem; margin-bottom:24px; }
+    .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; }
+    .hotline a:hover { text-decoration:underline; }
+
+    .branches { display:flex; flex-wrap:wrap; gap:12px; }
+    .branch-card { flex:1 1 45%; border:1px solid var(--nav-shadow); border-radius:8px; padding:15px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s; }
+    .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color: var(--text-color-primary); }
+    .branch-card p { font-size:0.95rem; color: var(--text-color-secondary); margin-bottom:8px; }
+    .branch-card a { font-size:0.9rem; color: var(--text-color-primary); text-decoration:none; }
+    .branch-card a:hover { text-decoration:underline; }
+
+    .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--nav-shadow); margin-bottom:8px; }
+    .menu-item span { color: var(--text-color-secondary); }
+
+    .review { padding:12px 0; border-bottom:1px solid var(--nav-shadow); }
+    .review p { margin-bottom:6px; color: var(--text-color-secondary); }
+    .review-form { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+    .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid var(--nav-shadow); border-radius:6px; resize:vertical; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s, color 0.3s; }
+    .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease; }
+    .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+    footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; }
+
+    @media (max-width:640px) {
+      .logo { width:120px; height:120px; margin-bottom:24px; }
+      .hero { padding:40px 16px 20px; }
+      .hero h1 { font-size:1.8rem; }
+      .branch-card { flex:1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <section class="hero">
+    <!-- Put correct path to Vasko logo image in images folder -->
+    <img src="../images/vasko.png" alt="Vasko Logo" class="logo" onclick="location.href='../index.html'">
+    <h1>Vasko</h1>
+    <p>Steaks • Pasta • Fine Dining</p>
+    <div class="rating">⭐ 4.6</div>
+
+    <a href="tel:01060055554" class="btn">Call Hotline</a>
+    <a href="https://www.instagram.com/vasko.eg/" target="_blank" class="btn secondary">View Full Menu</a>
+  </section>
+
+  <main class="section">
+    <section class="info">
+      <h2>Contact & Branches</h2>
+      <div class="hotline"><strong>Hotline:</strong> <a href="tel:01060055554">01060055554</a></div>
+
+      <div class="branches">
+        <div class="branch-card">
+          <h3>New Cairo – 90 Street</h3>
+        </div>
+        <div class="branch-card">
+          <h3>Sheikh Zayed</h3>
+        </div>
+      </div>
+    </section>
+
+    <section class="menu">
+      <h2>Popular Items</h2>
+      <div class="menu-item"><span>Ribeye Steak</span><span class="price">EGP 400</span></div>
+      <div class="menu-item"><span>Fettuccine Alfredo</span><span class="price">EGP 250</span></div>
+      <div class="menu-item"><span>Truffle Burger</span><span class="price">EGP 320</span></div>
+      <div class="menu-item"><span>Mixed Grill Platter</span><span class="price">EGP 500</span></div>
+      <a href="https://www.instagram.com/vasko.eg/" target="_blank" class="btn secondary">View Full Menu</a>
+    </section>
+
+    <section class="reviews">
+      <h2>Reviews</h2>
+      <div id="reviews-list"></div>
+      <form class="review-form" id="review-form">
+        <input type="text" placeholder="Your Name" id="reviewer" required>
+        <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+        <button type="submit">Submit Review</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2025 Zo2y. All rights reserved.</footer>
+
+  <script>
+    const reviewForm = document.getElementById('review-form');
+    const reviewsList = document.getElementById('reviews-list');
+
+    reviewForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = document.getElementById('reviewer').value.trim();
+      const text = document.getElementById('review-text').value.trim();
+      if (!name || !text) return;
+      const escapeHtml = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+      const div = document.createElement('div');
+      div.className = 'review';
+      div.innerHTML = `<p><strong>${escapeHtml(name)}</strong></p><p>${escapeHtml(text)}</p>`;
+      reviewsList.appendChild(div);
+      reviewForm.reset();
+    });
+  </script>
+
+</body>
+</html>
