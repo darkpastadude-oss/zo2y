@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Second Cup - Zo2y</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    body {margin:0; font-family:sans-serif; background:var(--bg); color:var(--text-color-primary);}
+    .top-stripe {background:#FF6F00; height:20px; position:relative;}
+    .home-btn {
+      position:absolute; top:30px; left:30px;
+      width:40px; height:40px;
+      border:2px solid var(--text-color-primary);
+      border-radius:8px; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; background:var(--nav-bg);
+      transition:transform .3s;
+    }
+    .home-btn:hover {transform:scale(1.1);}
+    .home-btn svg {width:20px; height:20px; stroke:var(--text-color-primary);}
+    .container {max-width:900px; margin:60px auto; padding:20px;}
+    .banner img {width:100%; border-radius:12px; margin-bottom:20px;}
+    h1 {margin-bottom:10px;}
+    .desc {margin:15px 0; font-size:1rem; color:var(--text-color-secondary);}
+    .stars {color:#FF6F00; font-size:1.2rem; margin:10px 0;}
+    footer {text-align:center; padding:40px 20px; border-top:1px solid var(--nav-shadow); font-size:0.9rem; color: var(--text-color-secondary);}
+  </style>
+</head>
+<body>
+  <div class="top-stripe">
+    <div class="home-btn" onclick="window.location.href='../restaurants.html'">
+      <svg fill="none" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M3 12L12 3l9 9" />
+        <path d="M9 21V12h6v9" />
+      </svg>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="banner">
+      <img src="../images/secondcup.png" alt="Second Cup">
+    </div>
+    <h1>Second Cup</h1>
+    <p class="desc">Canadian coffeehouse brand serving specialty coffee, teas, and fresh pastries in a cozy, relaxing environment.</p>
+    <div class="stars">★★★★☆</div>
+    <p><strong>Category:</strong> Cafe</p>
+    <p><strong>Rating:</strong> 4.4 / 5</p>
+  </div>
+
+  <footer>© 2025 Zo2y. All rights reserved.</footer>
+</body>
+</html>
