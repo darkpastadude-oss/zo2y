@@ -25,19 +25,55 @@
     .home-btn:hover {transform:scale(1.1);}
     .home-btn svg {width:20px; height:20px; stroke:var(--text-color-primary);}
 
+    /* Featured Section */
+    .featured {
+      padding:60px 30px 20px;
+    }
+    .featured h2 {
+      font-size:2rem;
+      margin-bottom:20px;
+      color:var(--text-color-primary);
+    }
+
+    /* Search */
+    .search-container {
+      display:flex;
+      justify-content:center;
+      margin:20px;
+    }
+    .search-container input {
+      width:60%;
+      padding:10px 15px;
+      border:2px solid var(--nav-shadow);
+      border-radius:8px 0 0 8px;
+      font-size:1rem;
+      outline:none;
+    }
+    .search-container button {
+      padding:10px 20px;
+      border:none;
+      border-radius:0 8px 8px 0;
+      background:#FF6F00;
+      color:#fff;
+      cursor:pointer;
+      font-size:1rem;
+      transition:0.3s;
+    }
+    .search-container button:hover {background:#e65f00;}
+
     /* Restaurants Grid */
     .restaurants {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap:25px;
-      padding:80px 30px;
+      padding:40px 30px 80px;
     }
     .restaurant-card {
       background: var(--card-bg);
       border-radius:12px;
       padding:20px;
       box-shadow:0 5px 15px rgba(0,0,0,0.1);
-      transition:transform 0.3s, box-shadow 0.3s, background 0.3s, color 0.3s;
+      transition:transform 0.3s, box-shadow 0.3s;
       cursor:pointer;
     }
     .restaurant-card:hover {
@@ -52,6 +88,13 @@
     .restaurant-card p {margin-bottom:6px; color:var(--text-color-secondary); font-size:0.9rem;}
     .stars {color:#FF6F00; font-size:1.1rem;}
 
+    .no-results {
+      text-align:center;
+      font-size:1.2rem;
+      color:var(--text-color-secondary);
+      margin-top:20px;
+    }
+
     footer {text-align:center; padding:40px 20px; border-top:1px solid var(--nav-shadow); font-size:0.9rem; color: var(--text-color-secondary);}
   </style>
 </head>
@@ -59,7 +102,6 @@
   <!-- Top Stripe + Home Button -->
   <div class="top-stripe">
     <div class="home-btn" onclick="window.location.href='index.html'">
-      <!-- Minimal sketch-style home icon -->
       <svg fill="none" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M3 12L12 3l9 9" />
         <path d="M9 21V12h6v9" />
@@ -67,34 +109,25 @@
     </div>
   </div>
 
+  <!-- Featured Section -->
+  <section class="featured">
+    <h2>Featured Restaurants</h2>
+  </section>
+
+  <!-- Search -->
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search restaurants...">
+    <button onclick="searchRestaurant()">Search</button>
+  </div>
+
   <!-- Restaurants Grid -->
   <section class="restaurants" id="restaurants"></section>
+  <div class="no-results" id="no-results" style="display:none;">No results found</div>
 
   <!-- Footer -->
   <footer>© 2025 Zo2y. All rights reserved.</footer>
 
   <script>
-    // ===== DARK MODE =====
-    function applyTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-    }
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      applyTheme(newTheme);
-      localStorage.setItem('zo2y-theme', newTheme);
-    }
-    (function initializeTheme(){
-      const savedTheme = localStorage.getItem('zo2y-theme');
-      if(savedTheme){
-        applyTheme(savedTheme);
-      } else {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        applyTheme(prefersDark ? 'dark' : 'light');
-      }
-    })();
-
-    // ===== Restaurants Data =====
     const restaurants = [
       { name:"Mori Sushi", category:"Japanese", desc:"Modern sushi chain serving rolls, sashimi & Japanese bites.", img:"images/mori.png", rating:4.7, link:"cards/mori.html" },
       { name:"Kilo Kebab", category:"Middle Eastern", desc:"Charcoal-grilled kebabs & hearty Middle Eastern plates.", img:"images/kilo.png", rating:4.5, link:"cards/kilo.html" },
@@ -106,23 +139,50 @@
       { name:"Second Cup", category:"Cafe", desc:"Canadian coffeehouse chain serving espresso, lattes & pastries.", img:"images/secondcup.png", rating:4.4, link:"cards/secondcup.html" },
       { name:"Pizza Station", category:"Pizza", desc:"Classic pizzas & comfort food.", img:"images/station.png", rating:4.3, link:"cards/station.html" },
       { name:"BRGR", category:"Burgers", desc:"Gourmet burgers with premium toppings & sides.", img:"images/brgr.jpg", rating:4.4, link:"cards/brgr.html" },
-      { name:"Country Hills", category:"American Diner", desc:"Grilled meats, casual dining & family meals.", img:"images/country.jpg", rating:4.2, link:"cards/country.html" }
+      { name:"Country Hills", category:"American Diner", desc:"Grilled meats, casual dining & family meals.", img:"images/country.jpg", rating:4.2, link:"cards/country.html" },
+      { name:"Bayouki Rotisserie", category:"Rotisserie Chicken", desc:"Authentic grilled chicken & rotisserie meals.", img:"images/bayoki.png", rating:4.3, link:"cards/bayoki.html" }
     ];
 
     const container = document.getElementById('restaurants');
-    restaurants.forEach(r=>{
-      const card = document.createElement('div');
-      card.className='restaurant-card';
-      card.onclick = () => window.location.href = r.link;
-      card.innerHTML=`
-        <img src="${r.img}" alt="${r.name}">
-        <h3>${r.name}</h3>
-        <p><strong>${r.category}</strong></p>
-        <p>${r.desc}</p>
-        <div class="stars">${'★'.repeat(Math.round(r.rating))}${'☆'.repeat(5-Math.round(r.rating))}</div>
-      `;
-      container.appendChild(card);
-    });
+    const noResults = document.getElementById('no-results');
+
+    function renderRestaurants(list) {
+      container.innerHTML = "";
+      if(list.length === 0){
+        noResults.style.display = "block";
+        return;
+      }
+      noResults.style.display = "none";
+      list.forEach(r=>{
+        const card = document.createElement('div');
+        card.className='restaurant-card';
+        card.onclick = () => window.location.href = r.link;
+        card.innerHTML=`
+          <img src="${r.img}" alt="${r.name}">
+          <h3>${r.name}</h3>
+          <p><strong>${r.category}</strong></p>
+          <p>${r.desc}</p>
+          <div class="stars">${'★'.repeat(Math.round(r.rating))}${'☆'.repeat(5-Math.round(r.rating))}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    renderRestaurants(restaurants);
+
+    function searchRestaurant(){
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      if(!query){
+        renderRestaurants(restaurants);
+        return;
+      }
+      const results = restaurants.filter(r => r.name.toLowerCase().includes(query));
+      if(results.length === 1){
+        window.location.href = results[0].link;
+      } else {
+        renderRestaurants(results);
+      }
+    }
   </script>
 </body>
 </html>
