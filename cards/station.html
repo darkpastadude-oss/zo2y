@@ -80,21 +80,25 @@
 <footer>© 2025 Zo2y. All rights reserved.</footer>
 
 <script>
-  const reviewForm = document.getElementById('review-form');
-  const reviewsList = document.getElementById('reviews-list');
+  (function() {
+    const reviewForm = document.getElementById('review-form');
+    const reviewsList = document.getElementById('reviews-list');
 
-  reviewForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = document.getElementById('reviewer').value.trim();
-    const text = document.getElementById('review-text').value.trim();
-    if (!name || !text) return;
-    const div = document.createElement('div');
-    div.className = 'review';
-    const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-    div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
-    reviewsList.appendChild(div);
-    reviewForm.reset();
-  });
+    if (!reviewForm || !reviewsList) return;
+
+    reviewForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = document.getElementById('reviewer').value.trim();
+      const text = document.getElementById('review-text').value.trim();
+      if (!name || !text) return;
+      const div = document.createElement('div');
+      div.className = 'review';
+      const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+      div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
+      reviewsList.appendChild(div);
+      reviewForm.reset();
+    });
+  })();
 </script>
 
 <script src="../js/themeManager.js"></script>
