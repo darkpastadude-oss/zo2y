@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizza Station</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="top-stripe"></div>
+
+<section class="hero">
+  <img src="../images/station.png" alt="Pizza Station Logo" class="logo" onclick="location.href='../index.html'">
+  <h1>Pizza Station</h1>
+  <p>Better & Bigger Real Pizza</p>
+  <div class="rating">⭐ 4.0/5 (based on reviews)</div>
+  <a href="tel:17318" class="btn">Call Hotline</a>
+  <a href="https://pizzastationeg.com/" target="_blank" class="btn secondary">View Full Menu</a>
+</section>
+
+<main class="section">
+  <section class="info">
+    <h2>Contact & Branches</h2>
+    <div class="hotline">
+      <strong>Hotline:</strong> 
+      <a href="tel:17318">17318</a>, 
+      <a href="tel:01111115605">01111115605</a>, 
+      <a href="tel:01111115603">01111115603</a>
+    </div>
+
+    <div class="branches">
+      <div class="branch-card">
+        <h3>Tagamoa 5 – CFC, New Cairo</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pizza%20Station%20Tagamoa%205%20CFC%20New%20Cairo" target="_blank">Tagamoa 5 – CFC, New Cairo</a>
+      </div>
+      <div class="branch-card">
+        <h3>Heliopolis – Sheraton / City Centre Almaza</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pizza%20Station%20Sheraton%20City%20Centre%20Almaza%20Heliopolis" target="_blank">Sheraton / City Centre Almaza, Heliopolis</a>
+      </div>
+      <div class="branch-card">
+        <h3>Zamalek – 26th of July Street</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pizza%20Station%2026th%20of%20July%20Street%20Zamalek" target="_blank">26th of July Street, Zamalek</a>
+      </div>
+      <div class="branch-card">
+        <h3>Al Rehab City – Chillout</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pizza%20Station%20Al%20Rehab%20Cairo" target="_blank">Al Rehab – Chillout</a>
+      </div>
+      <div class="branch-card">
+        <h3>Sheikh Zayed – Zed Park</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pizza%20Station%20Zed%20Park%20Sheikh%20Zayed" target="_blank">Zed Park, Sheikh Zayed</a>
+      </div>
+      <div class="branch-card">
+        <h3>+ many branches across Cairo, Alexandria & beyond</h3>
+      </div>
+    </div>
+  </section>
+
+  <section class="menu">
+    <h2>Popular Items</h2>
+    <div class="menu-item"><span>City Meal (Medium Pizza + Fries + Soft Drink)</span><span class="price">~ 515 EGP</span></div>
+    <div class="menu-item"><span>Train Box (Small Pizza + Fries + Cheese Dip)</span><span class="price">~ 185 EGP</span></div>
+    <div class="menu-item"><span>Double Deal Medium (2 Medium Pizzas)</span><span class="price">~ 395 EGP</span></div>
+    <div class="menu-item"><span>Medium Meal</span><span class="price">~ 470 EGP</span></div>
+    <div class="menu-item"><span>Buy 2 Medium Pizzas, Get 1 Free</span><span class="price">~ 965 EGP</span></div>
+    <a href="https://pizzastationeg.com/" target="_blank" class="btn secondary">View Full Menu</a>
+  </section>
+
+  <section class="reviews">
+    <h2>Reviews</h2>
+    <div id="reviews-list"></div>
+    <form class="review-form" id="review-form">
+      <input type="text" placeholder="Your Name" id="reviewer" required>
+      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+      <button type="submit">Submit Review</button>
+    </form>
+  </section>
+</main>
+
+<footer>© 2025 Zo2y. All rights reserved.</footer>
+
+<script>
+  const reviewForm = document.getElementById('review-form');
+  const reviewsList = document.getElementById('reviews-list');
+
+  reviewForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('reviewer').value.trim();
+    const text = document.getElementById('review-text').value.trim();
+    if (!name || !text) return;
+    const div = document.createElement('div');
+    div.className = 'review';
+    const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
+    reviewsList.appendChild(div);
+    reviewForm.reset();
+  });
+</script>
+
+<script src="../js/themeManager.js"></script>
+</body>
+</html>
