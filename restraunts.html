@@ -6,7 +6,7 @@
   <title>Restaurants - Zo2y</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+    * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;} 
     body {overflow-x:hidden;}
 
     /* Top Stripe */
@@ -157,7 +157,8 @@
       { name:"Pizza Station", category:"Pizza", desc:"Classic pizzas & comfort food.", img:"images/station.png", rating:4.3, link:"cards/station.html" },
       { name:"BRGR", category:"Burgers", desc:"Gourmet burgers with premium toppings & sides.", img:"images/brgr.jpg", rating:4.4, link:"cards/brgr.html" },
       { name:"Country Hills", category:"American Diner", desc:"Grilled meats, casual dining & family meals.", img:"images/country.jpg", rating:4.2, link:"cards/country.html" },
-      { name:"Bayouki Rotisserie", category:"Rotisserie Chicken", desc:"Authentic grilled chicken & rotisserie meals.", img:"images/bayoki.png", rating:4.3, link:"cards/bayoki.html" }
+      { name:"Bayouki Rotisserie", category:"Rotisserie Chicken", desc:"Authentic grilled chicken & rotisserie meals.", img:"images/bayoki.png", rating:4.3, link:"cards/bayoki.html" },
+      { name:"Maine", category:"Seafood", desc:"Fresh seafood, lobster rolls & New England classics.", img:"images/maine.jpg", rating:4.5, link:"cards/maine.html" }
     ];
 
     const container = document.getElementById('restaurants');
@@ -196,7 +197,7 @@
         renderRestaurants(restaurants);
         return;
       }
-      const results = restaurants.filter(r => r.name.toLowerCase().startsWith(query));
+      const results = restaurants.filter(r => r.name.toLowerCase().includes(query));
       if(results.length === 1){
         window.location.href = results[0].link;
       } else {
@@ -214,7 +215,12 @@
         return;
       }
 
-      const results = restaurants.filter(r => r.name.toLowerCase().startsWith(query));
+      const results = restaurants.filter(r =>
+        r.name.toLowerCase().includes(query) ||
+        r.category.toLowerCase().includes(query) ||
+        r.desc.toLowerCase().includes(query)
+      );
+
       if(results.length === 0){
         suggestionsBox.innerHTML = '<div>No results</div>';
         suggestionsBox.style.display = 'block';
