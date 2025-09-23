@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pickl Egypt</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="top-stripe"></div>
+
+<section class="hero">
+  <img src="../images/pickl.jpg" alt="Pickl Egypt Logo" class="logo" onclick="location.href='../restaurants.html'">
+  <h1>Pickl</h1>
+  <p>Fresh Burgers & Chicken</p>
+  <div class="rating">⭐ ~4.5/5 (based on reviews)</div>
+  <a href="tel:16069" class="btn">Call Hotline</a>
+  <a href="https://www.pickl.com/egypt" target="_blank" class="btn secondary">Order / Full Menu</a>
+</section>
+
+<main class="section">
+  <!-- Info -->
+  <section class="info">
+    <h2>Contact & Branches</h2>
+    <div class="hotline">
+      <strong>Hotline:</strong> <a href="tel:16069">16069</a>
+    </div>
+
+    <div class="branches">
+      <div class="branch-card">
+        <h3>New Cairo – 5A by the Waterway</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pickl%205A%20by%20the%20Waterway%20New%20Cairo" target="_blank">
+          5A by the Waterway, New Cairo
+        </a>
+      </div>
+      <div class="branch-card">
+        <h3>Sheikh Zayed – Arkan Plaza</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pickl%20Arkan%20Plaza%20Sheikh%20Zayed" target="_blank">
+          Arkan Plaza, Sheikh Zayed
+        </a>
+      </div>
+      <div class="branch-card">
+        <h3>Maadi – Road 9</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Pickl%20Maadi%20Road%209" target="_blank">
+          Road 9, Maadi
+        </a>
+      </div>
+      <div class="branch-card">
+        <h3>+ more branches across Cairo</h3>
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu -->
+  <section class="menu">
+    <h2>Popular Items</h2>
+    <div class="menu-item"><span>Cheeseburger</span><span class="price">170–200 EGP</span></div>
+    <div class="menu-item"><span>Double Cheeseburger</span><span class="price">250–300 EGP</span></div>
+    <div class="menu-item"><span>Chicken Sando</span><span class="price">190–220 EGP</span></div>
+    <div class="menu-item"><span>Chicken Tenders</span><span class="price">150–180 EGP</span></div>
+    <div class="menu-item"><span>Loaded Fries</span><span class="price">100–130 EGP</span></div>
+    <a href="https://www.pickl.com/egypt" target="_blank" class="btn secondary">View Full Menu / Order</a>
+  </section>
+
+  <!-- Reviews -->
+  <section class="reviews">
+    <h2>Reviews</h2>
+    <div id="reviews-list"></div>
+    <form class="review-form" id="review-form">
+      <input type="text" placeholder="Your Name" id="reviewer" required>
+      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+      <button type="submit">Submit Review</button>
+    </form>
+  </section>
+</main>
+
+<footer>© 2025 Zo2y. All rights reserved.</footer>
+
+<script>
+  // Reviews
+  const reviewForm = document.getElementById('review-form');
+  const reviewsList = document.getElementById('reviews-list');
+
+  reviewForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('reviewer').value.trim();
+    const text = document.getElementById('review-text').value.trim();
+    if (!name || !text) return;
+    const div = document.createElement('div');
+    div.className = 'review';
+    const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
+    reviewsList.appendChild(div);
+    reviewForm.reset();
+  });
+</script>
+
+<script src="../js/themeManager.js"></script>
+</body>
+</html>
