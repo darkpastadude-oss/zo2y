@@ -49,11 +49,9 @@
   footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; }
 
   /* Speedometer */
-  .speedometer { position: relative; width: 280px; height: 160px; margin: 40px auto; }
-  .needle { transform-origin: 140px 140px; transform: rotate(-90deg); transition: transform 0.5s ease; stroke: #FF6F00; stroke-width: 4; }
-  .hub { fill: #333; stroke: #FF6F00; stroke-width: 2; }
-  .score { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: 700; color: #FF6F00; text-shadow: 0 0 10px rgba(255,111,0,0.6); }
-  .score-label { position: absolute; top: 78%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: #aaa; }
+  .speedometer { text-align:center; margin:20px 0; }
+  .gauge { width:200px; height:100px; }
+  .needle { transform-origin: 50% 100%; transition: transform 0.5s ease; }
 </style>
 </head>
 <body>
@@ -65,29 +63,16 @@
   <h1>Bazooka</h1>
   <p>Fried Chicken & Sandwiches</p>
 
-  <!-- Speedometer -->
+  <!-- Better Speedometer -->
   <div class="speedometer">
-    <svg width="280" height="160" viewBox="0 0 280 160">
-      <!-- Arc -->
-      <path d="M40 140 A100 100 0 0 1 240 140" fill="none" stroke="#333" stroke-width="12" stroke-linecap="round"/>
-
-      <!-- Ticks + numbers -->
-      <g stroke="#777" stroke-width="2" font-size="12" fill="#ccc" text-anchor="middle">
-        <text x="40" y="140">0</text>
-        <text x="80" y="70">20</text>
-        <text x="140" y="40">40</text>
-        <text x="200" y="70">60</text>
-        <text x="240" y="140">80</text>
-        <text x="190" y="130">100</text>
-      </g>
-
-      <!-- Needle -->
-      <line x1="140" y1="140" x2="140" y2="60" class="needle"/>
-      <!-- Center hub -->
-      <circle cx="140" cy="140" r="6" class="hub"/>
+    <svg class="gauge" viewBox="0 0 200 100">
+      <path d="M10 100 A90 90 0 0 1 190 100" fill="none" stroke="#eee" stroke-width="20"/>
+      <path d="M10 100 A90 90 0 0 1 70 34" fill="none" stroke="red" stroke-width="20"/>
+      <path d="M70 34 A90 90 0 0 1 130 34" fill="none" stroke="yellow" stroke-width="20"/>
+      <path d="M130 34 A90 90 0 0 1 190 100" fill="none" stroke="green" stroke-width="20"/>
+      <line x1="100" y1="100" x2="100" y2="20" stroke="black" stroke-width="4" class="needle"/>
     </svg>
-    <div class="score" id="score">0</div>
-    <div class="score-label">Happy Customers</div>
+    <p id="meter-label"></p>
   </div>
 
   <a href="tel:16455" class="btn">Call Hotline</a>
@@ -95,68 +80,86 @@
 </section>
 
 <main class="section">
-  <h2>Branches</h2>
-  <div class="branches">
-    <div class="branch-card">
-      <h3>New Cairo</h3>
-      <a href="https://goo.gl/maps/xxxx" target="_blank">View on Map</a>
+  <section class="info">
+    <h2>Contact & Branches</h2>
+    <div class="hotline"><strong>Hotline:</strong> <a href="tel:16455">16455</a></div>
+
+    <div class="branches">
+      <div class="branch-card">
+        <h3>New Cairo</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Chillout%20Midor%20North%2090th%20Gas%20Station,%20New%20Cairo" target="_blank">North 90th St. (Chillout Midor Gas Station)</a>
+      </div>
+      <div class="branch-card">
+        <h3>Nasr City</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=17%20Abbas%20El%20Akkad%20Street,%20Nasr%20City" target="_blank">17 Abbas El Akkad St.</a>
+      </div>
+      <div class="branch-card">
+        <h3>Nasr City</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=20%20Samir%20Abdel%20Raouf%20St.%20Extension%20of%20Makram%20Ebeid,%20Nasr%20City" target="_blank">20 Samir Abdel Raouf St. (Ext. of Makram Ebeid)</a>
+      </div>
+      <div class="branch-card">
+        <h3>Heliopolis</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Roxy%20Square,%20Heliopolis,%20Cairo" target="_blank">Roxy Square</a>
+      </div>
+      <div class="branch-card">
+        <h3>Mohandessin</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Lebanon%20Square,%20Mohandessin,%20Cairo" target="_blank">Lebanon Square</a>
+      </div>
+      <div class="branch-card">
+        <h3>+ more across Cairo, Giza, Alexandria & beyond</h3>
+      </div>
     </div>
-    <div class="branch-card">
-      <h3>Nasr City</h3>
-      <a href="https://goo.gl/maps/xxxx" target="_blank">View on Map</a>
-    </div>
-  </div>
+  </section>
 
-  <h2>Menu Highlights</h2>
-  <div class="menu-item"><span>Zinger Sandwich</span><span class="price">65 EGP</span></div>
-  <div class="menu-item"><span>Family Bucket</span><span class="price">240 EGP</span></div>
-  <div class="menu-item"><span>Cheese Fries</span><span class="price">50 EGP</span></div>
+  <section class="menu">
+    <h2>Popular Items</h2>
+    <div class="menu-item"><span>Bazooka Chicken Sandwich</span><span class="price">65 EGP</span></div>
+    <div class="menu-item"><span>Family Bucket (12 pcs)</span><span class="price">320 EGP</span></div>
+    <div class="menu-item"><span>Zinger Supreme</span><span class="price">72 EGP</span></div>
+    <div class="menu-item"><span>Cheesy Fries</span><span class="price">40 EGP</span></div>
+    <div class="menu-item"><span>Chicken Popcorn</span><span class="price">55 EGP</span></div>
+    <a href="https://bazookaegy.com/en" target="_blank" class="btn secondary">View Full Menu</a>
+  </section>
 
-  <h2>Customer Reviews</h2>
-  <div id="reviews-list">
-    <div class="review"><p><strong>Ahmed</strong></p><p>The chicken is crispy and juicy 🔥🔥🔥</p></div>
-    <div class="review"><p><strong>Salma</strong></p><p>Best sandwich in town, I love the sauces.</p></div>
-  </div>
-
-  <form id="review-form" class="review-form">
-    <input type="text" id="reviewer" placeholder="Your Name" required>
-    <textarea id="review-text" rows="4" placeholder="Write your review..." required></textarea>
-    <button type="submit">Submit Review</button>
-  </form>
+  <section class="reviews">
+    <h2>Reviews</h2>
+    <div id="reviews-list"></div>
+    <form class="review-form" id="review-form">
+      <input type="text" placeholder="Your Name" id="reviewer" required>
+      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+      <button type="submit">Submit Review</button>
+    </form>
+  </section>
 </main>
 
 <footer>© 2025 Zo2y. All rights reserved.</footer>
 
 <script>
-// Review form
 const reviewForm = document.getElementById('review-form');
-if (reviewForm) {
-  const reviewsList = document.getElementById('reviews-list');
-  reviewForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = document.getElementById('reviewer').value.trim();
-    const text = document.getElementById('review-text').value.trim();
-    if (!name || !text) return;
-    const div = document.createElement('div');
-    div.className = 'review';
-    const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-    div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
-    reviewsList.appendChild(div);
-    reviewForm.reset();
-  });
-}
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('reviewer').value.trim();
+  const text = document.getElementById('review-text').value.trim();
+  if (!name || !text) return;
+  const div = document.createElement('div');
+  div.className = 'review';
+  const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+  div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
+  reviewsList.appendChild(div);
+  reviewForm.reset();
+});
 
 // Speedometer
-function setMeter(percent) {
-  const angle = -90 + (percent * 1.8); // 0–100% mapped to arc
-  document.querySelector('.needle').style.transform = `rotate(${angle}deg)`;
-  document.getElementById('score').innerText = percent;
+const needle = document.querySelector('.needle');
+function setMeterFromRating(rating) {
+  const percent = Math.round((rating / 5) * 100);
+  const angle = -90 + (percent * 1.8); // maps 0–100% → -90 to +90
+  needle.style.transform = `rotate(${angle}deg)`;
+  document.getElementById('meter-label').innerText = percent + "% Happy Customers";
 }
-
-// Example: Google rating 4.3/5
-const googleRating = 4.3;
-const percent = Math.round((googleRating / 5) * 100);
-setMeter(percent);
+setMeterFromRating(4.3); // Example rating
 </script>
 
 <script src="../js/themeManager.js"></script>
