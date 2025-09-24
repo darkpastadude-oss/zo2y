@@ -1,191 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bazooka</title>
-<link rel="stylesheet" href="../style.css">
-<style>
-  * {margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background-color: var(--bg-color-primary); color: var(--text-color-primary); transition: background-color 0.3s ease, color 0.3s ease;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bazooka Rating</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #0d1117;
+      color: white;
+    }
 
-  .top-stripe { background:#FF6F00; height:50px; }
+    h1 {
+      margin-bottom: 20px;
+    }
 
-  .hero { text-align:center; padding:50px 20px 30px; }
-  .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.12); cursor:pointer; margin-bottom:30px; border:2px solid rgba(0,0,0,0.04); transition:transform .18s ease; }
-  .logo:active { transform:scale(.98); }
-  .hero h1 { font-size:2.3rem; font-weight:700; margin-bottom:8px; letter-spacing:0.4px; }
-  .hero p { font-size:1rem; color: var(--text-color-secondary); margin-bottom:10px; }
+    canvas {
+      background: #111;
+      border-radius: 50%;
+    }
 
-  .btn { display:inline-block; padding:10px 18px; border-radius:8px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease, color 0.3s ease; }
-  .btn.secondary { background: var(--nav-bg); color: var(--text-color-primary); border:1px solid var(--text-color-primary); }
-  .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+    .score-text {
+      position: absolute;
+      font-size: 2em;
+      font-weight: bold;
+      color: #00f7ff;
+      text-shadow: 0px 0px 10px #00f7ff;
+    }
 
-  .section { max-width:900px; margin:0 auto; padding:20px; }
-  h2 { margin-bottom:15px; font-size:1.3rem; }
-  p { margin-bottom:6px; color: var(--text-color-secondary); }
-
-  .hotline { font-size:1.2rem; margin-bottom:24px; }
-  .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; }
-  .hotline a:hover { text-decoration:underline; }
-
-  .branches { display:flex; flex-wrap:wrap; gap:12px; }
-  .branch-card { flex:1 1 45%; border:1px solid var(--nav-shadow); border-radius:8px; padding:15px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s ease; }
-  .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color: var(--text-color-primary); }
-  .branch-card a { font-size:0.95rem; color: var(--text-color-primary); text-decoration:none; }
-  .branch-card a:hover { text-decoration:underline; }
-
-  .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--nav-shadow); margin-bottom:8px; }
-  .menu-item span { color: var(--text-color-secondary); }
-  .menu-item .price { color: var(--text-color-secondary); }
-
-  .review { padding:12px 0; border-bottom:1px solid var(--nav-shadow); }
-  .review p { margin-bottom:6px; color: var(--text-color-secondary); }
-  .review-form { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
-  .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid var(--text-color-secondary); border-radius:6px; resize:vertical; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s ease, color 0.3s ease; }
-  .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease; }
-  .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
-
-  footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; }
-
-  /* Speedometer styles */
-  .speedometer { text-align:center; margin:30px 0; }
-  .needle { transform-origin: 125px 130px; transform: rotate(-90deg); transition: transform 0.5s ease; }
-</style>
+    .container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+  </style>
 </head>
 <body>
+  <h1>Bazooka Reviews</h1>
+  <div class="container">
+    <canvas id="speedometer" width="300" height="300"></canvas>
+    <div class="score-text" id="scoreText"></div>
+  </div>
 
-<div class="top-stripe"></div>
+  <script>
+    const canvas = document.getElementById("speedometer");
+    const ctx = canvas.getContext("2d");
+    const scoreText = document.getElementById("scoreText");
 
-<section class="hero">
-  <img src="../images/bazooka.jpg" alt="Bazooka Logo" class="logo" onclick="location.href='../index.html'">
-  <h1>Bazooka</h1>
-  <p>Fried Chicken & Sandwiches</p>
+    // Example: Google rating (4.5/5) → 90%
+    let googleRating = 4.5;
+    let percentage = (googleRating / 5) * 100;
 
-  <!-- Replaced stars with speedometer -->
-  <section class="speedometer">
-    <svg width="250" height="140" viewBox="0 0 250 140">
-      <!-- Background arc -->
-      <path d="M30 130 A100 100 0 0 1 220 130" fill="none" stroke="#ddd" stroke-width="20"/>
-      <!-- Red Zone -->
-      <path d="M30 130 A100 100 0 0 1 100 40" fill="none" stroke="#e74c3c" stroke-width="20"/>
-      <!-- Yellow Zone -->
-      <path d="M100 40 A100 100 0 0 1 160 40" fill="none" stroke="#f1c40f" stroke-width="20"/>
-      <!-- Green Zone -->
-      <path d="M160 40 A100 100 0 0 1 220 130" fill="none" stroke="#2ecc71" stroke-width="20"/>
+    let centerX = canvas.width / 2;
+    let centerY = canvas.height / 2;
+    let radius = 120;
 
-      <!-- Tick marks -->
-      <g stroke="#333" stroke-width="2">
-        <line x1="30" y1="130" x2="40" y2="120"/>
-        <line x1="70" y1="70" x2="80" y2="60"/>
-        <line x1="125" y1="30" x2="125" y2="50"/>
-        <line x1="170" y1="60" x2="180" y2="70"/>
-        <line x1="220" y1="130" x2="210" y2="120"/>
-      </g>
+    function drawSpeedometer(score) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      <!-- Numbers -->
-      <text x="30" y="125" font-size="12" fill="#333">0</text>
-      <text x="70" y="65" font-size="12" fill="#333">25</text>
-      <text x="120" y="25" font-size="12" fill="#333">50</text>
-      <text x="170" y="65" font-size="12" fill="#333">75</text>
-      <text x="215" y="125" font-size="12" fill="#333">100</text>
+      // Background arc
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
+      ctx.lineWidth = 20;
+      ctx.strokeStyle = "#333";
+      ctx.stroke();
 
-      <!-- Needle -->
-      <line x1="125" y1="130" x2="125" y2="40" stroke="#000" stroke-width="3" class="needle"/>
-      <!-- Center hub -->
-      <circle cx="125" cy="130" r="6" fill="#000"/>
-    </svg>
-    <p id="meter-label">85% Happy Customers</p>
-  </section>
+      // Dashes and numbers
+      for (let i = 0; i <= 100; i += 10) {
+        let angle = Math.PI + (i / 100) * Math.PI;
+        let x1 = centerX + Math.cos(angle) * (radius - 10);
+        let y1 = centerY + Math.sin(angle) * (radius - 10);
+        let x2 = centerX + Math.cos(angle) * (radius + 10);
+        let y2 = centerY + Math.sin(angle) * (radius + 10);
 
-  <a href="tel:16455" class="btn">Call Hotline</a>
-  <a href="https://bazookaegy.com/en" target="_blank" class="btn secondary">View Full Menu</a>
-</section>
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "white";
+        ctx.stroke();
 
-<main class="section">
-  <section class="info">
-    <h2>Contact & Branches</h2>
-    <div class="hotline"><strong>Hotline:</strong> <a href="tel:16455">16455</a></div>
+        // Numbers
+        let numX = centerX + Math.cos(angle) * (radius + 25);
+        let numY = centerY + Math.sin(angle) * (radius + 25);
+        ctx.fillStyle = "white";
+        ctx.font = "12px Arial";
+        ctx.fillText(i, numX - 8, numY + 5);
+      }
 
-    <div class="branches">
-      <div class="branch-card">
-        <h3>New Cairo</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Chillout%20Midor%20North%2090th%20Gas%20Station,%20New%20Cairo" target="_blank">North 90th St. (Chillout Midor Gas Station)</a>
-      </div>
-      <div class="branch-card">
-        <h3>Nasr City</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=17%20Abbas%20El%20Akkad%20Street,%20Nasr%20City" target="_blank">17 Abbas El Akkad St.</a>
-      </div>
-      <div class="branch-card">
-        <h3>Nasr City</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=20%20Samir%20Abdel%20Raouf%20St.%20Extension%20of%20Makram%20Ebeid,%20Nasr%20City" target="_blank">20 Samir Abdel Raouf St. (Ext. of Makram Ebeid)</a>
-      </div>
-      <div class="branch-card">
-        <h3>Heliopolis</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Roxy%20Square,%20Heliopolis,%20Cairo" target="_blank">Roxy Square</a>
-      </div>
-      <div class="branch-card">
-        <h3>Mohandessin</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Lebanon%20Square,%20Mohandessin,%20Cairo" target="_blank">Lebanon Square</a>
-      </div>
-      <div class="branch-card">
-        <h3>+ more across Cairo, Giza, Alexandria & beyond</h3>
-      </div>
-    </div>
-  </section>
+      // Color zones
+      let zones = [
+        { max: 40, color: "red" },
+        { max: 70, color: "yellow" },
+        { max: 90, color: "lime" },
+        { max: 100, color: "cyan" },
+      ];
 
-  <section class="menu">
-    <h2>Popular Items</h2>
-    <div class="menu-item"><span>Bazooka Chicken Sandwich</span><span class="price">65 EGP</span></div>
-    <div class="menu-item"><span>Family Bucket (12 pcs)</span><span class="price">320 EGP</span></div>
-    <div class="menu-item"><span>Zinger Supreme</span><span class="price">72 EGP</span></div>
-    <div class="menu-item"><span>Cheesy Fries</span><span class="price">40 EGP</span></div>
-    <div class="menu-item"><span>Chicken Popcorn</span><span class="price">55 EGP</span></div>
-    <a href="https://bazookaegy.com/en" target="_blank" class="btn secondary">View Full Menu</a>
-  </section>
+      let startAngle = Math.PI;
+      zones.forEach(zone => {
+        let endAngle = Math.PI + (zone.max / 100) * Math.PI;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
+        ctx.lineWidth = 20;
+        ctx.strokeStyle = zone.color;
+        ctx.stroke();
+        startAngle = endAngle;
+      });
 
-  <section class="reviews">
-    <h2>Reviews</h2>
-    <div id="reviews-list"></div>
-    <form class="review-form" id="review-form">
-      <input type="text" placeholder="Your Name" id="reviewer" required>
-      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
-      <button type="submit">Submit Review</button>
-    </form>
-  </section>
-</main>
+      // Needle
+      let angle = Math.PI + (score / 100) * Math.PI;
+      let needleX = centerX + Math.cos(angle) * (radius - 20);
+      let needleY = centerY + Math.sin(angle) * (radius - 20);
 
-<footer>© 2025 Zo2y. All rights reserved.</footer>
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(needleX, needleY);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "white";
+      ctx.stroke();
 
-<script>
-const reviewForm = document.getElementById('review-form');
-const reviewsList = document.getElementById('reviews-list');
+      // Score text in center
+      scoreText.innerText = Math.round(score) + "%";
+      scoreText.style.left = (centerX - 30) + "px";
+      scoreText.style.top = (centerY - 20) + "px";
+    }
 
-reviewForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const name = document.getElementById('reviewer').value.trim();
-  const text = document.getElementById('review-text').value.trim();
-  if (!name || !text) return;
-  const div = document.createElement('div');
-  div.className = 'review';
-  const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-  div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
-  reviewsList.appendChild(div);
-  reviewForm.reset();
-});
-
-// Speedometer control
-function setMeter(percent) {
-  const angle = -90 + (percent * 1.8);
-  document.querySelector('.needle').style.transform = `rotate(${angle}deg)`;
-  document.getElementById('meter-label').innerText = percent + "% Happy Customers";
-}
-// Convert Google rating (4.3/5) to percent
-const googleRating = 4.3;
-const percent = Math.round((googleRating / 5) * 100);
-setMeter(percent);
-</script>
-
-<script src="../js/themeManager.js"></script>
+    drawSpeedometer(percentage);
+  </script>
 </body>
 </html>
