@@ -18,32 +18,35 @@
 
     h1 {
       margin-bottom: 20px;
+      font-size: 28px;
+      color: #ff9900;
     }
 
     canvas {
       background: #111;
       border-radius: 50%;
+      box-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
     }
 
     .score-text {
       position: absolute;
-      font-size: 2em;
+      font-size: 3.5em;
       font-weight: bold;
-      color: #00f7ff;
-      text-shadow: 0px 0px 10px #00f7ff;
+      color: orange;
+      text-shadow: 0px 0px 15px rgba(255, 165, 0, 0.8);
     }
 
     .container {
       position: relative;
-      width: 300px;
-      height: 300px;
+      width: 350px;
+      height: 350px;
     }
   </style>
 </head>
 <body>
   <h1>Bazooka Reviews</h1>
   <div class="container">
-    <canvas id="speedometer" width="300" height="300"></canvas>
+    <canvas id="speedometer" width="350" height="350"></canvas>
     <div class="score-text" id="scoreText"></div>
   </div>
 
@@ -52,13 +55,14 @@
     const ctx = canvas.getContext("2d");
     const scoreText = document.getElementById("scoreText");
 
-    // Example: Google rating (4.5/5) → 90%
-    let googleRating = 4.5;
-    let percentage = (googleRating / 5) * 100;
+    // Example Google rating
+    let googleRating = 4.5; 
+    let targetPercentage = (googleRating / 5) * 100;
 
+    let currentPercentage = 0; // animation starts from 0
     let centerX = canvas.width / 2;
     let centerY = canvas.height / 2;
-    let radius = 120;
+    let radius = 130;
 
     function drawSpeedometer(score) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -70,7 +74,7 @@
       ctx.strokeStyle = "#333";
       ctx.stroke();
 
-      // Dashes and numbers
+      // Dashes + numbers
       for (let i = 0; i <= 100; i += 10) {
         let angle = Math.PI + (i / 100) * Math.PI;
         let x1 = centerX + Math.cos(angle) * (radius - 10);
@@ -89,7 +93,7 @@
         let numX = centerX + Math.cos(angle) * (radius + 25);
         let numY = centerY + Math.sin(angle) * (radius + 25);
         ctx.fillStyle = "white";
-        ctx.font = "12px Arial";
+        ctx.font = "14px Arial";
         ctx.fillText(i, numX - 8, numY + 5);
       }
 
@@ -120,17 +124,28 @@
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(needleX, needleY);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "white";
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "orange";
       ctx.stroke();
 
       // Score text in center
       scoreText.innerText = Math.round(score) + "%";
-      scoreText.style.left = (centerX - 30) + "px";
-      scoreText.style.top = (centerY - 20) + "px";
+      scoreText.style.left = (centerX - 50) + "px";
+      scoreText.style.top = (centerY - 40) + "px";
     }
 
-    drawSpeedometer(percentage);
+    // Animate the needle sweep
+    function animate() {
+      if (currentPercentage < targetPercentage) {
+        currentPercentage += 1; // step
+        drawSpeedometer(currentPercentage);
+        requestAnimationFrame(animate);
+      } else {
+        drawSpeedometer(targetPercentage);
+      }
+    }
+
+    animate();
   </script>
 </body>
 </html>
