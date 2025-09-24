@@ -29,15 +29,17 @@
     .featured { padding:60px 30px 20px; }
     .featured h2 { font-size:2rem; margin-bottom:20px; color:var(--text-color-primary); }
 
-    /* Search */
+    /* Search + Filter */
     .search-container {
-      position: relative;
       display:flex;
       justify-content:center;
+      align-items:center;
+      gap:10px;
       margin:20px;
+      flex-wrap:wrap;
     }
     .search-container input {
-      width:60%;
+      width:50%;
       padding:10px 15px;
       border:2px solid var(--nav-shadow);
       border-radius:8px 0 0 8px;
@@ -55,13 +57,22 @@
       transition:0.3s;
     }
     .search-container button:hover {background:#e65f00;}
+    .search-container select {
+      padding:10px;
+      border:2px solid var(--nav-shadow);
+      border-radius:8px;
+      font-size:1rem;
+      background: var(--card-bg);
+      color: var(--text-color-primary);
+      cursor:pointer;
+    }
 
     /* Suggestions dropdown */
     .suggestions {
       position: absolute;
       top: 100%;
       left: 20%;
-      width: 60%;
+      width: 50%;
       background: var(--card-bg);
       border:1px solid var(--nav-shadow);
       border-radius:0 0 8px 8px;
@@ -135,10 +146,23 @@
     <h2>Featured Restaurants</h2>
   </section>
 
-  <!-- Search -->
+  <!-- Search + Filter -->
   <div class="search-container">
     <input type="text" id="searchInput" placeholder="Search restaurants...">
     <button onclick="searchRestaurant()">Search</button>
+    <select id="categoryFilter" onchange="applyFilters()">
+      <option value="">All Categories</option>
+      <option value="Burger">Burgers</option>
+      <option value="Fried Chicken">Fried Chicken</option>
+      <option value="Japanese">Japanese</option>
+      <option value="Middle Eastern">Middle Eastern</option>
+      <option value="Mexican">Mexican</option>
+      <option value="Cafe">Cafe</option>
+      <option value="Seafood">Seafood</option>
+      <option value="Lebanese">Lebanese</option>
+      <option value="Pizza">Pizza</option>
+      <option value="American">American Diner</option>
+    </select>
     <div id="suggestions" class="suggestions"></div>
   </div>
 
@@ -166,7 +190,7 @@
       { name:"Maine", category:"Seafood", desc:"Fresh seafood, lobster rolls & New England classics.", img:"images/maine.jpg", rating:4.5, link:"cards/maine.html" },
       { name:"Barbar Shawarma", category:"Lebanese Street Food", desc:"Iconic shawarma spot serving beef, chicken & falafel.", img:"images/barbar.png", rating:4.4, link:"cards/barbar.html" },
       { name:"Labash", category:"Grilled Chicken & Sandwiches", desc:"Known for charcoal-grilled chicken, meat & fast bites.", img:"images/labash.jpg", rating:4.3, link:"cards/labash.html" },
-      { name:"Pickl Egypt", category:"Burgers & Fried Chicken", desc:"Dubai’s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.", img:"images/pickl.jpg", rating:4.6, link:"cards/pick.html" },
+      { name:"Pickl Egypt", category:"Burgers & Fried Chicken", desc:"Dubai’s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.", img:"images/pickl.jpg", rating:4.6, link:"cards/pickl.html" },
       { name:"Akleh", category:"Lebanese Dining", desc:"Authentic Lebanese mezze, grills & traditional dishes in a cozy setting.", img:"images/akleh.jpg", rating:4.4, link:"cards/akleh.html" },
       { name:"Howlin' Birds", category:"Nashville Hot Chicken", desc:"Spicy fried chicken sandwiches, tenders & southern-style comfort food.", img:"images/howlin.png", rating:4.5, link:"cards/howlin.html" }
     ];
@@ -175,6 +199,7 @@
     const noResults = document.getElementById('no-results');
     const searchInput = document.getElementById('searchInput');
     const suggestionsBox = document.getElementById('suggestions');
+    const categoryFilter = document.getElementById('categoryFilter');
 
     function renderRestaurants(list) {
       container.innerHTML = "";
@@ -198,25 +223,30 @@
       });
     }
 
-    renderRestaurants(restaurants);
-
-    // Search button
-    function searchRestaurant(){
+    function applyFilters(){
       const query = searchInput.value.trim().toLowerCase();
-      if(!query){
-        renderRestaurants(restaurants);
-        return;
+      const category = categoryFilter.value.toLowerCase();
+
+      let results = restaurants.filter(r =>
+        (r.name.toLowerCase().includes(query) ||
+        r.category.toLowerCase().includes(query) ||
+        r.desc.toLowerCase().includes(query))
+      );
+
+      if(category){
+        results = results.filter(r => r.category.toLowerCase().includes(category));
       }
-      const results = restaurants.filter(r => r.name.toLowerCase().includes(query));
-      if(results.length === 1){
-        window.location.href = results[0].link;
-      } else {
-        renderRestaurants(results);
-      }
+
+      renderRestaurants(results);
+    }
+
+    function searchRestaurant(){
+      applyFilters();
     }
 
     // Live suggestions
     searchInput.addEventListener('input', () => {
+      applyFilters();
       const query = searchInput.value.trim().toLowerCase();
       suggestionsBox.innerHTML = '';
 
@@ -252,6 +282,8 @@
         suggestionsBox.style.display = 'none';
       }
     });
+
+    renderRestaurants(restaurants);
   </script>
 </body>
 </html>
