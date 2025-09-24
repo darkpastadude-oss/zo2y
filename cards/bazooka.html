@@ -49,9 +49,11 @@
   footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; }
 
   /* Speedometer */
-  .speedometer { text-align:center; margin:20px 0; }
-  .gauge { width:200px; height:100px; }
-  .needle { transform-origin: 50% 100%; transition: transform 0.5s ease; }
+  .speedometer { text-align:center; margin:30px 0; }
+  .gauge { width:280px; height:160px; }
+  .needle { transform-origin: 50% 100%; transition: transform 0.6s ease; }
+  .score { font-size:2.4rem; font-weight:700; fill:orange; text-anchor:middle; }
+  .ticks { stroke:#333; stroke-width:2; }
 </style>
 </head>
 <body>
@@ -63,16 +65,26 @@
   <h1>Bazooka</h1>
   <p>Fried Chicken & Sandwiches</p>
 
-  <!-- Better Speedometer -->
+  <!-- Professional Speedometer -->
   <div class="speedometer">
-    <svg class="gauge" viewBox="0 0 200 100">
-      <path d="M10 100 A90 90 0 0 1 190 100" fill="none" stroke="#eee" stroke-width="20"/>
-      <path d="M10 100 A90 90 0 0 1 70 34" fill="none" stroke="red" stroke-width="20"/>
-      <path d="M70 34 A90 90 0 0 1 130 34" fill="none" stroke="yellow" stroke-width="20"/>
-      <path d="M130 34 A90 90 0 0 1 190 100" fill="none" stroke="green" stroke-width="20"/>
-      <line x1="100" y1="100" x2="100" y2="20" stroke="black" stroke-width="4" class="needle"/>
+    <svg class="gauge" viewBox="0 0 200 120">
+      <!-- Background arc -->
+      <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#eee" stroke-width="15"/>
+
+      <!-- Colored zones -->
+      <path d="M20 100 A80 80 0 0 1 70 40" fill="none" stroke="red" stroke-width="15"/>
+      <path d="M70 40 A80 80 0 0 1 130 40" fill="none" stroke="orange" stroke-width="15"/>
+      <path d="M130 40 A80 80 0 0 1 180 100" fill="none" stroke="green" stroke-width="15"/>
+
+      <!-- Ticks -->
+      <g id="ticks"></g>
+
+      <!-- Needle -->
+      <line x1="100" y1="100" x2="100" y2="30" stroke="black" stroke-width="4" class="needle"/>
+
+      <!-- Score in middle -->
+      <text id="score-text" x="100" y="95" class="score">0%</text>
     </svg>
-    <p id="meter-label"></p>
   </div>
 
   <a href="tel:16455" class="btn">Call Hotline</a>
@@ -85,29 +97,12 @@
     <div class="hotline"><strong>Hotline:</strong> <a href="tel:16455">16455</a></div>
 
     <div class="branches">
-      <div class="branch-card">
-        <h3>New Cairo</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Chillout%20Midor%20North%2090th%20Gas%20Station,%20New%20Cairo" target="_blank">North 90th St. (Chillout Midor Gas Station)</a>
-      </div>
-      <div class="branch-card">
-        <h3>Nasr City</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=17%20Abbas%20El%20Akkad%20Street,%20Nasr%20City" target="_blank">17 Abbas El Akkad St.</a>
-      </div>
-      <div class="branch-card">
-        <h3>Nasr City</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=20%20Samir%20Abdel%20Raouf%20St.%20Extension%20of%20Makram%20Ebeid,%20Nasr%20City" target="_blank">20 Samir Abdel Raouf St. (Ext. of Makram Ebeid)</a>
-      </div>
-      <div class="branch-card">
-        <h3>Heliopolis</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Roxy%20Square,%20Heliopolis,%20Cairo" target="_blank">Roxy Square</a>
-      </div>
-      <div class="branch-card">
-        <h3>Mohandessin</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Lebanon%20Square,%20Mohandessin,%20Cairo" target="_blank">Lebanon Square</a>
-      </div>
-      <div class="branch-card">
-        <h3>+ more across Cairo, Giza, Alexandria & beyond</h3>
-      </div>
+      <div class="branch-card"><h3>New Cairo</h3><a href="https://www.google.com/maps/search/?api=1&query=Chillout%20Midor%20North%2090th%20Gas%20Station,%20New%20Cairo" target="_blank">North 90th St. (Chillout Midor Gas Station)</a></div>
+      <div class="branch-card"><h3>Nasr City</h3><a href="https://www.google.com/maps/search/?api=1&query=17%20Abbas%20El%20Akkad%20Street,%20Nasr%20City" target="_blank">17 Abbas El Akkad St.</a></div>
+      <div class="branch-card"><h3>Nasr City</h3><a href="https://www.google.com/maps/search/?api=1&query=20%20Samir%20Abdel%20Raouf%20St.%20Extension%20of%20Makram%20Ebeid,%20Nasr%20City" target="_blank">20 Samir Abdel Raouf St. (Ext. of Makram Ebeid)</a></div>
+      <div class="branch-card"><h3>Heliopolis</h3><a href="https://www.google.com/maps/search/?api=1&query=Roxy%20Square,%20Heliopolis,%20Cairo" target="_blank">Roxy Square</a></div>
+      <div class="branch-card"><h3>Mohandessin</h3><a href="https://www.google.com/maps/search/?api=1&query=Lebanon%20Square,%20Mohandessin,%20Cairo" target="_blank">Lebanon Square</a></div>
+      <div class="branch-card"><h3>+ more across Cairo, Giza, Alexandria & beyond</h3></div>
     </div>
   </section>
 
@@ -151,13 +146,33 @@ reviewForm.addEventListener('submit', e => {
   reviewForm.reset();
 });
 
-// Speedometer
+// Generate ticks dynamically
+const ticksGroup = document.getElementById('ticks');
+for (let i = 0; i <= 10; i++) {
+  const angle = -90 + i * 18; // spread across 180°
+  const rad = angle * Math.PI / 180;
+  const x1 = 100 + 75 * Math.cos(rad);
+  const y1 = 100 + 75 * Math.sin(rad);
+  const x2 = 100 + 85 * Math.cos(rad);
+  const y2 = 100 + 85 * Math.sin(rad);
+  const tick = document.createElementNS("http://www.w3.org/2000/svg","line");
+  tick.setAttribute("x1", x1);
+  tick.setAttribute("y1", y1);
+  tick.setAttribute("x2", x2);
+  tick.setAttribute("y2", y2);
+  tick.setAttribute("class","ticks");
+  ticksGroup.appendChild(tick);
+}
+
+// Speedometer logic
 const needle = document.querySelector('.needle');
+const scoreText = document.getElementById('score-text');
+
 function setMeterFromRating(rating) {
   const percent = Math.round((rating / 5) * 100);
-  const angle = -90 + (percent * 1.8); // maps 0–100% → -90 to +90
+  const angle = -90 + (percent * 1.8); // map 0–100% → -90 to +90
   needle.style.transform = `rotate(${angle}deg)`;
-  document.getElementById('meter-label').innerText = percent + "% Happy Customers";
+  scoreText.textContent = percent + "%";
 }
 setMeterFromRating(4.3); // Example rating
 </script>
