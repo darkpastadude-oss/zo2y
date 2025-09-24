@@ -49,8 +49,8 @@
   footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; }
 
   /* Speedometer styles */
-  .speedometer { text-align:center; margin:20px 0; }
-  .needle { transform-origin: bottom center; transform: rotate(-90deg); transition: transform 0.5s ease; }
+  .speedometer { text-align:center; margin:30px 0; }
+  .needle { transform-origin: 125px 130px; transform: rotate(-90deg); transition: transform 0.5s ease; }
 </style>
 </head>
 <body>
@@ -62,24 +62,41 @@
   <h1>Bazooka</h1>
   <p>Fried Chicken & Sandwiches</p>
 
-  <!-- Speedometer replaces stars -->
-  <div class="speedometer">
-    <svg width="200" height="100" viewBox="0 0 200 100">
+  <!-- Replaced stars with speedometer -->
+  <section class="speedometer">
+    <svg width="250" height="140" viewBox="0 0 250 140">
       <!-- Background arc -->
-      <path d="M10 100 A90 90 0 0 1 190 100" fill="none" stroke="#ddd" stroke-width="20"/>
-      <!-- Red section -->
-      <path d="M10 100 A90 90 0 0 1 70 34" fill="none" stroke="red" stroke-width="20"/>
-      <!-- Yellow section -->
-      <path d="M70 34 A90 90 0 0 1 130 34" fill="none" stroke="yellow" stroke-width="20"/>
-      <!-- Greenish section -->
-      <path d="M130 34 A90 90 0 0 1 170 75" fill="none" stroke="lightgreen" stroke-width="20"/>
-      <!-- Full green end -->
-      <path d="M170 75 A90 90 0 0 1 190 100" fill="none" stroke="green" stroke-width="20"/>
+      <path d="M30 130 A100 100 0 0 1 220 130" fill="none" stroke="#ddd" stroke-width="20"/>
+      <!-- Red Zone -->
+      <path d="M30 130 A100 100 0 0 1 100 40" fill="none" stroke="#e74c3c" stroke-width="20"/>
+      <!-- Yellow Zone -->
+      <path d="M100 40 A100 100 0 0 1 160 40" fill="none" stroke="#f1c40f" stroke-width="20"/>
+      <!-- Green Zone -->
+      <path d="M160 40 A100 100 0 0 1 220 130" fill="none" stroke="#2ecc71" stroke-width="20"/>
+
+      <!-- Tick marks -->
+      <g stroke="#333" stroke-width="2">
+        <line x1="30" y1="130" x2="40" y2="120"/>
+        <line x1="70" y1="70" x2="80" y2="60"/>
+        <line x1="125" y1="30" x2="125" y2="50"/>
+        <line x1="170" y1="60" x2="180" y2="70"/>
+        <line x1="220" y1="130" x2="210" y2="120"/>
+      </g>
+
+      <!-- Numbers -->
+      <text x="30" y="125" font-size="12" fill="#333">0</text>
+      <text x="70" y="65" font-size="12" fill="#333">25</text>
+      <text x="120" y="25" font-size="12" fill="#333">50</text>
+      <text x="170" y="65" font-size="12" fill="#333">75</text>
+      <text x="215" y="125" font-size="12" fill="#333">100</text>
+
       <!-- Needle -->
-      <line x1="100" y1="100" x2="100" y2="20" stroke="black" stroke-width="4" class="needle"/>
+      <line x1="125" y1="130" x2="125" y2="40" stroke="#000" stroke-width="3" class="needle"/>
+      <!-- Center hub -->
+      <circle cx="125" cy="130" r="6" fill="#000"/>
     </svg>
-    <p id="meter-label"></p>
-  </div>
+    <p id="meter-label">85% Happy Customers</p>
+  </section>
 
   <a href="tel:16455" class="btn">Call Hotline</a>
   <a href="https://bazookaegy.com/en" target="_blank" class="btn secondary">View Full Menu</a>
@@ -157,17 +174,16 @@ reviewForm.addEventListener('submit', e => {
   reviewForm.reset();
 });
 
-// Speedometer Needle Movement
-const needle = document.querySelector('.needle');
-function setMeterFromRating(rating) {
-  const percent = Math.round((rating / 5) * 100);
-  const angle = -90 + (percent * 1.8); // -90deg to +90deg
-  needle.style.transform = `rotate(${angle}deg)`;
+// Speedometer control
+function setMeter(percent) {
+  const angle = -90 + (percent * 1.8);
+  document.querySelector('.needle').style.transform = `rotate(${angle}deg)`;
   document.getElementById('meter-label').innerText = percent + "% Happy Customers";
 }
-
-// Example: Google rating 4.3 → ~86%
-setMeterFromRating(4.3);
+// Convert Google rating (4.3/5) to percent
+const googleRating = 4.3;
+const percent = Math.round((googleRating / 5) * 100);
+setMeter(percent);
 </script>
 
 <script src="../js/themeManager.js"></script>
