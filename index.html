@@ -140,9 +140,8 @@
   <!-- Back to Top -->
   <button id="backToTop" aria-label="Back to top"><span>↑</span></button>
 
-  <!-- Scripts -->
   <script>
-    // ===== DARK MODE SYSTEM =====
+    // ===== DARK MODE =====
     const themeToggleBtn = document.getElementById('theme-toggle');
     function applyTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
@@ -155,49 +154,20 @@
     }
     function initializeTheme() {
       const savedTheme = localStorage.getItem('zo2y-theme');
-      if (savedTheme) {
-        applyTheme(savedTheme);
-      } else {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        applyTheme(prefersDark ? 'dark' : 'light');
-      }
-      if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+      if(savedTheme) applyTheme(savedTheme);
+      else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+      if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
     }
     document.addEventListener('DOMContentLoaded', initializeTheme);
 
     // ===== Back to Top =====
     const backToTop = document.getElementById('backToTop');
     window.addEventListener('scroll', () => {
-      if(window.scrollY > 200){ backToTop.classList.add('show'); }
-      else{ backToTop.classList.remove('show'); }
+      backToTop.classList.toggle('show', window.scrollY > 200);
     });
     backToTop.addEventListener('click', () => { window.scrollTo({top:0, behavior:'smooth'}); });
 
-    // ===== AUTH INTEGRATION =====
-    async function checkUser() {
-      const token = localStorage.getItem('token');
-      const headerButtons = document.getElementById('headerButtons');
-      if(!token) return;
-      try {
-        const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
-        const data = await res.json();
-        if(res.ok && data.user){
-          headerButtons.innerHTML = `
-            <span style="color: var(--text-color-primary); font-weight:600; margin-right:10px;">Welcome, ${data.user.username}</span>
-            <button id="logoutBtn">Logout</button>
-            <div class="dark-toggle" title="Dark Mode" id="theme-toggle">🌙</div>
-          `;
-          document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            location.reload();
-          });
-          document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-        }
-      } catch(err){ console.error(err); }
-    }
-    checkUser();
-
-    // ===== RESTAURANTS SHUFFLE & RENDER =====
+    // ===== RESTAURANTS =====
     const restaurants = [
       { name:"Mori Sushi", category:"Japanese", desc:"Modern sushi chain serving rolls, sashimi & Japanese bites.", img:"images/mori.png", rating:4.7, link:"cards/mori.html" },
       { name:"Kilo Kebab", category:"Middle Eastern", desc:"Charcoal-grilled kebabs & hearty Middle Eastern plates.", img:"images/kilo.png", rating:4.5, link:"cards/kilo.html" },
@@ -229,35 +199,31 @@
     }
 
     const container = document.getElementById("restaurants");
-    const shuffled = shuffle([...restaurants]);
+    const shuffled = shuffle([...restaurants]).slice(0,5); // pick 5 random
 
-    shuffled.forEach((r, i) => {
+    shuffled.forEach((r,i)=>{
       const card = document.createElement("div");
-      card.className = "restaurant-card";
-      card.innerHTML = `
-        <div class="icon-wrapper">
-          <img src="${r.img}" alt="${r.name}" class="restaurant-icon">
-        </div>
+      card.className="restaurant-card";
+      card.innerHTML=`
+        <div class="icon-wrapper"><img src="${r.img}" alt="${r.name}" class="restaurant-icon"></div>
         <h3>${r.name}</h3>
         <p>${r.category}</p>
         <p>${r.desc}</p>
         <p class="stars">⭐ ${r.rating}</p>
       `;
-      card.addEventListener("click", () => { window.location.href = r.link; });
+      card.addEventListener("click",()=>{window.location.href=r.link});
       container.appendChild(card);
-
-      // Animate fade-in
-      setTimeout(() => card.classList.add("show"), i * 100);
+      setTimeout(()=>card.classList.add("show"), i*100);
     });
 
-    // Add the "+ More" card
+    // "+ More" card
     const moreCard = document.createElement("div");
-    moreCard.className = "restaurant-card more-card show";
-    moreCard.innerHTML = `
+    moreCard.className="restaurant-card more-card show";
+    moreCard.innerHTML=`
       <div class="more-icon">+</div>
-      <p>More Restaurants</p>
+      <p>Explore all spots.</p>
     `;
-    moreCard.addEventListener("click", () => { window.location.href = "restaurants.html"; });
+    moreCard.addEventListener("click",()=>{window.location.href="restaurants.html"});
     container.appendChild(moreCard);
   </script>
 </body>
