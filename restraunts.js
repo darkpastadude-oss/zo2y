@@ -20,40 +20,39 @@ const restaurants = [
   { name:"Sauce", category:"American", desc:"Trendy burger & chicken spot with loaded fries, shakes & street food vibes.", img:"images/sauce.jpg", rating:4.4, link:"cards/sauce.html" }
 ];
 
-// Function to shuffle array
+// Shuffle function
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("restaurant-cards");
+  const container = document.getElementById("restaurants");
+  if (!container) return;
 
-  // Shuffle restaurants and take 5
+  // Shuffle and pick 5
   const randomRestaurants = shuffle([...restaurants]).slice(0, 5);
 
-  // Render 5 random restaurants
+  // Render each restaurant card
   randomRestaurants.forEach(r => {
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "restaurant-card"; // matches your CSS
     card.innerHTML = `
-      <a href="${r.link}">
-        <img src="${r.img}" alt="${r.name}">
-        <h3>${r.name}</h3>
-        <p>${r.category}</p>
-        <p>${r.desc}</p>
-        <p>⭐ ${r.rating}</p>
-      </a>
+      <div class="icon-wrapper">
+        <img src="${r.img}" alt="${r.name}" class="restaurant-icon">
+      </div>
+      <h3>${r.name}</h3>
+      <p>${r.category}</p>
+      <p>${r.desc}</p>
+      <p class="stars">⭐ ${r.rating}</p>
     `;
+    card.addEventListener('click', () => { window.location.href = r.link; });
     container.appendChild(card);
   });
 
-  // Add "+ more" card
+  // "+ More" card
   const moreCard = document.createElement("div");
-  moreCard.className = "card more-card";
-  moreCard.innerHTML = `
-    <a href="restaurants.html">
-      <div class="more">+ More</div>
-    </a>
-  `;
+  moreCard.className = "restaurant-card more-icon";
+  moreCard.innerHTML = `+`;
+  moreCard.addEventListener('click', () => { window.location.href = 'restaurants.html'; });
   container.appendChild(moreCard);
 });
