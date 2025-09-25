@@ -126,6 +126,7 @@
   <!-- Back to Top -->
   <button id="backToTop" aria-label="Back to top"><span>↑</span></button>
 
+  <!-- Scripts -->
   <script>
     // ===== DARK MODE SYSTEM =====
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -152,62 +153,6 @@
       }
     }
     document.addEventListener('DOMContentLoaded', initializeTheme);
-
-    // ===== Restaurants Cards =====
-    const restaurants = [
-      { name:"Mori Sushi", category:"Japanese", icon:"images/mori.png", rating:4.7, votes:1, page:"cards/mori.html" },
-      { name:"Kilo Kebab", category:"Middle Eastern", icon:"images/kilo.png", rating:4.5, votes:1, page:"cards/kilo.html" },
-      { name:"Hameed", category:"Fast Food", icon:"images/hameed.png", rating:4.3, votes:1, page:"cards/hameed.html" },
-      { name:"Bazooka", category:"Burger", icon:"images/bazooka.jpg", rating:4.2, votes:1, page:"cards/bazooka.html" },
-      { name:"Mexican Corn", category:"Mexican", icon:"images/mexican.jpg", rating:4.0, votes:1, page:"cards/mexican.html" }
-    ];
-
-    const container = document.getElementById('restaurants');
-    restaurants.forEach((r,i)=>{
-      const card = document.createElement('div');
-      card.className = 'restaurant-card';
-      card.innerHTML = `
-        <div class="icon-wrapper">
-          <img src="${r.icon}" alt="${r.name} Icon" class="restaurant-icon">
-        </div>
-        <h3>${r.name}</h3>
-        <p>${r.category}</p>
-        <div class="stars" data-index="${i}"></div>
-      `;
-      container.appendChild(card);
-      setTimeout(()=>{ card.style.transform='translateY(0)'; card.style.opacity='1'; }, i*200);
-
-      const starsContainer = card.querySelector('.stars');
-      for(let s=1; s<=5; s++){
-        const star = document.createElement('span');
-        star.innerHTML='★';
-        star.className = s <= Math.round(r.rating)?'star active':'star';
-        star.dataset.value = s;
-        starsContainer.appendChild(star);
-      }
-
-      starsContainer.addEventListener('click', e=>{
-        if(e.target.classList.contains('star')){
-          e.stopPropagation();
-          const value = parseInt(e.target.dataset.value);
-          r.rating = ((r.rating * r.votes) + value)/(r.votes+1);
-          r.votes++;
-          Array.from(starsContainer.children).forEach((sElem, idx) => {
-            sElem.classList.toggle('active', idx < Math.round(r.rating));
-          });
-        }
-      });
-
-      card.addEventListener('click', ()=>{ window.location.href = r.page; });
-    });
-
-    // FIXED → More card goes to restraunts.html (your spelling)
-    const moreCard = document.createElement('div');
-    moreCard.className = 'restaurant-card';
-    moreCard.innerHTML = `<div class="icon-wrapper"><div class="more-icon">+</div></div><h3>More</h3><p>Explore all spots</p>`;
-    moreCard.addEventListener('click', ()=>{ window.location.href='restraunts.html'; });
-    container.appendChild(moreCard);
-    setTimeout(()=>{ moreCard.style.transform='translateY(0)'; moreCard.style.opacity='1'; }, restaurants.length*200);
 
     // ===== Back to Top =====
     const backToTop = document.getElementById('backToTop');
@@ -243,5 +188,8 @@
     }
     checkUser();
   </script>
+
+  <!-- Restaurants Script -->
+  <script src="restaurants.js"></script>
 </body>
 </html>
