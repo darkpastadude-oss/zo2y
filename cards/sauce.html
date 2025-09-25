@@ -66,12 +66,12 @@
 <div class="top-stripe"></div>
 
 <section class="hero">
-  <!-- FIX path depending on folder -->
+  <!-- ✅ FIXED IMAGE PATH -->
   <img src="../images/sauce.jpg" alt="Sauce Logo" class="logo" onclick="window.location.href='../index.html'">
   <h1>Sauce</h1>
   <p>Asian-American Diner • Katsu, Burgers, Noodles & More</p>
 
-  <!-- Stars instead of speedometer -->
+  <!-- ⭐ Stars -->
   <div class="stars" id="stars"></div>
   <div class="rating-label" id="rating-label"></div>
 
@@ -140,7 +140,7 @@ reviewForm.addEventListener('submit', e => {
   }
 });
 
-// --- Stars instead of speedometer ---
+// ⭐ Render stars from Google rating (example: 4.4/5)
 function renderStars(rating) {
   const percent = Math.round((rating / 5) * 100);
   const starsContainer = document.getElementById('stars');
@@ -157,7 +157,7 @@ function renderStars(rating) {
   document.getElementById('rating-label').textContent = percent + "% (" + rating.toFixed(1) + "/5)";
 }
 
-// Example Sauce rating 4.4
+// ✅ Example Sauce rating: 4.4
 renderStars(4.4);
 </script>
 
