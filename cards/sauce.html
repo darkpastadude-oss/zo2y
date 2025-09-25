@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sauce Diner</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    * {margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+    body {
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      background-color: var(--bg-color-primary);
+      color: var(--text-color-primary);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .top-stripe { background:#FF6F00; height:50px; }
+
+    .hero { text-align:center; padding:50px 20px 30px; }
+    .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.12); cursor:pointer; margin-bottom:30px; border:2px solid rgba(0,0,0,0.04); transition:transform .18s ease; }
+    .logo:active { transform:scale(.98); }
+    .hero h1 { font-size:2.3rem; font-weight:700; margin-bottom:8px; letter-spacing:0.4px; }
+    .hero p { font-size:1rem; color: var(--text-color-secondary); margin-bottom:10px; }
+
+    .btn { display:inline-block; padding:10px 18px; border-radius:8px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease, color 0.3s ease; }
+    .btn.secondary { background: var(--nav-bg); color: var(--text-color-primary); border:1px solid var(--text-color-primary); }
+    .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+    .section { max-width:900px; margin:0 auto; padding:20px; }
+    h2 { margin-bottom:15px; font-size:1.3rem; }
+    p { margin-bottom:6px; color: var(--text-color-secondary); }
+
+    .hotline { font-size:1.2rem; margin-bottom:24px; }
+    .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; }
+    .hotline a:hover { text-decoration:underline; }
+
+    .branches { display:flex; flex-wrap:wrap; gap:12px; }
+    .branch-card { flex:1 1 45%; border:1px solid var(--nav-shadow); border-radius:8px; padding:15px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s ease; }
+    .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color: var(--text-color-primary); }
+    .branch-card p { font-size:0.95rem; color: var(--text-color-secondary); margin-bottom:8px; }
+    .branch-card a { font-size:0.9rem; color: var(--text-color-primary); text-decoration:none; }
+    .branch-card a:hover { text-decoration:underline; }
+
+    .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--nav-shadow); margin-bottom:8px; }
+    .menu-item span { color: var(--text-color-secondary); }
+
+    .review { padding:12px 0; border-bottom:1px solid var(--nav-shadow); }
+    .review p { margin-bottom:6px; color: var(--text-color-secondary); }
+    .review-form { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+    .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid var(--text-color-secondary); border-radius:6px; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s ease, color 0.3s ease; }
+    .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease; }
+    .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+    footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; }
+
+    /* Speedometer from Bazooka */
+    .speedometer { text-align:center; margin:30px 0; }
+    .gauge { width:280px; height:160px; }
+    .needle { transform-origin: 50% 100%; transition: transform 0.6s ease; stroke: #FF6F00; stroke-width: 4; }
+    .hub { fill: #222; stroke: #FF6F00; stroke-width: 3; }
+    .score { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: 800; color: #FF6F00; text-shadow: 0 0 15px rgba(255,111,0,0.8); }
+    .score-label { position: absolute; top: 78%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: #888; }
+  </style>
+</head>
+<body>
+
+<div class="top-stripe"></div>
+
+<section class="hero">
+  <img src="../images/sauce_logo.png" alt="Sauce Logo" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Sauce</h1>
+  <p>Asian-American Diner • Katsu, Burgers, Noodles & More</p>
+
+  <!-- Speedometer -->
+  <div class="speedometer">
+    <svg class="gauge" viewBox="0 0 320 180">
+      <!-- Colored zones -->
+      <path d="M60 160 A100 100 0 0 1 260 160" fill="none" stroke="red" stroke-width="14" stroke-dasharray="157 471" stroke-linecap="round"/>
+      <path d="M60 160 A100 100 0 0 1 260 160" fill="none" stroke="orange" stroke-width="14" stroke-dasharray="157 314" stroke-dashoffset="157" stroke-linecap="round"/>
+      <path d="M60 160 A100 100 0 0 1 260 160" fill="none" stroke="limegreen" stroke-width="14" stroke-dasharray="157 157" stroke-dashoffset="314" stroke-linecap="round"/>
+
+      <!-- Ticks + numbers -->
+      <g stroke="#aaa" stroke-width="2" font-size="12" fill="#ccc" text-anchor="middle">
+        <text x="60" y="165">0</text>
+        <text x="95" y="90">20</text>
+        <text x="160" y="60">40</text>
+        <text x="225" y="90">60</text>
+        <text x="260" y="165">80</text>
+        <text x="210" y="155">100</text>
+      </g>
+
+      <!-- Needle -->
+      <line x1="160" y1="160" x2="160" y2="70" class="needle"/>
+      <!-- Center hub -->
+      <circle cx="160" cy="160" r="7" class="hub"/>
+    </svg>
+    <div class="score" id="score">0</div>
+    <div class="score-label">Customer Rating</div>
+  </div>
+
+  <a href="tel:01229111182" class="btn">Call Hotline</a>
+  <a href="https://www.sauceeg.com/" target="_blank" class="btn secondary">View Full Menu</a>
+</section>
+
+<main class="section">
+  <section class="info">
+    <h2>Contact & Branches</h2>
+    <div class="hotline"><strong>Hotline:</strong> <a href="tel:01229111182">01229111182</a></div>
+
+    <div class="branches">
+      <div class="branch-card">
+        <h3>The Drive, Waterway</h3>
+        <p>New Cairo</p>
+      </div>
+      <div class="branch-card">
+        <h3>Tagamoa 5 (El Showifat)</h3>
+        <p>Cairo Festival City</p>
+      </div>
+      <div class="branch-card">
+        <h3>More locations</h3>
+        <p>Coming soon</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section menu">
+    <h2>Popular Items</h2>
+    <div class="menu-item"><span>Katsu Burger</span><span>EGP 180</span></div>
+    <div class="menu-item"><span>Sesame Noodles</span><span>EGP 140</span></div>
+    <div class="menu-item"><span>Chicken Katsu</span><span>EGP 200</span></div>
+    <div class="menu-item"><span>Wet Dip Combo</span><span>EGP 220</span></div>
+
+    <a href="https://www.sauceeg.com/" target="_blank" class="btn secondary">View Full Menu</a>
+  </section>
+
+  <section class="section reviews">
+    <h2>Reviews</h2>
+    <div id="reviews-list"></div>
+    <form class="review-form" id="review-form">
+      <input type="text" placeholder="Your Name" id="reviewer" required>
+      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+      <button type="submit">Submit Review</button>
+    </form>
+  </section>
+</main>
+
+<footer>© 2025 Sauce. All rights reserved.</footer>
+
+<script>
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('reviewer').value.trim();
+  const text = document.getElementById('review-text').value.trim();
+  if (name && text) {
+    const div = document.createElement('div');
+    div.className = 'review';
+    div.innerHTML = `<p><strong>${name}</strong></p><p>${text}</p>`;
+    reviewsList.appendChild(div);
+    reviewForm.reset();
+  }
+});
+
+const needle = document.querySelector('.needle');
+const scoreText = document.getElementById('score');
+
+function setMeterFromRating(rating) {
+  const percent = Math.round((rating / 5) * 100);
+  const angle = -90 + (percent * 1.8);
+  needle.style.transform = `rotate(${angle}deg)`;
+  scoreText.textContent = percent + "%";
+}
+
+// Suppose Sauce has rating ~4.4
+setMeterFromRating(4.4);
+</script>
+
+<script src="../js/themeManager.js"></script>
+</body>
+</html>
