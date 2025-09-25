@@ -54,13 +54,11 @@
 
     footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; }
 
-    /* Speedometer from Bazooka */
-    .speedometer { text-align:center; margin:30px 0; }
-    .gauge { width:280px; height:160px; }
-    .needle { transform-origin: 50% 100%; transition: transform 0.6s ease; stroke: #FF6F00; stroke-width: 4; }
-    .hub { fill: #222; stroke: #FF6F00; stroke-width: 3; }
-    .score { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: 800; color: #FF6F00; text-shadow: 0 0 15px rgba(255,111,0,0.8); }
-    .score-label { position: absolute; top: 78%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: #888; }
+    /* Star rating */
+    .stars { display:flex; justify-content:center; margin:20px 0; }
+    .star { font-size:32px; color:#ccc; margin:0 3px; }
+    .star.filled { color:#FF6F00; }
+    .rating-label { text-align:center; color:#888; margin-top:5px; }
   </style>
 </head>
 <body>
@@ -68,36 +66,14 @@
 <div class="top-stripe"></div>
 
 <section class="hero">
-  <img src="../images/sauce_logo.png" alt="Sauce Logo" class="logo" onclick="window.location.href='../index.html'">
+  <!-- FIX path depending on folder -->
+  <img src="../images/sauce.jpg" alt="Sauce Logo" class="logo" onclick="window.location.href='../index.html'">
   <h1>Sauce</h1>
   <p>Asian-American Diner • Katsu, Burgers, Noodles & More</p>
 
-  <!-- Speedometer -->
-  <div class="speedometer">
-    <svg class="gauge" viewBox="0 0 320 180">
-      <!-- Colored zones -->
-      <path d="M60 160 A100 100 0 0 1 260 160" fill="none" stroke="red" stroke-width="14" stroke-dasharray="157 471" stroke-linecap="round"/>
-      <path d="M60 160 A100 100 0 0 1 260 160" fill="none" stroke="orange" stroke-width="14" stroke-dasharray="157 314" stroke-dashoffset="157" stroke-linecap="round"/>
-      <path d="M60 160 A100 100 0 0 1 260 160" fill="none" stroke="limegreen" stroke-width="14" stroke-dasharray="157 157" stroke-dashoffset="314" stroke-linecap="round"/>
-
-      <!-- Ticks + numbers -->
-      <g stroke="#aaa" stroke-width="2" font-size="12" fill="#ccc" text-anchor="middle">
-        <text x="60" y="165">0</text>
-        <text x="95" y="90">20</text>
-        <text x="160" y="60">40</text>
-        <text x="225" y="90">60</text>
-        <text x="260" y="165">80</text>
-        <text x="210" y="155">100</text>
-      </g>
-
-      <!-- Needle -->
-      <line x1="160" y1="160" x2="160" y2="70" class="needle"/>
-      <!-- Center hub -->
-      <circle cx="160" cy="160" r="7" class="hub"/>
-    </svg>
-    <div class="score" id="score">0</div>
-    <div class="score-label">Customer Rating</div>
-  </div>
+  <!-- Stars instead of speedometer -->
+  <div class="stars" id="stars"></div>
+  <div class="rating-label" id="rating-label"></div>
 
   <a href="tel:01229111182" class="btn">Call Hotline</a>
   <a href="https://www.sauceeg.com/" target="_blank" class="btn secondary">View Full Menu</a>
@@ -164,18 +140,25 @@ reviewForm.addEventListener('submit', e => {
   }
 });
 
-const needle = document.querySelector('.needle');
-const scoreText = document.getElementById('score');
-
-function setMeterFromRating(rating) {
+// --- Stars instead of speedometer ---
+function renderStars(rating) {
   const percent = Math.round((rating / 5) * 100);
-  const angle = -90 + (percent * 1.8);
-  needle.style.transform = `rotate(${angle}deg)`;
-  scoreText.textContent = percent + "%";
+  const starsContainer = document.getElementById('stars');
+  starsContainer.innerHTML = "";
+
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement('span');
+    star.classList.add('star');
+    if (i <= Math.round(rating)) star.classList.add('filled');
+    star.innerHTML = "★";
+    starsContainer.appendChild(star);
+  }
+
+  document.getElementById('rating-label').textContent = percent + "% (" + rating.toFixed(1) + "/5)";
 }
 
-// Suppose Sauce has rating ~4.4
-setMeterFromRating(4.4);
+// Example Sauce rating 4.4
+renderStars(4.4);
 </script>
 
 <script src="../js/themeManager.js"></script>
