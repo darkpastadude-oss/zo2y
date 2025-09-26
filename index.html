@@ -4,248 +4,263 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zo2y - Restaurants</title>
-  <link rel="stylesheet" href="style.css">
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
-    body {
-      background-color: #2c2f48; /* Discord smooth dark blue */
-      color: #fff;
-      overflow-x:hidden;
-    }
+    /* RESET + GLOBALS */
+    * {margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;}
+    body {background:#1e1f2e;color:#fff;overflow-x:hidden;}
+    a {text-decoration:none;color:inherit;}
+
+    /* HEADER */
     header {
       display:flex;
       justify-content:space-between;
       align-items:center;
       padding:15px 40px;
-      background:#23253b; /* darker blue header */
-      position:sticky;
-      top:0;
-      z-index:100;
+      background:#23243a;
+      border-bottom:2px solid #ff7f50;
+      position:sticky;top:0;z-index:100;
     }
-    header .logo {
-      font-size:20px;
-      font-weight:bold;
-      color:#ff7b00; /* orange accent */
-    }
-    header nav a {
-      margin:0 15px;
-      text-decoration:none;
-      color:#fff;
-      font-size:14px;
-    }
-    header nav a:hover {
-      color:#ff7b00;
-    }
-    .search-container {
-      position:relative;
-    }
-    .search-container input {
-      padding:8px 12px;
-      border:none;
-      border-radius:6px;
-      width:220px;
-      font-size:14px;
+    .logo {font-size:22px;font-weight:700;color:#ff7f50;}
+    nav {display:flex;align-items:center;gap:20px;}
+    nav a {font-size:16px;transition:0.3s;}
+    nav a:hover {color:#ffae73;}
+    .search-container {position:relative;}
+    .search-input {
+      padding:8px 12px;border-radius:6px;border:none;
+      outline:none;width:220px;
     }
     .suggestions {
-      position:absolute;
-      background:#fff;
-      color:#000;
-      width:100%;
-      top:36px;
-      left:0;
-      border-radius:6px;
-      box-shadow:0 4px 8px rgba(0,0,0,0.2);
-      display:none;
-      max-height:200px;
-      overflow-y:auto;
-      z-index:200;
+      position:absolute;top:38px;left:0;width:100%;
+      background:#2a2c44;border-radius:6px;overflow:hidden;
+      display:none;flex-direction:column;z-index:50;
     }
     .suggestions div {
-      padding:8px 12px;
-      cursor:pointer;
+      padding:8px 12px;cursor:pointer;
     }
-    .suggestions div:hover {
-      background:#f0f0f0;
+    .suggestions div:hover {background:#3a3c5c;}
+    .btn {
+      background:#ff7f50;color:#fff;padding:8px 14px;
+      border:none;border-radius:6px;cursor:pointer;
+      transition:0.3s;font-weight:500;
     }
+    .btn:hover {background:#ff9966;}
+
+    /* HERO */
     .hero {
-      text-align:center;
-      padding:70px 20px;
+      text-align:center;padding:70px 20px;
     }
-    .hero h1 {
-      font-size:36px;
-      margin-bottom:15px;
-      color:#ff7b00;
-    }
-    .hero p {
-      font-size:18px;
-      color:#ccc;
-    }
+    .hero h1 {font-size:42px;margin-bottom:20px;}
+    .hero p {font-size:18px;margin-bottom:30px;color:#ccc;}
+    .hero .btn {font-size:18px;padding:12px 20px;}
+
+    /* GRID */
     .section {
-      padding:40px 30px;
+      padding:50px 40px;
     }
-    .section h2 {
-      font-size:22px;
-      margin-bottom:20px;
-      color:#ff7b00;
-    }
-    .card-grid {
+    .section h2 {font-size:28px;margin-bottom:25px;color:#ff7f50;}
+    .grid {
       display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
-      gap:20px;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:25px;
     }
     .card {
-      background:#1f2133;
-      border-radius:12px;
-      overflow:hidden;
-      text-decoration:none;
-      color:#fff;
-      transition:transform .2s;
+      background:#2a2c44;border-radius:12px;overflow:hidden;
+      transition:transform 0.3s,box-shadow 0.3s;
     }
     .card:hover {
-      transform:scale(1.03);
+      transform:translateY(-6px);
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
     }
     .card img {
-      width:100%;
-      height:180px;
-      object-fit:cover; /* ensures no stretching, image fills box */
+      width:100%;height:160px;object-fit:cover;
     }
-    .card .info {
-      padding:12px;
+    .card h3 {
+      padding:14px;font-size:18px;font-weight:600;
     }
-    .card .info h3 {
-      font-size:16px;
-      margin-bottom:6px;
-      color:#fff;
+
+    /* MORE BUTTON */
+    .more-btn {
+      margin-top:30px;text-align:center;
     }
-    .card .info p {
-      font-size:14px;
-      color:#aaa;
+    .more-btn .btn {
+      padding:12px 20px;font-size:16px;
     }
-    .btn {
-      display:inline-block;
-      margin-top:20px;
-      padding:10px 20px;
-      background:#ff7b00;
-      color:#fff;
-      border-radius:6px;
-      text-decoration:none;
-      font-size:14px;
-      font-weight:bold;
-    }
-    .btn:hover {
-      background:#e66f00;
-    }
+
+    /* FOOTER */
     footer {
-      background:#23253b;
-      text-align:center;
-      padding:15px;
-      font-size:14px;
-      color:#bbb;
-      margin-top:40px;
+      background:#23243a;text-align:center;padding:20px;
+      border-top:2px solid #ff7f50;color:#aaa;font-size:14px;
     }
   </style>
 </head>
 <body>
+
+  <!-- HEADER -->
   <header>
     <div class="logo">Zo2y</div>
     <nav>
-      <a href="index.html">Home</a>
-      <a href="restaurants.html">Restaurants</a>
+      <div class="search-container">
+        <input type="text" id="search" class="search-input" placeholder="Search restaurants...">
+        <div id="suggestions" class="suggestions"></div>
+      </div>
+      <a href="restaurants.html">Explore</a>
       <a href="login.html">Login</a>
-      <a href="signup.html">Sign Up</a>
+      <a href="signup.html" class="btn">Get Started</a>
     </nav>
-    <div class="search-container">
-      <input type="text" id="globalSearch" placeholder="Search restaurants...">
-      <div id="suggestions" class="suggestions"></div>
-    </div>
   </header>
 
+  <!-- HERO -->
   <section class="hero">
-    <h1>Discover the Best Restaurants</h1>
-    <p>Explore spots around New Cairo</p>
-    <a href="restaurants.html" class="btn">Explore all spots</a>
+    <h1>Discover the Best Restaurants in Town</h1>
+    <p>Find your next meal from our curated list of the finest spots in New Cairo.</p>
+    <a href="restaurants.html" class="btn">Explore All Restaurants</a>
   </section>
 
+  <!-- FEATURED RESTAURANTS -->
   <section class="section">
     <h2>Featured Restaurants</h2>
-    <div class="card-grid" id="featuredGrid">
-      <!-- Cards injected here -->
+    <div class="grid">
+      <a href="cards/bazooka.html" class="card">
+        <img src="images/bazooka.jpg" alt="Bazooka">
+        <h3>Bazooka</h3>
+      </a>
+      <a href="cards/mori.html" class="card">
+        <img src="images/mori.jpg" alt="Mori Sushi">
+        <h3>Mori Sushi</h3>
+      </a>
+      <a href="cards/mexican.html" class="card">
+        <img src="images/mexican.jpg" alt="Mexican Corn">
+        <h3>Mexican Corn</h3>
+      </a>
+      <a href="cards/hameed.html" class="card">
+        <img src="images/hameed.jpg" alt="Hameed">
+        <h3>Hameed</h3>
+      </a>
+      <a href="cards/kilo.html" class="card">
+        <img src="images/kilo.jpg" alt="Kilo Kebab">
+        <h3>Kilo Kebab</h3>
+      </a>
+      <a href="cards/brgr.html" class="card">
+        <img src="images/brgr.jpg" alt="BRGR">
+        <h3>BRGR</h3>
+      </a>
+      <a href="cards/barbar.html" class="card">
+        <img src="images/barbar.jpg" alt="Barbar">
+        <h3>Barbar</h3>
+      </a>
+      <a href="cards/akleh.html" class="card">
+        <img src="images/akleh.jpg" alt="Akleh">
+        <h3>Akleh</h3>
+      </a>
+      <a href="cards/bayoki.html" class="card">
+        <img src="images/bayoki.jpg" alt="Bayoki">
+        <h3>Bayoki</h3>
+      </a>
+      <a href="cards/howlin.html" class="card">
+        <img src="images/howlin.jpg" alt="Howlin">
+        <h3>Howlin</h3>
+      </a>
+      <a href="cards/labash.html" class="card">
+        <img src="images/labash.jpg" alt="Labash">
+        <h3>Labash</h3>
+      </a>
+      <a href="cards/maine.html" class="card">
+        <img src="images/maine.jpg" alt="Maine">
+        <h3>Maine</h3>
+      </a>
+      <a href="cards/pickl.html" class="card">
+        <img src="images/pickl.jpg" alt="Pickl">
+        <h3>Pickl</h3>
+      </a>
+      <a href="cards/sauce.html" class="card">
+        <img src="images/sauce.jpg" alt="Sauce">
+        <h3>Sauce</h3>
+      </a>
+      <a href="cards/secondcup.html" class="card">
+        <img src="images/secondcup.jpg" alt="Second Cup">
+        <h3>Second Cup</h3>
+      </a>
+      <a href="cards/station.html" class="card">
+        <img src="images/station.jpg" alt="Pizza Station">
+        <h3>Pizza Station</h3>
+      </a>
+      <a href="cards/vasko.html" class="card">
+        <img src="images/vasko.jpg" alt="Vasko">
+        <h3>Vasko</h3>
+      </a>
+      <a href="cards/chikin.html" class="card">
+        <img src="images/chikin.jpg" alt="Chikin">
+        <h3>Chikin</h3>
+      </a>
+      <a href="cards/country.html" class="card">
+        <img src="images/country.jpg" alt="Country">
+        <h3>Country</h3>
+      </a>
     </div>
-    <a href="restaurants.html" class="btn">+ More</a>
+
+    <div class="more-btn">
+      <a href="restaurants.html" class="btn">+ More</a>
+    </div>
   </section>
 
+  <!-- FOOTER -->
   <footer>
-    <p>&copy; 2025 Zo2y. All Rights Reserved.</p>
+    © 2025 Zo2y. All Rights Reserved.
   </footer>
 
+  <!-- JS -->
   <script>
-    const restaurants = [
-      { name:"Bazooka", slug:"bazooka", image:"images/bazooka.jpg", rating:"4.5★" },
-      { name:"Mori Sushi", slug:"mori", image:"images/mori.jpg", rating:"4.7★" },
-      { name:"Mexican Corn", slug:"mexican", image:"images/mexican.jpg", rating:"4.3★" },
-      { name:"Hameed", slug:"hameed", image:"images/hameed.jpg", rating:"4.6★" },
-      { name:"Kilo Kebab", slug:"kilo", image:"images/kilo.jpg", rating:"4.4★" },
-      { name:"BRGR", slug:"brgr", image:"images/brgr.jpg", rating:"4.5★" },
-      { name:"Barbar", slug:"barbar", image:"images/barbar.jpg", rating:"4.2★" },
-      { name:"Akleh", slug:"akleh", image:"images/akleh.jpg", rating:"4.1★" },
-      { name:"Bayoki", slug:"bayoki", image:"images/bayoki.jpg", rating:"4.6★" },
-      { name:"Howlin", slug:"howlin", image:"images/howlin.jpg", rating:"4.3★" },
-      { name:"Labash", slug:"labash", image:"images/labash.jpg", rating:"4.5★" },
-      { name:"Maine", slug:"maine", image:"images/maine.jpg", rating:"4.7★" },
-      { name:"Pickl", slug:"pickl", image:"images/pickl.jpg", rating:"4.4★" },
-      { name:"Sauce", slug:"sauce", image:"images/sauce.jpg", rating:"4.2★" },
-      { name:"Second Cup", slug:"secondcup", image:"images/secondcup.jpg", rating:"4.6★" },
-      { name:"Station", slug:"station", image:"images/station.jpg", rating:"4.5★" },
-      { name:"Vasko", slug:"vasko", image:"images/vasko.jpg", rating:"4.3★" },
-      { name:"Chikin", slug:"chikin", image:"images/chikin.jpg", rating:"4.4★" },
-      { name:"Country", slug:"country", image:"images/country.jpg", rating:"4.5★" }
-    ];
+    const restaurants = {
+      "bazooka":"cards/bazooka.html",
+      "mori":"cards/mori.html",
+      "mexican":"cards/mexican.html",
+      "hameed":"cards/hameed.html",
+      "kilo":"cards/kilo.html",
+      "brgr":"cards/brgr.html",
+      "barbar":"cards/barbar.html",
+      "akleh":"cards/akleh.html",
+      "bayoki":"cards/bayoki.html",
+      "howlin":"cards/howlin.html",
+      "labash":"cards/labash.html",
+      "maine":"cards/maine.html",
+      "pickl":"cards/pickl.html",
+      "sauce":"cards/sauce.html",
+      "secondcup":"cards/secondcup.html",
+      "station":"cards/station.html",
+      "vasko":"cards/vasko.html",
+      "chikin":"cards/chikin.html",
+      "country":"cards/country.html"
+    };
 
-    // Render featured restaurants
-    const grid = document.getElementById("featuredGrid");
-    restaurants.forEach(r => {
-      const card = document.createElement("a");
-      card.href = `cards/${r.slug}.html`;
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${r.image}" alt="${r.name}">
-        <div class="info">
-          <h3>${r.name}</h3>
-          <p>${r.rating}</p>
-        </div>
-      `;
-      grid.appendChild(card);
+    const search = document.getElementById('search');
+    const suggestions = document.getElementById('suggestions');
+
+    search.addEventListener('input', () => {
+      const val = search.value.toLowerCase();
+      suggestions.innerHTML = '';
+      if (val) {
+        const matches = Object.keys(restaurants).filter(r => r.includes(val));
+        matches.forEach(m => {
+          const div = document.createElement('div');
+          div.textContent = m.charAt(0).toUpperCase() + m.slice(1);
+          div.onclick = () => window.location.href = restaurants[m];
+          suggestions.appendChild(div);
+        });
+        suggestions.style.display = matches.length ? 'flex' : 'none';
+      } else {
+        suggestions.style.display = 'none';
+      }
     });
 
-    // Search functionality
-    const searchInput = document.getElementById("globalSearch");
-    const suggestions = document.getElementById("suggestions");
-
-    searchInput.addEventListener("input", () => {
-      const query = searchInput.value.toLowerCase();
-      suggestions.innerHTML = "";
-
-      if (!query) {
-        suggestions.style.display = "none";
-        return;
-      }
-
-      const filtered = restaurants.filter(r => r.name.toLowerCase().includes(query));
-
-      if (filtered.length > 0) {
-        filtered.forEach(r => {
-          const item = document.createElement("div");
-          item.textContent = r.name;
-          item.addEventListener("click", () => {
-            window.location.href = `cards/${r.slug}.html`;
-          });
-          suggestions.appendChild(item);
-        });
-        suggestions.style.display = "block";
-      } else {
-        suggestions.style.display = "none";
+    search.addEventListener('keypress', e => {
+      if (e.key === 'Enter') {
+        const val = search.value.toLowerCase();
+        if (restaurants[val]) {
+          window.location.href = restaurants[val];
+        }
       }
     });
   </script>
+
 </body>
 </html>
