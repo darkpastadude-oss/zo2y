@@ -3,249 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y</title>
+  <title>Zo2y - Restaurants</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    * {margin:0;padding:0;box-sizing:border-box;font-family: 'Segoe UI', Tahoma, sans-serif;}
-    body {overflow-x:hidden; background: var(--bg); color: var(--text);}
-    :root {
-      --accent:#FF6F00;
-      --bg:#fff; --text:#222;
-      --card-bg:#f9f9f9; --nav-bg:#fff;
-    }
-    [data-theme="dark"] {
-      --bg:#111; --text:#eee;
-      --card-bg:#1a1a1a; --nav-bg:#222;
-    }
+    * {margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+    body {overflow-x:hidden; background:#fff; color:#222; transition:background 0.3s, color 0.3s;}
+    body.dark {background:#121212; color:#eee;}
 
-    /* Navbar */
-    nav {
-      position:sticky; top:0; left:0; right:0; z-index:1000;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:10px 40px; background:var(--nav-bg); box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    /* HEADER */
+    .header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:15px 40px; background:#ff6f00; color:#fff;
     }
-    nav img {height:40px; cursor:pointer;}
-    .search-bar {
-      flex:1; max-width:600px; margin:0 40px; position:relative;
+    .header .logo {height:45px; cursor:pointer;}
+    .nav-links a {
+      margin:0 15px; text-decoration:none; color:#fff; font-weight:500;
     }
-    .search-bar input {
-      width:100%; padding:10px 15px; border-radius:25px; border:1px solid #ccc;
-      outline:none; font-size:1rem; background:var(--card-bg); color:var(--text);
-    }
-    .nav-right {display:flex; align-items:center; gap:15px;}
+    .header-controls {display:flex; align-items:center; gap:20px;}
     .account-menu {position:relative;}
-    .account-btn {
-      background:var(--accent); border:none; color:#fff; padding:8px 18px; border-radius:20px;
-      cursor:pointer; font-weight:600;
-    }
+    .account-btn {background:none;border:none;color:#fff;font-size:1rem;cursor:pointer;}
     .account-dropdown {
-      position:absolute; right:0; top:110%; background:var(--card-bg);
-      border-radius:10px; box-shadow:0 6px 15px rgba(0,0,0,0.2);
-      display:none; flex-direction:column; min-width:150px;
+      display:none; position:absolute; right:0; top:120%; background:#fff; color:#333;
+      border-radius:8px; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,.15);
     }
-    .account-dropdown a {
-      padding:12px; text-decoration:none; color:var(--text); transition:background 0.2s;
-    }
-    .account-dropdown a:hover {background:rgba(0,0,0,0.05);}
-    .account-menu:hover .account-dropdown {display:flex;}
+    .account-menu:hover .account-dropdown {display:block;}
+    .account-dropdown a {display:block;padding:10px 15px;text-decoration:none;color:#333;}
+    .account-dropdown a:hover {background:#f0f0f0;}
+    .gear {font-size:1.5rem;cursor:pointer;}
 
-    /* Dark mode switch */
-    .switch {
-      position:relative; display:inline-block; width:50px; height:24px;
+    /* SETTINGS PANEL */
+    .settings-panel {
+      position:absolute; top:70px; right:20px; width:200px;
+      background:#fff; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.15);
+      padding:15px; display:none; z-index:1000;
     }
-    .switch input {opacity:0; width:0; height:0;}
+    body.dark .settings-panel {background:#1e1e1e; color:#eee;}
+    .settings-panel.active {display:block;}
+    .switch {position:relative; display:inline-block; width:50px; height:24px;}
+    .switch input {display:none;}
     .slider {
-      position:absolute; cursor:pointer; inset:0; background:#ccc; border-radius:34px;
-      transition:0.4s;
+      position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
+      background:#ccc; transition:.4s; border-radius:24px;
     }
     .slider:before {
       position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px;
-      background:white; transition:0.4s; border-radius:50%;
+      background:#fff; border-radius:50%; transition:.4s;
     }
-    input:checked + .slider {background:var(--accent);}
+    input:checked + .slider {background:#ff6f00;}
     input:checked + .slider:before {transform:translateX(26px);}
 
-    /* Hero */
-    .hero {
-      position:relative; height:70vh; display:flex; flex-direction:column;
-      align-items:center; justify-content:center; text-align:center; color:#fff;
-      background:#000; overflow:hidden;
+    /* HERO CAROUSEL */
+    .hero-carousel {position:relative;height:75vh;overflow:hidden;}
+    .carousel-slide {
+      position:absolute;top:0;left:0;width:100%;height:100%;
+      background-size:cover;background-position:center;
+      opacity:0;transition:opacity 1s ease;
     }
-    .hero::before {
-      content:""; position:absolute; inset:0;
-      background:linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
-      z-index:1;
+    .carousel-slide.active {opacity:1;}
+    .carousel-content {
+      position:absolute; bottom:20%; left:10%; color:#fff; text-shadow:0 4px 12px rgba(0,0,0,0.5);
     }
-    .hero h1, .hero p, .hero button {z-index:2; position:relative;}
-    .hero h1 {font-size:3rem; margin-bottom:20px;}
-    .hero p {font-size:1.2rem; margin-bottom:30px;}
-    .hero button {
-      padding:14px 40px; font-size:1.1rem; background:var(--accent);
-      border:none; border-radius:30px; color:#fff; cursor:pointer;
-      transition:0.3s;
+    .carousel-content h1 {font-size:3rem;}
+    .carousel-content button {
+      margin-top:15px; padding:10px 20px; border:none; border-radius:6px;
+      background:#ff6f00; color:#fff; font-weight:600; cursor:pointer;
     }
-    .hero button:hover {transform:scale(1.05);}
-    .hero-carousel {
-      position:absolute; inset:0; z-index:0;
-      background-size:cover; background-position:center;
-      animation:fadeBg 30s infinite;
-    }
-    @keyframes fadeBg {
-      0%,20%{background-image:url('images/mori.png');}
-      25%,45%{background-image:url('images/kilo.png');}
-      50%,70%{background-image:url('images/bazooka.jpg');}
-      75%,100%{background-image:url('images/vasko.jpg');}
+    .carousel-controls {
+      position:absolute; top:50%; width:100%; display:flex; justify-content:space-between;
+      color:#fff; font-size:3rem; padding:0 20px; cursor:pointer;
     }
 
-    /* Section */
-    section {padding:60px 40px;}
-    section h2 {font-size:2rem; margin-bottom:25px; text-align:center;}
-
-    /* Slider */
-    .slider-container {display:flex; overflow-x:auto; gap:20px; scroll-snap-type:x mandatory;}
-    .slider-container::-webkit-scrollbar {display:none;}
+    /* RESTAURANTS SLIDER */
+    .popular {padding:40px;}
+    .popular h2 {margin-bottom:20px;}
+    .scroll-container {
+      display:flex; gap:20px; overflow-x:auto; scroll-behavior:smooth; padding-bottom:10px;
+    }
     .restaurant-card {
-      flex:0 0 250px; background:var(--card-bg); border-radius:15px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.1); scroll-snap-align:start;
-      padding:15px; transition:0.3s; cursor:pointer;
+      min-width:250px; border-radius:12px; overflow:hidden; background:#f9f9f9;
+      box-shadow:0 4px 15px rgba(0,0,0,0.1); flex-shrink:0; cursor:pointer;
+      transition:transform 0.3s;
     }
     .restaurant-card:hover {transform:translateY(-5px);}
-    .restaurant-card img {width:100%; height:150px; object-fit:cover; border-radius:10px;}
-    .restaurant-card h3 {margin:10px 0 5px;}
-    .stars {color:var(--accent); font-weight:600;}
+    .restaurant-card img {width:100%; height:160px; object-fit:cover;}
+    .restaurant-card h3 {padding:10px;}
 
-    /* Categories */
-    .categories {display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:20px;}
-    .cat {background:var(--card-bg); border-radius:15px; padding:20px; text-align:center; cursor:pointer; transition:0.3s;}
-    .cat:hover {transform:scale(1.05);}
-    .cat img {width:50px; margin-bottom:10px;}
-
-    /* Footer */
-    footer {
-      background:var(--nav-bg); padding:40px; text-align:center; font-size:0.9rem; color:var(--text);
-      border-top:1px solid rgba(0,0,0,0.1);
-    }
-    footer .links {display:flex; gap:20px; justify-content:center; margin-bottom:15px;}
-    footer a {color:var(--text); text-decoration:none;}
-    footer a:hover {text-decoration:underline;}
+    /* FOOTER */
+    footer {background:#222; color:#bbb; text-align:center; padding:20px;}
+    footer a {color:#ff6f00; text-decoration:none; margin:0 8px;}
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav>
-    <img src="images/logo.png" alt="Zo2y Logo" onclick="window.location.href='index.html'">
-    <div class="search-bar">
-      <input type="text" placeholder="Search for restaurants, malls, cinemas...">
-    </div>
-    <div class="nav-right">
-      <div class="account-menu">
-        <button class="account-btn">Account</button>
-        <div class="account-dropdown">
-          <a href="login.html">Login</a>
-          <a href="sign-up.html">Sign Up</a>
-          <a href="settings.html">Settings</a>
-        </div>
-      </div>
-      <label class="switch">
-        <input type="checkbox" id="theme-toggle">
-        <span class="slider"></span>
-      </label>
-    </div>
+
+<!-- HEADER -->
+<div class="header">
+  <img src="images/logo.png" alt="Zo2y Logo" class="logo" onclick="window.location.href='index.html'">
+  <nav class="nav-links">
+    <a href="restaurants.html">Restaurants</a>
+    <a href="categories.html">Categories</a>
+    <a href="top-rated.html">Top Rated</a>
   </nav>
-
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-carousel"></div>
-    <h1>Discover the Best Spots Near You</h1>
-    <p>Restaurants, cafes, malls, cinemas, and more — all rated by real people.</p>
-    <button onclick="window.location.href='sign-up.html'">Get Started</button>
-  </section>
-
-  <!-- Featured -->
-  <section>
-    <h2>Featured Restaurants</h2>
-    <div class="slider-container">
-      <div class="restaurant-card">
-        <img src="images/mori.png" alt="">
-        <h3>Mori Sushi</h3>
-        <p>Japanese • ⭐ 4.7</p>
-      </div>
-      <div class="restaurant-card">
-        <img src="images/bazooka.jpg" alt="">
-        <h3>Bazooka</h3>
-        <p>Burgers & Fried Chicken • ⭐ 4.2</p>
-      </div>
-      <div class="restaurant-card">
-        <img src="images/vasko.jpg" alt="">
-        <h3>Vasko</h3>
-        <p>Steakhouse & Café • ⭐ 4.6</p>
-      </div>
-      <div class="restaurant-card">
-        <img src="images/pickl.jpg" alt="">
-        <h3>Pickl Egypt</h3>
-        <p>Burgers & Fried Chicken • ⭐ 4.6</p>
+  <div class="header-controls">
+    <div class="account-menu">
+      <button class="account-btn">👤 Account ▾</button>
+      <div class="account-dropdown">
+        <a href="login.html">Login</a>
+        <a href="sign-up.html">Sign Up</a>
+        <a href="profile.html">My Profile</a>
       </div>
     </div>
-  </section>
+    <span class="gear" id="gear">⚙️</span>
+  </div>
+</div>
 
-  <!-- Categories -->
-  <section>
-    <h2>Browse by Category</h2>
-    <div class="categories">
-      <div class="cat"><img src="images/food.png"><p>Restaurants</p></div>
-      <div class="cat"><img src="images/cafe.png"><p>Cafés</p></div>
-      <div class="cat"><img src="images/mall.png"><p>Malls</p></div>
-      <div class="cat"><img src="images/cinema.png"><p>Cinemas</p></div>
-      <div class="cat"><img src="images/hotel.png"><p>Hotels</p></div>
+<!-- SETTINGS PANEL -->
+<div class="settings-panel" id="settingsPanel">
+  <p>Dark Mode</p>
+  <label class="switch">
+    <input type="checkbox" id="theme-toggle">
+    <span class="slider"></span>
+  </label>
+</div>
+
+<!-- HERO CAROUSEL -->
+<section class="hero-carousel" id="heroCarousel">
+  <div class="carousel-slide active" style="background-image:url('images/mori.jpg')">
+    <div class="carousel-content">
+      <h1>Mori Sushi</h1>
+      <p>Modern sushi chain serving rolls & Japanese bites</p>
+      <button onclick="window.location.href='cards/mori.html'">Explore</button>
     </div>
-  </section>
-
-  <!-- Trending -->
-  <section>
-    <h2>Trending Now</h2>
-    <div class="slider-container">
-      <div class="restaurant-card">
-        <img src="images/chikin.png" alt="">
-        <h3>Chikin Worx</h3>
-        <p>Fried Chicken • ⭐ 4.5</p>
-      </div>
-      <div class="restaurant-card">
-        <img src="images/secondcup.png" alt="">
-        <h3>Second Cup</h3>
-        <p>Café • ⭐ 4.4</p>
-      </div>
-      <div class="restaurant-card">
-        <img src="images/maine.jpg" alt="">
-        <h3>Maine</h3>
-        <p>Seafood • ⭐ 4.5</p>
-      </div>
+  </div>
+  <div class="carousel-slide" style="background-image:url('images/bazooka.jpg')">
+    <div class="carousel-content">
+      <h1>Bazooka</h1>
+      <p>Fried chicken & sandwiches with Egyptian twist</p>
+      <button onclick="window.location.href='cards/bazooka.html'">Explore</button>
     </div>
-  </section>
-
-  <!-- Footer -->
-  <footer>
-    <div class="links">
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
+  </div>
+  <div class="carousel-slide" style="background-image:url('images/kilo.jpg')">
+    <div class="carousel-content">
+      <h1>Kilo Kebab</h1>
+      <p>Charcoal-grilled kebabs & Middle Eastern plates</p>
+      <button onclick="window.location.href='cards/kilo.html'">Explore</button>
     </div>
-    <p>© 2025 Zo2y. All rights reserved.</p>
-  </footer>
+  </div>
+  <div class="carousel-slide" style="background-image:url('images/mexican.jpg')">
+    <div class="carousel-content">
+      <h1>Mexican Corn</h1>
+      <p>Street-style Mexican snacks & corn bowls</p>
+      <button onclick="window.location.href='cards/mexican.html'">Explore</button>
+    </div>
+  </div>
+  <div class="carousel-slide" style="background-image:url('images/hameed.jpg')">
+    <div class="carousel-content">
+      <h1>Hameed</h1>
+      <p>Authentic Egyptian grilled platters</p>
+      <button onclick="window.location.href='cards/hameed.html'">Explore</button>
+    </div>
+  </div>
+  <div class="carousel-slide" style="background-image:url('images/secondcup.jpg')">
+    <div class="carousel-content">
+      <h1>Second Cup</h1>
+      <p>Canadian coffee brand with local flavor</p>
+      <button onclick="window.location.href='cards/secondcup.html'">Explore</button>
+    </div>
+  </div>
+  <div class="carousel-slide" style="background-image:url('images/pizza.jpg')">
+    <div class="carousel-content">
+      <h1>Pizza Station</h1>
+      <p>Handmade pizzas with bold toppings</p>
+      <button onclick="window.location.href='cards/pizza.html'">Explore</button>
+    </div>
+  </div>
+  <div class="carousel-controls">
+    <span class="prev">‹</span>
+    <span class="next">›</span>
+  </div>
+</section>
 
-  <script>
-    // Theme toggle
-    const toggle = document.getElementById('theme-toggle');
-    function applyTheme(theme){
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('zo2y-theme', theme);
-      toggle.checked = theme==='dark';
-    }
-    toggle.addEventListener('change', ()=>applyTheme(toggle.checked?'dark':'light'));
-    window.addEventListener('DOMContentLoaded', ()=>{
-      const saved = localStorage.getItem('zo2y-theme');
-      if(saved){applyTheme(saved);} else {applyTheme('light');}
-    });
-  </script>
+<!-- POPULAR SLIDER -->
+<section class="popular">
+  <h2>Popular Near You</h2>
+  <div class="scroll-container">
+    <div class="restaurant-card" onclick="window.location.href='cards/mori.html'">
+      <img src="images/mori.jpg" alt="Mori Sushi">
+      <h3>Mori Sushi</h3>
+    </div>
+    <div class="restaurant-card" onclick="window.location.href='cards/bazooka.html'">
+      <img src="images/bazooka.jpg" alt="Bazooka">
+      <h3>Bazooka</h3>
+    </div>
+    <div class="restaurant-card" onclick="window.location.href='cards/kilo.html'">
+      <img src="images/kilo.jpg" alt="Kilo Kebab">
+      <h3>Kilo Kebab</h3>
+    </div>
+    <div class="restaurant-card" onclick="window.location.href='cards/mexican.html'">
+      <img src="images/mexican.jpg" alt="Mexican Corn">
+      <h3>Mexican Corn</h3>
+    </div>
+    <div class="restaurant-card" onclick="window.location.href='cards/hameed.html'">
+      <img src="images/hameed.jpg" alt="Hameed">
+      <h3>Hameed</h3>
+    </div>
+    <div class="restaurant-card" onclick="window.location.href='cards/secondcup.html'">
+      <img src="images/secondcup.jpg" alt="Second Cup">
+      <h3>Second Cup</h3>
+    </div>
+    <div class="restaurant-card" onclick="window.location.href='cards/pizza.html'">
+      <img src="images/pizza.jpg" alt="Pizza Station">
+      <h3>Pizza Station</h3>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <nav>
+    <a href="about.html">About</a> |
+    <a href="contact.html">Contact</a> |
+    <a href="terms.html">Terms</a>
+  </nav>
+</footer>
+
+<script>
+  // Carousel
+  let slides=document.querySelectorAll(".carousel-slide");
+  let current=0;
+  function showSlide(i){slides.forEach((s,idx)=>s.classList.toggle("active",idx===i));}
+  document.querySelector(".next").onclick=()=>{current=(current+1)%slides.length;showSlide(current);}
+  document.querySelector(".prev").onclick=()=>{current=(current-1+slides.length)%slides.length;showSlide(current);}
+  setInterval(()=>{current=(current+1)%slides.length;showSlide(current);},5000);
+
+  // Gear / settings panel
+  document.getElementById("gear").addEventListener("click",()=>{
+    document.getElementById("settingsPanel").classList.toggle("active");
+  });
+
+  // Dark mode toggle
+  const toggle=document.getElementById("theme-toggle");
+  toggle.addEventListener("change",()=>{
+    document.body.classList.toggle("dark",toggle.checked);
+  });
+</script>
 </body>
 </html>
