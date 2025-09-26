@@ -6,225 +6,246 @@
   <title>Zo2y</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    * {margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
-    body {overflow-x:hidden;}
+    * {margin:0;padding:0;box-sizing:border-box;font-family: 'Segoe UI', Tahoma, sans-serif;}
+    body {overflow-x:hidden; background: var(--bg); color: var(--text);}
+    :root {
+      --accent:#FF6F00;
+      --bg:#fff; --text:#222;
+      --card-bg:#f9f9f9; --nav-bg:#fff;
+    }
+    [data-theme="dark"] {
+      --bg:#111; --text:#eee;
+      --card-bg:#1a1a1a; --nav-bg:#222;
+    }
 
-    /* Top Stripe + Logo */
-    .top-stripe {background:#FF6F00; height:20px; position:relative;}
-    .logo {
-      position:absolute;
-      top:50px;
-      left:50%;
-      transform:translateX(-50%);
-      width:120px;
-      animation: float 3s ease-in-out infinite;
-      cursor:pointer;
+    /* Navbar */
+    nav {
+      position:sticky; top:0; left:0; right:0; z-index:1000;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 40px; background:var(--nav-bg); box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    }
+    nav img {height:40px; cursor:pointer;}
+    .search-bar {
+      flex:1; max-width:600px; margin:0 40px; position:relative;
+    }
+    .search-bar input {
+      width:100%; padding:10px 15px; border-radius:25px; border:1px solid #ccc;
+      outline:none; font-size:1rem; background:var(--card-bg); color:var(--text);
+    }
+    .nav-right {display:flex; align-items:center; gap:15px;}
+    .account-menu {position:relative;}
+    .account-btn {
+      background:var(--accent); border:none; color:#fff; padding:8px 18px; border-radius:20px;
+      cursor:pointer; font-weight:600;
+    }
+    .account-dropdown {
+      position:absolute; right:0; top:110%; background:var(--card-bg);
+      border-radius:10px; box-shadow:0 6px 15px rgba(0,0,0,0.2);
+      display:none; flex-direction:column; min-width:150px;
+    }
+    .account-dropdown a {
+      padding:12px; text-decoration:none; color:var(--text); transition:background 0.2s;
+    }
+    .account-dropdown a:hover {background:rgba(0,0,0,0.05);}
+    .account-menu:hover .account-dropdown {display:flex;}
+
+    /* Dark mode switch */
+    .switch {
+      position:relative; display:inline-block; width:50px; height:24px;
+    }
+    .switch input {opacity:0; width:0; height:0;}
+    .slider {
+      position:absolute; cursor:pointer; inset:0; background:#ccc; border-radius:34px;
+      transition:0.4s;
+    }
+    .slider:before {
+      position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px;
+      background:white; transition:0.4s; border-radius:50%;
+    }
+    input:checked + .slider {background:var(--accent);}
+    input:checked + .slider:before {transform:translateX(26px);}
+
+    /* Hero */
+    .hero {
+      position:relative; height:70vh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; text-align:center; color:#fff;
+      background:#000; overflow:hidden;
+    }
+    .hero::before {
+      content:""; position:absolute; inset:0;
+      background:linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
       z-index:1;
     }
-    @keyframes float {0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-5px);} }
-
-    /* Header Buttons */
-    .header-buttons {
-      position:absolute;
-      top:25px;
-      right:20px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      z-index:1000;
+    .hero h1, .hero p, .hero button {z-index:2; position:relative;}
+    .hero h1 {font-size:3rem; margin-bottom:20px;}
+    .hero p {font-size:1.2rem; margin-bottom:30px;}
+    .hero button {
+      padding:14px 40px; font-size:1.1rem; background:var(--accent);
+      border:none; border-radius:30px; color:#fff; cursor:pointer;
+      transition:0.3s;
     }
-    .header-buttons button {
-      background: var(--button-bg); color: var(--button-text); padding:8px 16px;
-      border:none; border-radius:20px; cursor:pointer; font-size:0.9rem; transition:background 0.3s;
+    .hero button:hover {transform:scale(1.05);}
+    .hero-carousel {
+      position:absolute; inset:0; z-index:0;
+      background-size:cover; background-position:center;
+      animation:fadeBg 30s infinite;
     }
-    .header-buttons button:hover {background: var(--button-bg-hover);}
-    .dark-toggle {
-      font-size:1.2rem; cursor:pointer; padding:6px 10px; border-radius:50%;
-      background: var(--nav-bg);
-      color: var(--text-color-primary);
-      transition: background 0.3s;
+    @keyframes fadeBg {
+      0%,20%{background-image:url('images/mori.png');}
+      25%,45%{background-image:url('images/kilo.png');}
+      50%,70%{background-image:url('images/bazooka.jpg');}
+      75%,100%{background-image:url('images/vasko.jpg');}
     }
-    .dark-toggle:hover {background:#ddd;}
 
-    /* Hero Section */
-    .hero {text-align:center; padding:160px 20px 80px 20px; position:relative;}
-    .hero h1 {font-size:3rem;margin-bottom:20px;opacity:0;animation:fadeInUp 1s forwards; color: var(--text-color-primary);}
-    .hero p {font-size:1.2rem;color: var(--text-color-secondary); margin-bottom:40px;opacity:0;animation:fadeInUp 1s 0.3s forwards;}
-    .get-started {
-      background: var(--button-bg); color: var(--button-text); padding:15px 50px;font-size:1.2rem;border:none;border-radius:30px;
-      cursor:pointer;transition: transform 0.3s, box-shadow 0.3s;opacity:0;animation:fadeInUp 1s 0.6s forwards;
-    }
-    .get-started:hover {transform:scale(1.1); box-shadow:0 8px 20px rgba(255,111,0,0.5);}
+    /* Section */
+    section {padding:60px 40px;}
+    section h2 {font-size:2rem; margin-bottom:25px; text-align:center;}
 
-    @keyframes fadeInUp {from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
-
-    /* Restaurants Section */
-    .restaurants {display:flex;gap:20px;padding:50px 20px;justify-content:center;flex-wrap:wrap;}
+    /* Slider */
+    .slider-container {display:flex; overflow-x:auto; gap:20px; scroll-snap-type:x mandatory;}
+    .slider-container::-webkit-scrollbar {display:none;}
     .restaurant-card {
-      flex:0 0 180px;
-      background: var(--card-bg); 
-      border-radius:15px;
-      box-shadow:0 5px 15px rgba(0,0,0,0.1);
-      padding:20px;
-      text-align:center;
-      transform: translateY(50px);
-      opacity: 0;
-      transition: transform 0.6s ease, opacity 0.6s ease, background-color 0.3s, color 0.3s;
-      cursor:pointer;
+      flex:0 0 250px; background:var(--card-bg); border-radius:15px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1); scroll-snap-align:start;
+      padding:15px; transition:0.3s; cursor:pointer;
     }
-    .restaurant-card.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    .restaurant-card p {margin-bottom:10px; color: var(--text-color-secondary); font-size:0.9rem;}
-    .restaurant-card:hover {transform:translateY(-5px) scale(1.03); box-shadow:0 10px 25px rgba(0,0,0,0.15);}
+    .restaurant-card:hover {transform:translateY(-5px);}
+    .restaurant-card img {width:100%; height:150px; object-fit:cover; border-radius:10px;}
+    .restaurant-card h3 {margin:10px 0 5px;}
+    .stars {color:var(--accent); font-weight:600;}
 
-    .icon-wrapper {display:flex; justify-content:center; margin-bottom:10px;}
-    .restaurant-icon {width:60px;height:60px;border-radius:50%;border:2px solid #FF6F00;}
-
-    .more-card {
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-    }
-    .more-icon {
-      width:60px;height:60px;border-radius:50%;border:2px dashed #FF6F00;
-      display:flex; align-items:center; justify-content:center;font-size:2rem;color:#FF6F00;
-      transition: transform 0.3s, background 0.3s;
-    }
-    .more-icon:hover {transform: scale(1.2); background: rgba(255,111,0,0.1);}
-
-    .stars {color:#FF6F00; font-size:1.2rem; cursor:pointer;}
-    .star:hover, .star.active {color:#FF4500;}
+    /* Categories */
+    .categories {display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:20px;}
+    .cat {background:var(--card-bg); border-radius:15px; padding:20px; text-align:center; cursor:pointer; transition:0.3s;}
+    .cat:hover {transform:scale(1.05);}
+    .cat img {width:50px; margin-bottom:10px;}
 
     /* Footer */
-    footer {text-align:center; padding:40px 20px; border-top:1px solid var(--nav-shadow); font-size:0.9rem; color: var(--text-color-secondary);}
-
-    /* Back to Top */
-    #backToTop {
-      position:fixed; bottom:20px; left:20px; width:50px; height:50px;
-      background:#FF6F00; color:#000; font-size:1.5rem; border:none;
-      border-radius:8px; display:flex; align-items:center; justify-content:center;
-      cursor:pointer; opacity:0; visibility:hidden;
-      transition:opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease;
-      z-index:1000; box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    footer {
+      background:var(--nav-bg); padding:40px; text-align:center; font-size:0.9rem; color:var(--text);
+      border-top:1px solid rgba(0,0,0,0.1);
     }
-    #backToTop.show {opacity:1; visibility:visible;}
-    #backToTop span {display:inline-block; transform-origin:center; transition: transform 0.45s cubic-bezier(.2,.9,.2,1); font-weight:700; color:#000;}
-    #backToTop:hover {transform: translateY(-3px);}
-    #backToTop:hover span {transform: rotate(360deg);}
+    footer .links {display:flex; gap:20px; justify-content:center; margin-bottom:15px;}
+    footer a {color:var(--text); text-decoration:none;}
+    footer a:hover {text-decoration:underline;}
   </style>
 </head>
 <body>
-  <!-- Top Stripe + Logo -->
-  <div class="top-stripe">
-    <img src="images/logo.png" alt="Zo2y Logo" class="logo" onclick="window.location.href='index.html'">
-    <div class="header-buttons" id="headerButtons">
-      <button onclick="window.location.href='login.html'">Login</button>
-      <button onclick="window.location.href='sign-up.html'">Sign Up</button>
-      <div class="dark-toggle" title="Dark Mode" id="theme-toggle">🌙</div>
+  <!-- Navbar -->
+  <nav>
+    <img src="images/logo.png" alt="Zo2y Logo" onclick="window.location.href='index.html'">
+    <div class="search-bar">
+      <input type="text" placeholder="Search for restaurants, malls, cinemas...">
     </div>
-  </div>
+    <div class="nav-right">
+      <div class="account-menu">
+        <button class="account-btn">Account</button>
+        <div class="account-dropdown">
+          <a href="login.html">Login</a>
+          <a href="sign-up.html">Sign Up</a>
+          <a href="settings.html">Settings</a>
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="theme-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </nav>
 
-  <!-- Hero Section -->
+  <!-- Hero -->
   <section class="hero">
-    <h1>Discover and Rate the Best Spots Around You</h1>
-    <p>Restaurants, malls, cinemas, and more—your go-to rating app.</p>
-    <button class="get-started" onclick="window.location.href='sign-up.html'">Get Started</button>
+    <div class="hero-carousel"></div>
+    <h1>Discover the Best Spots Near You</h1>
+    <p>Restaurants, cafes, malls, cinemas, and more — all rated by real people.</p>
+    <button onclick="window.location.href='sign-up.html'">Get Started</button>
   </section>
 
-  <!-- Restaurants Preview -->
-  <section class="restaurants" id="restaurants"></section>
+  <!-- Featured -->
+  <section>
+    <h2>Featured Restaurants</h2>
+    <div class="slider-container">
+      <div class="restaurant-card">
+        <img src="images/mori.png" alt="">
+        <h3>Mori Sushi</h3>
+        <p>Japanese • ⭐ 4.7</p>
+      </div>
+      <div class="restaurant-card">
+        <img src="images/bazooka.jpg" alt="">
+        <h3>Bazooka</h3>
+        <p>Burgers & Fried Chicken • ⭐ 4.2</p>
+      </div>
+      <div class="restaurant-card">
+        <img src="images/vasko.jpg" alt="">
+        <h3>Vasko</h3>
+        <p>Steakhouse & Café • ⭐ 4.6</p>
+      </div>
+      <div class="restaurant-card">
+        <img src="images/pickl.jpg" alt="">
+        <h3>Pickl Egypt</h3>
+        <p>Burgers & Fried Chicken • ⭐ 4.6</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section>
+    <h2>Browse by Category</h2>
+    <div class="categories">
+      <div class="cat"><img src="images/food.png"><p>Restaurants</p></div>
+      <div class="cat"><img src="images/cafe.png"><p>Cafés</p></div>
+      <div class="cat"><img src="images/mall.png"><p>Malls</p></div>
+      <div class="cat"><img src="images/cinema.png"><p>Cinemas</p></div>
+      <div class="cat"><img src="images/hotel.png"><p>Hotels</p></div>
+    </div>
+  </section>
+
+  <!-- Trending -->
+  <section>
+    <h2>Trending Now</h2>
+    <div class="slider-container">
+      <div class="restaurant-card">
+        <img src="images/chikin.png" alt="">
+        <h3>Chikin Worx</h3>
+        <p>Fried Chicken • ⭐ 4.5</p>
+      </div>
+      <div class="restaurant-card">
+        <img src="images/secondcup.png" alt="">
+        <h3>Second Cup</h3>
+        <p>Café • ⭐ 4.4</p>
+      </div>
+      <div class="restaurant-card">
+        <img src="images/maine.jpg" alt="">
+        <h3>Maine</h3>
+        <p>Seafood • ⭐ 4.5</p>
+      </div>
+    </div>
+  </section>
 
   <!-- Footer -->
-  <footer>© 2025 Zo2y. All rights reserved.</footer>
-
-  <!-- Back to Top -->
-  <button id="backToTop" aria-label="Back to top"><span>↑</span></button>
+  <footer>
+    <div class="links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </div>
+    <p>© 2025 Zo2y. All rights reserved.</p>
+  </footer>
 
   <script>
-    // ===== DARK MODE =====
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    function applyTheme(theme) {
+    // Theme toggle
+    const toggle = document.getElementById('theme-toggle');
+    function applyTheme(theme){
       document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('zo2y-theme', theme);
+      toggle.checked = theme==='dark';
     }
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      applyTheme(newTheme);
-      localStorage.setItem('zo2y-theme', newTheme);
-    }
-    function initializeTheme() {
-      const savedTheme = localStorage.getItem('zo2y-theme');
-      if(savedTheme) applyTheme(savedTheme);
-      else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
-      if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
-    }
-    document.addEventListener('DOMContentLoaded', initializeTheme);
-
-    // ===== Back to Top =====
-    const backToTop = document.getElementById('backToTop');
-    window.addEventListener('scroll', () => {
-      backToTop.classList.toggle('show', window.scrollY > 200);
+    toggle.addEventListener('change', ()=>applyTheme(toggle.checked?'dark':'light'));
+    window.addEventListener('DOMContentLoaded', ()=>{
+      const saved = localStorage.getItem('zo2y-theme');
+      if(saved){applyTheme(saved);} else {applyTheme('light');}
     });
-    backToTop.addEventListener('click', () => { window.scrollTo({top:0, behavior:'smooth'}); });
-
-    // ===== RESTAURANTS =====
-    const restaurants = [
-      { name:"Mori Sushi", category:"Japanese", desc:"Modern sushi chain serving rolls, sashimi & Japanese bites.", img:"images/mori.png", rating:4.7, link:"cards/mori.html" },
-      { name:"Kilo Kebab", category:"Middle Eastern", desc:"Charcoal-grilled kebabs & hearty Middle Eastern plates.", img:"images/kilo.png", rating:4.5, link:"cards/kilo.html" },
-      { name:"Hameed", category:"Fast Food", desc:"Local favorite for sandwiches & quick bites.", img:"images/hameed.png", rating:4.3, link:"cards/hameed.html" },
-      { name:"Bazooka", category:"Burger & Fried Chicken", desc:"Loaded burgers & crispy fried chicken combos.", img:"images/bazooka.jpg", rating:4.2, link:"cards/bazooka.html" },
-      { name:"Mexican Corn", category:"Mexican Street Food", desc:"Elote, tacos & cheesy Mexican street snacks.", img:"images/mexican.jpg", rating:4.0, link:"cards/mexican.html" },
-      { name:"Chikin Worx", category:"Fried Chicken", desc:"Crunchy chicken, sandwiches & family buckets.", img:"images/chikin.png", rating:4.5, link:"cards/chikin.html" },
-      { name:"Vasko", category:"Steakhouse & Café", desc:"Premium coffee, pastries & elegant café vibes.", img:"images/vasko.jpg", rating:4.6, link:"cards/vasko.html" },
-      { name:"Second Cup", category:"Cafe", desc:"Canadian coffeehouse chain serving espresso, lattes & pastries.", img:"images/secondcup.png", rating:4.4, link:"cards/secondcup.html" },
-      { name:"Pizza Station", category:"Pizza", desc:"Classic pizzas & comfort food.", img:"images/station.png", rating:4.3, link:"cards/station.html" },
-      { name:"BRGR", category:"Burgers", desc:"Gourmet burgers with premium toppings & sides.", img:"images/brgr.jpg", rating:4.4, link:"cards/brgr.html" },
-      { name:"Country Hills", category:"American Diner", desc:"Grilled meats, casual dining & family meals.", img:"images/country.jpg", rating:4.2, link:"cards/country.html" },
-      { name:"Bayouki Rotisserie", category:"Rotisserie Chicken", desc:"Authentic grilled chicken & rotisserie meals.", img:"images/bayoki.png", rating:4.3, link:"cards/bayoki.html" },
-      { name:"Maine", category:"Seafood", desc:"Fresh seafood, lobster rolls & New England classics.", img:"images/maine.jpg", rating:4.5, link:"cards/maine.html" },
-      { name:"Barbar Shawarma", category:"Lebanese Street Food", desc:"Iconic shawarma spot serving beef, chicken & falafel.", img:"images/barbar.png", rating:4.4, link:"cards/barbar.html" },
-      { name:"Labash", category:"Grilled Chicken & Sandwiches", desc:"Known for charcoal-grilled chicken, meat & fast bites.", img:"images/labash.jpg", rating:4.3, link:"cards/labash.html" },
-      { name:"Pickl Egypt", category:"Burgers & Fried Chicken", desc:"Dubai’s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.", img:"images/pickl.jpg", rating:4.6, link:"cards/pickl.html" },
-      { name:"Akleh", category:"Lebanese Dining", desc:"Authentic Lebanese mezze, grills & traditional dishes in a cozy setting.", img:"images/akleh.jpg", rating:4.4, link:"cards/akleh.html" },
-      { name:"Howlin' Birds", category:"Nashville Hot Chicken", desc:"Spicy fried chicken sandwiches, tenders & southern-style comfort food.", img:"images/howlin.png", rating:4.5, link:"cards/howlin.html" },
-      { name:"Sauce", category:"American", desc:"Trendy burger & chicken spot with loaded fries, shakes & street food vibes.", img:"images/sauce.jpg", rating:4.4, link:"cards/sauce.html" }
-    ];
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    const container = document.getElementById("restaurants");
-    const shuffled = shuffle([...restaurants]).slice(0,5); // pick 5 random
-
-    shuffled.forEach((r,i)=>{
-      const card = document.createElement("div");
-      card.className="restaurant-card";
-      card.innerHTML=`
-        <div class="icon-wrapper"><img src="${r.img}" alt="${r.name}" class="restaurant-icon"></div>
-        <h3>${r.name}</h3>
-        <p>${r.category}</p>
-        <p>${r.desc}</p>
-        <p class="stars">⭐ ${r.rating}</p>
-      `;
-      card.addEventListener("click",()=>{window.location.href=r.link});
-      container.appendChild(card);
-      setTimeout(()=>card.classList.add("show"), i*100);
-    });
-
-    // "+ More" card
-    const moreCard = document.createElement("div");
-    moreCard.className="restaurant-card more-card show";
-    moreCard.innerHTML=`
-      <div class="more-icon">+</div>
-      <p>Explore all spots.</p>
-    `;
-    moreCard.addEventListener("click",()=>{window.location.href="restraunts.html"});
-    container.appendChild(moreCard);
   </script>
 </body>
 </html>
