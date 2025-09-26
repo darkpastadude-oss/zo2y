@@ -350,8 +350,7 @@
                     <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
                         <div class="thumb">
                             <picture>
-                                <source id="spotSrc2" type="image/webp" srcset="images/mori@2x.webp 2x, images/mori@1x.webp 1x">
-                                <img id="spotImg" src="images/mori@1x.jpg" alt="Featured restaurant">
+                                <img id="spotImg" src="images/mori.png" alt="Featured restaurant">
                             </picture>
                         </div>
                         <div class="meta">
@@ -378,14 +377,6 @@
             </div>
             <div class="explore-cta">
                 <button class="btn-outline" onclick="location.href='restaurants.html'">See all restaurants</button>
-            </div>
-        </section>
-
-        <!-- TRENDING -->
-        <section class="section">
-            <h2>Trending</h2>
-            <div id="trendingSlider" class="slider" aria-label="Trending restaurants">
-                <!-- JS will populate -->
             </div>
         </section>
     </main>
@@ -426,42 +417,50 @@
 
         // ===== RESTAURANT DATA =====
         const restaurants = [
-            { slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7 },
-            { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5 },
-            { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3 },
-            { slug:'bazooka', name:'Bazooka', category:'Burger & Fried Chicken', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2 },
-            { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0 }
+            { slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, imageExt: 'png' },
+            { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, imageExt: 'png' },
+            { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, imageExt: 'png' },
+            { slug:'bazooka', name:'Bazooka', category:'Burger & Fried Chicken', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, imageExt: 'jpg' },
+            { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, imageExt: 'jpg' },
+            { slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Traditional Middle Eastern cuisine with authentic flavors.', rating:4.4, imageExt: 'jpg' },
+            { slug:'barbar', name:'Barbar', category:'Middle Eastern', desc:'Popular spot for shawarma and Middle Eastern dishes.', rating:4.6, imageExt: 'png' },
+            { slug:'bayoki', name:'Bayoki', category:'Middle Eastern', desc:'Authentic Egyptian and Middle Eastern food.', rating:4.3, imageExt: 'png' },
+            { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with creative toppings and sides.', rating:4.5, imageExt: 'jpg' },
+            { slug:'chikin', name:'Chikin', category:'Fried Chicken', desc:'Crispy fried chicken with various sauces and sides.', rating:4.2, imageExt: 'png' },
+            { slug:'country', name:'Country', category:'International', desc:'Comfort food with international influences.', rating:4.1, imageExt: 'jpg' },
+            { slug:'howlin', name:'Howlin', category:'American', desc:'American-style diner with burgers and shakes.', rating:4.4, imageExt: 'png' },
+            { slug:'labash', name:'Labash', category:'Middle Eastern', desc:'Traditional Egyptian street food and snacks.', rating:4.3, imageExt: 'jpg' },
+            { slug:'maine', name:'Maine', category:'Seafood', desc:'Fresh seafood dishes with Mediterranean influences.', rating:4.7, imageExt: 'jpg' },
+            { slug:'pickl', name:'Pickl', category:'Burgers', desc:'Specialty burgers with house-made pickles and sauces.', rating:4.6, imageExt: 'jpg' },
+            { slug:'sauce', name:'Sauce', category:'International', desc:'Diverse menu with sauces from around the world.', rating:4.2, imageExt: 'jpg' },
+            { slug:'secondcup', name:'Second Cup', category:'Cafe', desc:'Coffee shop with light bites and desserts.', rating:4.3, imageExt: 'png' },
+            { slug:'station', name:'Station', category:'International', desc:'Casual dining with international comfort food.', rating:4.1, imageExt: 'png' },
+            { slug:'vasko', name:'Vasko', category:'Desserts', desc:'Artisanal ice cream and sweet treats.', rating:4.8, imageExt: 'jpg' }
         ];
 
         // ===== IMAGE HELPER =====
-        function imageSrcset(slug){
-            return {
-                src: `images/${slug}.jpg`,
-                srcset: `images/${slug}@2x.jpg 2x, images/${slug}.jpg 1x`
-            };
+        function imageSrc(slug, ext) {
+            return `images/${slug}.${ext}`;
         }
 
         // ===== POPULATE SLIDERS =====
         const featuredSlider = document.getElementById('featuredSlider');
-        const trendingSlider = document.getElementById('trendingSlider');
 
-        function makeCard(r){
+        function makeCard(r) {
             const el = document.createElement('a');
             el.className = 'card';
             el.href = `cards/${r.slug}.html`;
             
             const imgwrap = document.createElement('div');
-            imgwrap.className='imgwrap';
+            imgwrap.className = 'imgwrap';
             const img = document.createElement('img');
-            const imgInfo = imageSrcset(r.slug);
-            img.src = imgInfo.src;
-            img.srcset = imgInfo.srcset;
+            img.src = imageSrc(r.slug, r.imageExt);
             img.loading = 'lazy';
             img.alt = r.name;
             imgwrap.appendChild(img);
 
             const body = document.createElement('div');
-            body.className='body';
+            body.className = 'body';
             const h3 = document.createElement('h3');
             h3.textContent = r.name;
             const p = document.createElement('p');
@@ -474,8 +473,8 @@
             return el;
         }
 
-        restaurants.forEach(r => featuredSlider.appendChild(makeCard(r)));
-        restaurants.slice(0, 4).forEach(r => trendingSlider.appendChild(makeCard(r)));
+        // Show only 5 featured restaurants
+        restaurants.slice(0, 5).forEach(r => featuredSlider.appendChild(makeCard(r)));
 
         // ===== SPOTLIGHT SHUFFLE =====
         const spotImg = document.getElementById('spotImg');
@@ -488,38 +487,36 @@
         const layerB = document.getElementById('layerB');
 
         let current = 0;
-        function renderSpot(idx){
+        function renderSpot(idx) {
             const r = restaurants[idx];
-            const imgInfo = imageSrcset(r.slug);
             
-            spotImg.src = imgInfo.src;
-            spotImg.srcset = imgInfo.srcset;
+            spotImg.src = imageSrc(r.slug, r.imageExt);
             spotImg.alt = r.name;
             spotName.textContent = r.name;
             spotDesc.textContent = r.desc;
             spotRating.textContent = `⭐ ${r.rating.toFixed(1)}`;
             spotAction.onclick = () => location.href = `cards/${r.slug}.html`;
 
-            layerA.style.backgroundImage = `url('${imgInfo.src}')`;
-            layerB.style.backgroundImage = `url('${imgInfo.src}')`;
+            layerA.style.backgroundImage = `url('${imageSrc(r.slug, r.imageExt)}')`;
+            layerB.style.backgroundImage = `url('${imageSrc(r.slug, r.imageExt)}')`;
 
             shuffleDots.innerHTML = '';
-            restaurants.slice(0,5).forEach((_,i)=>{
+            restaurants.slice(0,5).forEach((_,i) => {
                 const d = document.createElement('div');
-                d.className='dot' + (i===idx? ' active':'');
+                d.className = 'dot' + (i === idx ? ' active' : '');
                 shuffleDots.appendChild(d);
             });
         }
 
         renderSpot(0);
-        setInterval(()=>{
-            current = (current + 1) % restaurants.length;
+        setInterval(() => {
+            current = (current + 1) % 5; // Only cycle through first 5 restaurants
             renderSpot(current);
         }, 4000);
 
         // ===== SEARCH FUNCTIONALITY =====
-        document.getElementById('globalSearch').addEventListener('keydown', (e)=>{
-            if(e.key === 'Enter'){
+        document.getElementById('globalSearch').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
                 const q = e.target.value.trim();
                 const url = q ? `restaurants.html?q=${encodeURIComponent(q)}` : 'restaurants.html';
                 location.href = url;
