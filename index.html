@@ -1,266 +1,530 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y - Restaurants</title>
-  <style>
-    /* RESET + GLOBALS */
-    * {margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;}
-    body {background:#1e1f2e;color:#fff;overflow-x:hidden;}
-    a {text-decoration:none;color:inherit;}
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Zo2y — Home</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ---------- CSS Variables for Theme Switching ---------- */
+        :root {
+            --bg: #ffffff;
+            --card: #f8f9fa;
+            --muted: #6c757d;
+            --accent: #FF6F00;
+            --glass: rgba(0,0,0,0.03);
+            --white: #000000;
+            --border: rgba(0,0,0,0.08);
+        }
 
-    /* HEADER */
-    header {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:15px 40px;
-      background:#23243a;
-      border-bottom:2px solid #ff7f50;
-      position:sticky;top:0;z-index:100;
-    }
-    .logo {font-size:22px;font-weight:700;color:#ff7f50;}
-    nav {display:flex;align-items:center;gap:20px;}
-    nav a {font-size:16px;transition:0.3s;}
-    nav a:hover {color:#ffae73;}
-    .search-container {position:relative;}
-    .search-input {
-      padding:8px 12px;border-radius:6px;border:none;
-      outline:none;width:220px;
-    }
-    .suggestions {
-      position:absolute;top:38px;left:0;width:100%;
-      background:#2a2c44;border-radius:6px;overflow:hidden;
-      display:none;flex-direction:column;z-index:50;
-    }
-    .suggestions div {
-      padding:8px 12px;cursor:pointer;
-    }
-    .suggestions div:hover {background:#3a3c5c;}
-    .btn {
-      background:#ff7f50;color:#fff;padding:8px 14px;
-      border:none;border-radius:6px;cursor:pointer;
-      transition:0.3s;font-weight:500;
-    }
-    .btn:hover {background:#ff9966;}
+        [data-theme="dark"] {
+            --bg: #0b0b0d;
+            --card: #131316;
+            --muted: #9b9b9b;
+            --accent: #FF6F00;
+            --glass: rgba(255,255,255,0.03);
+            --white: #ffffff;
+            --border: rgba(255,255,255,0.06);
+        }
 
-    /* HERO */
-    .hero {
-      text-align:center;padding:70px 20px;
-    }
-    .hero h1 {font-size:42px;margin-bottom:20px;}
-    .hero p {font-size:18px;margin-bottom:30px;color:#ccc;}
-    .hero .btn {font-size:18px;padding:12px 20px;}
+        /* ---------- base ---------- */
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            margin:0;
+            font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: var(--bg);
+            color: var(--white);
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            overflow-x:hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        a{color:inherit; text-decoration:none}
+        img{display:block; max-width:100%; height:auto}
 
-    /* GRID */
-    .section {
-      padding:50px 40px;
-    }
-    .section h2 {font-size:28px;margin-bottom:25px;color:#ff7f50;}
-    .grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:25px;
-    }
-    .card {
-      background:#2a2c44;border-radius:12px;overflow:hidden;
-      transition:transform 0.3s,box-shadow 0.3s;
-    }
-    .card:hover {
-      transform:translateY(-6px);
-      box-shadow:0 8px 20px rgba(0,0,0,0.6);
-    }
-    .card img {
-      width:100%;height:160px;object-fit:cover;
-    }
-    .card h3 {
-      padding:14px;font-size:18px;font-weight:600;
-    }
+        /* ---------- NAV ---------- */
+        .nav{
+            position:sticky;
+            top:0;
+            z-index:60;
+            display:flex;
+            align-items:center;
+            gap:24px;
+            padding:14px 28px;
+            backdrop-filter: blur(6px);
+            background: var(--glass);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav .left {display:flex; align-items:center; gap:18px;}
+        .logo {height:44px; cursor:pointer}
+        .search {
+            width:520px;
+            max-width:45vw;
+            position:relative;
+        }
+        .search input {
+            width:100%;
+            padding:10px 14px 10px 44px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:var(--card);
+            color:var(--white);
+            outline:none;
+            font-size:14px;
+            box-shadow:0 4px 18px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .search .icon {
+            position:absolute;
+            left:12px;
+            top:50%;
+            transform:translateY(-50%);
+            opacity:0.85;
+            font-size:16px;
+        }
+        .nav .right {margin-left:auto; display:flex; align-items:center; gap:12px;}
+        .account-btn{
+            background:linear-gradient(180deg,var(--accent), #e05c00);
+            color:#111;
+            padding:8px 14px;
+            border-radius:20px;
+            border:none;
+            cursor:pointer;
+            font-weight:700;
+            box-shadow:0 8px 30px rgba(255,111,0,0.12);
+        }
+        .nav a.ghost{color:var(--muted); padding:8px 10px; border-radius:8px; font-size:14px; transition: color 0.3s ease;}
+        .nav a.ghost:hover{color:var(--accent)}
 
-    /* MORE BUTTON */
-    .more-btn {
-      margin-top:30px;text-align:center;
-    }
-    .more-btn .btn {
-      padding:12px 20px;font-size:16px;
-    }
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: #111;
+        }
 
-    /* FOOTER */
-    footer {
-      background:#23243a;text-align:center;padding:20px;
-      border-top:2px solid #ff7f50;color:#aaa;font-size:14px;
-    }
-  </style>
+        /* ---------- HERO ---------- */
+        .hero {
+            position:relative;
+            height:72vh;
+            min-height:520px;
+            display:flex;
+            align-items:center;
+            padding:48px;
+            gap:40px;
+        }
+        .hero-bg {
+            position:absolute;
+            inset:0;
+            z-index:0;
+            background:var(--bg);
+            overflow:hidden;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .hero-bg .layer {
+            position:absolute;
+            inset:-10% -10%;
+            background-size:cover;
+            background-position:center;
+            filter:brightness(.35) contrast(.95);
+            transition:transform 1s ease;
+            will-change:transform;
+        }
+        .hero-inner {
+            position:relative;
+            z-index:6;
+            display:flex;
+            align-items:center;
+            gap:36px;
+            width:100%;
+            max-width:1200px;
+            margin:0 auto;
+        }
+        .hero-left {
+            flex:1.1;
+            min-width:320px;
+        }
+        .tag {
+            display:inline-block;
+            color:var(--muted);
+            font-weight:600;
+            font-size:13px;
+            letter-spacing:0.2px;
+            background: var(--glass);
+            padding:8px 12px;
+            border-radius:999px;
+            margin-bottom:18px;
+        }
+        h1 {
+            font-size:44px;
+            line-height:1.02;
+            margin:0 0 12px 0;
+            font-weight:800;
+            letter-spacing:-0.6px;
+            color:var(--white);
+        }
+        .lead {color:var(--muted); font-size:16px; margin-bottom:22px; max-width:620px}
+        .cta-row {display:flex; gap:14px; align-items:center}
+        .btn-primary {
+            background:var(--accent);
+            color:#111;
+            padding:12px 20px;
+            border-radius:999px;
+            font-weight:700;
+            border:none;
+            cursor:pointer;
+            box-shadow:0 12px 36px rgba(255,111,0,0.12);
+            transition: transform 0.2s ease;
+        }
+        .btn-primary:hover {transform: translateY(-2px);}
+        .btn-outline {
+            background:transparent;
+            color:var(--white);
+            padding:12px 18px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ---------- spotlight card ---------- */
+        .hero-right {
+            width:400px;
+            max-width:42%;
+            min-width:300px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .spotlight {
+            width:100%;
+            border-radius:14px;
+            overflow:hidden;
+            background:var(--card);
+            box-shadow:0 10px 40px rgba(0,0,0,0.2);
+            border:1px solid var(--border);
+            display:grid;
+            grid-template-columns:110px 1fr;
+            gap:14px;
+            padding:12px;
+            align-items:center;
+            transition: all 0.3s ease;
+        }
+        .spotlight:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .spotlight .thumb {
+            width:100%;
+            height:86px;
+            border-radius:10px;
+            overflow:hidden;
+            flex:0 0 110px;
+            background:var(--glass);
+        }
+        .spotlight .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+        .spotlight .meta {padding-right:6px}
+        .spotlight h3{margin:0; font-size:16px; font-weight:700; color:var(--white)}
+        .spotlight p{margin:6px 0 0 0; color:var(--muted); font-size:13px}
+        .rating {margin-top:8px; color:var(--accent); font-weight:800; letter-spacing:.6px}
+        .spotlight .shuffle {
+            margin-top:10px;
+            font-size:12px;
+            color:var(--muted);
+            display:flex;
+            gap:8px;
+            align-items:center;
+        }
+        .dot {width:6px; height:6px; border-radius:50%; background:var(--muted); opacity: 0.3;}
+        .dot.active {background:var(--accent); opacity: 1;}
+
+        /* ---------- FEATURED SLIDER ---------- */
+        .section {padding:56px 28px}
+        .section h2 {font-size:22px; margin:0 0 18px 0; text-align:left; color:var(--white)}
+        .slider {
+            display:flex;
+            gap:18px;
+            overflow-x:auto;
+            padding-bottom:6px;
+            scroll-snap-type:x mandatory;
+        }
+        .slider::-webkit-scrollbar{height:9px}
+        .slider::-webkit-scrollbar-thumb{background:var(--border); border-radius:999px}
+        .card {
+            flex:0 0 240px;
+            min-width:240px;
+            background:var(--card);
+            border-radius:12px;
+            overflow:hidden;
+            scroll-snap-align:start;
+            box-shadow:0 8px 28px rgba(0,0,0,0.1);
+            border:1px solid var(--border);
+            cursor:pointer;
+            transition:transform .22s cubic-bezier(.2,.9,.2,1);
+        }
+        .card:hover{transform:translateY(-6px)}
+        .card .imgwrap{height:140px; overflow:hidden; background:var(--glass)}
+        .card .imgwrap img{width:100%; height:100%; object-fit:cover}
+        .card .body{padding:12px}
+        .card h3{margin:0 0 6px 0; font-size:16px; color:var(--white)}
+        .card p{font-size:13px; color:var(--muted); margin:0 0 8px 0}
+        .card .meta{display:flex; justify-content:space-between; align-items:center; font-size:13px}
+        .explore-cta {display:flex; justify-content:center; margin-top:18px}
+
+        /* ---------- FOOTER ---------- */
+        footer{
+            padding:28px;
+            color:var(--muted);
+            text-align:center;
+            border-top:1px solid var(--border);
+            margin-top:40px
+        }
+
+        /* ---------- responsive ---------- */
+        @media (max-width:980px){
+            .search{display:none}
+            .hero-inner{flex-direction:column-reverse; gap:20px; align-items:stretch}
+            .hero-right{max-width:100%}
+            .spotlight{grid-template-columns:90px 1fr}
+        }
+        @media (max-width:560px){
+            h1{font-size:28px}
+            .btn-primary{padding:10px 14px}
+            .card{min-width:200px; flex:0 0 200px}
+            .spotlight .thumb{height:72px}
+            .nav{padding: 14px 16px;}
+            .hero{padding: 48px 16px;}
+        }
+    </style>
 </head>
 <body>
+    <!-- NAV -->
+    <header class="nav" role="banner">
+        <div class="left">
+            <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
+            <div class="search" aria-hidden="false">
+                <span class="icon">🔎</span>
+                <input id="globalSearch" placeholder="Search restaurants (type and press Enter)" aria-label="Search restaurants">
+            </div>
+        </div>
+        <div class="right">
+            <a class="ghost" href="restaurants.html">Explore</a>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+            <button class="account-btn" onclick="location.href='login.html'">Account</button>
+        </div>
+    </header>
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo">Zo2y</div>
-    <nav>
-      <div class="search-container">
-        <input type="text" id="search" class="search-input" placeholder="Search restaurants...">
-        <div id="suggestions" class="suggestions"></div>
-      </div>
-      <a href="restaurants.html">Explore</a>
-      <a href="login.html">Login</a>
-      <a href="signup.html" class="btn">Get Started</a>
-    </nav>
-  </header>
+    <!-- HERO -->
+    <main>
+        <section class="hero" aria-labelledby="heroTitle">
+            <div class="hero-bg" aria-hidden="true">
+                <div id="layerA" class="layer" style="transform:translateZ(0)"></div>
+                <div id="layerB" class="layer" style="transform:translateZ(0) scale(1.02)"></div>
+            </div>
+            <div class="hero-inner">
+                <div class="hero-left">
+                    <div class="tag">New Cairo • Restaurants</div>
+                    <h1 id="heroTitle">Find your next favorite meal — rated by locals</h1>
+                    <p class="lead">Browse the best sushi, kebab, burgers and cafés in your area. Quick reviews, real photos, honest ratings.</p>
+                    <div class="cta-row">
+                        <button class="btn-primary" onclick="location.href='restaurants.html'">Explore All Restaurants</button>
+                        <button class="btn-outline" onclick="location.href='top-rated.html'">Top Rated</button>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
+                        <div class="thumb">
+                            <picture>
+                                <source id="spotSrc2" type="image/webp" srcset="images/mori@2x.webp 2x, images/mori@1x.webp 1x">
+                                <img id="spotImg" src="images/mori@1x.jpg" alt="Featured restaurant">
+                            </picture>
+                        </div>
+                        <div class="meta">
+                            <div>
+                                <h3 id="spotName">Mori Sushi</h3>
+                                <p id="spotDesc">Modern sushi chain serving fresh rolls & nigiri.</p>
+                                <div class="rating" id="spotRating">⭐ 4.7</div>
+                                <div class="shuffle" id="shuffleDots" aria-hidden="true"></div>
+                            </div>
+                            <div style="align-self:start">
+                                <button class="btn-primary" id="spotAction" style="padding:8px 10px; font-size:13px">View</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-  <!-- HERO -->
-  <section class="hero">
-    <h1>Discover the Best Restaurants in Town</h1>
-    <p>Find your next meal from our curated list of the finest spots in New Cairo.</p>
-    <a href="restaurants.html" class="btn">Explore All Restaurants</a>
-  </section>
+        <!-- FEATURED SLIDER -->
+        <section class="section">
+            <h2>Featured Restaurants</h2>
+            <div id="featuredSlider" class="slider" aria-label="Featured restaurants">
+                <!-- JS will populate cards -->
+            </div>
+            <div class="explore-cta">
+                <button class="btn-outline" onclick="location.href='restaurants.html'">See all restaurants</button>
+            </div>
+        </section>
 
-  <!-- FEATURED RESTAURANTS -->
-  <section class="section">
-    <h2>Featured Restaurants</h2>
-    <div class="grid">
-      <a href="cards/bazooka.html" class="card">
-        <img src="images/bazooka.jpg" alt="Bazooka">
-        <h3>Bazooka</h3>
-      </a>
-      <a href="cards/mori.html" class="card">
-        <img src="images/mori.jpg" alt="Mori Sushi">
-        <h3>Mori Sushi</h3>
-      </a>
-      <a href="cards/mexican.html" class="card">
-        <img src="images/mexican.jpg" alt="Mexican Corn">
-        <h3>Mexican Corn</h3>
-      </a>
-      <a href="cards/hameed.html" class="card">
-        <img src="images/hameed.jpg" alt="Hameed">
-        <h3>Hameed</h3>
-      </a>
-      <a href="cards/kilo.html" class="card">
-        <img src="images/kilo.jpg" alt="Kilo Kebab">
-        <h3>Kilo Kebab</h3>
-      </a>
-      <a href="cards/brgr.html" class="card">
-        <img src="images/brgr.jpg" alt="BRGR">
-        <h3>BRGR</h3>
-      </a>
-      <a href="cards/barbar.html" class="card">
-        <img src="images/barbar.jpg" alt="Barbar">
-        <h3>Barbar</h3>
-      </a>
-      <a href="cards/akleh.html" class="card">
-        <img src="images/akleh.jpg" alt="Akleh">
-        <h3>Akleh</h3>
-      </a>
-      <a href="cards/bayoki.html" class="card">
-        <img src="images/bayoki.jpg" alt="Bayoki">
-        <h3>Bayoki</h3>
-      </a>
-      <a href="cards/howlin.html" class="card">
-        <img src="images/howlin.jpg" alt="Howlin">
-        <h3>Howlin</h3>
-      </a>
-      <a href="cards/labash.html" class="card">
-        <img src="images/labash.jpg" alt="Labash">
-        <h3>Labash</h3>
-      </a>
-      <a href="cards/maine.html" class="card">
-        <img src="images/maine.jpg" alt="Maine">
-        <h3>Maine</h3>
-      </a>
-      <a href="cards/pickl.html" class="card">
-        <img src="images/pickl.jpg" alt="Pickl">
-        <h3>Pickl</h3>
-      </a>
-      <a href="cards/sauce.html" class="card">
-        <img src="images/sauce.jpg" alt="Sauce">
-        <h3>Sauce</h3>
-      </a>
-      <a href="cards/secondcup.html" class="card">
-        <img src="images/secondcup.jpg" alt="Second Cup">
-        <h3>Second Cup</h3>
-      </a>
-      <a href="cards/station.html" class="card">
-        <img src="images/station.jpg" alt="Pizza Station">
-        <h3>Pizza Station</h3>
-      </a>
-      <a href="cards/vasko.html" class="card">
-        <img src="images/vasko.jpg" alt="Vasko">
-        <h3>Vasko</h3>
-      </a>
-      <a href="cards/chikin.html" class="card">
-        <img src="images/chikin.jpg" alt="Chikin">
-        <h3>Chikin</h3>
-      </a>
-      <a href="cards/country.html" class="card">
-        <img src="images/country.jpg" alt="Country">
-        <h3>Country</h3>
-      </a>
-    </div>
+        <!-- TRENDING -->
+        <section class="section">
+            <h2>Trending</h2>
+            <div id="trendingSlider" class="slider" aria-label="Trending restaurants">
+                <!-- JS will populate -->
+            </div>
+        </section>
+    </main>
 
-    <div class="more-btn">
-      <a href="restaurants.html" class="btn">+ More</a>
-    </div>
-  </section>
+    <footer>
+        <div style="margin-bottom:8px">© 2025 Zo2y — Built with ❤️</div>
+        <div style="font-size:13px; color:var(--muted)"><a href="about.html">About</a> &nbsp; • &nbsp; <a href="contact.html">Contact</a> &nbsp; • &nbsp; <a href="terms.html">Terms</a></div>
+    </footer>
 
-  <!-- FOOTER -->
-  <footer>
-    © 2025 Zo2y. All Rights Reserved.
-  </footer>
+    <script>
+        // ===== DARK MODE SYSTEM =====
+        const themeToggle = document.getElementById('themeToggle');
 
-  <!-- JS -->
-  <script>
-    const restaurants = {
-      "bazooka":"cards/bazooka.html",
-      "mori":"cards/mori.html",
-      "mexican":"cards/mexican.html",
-      "hameed":"cards/hameed.html",
-      "kilo":"cards/kilo.html",
-      "brgr":"cards/brgr.html",
-      "barbar":"cards/barbar.html",
-      "akleh":"cards/akleh.html",
-      "bayoki":"cards/bayoki.html",
-      "howlin":"cards/howlin.html",
-      "labash":"cards/labash.html",
-      "maine":"cards/maine.html",
-      "pickl":"cards/pickl.html",
-      "sauce":"cards/sauce.html",
-      "secondcup":"cards/secondcup.html",
-      "station":"cards/station.html",
-      "vasko":"cards/vasko.html",
-      "chikin":"cards/chikin.html",
-      "country":"cards/country.html"
-    };
-
-    const search = document.getElementById('search');
-    const suggestions = document.getElementById('suggestions');
-
-    search.addEventListener('input', () => {
-      const val = search.value.toLowerCase();
-      suggestions.innerHTML = '';
-      if (val) {
-        const matches = Object.keys(restaurants).filter(r => r.includes(val));
-        matches.forEach(m => {
-          const div = document.createElement('div');
-          div.textContent = m.charAt(0).toUpperCase() + m.slice(1);
-          div.onclick = () => window.location.href = restaurants[m];
-          suggestions.appendChild(div);
-        });
-        suggestions.style.display = matches.length ? 'flex' : 'none';
-      } else {
-        suggestions.style.display = 'none';
-      }
-    });
-
-    search.addEventListener('keypress', e => {
-      if (e.key === 'Enter') {
-        const val = search.value.toLowerCase();
-        if (restaurants[val]) {
-          window.location.href = restaurants[val];
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+            localStorage.setItem('zo2y-theme', theme);
         }
-      }
-    });
-  </script>
 
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+        }
+
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('zo2y-theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        document.addEventListener('DOMContentLoaded', initializeTheme);
+
+        // ===== RESTAURANT DATA =====
+        const restaurants = [
+            { slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7 },
+            { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5 },
+            { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3 },
+            { slug:'bazooka', name:'Bazooka', category:'Burger & Fried Chicken', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2 },
+            { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0 }
+        ];
+
+        // ===== IMAGE HELPER =====
+        function imageSrcset(slug){
+            return {
+                src: `images/${slug}.jpg`,
+                srcset: `images/${slug}@2x.jpg 2x, images/${slug}.jpg 1x`
+            };
+        }
+
+        // ===== POPULATE SLIDERS =====
+        const featuredSlider = document.getElementById('featuredSlider');
+        const trendingSlider = document.getElementById('trendingSlider');
+
+        function makeCard(r){
+            const el = document.createElement('a');
+            el.className = 'card';
+            el.href = `cards/${r.slug}.html`;
+            
+            const imgwrap = document.createElement('div');
+            imgwrap.className='imgwrap';
+            const img = document.createElement('img');
+            const imgInfo = imageSrcset(r.slug);
+            img.src = imgInfo.src;
+            img.srcset = imgInfo.srcset;
+            img.loading = 'lazy';
+            img.alt = r.name;
+            imgwrap.appendChild(img);
+
+            const body = document.createElement('div');
+            body.className='body';
+            const h3 = document.createElement('h3');
+            h3.textContent = r.name;
+            const p = document.createElement('p');
+            p.textContent = `${r.category} • ⭐ ${r.rating.toFixed(1)}`;
+            
+            body.appendChild(h3);
+            body.appendChild(p);
+            el.appendChild(imgwrap);
+            el.appendChild(body);
+            return el;
+        }
+
+        restaurants.forEach(r => featuredSlider.appendChild(makeCard(r)));
+        restaurants.slice(0, 4).forEach(r => trendingSlider.appendChild(makeCard(r)));
+
+        // ===== SPOTLIGHT SHUFFLE =====
+        const spotImg = document.getElementById('spotImg');
+        const spotName = document.getElementById('spotName');
+        const spotDesc = document.getElementById('spotDesc');
+        const spotRating = document.getElementById('spotRating');
+        const spotAction = document.getElementById('spotAction');
+        const shuffleDots = document.getElementById('shuffleDots');
+        const layerA = document.getElementById('layerA');
+        const layerB = document.getElementById('layerB');
+
+        let current = 0;
+        function renderSpot(idx){
+            const r = restaurants[idx];
+            const imgInfo = imageSrcset(r.slug);
+            
+            spotImg.src = imgInfo.src;
+            spotImg.srcset = imgInfo.srcset;
+            spotImg.alt = r.name;
+            spotName.textContent = r.name;
+            spotDesc.textContent = r.desc;
+            spotRating.textContent = `⭐ ${r.rating.toFixed(1)}`;
+            spotAction.onclick = () => location.href = `cards/${r.slug}.html`;
+
+            layerA.style.backgroundImage = `url('${imgInfo.src}')`;
+            layerB.style.backgroundImage = `url('${imgInfo.src}')`;
+
+            shuffleDots.innerHTML = '';
+            restaurants.slice(0,5).forEach((_,i)=>{
+                const d = document.createElement('div');
+                d.className='dot' + (i===idx? ' active':'');
+                shuffleDots.appendChild(d);
+            });
+        }
+
+        renderSpot(0);
+        setInterval(()=>{
+            current = (current + 1) % restaurants.length;
+            renderSpot(current);
+        }, 4000);
+
+        // ===== SEARCH FUNCTIONALITY =====
+        document.getElementById('globalSearch').addEventListener('keydown', (e)=>{
+            if(e.key === 'Enter'){
+                const q = e.target.value.trim();
+                const url = q ? `restaurants.html?q=${encodeURIComponent(q)}` : 'restaurants.html';
+                location.href = url;
+            }
+        });
+    </script>
 </body>
 </html>
