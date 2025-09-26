@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zo2y</title>
-  <link rel="stylesheet" href="style.css">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
     body { background:#0b1e2d; color:white; overflow-x:hidden; }
@@ -18,7 +17,7 @@
       background:#0e2438;
     }
     .logo img {
-      height:40px; /* clean small logo */
+      height:40px;
     }
     .nav-links {
       display:flex;
@@ -35,12 +34,10 @@
 
     /* Search Bar */
     .search-bar {
-      display:flex;
-      justify-content:center;
+      position:relative;
       margin:20px auto;
       width:90%;
       max-width:600px;
-      position:relative;
     }
     .search-bar input {
       width:100%;
@@ -50,34 +47,43 @@
       outline:none;
     }
     .search-bar button {
-      padding:12px 20px;
+      position:absolute;
+      right:0;
+      top:0;
+      bottom:0;
       border:none;
       background:#ff7f32;
       color:white;
       font-weight:bold;
+      padding:0 20px;
       border-radius:0 5px 5px 0;
       cursor:pointer;
       transition:0.3s;
     }
     .search-bar button:hover { background:#e26a1f; }
 
-    /* Search dropdown */
-    .suggestions {
+    /* Autocomplete dropdown */
+    .dropdown {
       position:absolute;
-      top:45px;
-      width:100%;
+      top:100%;
+      left:0;
+      right:60px;
       background:#132c44;
       border-radius:0 0 5px 5px;
+      max-height:200px;
+      overflow-y:auto;
       display:none;
-      flex-direction:column;
       z-index:10;
     }
-    .suggestions div {
+    .dropdown div {
       padding:10px;
       cursor:pointer;
-      border-bottom:1px solid #0b1e2d;
+      transition:0.3s;
     }
-    .suggestions div:hover { background:#1f3c59; }
+    .dropdown div:hover {
+      background:#1e3b57;
+      color:#ff7f32;
+    }
 
     /* Section Title */
     .section-title {
@@ -131,16 +137,6 @@
       width:max-content;
     }
     .btn:hover { background:#e26a1f; }
-
-    /* Footer */
-    footer {
-      background:#0e2438;
-      text-align:center;
-      padding:20px;
-      margin-top:40px;
-      font-size:14px;
-      color:#aaa;
-    }
   </style>
 </head>
 <body>
@@ -159,29 +155,29 @@
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Search for restaurants..." onkeyup="showSuggestions(this.value)">
     <button onclick="searchRestaurant()">Search</button>
-    <div class="suggestions" id="suggestions"></div>
+    <div id="dropdown" class="dropdown"></div>
   </div>
 
   <!-- Featured Restaurants -->
   <h2 class="section-title">Featured Restaurants</h2>
   <div class="restaurant-list">
-    <div class="card" onclick="redirectTo('bazooka.html')">
+    <div class="card" onclick="redirectTo('cards/bazooka.html')">
       <img src="images/bazooka.jpg" alt="Bazooka">
       <h3>Bazooka</h3>
     </div>
-    <div class="card" onclick="redirectTo('mori.html')">
+    <div class="card" onclick="redirectTo('cards/mori.html')">
       <img src="images/mori.jpg" alt="Mori Sushi">
       <h3>Mori Sushi</h3>
     </div>
-    <div class="card" onclick="redirectTo('mexican.html')">
+    <div class="card" onclick="redirectTo('cards/mexican.html')">
       <img src="images/mexican.jpg" alt="Mexican Corn">
       <h3>Mexican Corn</h3>
     </div>
-    <div class="card" onclick="redirectTo('hameed.html')">
+    <div class="card" onclick="redirectTo('cards/hameed.html')">
       <img src="images/hameed.jpg" alt="Hameed">
       <h3>Hameed</h3>
     </div>
-    <div class="card" onclick="redirectTo('kilo.html')">
+    <div class="card" onclick="redirectTo('cards/kilo.html')">
       <img src="images/kilo.jpg" alt="Kilo Kebab">
       <h3>Kilo Kebab</h3>
     </div>
@@ -193,68 +189,63 @@
   <!-- Explore All -->
   <a href="restraunts.html" class="btn">Explore All Spots</a>
 
-  <!-- Footer -->
-  <footer>
-    &copy; 2025 Zo2y. All rights reserved.
-  </footer>
-
   <script>
     const restaurants = {
-      "bazooka":"bazooka.html",
-      "mori":"mori.html",
-      "mexican":"mexican.html",
-      "hameed":"hameed.html",
-      "kilo":"kilo.html",
-      "brgr":"brgr.html",
-      "barbar":"barbar.html",
-      "akleh":"akleh.html",
-      "bayoki":"bayoki.html",
-      "howlin":"howlin.html",
-      "labash":"labash.html",
-      "maine":"maine.html",
-      "pickl":"pickl.html",
-      "sauce":"sauce.html",
-      "secondcup":"secondcup.html",
-      "station":"station.html",
-      "vasko":"vasko.html",
-      "chikin":"chikin.html",
-      "country":"country.html"
+      "bazooka":"cards/bazooka.html",
+      "mori":"cards/mori.html",
+      "mexican":"cards/mexican.html",
+      "hameed":"cards/hameed.html",
+      "kilo":"cards/kilo.html",
+      "brgr":"cards/brgr.html",
+      "barbar":"cards/barbar.html",
+      "akleh":"cards/akleh.html",
+      "bayoki":"cards/bayoki.html",
+      "howlin":"cards/howlin.html",
+      "labash":"cards/labash.html",
+      "maine":"cards/maine.html",
+      "pickl":"cards/pickl.html",
+      "sauce":"cards/sauce.html",
+      "secondcup":"cards/secondcup.html",
+      "station":"cards/station.html",
+      "vasko":"cards/vasko.html",
+      "chikin":"cards/chikin.html",
+      "country":"cards/country.html"
     };
 
-    // Redirect function
     function redirectTo(page) {
-      window.location.href = "cards/" + page;
+      window.location.href = page;
     }
 
-    // Search function
     function searchRestaurant() {
       const input = document.getElementById("searchInput").value.toLowerCase();
       if(restaurants[input]) {
-        window.location.href = "cards/" + restaurants[input];
+        window.location.href = restaurants[input];
       } else {
         alert("No restaurant found with that name.");
       }
     }
 
-    // Suggestions dropdown
     function showSuggestions(value) {
-      const suggestionsBox = document.getElementById("suggestions");
-      suggestionsBox.innerHTML = "";
-      if(value.length === 0) {
-        suggestionsBox.style.display = "none";
+      const dropdown = document.getElementById("dropdown");
+      dropdown.innerHTML = "";
+      if (!value) {
+        dropdown.style.display = "none";
         return;
       }
-      let matches = Object.keys(restaurants).filter(r => r.startsWith(value.toLowerCase()));
-      if(matches.length > 0) {
-        suggestionsBox.style.display = "flex";
-        matches.forEach(m => {
-          let div = document.createElement("div");
-          div.innerText = m.charAt(0).toUpperCase() + m.slice(1);
-          div.onclick = () => { redirectTo(restaurants[m]); };
-          suggestionsBox.appendChild(div);
+      const matches = Object.keys(restaurants).filter(r => r.startsWith(value.toLowerCase()));
+      if (matches.length > 0) {
+        dropdown.style.display = "block";
+        matches.forEach(match => {
+          const div = document.createElement("div");
+          div.innerText = match.charAt(0).toUpperCase() + match.slice(1);
+          div.onclick = () => {
+            document.getElementById("searchInput").value = match;
+            searchRestaurant();
+          };
+          dropdown.appendChild(div);
         });
       } else {
-        suggestionsBox.style.display = "none";
+        dropdown.style.display = "none";
       }
     }
   </script>
