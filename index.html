@@ -1,382 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zo2y — Home</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zo2y</title>
+  <link rel="stylesheet" href="style.css">
   <style>
-    /* ---------- theme & base ---------- */
-    :root{
-      --bg:#0b0b0d;
-      --card:#131316;
-      --muted:#9b9b9b;
-      --accent:#FF6F00;
-      --white:#ffffff;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:linear-gradient(180deg,#050506 0%, #0b0b0d 100%);
-      color:var(--white);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      overflow-x:hidden;
-    }
-    a{color:inherit;text-decoration:none}
-    img{display:block; width:100%; height:auto; object-fit:cover}
+    * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+    body { background:#0b1e2d; color:white; overflow-x:hidden; }
 
-    /* ---------- NAV ---------- */
-    .nav{
-      position:sticky; top:0; z-index:60;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 28px; gap:24px;
-      backdrop-filter: blur(6px);
-      background: linear-gradient(180deg, rgba(11,11,13,0.75), rgba(11,11,13,0.3));
-      border-bottom: 1px solid rgba(255,255,255,0.03);
+    /* Navbar */
+    .navbar {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:15px 30px;
+      background:#0e2438;
     }
-    .nav .left {display:flex; align-items:center; gap:18px;}
-    .logo {height:42px; cursor:pointer}
-    .search {
-      width:520px; max-width:45vw; position:relative;
+    .logo img {
+      height:40px; /* clean small logo */
     }
-    .search input {
-      width:100%; padding:10px 14px 10px 44px; border-radius:999px;
-      border:1px solid rgba(255,255,255,0.04); background:var(--card); color:var(--white);
-      outline:none; font-size:14px; box-shadow:0 6px 20px rgba(0,0,0,0.6);
+    .nav-links {
+      display:flex;
+      gap:20px;
+      align-items:center;
     }
-    .search .icon {
-      position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.85; font-size:15px;
-      pointer-events:none;
+    .nav-links a {
+      color:white;
+      text-decoration:none;
+      font-weight:500;
+      transition:0.3s;
     }
-    /* suggestions box */
+    .nav-links a:hover { color:#ff7f32; }
+
+    /* Search Bar */
+    .search-bar {
+      display:flex;
+      justify-content:center;
+      margin:20px auto;
+      width:90%;
+      max-width:600px;
+      position:relative;
+    }
+    .search-bar input {
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:5px 0 0 5px;
+      outline:none;
+    }
+    .search-bar button {
+      padding:12px 20px;
+      border:none;
+      background:#ff7f32;
+      color:white;
+      font-weight:bold;
+      border-radius:0 5px 5px 0;
+      cursor:pointer;
+      transition:0.3s;
+    }
+    .search-bar button:hover { background:#e26a1f; }
+
+    /* Search dropdown */
     .suggestions {
-      position:absolute; left:0; right:0; top:110%;
-      background:var(--card); border-radius:10px; overflow-y:auto; max-height:260px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.6); display:none; z-index:200;
-      border:1px solid rgba(255,255,255,0.03);
+      position:absolute;
+      top:45px;
+      width:100%;
+      background:#132c44;
+      border-radius:0 0 5px 5px;
+      display:none;
+      flex-direction:column;
+      z-index:10;
     }
-    .suggestion-item {
-      padding:10px 12px; cursor:pointer; display:flex; gap:10px; align-items:center;
-      transition:background .12s;
+    .suggestions div {
+      padding:10px;
+      cursor:pointer;
+      border-bottom:1px solid #0b1e2d;
     }
-    .suggestion-item:hover { background: rgba(255,255,255,0.02); }
-    .suggestion-item img{width:44px;height:36px;object-fit:cover;border-radius:8px}
+    .suggestions div:hover { background:#1f3c59; }
 
-    .nav .right {display:flex; align-items:center; gap:12px;}
-    .ghost {color:var(--muted); padding:8px 10px; border-radius:8px; font-size:14px}
-    .account-btn{
-      background:linear-gradient(180deg,var(--accent), #e05c00);
-      color:#111; padding:8px 14px; border-radius:20px; border:none; cursor:pointer; font-weight:700;
-      box-shadow:0 12px 36px rgba(255,111,0,0.12);
+    /* Section Title */
+    .section-title {
+      text-align:center;
+      margin:40px 0 20px;
+      font-size:28px;
+      color:#ff7f32;
     }
 
-    /* ---------- HERO ---------- */
-    .hero { position:relative; height:72vh; min-height:520px; display:flex; align-items:center; padding:48px; overflow:visible; }
-    .hero-bg{ position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden }
-    .hero-bg .layer { position:absolute; inset:-10% -10%; background-size:cover; background-position:center; filter:brightness(.34) contrast(.92); transition:transform 1s ease; will-change:transform; }
-    .hero-inner { position:relative; z-index:6; display:flex; align-items:center; gap:36px; width:100%; max-width:1200px; margin:0 auto; }
-    .hero-left{ flex:1.1; min-width:320px }
-    .tag{ display:inline-block; color:var(--muted); font-weight:600; font-size:13px; background:rgba(255,255,255,0.02); padding:8px 12px; border-radius:999px; margin-bottom:18px }
-    h1{ font-size:44px; line-height:1.02; margin:0 0 12px 0; font-weight:800; }
-    .lead{ color:var(--muted); font-size:16px; margin-bottom:22px; max-width:640px }
-    .cta-row{ display:flex; gap:14px; align-items:center }
-    .btn-primary{ background:var(--accent); color:#111; padding:12px 20px; border-radius:999px; font-weight:700; border:none; cursor:pointer; box-shadow:0 12px 36px rgba(255,111,0,0.12); }
-    .btn-outline{ background:transparent; color:var(--white); padding:12px 18px; border-radius:999px; border:1px solid rgba(255,255,255,0.06); }
-    .hero-right{ width:400px; max-width:42%; min-width:300px; display:flex; align-items:center; justify-content:center; }
-    .spotlight{ width:100%; border-radius:14px; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow:0 18px 60px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.03); display:grid; grid-template-columns:110px 1fr; gap:14px; padding:12px; align-items:center; }
-    .spotlight .thumb{ width:100%; height:86px; border-radius:10px; overflow:hidden; background:#202024 }
-    .spotlight .thumb img{ width:100%; height:100%; object-fit:cover }
-    .spotlight h3{ margin:0; font-size:16px; font-weight:700 }
-    .spotlight p{ margin:6px 0 0 0; color:var(--muted); font-size:13px }
-    .rating{ margin-top:8px; color:var(--accent); font-weight:800 }
-
-    /* ---------- SLIDER (featured) ---------- */
-    .section{ padding:56px 28px }
-    .section h2{ font-size:22px; margin:0 0 18px 0; text-align:left }
-    .slider{ display:flex; gap:18px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory; }
-    .slider::-webkit-scrollbar{ height:9px }
-    .slider::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.06); border-radius:999px }
+    /* Restaurant Cards */
+    .restaurant-list {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:20px;
+      padding:20px;
+    }
     .card {
-      flex:0 0 240px; min-width:240px; background:var(--card); border-radius:12px; overflow:hidden;
-      scroll-snap-align:start; box-shadow:0 10px 40px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.02);
-      cursor:pointer; transition:transform .22s cubic-bezier(.2,.9,.2,1); display:block; color:inherit;
+      background:#132c44;
+      border-radius:10px;
+      overflow:hidden;
+      text-align:center;
+      cursor:pointer;
+      transition:0.3s;
     }
-    .card:hover{ transform:translateY(-8px) }
-    .card .imgwrap{ height:140px; background:#0f0f11; overflow:hidden }
-    .card .imgwrap img{ width:100%; height:100%; object-fit:cover }
-    .card .body{ padding:12px }
-    .card h3{ margin:0 0 6px 0; font-size:16px }
-    .card p{ font-size:13px; color:var(--muted); margin:0 0 8px 0 }
-    .more-card {
-      display:flex; align-items:center; justify-content:center; gap:10px; flex-direction:column;
-      min-width:160px; padding:20px; border-radius:12px; border:1px dashed rgba(255,111,0,0.2); color:var(--accent);
-      background:transparent;
+    .card:hover { transform:translateY(-5px); }
+    .card img {
+      width:100%;
+      height:180px;
+      object-fit:cover;
     }
-    .more-card .plus {
-      width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-      border:2px solid rgba(255,111,0,0.25); font-size:28px; font-weight:700;
+    .card h3 {
+      padding:15px;
+      font-size:18px;
     }
 
-    .see-all-cta { display:flex; justify-content:center; margin-top:20px }
-    .see-all-cta .see-all-btn { padding:10px 18px; border-radius:999px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:var(--white); cursor:pointer }
-
-    footer{ padding:28px; color:var(--muted); text-align:center; border-top:1px solid rgba(255,255,255,0.02); margin-top:40px }
-
-    /* responsive */
-    @media (max-width:980px){
-      .search{ display:none }
-      .hero-inner{ flex-direction:column-reverse; gap:20px; align-items:stretch }
-      .hero-right{ max-width:100% }
+    /* Buttons */
+    .btn {
+      display:block;
+      margin:30px auto;
+      padding:12px 25px;
+      background:#ff7f32;
+      color:white;
+      border:none;
+      border-radius:5px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      text-align:center;
+      text-decoration:none;
+      transition:0.3s;
+      width:max-content;
     }
-    @media (max-width:560px){
-      h1{ font-size:28px }
-      .btn-primary{ padding:10px 14px }
-      .card{ min-width:200px; flex:0 0 200px }
-      .spotlight .thumb{ height:72px }
+    .btn:hover { background:#e26a1f; }
+
+    /* Footer */
+    footer {
+      background:#0e2438;
+      text-align:center;
+      padding:20px;
+      margin-top:40px;
+      font-size:14px;
+      color:#aaa;
     }
   </style>
 </head>
 <body>
-
-  <!-- NAV -->
-  <header class="nav" role="banner">
-    <div class="left">
-      <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
-      <div class="search" aria-hidden="false">
-        <span class="icon">🔎</span>
-        <input id="globalSearch" placeholder="Search restaurants (type & press Enter)" aria-label="Search restaurants">
-        <div id="suggestions" class="suggestions" role="listbox" aria-label="Search suggestions"></div>
-      </div>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Zo2y Logo">
     </div>
-
-    <div class="right">
-      <a class="ghost" href="restaurants.html">Explore</a>
-      <button class="account-btn" onclick="location.href='login.html'">Account</button>
+    <div class="nav-links">
+      <a href="login.html">Login</a>
+      <a href="signup.html">Sign Up</a>
     </div>
-  </header>
+  </div>
 
-  <!-- HERO -->
-  <main>
-    <section class="hero" aria-labelledby="heroTitle">
-      <div class="hero-bg" aria-hidden="true">
-        <div id="layerA" class="layer"></div>
-        <div id="layerB" class="layer"></div>
-      </div>
+  <!-- Search -->
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search for restaurants..." onkeyup="showSuggestions(this.value)">
+    <button onclick="searchRestaurant()">Search</button>
+    <div class="suggestions" id="suggestions"></div>
+  </div>
 
-      <div class="hero-inner">
-        <div class="hero-left">
-          <div class="tag">New Cairo • Restaurants</div>
-          <h1 id="heroTitle">Find your next favorite meal — rated by locals</h1>
-          <p class="lead">Browse the best sushi, kebab, burgers and cafés in your area. Quick reviews, real photos, honest ratings.</p>
-          <div class="cta-row">
-            <button class="btn-primary" onclick="location.href='restaurants.html'">Explore All</button>
-            <!-- top-rated button goes to restaurants with query param; you don't have top-rated.html -->
-            <button class="btn-outline" onclick="location.href='restaurants.html?sort=rating'">Top Rated</button>
-          </div>
-        </div>
+  <!-- Featured Restaurants -->
+  <h2 class="section-title">Featured Restaurants</h2>
+  <div class="restaurant-list">
+    <div class="card" onclick="redirectTo('bazooka.html')">
+      <img src="images/bazooka.jpg" alt="Bazooka">
+      <h3>Bazooka</h3>
+    </div>
+    <div class="card" onclick="redirectTo('mori.html')">
+      <img src="images/mori.jpg" alt="Mori Sushi">
+      <h3>Mori Sushi</h3>
+    </div>
+    <div class="card" onclick="redirectTo('mexican.html')">
+      <img src="images/mexican.jpg" alt="Mexican Corn">
+      <h3>Mexican Corn</h3>
+    </div>
+    <div class="card" onclick="redirectTo('hameed.html')">
+      <img src="images/hameed.jpg" alt="Hameed">
+      <h3>Hameed</h3>
+    </div>
+    <div class="card" onclick="redirectTo('kilo.html')">
+      <img src="images/kilo.jpg" alt="Kilo Kebab">
+      <h3>Kilo Kebab</h3>
+    </div>
+  </div>
 
-        <div class="hero-right">
-          <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
-            <div class="thumb"><img id="spotImg" src="images/mori.png" alt="Spotlight image"></div>
-            <div class="meta">
-              <h3 id="spotName">Mori Sushi</h3>
-              <p id="spotDesc">Modern sushi chain serving fresh rolls & nigiri.</p>
-              <div class="rating" id="spotRating">⭐ 4.7</div>
-              <div style="margin-top:10px"><a id="spotView" class="btn-outline" href="mori.html">View</a></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- + More -->
+  <a href="restraunts.html" class="btn">+ More</a>
 
-    <!-- FEATURED -->
-    <section class="section" aria-labelledby="featuredTitle">
-      <h2 id="featuredTitle">Featured Restaurants</h2>
-      <div id="featuredSlider" class="slider" aria-live="polite" aria-label="Featured restaurants"></div>
+  <!-- Explore All -->
+  <a href="restraunts.html" class="btn">Explore All Spots</a>
 
-      <div class="see-all-cta">
-        <button class="see-all-btn" onclick="location.href='restaurants.html'">See all restaurants</button>
-      </div>
-    </section>
-  </main>
-
+  <!-- Footer -->
   <footer>
-    <div>© 2025 Zo2y — Built with ❤️</div>
-    <div style="font-size:13px"><a href="about.html">About</a> • <a href="contact.html">Contact</a> • <a href="terms.html">Terms</a></div>
+    &copy; 2025 Zo2y. All rights reserved.
   </footer>
 
   <script>
-    /*************** DATA (use these slugs and old image names in images/) ***************/
-    const restaurants = [
-      { slug:'mori', name:'Mori Sushi', img:'images/mori.png', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7 },
-      { slug:'kilo', name:'Kilo Kebab', img:'images/kilo.png', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5 },
-      { slug:'hameed', name:'Hameed', img:'images/hameed.png', desc:'Local favorite for sandwiches & quick bites.', rating:4.3 },
-      { slug:'bazooka', name:'Bazooka', img:'images/bazooka.jpg', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2 },
-      { slug:'mexican', name:'Mexican Corn', img:'images/mexican.jpg', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0 },
-      { slug:'chikin', name:'Chikin Worx', img:'images/chikin.png', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5 },
-      { slug:'vasko', name:'Vasko', img:'images/vasko.jpg', desc:'Premium coffee, pastries & elegant café vibes.', rating:4.6 },
-      { slug:'secondcup', name:'Second Cup', img:'images/secondcup.png', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4 },
-      { slug:'station', name:'Pizza Station', img:'images/station.png', desc:'Classic pizzas & comfort food.', rating:4.3 },
-      { slug:'brgr', name:'BRGR', img:'images/brgr.jpg', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4 },
-      { slug:'country', name:'Country Hills', img:'images/country.jpg', desc:'Grilled meats, casual dining & family meals.', rating:4.2 },
-      { slug:'bayoki', name:'Bayouki Rotisserie', img:'images/bayoki.png', desc:'Authentic rotisserie & grilled chicken.', rating:4.3 },
-      { slug:'maine', name:'Maine', img:'images/maine.jpg', desc:'Fresh seafood & lobster rolls.', rating:4.5 },
-      { slug:'barbar', name:'Barbar Shawarma', img:'images/barbar.png', desc:'Iconic shawarma spot.', rating:4.4 },
-      { slug:'labash', name:'Labash', img:'images/labash.jpg', desc:'Charcoal-grilled meets fast bites.', rating:4.3 },
-      { slug:'pickl', name:'Pickl Egypt', img:'images/pickl.jpg', desc:'Dubai-famous burgers & shakes.', rating:4.6 },
-      { slug:'akleh', name:'Akleh', img:'images/akleh.jpg', desc:'Authentic Lebanese mezze & grills.', rating:4.4 },
-      { slug:'howlin', name:"Howlin' Birds", img:'images/howlin.png', desc:"Nashville-style hot chicken sandwiches.", rating:4.5 },
-      { slug:'sauce', name:'Sauce', img:'images/sauce.jpg', desc:'Trendy burgers & loaded fries.', rating:4.4 }
-    ];
+    const restaurants = {
+      "bazooka":"bazooka.html",
+      "mori":"mori.html",
+      "mexican":"mexican.html",
+      "hameed":"hameed.html",
+      "kilo":"kilo.html",
+      "brgr":"brgr.html",
+      "barbar":"barbar.html",
+      "akleh":"akleh.html",
+      "bayoki":"bayoki.html",
+      "howlin":"howlin.html",
+      "labash":"labash.html",
+      "maine":"maine.html",
+      "pickl":"pickl.html",
+      "sauce":"sauce.html",
+      "secondcup":"secondcup.html",
+      "station":"station.html",
+      "vasko":"vasko.html",
+      "chikin":"chikin.html",
+      "country":"country.html"
+    };
 
-    /*************** HELPERS ***************/
-    function makeCardAnchor(r){
-      // anchor points to root slug page (e.g. 'kilo.html')
-      const a = document.createElement('a');
-      a.className = 'card';
-      a.href = `${r.slug}.html`;
-      a.innerHTML = `
-        <div class="imgwrap"><img src="${r.img}" alt="${r.name}"></div>
-        <div class="body">
-          <h3>${r.name}</h3>
-          <p>${r.desc}</p>
-          <div class="meta"><span>⭐ ${r.rating.toFixed(1)}</span></div>
-        </div>
-      `;
-      return a;
+    // Redirect function
+    function redirectTo(page) {
+      window.location.href = "cards/" + page;
     }
 
-    // Populate featured slider (first N items)
-    const featuredSlider = document.getElementById('featuredSlider');
-    function populateFeatured() {
-      featuredSlider.innerHTML = '';
-      const featured = restaurants.slice(0, 9);
-      featured.forEach(r => featuredSlider.appendChild(makeCardAnchor(r)));
-
-      // + More card at end
-      const more = document.createElement('a');
-      more.className = 'more-card card';
-      more.href = 'restaurants.html';
-      more.innerHTML = `<div class="plus">+</div><div style="margin-top:8px;color:var(--muted);">See all restaurants</div>`;
-      more.style.minWidth = '160px';
-      more.style.display = 'flex';
-      more.style.flexDirection = 'column';
-      more.style.alignItems = 'center';
-      more.style.justifyContent = 'center';
-      featuredSlider.appendChild(more);
-    }
-    populateFeatured();
-
-    /*************** SPOTLIGHT (shuffle) ***************/
-    const spotImg = document.getElementById('spotImg');
-    const spotName = document.getElementById('spotName');
-    const spotDesc = document.getElementById('spotDesc');
-    const spotRating = document.getElementById('spotRating');
-    const spotView = document.getElementById('spotView');
-
-    let spotIndex = 0;
-    function renderSpot(i){
-      const r = restaurants[i % restaurants.length];
-      spotImg.src = r.img;
-      spotImg.alt = r.name;
-      spotName.textContent = r.name;
-      spotDesc.textContent = r.desc;
-      spotRating.textContent = `⭐ ${r.rating.toFixed(1)}`;
-      spotView.href = `${r.slug}.html`;
-      // background layers for depth
-      layerA.style.backgroundImage = `url('${r.img}')`;
-      layerB.style.backgroundImage = `url('${r.img}')`;
-    }
-    renderSpot(0);
-    setInterval(()=>{
-      spotIndex = (spotIndex + 1) % restaurants.length;
-      renderSpot(spotIndex);
-    }, 3600);
-
-    /*************** BACKGROUND PARALLAX ***************/
-    const layerA = document.getElementById('layerA');
-    const layerB = document.getElementById('layerB');
-    if(!layerA.style.backgroundImage) layerA.style.backgroundImage = "url('images/bg1.jpg')";
-    if(!layerB.style.backgroundImage) layerB.style.backgroundImage = "url('images/bg2.jpg')";
-    document.addEventListener('mousemove', e=>{
-      const x = (e.clientX / window.innerWidth - 0.5) * 12;
-      const y = (e.clientY / window.innerHeight - 0.5) * 8;
-      layerA.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1.03)`;
-      layerB.style.transform = `translate3d(${-x}px, ${-y}px, 0) scale(1.06)`;
-    });
-
-    /*************** SEARCH: suggestions + redirect ***************/
-    const search = document.getElementById('globalSearch');
-    const suggestions = document.getElementById('suggestions');
-
-    function showSuggestions(matches){
-      suggestions.innerHTML = '';
-      if(!matches.length){ suggestions.style.display='none'; return; }
-      matches.forEach(r=>{
-        const div = document.createElement('div');
-        div.className = 'suggestion-item';
-        const thumb = document.createElement('img');
-        thumb.src = r.img;
-        thumb.alt = r.name;
-        const txt = document.createElement('div');
-        txt.innerHTML = `<strong style="display:block">${r.name}</strong><span style="color:var(--muted);font-size:13px">${r.desc}</span>`;
-        div.appendChild(thumb);
-        div.appendChild(txt);
-        div.addEventListener('click', ()=> { location.href = `${r.slug}.html`; });
-        suggestions.appendChild(div);
-      });
-      suggestions.style.display = 'block';
-    }
-
-    search.addEventListener('input', (e)=>{
-      const q = e.target.value.trim().toLowerCase();
-      if(!q){ suggestions.style.display='none'; return; }
-      const starts = restaurants.filter(r=> r.name.toLowerCase().startsWith(q));
-      const includes = restaurants.filter(r=> r.name.toLowerCase().includes(q) && !starts.includes(r));
-      const matches = starts.concat(includes).slice(0,8);
-      showSuggestions(matches);
-    });
-
-    // Enter behavior: prefer exact match -> redirect; otherwise first partial match; otherwise search page
-    search.addEventListener('keydown', (e)=>{
-      if(e.key === 'Enter'){
-        const q = search.value.trim().toLowerCase();
-        if(!q){ location.href='restaurants.html'; return; }
-        const exact = restaurants.find(r => r.name.toLowerCase() === q);
-        if(exact){ location.href = `${exact.slug}.html`; }
-        else {
-          const partial = restaurants.find(r => r.name.toLowerCase().includes(q));
-          if(partial) location.href = `${partial.slug}.html`;
-          else location.href = `restaurants.html?q=${encodeURIComponent(q)}`;
-        }
+    // Search function
+    function searchRestaurant() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      if(restaurants[input]) {
+        window.location.href = "cards/" + restaurants[input];
+      } else {
+        alert("No restaurant found with that name.");
       }
-      if(e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); }
-    });
+    }
 
-    // hide suggestions when clicking outside
-    document.addEventListener('click', (e)=>{
-      if(!document.querySelector('.search').contains(e.target)) suggestions.style.display='none';
-    });
-
-    /*************** make sliders draggable (mouse/touch) ***************/
-    (function makeDragScrollable(){
-      const sliders = document.querySelectorAll('.slider');
-      sliders.forEach(sl=>{
-        let pressed=false, startX, scrollStart;
-        sl.addEventListener('mousedown', (e)=>{ pressed=true; startX=e.pageX - sl.offsetLeft; scrollStart=sl.scrollLeft; sl.style.cursor='grabbing'; });
-        window.addEventListener('mouseup', ()=>{ pressed=false; sl.style.cursor='grab'; });
-        sl.addEventListener('mousemove', (e)=>{ if(!pressed) return; e.preventDefault(); const x=e.pageX - sl.offsetLeft; const walk=(x - startX); sl.scrollLeft = scrollStart - walk; });
-        // touch
-        let tStartX, tScroll;
-        sl.addEventListener('touchstart', e=>{ tStartX=e.touches[0].pageX; tScroll=sl.scrollLeft; });
-        sl.addEventListener('touchmove', e=>{ const x=e.touches[0].pageX; sl.scrollLeft = tScroll - (x - tStartX); });
-      });
-    })();
-
-    /*************** accessibility small enhancement ***************/
-    document.addEventListener('keydown', (e)=>{ if(e.key === 'Tab'){ document.body.classList.add('show-focus'); }});
+    // Suggestions dropdown
+    function showSuggestions(value) {
+      const suggestionsBox = document.getElementById("suggestions");
+      suggestionsBox.innerHTML = "";
+      if(value.length === 0) {
+        suggestionsBox.style.display = "none";
+        return;
+      }
+      let matches = Object.keys(restaurants).filter(r => r.startsWith(value.toLowerCase()));
+      if(matches.length > 0) {
+        suggestionsBox.style.display = "flex";
+        matches.forEach(m => {
+          let div = document.createElement("div");
+          div.innerText = m.charAt(0).toUpperCase() + m.slice(1);
+          div.onclick = () => { redirectTo(restaurants[m]); };
+          suggestionsBox.appendChild(div);
+        });
+      } else {
+        suggestionsBox.style.display = "none";
+      }
+    }
   </script>
 </body>
 </html>
