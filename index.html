@@ -1,253 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zo2y — Home</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
-    body { background:#0b1e2d; color:white; overflow-x:hidden; }
-
-    /* Navbar */
-    .navbar {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:15px 30px;
-      background:#0e2438;
+    :root{
+      --bg:#0b0b0d;
+      --card:#131316;
+      --muted:#9b9b9b;
+      --accent:#FF6F00;
+      --white:#fff;
     }
-    .logo img {
-      height:40px;
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Inter,system-ui,Arial;
+      background:linear-gradient(180deg,#050506 0%, #0b0b0d 100%);
+      color:var(--white); overflow-x:hidden;
     }
-    .nav-links {
-      display:flex;
-      gap:20px;
-      align-items:center;
-    }
-    .nav-links a {
-      color:white;
-      text-decoration:none;
-      font-weight:500;
-      transition:0.3s;
-    }
-    .nav-links a:hover { color:#ff7f32; }
-
-    /* Search Bar */
-    .search-bar {
-      position:relative;
-      margin:20px auto;
-      width:90%;
-      max-width:600px;
-    }
-    .search-bar input {
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:5px 0 0 5px;
-      outline:none;
-    }
-    .search-bar button {
-      position:absolute;
-      right:0;
-      top:0;
-      bottom:0;
-      border:none;
-      background:#ff7f32;
-      color:white;
-      font-weight:bold;
-      padding:0 20px;
-      border-radius:0 5px 5px 0;
-      cursor:pointer;
-      transition:0.3s;
-    }
-    .search-bar button:hover { background:#e26a1f; }
-
-    /* Autocomplete dropdown */
-    .dropdown {
-      position:absolute;
-      top:100%;
-      left:0;
-      right:60px;
-      background:#132c44;
-      border-radius:0 0 5px 5px;
-      max-height:200px;
-      overflow-y:auto;
-      display:none;
-      z-index:10;
-    }
-    .dropdown div {
-      padding:10px;
-      cursor:pointer;
-      transition:0.3s;
-    }
-    .dropdown div:hover {
-      background:#1e3b57;
-      color:#ff7f32;
-    }
-
-    /* Section Title */
-    .section-title {
-      text-align:center;
-      margin:40px 0 20px;
-      font-size:28px;
-      color:#ff7f32;
-    }
-
-    /* Restaurant Cards */
-    .restaurant-list {
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
-      gap:20px;
-      padding:20px;
-    }
-    .card {
-      background:#132c44;
-      border-radius:10px;
-      overflow:hidden;
-      text-align:center;
-      cursor:pointer;
-      transition:0.3s;
-    }
-    .card:hover { transform:translateY(-5px); }
-    .card img {
-      width:100%;
-      height:180px;
-      object-fit:cover;
-    }
-    .card h3 {
-      padding:15px;
-      font-size:18px;
-    }
-
-    /* Buttons */
-    .btn {
-      display:block;
-      margin:30px auto;
-      padding:12px 25px;
-      background:#ff7f32;
-      color:white;
-      border:none;
-      border-radius:5px;
-      font-size:16px;
-      font-weight:bold;
-      cursor:pointer;
-      text-align:center;
-      text-decoration:none;
-      transition:0.3s;
-      width:max-content;
-    }
-    .btn:hover { background:#e26a1f; }
+    a{color:inherit;text-decoration:none}
+    img{display:block;max-width:100%}
+    /* nav */
+    .nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:24px;padding:14px 28px;
+      background:rgba(11,11,13,0.8);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,0.05)}
+    .nav .left{display:flex;align-items:center;gap:16px}
+    .logo{height:44px;cursor:pointer}
+    .search{width:480px;max-width:45vw;position:relative}
+    .search input{width:100%;padding:10px 14px 10px 42px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);
+      background:var(--card);color:var(--white);outline:none}
+    .search .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%)}
+    .nav .right{margin-left:auto;display:flex;align-items:center;gap:12px}
+    .account-btn{background:linear-gradient(180deg,var(--accent),#e05c00);color:#111;padding:8px 14px;border:none;
+      border-radius:20px;font-weight:700;cursor:pointer}
+    /* hero */
+    .hero{position:relative;height:72vh;min-height:520px;display:flex;align-items:center;padding:48px}
+    .hero-bg{position:absolute;inset:0;z-index:0;background:#08080a}
+    .hero-inner{position:relative;z-index:2;display:flex;gap:36px;max-width:1200px;margin:0 auto;width:100%}
+    .hero-left{flex:1.1}
+    .tag{display:inline-block;font-size:13px;color:var(--muted);margin-bottom:18px}
+    h1{margin:0 0 12px;font-size:44px;font-weight:800}
+    .lead{color:var(--muted);font-size:16px;margin-bottom:22px;max-width:600px}
+    .cta-row{display:flex;gap:14px}
+    .btn-primary{background:var(--accent);color:#111;padding:12px 20px;border:none;border-radius:999px;font-weight:700;cursor:pointer}
+    .btn-outline{background:transparent;color:var(--white);padding:12px 18px;border-radius:999px;border:1px solid rgba(255,255,255,0.1)}
+    .hero-right{width:400px;max-width:42%}
+    .spotlight{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:14px;
+      box-shadow:0 10px 40px rgba(0,0,0,.6);display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px}
+    .spotlight .thumb{height:86px;border-radius:10px;overflow:hidden;background:#202024}
+    .spotlight h3{margin:0;font-size:16px}
+    .spotlight p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .rating{margin-top:8px;color:var(--accent);font-weight:700}
+    /* slider */
+    .section{padding:56px 28px}
+    .section h2{margin:0 0 18px;font-size:22px}
+    .slider{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory}
+    .slider::-webkit-scrollbar{height:8px}
+    .slider::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:999px}
+    .card{flex:0 0 240px;min-width:240px;background:var(--card);border-radius:12px;overflow:hidden;scroll-snap-align:start;
+      border:1px solid rgba(255,255,255,.05);cursor:pointer;transition:.2s}
+    .card:hover{transform:translateY(-4px)}
+    .card .imgwrap{height:140px;overflow:hidden;background:#111}
+    .card img{width:100%;height:100%;object-fit:cover}
+    .card .body{padding:12px}
+    .card h3{margin:0 0 6px;font-size:16px}
+    .card p{margin:0 0 8px;font-size:13px;color:var(--muted)}
+    .card .meta{font-size:13px;color:var(--muted)}
+    footer{padding:28px;text-align:center;color:var(--muted);border-top:1px solid rgba(255,255,255,.05)}
+    @media(max-width:980px){.search{display:none}.hero-inner{flex-direction:column-reverse;align-items:stretch}.hero-right{max-width:100%}}
+    @media(max-width:560px){h1{font-size:28px}.card{min-width:200px}}
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <div class="navbar">
-    <div class="logo">
-      <img src="images/logo.png" alt="Zo2y Logo">
+  <!-- nav -->
+  <header class="nav">
+    <div class="left">
+      <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
+      <div class="search">
+        <span class="icon">🔎</span>
+        <input id="globalSearch" placeholder="Search restaurants (Enter)">
+      </div>
     </div>
-    <div class="nav-links">
-      <a href="login.html">Login</a>
-      <a href="signup.html">Sign Up</a>
+    <div class="right">
+      <a class="ghost" href="restaurants.html">Explore</a>
+      <button class="account-btn" onclick="location.href='login.html'">Account</button>
     </div>
-  </div>
+  </header>
 
-  <!-- Search -->
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search for restaurants..." onkeyup="showSuggestions(this.value)">
-    <button onclick="searchRestaurant()">Search</button>
-    <div id="dropdown" class="dropdown"></div>
-  </div>
+  <!-- hero -->
+  <main>
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-inner">
+        <div class="hero-left">
+          <div class="tag">New Cairo • Restaurants</div>
+          <h1>Find your next favorite meal — rated by locals</h1>
+          <p class="lead">Browse the best sushi, kebab, burgers and cafés in your area. Quick reviews, real photos, honest ratings.</p>
+          <div class="cta-row">
+            <button class="btn-primary" onclick="location.href='restaurants.html'">Explore All</button>
+            <button class="btn-outline" onclick="location.href='top-rated.html'">Top Rated</button>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="spotlight" id="spotlightCard">
+            <div class="thumb"><img id="spotImg" src="images/mori@1x.jpg" alt=""></div>
+            <div class="meta">
+              <h3 id="spotName">Mori Sushi</h3>
+              <p id="spotDesc">Modern sushi chain serving rolls & nigiri.</p>
+              <div class="rating" id="spotRating">⭐ 4.7</div>
+              <button class="btn-primary" id="spotAction" style="margin-top:10px;padding:6px 12px;font-size:13px">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <!-- Featured Restaurants -->
-  <h2 class="section-title">Featured Restaurants</h2>
-  <div class="restaurant-list">
-    <div class="card" onclick="redirectTo('cards/bazooka.html')">
-      <img src="images/bazooka.jpg" alt="Bazooka">
-      <h3>Bazooka</h3>
-    </div>
-    <div class="card" onclick="redirectTo('cards/mori.html')">
-      <img src="images/mori.jpg" alt="Mori Sushi">
-      <h3>Mori Sushi</h3>
-    </div>
-    <div class="card" onclick="redirectTo('cards/mexican.html')">
-      <img src="images/mexican.jpg" alt="Mexican Corn">
-      <h3>Mexican Corn</h3>
-    </div>
-    <div class="card" onclick="redirectTo('cards/hameed.html')">
-      <img src="images/hameed.jpg" alt="Hameed">
-      <h3>Hameed</h3>
-    </div>
-    <div class="card" onclick="redirectTo('cards/kilo.html')">
-      <img src="images/kilo.jpg" alt="Kilo Kebab">
-      <h3>Kilo Kebab</h3>
-    </div>
-  </div>
+    <!-- featured -->
+    <section class="section">
+      <h2>Featured Restaurants</h2>
+      <div id="featuredSlider" class="slider"></div>
+    </section>
 
-  <!-- + More -->
-  <a href="restraunts.html" class="btn">+ More</a>
+    <!-- trending -->
+    <section class="section">
+      <h2>Trending</h2>
+      <div id="trendingSlider" class="slider"></div>
+    </section>
+  </main>
 
-  <!-- Explore All -->
-  <a href="restraunts.html" class="btn">Explore All Spots</a>
+  <footer>
+    © 2025 Zo2y — Built with ❤️
+  </footer>
 
+  <!-- js -->
   <script>
-    const restaurants = {
-      "bazooka":"cards/bazooka.html",
-      "mori":"cards/mori.html",
-      "mexican":"cards/mexican.html",
-      "hameed":"cards/hameed.html",
-      "kilo":"cards/kilo.html",
-      "brgr":"cards/brgr.html",
-      "barbar":"cards/barbar.html",
-      "akleh":"cards/akleh.html",
-      "bayoki":"cards/bayoki.html",
-      "howlin":"cards/howlin.html",
-      "labash":"cards/labash.html",
-      "maine":"cards/maine.html",
-      "pickl":"cards/pickl.html",
-      "sauce":"cards/sauce.html",
-      "secondcup":"cards/secondcup.html",
-      "station":"cards/station.html",
-      "vasko":"cards/vasko.html",
-      "chikin":"cards/chikin.html",
-      "country":"cards/country.html"
-    };
+    const restaurants = [
+      { slug:'mori', name:'Mori Sushi', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7 },
+      { slug:'kilo', name:'Kilo Kebab', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5 },
+      { slug:'hameed', name:'Hameed', desc:'Local favorite for sandwiches & quick bites.', rating:4.3 },
+      { slug:'bazooka', name:'Bazooka', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2 },
+      { slug:'mexican', name:'Mexican Corn', desc:'Elote, tacos & cheesy Mexican snacks.', rating:4.0 },
+      { slug:'chikin', name:'Chikin Worx', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5 },
+      { slug:'vasko', name:'Vasko', desc:'Premium coffee, pastries & café vibes.', rating:4.6 },
+      { slug:'secondcup', name:'Second Cup', desc:'Canadian coffeehouse serving espresso & pastries.', rating:4.4 },
+      { slug:'station', name:'Pizza Station', desc:'Classic pizzas & comfort food.', rating:4.3 },
+      { slug:'brgr', name:'BRGR', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4 },
+      { slug:'country', name:'Country Hills', desc:'American diner with grilled meats & family meals.', rating:4.2 },
+      { slug:'bayoki', name:'Bayouki Rotisserie', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3 }
+    ];
 
-    function redirectTo(page) {
-      window.location.href = page;
+    // spotlight shuffle
+    let i = 0;
+    function updateSpotlight(){
+      const r = restaurants[i % restaurants.length];
+      document.getElementById("spotImg").src = `images/${r.slug}@1x.jpg`;
+      document.getElementById("spotName").textContent = r.name;
+      document.getElementById("spotDesc").textContent = r.desc;
+      document.getElementById("spotRating").textContent = `⭐ ${r.rating}`;
     }
+    setInterval(()=>{i++;updateSpotlight()},4000);
 
-    function searchRestaurant() {
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      if(restaurants[input]) {
-        window.location.href = restaurants[input];
-      } else {
-        alert("No restaurant found with that name.");
-      }
+    // populate sliders
+    function makeCard(r){
+      return `<div class="card" onclick="location.href='restaurant.html?slug=${r.slug}'">
+        <div class="imgwrap"><img src="images/${r.slug}@1x.jpg" alt=""></div>
+        <div class="body"><h3>${r.name}</h3><p>${r.desc}</p><div class="meta">⭐ ${r.rating}</div></div>
+      </div>`;
     }
+    document.getElementById("featuredSlider").innerHTML = restaurants.slice(0,6).map(makeCard).join("");
+    document.getElementById("trendingSlider").innerHTML = restaurants.slice(6,12).map(makeCard).join("");
+    updateSpotlight();
 
-    function showSuggestions(value) {
-      const dropdown = document.getElementById("dropdown");
-      dropdown.innerHTML = "";
-      if (!value) {
-        dropdown.style.display = "none";
-        return;
-      }
-      const matches = Object.keys(restaurants).filter(r => r.startsWith(value.toLowerCase()));
-      if (matches.length > 0) {
-        dropdown.style.display = "block";
-        matches.forEach(match => {
-          const div = document.createElement("div");
-          div.innerText = match.charAt(0).toUpperCase() + match.slice(1);
-          div.onclick = () => {
-            document.getElementById("searchInput").value = match;
-            searchRestaurant();
-          };
-          dropdown.appendChild(div);
-        });
-      } else {
-        dropdown.style.display = "none";
-      }
-    }
+    // search
+    document.getElementById("globalSearch").addEventListener("keypress",e=>{
+      if(e.key==="Enter"){location.href=`restaurants.html?search=${encodeURIComponent(e.target.value)}`}
+    });
   </script>
 </body>
 </html>
