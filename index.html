@@ -278,11 +278,23 @@
             transition:transform .22s cubic-bezier(.2,.9,.2,1);
         }
         .card:hover{transform:translateY(-6px)}
-        .card .imgwrap{height:140px; overflow:hidden; background:var(--glass)}
-        .card .imgwrap img{width:100%; height:100%; object-fit:cover}
+        .card .imgwrap{
+            height:140px; 
+            overflow:hidden; 
+            background:var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card .imgwrap img{
+            width:100%; 
+            height:100%; 
+            object-fit: cover;
+            display:block;
+        }
         .card .body{padding:12px}
         .card h3{margin:0 0 6px 0; font-size:16px; color:var(--white)}
-        .card p{font-size:13px; color:var(--muted); margin:0 0 8px 0}
+        .card p{font-size:13px; color:var(--muted); margin:0 0 8px 0; line-height: 1.4;}
         .card .meta{display:flex; justify-content:space-between; align-items:center; font-size:13px}
         .explore-cta {display:flex; justify-content:center; margin-top:18px}
 
@@ -514,6 +526,60 @@
                 rating:4.2,
                 image: 'chikin.png',
                 link: 'cards/chikin.html'
+            },
+            { 
+                slug:'country', 
+                name:'Country', 
+                category:'American', 
+                desc:'Classic American comfort food in a rustic setting.', 
+                rating:4.1,
+                image: 'country.jpg',
+                link: 'cards/country.html'
+            },
+            { 
+                slug:'howlin', 
+                name:'Howlin', 
+                category:'Burgers', 
+                desc:'Bold flavors and creative burger combinations.', 
+                rating:4.4,
+                image: 'howlin.png',
+                link: 'cards/howlin.html'
+            },
+            { 
+                slug:'labash', 
+                name:'Labash', 
+                category:'Middle Eastern', 
+                desc:'Traditional Middle Eastern street food with modern flair.', 
+                rating:4.3,
+                image: 'labash.jpg',
+                link: 'cards/labash.html'
+            },
+            { 
+                slug:'maine', 
+                name:'Maine', 
+                category:'Seafood', 
+                desc:'Fresh seafood dishes inspired by coastal cuisine.', 
+                rating:4.6,
+                image: 'maine.jpg',
+                link: 'cards/maine.html'
+            },
+            { 
+                slug:'pickl', 
+                name:'Pickl', 
+                category:'Sandwiches', 
+                desc:'Specialty sandwiches with house-made pickles and sauces.', 
+                rating:4.2,
+                image: 'pickl.jpg',
+                link: 'cards/pickl.html'
+            },
+            { 
+                slug:'sauce', 
+                name:'Sauce', 
+                category:'International', 
+                desc:'Global cuisine with signature sauces and flavors.', 
+                rating:4.3,
+                image: 'sauce.jpg',
+                link: 'cards/sauce.html'
             }
         ];
 
@@ -529,13 +595,13 @@
                 link: 'cards/secondcup.html'
             },
             { 
-                slug:'station', 
-                name:'Station', 
-                category:'Coffee Shop', 
-                desc:'Modern coffee house with artisanal brews and pastries.', 
-                rating:4.3,
-                image: 'station.png',
-                link: 'cards/station.html'
+                slug:'vasko', 
+                name:'Vasko', 
+                category:'Cafe', 
+                desc:'Artisanal coffee and pastries in a modern European-style cafe.', 
+                rating:4.5,
+                image: 'vasko.jpg',
+                link: 'cards/vasko.html'
             }
         ];
 
@@ -570,11 +636,18 @@
             body.className='body';
             const h3 = document.createElement('h3');
             h3.textContent = r.name;
-            const p = document.createElement('p');
-            p.textContent = `${r.category} • ⭐ ${r.rating.toFixed(1)}`;
+            const pCategory = document.createElement('p');
+            pCategory.textContent = `${r.category} • ⭐ ${r.rating.toFixed(1)}`;
+            const pDesc = document.createElement('p');
+            pDesc.textContent = r.desc;
+            pDesc.style.fontSize = '12px';
+            pDesc.style.marginTop = '6px';
+            pDesc.style.color = 'var(--muted)';
+            pDesc.style.opacity = '0.8';
             
             body.appendChild(h3);
-            body.appendChild(p);
+            body.appendChild(pCategory);
+            body.appendChild(pDesc);
             el.appendChild(imgwrap);
             el.appendChild(body);
             return el;
