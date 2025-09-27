@@ -5,177 +5,669 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Zo2y — All Restaurants</title>
   <style>
-    :root{
-      --bg:#0b0b0d; --card:#131316; --muted:#9b9b9b; --accent:#FF6F00; --white:#fff;
+    /* ---------- CSS Variables for Theme Switching ---------- */
+    :root {
+      --bg: #ffffff;
+      --card: #f8f9fa;
+      --muted: #6c757d;
+      --accent: #FF6F00;
+      --glass: rgba(0,0,0,0.03);
+      --white: #000000;
+      --border: rgba(0,0,0,0.08);
     }
-    *{box-sizing:border-box}
-    body{margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--white)}
-    header{padding:18px 28px; display:flex; gap:18px; align-items:center; border-bottom:1px solid rgba(255,255,255,0.03)}
-    .logo{height:36px; cursor:pointer}
-    .toolbar{display:flex; gap:12px; margin-left:auto; align-items:center}
-    .search {width:360px}
-    .search input{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:#0f0f11; color:var(--white)}
 
-    .container{max-width:1200px; margin:28px auto; padding:0 18px}
-    .controls{display:flex; gap:12px; align-items:center; margin-bottom:18px; flex-wrap:wrap}
-    .btn {background:transparent; border:1px solid rgba(255,255,255,0.04); padding:8px 12px; border-radius:10px; color:var(--white); cursor:pointer}
-    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px}
+    [data-theme="dark"] {
+      --bg: #1e2a4a;
+      --card: #2d3748;
+      --muted: #cbd5e1;
+      --accent: #ff944d;
+      --glass: rgba(255,255,255,0.03);
+      --white: #ffffff;
+      --border: rgba(255,255,255,0.1);
+    }
 
-    .tile{background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.6); cursor:pointer; transition:transform .18s}
-    .tile:hover{transform:translateY(-6px)}
-    .tile .media{height:150px; background:#0c0c0e; overflow:hidden}
-    .tile img{width:100%; height:100%; object-fit:cover}
-    .tile .inner{padding:12px}
-    .tile h3{margin:0 0 6px 0; font-size:16px}
-    .tile p{margin:0; color:var(--muted); font-size:13px}
+    * {
+      box-sizing: border-box;
+    }
 
-    .empty{padding:40px; text-align:center; color:var(--muted)}
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
-    footer{padding:28px; text-align:center; color:var(--muted); border-top:1px solid rgba(255,255,255,0.03); margin-top:28px}
-    @media (max-width:640px){ .search{width:180px} }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* ---------- NAV ---------- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 14px 28px;
+      backdrop-filter: blur(6px);
+      background: var(--glass);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      height: 44px;
+      cursor: pointer;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-left: auto;
+      align-items: center;
+    }
+
+    .search {
+      width: 360px;
+      position: relative;
+    }
+
+    .search input {
+      width: 100%;
+      padding: 10px 14px 10px 44px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      outline: none;
+      font-size: 14px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .search .icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.85;
+      font-size: 16px;
+    }
+
+    .btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background: var(--accent);
+      color: #111;
+    }
+
+    .btn.active {
+      background: var(--accent);
+      color: #111;
+    }
+
+    .theme-toggle {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--accent);
+      color: #111;
+    }
+
+    /* ---------- MAIN CONTENT ---------- */
+    .container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 28px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .controls-info {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .category-filters {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .tile {
+      background: var(--card);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform 0.22s cubic-bezier(.2,.9,.2,1);
+    }
+
+    .tile:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+    }
+
+    .tile .media {
+      height: 160px;
+      overflow: hidden;
+      background: var(--glass);
+      position: relative;
+    }
+
+    .tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .tile .inner {
+      padding: 16px;
+    }
+
+    .tile h3 {
+      margin: 0 0 6px 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .tile .category {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tile .rating {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .tile .desc {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 8px 0 0 0;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--muted);
+      display: none;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    footer a {
+      color: var(--accent);
+      transition: color 0.3s ease;
+    }
+
+    footer a:hover {
+      color: var(--white);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 980px) {
+      .search {
+        width: 280px;
+      }
+      
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 14px 16px;
+        flex-wrap: wrap;
+      }
+      
+      .toolbar {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 12px;
+      }
+      
+      .search {
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .container {
+        padding: 0 16px;
+      }
+      
+      .category-filters {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+        margin-top: 12px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .search {
+        max-width: 200px;
+      }
+    }
   </style>
 </head>
 <body>
-
-<header>
-  <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-  <div class="toolbar">
-    <div class="search">
-      <input id="q" placeholder="Search restaurants, e.g. 'sushi' or 'bazooka'">
+  <header>
+    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+    <div class="toolbar">
+      <div class="search">
+        <span class="icon">🔎</span>
+        <input id="q" placeholder="Search restaurants...">
+      </div>
+      <button class="btn" id="reset">Reset</button>
+      <button class="btn" id="sortBtn">Sort: Popular</button>
+      <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
     </div>
-    <button class="btn" id="reset">Reset</button>
-    <button class="btn" id="sortBtn">Sort: Popular</button>
-  </div>
-</header>
+  </header>
 
-<main class="container" role="main">
-  <div class="controls">
-    <div style="color:var(--muted); font-size:14px">Showing <span id="count">0</span> restaurants</div>
-    <div style="margin-left:auto; display:flex; gap:8px">
-      <button class="btn" data-cat="All">All</button>
-      <button class="btn" data-cat="Burgers">Burgers</button>
-      <button class="btn" data-cat="Japanese">Japanese</button>
-      <button class="btn" data-cat="Seafood">Seafood</button>
-      <button class="btn" data-cat="Cafe">Cafe</button>
-      <button class="btn" data-cat="Fried Chicken">Fried Chicken</button>
+  <main class="container" role="main">
+    <div class="controls">
+      <div class="controls-info">Showing <span id="count">0</span> restaurants</div>
+      <div class="category-filters">
+        <button class="btn active" data-cat="All">All</button>
+        <button class="btn" data-cat="Burgers">Burgers</button>
+        <button class="btn" data-cat="Japanese">Japanese</button>
+        <button class="btn" data-cat="Seafood">Seafood</button>
+        <button class="btn" data-cat="Cafe">Cafe</button>
+        <button class="btn" data-cat="Fried Chicken">Fried Chicken</button>
+        <button class="btn" data-cat="Middle Eastern">Middle Eastern</button>
+        <button class="btn" data-cat="Lebanese">Lebanese</button>
+        <button class="btn" data-cat="Mexican">Mexican</button>
+      </div>
     </div>
-  </div>
 
-  <div id="grid" class="grid" aria-live="polite"></div>
-  <div id="empty" class="empty" style="display:none">No restaurants found.</div>
-</main>
+    <div id="grid" class="grid" aria-live="polite"></div>
+    <div id="empty" class="empty">
+      <div class="empty-icon">🍽️</div>
+      <h3>No restaurants found</h3>
+      <p>Try adjusting your search or filter criteria</p>
+    </div>
+  </main>
 
-<footer>
-  © 2025 Zo2y • <a href="terms.html">Terms</a> • <a href="privacy.html">Privacy</a>
-</footer>
+  <footer>
+    © 2025 Zo2y — Built with ❤️ • <a href="terms.html">Terms</a> • <a href="privacy.html">Privacy</a>
+  </footer>
 
-<script>
-  /* Same roster as index.html — keep both in sync or load from a shared JSON endpoint */
-  const restaurants = [
-    { slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7 },
-    { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5 },
-    { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3 },
-    { slug:'bazooka', name:'Bazooka', category:'Burger & Fried Chicken', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2 },
-    { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0 },
-    { slug:'chikin', name:'Chikin Worx', category:'Fried Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5 },
-    { slug:'vasko', name:'Vasko', category:'Steakhouse & Café', desc:'Premium coffee, pastries & elegant café vibes.', rating:4.6 },
-    { slug:'secondcup', name:'Second Cup', category:'Cafe', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4 },
-    { slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3 },
-    { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4 },
-    { slug:'country', name:'Country Hills', category:'American Diner', desc:'Grilled meats, casual dining & family meals.', rating:4.2 },
-    { slug:'bayoki', name:'Bayouki Rotisserie', category:'Rotisserie Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3 },
-    { slug:'maine', name:'Maine', category:'Seafood', desc:'Fresh seafood, lobster rolls & New England classics.', rating:4.5 },
-    { slug:'barbar', name:'Barbar Shawarma', category:'Lebanese', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4 },
-    { slug:'labash', name:'Labash', category:'Grilled Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3 },
-    { slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai’s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6 },
-    { slug:'akleh', name:'Akleh', category:'Lebanese', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4 },
-    { slug:'howlin', name:"Howlin' Birds", category:'Hot Chicken', desc:"Nashville-style hot chicken sandwiches & tenders.", rating:4.5 },
-    { slug:'sauce', name:'Sauce', category:'American', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4 }
-  ];
+  <script>
+    // ===== DARK MODE SYSTEM =====
+    const themeToggle = document.getElementById('themeToggle');
 
-  const grid = document.getElementById('grid');
-  const empty = document.getElementById('empty');
-  const countEl = document.getElementById('count');
-  const qInput = document.getElementById('q');
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      localStorage.setItem('zo2y-theme', theme);
+    }
 
-  function imageSrcset(slug){
-    const base1 = `images/${slug}@1x.jpg`;
-    const base2 = `images/${slug}@2x.jpg`;
-    return { src: base1, srcset: `${base2} 2x, ${base1} 1x` };
-  }
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(newTheme);
+    }
 
-  function renderList(list){
-    grid.innerHTML = '';
-    if(!list.length){ empty.style.display='block'; grid.style.display='none'; countEl.textContent='0'; return; }
-    empty.style.display='none'; grid.style.display='grid';
-    countEl.textContent = list.length;
-    list.forEach(r=>{
-      const a = document.createElement('a'); a.className='tile'; a.href = `cards/${r.slug}.html`;
-      a.innerHTML = `
-        <div class="media">
-          <img src="${imageSrcset(r.slug).src}" srcset="${imageSrcset(r.slug).srcset}" alt="${r.name}" loading="lazy">
-        </div>
-        <div class="inner">
-          <h3>${r.name}</h3>
-          <p>${r.category} • ⭐ ${r.rating.toFixed(1)}</p>
-          <p style="margin-top:8px; color:var(--muted); font-size:13px">${r.desc}</p>
-        </div>
-      `;
-      grid.appendChild(a);
+    function initializeTheme() {
+      const savedTheme = localStorage.getItem('zo2y-theme');
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(prefersDark ? 'dark' : 'light');
+      }
+    }
+
+    themeToggle.addEventListener('click', toggleTheme);
+    document.addEventListener('DOMContentLoaded', initializeTheme);
+
+    // ===== RESTAURANT DATA =====
+    const restaurants = [
+      { 
+        slug:'mori', 
+        name:'Mori Sushi', 
+        category:'Japanese', 
+        desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', 
+        rating:4.7,
+        image: 'mori.png'
+      },
+      { 
+        slug:'kilo', 
+        name:'Kilo Kebab', 
+        category:'Middle Eastern', 
+        desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
+        rating:4.5,
+        image: 'kilo.png'
+      },
+      { 
+        slug:'hameed', 
+        name:'Hameed', 
+        category:'Fast Food', 
+        desc:'Local favorite for sandwiches & quick bites.', 
+        rating:4.3,
+        image: 'hameed.png'
+      },
+      { 
+        slug:'bazooka', 
+        name:'Bazooka', 
+        category:'Burger & Fried Chicken', 
+        desc:'Loaded burgers & crispy fried chicken combos.', 
+        rating:4.2,
+        image: 'bazooka.jpg'
+      },
+      { 
+        slug:'mexican', 
+        name:'Mexican Corn', 
+        category:'Mexican', 
+        desc:'Elote, tacos & cheesy Mexican street snacks.', 
+        rating:4.0,
+        image: 'mexican.jpg'
+      },
+      { 
+        slug:'chikin', 
+        name:'Chikin Worx', 
+        category:'Fried Chicken', 
+        desc:'Crunchy chicken, sandwiches & family buckets.', 
+        rating:4.5,
+        image: 'chikin.png'
+      },
+      { 
+        slug:'vasko', 
+        name:'Vasko', 
+        category:'Cafe', 
+        desc:'Artisanal coffee and pastries in a modern European-style cafe.', 
+        rating:4.6,
+        image: 'vasko.jpg'
+      },
+      { 
+        slug:'secondcup', 
+        name:'Second Cup', 
+        category:'Cafe', 
+        desc:'Canadian coffeehouse serving espresso, lattes & pastries.', 
+        rating:4.4,
+        image: 'secondcup.png'
+      },
+      { 
+        slug:'station', 
+        name:'Pizza Station', 
+        category:'Pizza', 
+        desc:'Classic pizzas & comfort food.', 
+        rating:4.3,
+        image: 'station.png'
+      },
+      { 
+        slug:'brgr', 
+        name:'BRGR', 
+        category:'Burgers', 
+        desc:'Gourmet burgers with premium toppings & sides.', 
+        rating:4.4,
+        image: 'brgr.jpg'
+      },
+      { 
+        slug:'country', 
+        name:'Country Hills', 
+        category:'American Diner', 
+        desc:'Grilled meats, casual dining & family meals.', 
+        rating:4.2,
+        image: 'country.jpg'
+      },
+      { 
+        slug:'bayoki', 
+        name:'Bayouki Rotisserie', 
+        category:'Rotisserie Chicken', 
+        desc:'Authentic grilled chicken & rotisserie meals.', 
+        rating:4.3,
+        image: 'bayoki.png'
+      },
+      { 
+        slug:'maine', 
+        name:'Maine', 
+        category:'Seafood', 
+        desc:'Fresh seafood, lobster rolls & New England classics.', 
+        rating:4.5,
+        image: 'maine.jpg'
+      },
+      { 
+        slug:'barbar', 
+        name:'Barbar Shawarma', 
+        category:'Lebanese', 
+        desc:'Iconic shawarma spot serving beef, chicken & falafel.', 
+        rating:4.4,
+        image: 'barbar.png'
+      },
+      { 
+        slug:'labash', 
+        name:'Labash', 
+        category:'Grilled Chicken', 
+        desc:'Known for charcoal-grilled chicken, meat & fast bites.', 
+        rating:4.3,
+        image: 'labash.jpg'
+      },
+      { 
+        slug:'pickl', 
+        name:'Pickl Egypt', 
+        category:'Burgers', 
+        desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', 
+        rating:4.6,
+        image: 'pickl.jpg'
+      },
+      { 
+        slug:'akleh', 
+        name:'Akleh', 
+        category:'Lebanese', 
+        desc:'Authentic Lebanese mezze, grills & traditional dishes.', 
+        rating:4.4,
+        image: 'akeleh.jpg'
+      },
+      { 
+        slug:'howlin', 
+        name:'Howlin\' Birds', 
+        category:'Hot Chicken', 
+        desc:'Nashville-style hot chicken sandwiches & tenders.', 
+        rating:4.5,
+        image: 'howlin.png'
+      },
+      { 
+        slug:'sauce', 
+        name:'Sauce', 
+        category:'American', 
+        desc:'Trendy burgers & loaded fries; street food vibes.', 
+        rating:4.4,
+        image: 'sauce.jpg'
+      }
+    ];
+
+    const grid = document.getElementById('grid');
+    const empty = document.getElementById('empty');
+    const countEl = document.getElementById('count');
+    const qInput = document.getElementById('q');
+
+    // ===== IMAGE HELPER =====
+    function imageSrcset(slug, imageName){
+      return {
+        src: `images/${imageName}`,
+        srcset: `images/${imageName} 1x`
+      };
+    }
+
+    function renderList(list){
+      grid.innerHTML = '';
+      if(!list.length){ 
+        empty.style.display='block'; 
+        grid.style.display='none'; 
+        countEl.textContent='0'; 
+        return; 
+      }
+      
+      empty.style.display='none'; 
+      grid.style.display='grid';
+      countEl.textContent = list.length;
+      
+      list.forEach(r => {
+        const a = document.createElement('a'); 
+        a.className = 'tile'; 
+        a.href = `cards/${r.slug}.html`;
+        
+        const imgInfo = imageSrcset(r.slug, r.image);
+        
+        a.innerHTML = `
+          <div class="media">
+            <img src="${imgInfo.src}" srcset="${imgInfo.srcset}" alt="${r.name}" loading="lazy">
+          </div>
+          <div class="inner">
+            <h3>${r.name}</h3>
+            <div class="category">
+              <span class="rating">⭐ ${r.rating.toFixed(1)}</span> • ${r.category}
+            </div>
+            <p class="desc">${r.desc}</p>
+          </div>
+        `;
+        grid.appendChild(a);
+      });
+    }
+
+    // initial render (optionally use query param to pre-filter)
+    const params = new URLSearchParams(location.search);
+    const qParam = params.get('q') || '';
+    if(qParam){ qInput.value = qParam; }
+
+    function filterAndRender(){
+      let out = restaurants.slice();
+      const q = qInput.value.trim().toLowerCase();
+      if(q){
+        out = out.filter(r => 
+          r.name.toLowerCase().includes(q) || 
+          r.category.toLowerCase().includes(q) || 
+          r.desc.toLowerCase().includes(q)
+        );
+      }
+      
+      // category buttons
+      const activeCat = document.querySelector('.category-filters .btn.active');
+      if(activeCat && activeCat.dataset.cat && activeCat.dataset.cat !== 'All'){
+        out = out.filter(r => r.category === activeCat.dataset.cat);
+      }
+      
+      renderList(out);
+    }
+
+    qInput.addEventListener('input', () => { 
+      filterAndRender(); 
     });
-  }
 
-  // initial render (optionally use query param to pre-filter)
-  const params = new URLSearchParams(location.search);
-  const qParam = params.get('q') || '';
-  if(qParam){ qInput.value = qParam; }
-
-  function filterAndRender(){
-    let out = restaurants.slice();
-    const q = qInput.value.trim().toLowerCase();
-    if(q){
-      out = out.filter(r => r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q));
-    }
-    // category buttons
-    const activeCat = document.querySelector('.controls .btn.active');
-    if(activeCat && activeCat.dataset.cat && activeCat.dataset.cat !== 'All'){
-      out = out.filter(r => r.category.toLowerCase().includes(activeCat.dataset.cat.toLowerCase()));
-    }
-    // sorting can be added
-    renderList(out);
-  }
-
-  qInput.addEventListener('input', ()=>{ filterAndRender(); });
-
-  document.getElementById('reset').addEventListener('click', ()=>{
-    qInput.value=''; document.querySelectorAll('.controls .btn').forEach(b=>b.classList.remove('active'));
-    filterAndRender();
-  });
-
-  // category buttons
-  document.querySelectorAll('.controls .btn').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      document.querySelectorAll('.controls .btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
+    document.getElementById('reset').addEventListener('click', () => {
+      qInput.value = ''; 
+      document.querySelectorAll('.category-filters .btn').forEach(b => {
+        b.classList.remove('active');
+        if(b.dataset.cat === 'All') b.classList.add('active');
+      });
       filterAndRender();
     });
-  });
 
-  // simple sort toggle
-  document.getElementById('sortBtn').addEventListener('click', (e)=>{
-    const b = e.target;
-    if(b.dataset.mode === 'rating'){ b.dataset.mode='alpha'; b.textContent = 'Sort: A → Z'; restaurants.sort((a,b)=>a.name.localeCompare(b.name)); }
-    else { b.dataset.mode='rating'; b.textContent = 'Sort: Popular'; restaurants.sort((a,b)=>b.rating - a.rating); }
-    filterAndRender();
-  });
+    // category buttons
+    document.querySelectorAll('.category-filters .btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.category-filters .btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterAndRender();
+      });
+    });
 
-  // initialize
-  (function init(){
-    // default sort by rating
-    restaurants.sort((a,b)=>b.rating - a.rating);
-    filterAndRender();
-  })();
+    // simple sort toggle
+    document.getElementById('sortBtn').addEventListener('click', (e) => {
+      const b = e.target;
+      if(b.dataset.mode === 'rating'){ 
+        b.dataset.mode = 'alpha'; 
+        b.textContent = 'Sort: A → Z'; 
+        restaurants.sort((a,b) => a.name.localeCompare(b.name)); 
+      } else { 
+        b.dataset.mode = 'rating'; 
+        b.textContent = 'Sort: Popular'; 
+        restaurants.sort((a,b) => b.rating - a.rating); 
+      }
+      filterAndRender();
+    });
 
-</script>
+    // initialize
+    (function init(){
+      // default sort by rating
+      restaurants.sort((a,b) => b.rating - a.rating);
+      filterAndRender();
+    })();
+  </script>
 </body>
 </html>

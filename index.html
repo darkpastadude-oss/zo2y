@@ -135,12 +135,15 @@
         }
         .hero-bg .layer {
             position:absolute;
-            inset:-10% -10%;
+            inset:0;
             background-size:cover;
             background-position:center;
             filter:brightness(.35) contrast(.95);
-            transition:transform 1s ease;
-            will-change:transform;
+            transition:opacity 1s ease;
+            opacity:0;
+        }
+        .hero-bg .layer.active {
+            opacity:1;
         }
         .hero-inner {
             position:relative;
@@ -282,9 +285,7 @@
             height:140px; 
             overflow:hidden; 
             background:var(--glass);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative;
         }
         .card .imgwrap img{
             width:100%; 
@@ -345,8 +346,7 @@
     <main>
         <section class="hero" aria-labelledby="heroTitle">
             <div class="hero-bg" aria-hidden="true">
-                <div id="layerA" class="layer" style="transform:translateZ(0)"></div>
-                <div id="layerB" class="layer" style="transform:translateZ(0) scale(1.02)"></div>
+                <div id="layerA" class="layer" style="background-image: url('images/mori.png')"></div>
             </div>
             <div class="hero-inner">
                 <div class="hero-left">
@@ -667,7 +667,6 @@
         const spotAction = document.getElementById('spotAction');
         const shuffleDots = document.getElementById('shuffleDots');
         const layerA = document.getElementById('layerA');
-        const layerB = document.getElementById('layerB');
 
         let current = 0;
         function renderSpot(idx){
@@ -682,8 +681,8 @@
             spotRating.textContent = `⭐ ${r.rating.toFixed(1)}`;
             spotAction.onclick = () => location.href = r.link;
 
+            // Update background with fade effect
             layerA.style.backgroundImage = `url('${imgInfo.src}')`;
-            layerB.style.backgroundImage = `url('${imgInfo.src}')`;
 
             shuffleDots.innerHTML = '';
             restaurants.slice(0,5).forEach((_,i)=>{
