@@ -195,16 +195,14 @@
       overflow: hidden;
       background: var(--glass);
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .tile img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
+      background-color: var(--bg);
     }
 
     .tile .inner {
@@ -534,7 +532,7 @@
         category:'Lebanese', 
         desc:'Authentic Lebanese mezze, grills & traditional dishes.', 
         rating:4.4,
-        image: 'akleh.jpg'  // Fixed: was 'akeleh.jpg'
+        image: 'akleh.jpg'
       },
       { 
         slug:'howlin', 
