@@ -505,13 +505,20 @@
             overflow:hidden; 
             background:var(--glass);
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
         .card .imgwrap img{
             width:100%; 
             height:100%; 
-            object-fit: cover;
+            object-fit: contain;
             display:block;
             transition: transform 0.5s ease;
+            background-color: var(--bg);
+            border-radius: 8px;
+            padding: 10px;
         }
         .card:hover .imgwrap img {
             transform: scale(1.1);
@@ -716,16 +723,16 @@
                     
                     <div class="stats">
                         <div class="stat">
-                            <span class="stat-value">500+</span>
+                            <span class="stat-value" id="restaurantCount">18</span>
                             <span class="stat-label">Restaurants</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-value">10K+</span>
+                            <span class="stat-value" id="reviewCount">1.4K+</span>
                             <span class="stat-label">Reviews</span>
                         </div>
                         <div class="stat">
-                            <span class="stat-value">95%</span>
-                            <span class="stat-label">Satisfaction</span>
+                            <span class="stat-value">4.3</span>
+                            <span class="stat-label">Avg Rating</span>
                         </div>
                     </div>
                     
@@ -747,7 +754,7 @@
                             <div>
                                 <h3 id="spotName">Mori Sushi</h3>
                                 <p id="spotDesc">Modern sushi chain serving fresh rolls & nigiri.</p>
-                                <div class="rating" id="spotRating">⭐ 4.7 (128 reviews)</div>
+                                <div class="rating" id="spotRating">⭐ 4.7</div>
                                 <div class="shuffle" id="shuffleDots" aria-hidden="true"></div>
                             </div>
                             <div style="align-self:start">
@@ -916,7 +923,7 @@
                 category:'Japanese', 
                 desc:'Modern sushi chain serving fresh rolls & nigiri.', 
                 rating:4.7,
-                reviews: 128,
+                reviews: 1,
                 image: 'mori.png',
                 link: 'cards/mori.html',
                 tags: ['japanese', 'sushi']
@@ -927,7 +934,7 @@
                 category:'Middle Eastern', 
                 desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
                 rating:4.5,
-                reviews: 95,
+                reviews: 1,
                 image: 'kilo.png',
                 link: 'cards/kilo.html',
                 tags: ['middle-eastern', 'kebab']
@@ -938,7 +945,7 @@
                 category:'Fast Food', 
                 desc:'Local favorite for sandwiches & quick bites.', 
                 rating:4.3,
-                reviews: 87,
+                reviews: 1,
                 image: 'hameed.png',
                 link: 'cards/hameed.html',
                 tags: ['middle-eastern', 'fast-food']
@@ -949,7 +956,7 @@
                 category:'Burger & Fried Chicken', 
                 desc:'Loaded burgers & crispy fried chicken combos.', 
                 rating:4.2,
-                reviews: 112,
+                reviews: 1,
                 image: 'bazooka.jpg',
                 link: 'cards/bazooka.html',
                 tags: ['burgers', 'fried-chicken']
@@ -960,7 +967,7 @@
                 category:'Mexican', 
                 desc:'Elote, tacos & cheesy Mexican street snacks.', 
                 rating:4.0,
-                reviews: 64,
+                reviews: 1,
                 image: 'mexican.jpg',
                 link: 'cards/mexican.html',
                 tags: ['mexican', 'street-food']
@@ -971,7 +978,7 @@
                 category:'Middle Eastern', 
                 desc:'Authentic Middle Eastern cuisine with a modern twist.', 
                 rating:4.6,
-                reviews: 78,
+                reviews: 1,
                 image: 'akleh.jpg',
                 link: 'cards/akleh.html',
                 tags: ['middle-eastern']
@@ -982,7 +989,7 @@
                 category:'Lebanese', 
                 desc:'Traditional Lebanese dishes in a cozy atmosphere.', 
                 rating:4.4,
-                reviews: 103,
+                reviews: 1,
                 image: 'barbar.png',
                 link: 'cards/barbar.html',
                 tags: ['middle-eastern', 'lebanese']
@@ -993,7 +1000,7 @@
                 category:'Middle Eastern', 
                 desc:'Fusion of Middle Eastern flavors with international cuisine.', 
                 rating:4.3,
-                reviews: 56,
+                reviews: 1,
                 image: 'bayoki.png',
                 link: 'cards/bayoki.html',
                 tags: ['middle-eastern']
@@ -1004,7 +1011,7 @@
                 category:'Burgers', 
                 desc:'Gourmet burgers with creative toppings and sides.', 
                 rating:4.5,
-                reviews: 91,
+                reviews: 1,
                 image: 'brgr.jpg',
                 link: 'cards/brgr.html',
                 tags: ['burgers']
@@ -1015,7 +1022,7 @@
                 category:'Fried Chicken', 
                 desc:'Crispy fried chicken with a variety of sauces and sides.', 
                 rating:4.2,
-                reviews: 67,
+                reviews: 1,
                 image: 'chikin.png',
                 link: 'cards/chikin.html',
                 tags: ['fried-chicken']
@@ -1026,7 +1033,7 @@
                 category:'American', 
                 desc:'Classic American comfort food in a rustic setting.', 
                 rating:4.1,
-                reviews: 45,
+                reviews: 1,
                 image: 'country.jpg',
                 link: 'cards/country.html',
                 tags: ['american']
@@ -1037,7 +1044,7 @@
                 category:'Burgers', 
                 desc:'Bold flavors and creative burger combinations.', 
                 rating:4.4,
-                reviews: 82,
+                reviews: 1,
                 image: 'howlin.png',
                 link: 'cards/howlin.html',
                 tags: ['burgers']
@@ -1048,7 +1055,7 @@
                 category:'Middle Eastern', 
                 desc:'Traditional Middle Eastern street food with modern flair.', 
                 rating:4.3,
-                reviews: 59,
+                reviews: 1,
                 image: 'labash.jpg',
                 link: 'cards/labash.html',
                 tags: ['middle-eastern', 'street-food']
@@ -1059,7 +1066,7 @@
                 category:'Seafood', 
                 desc:'Fresh seafood dishes inspired by coastal cuisine.', 
                 rating:4.6,
-                reviews: 74,
+                reviews: 1,
                 image: 'maine.jpg',
                 link: 'cards/maine.html',
                 tags: ['seafood']
@@ -1070,7 +1077,7 @@
                 category:'Sandwiches', 
                 desc:'Specialty sandwiches with house-made pickles and sauces.', 
                 rating:4.2,
-                reviews: 88,
+                reviews: 1,
                 image: 'pickl.jpg',
                 link: 'cards/pickl.html',
                 tags: ['sandwiches']
@@ -1081,7 +1088,7 @@
                 category:'International', 
                 desc:'Global cuisine with signature sauces and flavors.', 
                 rating:4.3,
-                reviews: 63,
+                reviews: 1,
                 image: 'sauce.jpg',
                 link: 'cards/sauce.html',
                 tags: ['international']
@@ -1092,7 +1099,7 @@
                 category:'Coffee Shop', 
                 desc:'Premium coffee, teas, and light snacks in a cozy setting.', 
                 rating:4.4,
-                reviews: 97,
+                reviews: 1,
                 image: 'secondcup.png',
                 link: 'cards/secondcup.html',
                 tags: ['cafe', 'coffee']
@@ -1103,12 +1110,23 @@
                 category:'Cafe', 
                 desc:'Artisanal coffee and pastries in a modern European-style cafe.', 
                 rating:4.5,
-                reviews: 105,
+                reviews: 1,
                 image: 'vasko.jpg',
                 link: 'cards/vasko.html',
                 tags: ['cafe', 'coffee']
             }
         ];
+
+        // ===== CALCULATE REAL STATS =====
+        function calculateStats() {
+            const restaurantCount = restaurants.length;
+            const totalReviews = restaurants.reduce((sum, r) => sum + r.reviews, 0);
+            const avgRating = (restaurants.reduce((sum, r) => sum + r.rating, 0) / restaurantCount).toFixed(1);
+            
+            document.getElementById('restaurantCount').textContent = restaurantCount;
+            document.getElementById('reviewCount').textContent = totalReviews;
+            document.querySelector('.stat-value:last-child').textContent = avgRating;
+        }
 
         // ===== POPULATE SLIDERS =====
         const featuredSlider = document.getElementById('featuredSlider');
@@ -1139,7 +1157,7 @@
             
             const rating = document.createElement('div');
             rating.className = 'card-rating';
-            rating.innerHTML = `⭐ ${r.rating} <span style="color: var(--muted); font-weight: normal;">(${r.reviews})</span>`;
+            rating.innerHTML = `⭐ ${r.rating}`;
             
             const category = document.createElement('div');
             category.className = 'card-category';
@@ -1201,7 +1219,7 @@
             spotImg.alt = r.name;
             spotName.textContent = r.name;
             spotDesc.textContent = r.desc;
-            spotRating.textContent = `⭐ ${r.rating} (${r.reviews} reviews)`;
+            spotRating.textContent = `⭐ ${r.rating}`;
             spotAction.onclick = () => location.href = r.link;
 
             // Update shuffle dots
@@ -1230,6 +1248,10 @@
                 location.href = url;
             }
         });
+
+        // Calculate and display real stats
+        calculateStats();
     </script>
 </body>
 </html>
+ 
