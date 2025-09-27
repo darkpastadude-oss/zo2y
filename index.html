@@ -350,7 +350,7 @@
                     <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
                         <div class="thumb">
                             <picture>
-                                <img id="spotImg" src="images/mori.jpg" alt="Featured restaurant">
+                                <img id="spotImg" src="images/mori.png" alt="Featured restaurant">
                             </picture>
                         </div>
                         <div class="meta">
@@ -369,7 +369,7 @@
             </div>
         </section>
 
-        <!-- FEATURED SLIDER -->
+        <!-- FEATURED RESTAURANTS -->
         <section class="section">
             <h2>Featured Restaurants</h2>
             <div id="featuredSlider" class="slider" aria-label="Featured restaurants">
@@ -380,10 +380,10 @@
             </div>
         </section>
 
-        <!-- TRENDING -->
+        <!-- CAFES -->
         <section class="section">
-            <h2>Trending</h2>
-            <div id="trendingSlider" class="slider" aria-label="Trending restaurants">
+            <h2>Cafes</h2>
+            <div id="cafesSlider" class="slider" aria-label="Cafes">
                 <!-- JS will populate -->
             </div>
         </section>
@@ -425,34 +425,141 @@
 
         // ===== RESTAURANT DATA =====
         const restaurants = [
-            { slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7 },
-            { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5 },
-            { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3 },
-            { slug:'bazooka', name:'Bazooka', category:'Burger & Fried Chicken', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2 },
-            { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0 }
+            { 
+                slug:'mori', 
+                name:'Mori Sushi', 
+                category:'Japanese', 
+                desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', 
+                rating:4.7,
+                image: 'mori.png',
+                link: 'cards/mori.html'
+            },
+            { 
+                slug:'kilo', 
+                name:'Kilo Kebab', 
+                category:'Middle Eastern', 
+                desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
+                rating:4.5,
+                image: 'kilo.png',
+                link: 'cards/kilo.html'
+            },
+            { 
+                slug:'hameed', 
+                name:'Hameed', 
+                category:'Fast Food', 
+                desc:'Local favorite for sandwiches & quick bites.', 
+                rating:4.3,
+                image: 'hameed.png',
+                link: 'cards/hameed.html'
+            },
+            { 
+                slug:'bazooka', 
+                name:'Bazooka', 
+                category:'Burger & Fried Chicken', 
+                desc:'Loaded burgers & crispy fried chicken combos.', 
+                rating:4.2,
+                image: 'bazooka.jpg',
+                link: 'cards/bazooka.html'
+            },
+            { 
+                slug:'mexican', 
+                name:'Mexican Corn', 
+                category:'Mexican', 
+                desc:'Elote, tacos & cheesy Mexican street snacks.', 
+                rating:4.0,
+                image: 'mexican.jpg',
+                link: 'cards/mexican.html'
+            },
+            { 
+                slug:'akeleh', 
+                name:'Akleh', 
+                category:'Middle Eastern', 
+                desc:'Authentic Middle Eastern cuisine with a modern twist.', 
+                rating:4.6,
+                image: 'akeleh.jpg',
+                link: 'cards/akeleh.html'
+            },
+            { 
+                slug:'barbar', 
+                name:'Barbar', 
+                category:'Lebanese', 
+                desc:'Traditional Lebanese dishes in a cozy atmosphere.', 
+                rating:4.4,
+                image: 'barbar.png',
+                link: 'cards/barbar.html'
+            },
+            { 
+                slug:'bayoki', 
+                name:'Bayoki', 
+                category:'Middle Eastern', 
+                desc:'Fusion of Middle Eastern flavors with international cuisine.', 
+                rating:4.3,
+                image: 'bayoki.png',
+                link: 'cards/bayoki.html'
+            },
+            { 
+                slug:'brgr', 
+                name:'BRGR', 
+                category:'Burgers', 
+                desc:'Gourmet burgers with creative toppings and sides.', 
+                rating:4.5,
+                image: 'brgr.jpg',
+                link: 'cards/brgr.html'
+            },
+            { 
+                slug:'chikin', 
+                name:'Chikin', 
+                category:'Fried Chicken', 
+                desc:'Crispy fried chicken with a variety of sauces and sides.', 
+                rating:4.2,
+                image: 'chikin.png',
+                link: 'cards/chikin.html'
+            }
+        ];
+
+        // ===== CAFES DATA =====
+        const cafes = [
+            { 
+                slug:'secondcup', 
+                name:'Second Cup', 
+                category:'Coffee Shop', 
+                desc:'Premium coffee, teas, and light snacks in a cozy setting.', 
+                rating:4.4,
+                image: 'secondcup.png',
+                link: 'cards/secondcup.html'
+            },
+            { 
+                slug:'station', 
+                name:'Station', 
+                category:'Coffee Shop', 
+                desc:'Modern coffee house with artisanal brews and pastries.', 
+                rating:4.3,
+                image: 'station.png',
+                link: 'cards/station.html'
+            }
         ];
 
         // ===== IMAGE HELPER =====
-        function imageSrcset(slug){
+        function imageSrcset(slug, imageName){
             return {
-                src: `images/${slug}.jpg`,
-                srcset: `images/${slug}.jpg 1x`
+                src: `images/${imageName}`,
+                srcset: `images/${imageName} 1x`
             };
         }
 
         // ===== POPULATE SLIDERS =====
         const featuredSlider = document.getElementById('featuredSlider');
-        const trendingSlider = document.getElementById('trendingSlider');
+        const cafesSlider = document.getElementById('cafesSlider');
 
         function makeCard(r){
             const el = document.createElement('a');
             el.className = 'card';
-            el.href = `cards/${r.slug}.html`;
+            el.href = r.link;
             
             const imgwrap = document.createElement('div');
             imgwrap.className='imgwrap';
             const img = document.createElement('img');
-            const imgInfo = imageSrcset(r.slug);
+            const imgInfo = imageSrcset(r.slug, r.image);
             img.src = imgInfo.src;
             img.srcset = imgInfo.srcset;
             img.loading = 'lazy';
@@ -473,8 +580,11 @@
             return el;
         }
 
+        // Populate featured restaurants
         restaurants.forEach(r => featuredSlider.appendChild(makeCard(r)));
-        restaurants.slice(0, 4).forEach(r => trendingSlider.appendChild(makeCard(r)));
+        
+        // Populate cafes
+        cafes.forEach(c => cafesSlider.appendChild(makeCard(c)));
 
         // ===== SPOTLIGHT SHUFFLE =====
         const spotImg = document.getElementById('spotImg');
@@ -489,7 +599,7 @@
         let current = 0;
         function renderSpot(idx){
             const r = restaurants[idx];
-            const imgInfo = imageSrcset(r.slug);
+            const imgInfo = imageSrcset(r.slug, r.image);
             
             spotImg.src = imgInfo.src;
             spotImg.srcset = imgInfo.srcset;
@@ -497,7 +607,7 @@
             spotName.textContent = r.name;
             spotDesc.textContent = r.desc;
             spotRating.textContent = `⭐ ${r.rating.toFixed(1)}`;
-            spotAction.onclick = () => location.href = `cards/${r.slug}.html`;
+            spotAction.onclick = () => location.href = r.link;
 
             layerA.style.backgroundImage = `url('${imgInfo.src}')`;
             layerB.style.backgroundImage = `url('${imgInfo.src}')`;
