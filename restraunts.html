@@ -198,6 +198,44 @@
       color: var(--muted);
     }
 
+    /* List Tabs */
+    .list-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .list-tab {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .list-tab.active {
+      background: var(--accent);
+      color: #111;
+    }
+
+    .list-tab .count {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    [data-theme="dark"] .list-tab .count {
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -212,6 +250,7 @@
       border: 1px solid var(--border);
       cursor: pointer;
       transition: transform 0.22s cubic-bezier(.2,.9,.2,1);
+      position: relative;
     }
 
     .tile:hover {
@@ -271,6 +310,56 @@
       overflow: hidden;
     }
 
+    /* List Actions */
+    .list-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .tile:hover .list-actions {
+      opacity: 1;
+    }
+
+    .list-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--white);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .list-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .list-btn.favorite.active {
+      background: #ff4757;
+      color: white;
+    }
+
+    .list-btn.visited.active {
+      background: #2ed573;
+      color: white;
+    }
+
+    .list-btn.want-to-go.active {
+      background: #3742fa;
+      color: white;
+    }
+
     .empty {
       padding: 60px 20px;
       text-align: center;
@@ -282,6 +371,56 @@
       font-size: 48px;
       margin-bottom: 16px;
       opacity: 0.5;
+    }
+
+    /* Custom Lists Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal h3 {
+      margin: 0 0 16px 0;
+    }
+
+    .custom-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .custom-list-item {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .custom-list-item:hover {
+      background: var(--accent);
+      color: #111;
     }
 
     /* ---------- FOOTER ---------- */
@@ -341,6 +480,11 @@
         justify-content: center;
         margin-top: 12px;
       }
+
+      .list-tabs {
+        overflow-x: auto;
+        padding-bottom: 8px;
+      }
     }
 
     @media (max-width: 560px) {
@@ -369,6 +513,23 @@
   </header>
 
   <main class="container" role="main">
+    <!-- List Tabs -->
+    <div class="list-tabs">
+      <button class="list-tab active" data-list="all">All Restaurants</button>
+      <button class="list-tab" data-list="favorites">
+        Favorites <span class="count" id="favoritesCount">0</span>
+      </button>
+      <button class="list-tab" data-list="visited">
+        Visited <span class="count" id="visitedCount">0</span>
+      </button>
+      <button class="list-tab" data-list="want-to-go">
+        Want to Go <span class="count" id="wantToGoCount">0</span>
+      </button>
+      <button class="list-tab" id="customListsBtn">
+        My Lists <span class="count" id="customListsCount">0</span>
+      </button>
+    </div>
+
     <div class="controls">
       <div class="controls-info">Showing <span id="count">0</span> restaurants</div>
       <div class="category-filters">
@@ -404,6 +565,18 @@
       <p>Try adjusting your search or filter criteria</p>
     </div>
   </main>
+
+  <!-- Custom Lists Modal -->
+  <div class="modal" id="customListsModal">
+    <div class="modal-content">
+      <h3>My Custom Lists</h3>
+      <div class="custom-lists" id="customListsContainer">
+        <!-- Custom lists will be generated here -->
+      </div>
+      <button class="btn" id="createNewList">Create New List</button>
+      <button class="btn" style="margin-left: 8px;" id="closeModal">Close</button>
+    </div>
+  </div>
 
   <footer>
     © 2025 Zo2y — Built with ❤️ • <a href="terms.html">Terms</a> • <a href="privacy.html">Privacy</a>
@@ -610,11 +783,102 @@
       }
     ];
 
+    // ===== LIST MANAGEMENT SYSTEM =====
+    const listManager = {
+      // Initialize lists from localStorage
+      init() {
+        this.favorites = JSON.parse(localStorage.getItem('zo2y-favorites')) || [];
+        this.visited = JSON.parse(localStorage.getItem('zo2y-visited')) || [];
+        this.wantToGo = JSON.parse(localStorage.getItem('zo2y-wantToGo')) || [];
+        this.customLists = JSON.parse(localStorage.getItem('zo2y-customLists')) || [
+          { id: 'date-night', name: 'Date Night Spots', restaurants: [] },
+          { id: 'family-friendly', name: 'Family Friendly', restaurants: [] }
+        ];
+        
+        this.updateListCounts();
+      },
+
+      // Save lists to localStorage
+      saveLists() {
+        localStorage.setItem('zo2y-favorites', JSON.stringify(this.favorites));
+        localStorage.setItem('zo2y-visited', JSON.stringify(this.visited));
+        localStorage.setItem('zo2y-wantToGo', JSON.stringify(this.wantToGo));
+        localStorage.setItem('zo2y-customLists', JSON.stringify(this.customLists));
+        this.updateListCounts();
+      },
+
+      // Update list count displays
+      updateListCounts() {
+        document.getElementById('favoritesCount').textContent = this.favorites.length;
+        document.getElementById('visitedCount').textContent = this.visited.length;
+        document.getElementById('wantToGoCount').textContent = this.wantToGo.length;
+        document.getElementById('customListsCount').textContent = this.customLists.length;
+      },
+
+      // Toggle restaurant in list
+      toggleInList(listName, slug) {
+        const list = this[listName];
+        const index = list.indexOf(slug);
+        
+        if (index > -1) {
+          list.splice(index, 1);
+        } else {
+          list.push(slug);
+        }
+        
+        this.saveLists();
+        return index === -1; // Return true if added, false if removed
+      },
+
+      // Check if restaurant is in list
+      isInList(listName, slug) {
+        return this[listName].includes(slug);
+      },
+
+      // Create new custom list
+      createCustomList(name) {
+        const id = 'list-' + Date.now();
+        this.customLists.push({
+          id: id,
+          name: name,
+          restaurants: []
+        });
+        this.saveLists();
+        return id;
+      },
+
+      // Toggle restaurant in custom list
+      toggleInCustomList(listId, slug) {
+        const list = this.customLists.find(l => l.id === listId);
+        if (!list) return false;
+
+        const index = list.restaurants.indexOf(slug);
+        if (index > -1) {
+          list.restaurants.splice(index, 1);
+        } else {
+          list.restaurants.push(slug);
+        }
+        
+        this.saveLists();
+        return index === -1;
+      }
+    };
+
+    // Initialize list manager
+    listManager.init();
+
     const grid = document.getElementById('grid');
     const empty = document.getElementById('empty');
     const countEl = document.getElementById('count');
     const qInput = document.getElementById('q');
     const categorySelect = document.getElementById('categorySelect');
+    const customListsModal = document.getElementById('customListsModal');
+    const customListsContainer = document.getElementById('customListsContainer');
+    const customListsBtn = document.getElementById('customListsBtn');
+    const closeModal = document.getElementById('closeModal');
+    const createNewList = document.getElementById('createNewList');
+
+    let currentList = 'all'; // 'all', 'favorites', 'visited', 'want-to-go', or custom list ID
 
     // ===== IMAGE HELPER =====
     function imageSrcset(slug, imageName){
@@ -644,6 +908,10 @@
         
         const imgInfo = imageSrcset(r.slug, r.image);
         
+        const isFavorite = listManager.isInList('favorites', r.slug);
+        const isVisited = listManager.isInList('visited', r.slug);
+        const isWantToGo = listManager.isInList('wantToGo', r.slug);
+        
         a.innerHTML = `
           <div class="media">
             <img src="${imgInfo.src}" srcset="${imgInfo.srcset}" alt="${r.name}" loading="lazy">
@@ -655,8 +923,51 @@
             </div>
             <p class="desc">${r.desc}</p>
           </div>
+          <div class="list-actions">
+            <button class="list-btn favorite ${isFavorite ? 'active' : ''}" data-slug="${r.slug}" data-list="favorites">
+              ${isFavorite ? '❤️' : '🤍'}
+            </button>
+            <button class="list-btn visited ${isVisited ? 'active' : ''}" data-slug="${r.slug}" data-list="visited">
+              ${isVisited ? '✅' : '☑️'}
+            </button>
+            <button class="list-btn want-to-go ${isWantToGo ? 'active' : ''}" data-slug="${r.slug}" data-list="wantToGo">
+              ${isWantToGo ? '📍' : '📌'}
+            </button>
+          </div>
         `;
         grid.appendChild(a);
+      });
+
+      // Add event listeners to list buttons
+      document.querySelectorAll('.list-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const slug = btn.dataset.slug;
+          const listName = btn.dataset.list;
+          
+          if (listName === 'favorites' || listName === 'visited' || listName === 'wantToGo') {
+            const wasAdded = listManager.toggleInList(listName, slug);
+            
+            // Update button appearance
+            if (listName === 'favorites') {
+              btn.textContent = wasAdded ? '❤️' : '🤍';
+              btn.classList.toggle('active', wasAdded);
+            } else if (listName === 'visited') {
+              btn.textContent = wasAdded ? '✅' : '☑️';
+              btn.classList.toggle('active', wasAdded);
+            } else if (listName === 'wantToGo') {
+              btn.textContent = wasAdded ? '📍' : '📌';
+              btn.classList.toggle('active', wasAdded);
+            }
+            
+            // If we're viewing a specific list, re-filter
+            if (currentList !== 'all') {
+              filterAndRender();
+            }
+          }
+        });
       });
     }
 
@@ -667,6 +978,8 @@
 
     function filterAndRender(){
       let out = restaurants.slice();
+      
+      // Apply search filter
       const q = qInput.value.trim().toLowerCase();
       if(q){
         out = out.filter(r => 
@@ -676,15 +989,31 @@
         );
       }
       
-      // category dropdown
+      // Apply category filter
       const selectedCategory = categorySelect.value;
       if(selectedCategory && selectedCategory !== 'All'){
         out = out.filter(r => r.category.includes(selectedCategory));
       }
       
+      // Apply list filter
+      if (currentList === 'favorites') {
+        out = out.filter(r => listManager.isInList('favorites', r.slug));
+      } else if (currentList === 'visited') {
+        out = out.filter(r => listManager.isInList('visited', r.slug));
+      } else if (currentList === 'want-to-go') {
+        out = out.filter(r => listManager.isInList('wantToGo', r.slug));
+      } else if (currentList.startsWith('custom-')) {
+        const listId = currentList.replace('custom-', '');
+        const customList = listManager.customLists.find(l => l.id === listId);
+        if (customList) {
+          out = out.filter(r => customList.restaurants.includes(r.slug));
+        }
+      }
+      
       renderList(out);
     }
 
+    // Event Listeners
     qInput.addEventListener('input', () => { 
       filterAndRender(); 
     });
@@ -696,8 +1025,82 @@
     document.getElementById('reset').addEventListener('click', () => {
       qInput.value = ''; 
       categorySelect.value = 'All';
+      currentList = 'all';
+      document.querySelectorAll('.list-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelector('[data-list="all"]').classList.add('active');
       filterAndRender();
     });
+
+    // List tab switching
+    document.querySelectorAll('.list-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        if (e.target.id === 'customListsBtn') return;
+        
+        document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        currentList = tab.dataset.list;
+        filterAndRender();
+      });
+    });
+
+    // Custom lists modal
+    customListsBtn.addEventListener('click', () => {
+      renderCustomListsModal();
+      customListsModal.style.display = 'flex';
+    });
+
+    closeModal.addEventListener('click', () => {
+      customListsModal.style.display = 'none';
+    });
+
+    createNewList.addEventListener('click', () => {
+      const name = prompt('Enter name for new list:');
+      if (name && name.trim()) {
+        listManager.createCustomList(name.trim());
+        renderCustomListsModal();
+      }
+    });
+
+    function renderCustomListsModal() {
+      customListsContainer.innerHTML = '';
+      
+      listManager.customLists.forEach(list => {
+        const div = document.createElement('div');
+        div.className = 'custom-list-item';
+        div.innerHTML = `
+          <span>${list.name} (${list.restaurants.length})</span>
+          <button class="btn view-list-btn" data-list-id="${list.id}">View</button>
+        `;
+        customListsContainer.appendChild(div);
+      });
+
+      // Add event listeners to view buttons
+      document.querySelectorAll('.view-list-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const listId = btn.dataset.listId;
+          
+          // Switch to this custom list view
+          document.querySelectorAll('.list-tab').forEach(tab => tab.classList.remove('active'));
+          currentList = 'custom-' + listId;
+          filterAndRender();
+          
+          customListsModal.style.display = 'none';
+        });
+      });
+
+      // Add event listeners to list items for editing
+      document.querySelectorAll('.custom-list-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('view-list-btn')) {
+            const listId = item.querySelector('.view-list-btn').dataset.listId;
+            // Here you could implement list editing functionality
+            console.log('Edit list:', listId);
+          }
+        });
+      });
+    }
 
     // simple sort toggle
     document.getElementById('sortBtn').addEventListener('click', (e) => {
