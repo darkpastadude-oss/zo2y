@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Qasr El Kababgy</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  * {margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background-color: var(--bg-color-primary); color: var(--text-color-primary); transition: background-color 0.3s ease, color 0.3s ease;}
+  .top-stripe { background:#FF6F00; height:50px; }
+
+  /* Premium Hero */
+  .hero { text-align:center; padding:60px 20px 40px; background:url('../images/kababgy-banner.jpg') center/cover no-repeat; position:relative; color:#fff; }
+  .hero::before { content:""; position:absolute; inset:0; background:rgba(0,0,0,0.45); }
+  .hero-content { position:relative; z-index:2; }
+  .logo { width:170px; height:170px; border-radius:50%; object-fit:cover; box-shadow:0 12px 24px rgba(0,0,0,0.3); cursor:pointer; margin-bottom:28px; border:3px solid #fff; background:#fff; }
+  .hero h1 { font-size:2.6rem; font-weight:700; margin-bottom:10px; letter-spacing:0.5px; }
+  .hero p { font-size:1.1rem; margin-bottom:14px; font-weight:400; }
+  .rating { color:#FFD54F; font-size:1.2rem; margin-bottom:22px; }
+
+  .btn { display:inline-block; padding:12px 20px; border-radius:10px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 5px; transition:transform .12s ease, box-shadow .12s ease; }
+  .btn.secondary { background:rgba(255,255,255,0.9); color:#333; border:1px solid #ddd; }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.2); }
+
+  main { max-width:1000px; margin:0 auto; padding:30px 20px; }
+
+  /* Section styling */
+  .section { margin-bottom:40px; }
+  h2 { margin-bottom:18px; font-size:1.6rem; font-weight:700; border-left:6px solid #FF6F00; padding-left:12px; }
+
+  /* Contact + Branches */
+  .hotline { font-size:1.3rem; margin-bottom:24px; }
+  .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; }
+  .hotline a:hover { text-decoration:underline; }
+
+  .branches { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px; }
+  .branch-card { border:1px solid var(--nav-shadow); border-radius:10px; padding:18px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s ease; }
+  .branch-card h3 { margin-bottom:8px; font-size:1.15rem; font-weight:600; }
+  .branch-card a { font-size:0.95rem; color:#FF6F00; text-decoration:none; font-weight:500; }
+  .branch-card a:hover { text-decoration:underline; }
+
+  /* Menu */
+  .menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .menu-item { border:1px solid var(--nav-shadow); border-radius:8px; padding:14px; display:flex; justify-content:space-between; align-items:center; background: var(--card-bg); transition:transform .15s ease; }
+  .menu-item:hover { transform:translateY(-2px); }
+  .menu-item span { font-weight:500; }
+  .menu-item .price { color:#FF6F00; font-weight:700; }
+
+  /* Reviews */
+  .review { padding:14px 0; border-bottom:1px solid var(--nav-shadow); }
+  .review p { margin-bottom:6px; }
+  .review-form { margin-top:18px; display:flex; flex-direction:column; gap:12px; }
+  .review-form input, .review-form textarea { padding:12px; font-size:1rem; width:100%; border:1px solid #ccc; border-radius:8px; resize:vertical; background-color: var(--input-bg); color: var(--input-text); }
+  .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:12px 18px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease; }
+  .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.2); }
+
+  footer { text-align:center; padding:40px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; }
+
+  @media (max-width:640px) {
+    .logo { width:130px; height:130px; }
+    .hero h1 { font-size:2rem; }
+    .menu-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-stripe"></div>
+
+<section class="hero">
+  <div class="hero-content">
+    <img src="../images/qasr.png" alt="Qasr El Kababgy Logo" class="logo" onclick="location.href='../index.html'">
+    <h1>Qasr El Kababgy</h1>
+    <p>Authentic Egyptian Grill – Premium Meats & Oriental Cuisine</p>
+    <div class="rating">⭐ 4.7/5 (based on Google reviews)</div>
+    <a href="tel:19128" class="btn">Call Hotline</a>
+    <a href="https://qasrelkababgy.com/" target="_blank" class="btn secondary">View Full Menu</a>
+  </div>
+</section>
+
+<main>
+  <section class="section">
+    <h2>Contact & Branches</h2>
+    <div class="hotline"><strong>Hotline:</strong> <a href="tel:19128">19128</a></div>
+    <div class="branches">
+      <div class="branch-card">
+        <h3>New Cairo – Downtown Katameya</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Qasr+El+Kababgy+Downtown+Katameya" target="_blank">Open in Google Maps</a>
+      </div>
+      <div class="branch-card">
+        <h3>6th of October – Mall of Arabia</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Qasr+El+Kababgy+Mall+of+Arabia" target="_blank">Open in Google Maps</a>
+      </div>
+      <div class="branch-card">
+        <h3>Heliopolis – Roxy Square</h3>
+        <a href="https://www.google.com/maps/search/?api=1&query=Qasr+El+Kababgy+Roxy" target="_blank">Open in Google Maps</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section menu">
+    <h2>Signature Dishes</h2>
+    <div class="menu-grid">
+      <div class="menu-item"><span>Kabab Mix Grill</span><span class="price">220 EGP</span></div>
+      <div class="menu-item"><span>Kofta with Tahini</span><span class="price">180 EGP</span></div>
+      <div class="menu-item"><span>Grilled Half Chicken</span><span class="price">160 EGP</span></div>
+      <div class="menu-item"><span>Stuffed Pigeons</span><span class="price">200 EGP</span></div>
+      <div class="menu-item"><span>Molokhia with Rabbit</span><span class="price">170 EGP</span></div>
+      <div class="menu-item"><span>Mixed Oriental Mezza</span><span class="price">140 EGP</span></div>
+    </div>
+    <a href="https://qasrelkababgy.com/" target="_blank" class="btn secondary" style="margin-top:18px;">View Full Menu</a>
+  </section>
+
+  <section class="section reviews">
+    <h2>Reviews</h2>
+    <div id="reviews-list"></div>
+    <form class="review-form" id="review-form">
+      <input type="text" placeholder="Your Name" id="reviewer" required>
+      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+      <button type="submit">Submit Review</button>
+    </form>
+  </section>
+</main>
+
+<footer>© 2025 Zo2y. All rights reserved.</footer>
+
+<script>
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('reviewer').value.trim();
+  const text = document.getElementById('review-text').value.trim();
+  if (!name || !text) return;
+  const div = document.createElement('div');
+  div.className = 'review';
+  const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+  div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
+  reviewsList.appendChild(div);
+  reviewForm.reset();
+});
+</script>
+
+<script src="../js/themeManager.js"></script>
+</body>
+</html>

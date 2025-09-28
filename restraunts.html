@@ -169,6 +169,35 @@
       flex-wrap: wrap;
     }
 
+    .category-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .category-dropdown select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      appearance: none;
+      padding-right: 32px;
+    }
+
+    .category-dropdown::after {
+      content: "▼";
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -343,16 +372,28 @@
     <div class="controls">
       <div class="controls-info">Showing <span id="count">0</span> restaurants</div>
       <div class="category-filters">
-        <button class="btn active" data-cat="All">All</button>
-        <button class="btn" data-cat="Burgers">Burgers</button>
-        <button class="btn" data-cat="Japanese">Japanese</button>
-        <button class="btn" data-cat="Seafood">Seafood</button>
-        <button class="btn" data-cat="Cafe">Cafe</button>
-        <button class="btn" data-cat="Fried Chicken">Fried Chicken</button>
-        <button class="btn" data-cat="Middle Eastern">Middle Eastern</button>
-        <button class="btn" data-cat="Lebanese">Lebanese</button>
-        <button class="btn" data-cat="Mexican">Mexican</button>
-        <button class="btn" data-cat="Bakery">Bakery</button>
+        <div class="category-dropdown">
+          <select id="categorySelect">
+            <option value="All">All Categories</option>
+            <option value="Burgers">Burgers</option>
+            <option value="Japanese">Japanese</option>
+            <option value="Seafood">Seafood</option>
+            <option value="Cafe">Cafe</option>
+            <option value="Fried Chicken">Fried Chicken</option>
+            <option value="Middle Eastern">Middle Eastern</option>
+            <option value="Lebanese">Lebanese</option>
+            <option value="Mexican">Mexican</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Fine Dining">Fine Dining</option>
+            <option value="Fast Food">Fast Food</option>
+            <option value="Pizza">Pizza</option>
+            <option value="American Diner">American Diner</option>
+            <option value="Rotisserie Chicken">Rotisserie Chicken</option>
+            <option value="Grilled Chicken">Grilled Chicken</option>
+            <option value="Hot Chicken">Hot Chicken</option>
+            <option value="American">American</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -558,6 +599,14 @@
         desc:'Famous for their signature coffee buns and artisanal baked goods.', 
         rating:4.5,
         image: 'papa.png'
+      },
+      { 
+        slug:'qasr', 
+        name:'Qasr El Kababgy', 
+        category:'Fine Dining, Middle Eastern', 
+        desc:'Elegant dining experience with authentic Middle Eastern cuisine.', 
+        rating:4.8,
+        image: 'qasr.png'
       }
     ];
 
@@ -565,6 +614,7 @@
     const empty = document.getElementById('empty');
     const countEl = document.getElementById('count');
     const qInput = document.getElementById('q');
+    const categorySelect = document.getElementById('categorySelect');
 
     // ===== IMAGE HELPER =====
     function imageSrcset(slug, imageName){
@@ -626,10 +676,10 @@
         );
       }
       
-      // category buttons
-      const activeCat = document.querySelector('.category-filters .btn.active');
-      if(activeCat && activeCat.dataset.cat && activeCat.dataset.cat !== 'All'){
-        out = out.filter(r => r.category === activeCat.dataset.cat);
+      // category dropdown
+      const selectedCategory = categorySelect.value;
+      if(selectedCategory && selectedCategory !== 'All'){
+        out = out.filter(r => r.category.includes(selectedCategory));
       }
       
       renderList(out);
@@ -639,22 +689,14 @@
       filterAndRender(); 
     });
 
-    document.getElementById('reset').addEventListener('click', () => {
-      qInput.value = ''; 
-      document.querySelectorAll('.category-filters .btn').forEach(b => {
-        b.classList.remove('active');
-        if(b.dataset.cat === 'All') b.classList.add('active');
-      });
+    categorySelect.addEventListener('change', () => {
       filterAndRender();
     });
 
-    // category buttons
-    document.querySelectorAll('.category-filters .btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.category-filters .btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        filterAndRender();
-      });
+    document.getElementById('reset').addEventListener('click', () => {
+      qInput.value = ''; 
+      categorySelect.value = 'All';
+      filterAndRender();
     });
 
     // simple sort toggle
