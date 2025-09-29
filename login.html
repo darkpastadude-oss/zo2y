@@ -4,75 +4,501 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zo2y - Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <!-- 1. LINK YOUR MAIN CSS FILE -->
-    <link rel="stylesheet" href="style.css">
-    <!-- 2. PAGE-SPECIFIC STYLES USING YOUR CSS VARIABLES -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-        body{height:100vh;display:flex;justify-content:center;align-items:center;}
-        .form-container{background: var(--nav-bg); padding:50px 40px;border-radius:20px;box-shadow:0 15px 40px rgba(0,0,0,0.15);width:350px;text-align:center;position:relative;border-top:6px solid #FF6F00;}
-        .home-button{position:absolute;top:-25px;left:50%;transform:translateX(-50%);background: var(--nav-bg); color: var(--text-color-primary); border:2px solid #FF6F00;border-radius:25px;padding:8px 18px;font-weight:600;cursor:pointer;transition:0.3s ease;}
-        .home-button:hover{background:#FF6F00;color:#fff;}
-        .form-container img{width:80px;margin-bottom:20px;}
-        .form-container h2{margin-bottom:25px;font-weight:600; color: var(--text-color-primary);}
-        .form-container input{width:100%;padding:14px 15px;margin:12px 0;border:1px solid #ddd;border-radius:12px;font-size:1rem;outline:none;transition:0.3s; background-color: var(--input-bg); color: var(--input-text);}
-        .form-container input:focus{border-color:#FF6F00;box-shadow:0 0 5px rgba(255,111,0,0.4);}
-        .form-container button{width:100%;padding:14px;margin-top:20px;background:#FF6F00;border:none;border-radius:30px;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:0.3s;}
-        .form-container button:hover{background:#e65c00;}
-        .form-container .link{margin-top:18px;display:block;color:#FF6F00;text-decoration:none;font-size:0.95rem;transition:0.3s;}
-        .form-container .link:hover{text-decoration:underline;}
+        :root {
+            --primary-color: #FF6F00;
+            --primary-dark: #e65c00;
+            --primary-light: #ff8f33;
+            --nav-bg: #ffffff;
+            --text-color-primary: #333333;
+            --text-color-secondary: #666666;
+            --input-bg: #f8f9fa;
+            --input-text: #333333;
+            --border-color: #e0e0e0;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        .dark-theme {
+            --nav-bg: #1e1e2d;
+            --text-color-primary: #ffffff;
+            --text-color-secondary: #b4b7bd;
+            --input-bg: #2a2a3c;
+            --input-text: #ffffff;
+            --border-color: #38394e;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .dark-theme body {
+            background: linear-gradient(135deg, #1e1e2d 0%, #2d2d44 100%);
+        }
+
+        .container {
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background: var(--nav-bg);
+            transition: var(--transition);
+        }
+
+        .illustration {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            text-align: center;
+        }
+
+        .illustration h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .illustration p {
+            font-size: 1rem;
+            opacity: 0.9;
+            max-width: 350px;
+            margin-bottom: 30px;
+        }
+
+        .illustration-img {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            margin-top: 20px;
+        }
+
+        .form-container {
+            flex: 1;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+
+        .theme-toggle {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: var(--text-color-primary);
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-light);
+            color: white;
+        }
+
+        .theme-toggle i {
+            margin-right: 8px;
+        }
+
+        .form-container h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--text-color-primary);
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--text-color-secondary);
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-color-secondary);
+            transition: var(--transition);
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .form-container input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.2);
+        }
+
+        .form-container input:focus + i {
+            color: var(--primary-color);
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            color: var(--text-color-secondary);
+        }
+
+        .remember input {
+            margin-right: 8px;
+            width: auto;
+        }
+
+        .forgot {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .forgot:hover {
+            text-decoration: underline;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 111, 0, 0.3);
+        }
+
+        .form-container button i {
+            margin-left: 8px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: var(--text-color-secondary);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-color-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .social-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .social-btn i {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+
+        .link {
+            text-align: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            display: block;
+            margin-top: 10px;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .illustration {
+                padding: 30px 20px;
+            }
+            
+            .illustration h2 {
+                font-size: 1.5rem;
+            }
+            
+            .form-container {
+                padding: 30px 25px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <div class="illustration">
+            <h2>Welcome Back!</h2>
+            <p>We're excited to see you again. Login to access your account and continue your journey with us.</p>
+            <svg class="illustration-img" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#ffffff" d="M200,50 C266.666667,50 320,103.333333 320,170 C320,236.666667 266.666667,290 200,290 C133.333333,290 80,236.666667 80,170 C80,103.333333 133.333333,50 200,50 Z M200,70 C144.771525,70 100,114.771525 100,170 C100,225.228475 144.771525,270 200,270 C255.228475,270 300,225.228475 300,170 C300,114.771525 255.228475,70 200,70 Z M200,120 C222.091393,120 240,137.908607 240,160 C240,182.091393 222.091393,200 200,200 C177.908607,200 160,182.091393 160,160 C160,137.908607 177.908607,120 200,120 Z M140,90 C151.045695,90 160,98.9543045 160,110 C160,121.045695 151.045695,130 140,130 C128.954305,130 120,121.045695 120,110 C120,98.9543045 128.954305,90 140,90 Z M260,90 C271.045695,90 280,98.9543045 280,110 C280,121.045695 271.045695,130 260,130 C248.954305,130 240,121.045695 240,110 C240,98.9543045 248.954305,90 260,90 Z" opacity="0.2"></path>
+                <path fill="#ffffff" d="M200,50 C266.666667,50 320,103.333333 320,170 C320,236.666667 266.666667,290 200,290 C133.333333,290 80,236.666667 80,170 C80,103.333333 133.333333,50 200,50 Z M200,70 C144.771525,70 100,114.771525 100,170 C100,225.228475 144.771525,270 200,270 C255.228475,270 300,225.228475 300,170 C300,114.771525 255.228475,70 200,70 Z" opacity="0.2"></path>
+                <circle fill="#ffffff" cx="200" cy="170" r="40" opacity="0.2"></circle>
+                <circle fill="#ffffff" cx="170" cy="130" r="20" opacity="0.2"></circle>
+                <circle fill="#ffffff" cx="230" cy="130" r="20" opacity="0.2"></circle>
+            </svg>
+        </div>
+        
+        <div class="form-container">
+            <div class="header">
+                <div class="logo">
+                    <i class="fas fa-paw"></i>
+                    <span>Zo2y</span>
+                </div>
+                <div class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                    <span>Dark Mode</span>
+                </div>
+            </div>
+            
+            <h2>Login to Your Account</h2>
+            <p class="subtitle">Welcome back! Please enter your details</p>
+            
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" placeholder="Email" id="email" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" placeholder="Password" id="password" required>
+            </div>
+            
+            <div class="remember-forgot">
+                <label class="remember">
+                    <input type="checkbox" id="remember">
+                    Remember me
+                </label>
+                <a href="#" class="forgot">Forgot password?</a>
+            </div>
+            
+            <button onclick="login()">
+                <span>Login</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            
+            <div class="divider">
+                <span>or continue with</span>
+            </div>
+            
+            <div class="social-login">
+                <div class="social-btn">
+                    <i class="fab fa-google"></i>
+                    <span>Google</span>
+                </div>
+                <div class="social-btn">
+                    <i class="fab fa-facebook-f"></i>
+                    <span>Facebook</span>
+                </div>
+            </div>
+            
+            <a href="sign-up.html" class="link">Don't have an account? Sign Up</a>
+        </div>
+    </div>
 
-<div class="form-container">
-  <button class="home-button" onclick="window.location.href='index.html'">Home</button>
-  <img src="images/logo.png" alt="Zo2y Logo">
-  <h2>Welcome Back</h2>
-  <input type="email" placeholder="Email" id="email" required>
-  <input type="password" placeholder="Password" id="password" required>
-  <button onclick="login()">Login</button>
-  <a href="sign-up.html" class="link">Don’t have an account? Sign Up</a>
-</div>
+    <script>
+        // Check if user is already logged in
+        if(localStorage.getItem('token')) {
+            window.location.href = 'index.html';
+        }
 
-<script>
-  // Redirect if already logged in
-  if(localStorage.getItem('token')) {
-    window.location.href = 'index.html';
-  }
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const themeText = themeToggle.querySelector('span');
+        
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeIcon.className = 'fas fa-sun';
+            themeText.textContent = 'Light Mode';
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            
+            if (document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'Light Mode';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'Dark Mode';
+            }
+        });
 
-  async function login() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
+        // Login function
+        async function login() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const remember = document.getElementById('remember').checked;
 
-    if (!email || !password) {
-      alert('Please enter both email and password.');
-      return;
-    }
+            if (!email || !password) {
+                alert('Please enter both email and password.');
+                return;
+            }
 
-    try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ email, password })
-      });
+            // Add loading state to button
+            const button = document.querySelector('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            button.disabled = true;
 
-      const data = await res.json();
-      alert(data.message);
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/login', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
 
-      if(res.ok && data.token){
-        localStorage.setItem('token', data.token);
-        window.location.href = 'index.html';
-      }
-    } catch(err) {
-      console.error(err);
-      alert('Something went wrong.');
-    }
-  }
-</script>
+                const data = await res.json();
+                
+                if(res.ok && data.token){
+                    localStorage.setItem('token', data.token);
+                    
+                    // Store remember me preference
+                    if (remember) {
+                        localStorage.setItem('rememberMe', 'true');
+                    } else {
+                        localStorage.removeItem('rememberMe');
+                    }
+                    
+                    alert('Login successful!');
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.message || 'Login failed. Please check your credentials.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Something went wrong. Please try again.');
+            } finally {
+                // Reset button state
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
 
-<!-- 3. ADD THE THEME MANAGER SCRIPT HERE -->
-<script src="js/themeManager.js"></script>
+        // Check for remember me
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('rememberMe') === 'true') {
+                document.getElementById('remember').checked = true;
+                // You could also pre-fill the email if stored securely
+            }
+        });
+
+        // Add enter key support
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
 </body>
 </html>
