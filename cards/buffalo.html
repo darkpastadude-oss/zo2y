@@ -6,80 +6,130 @@
   <title>Buffalo Burger - Zo2y</title>
   <link rel="stylesheet" href="../style.css">
   <style>
-    /* ---- Buffalo Burger Category Styling ---- */
-    .category {
-      background: #fff;
-      padding: 30px;
-      margin: 40px auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      max-width: 1000px;
-      font-family: Arial, sans-serif;
-    }
-    .category h2 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
-    .category-content {
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .category-content img {
-      width: 280px;
-      border-radius: 10px;
-    }
-    .category-text {
-      flex: 1;
-      min-width: 260px;
-    }
-    .category-text p {
-      margin-bottom: 15px;
-      color: #444;
-      line-height: 1.6;
-    }
-    .category-text ul {
-      margin: 0 0 15px 18px;
-      color: #555;
-    }
-    .category-btn {
-      display: inline-block;
-      padding: 10px 20px;
-      background: #e74c3c;
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
-      transition: background 0.2s ease-in-out;
-    }
-    .category-btn:hover {
-      background: #c0392b;
+    body { background: var(--bg-color-primary); color: var(--text-color-primary); transition: background-color 0.3s, color 0.3s; }
+
+    .top-stripe { background:#FF6F00; height:50px; } /* brand orange */
+
+    .hero { text-align:center; padding:50px 20px 30px; }
+    .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.12); cursor:pointer; margin-bottom:30px; border:2px solid rgba(0,0,0,0.04); transition:transform .18s ease; }
+    .logo:active { transform:scale(.98); }
+    .hero h1 { font-size:2.3rem; font-weight:700; margin-bottom:8px; }
+    .hero p { font-size:1rem; color: var(--text-color-secondary); margin-bottom:10px; }
+    .rating { color:#FF6F00; font-size:1.1rem; margin-bottom:18px; }
+
+    .btn { display:inline-block; padding:10px 18px; border-radius:8px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease; }
+    .btn.secondary { background: var(--nav-bg); color: var(--text-color-primary); border:1px solid var(--text-color-primary); }
+    .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+    .section { max-width:900px; margin:0 auto; padding:20px; }
+    h2 { margin-bottom:15px; font-size:1.3rem; }
+    p { margin-bottom:6px; color: var(--text-color-secondary); }
+
+    .hotline { font-size:1.2rem; margin-bottom:24px; }
+    .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; }
+    .hotline a:hover { text-decoration:underline; }
+
+    .branches { display:flex; flex-wrap:wrap; gap:12px; }
+    .branch-card { flex:1 1 45%; border:1px solid var(--nav-shadow); border-radius:8px; padding:15px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s; }
+    .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color: var(--text-color-primary); }
+    .branch-card a { font-size:0.9rem; color: var(--text-color-primary); text-decoration:none; }
+    .branch-card a:hover { text-decoration:underline; }
+
+    .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--nav-shadow); margin-bottom:8px; }
+    .menu-item span { color: var(--text-color-secondary); }
+    .menu-item .price { color: var(--text-color-secondary); }
+
+    .review { padding:12px 0; border-bottom:1px solid var(--nav-shadow); }
+    .review-form { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+    .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid var(--nav-shadow); border-radius:6px; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s, color 0.3s; }
+    .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease; }
+    .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+
+    footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; }
+    @media (max-width:640px) {
+      .branch-card { flex:1 1 100%; }
+      .menu-item { flex-direction:column; align-items:flex-start; }
     }
   </style>
 </head>
 <body>
-  <!-- Buffalo Burger Section -->
-  <section class="category">
-    <h2>🍔 Buffalo Burger</h2>
-    <div class="category-content">
-      <img src="images/buffalo.jpg" alt="Buffalo Burger">
-      <div class="category-text">
-        <p>
-          Buffalo Burger is one of Egypt’s most popular burger spots — serving
-          juicy patties, fresh buns, and bold sauces. A top choice for anyone
-          craving a big, satisfying burger with all the sides.
-        </p>
-        <ul>
-          <li>🔥 Signature beef & chicken burgers</li>
-          <li>🍟 Fresh fries & loaded sides</li>
-          <li>🥤 Cool drinks & combos</li>
-        </ul>
-        <a href="https://buffaloburger.com.eg" target="_blank" class="category-btn">
-          View Menu
-        </a>
-      </div>
-    </div>
+
+  <div class="top-stripe"></div>
+
+  <section class="hero">
+    <img src="../images/buffalo.jpg" alt="Buffalo Burger Logo" class="logo" onclick="location.href='../restaurants.html'">
+    <h1>Buffalo Burger</h1>
+    <p>The Real Thing – Juicy Burgers & Fire-Grilled Flavor</p>
+    <div class="rating">⭐ ~4.2/5</div>
+    <a href="tel:19914" class="btn">Call Hotline</a>
+    <a href="https://thebuffaloburger.com" target="_blank" class="btn secondary">View Full Menu</a>
   </section>
+
+  <main class="section">
+    <section class="info">
+      <h2>Contact & Branches</h2>
+      <div class="hotline"><strong>Hotline:</strong> <a href="tel:19914">19914</a></div>
+
+      <div class="branches">
+        <div class="branch-card">
+          <h3>Nasr City – 9 Hafez Ramadan St.</h3>
+          <a href="https://www.google.com/maps/search/?api=1&query=9+Hafez+Ramadan+Street,+Nasr+City,+Cairo" target="_blank">Open in Google Maps</a>
+        </div>
+        <div class="branch-card">
+          <h3>6th of October – Wahat Road, Mall of Egypt</h3>
+          <a href="https://www.google.com/maps/search/?api=1&query=Mall+of+Egypt,+6th+of+October" target="_blank">Open in Google Maps</a>
+        </div>
+        <div class="branch-card">
+          <h3>Maadi – El Khamseen St., Zahraa El Maadi (Wataneyah Gas Station)</h3>
+          <a href="https://www.google.com/maps/search/?api=1&query=El+Khamseen+Street,+Zahraa+El+Maadi,+Cairo" target="_blank">Open in Google Maps</a>
+        </div>
+        <div class="branch-card">
+          <h3>Heliopolis – Almaza, El Nasr Rd., Intersection of Cairo-Suez Rd.</h3>
+          <a href="https://www.google.com/maps/search/?api=1&query=Al+Nasr+Road,+Almaza,+Heliopolis,+Cairo" target="_blank">Open in Google Maps</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="menu">
+      <h2>Popular Items</h2>
+      <div class="menu-item"><span>Bacon Mushroom Jack</span><span class="price">≈ 67-70 EGP</span></div>
+      <div class="menu-item"><span>Charbroiled BBQ Burger</span><span class="price">≈ 54-60 EGP</span></div>
+      <div class="menu-item"><span>Old School Burger</span><span class="price">≈ 48-52 EGP</span></div>
+      <div class="menu-item"><span>King Mo (2 Sandwiches + Fries + Drinks)</span><span class="price">≈ 166-175 EGP</span></div>
+      <a href="https://thebuffaloburger.com" target="_blank" class="btn secondary">View Full Menu</a>
+    </section>
+
+    <section class="reviews">
+      <h2>Reviews</h2>
+      <div id="reviews-list"></div>
+      <form class="review-form" id="review-form">
+        <input type="text" placeholder="Your Name" id="reviewer" required>
+        <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+        <button type="submit">Submit Review</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2025 Zo2y. All rights reserved.</footer>
+
+  <script>
+    const reviewForm = document.getElementById('review-form');
+    const reviewsList = document.getElementById('reviews-list');
+
+    reviewForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const name = document.getElementById('reviewer').value.trim();
+      const text = document.getElementById('review-text').value.trim();
+      if (!name || !text) return;
+      const div = document.createElement('div');
+      div.className = 'review';
+      const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+      div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
+      reviewsList.appendChild(div);
+      reviewForm.reset();
+    });
+  </script>
+
+  <script src="../js/themeManager.js"></script>
 </body>
 </html>
