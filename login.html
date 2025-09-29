@@ -73,6 +73,27 @@
             padding: 40px;
             color: white;
             text-align: center;
+            position: relative;
+        }
+
+        .logo-small {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-small img {
+            width: 35px;
+            height: 35px;
+        }
+
+        .logo-small span {
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-left: 8px;
         }
 
         .illustration h2 {
@@ -328,12 +349,32 @@
             .form-container {
                 padding: 30px 25px;
             }
+            
+            .logo-small {
+                top: 15px;
+                left: 15px;
+            }
+            
+            .logo-small img {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .logo-small span {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="illustration">
+            <!-- Small logo in the top left corner -->
+            <div class="logo-small">
+                <img src="images/logo.png" alt="Zo2y Logo">
+                <span>Zo2y</span>
+            </div>
+            
             <h2>Welcome Back!</h2>
             <p>We're excited to see you again. Login to access your account and continue your journey with us.</p>
             <svg class="illustration-img" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
@@ -348,7 +389,7 @@
         <div class="form-container">
             <div class="header">
                 <div class="logo">
-                    <i class="fas fa-paw"></i>
+                    <img src="images/logo.png" alt="Zo2y Logo">
                     <span>Zo2y</span>
                 </div>
                 <div class="theme-toggle" id="themeToggle">
