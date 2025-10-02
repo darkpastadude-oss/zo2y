@@ -1,148 +1,568 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Qasr El Kababgy</title>
-<link rel="stylesheet" href="../style.css">
 <style>
-  * {margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background-color: var(--bg-color-primary); color: var(--text-color-primary); transition: background-color 0.3s ease, color 0.3s ease;}
-  .top-stripe { background:#FF6F00; height:50px; }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  :root {
+    --bg-color-primary: #ffffff;
+    --text-color-primary: #333333;
+    --text-color-secondary: #666666;
+    --nav-bg: #f8f9fa;
+    --nav-shadow: rgba(0, 0, 0, 0.1);
+    --button-bg: #FF6F00;
+    --button-text: #ffffff;
+    --card-bg: #f8f9fa;
+    --input-bg: #ffffff;
+    --input-text: #333333;
+  }
 
-  /* Premium Hero */
-  .hero { text-align:center; padding:60px 20px 40px; background:url('../images/kababgy-banner.jpg') center/cover no-repeat; position:relative; color:#fff; }
-  .hero::before { content:""; position:absolute; inset:0; background:rgba(0,0,0,0.45); }
-  .hero-content { position:relative; z-index:2; }
-  .logo { width:170px; height:170px; border-radius:50%; object-fit:cover; box-shadow:0 12px 24px rgba(0,0,0,0.3); cursor:pointer; margin-bottom:28px; border:3px solid #fff; background:#fff; }
-  .hero h1 { font-size:2.6rem; font-weight:700; margin-bottom:10px; letter-spacing:0.5px; }
-  .hero p { font-size:1.1rem; margin-bottom:14px; font-weight:400; }
-  .rating { color:#FFD54F; font-size:1.2rem; margin-bottom:22px; }
+  [data-theme="dark"] {
+    --bg-color-primary: #1e2a4a;
+    --text-color-primary: #ffffff;
+    --text-color-secondary: #cbd5e1;
+    --nav-bg: #2d3748;
+    --nav-shadow: rgba(255, 255, 255, 0.1);
+    --button-bg: #ff944d;
+    --button-text: #111111;
+    --card-bg: #2d3748;
+    --input-bg: #2d3748;
+    --input-text: #ffffff;
+  }
 
-  .btn { display:inline-block; padding:12px 20px; border-radius:10px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 5px; transition:transform .12s ease, box-shadow .12s ease; }
-  .btn.secondary { background:rgba(255,255,255,0.9); color:#333; border:1px solid #ddd; }
-  .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.2); }
+  body {
+    overflow-x: hidden;
+    background-color: var(--bg-color-primary);
+    color: var(--text-color-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    line-height: 1.6;
+  }
 
-  main { max-width:1000px; margin:0 auto; padding:30px 20px; }
+  /* Top stripe */
+  .top-stripe {
+    background: #FF9800;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
 
-  /* Section styling */
-  .section { margin-bottom:40px; }
-  h2 { margin-bottom:18px; font-size:1.6rem; font-weight:700; border-left:6px solid #FF6F00; padding-left:12px; }
+  .back-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-  /* Contact + Branches */
-  .hotline { font-size:1.3rem; margin-bottom:24px; }
-  .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; }
-  .hotline a:hover { text-decoration:underline; }
+  .back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-3px);
+  }
 
-  .branches { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px; }
-  .branch-card { border:1px solid var(--nav-shadow); border-radius:10px; padding:18px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s ease; }
-  .branch-card h3 { margin-bottom:8px; font-size:1.15rem; font-weight:600; }
-  .branch-card a { font-size:0.95rem; color:#FF6F00; text-decoration:none; font-weight:500; }
-  .branch-card a:hover { text-decoration:underline; }
+  .theme-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-color-primary) 100%);
+  }
+
+  .logo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    margin-bottom: 30px;
+    border: 4px solid white;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    color: var(--text-color-primary);
+  }
+
+  .hero p {
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 10px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .rating {
+    color: #FF9800;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    background: var(--button-bg);
+    color: var(--button-text);
+    text-decoration: none;
+    font-weight: 600;
+    margin: 6px 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .btn.secondary {
+    background: var(--nav-bg);
+    color: var(--text-color-primary);
+    border: 1px solid var(--text-color-primary);
+  }
+
+  .btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 18px rgba(255, 152, 0, 0.2);
+  }
+
+  /* Sections */
+  .section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  h2 {
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    color: var(--text-color-primary);
+    position: relative;
+    padding-bottom: 10px;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #FF9800;
+    border-radius: 2px;
+  }
+
+  /* Hotline */
+  .hotline {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .hotline a {
+    color: var(--text-color-primary);
+    text-decoration: none;
+    font-weight: 700;
+    background: var(--card-bg);
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .hotline a:hover {
+    text-decoration: none;
+    background: var(--button-bg);
+    color: var(--button-text);
+  }
+
+  /* Branch cards */
+  .branches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .branch-card {
+    flex: 1 1 45%;
+    border: 1px solid var(--nav-shadow);
+    border-radius: 12px;
+    padding: 20px;
+    background: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .branch-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .branch-card h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    color: var(--text-color-primary);
+  }
+
+  .branch-card p {
+    font-size: 0.95rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 15px;
+  }
+
+  .branch-card a {
+    font-size: 0.9rem;
+    color: var(--text-color-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .branch-card a:hover {
+    text-decoration: underline;
+  }
 
   /* Menu */
-  .menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .menu-item { border:1px solid var(--nav-shadow); border-radius:8px; padding:14px; display:flex; justify-content:space-between; align-items:center; background: var(--card-bg); transition:transform .15s ease; }
-  .menu-item:hover { transform:translateY(-2px); }
-  .menu-item span { font-weight:500; }
-  .menu-item .price { color:#FF6F00; font-weight:700; }
+  .menu-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--nav-shadow);
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .menu-item:hover {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding-left: 15px;
+  }
+
+  .menu-item span {
+    color: var(--text-color-secondary);
+  }
+
+  .menu-item span:last-child {
+    font-weight: 600;
+    color: var(--text-color-primary);
+  }
 
   /* Reviews */
-  .review { padding:14px 0; border-bottom:1px solid var(--nav-shadow); }
-  .review p { margin-bottom:6px; }
-  .review-form { margin-top:18px; display:flex; flex-direction:column; gap:12px; }
-  .review-form input, .review-form textarea { padding:12px; font-size:1rem; width:100%; border:1px solid #ccc; border-radius:8px; resize:vertical; background-color: var(--input-bg); color: var(--input-text); }
-  .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:12px 18px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease; }
-  .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.2); }
+  .review {
+    border-bottom: 1px solid var(--nav-shadow);
+    padding: 15px 0;
+  }
 
-  footer { text-align:center; padding:40px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; }
+  .review p {
+    margin-bottom: 5px;
+    color: var(--text-color-secondary);
+  }
 
-  @media (max-width:640px) {
-    .logo { width:130px; height:130px; }
-    .hero h1 { font-size:2rem; }
-    .menu-grid { grid-template-columns:1fr; }
+  .review p:first-child {
+    font-weight: 600;
+    color: var(--text-color-primary);
+  }
+
+  .review-form {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .review-form input,
+  .review-form textarea {
+    padding: 12px;
+    font-size: 1rem;
+    width: 100%;
+    border: 1px solid var(--nav-shadow);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    transition: all 0.3s ease;
+  }
+
+  .review-form input:focus,
+  .review-form textarea:focus {
+    outline: none;
+    border-color: #FF9800;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+  }
+
+  .review-form button {
+    background: var(--button-bg);
+    color: var(--button-text);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+    align-self: flex-start;
+  }
+
+  .review-form button:hover {
+    transform: scale(1.05);
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--nav-shadow);
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    margin-top: 20px;
+    transition: color 0.3s ease;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+    }
+    
+    .hero {
+      padding: 50px 16px 30px;
+    }
+    
+    .hero h1 {
+      font-size: 2rem;
+    }
+    
+    .btn {
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      margin: 4px 2px;
+    }
+    
+    .branch-card {
+      flex: 1 1 100%;
+    }
+    
+    .section {
+      padding: 30px 16px;
+    }
+    
+    h2 {
+      font-size: 1.4rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .top-stripe {
+      padding: 0 10px;
+    }
+    
+    .back-btn, .theme-toggle {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    .hero h1 {
+      font-size: 1.8rem;
+    }
+    
+    .hero p {
+      font-size: 0.9rem;
+    }
+    
+    .hotline {
+      font-size: 1rem;
+    }
   }
 </style>
 </head>
 <body>
 
-<div class="top-stripe"></div>
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
 
 <section class="hero">
-  <div class="hero-content">
-    <img src="../images/qasr.png" alt="Qasr El Kababgy Logo" class="logo" onclick="location.href='../index.html'">
-    <h1>Qasr El Kababgy</h1>
-    <p>Authentic Egyptian Grill – Premium Meats & Oriental Cuisine</p>
-    <div class="rating">⭐ 4.7/5 (based on Google reviews)</div>
-    <a href="tel:19128" class="btn">Call Hotline</a>
-    <a href="https://www.elkbabgi.com/" target="_blank" class="btn secondary">View Full Menu</a>
+  <img src="../images/qasr.png" alt="Qasr El Kababgy Logo" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Qasr El Kababgy</h1>
+  <p>Elegant dining experience with authentic Middle Eastern cuisine.</p>
+  <div class="rating">⭐ 4.8/5</div>
+
+  <a href="tel:0120 914 567" class="btn">Call Hotline</a>
+  <a href="https://qasregypt.com/" target="_blank" class="btn secondary">View Full Menu</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:0120 914 567">0120 914 567</a>
+  </div>
+
+  <div class="branches">
+    
+    <div class="branch-card">
+      <h3>New Cairo</h3>
+      <p>Downtown Mall</p>
+      <a href="https://maps.google.com/search?q=Qasr%20El%20Kababgy%20Downtown%20Mall" target="_blank">📍 Get Directions</a>
+    </div>
+  
+    <div class="branch-card">
+      <h3>Sheikh Zayed</h3>
+      <p>Mall of Egypt</p>
+      <a href="https://maps.google.com/search?q=Qasr%20El%20Kababgy%20Mall%20of%20Egypt" target="_blank">📍 Get Directions</a>
+    </div>
+  
+    <div class="branch-card">
+      <h3>Heliopolis</h3>
+      <p>Korba District</p>
+      <a href="https://maps.google.com/search?q=Qasr%20El%20Kababgy%20Korba%20District" target="_blank">📍 Get Directions</a>
+    </div>
+  
   </div>
 </section>
 
-<main>
-  <section class="section">
-    <h2>Contact & Branches</h2>
-    <div class="hotline"><strong>Hotline:</strong> <a href="tel:19128">19128</a></div>
-    <div class="branches">
-      <div class="branch-card">
-        <h3>New Cairo – Downtown Katameya</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Qasr+El+Kababgy+Downtown+Katameya" target="_blank">Open in Google Maps</a>
-      </div>
-      <div class="branch-card">
-        <h3>6th of October – Mall of Arabia</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Qasr+El+Kababgy+Mall+of+Arabia" target="_blank">Open in Google Maps</a>
-      </div>
-      <div class="branch-card">
-        <h3>Heliopolis – Roxy Square</h3>
-        <a href="https://www.google.com/maps/search/?api=1&query=Qasr+El+Kababgy+Roxy" target="_blank">Open in Google Maps</a>
-      </div>
+<section class="section menu">
+  <h2>Popular Items</h2>
+    
+    <div class="menu-item"><span>Mixed Grill Platter</span><span>EGP 180</span></div>
+  
+    <div class="menu-item"><span>Chicken Shawarma</span><span>EGP 60</span></div>
+  
+    <div class="menu-item"><span>Beef Kebab Plate</span><span>EGP 140</span></div>
+  
+    <div class="menu-item"><span>Falafel Sandwich</span><span>EGP 40</span></div>
+  
+  <a href="https://qasregypt.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Happy Customer</strong></p>
+      <p>Great food and excellent service! The Middle Eastern here is amazing. Will definitely visit again.</p>
     </div>
-  </section>
-
-  <section class="section menu">
-    <h2>Signature Dishes</h2>
-    <div class="menu-grid">
-      <div class="menu-item"><span>Kabab Mix Grill</span><span class="price">220 EGP</span></div>
-      <div class="menu-item"><span>Kofta with Tahini</span><span class="price">180 EGP</span></div>
-      <div class="menu-item"><span>Grilled Half Chicken</span><span class="price">160 EGP</span></div>
-      <div class="menu-item"><span>Stuffed Pigeons</span><span class="price">200 EGP</span></div>
-      <div class="menu-item"><span>Molokhia with Rabbit</span><span class="price">170 EGP</span></div>
-      <div class="menu-item"><span>Mixed Oriental Mezza</span><span class="price">140 EGP</span></div>
+    <div class="review">
+      <p><strong>Satisfied Diner</strong></p>
+      <p>Fresh ingredients and friendly staff. One of the best Middle Eastern places in town!</p>
     </div>
-    <a href="https://qasrelkababgy.com/" target="_blank" class="btn secondary" style="margin-top:18px;">View Full Menu</a>
-  </section>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
 
-  <section class="section reviews">
-    <h2>Reviews</h2>
-    <div id="reviews-list"></div>
-    <form class="review-form" id="review-form">
-      <input type="text" placeholder="Your Name" id="reviewer" required>
-      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
-      <button type="submit">Submit Review</button>
-    </form>
-  </section>
-</main>
-
-<footer>© 2025 Zo2y. All rights reserved.</footer>
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Qasr El Kababgy - Premium Middle Eastern Experience</p>
+</footer>
 
 <script>
-const reviewForm = document.getElementById('review-form');
-const reviewsList = document.getElementById('reviews-list');
-
-reviewForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const name = document.getElementById('reviewer').value.trim();
-  const text = document.getElementById('review-text').value.trim();
-  if (!name || !text) return;
-  const div = document.createElement('div');
-  div.className = 'review';
-  const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-  div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
-  reviewsList.appendChild(div);
-  reviewForm.reset();
-});
+  // Theme Toggle Functionality
+  const themeToggle = document.getElementById('themeToggle');
+  
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    localStorage.setItem('qasr-theme', theme);
+  }
+  
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+  }
+  
+  function initializeTheme() {
+    const savedTheme = localStorage.getItem('qasr-theme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(prefersDark ? 'dark' : 'light');
+    }
+  }
+  
+  themeToggle.addEventListener('click', toggleTheme);
+  
+  // Review Form Functionality
+  const reviewForm = document.getElementById('review-form');
+  const reviewsList = document.getElementById('reviews-list');
+  
+  reviewForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('reviewer').value.trim();
+    const text = document.getElementById('review-text').value.trim();
+    
+    if (name && text) {
+      const reviewDiv = document.createElement('div');
+      reviewDiv.className = 'review';
+      reviewDiv.innerHTML = '<p><strong>' + name + '</strong></p><p>' + text + '</p>';
+      reviewsList.appendChild(reviewDiv);
+      reviewForm.reset();
+      
+      // Show success message
+      const successMsg = document.createElement('p');
+      successMsg.textContent = 'Thank you for your review!';
+      successMsg.style.color = '#FF9800';
+      successMsg.style.fontWeight = '600';
+      successMsg.style.marginTop = '10px';
+      reviewForm.appendChild(successMsg);
+      
+      setTimeout(() => {
+        successMsg.remove();
+      }, 3000);
+    }
+  });
+  
+  // Initialize theme on page load
+  initializeTheme();
 </script>
 
-<script src="../js/themeManager.js"></script>
 </body>
 </html>

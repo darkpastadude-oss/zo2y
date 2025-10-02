@@ -4,179 +4,561 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bazooka</title>
-<link rel="stylesheet" href="../style.css">
 <style>
-  * {margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-  body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background-color: var(--bg-color-primary); color: var(--text-color-primary); transition: background-color 0.3s ease, color 0.3s ease;}
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  :root {
+    --bg-color-primary: #ffffff;
+    --text-color-primary: #333333;
+    --text-color-secondary: #666666;
+    --nav-bg: #f8f9fa;
+    --nav-shadow: rgba(0, 0, 0, 0.1);
+    --button-bg: #FF6F00;
+    --button-text: #ffffff;
+    --card-bg: #f8f9fa;
+    --input-bg: #ffffff;
+    --input-text: #333333;
+  }
 
-  .top-stripe { background:#FF6F00; height:50px; }
+  [data-theme="dark"] {
+    --bg-color-primary: #1e2a4a;
+    --text-color-primary: #ffffff;
+    --text-color-secondary: #cbd5e1;
+    --nav-bg: #2d3748;
+    --nav-shadow: rgba(255, 255, 255, 0.1);
+    --button-bg: #ff944d;
+    --button-text: #111111;
+    --card-bg: #2d3748;
+    --input-bg: #2d3748;
+    --input-text: #ffffff;
+  }
 
-  .hero { text-align:center; padding:50px 20px 30px; }
-  .logo { width:150px; height:150px; border-radius:50%; object-fit:cover; box-shadow:0 8px 20px rgba(0,0,0,0.12); cursor:pointer; margin-bottom:30px; border:2px solid rgba(0,0,0,0.04); transition:transform .18s ease; }
-  .logo:active { transform:scale(.98); }
-  .hero h1 { font-size:2.3rem; font-weight:700; margin-bottom:8px; letter-spacing:0.4px; }
-  .hero p { font-size:1rem; color: var(--text-color-secondary); margin-bottom:10px; }
+  body {
+    overflow-x: hidden;
+    background-color: var(--bg-color-primary);
+    color: var(--text-color-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    line-height: 1.6;
+  }
 
-  .btn { display:inline-block; padding:10px 18px; border-radius:8px; background: var(--button-bg); color: var(--button-text); text-decoration:none; font-weight:600; margin:6px 4px; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease, color 0.3s ease; }
-  .btn.secondary { background: var(--nav-bg); color: var(--text-color-primary); border:1px solid var(--text-color-primary); }
-  .btn:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+  /* Top stripe */
+  .top-stripe {
+    background: #FF9800;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
 
-  .section { max-width:900px; margin:0 auto; padding:20px; }
-  h2 { margin-bottom:15px; font-size:1.3rem; }
-  p { margin-bottom:6px; color: var(--text-color-secondary); }
+  .back-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-  .hotline { font-size:1.2rem; margin-bottom:24px; }
-  .hotline a { color: var(--text-color-primary); font-weight:700; text-decoration:none; }
-  .hotline a:hover { text-decoration:underline; }
+  .back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-3px);
+  }
 
-  .branches { display:flex; flex-wrap:wrap; gap:12px; }
-  .branch-card { flex:1 1 45%; border:1px solid var(--nav-shadow); border-radius:8px; padding:15px; background: var(--card-bg); display:flex; flex-direction:column; transition: background-color 0.3s ease; }
-  .branch-card h3 { margin-bottom:6px; font-size:1.1rem; color: var(--text-color-primary); }
-  .branch-card a { font-size:0.95rem; color: var(--text-color-primary); text-decoration:none; }
-  .branch-card a:hover { text-decoration:underline; }
+  .theme-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
 
-  .menu-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--nav-shadow); margin-bottom:8px; }
-  .menu-item span { color: var(--text-color-secondary); }
-  .menu-item .price { color: var(--text-color-secondary); }
+  .theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
 
-  .review { padding:12px 0; border-bottom:1px solid var(--nav-shadow); }
-  .review p { margin-bottom:6px; color: var(--text-color-secondary); }
-  .review-form { margin-top:16px; display:flex; flex-direction:column; gap:10px; }
-  .review-form input, .review-form textarea { padding:10px; font-size:1rem; width:100%; border:1px solid var(--text-color-secondary); border-radius:6px; resize:vertical; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s ease, color 0.3s ease; }
-  .review-form button { background: var(--button-bg); color: var(--button-text); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; transition:transform .12s ease, box-shadow .12s ease, background-color 0.3s ease; }
-  .review-form button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,111,0,0.1); }
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-color-primary) 100%);
+  }
 
-  footer { text-align:center; padding:36px 20px; border-top:1px solid var(--nav-shadow); color: var(--text-color-secondary); font-size:0.95rem; transition: color 0.3s ease; }
+  .logo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    margin-bottom: 30px;
+    border: 4px solid white;
+  }
 
-  /* Speedometer */
-  .speedometer { text-align:center; margin:30px 0; }
-  .gauge { width:280px; height:160px; }
-  .needle { transform-origin: 50% 100%; transition: transform 0.6s ease; }
-  .score { font-size:2.4rem; font-weight:700; fill:orange; text-anchor:middle; }
-  .ticks { stroke:#333; stroke-width:2; }
+  .hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    color: var(--text-color-primary);
+  }
+
+  .hero p {
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 10px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .rating {
+    color: #FF9800;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    background: var(--button-bg);
+    color: var(--button-text);
+    text-decoration: none;
+    font-weight: 600;
+    margin: 6px 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .btn.secondary {
+    background: var(--nav-bg);
+    color: var(--text-color-primary);
+    border: 1px solid var(--text-color-primary);
+  }
+
+  .btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 18px rgba(255, 152, 0, 0.2);
+  }
+
+  /* Sections */
+  .section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  h2 {
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    color: var(--text-color-primary);
+    position: relative;
+    padding-bottom: 10px;
+  }
+
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #FF9800;
+    border-radius: 2px;
+  }
+
+  /* Hotline */
+  .hotline {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .hotline a {
+    color: var(--text-color-primary);
+    text-decoration: none;
+    font-weight: 700;
+    background: var(--card-bg);
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .hotline a:hover {
+    text-decoration: none;
+    background: var(--button-bg);
+    color: var(--button-text);
+  }
+
+  /* Branch cards */
+  .branches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .branch-card {
+    flex: 1 1 45%;
+    border: 1px solid var(--nav-shadow);
+    border-radius: 12px;
+    padding: 20px;
+    background: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .branch-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .branch-card h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    color: var(--text-color-primary);
+  }
+
+  .branch-card p {
+    font-size: 0.95rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 15px;
+  }
+
+  .branch-card a {
+    font-size: 0.9rem;
+    color: var(--text-color-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .branch-card a:hover {
+    text-decoration: underline;
+  }
+
+  /* Menu */
+  .menu-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--nav-shadow);
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .menu-item:hover {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding-left: 15px;
+  }
+
+  .menu-item span {
+    color: var(--text-color-secondary);
+  }
+
+  .menu-item span:last-child {
+    font-weight: 600;
+    color: var(--text-color-primary);
+  }
+
+  /* Reviews */
+  .review {
+    border-bottom: 1px solid var(--nav-shadow);
+    padding: 15px 0;
+  }
+
+  .review p {
+    margin-bottom: 5px;
+    color: var(--text-color-secondary);
+  }
+
+  .review p:first-child {
+    font-weight: 600;
+    color: var(--text-color-primary);
+  }
+
+  .review-form {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .review-form input,
+  .review-form textarea {
+    padding: 12px;
+    font-size: 1rem;
+    width: 100%;
+    border: 1px solid var(--nav-shadow);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    transition: all 0.3s ease;
+  }
+
+  .review-form input:focus,
+  .review-form textarea:focus {
+    outline: none;
+    border-color: #FF9800;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+  }
+
+  .review-form button {
+    background: var(--button-bg);
+    color: var(--button-text);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+    align-self: flex-start;
+  }
+
+  .review-form button:hover {
+    transform: scale(1.05);
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--nav-shadow);
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    margin-top: 20px;
+    transition: color 0.3s ease;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+    }
+    
+    .hero {
+      padding: 50px 16px 30px;
+    }
+    
+    .hero h1 {
+      font-size: 2rem;
+    }
+    
+    .btn {
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      margin: 4px 2px;
+    }
+    
+    .branch-card {
+      flex: 1 1 100%;
+    }
+    
+    .section {
+      padding: 30px 16px;
+    }
+    
+    h2 {
+      font-size: 1.4rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .top-stripe {
+      padding: 0 10px;
+    }
+    
+    .back-btn, .theme-toggle {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    .hero h1 {
+      font-size: 1.8rem;
+    }
+    
+    .hero p {
+      font-size: 0.9rem;
+    }
+    
+    .hotline {
+      font-size: 1rem;
+    }
+  }
 </style>
 </head>
 <body>
 
-<div class="top-stripe"></div>
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
 
 <section class="hero">
-  <img src="../images/bazooka.jpg" alt="Bazooka Logo" class="logo" onclick="location.href='../index.html'">
+  <img src="../images/bazooka.jpg" alt="Bazooka Logo" class="logo" onclick="window.location.href='../index.html'">
   <h1>Bazooka</h1>
-  <p>Fried Chicken & Sandwiches</p>
+  <p>Loaded burgers & crispy fried chicken combos.</p>
+  <div class="rating">⭐ 4.2/5</div>
 
-  <!-- Professional Speedometer -->
-  <div class="speedometer">
-    <svg class="gauge" viewBox="0 0 200 120">
-      <!-- Background arc -->
-      <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#eee" stroke-width="15"/>
-
-      <!-- Colored zones -->
-      <path d="M20 100 A80 80 0 0 1 70 40" fill="none" stroke="red" stroke-width="15"/>
-      <path d="M70 40 A80 80 0 0 1 130 40" fill="none" stroke="orange" stroke-width="15"/>
-      <path d="M130 40 A80 80 0 0 1 180 100" fill="none" stroke="green" stroke-width="15"/>
-
-      <!-- Ticks -->
-      <g id="ticks"></g>
-
-      <!-- Needle -->
-      <line x1="100" y1="100" x2="100" y2="30" stroke="black" stroke-width="4" class="needle"/>
-
-      <!-- Score in middle -->
-      <text id="score-text" x="100" y="95" class="score">0%</text>
-    </svg>
-  </div>
-
-  <a href="tel:16455" class="btn">Call Hotline</a>
-  <a href="https://bazookaegy.com/en" target="_blank" class="btn secondary">View Full Menu</a>
+  <a href="tel:0120 495 184" class="btn">Call Hotline</a>
+  <a href="https://bazookaegypt.com/" target="_blank" class="btn secondary">View Full Menu</a>
 </section>
 
-<main class="section">
-  <section class="info">
-    <h2>Contact & Branches</h2>
-    <div class="hotline"><strong>Hotline:</strong> <a href="tel:16455">16455</a></div>
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:0120 495 184">0120 495 184</a>
+  </div>
 
-    <div class="branches">
-      <div class="branch-card"><h3>New Cairo</h3><a href="https://www.google.com/maps/search/?api=1&query=Chillout%20Midor%20North%2090th%20Gas%20Station,%20New%20Cairo" target="_blank">North 90th St. (Chillout Midor Gas Station)</a></div>
-      <div class="branch-card"><h3>Nasr City</h3><a href="https://www.google.com/maps/search/?api=1&query=17%20Abbas%20El%20Akkad%20Street,%20Nasr%20City" target="_blank">17 Abbas El Akkad St.</a></div>
-      <div class="branch-card"><h3>Nasr City</h3><a href="https://www.google.com/maps/search/?api=1&query=20%20Samir%20Abdel%20Raouf%20St.%20Extension%20of%20Makram%20Ebeid,%20Nasr%20City" target="_blank">20 Samir Abdel Raouf St. (Ext. of Makram Ebeid)</a></div>
-      <div class="branch-card"><h3>Heliopolis</h3><a href="https://www.google.com/maps/search/?api=1&query=Roxy%20Square,%20Heliopolis,%20Cairo" target="_blank">Roxy Square</a></div>
-      <div class="branch-card"><h3>Mohandessin</h3><a href="https://www.google.com/maps/search/?api=1&query=Lebanon%20Square,%20Mohandessin,%20Cairo" target="_blank">Lebanon Square</a></div>
-      <div class="branch-card"><h3>+ more across Cairo, Giza, Alexandria & beyond</h3></div>
+  <div class="branches">
+    
+    <div class="branch-card">
+      <h3>New Cairo</h3>
+      <p>Downtown Mall</p>
+      <a href="https://maps.google.com/search?q=Bazooka%20Downtown%20Mall" target="_blank">📍 Get Directions</a>
     </div>
-  </section>
+  
+    <div class="branch-card">
+      <h3>Sheikh Zayed</h3>
+      <p>Zahraa Mall</p>
+      <a href="https://maps.google.com/search?q=Bazooka%20Zahraa%20Mall" target="_blank">📍 Get Directions</a>
+    </div>
+  
+  </div>
+</section>
 
-  <section class="menu">
-    <h2>Popular Items</h2>
-    <div class="menu-item"><span>Bazooka Chicken Sandwich</span><span class="price">65 EGP</span></div>
-    <div class="menu-item"><span>Family Bucket (12 pcs)</span><span class="price">320 EGP</span></div>
-    <div class="menu-item"><span>Zinger Supreme</span><span class="price">72 EGP</span></div>
-    <div class="menu-item"><span>Cheesy Fries</span><span class="price">40 EGP</span></div>
-    <div class="menu-item"><span>Chicken Popcorn</span><span class="price">55 EGP</span></div>
-    <a href="https://bazookaegy.com/en" target="_blank" class="btn secondary">View Full Menu</a>
-  </section>
+<section class="section menu">
+  <h2>Popular Items</h2>
+    
+    <div class="menu-item"><span>Classic Beef Burger</span><span>EGP 120</span></div>
+  
+    <div class="menu-item"><span>Double Cheeseburger</span><span>EGP 160</span></div>
+  
+    <div class="menu-item"><span>Bacon Deluxe Burger</span><span>EGP 140</span></div>
+  
+    <div class="menu-item"><span>Veggie Burger</span><span>EGP 100</span></div>
+  
+    <div class="menu-item"><span>Truffle Burger</span><span>EGP 180</span></div>
+  
+  <a href="https://bazookaegypt.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
 
-  <section class="reviews">
-    <h2>Reviews</h2>
-    <div id="reviews-list"></div>
-    <form class="review-form" id="review-form">
-      <input type="text" placeholder="Your Name" id="reviewer" required>
-      <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
-      <button type="submit">Submit Review</button>
-    </form>
-  </section>
-</main>
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Happy Customer</strong></p>
+      <p>Great food and excellent service! The Burgers here is amazing. Will definitely visit again.</p>
+    </div>
+    <div class="review">
+      <p><strong>Satisfied Diner</strong></p>
+      <p>Fresh ingredients and friendly staff. One of the best Burgers places in town!</p>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
 
-<footer>© 2025 Zo2y. All rights reserved.</footer>
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Bazooka - Premium Burgers Experience</p>
+</footer>
 
 <script>
-const reviewForm = document.getElementById('review-form');
-const reviewsList = document.getElementById('reviews-list');
-
-reviewForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const name = document.getElementById('reviewer').value.trim();
-  const text = document.getElementById('review-text').value.trim();
-  if (!name || !text) return;
-  const div = document.createElement('div');
-  div.className = 'review';
-  const esc = s => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-  div.innerHTML = `<p><strong>${esc(name)}</strong></p><p>${esc(text)}</p>`;
-  reviewsList.appendChild(div);
-  reviewForm.reset();
-});
-
-// Generate ticks dynamically
-const ticksGroup = document.getElementById('ticks');
-for (let i = 0; i <= 10; i++) {
-  const angle = -90 + i * 18; // spread across 180°
-  const rad = angle * Math.PI / 180;
-  const x1 = 100 + 75 * Math.cos(rad);
-  const y1 = 100 + 75 * Math.sin(rad);
-  const x2 = 100 + 85 * Math.cos(rad);
-  const y2 = 100 + 85 * Math.sin(rad);
-  const tick = document.createElementNS("http://www.w3.org/2000/svg","line");
-  tick.setAttribute("x1", x1);
-  tick.setAttribute("y1", y1);
-  tick.setAttribute("x2", x2);
-  tick.setAttribute("y2", y2);
-  tick.setAttribute("class","ticks");
-  ticksGroup.appendChild(tick);
-}
-
-// Speedometer logic
-const needle = document.querySelector('.needle');
-const scoreText = document.getElementById('score-text');
-
-function setMeterFromRating(rating) {
-  const percent = Math.round((rating / 5) * 100);
-  const angle = -90 + (percent * 1.8); // map 0–100% → -90 to +90
-  needle.style.transform = `rotate(${angle}deg)`;
-  scoreText.textContent = percent + "%";
-}
-setMeterFromRating(4.3); // Example rating
+  // Theme Toggle Functionality
+  const themeToggle = document.getElementById('themeToggle');
+  
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    localStorage.setItem('bazooka-theme', theme);
+  }
+  
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+  }
+  
+  function initializeTheme() {
+    const savedTheme = localStorage.getItem('bazooka-theme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(prefersDark ? 'dark' : 'light');
+    }
+  }
+  
+  themeToggle.addEventListener('click', toggleTheme);
+  
+  // Review Form Functionality
+  const reviewForm = document.getElementById('review-form');
+  const reviewsList = document.getElementById('reviews-list');
+  
+  reviewForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('reviewer').value.trim();
+    const text = document.getElementById('review-text').value.trim();
+    
+    if (name && text) {
+      const reviewDiv = document.createElement('div');
+      reviewDiv.className = 'review';
+      reviewDiv.innerHTML = '<p><strong>' + name + '</strong></p><p>' + text + '</p>';
+      reviewsList.appendChild(reviewDiv);
+      reviewForm.reset();
+      
+      // Show success message
+      const successMsg = document.createElement('p');
+      successMsg.textContent = 'Thank you for your review!';
+      successMsg.style.color = '#FF9800';
+      successMsg.style.fontWeight = '600';
+      successMsg.style.marginTop = '10px';
+      reviewForm.appendChild(successMsg);
+      
+      setTimeout(() => {
+        successMsg.remove();
+      }, 3000);
+    }
+  });
+  
+  // Initialize theme on page load
+  initializeTheme();
 </script>
 
-<script src="../js/themeManager.js"></script>
 </body>
 </html>
