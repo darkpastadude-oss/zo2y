@@ -3,417 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BRGR</title>
+<title>BRGR - Gourmet Burger Experience</title>
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  :root {
-    --bg-color-primary: #ffffff;
-    --text-color-primary: #333333;
-    --text-color-secondary: #666666;
-    --nav-bg: #f8f9fa;
-    --nav-shadow: rgba(0, 0, 0, 0.1);
-    --button-bg: #FF6F00;
-    --button-text: #ffffff;
-    --card-bg: #f8f9fa;
-    --input-bg: #ffffff;
-    --input-text: #333333;
-  }
-
-  [data-theme="dark"] {
-    --bg-color-primary: #1e2a4a;
-    --text-color-primary: #ffffff;
-    --text-color-secondary: #cbd5e1;
-    --nav-bg: #2d3748;
-    --nav-shadow: rgba(255, 255, 255, 0.1);
-    --button-bg: #ff944d;
-    --button-text: #111111;
-    --card-bg: #2d3748;
-    --input-bg: #2d3748;
-    --input-text: #ffffff;
-  }
-
-  body {
-    overflow-x: hidden;
-    background-color: var(--bg-color-primary);
-    color: var(--text-color-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    line-height: 1.6;
-  }
-
-  /* Top stripe */
-  .top-stripe {
-    background: #FF9800;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-  }
-
-  .back-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .back-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateX(-3px);
-  }
-
-  .theme-toggle {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-  }
-
-  .theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-
-  /* Hero */
-  .hero {
-    text-align: center;
-    padding: 60px 20px 40px;
-    background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-color-primary) 100%);
-  }
-
-  .logo {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
-    margin-bottom: 30px;
-    border: 4px solid white;
-  }
-
-  .hero h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    font-weight: 700;
-    color: var(--text-color-primary);
-  }
-
-  .hero p {
-    font-size: 1rem;
-    color: var(--text-color-secondary);
-    margin-bottom: 10px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .rating {
-    color: #FF9800;
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  /* Buttons */
-  .btn {
-    display: inline-block;
-    padding: 12px 24px;
-    border-radius: 8px;
-    background: var(--button-bg);
-    color: var(--button-text);
-    text-decoration: none;
-    font-weight: 600;
-    margin: 6px 4px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-
-  .btn.secondary {
-    background: var(--nav-bg);
-    color: var(--text-color-primary);
-    border: 1px solid var(--text-color-primary);
-  }
-
-  .btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 18px rgba(255, 152, 0, 0.2);
-  }
-
-  /* Sections */
-  .section {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
-
-  h2 {
-    margin-bottom: 20px;
-    font-size: 1.6rem;
-    color: var(--text-color-primary);
-    position: relative;
-    padding-bottom: 10px;
-  }
-
-  h2::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 60px;
-    height: 3px;
-    background: #FF9800;
-    border-radius: 2px;
-  }
-
-  /* Hotline */
-  .hotline {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .hotline a {
-    color: var(--text-color-primary);
-    text-decoration: none;
-    font-weight: 700;
-    background: var(--card-bg);
-    padding: 8px 16px;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-  }
-
-  .hotline a:hover {
-    text-decoration: none;
-    background: var(--button-bg);
-    color: var(--button-text);
-  }
-
-  /* Branch cards */
-  .branches {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 20px;
-  }
-
-  .branch-card {
-    flex: 1 1 45%;
-    border: 1px solid var(--nav-shadow);
-    border-radius: 12px;
-    padding: 20px;
-    background: var(--card-bg);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  }
-
-  .branch-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-  }
-
-  .branch-card h3 {
-    margin-bottom: 10px;
-    font-size: 1.2rem;
-    color: var(--text-color-primary);
-  }
-
-  .branch-card p {
-    font-size: 0.95rem;
-    color: var(--text-color-secondary);
-    margin-bottom: 15px;
-  }
-
-  .branch-card a {
-    font-size: 0.9rem;
-    color: var(--text-color-primary);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .branch-card a:hover {
-    text-decoration: underline;
-  }
-
-  /* Menu */
-  .menu-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 10px;
-    border-bottom: 1px solid var(--nav-shadow);
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-  }
-
-  .menu-item:hover {
-    background: var(--card-bg);
-    border-radius: 8px;
-    padding-left: 15px;
-  }
-
-  .menu-item span {
-    color: var(--text-color-secondary);
-  }
-
-  .menu-item span:last-child {
-    font-weight: 600;
-    color: var(--text-color-primary);
-  }
-
-  /* Reviews */
-  .review {
-    border-bottom: 1px solid var(--nav-shadow);
-    padding: 15px 0;
-  }
-
-  .review p {
-    margin-bottom: 5px;
-    color: var(--text-color-secondary);
-  }
-
-  .review p:first-child {
-    font-weight: 600;
-    color: var(--text-color-primary);
-  }
-
-  .review-form {
-    margin-top: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .review-form input,
-  .review-form textarea {
-    padding: 12px;
-    font-size: 1rem;
-    width: 100%;
-    border: 1px solid var(--nav-shadow);
-    border-radius: 8px;
-    background-color: var(--input-bg);
-    color: var(--input-text);
-    transition: all 0.3s ease;
-  }
-
-  .review-form input:focus,
-  .review-form textarea:focus {
-    outline: none;
-    border-color: #FF9800;
-    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
-  }
-
-  .review-form button {
-    background: var(--button-bg);
-    color: var(--button-text);
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: transform 0.2s ease, background-color 0.3s ease;
-    align-self: flex-start;
-  }
-
-  .review-form button:hover {
-    transform: scale(1.05);
-  }
-
-  footer {
-    text-align: center;
-    padding: 40px 20px;
-    border-top: 1px solid var(--nav-shadow);
-    font-size: 0.9rem;
-    color: var(--text-color-secondary);
-    margin-top: 20px;
-    transition: color 0.3s ease;
-  }
-
-  /* Mobile */
-  @media (max-width: 768px) {
-    .logo {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 24px;
-    }
-    
-    .hero {
-      padding: 50px 16px 30px;
-    }
-    
-    .hero h1 {
-      font-size: 2rem;
-    }
-    
-    .btn {
-      padding: 10px 18px;
-      font-size: 0.95rem;
-      margin: 4px 2px;
-    }
-    
-    .branch-card {
-      flex: 1 1 100%;
-    }
-    
-    .section {
-      padding: 30px 16px;
-    }
-    
-    h2 {
-      font-size: 1.4rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .top-stripe {
-      padding: 0 10px;
-    }
-    
-    .back-btn, .theme-toggle {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
-    
-    .hero h1 {
-      font-size: 1.8rem;
-    }
-    
-    .hero p {
-      font-size: 0.9rem;
-    }
-    
-    .hotline {
-      font-size: 1rem;
-    }
-  }
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
 </style>
 </head>
 <body>
@@ -424,68 +59,105 @@
 </div>
 
 <section class="hero">
-  <img src="../images/brgr.jpg" alt="BRGR Logo" class="logo" onclick="window.location.href='../index.html'">
+  <img src="../images/brgr.jpg" alt="BRGR Gourmet Burgers" class="logo" onclick="window.location.href='../index.html'">
   <h1>BRGR</h1>
-  <p>Gourmet burgers with premium toppings & sides.</p>
-  <div class="rating">⭐ 4.4/5</div>
+  <p>Gourmet burgers crafted with premium ingredients, artisanal buns, and chef-inspired creations since 2016</p>
+  <div class="rating">⭐ 4.4/5 (2,800+ reviews)</div>
 
-  <a href="tel:0120 850 890" class="btn">Call Hotline</a>
-  <a href="https://brgregypt.com/" target="_blank" class="btn secondary">View Full Menu</a>
+  <a href="tel:19991" class="btn">Call Hotline: 19991</a>
+  <a href="https://brgr.com/" target="_blank" class="btn secondary">Order Online</a>
 </section>
 
 <section class="section">
   <h2>Contact & Branches</h2>
   <div class="hotline">
-    <strong>Hotline:</strong> <a href="tel:0120 850 890">0120 850 890</a>
+    <strong>Hotline:</strong> <a href="tel:19991">19991</a>
+    <strong>Delivery:</strong> <a href="tel:19991">19991</a>
   </div>
 
   <div class="branches">
+    <div class="branch-card">
+      <h3>Zamalek</h3>
+      <p>26 July Street, Original Branch<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=BRGR+Zamalek+26+July+Street" target="_blank">📍 Get Directions</a>
+    </div>
     
     <div class="branch-card">
       <h3>New Cairo</h3>
-      <p>Cairo Festival</p>
-      <a href="https://maps.google.com/search?q=BRGR%20Cairo%20Festival" target="_blank">📍 Get Directions</a>
+      <p>Cairo Festival City Mall<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=BRGR+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
     </div>
-  
+    
     <div class="branch-card">
       <h3>Sheikh Zayed</h3>
-      <p>Mall of Egypt</p>
-      <a href="https://maps.google.com/search?q=BRGR%20Mall%20of%20Egypt" target="_blank">📍 Get Directions</a>
+      <p>Mall of Egypt, Food Court<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=BRGR+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
     </div>
-  
+    
     <div class="branch-card">
       <h3>Heliopolis</h3>
-      <p>City Center</p>
-      <a href="https://maps.google.com/search?q=BRGR%20City%20Center" target="_blank">📍 Get Directions</a>
+      <p>City Centre Almaza<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=BRGR+City+Centre+Almaza" target="_blank">📍 Get Directions</a>
     </div>
-  
   </div>
 </section>
 
 <section class="section menu">
-  <h2>Popular Items</h2>
+  <h2>Signature Burgers</h2>
     
-    <div class="menu-item"><span>Classic Beef Burger</span><span>EGP 120</span></div>
+    <div class="menu-item"><span>The Classic BRGR</span><span>EGP 145</span></div>
   
-    <div class="menu-item"><span>Double Cheeseburger</span><span>EGP 160</span></div>
+    <div class="menu-item"><span>Double Trouble</span><span>EGP 185</span></div>
   
-    <div class="menu-item"><span>Bacon Deluxe Burger</span><span>EGP 140</span></div>
+    <div class="menu-item"><span>Blue Cheese & Caramelized Onions</span><span>EGP 165</span></div>
   
-    <div class="menu-item"><span>Veggie Burger</span><span>EGP 100</span></div>
+    <div class="menu-item"><span>Truffle Mushroom Swiss</span><span>EGP 195</span></div>
   
-  <a href="https://brgregypt.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+    <div class="menu-item"><span>Spicy Mexicano</span><span>EGP 155</span></div>
+
+    <div class="menu-item"><span>Veggie Delight</span><span>EGP 125</span></div>
+
+  <h2 style="margin-top: 30px;">Sides & Combos</h2>
+  
+    <div class="menu-item"><span>Truffle Parmesan Fries</span><span>EGP 45</span></div>
+  
+    <div class="menu-item"><span>Onion Rings</span><span>EGP 40</span></div>
+  
+    <div class="menu-item"><span>Sweet Potato Fries</span><span>EGP 42</span></div>
+  
+    <div class="menu-item"><span>Classic Combo (Burger + Fries + Drink)</span><span>EGP 180</span></div>
+
+    <div class="menu-item"><span>Premium Combo (Signature + Truffle Fries)</span><span>EGP 220</span></div>
+
+  <h2 style="margin-top: 30px;">Milkshakes</h2>
+  
+    <div class="menu-item"><span>Classic Vanilla</span><span>EGP 55</span></div>
+  
+    <div class="menu-item"><span>Chocolate Fudge</span><span>EGP 60</span></div>
+  
+    <div class="menu-item"><span>Cookies & Cream</span><span>EGP 65</span></div>
+  
+  <a href="https://brgr.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
 </section>
 
 <section class="section reviews">
   <h2>Customer Reviews</h2>
   <div id="reviews-list">
     <div class="review">
-      <p><strong>Happy Customer</strong></p>
-      <p>Great food and excellent service! The Burgers here is amazing. Will definitely visit again.</p>
+      <p><strong>Omar S.</strong></p>
+      <p>Best gourmet burgers in Egypt! The Truffle Mushroom Swiss is absolutely divine. Quality ingredients and perfect execution every time.</p>
     </div>
     <div class="review">
-      <p><strong>Satisfied Diner</strong></p>
-      <p>Fresh ingredients and friendly staff. One of the best Burgers places in town!</p>
+      <p><strong>Layla M.</strong></p>
+      <p>Worth every pound! The brioche buns are incredible and the meat quality is exceptional. Their truffle fries are addictive!</p>
+    </div>
+    <div class="review">
+      <p><strong>Karim F.</strong></p>
+      <p>Perfect spot for burger connoisseurs. The Blue Cheese burger with caramelized onions is a flavor explosion. Milkshakes are top-tier too!</p>
+    </div>
+    <div class="review">
+      <p><strong>Nadia R.</strong></p>
+      <p>Consistently excellent across all branches. The Double Trouble satisfies even the biggest appetites. Premium experience from start to finish.</p>
     </div>
   </div>
   
@@ -499,69 +171,12 @@
 
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
-  <p style="margin-top: 10px; font-size: 0.8rem;">BRGR - Premium Burgers Experience</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">BRGR - Gourmet Burger Experience Since 2016</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Zamalek, New Cairo, Sheikh Zayed, Heliopolis, Maadi, Nasr City</p>
 </footer>
 
 <script>
-  // Theme Toggle Functionality
-  const themeToggle = document.getElementById('themeToggle');
-  
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-    localStorage.setItem('brgr-theme', theme);
-  }
-  
-  function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    applyTheme(newTheme);
-  }
-  
-  function initializeTheme() {
-    const savedTheme = localStorage.getItem('brgr-theme');
-    if (savedTheme) {
-      applyTheme(savedTheme);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      applyTheme(prefersDark ? 'dark' : 'light');
-    }
-  }
-  
-  themeToggle.addEventListener('click', toggleTheme);
-  
-  // Review Form Functionality
-  const reviewForm = document.getElementById('review-form');
-  const reviewsList = document.getElementById('reviews-list');
-  
-  reviewForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = document.getElementById('reviewer').value.trim();
-    const text = document.getElementById('review-text').value.trim();
-    
-    if (name && text) {
-      const reviewDiv = document.createElement('div');
-      reviewDiv.className = 'review';
-      reviewDiv.innerHTML = '<p><strong>' + name + '</strong></p><p>' + text + '</p>';
-      reviewsList.appendChild(reviewDiv);
-      reviewForm.reset();
-      
-      // Show success message
-      const successMsg = document.createElement('p');
-      successMsg.textContent = 'Thank you for your review!';
-      successMsg.style.color = '#FF9800';
-      successMsg.style.fontWeight = '600';
-      successMsg.style.marginTop = '10px';
-      reviewForm.appendChild(successMsg);
-      
-      setTimeout(() => {
-        successMsg.remove();
-      }, 3000);
-    }
-  });
-  
-  // Initialize theme on page load
-  initializeTheme();
+const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('brgr-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('brgr-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
 </script>
 
 </body>
