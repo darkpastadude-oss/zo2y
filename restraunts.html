@@ -96,6 +96,11 @@
       transition: all 0.3s ease;
     }
 
+    .search input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 4px 18px rgba(255, 111, 0, 0.2);
+    }
+
     .search .icon {
       position: absolute;
       left: 12px;
@@ -599,6 +604,7 @@
             <option value="Grilled Chicken">Grilled Chicken</option>
             <option value="Hot Chicken">Hot Chicken</option>
             <option value="American">American</option>
+            <option value="Koshary">Koshary</option>
           </select>
         </div>
       </div>
@@ -951,6 +957,39 @@
         desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', 
         rating:4.6,
         image: 'mince.jpg'
+      },
+      // YOUR NEW RESTAURANTS
+      { 
+        slug:'88', 
+        name:'Pizza 88', 
+        category:'Pizza', 
+        desc:'Delicious pizzas with fresh ingredients and perfect crust.', 
+        rating:4.3,
+        image: '88.jpg'
+      },
+      { 
+        slug:'kansas', 
+        name:'Kansas Chicken', 
+        category:'Fried Chicken', 
+        desc:'Crispy fried chicken with signature spices and family meal options.', 
+        rating:4.4,
+        image: 'kansas.png'
+      },
+      { 
+        slug:'ward', 
+        name:'Koshary Ward', 
+        category:'Koshary', 
+        desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', 
+        rating:4.7,
+        image: 'ward.png'
+      },
+      { 
+        slug:'willys', 
+        name:'Willy\'s', 
+        category:'Burgers', 
+        desc:'Classic burgers with juicy patties and all your favorite toppings.', 
+        rating:4.5,
+        image: 'willys.png'
       }
     ];
 
