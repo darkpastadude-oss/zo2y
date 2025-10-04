@@ -3,23 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Labash - Charcoal Grilled Chicken</title>
+<title>Labash - Premium Charcoal Grilled Chicken & Meats</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800}
 [data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
 .back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
 .back-btn{display:flex;align-items:center;gap:6px}
 .back-btn:hover{transform:translateX(-3px)}
-.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
-.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
-.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
-.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
+.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,152,0,0.05)"/></svg>');background-size:cover;pointer-events:none}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
 .btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
 .btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
 .section{max-width:900px;margin:0 auto;padding:40px 20px}
@@ -35,6 +36,9 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
+.menu-categories{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.menu-category-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
+.menu-category-btn.active,.menu-category-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
@@ -48,6 +52,10 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+.branch-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.branch-filter-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease}
+.branch-filter-btn.active,.branch-filter-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
+.hidden{display:none}
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
 </style>
 </head>
@@ -75,87 +83,184 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     <strong>Delivery:</strong> <a href="tel:0120604752">0120 604 752</a>
   </div>
 
-  <div class="branches">
-    <div class="branch-card">
-      <h3>New Cairo</h3>
+  <div class="branch-filter" id="branchFilter">
+    <button class="branch-filter-btn active" data-location="all">All Locations</button>
+    <button class="branch-filter-btn" data-location="cairo">Cairo</button>
+    <button class="branch-filter-btn" data-location="alexandria">Alexandria</button>
+    <button class="branch-filter-btn" data-location="tanta">Tanta</button>
+    <button class="branch-filter-btn" data-location="international">International</button>
+  </div>
+
+  <div class="branches" id="branchesContainer">
+    <div class="branch-card" data-location="cairo">
+      <h3>New Cairo - Point 90 Mall</h3>
       <p>Point 90 Mall, Food Court<br>Open: 10:00 AM - 2:00 AM</p>
       <a href="https://maps.google.com/search?q=Labash+Point+90+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Sheikh Zayed</h3>
+    <div class="branch-card" data-location="cairo">
+      <h3>New Cairo - Cairo Festival City Mall</h3>
+      <p>Cairo Festival City Mall<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Cairo+Festival+City+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Sheikh Zayed - Mall of Egypt</h3>
       <p>Mall of Egypt, 1st Floor<br>Open: 10:00 AM - 2:00 AM</p>
       <a href="https://maps.google.com/search?q=Labash+Mall+of+Egypt+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Heliopolis</h3>
+    <div class="branch-card" data-location="cairo">
+      <h3>Heliopolis - Korba District</h3>
       <p>Korba District<br>Open: 10:00 AM - 2:00 AM</p>
       <a href="https://maps.google.com/search?q=Labash+Korba+Heliopolis" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Nasr City</h3>
+    <div class="branch-card" data-location="cairo">
+      <h3>Nasr City - City Stars Mall</h3>
       <p>City Stars Mall<br>Open: 10:00 AM - 2:00 AM</p>
       <a href="https://maps.google.com/search?q=Labash+City+Stars+Nasr+City" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Maadi - Court Yard</h3>
+      <p>Court Yard, Maadi<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Court+Yard+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Heliopolis - City Center Almaza</h3>
+      <p>City Center Almaza<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+City+Center+Almaza+Heliopolis" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Madinaty - Open Air Mall</h3>
+      <p>Open Air Mall, Madinaty<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Open+Air+Mall+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>6th of October - Mall of Arabia</h3>
+      <p>Mall of Arabia, Gate 3<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Mall+of+Arabia+6th+of+October" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="alexandria">
+      <h3>Alexandria - Tivoli Dome</h3>
+      <p>Tivoli Dome<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Tivoli+Dome+Alexandria" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="tanta">
+      <h3>Tanta - Mall of Tanta</h3>
+      <p>Mall of Tanta<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Mall+of+Tanta" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="international">
+      <h3>Dubai, UAE</h3>
+      <p>Multiple locations across Dubai<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Dubai" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="international">
+      <h3>Saudi Arabia - Riyadh & Jeddah</h3>
+      <p>Multiple locations in Riyadh & Jeddah<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Labash+Saudi+Arabia" target="_blank">📍 Get Directions</a>
     </div>
   </div>
 </section>
 
 <section class="section menu">
-  <h2>Charcoal Grilled Chicken</h2>
-    
-    <div class="menu-item"><span>Whole Grilled Chicken</span><span>EGP 180</span></div>
+  <h2>Our Menu</h2>
   
-    <div class="menu-item"><span>Half Grilled Chicken</span><span>EGP 100</span></div>
+  <div class="menu-categories" id="menuCategories">
+    <button class="menu-category-btn active" data-category="all">All Items</button>
+    <button class="menu-category-btn" data-category="chicken">Grilled Chicken</button>
+    <button class="menu-category-btn" data-category="meats">Grilled Meats</button>
+    <button class="menu-category-btn" data-category="sandwiches">Sandwiches</button>
+    <button class="menu-category-btn" data-category="combos">Family Meals & Combos</button>
+    <button class="menu-category-btn" data-category="skewers">Skewers</button>
+    <button class="menu-category-btn" data-category="sides">Sides & Extras</button>
+    <button class="menu-category-btn" data-category="desserts">Desserts</button>
+    <button class="menu-category-btn" data-category="drinks">Drinks</button>
+  </div>
+
+  <div class="menu-items-container">
+    <!-- Grilled Chicken -->
+    <div class="menu-category-section" data-category="chicken">
+      <h3>Charcoal Grilled Chicken</h3>
+      <div class="menu-item"><span>Whole Grilled Chicken</span><span>EGP 180</span></div>
+      <div class="menu-item"><span>Half Grilled Chicken</span><span>EGP 100</span></div>
+      <div class="menu-item"><span>Grilled Chicken Plate</span><span>EGP 130</span></div>
+      <div class="menu-item"><span>Spicy Grilled Chicken</span><span>EGP 140</span></div>
+    </div>
+
+    <!-- Grilled Meats -->
+    <div class="menu-category-section" data-category="meats">
+      <h3>Grilled Meats</h3>
+      <div class="menu-item"><span>Beef Kebab Plate</span><span>EGP 150</span></div>
+      <div class="menu-item"><span>Kofta Kebab Plate</span><span>EGP 140</span></div>
+      <div class="menu-item"><span>Mixed Grill Platter</span><span>EGP 220</span></div>
+      <div class="menu-item"><span>Shish Tawook Plate</span><span>EGP 135</span></div>
+    </div>
+
+    <!-- Sandwiches -->
+    <div class="menu-category-section" data-category="sandwiches">
+      <h3>Sandwiches & Fast Bites</h3>
+      <div class="menu-item"><span>Chicken Shawarma Sandwich</span><span>EGP 65</span></div>
+      <div class="menu-item"><span>Beef Shawarma Sandwich</span><span>EGP 75</span></div>
+      <div class="menu-item"><span>Grilled Chicken Sandwich</span><span>EGP 80</span></div>
+      <div class="menu-item"><span>Kofta Sandwich</span><span>EGP 70</span></div>
+    </div>
+
+    <!-- Family Meals & Combos -->
+    <div class="menu-category-section" data-category="combos">
+      <h3>Family Meals & Combos</h3>
+      <div class="menu-item"><span>Family Grill Platter (4 persons)</span><span>EGP 380</span></div>
+      <div class="menu-item"><span>Whole Chicken Meal (Chicken + Rice + Salad)</span><span>EGP 220</span></div>
+      <div class="menu-item"><span>Mixed Grill Combo</span><span>EGP 280</span></div>
+      <div class="menu-item"><span>Sandwich Combo (Sandwich + Fries + Drink)</span><span>EGP 100</span></div>
+    </div>
+
+    <!-- Skewers -->
+    <div class="menu-category-section" data-category="skewers">
+      <h3>Premium Skewers</h3>
+      <div class="menu-item"><span>Chicken Labash Skewer</span><span>EGP 300</span></div>
+      <div class="menu-item"><span>Burger Labash Skewer (breasts & thighs)</span><span>EGP 300</span></div>
+      <div class="menu-item"><span>Labash Mix Skewer</span><span>EGP 300</span></div>
+      <div class="menu-item"><span>Fillet Labash</span><span>EGP 450</span></div>
+    </div>
+
+    <!-- Sides & Extras -->
+    <div class="menu-category-section" data-category="sides">
+      <h3>Sides & Extras</h3>
+      <div class="menu-item"><span>French Fries</span><span>EGP 30</span></div>
+      <div class="menu-item"><span>Egyptian Rice</span><span>EGP 25</span></div>
+      <div class="menu-item"><span>Garlic Sauce</span><span>EGP 15</span></div>
+      <div class="menu-item"><span>Tahini Sauce</span><span>EGP 12</span></div>
+      <div class="menu-item"><span>Grilled Vegetables</span><span>EGP 35</span></div>
+      <div class="menu-item"><span>Cheese Sauce</span><span>EGP 40</span></div>
+      <div class="menu-item"><span>Habshtkanat (Fries, cola, sauces & pickles)</span><span>EGP 50</span></div>
+    </div>
+
+    <!-- Desserts -->
+    <div class="menu-category-section" data-category="desserts">
+      <h3>Desserts</h3>
+      <div class="menu-item"><span>Shamozo (tea + grilled banana)</span><span>EGP 70</span></div>
+    </div>
+
+    <!-- Drinks -->
+    <div class="menu-category-section" data-category="drinks">
+      <h3>Drinks</h3>
+      <div class="menu-item"><span>Small Mineral Water</span><span>EGP 10</span></div>
+      <div class="menu-item"><span>Soft Drinks</span><span>EGP 15</span></div>
+      <div class="menu-item"><span>Fresh Juices</span><span>EGP 25</span></div>
+    </div>
+  </div>
   
-    <div class="menu-item"><span>Grilled Chicken Plate</span><span>EGP 130</span></div>
-  
-    <div class="menu-item"><span>Spicy Grilled Chicken</span><span>EGP 140</span></div>
-
-  <h2 style="margin-top: 30px;">Grilled Meats</h2>
-  
-    <div class="menu-item"><span>Beef Kebab Plate</span><span>EGP 150</span></div>
-  
-    <div class="menu-item"><span>Kofta Kebab Plate</span><span>EGP 140</span></div>
-  
-    <div class="menu-item"><span>Mixed Grill Platter</span><span>EGP 220</span></div>
-  
-    <div class="menu-item"><span>Shish Tawook Plate</span><span>EGP 135</span></div>
-
-  <h2 style="margin-top: 30px;">Sandwiches & Fast Bites</h2>
-
-    <div class="menu-item"><span>Chicken Shawarma Sandwich</span><span>EGP 65</span></div>
-
-    <div class="menu-item"><span>Beef Shawarma Sandwich</span><span>EGP 75</span></div>
-
-    <div class="menu-item"><span>Grilled Chicken Sandwich</span><span>EGP 80</span></div>
-
-    <div class="menu-item"><span>Kofta Sandwich</span><span>EGP 70</span></div>
-
-  <h2 style="margin-top: 30px;">Family Meals & Combos</h2>
-
-    <div class="menu-item"><span>Family Grill Platter (4 persons)</span><span>EGP 380</span></div>
-
-    <div class="menu-item"><span>Whole Chicken Meal (Chicken + Rice + Salad)</span><span>EGP 220</span></div>
-
-    <div class="menu-item"><span>Mixed Grill Combo</span><span>EGP 280</span></div>
-
-    <div class="menu-item"><span>Sandwich Combo (Sandwich + Fries + Drink)</span><span>EGP 100</span></div>
-
-  <h2 style="margin-top: 30px;">Sides & Extras</h2>
-
-    <div class="menu-item"><span>French Fries</span><span>EGP 30</span></div>
-
-    <div class="menu-item"><span>Egyptian Rice</span><span>EGP 25</span></div>
-
-    <div class="menu-item"><span>Garlic Sauce</span><span>EGP 15</span></div>
-
-    <div class="menu-item"><span>Tahini Sauce</span><span>EGP 12</span></div>
-
-    <div class="menu-item"><span>Grilled Vegetables</span><span>EGP 35</span></div>
-  
-  <a href="https://www.talabat.com/egypt/labash" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+  <a href="https://www.talabat.com/egypt/labash" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu & Order Online</a>
 </section>
 
 <section class="section reviews">
@@ -190,11 +295,113 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
   <p style="margin-top: 10px; font-size: 0.8rem;">Labash - Premium Charcoal Grilled Meats Since 2018</p>
-  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Sheikh Zayed, Heliopolis, Nasr City, Maadi</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Sheikh Zayed, Heliopolis, Nasr City, Maadi, Alexandria, Tanta & International Locations</p>
 </footer>
 
 <script>
-const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('labash-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('labash-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('labash-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('labash-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const reviewer = document.getElementById('reviewer').value.trim();
+  const reviewText = document.getElementById('review-text').value.trim();
+  
+  if (reviewer && reviewText) {
+    const reviewElement = document.createElement('div');
+    reviewElement.className = 'review';
+    reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+    reviewsList.appendChild(reviewElement);
+    reviewForm.reset();
+    
+    const thankYouMessage = document.createElement('p');
+    thankYouMessage.textContent = 'Thank you for your review!';
+    thankYouMessage.style.color = '#FF9800';
+    thankYouMessage.style.fontWeight = '600';
+    thankYouMessage.style.marginTop = '10px';
+    reviewForm.appendChild(thankYouMessage);
+    
+    setTimeout(() => {
+      thankYouMessage.remove();
+    }, 3000);
+  }
+});
+
+// Branch Filter Functionality
+const branchFilterBtns = document.querySelectorAll('.branch-filter-btn');
+const branchCards = document.querySelectorAll('.branch-card');
+
+branchFilterBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const location = this.getAttribute('data-location');
+    
+    // Update active button
+    branchFilterBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter branches
+    branchCards.forEach(card => {
+      if (location === 'all' || card.getAttribute('data-location') === location) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+menuCategoryBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const category = this.getAttribute('data-category');
+    
+    // Update active button
+    menuCategoryBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter menu items
+    menuCategorySections.forEach(section => {
+      if (category === 'all' || section.getAttribute('data-category') === category) {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Initialize the page
+initializeTheme();
 </script>
 
 </body>
