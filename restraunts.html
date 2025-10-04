@@ -44,12 +44,12 @@
     .category-filters { margin-left: auto; }
     .category-dropdown select { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 13px; }
 
-    /* Grid - IMPROVED MOBILE LAYOUT */
+    /* Grid - FIXED IMAGE PROPORTIONS */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
     .tile { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s ease; }
     .tile:hover { transform: translateY(-2px); }
-    .tile .media { height: 100px; overflow: hidden; background: var(--glass); }
-    .tile img { width: 100%; height: 100%; object-fit: cover; }
+    .tile .media { height: 100px; overflow: hidden; background: var(--glass); display: flex; align-items: center; justify-content: center; padding: 8px; }
+    .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
     .tile .inner { padding: 10px; }
     .tile h3 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; }
     .tile .category { color: var(--muted); font-size: 11px; margin: 0 0 6px 0; }
@@ -69,15 +69,15 @@
       .toolbar { margin-left: 0; width: 100%; justify-content: space-between; }
       .search { width: 180px; }
       .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-      .tile .media { height: 80px; }
+      .tile .media { height: 80px; padding: 6px; }
       .tile .inner { padding: 8px; }
       .tile h3 { font-size: 13px; }
       .tile .desc { font-size: 10px; }
-      .list-actions { opacity: 1; } /* Always show on mobile */
+      .list-actions { opacity: 1; }
     }
 
     @media (max-width: 480px) {
-      .grid { grid-template-columns: repeat(2, 1fr); } /* 2 columns on very small screens */
+      .grid { grid-template-columns: repeat(2, 1fr); }
       .search { width: 140px; }
       .toolbar { gap: 6px; }
     }
@@ -228,27 +228,37 @@
       isInList(listName, slug) { return this[listName].includes(slug); }
     };
 
-    // Restaurant Data (shortened)
+    // COMPLETE Restaurant Data
     const restaurants = [
-      { slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain', rating:4.7, image: 'mori.png' },
-      { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs', rating:4.5, image: 'kilo.png' },
-      { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite', rating:4.3, image: 'hameed.png' },
-      { slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers', rating:4.2, image: 'bazooka.jpg' },
-      { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote & tacos', rating:4.0, image: 'mexican.jpg' },
-      { slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken', rating:4.5, image: 'chikin.png' },
-      { slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Coffee & pastries', rating:4.6, image: 'vasko.jpg' },
-      { slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse', rating:4.4, image: 'secondcup.png' },
-      { slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas', rating:4.3, image: 'station.png' },
-      { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers', rating:4.4, image: 'brgr.jpg' },
-      { slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Loaded burgers & chicken', rating:4.6, image: 'pickl.jpg' },
-      { slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Spicy fried chicken', rating:4.3, image: 'heart.jpg' },
-      { slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza', rating:4.4, image: 'what.png' },
-      { slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers', rating:4.5, image: 'buffalo.jpg' },
-      { slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers', rating:4.6, image: 'mince.jpg' },
-      { slug:'88', name:'Pizza 88', category:'Pizza', desc:'Fresh ingredient pizzas', rating:4.3, image: '88.jpg' },
-      { slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken', rating:4.4, image: 'kansas.png' },
-      { slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian', rating:4.7, image: 'ward.png' },
-      { slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers', rating:4.5, image: 'willys.png' }
+      { slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
+      { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
+      { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
+      { slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
+      { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
+      { slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
+      { slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
+      { slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
+      { slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
+      { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
+      { slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
+      { slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
+      { slug:'maine', name:'Maine', category:'Fast Food', desc:'Fresh seafood, lobster rolls & New England classics.', rating:4.5, image: 'maine.jpg' },
+      { slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
+      { slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
+      { slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
+      { slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
+      { slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
+      { slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
+      { slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
+      { slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
+      { slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
+      { slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
+      { slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
+      { slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
+      { slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
+      { slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
+      { slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
+      { slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' }
     ];
 
     // Rendering and Filtering
