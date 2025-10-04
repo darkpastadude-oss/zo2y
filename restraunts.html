@@ -5,532 +5,81 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Zo2y — All Restaurants</title>
   <style>
-    /* ---------- CSS Variables for Theme Switching ---------- */
-    :root {
-      --bg: #ffffff;
-      --card: #f8f9fa;
-      --muted: #6c757d;
-      --accent: #FF6F00;
-      --glass: rgba(0,0,0,0.03);
-      --white: #000000;
-      --border: rgba(0,0,0,0.08);
-    }
+    :root { --bg: #ffffff; --card: #f8f9fa; --muted: #6c757d; --accent: #FF6F00; --glass: rgba(0,0,0,0.03); --white: #000000; --border: rgba(0,0,0,0.08); }
+    [data-theme="dark"] { --bg: #1e2a4a; --card: #2d3748; --muted: #cbd5e1; --accent: #ff944d; --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); }
 
-    [data-theme="dark"] {
-      --bg: #1e2a4a;
-      --card: #2d3748;
-      --muted: #cbd5e1;
-      --accent: #ff944d;
-      --glass: rgba(255,255,255,0.03);
-      --white: #ffffff;
-      --border: rgba(255,255,255,0.1);
-    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--white); transition: background-color 0.3s ease, color 0.3s ease; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
 
-    * {
-      box-sizing: border-box;
-    }
+    /* Header */
+    header { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 20px; padding: 12px 20px; backdrop-filter: blur(6px); background: var(--glass); border-bottom: 1px solid var(--border); }
+    .logo { height: 40px; cursor: pointer; }
+    .toolbar { display: flex; gap: 10px; margin-left: auto; align-items: center; flex-wrap: wrap; }
+    .search { width: 280px; position: relative; }
+    .search input { width: 100%; padding: 8px 12px 8px 36px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; }
+    .search input:focus { border-color: var(--accent); }
+    .search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.85; }
+    .btn, .theme-toggle { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; transition: all 0.3s ease; }
+    .btn:hover, .theme-toggle:hover { background: var(--accent); color: #111; }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: var(--bg);
-      color: var(--white);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
+    /* User Auth */
+    .user-auth { display: flex; align-items: center; gap: 10px; }
+    .auth-btn { background: var(--accent); color: #111; border: none; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .user-welcome { display: none; align-items: center; gap: 6px; font-size: 13px; }
+    .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #111; }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    /* Main Content */
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+    .login-prompt { display: none; background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center; }
+    .list-tabs { display: none; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
+    .list-tab { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+    .list-tab.active { background: var(--accent); color: #111; }
+    .list-tab .count { background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 8px; font-size: 11px; margin-left: 4px; }
+    [data-theme="dark"] .list-tab .count { background: rgba(255,255,255,0.1); }
 
-    img {
-      display: block;
-      max-width: 100%;
-      height: auto;
-    }
+    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .controls-info { color: var(--muted); font-size: 13px; }
+    .category-filters { margin-left: auto; }
+    .category-dropdown select { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 13px; }
 
-    /* ---------- NAV ---------- */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 60;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      padding: 14px 28px;
-      backdrop-filter: blur(6px);
-      background: var(--glass);
-      border-bottom: 1px solid var(--border);
-    }
+    /* Grid - IMPROVED MOBILE LAYOUT */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+    .tile { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s ease; }
+    .tile:hover { transform: translateY(-2px); }
+    .tile .media { height: 100px; overflow: hidden; background: var(--glass); }
+    .tile img { width: 100%; height: 100%; object-fit: cover; }
+    .tile .inner { padding: 10px; }
+    .tile h3 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; }
+    .tile .category { color: var(--muted); font-size: 11px; margin: 0 0 6px 0; }
+    .tile .rating { color: var(--accent); font-weight: 700; }
+    .tile .desc { color: var(--muted); font-size: 11px; margin: 6px 0 0 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-    .logo {
-      height: 44px;
-      cursor: pointer;
-    }
+    .list-actions { position: absolute; top: 6px; right: 6px; display: flex; flex-direction: column; gap: 4px; opacity: 0; transition: opacity 0.3s ease; }
+    .tile:hover .list-actions { opacity: 1; }
+    .list-btn { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 4px 6px; border-radius: 12px; display: flex; align-items: center; gap: 2px; cursor: pointer; font-size: 10px; backdrop-filter: blur(10px); }
 
-    .toolbar {
-      display: flex;
-      gap: 12px;
-      margin-left: auto;
-      align-items: center;
-    }
+    .empty { padding: 40px 16px; text-align: center; color: var(--muted); display: none; }
+    footer { padding: 20px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 30px; }
 
-    .search {
-      width: 360px;
-      position: relative;
-    }
-
-    .search input {
-      width: 100%;
-      padding: 10px 14px 10px 44px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--white);
-      outline: none;
-      font-size: 14px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-    }
-
-    .search input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 4px 18px rgba(255, 111, 0, 0.2);
-    }
-
-    .search .icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: 0.85;
-      font-size: 16px;
-    }
-
-    .btn {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 8px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-
-    .btn:hover {
-      background: var(--accent);
-      color: #111;
-    }
-
-    .btn.active {
-      background: var(--accent);
-      color: #111;
-    }
-
-    .theme-toggle {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 8px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-
-    .theme-toggle:hover {
-      background: var(--accent);
-      color: #111;
-    }
-
-    /* User Auth Section */
-    .user-auth {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .auth-btn {
-      background: var(--accent);
-      color: #111;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .auth-btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .user-welcome {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    .user-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: #111;
-    }
-
-    .account-link {
-      color: var(--accent);
-      text-decoration: underline;
-      cursor: pointer;
-      margin-left: 8px;
-    }
-
-    /* ---------- MAIN CONTENT ---------- */
-    .container {
-      max-width: 1200px;
-      margin: 28px auto;
-      padding: 0 28px;
-    }
-
-    /* Login Prompt */
-    .login-prompt {
-      display: none;
-      background: var(--card);
-      border: 1px solid var(--accent);
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px 0;
-      text-align: center;
-    }
-
-    .login-prompt h3 {
-      margin: 0 0 8px 0;
-      color: var(--accent);
-    }
-
-    .login-prompt p {
-      margin: 0 0 16px 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    /* List Tabs */
-    .list-tabs {
-      display: none;
-      gap: 8px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-    }
-
-    .list-tab {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-
-    .list-tab.active {
-      background: var(--accent);
-      color: #111;
-    }
-
-    .list-tab .count {
-      background: rgba(0,0,0,0.1);
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-size: 12px;
-      margin-left: 6px;
-    }
-
-    [data-theme="dark"] .list-tab .count {
-      background: rgba(255,255,255,0.1);
-    }
-
-    .controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-    }
-
-    .controls-info {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .category-filters {
-      margin-left: auto;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .category-dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .category-dropdown select {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 8px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      appearance: none;
-      padding-right: 32px;
-    }
-
-    .category-dropdown::after {
-      content: "▼";
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    /* Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
-    }
-
-    .tile {
-      background: var(--card);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.1);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: transform 0.22s cubic-bezier(.2,.9,.2,1);
-      position: relative;
-    }
-
-    .tile:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 36px rgba(0,0,0,0.15);
-    }
-
-    .tile .media {
-      height: 160px;
-      overflow: hidden;
-      background: var(--glass);
-      position: relative;
-    }
-
-    .tile img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      background-color: var(--bg);
-    }
-
-    .tile .inner {
-      padding: 16px;
-    }
-
-    .tile h3 {
-      margin: 0 0 6px 0;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--white);
-    }
-
-    .tile .category {
-      color: var(--muted);
-      font-size: 13px;
-      margin: 0 0 8px 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .tile .rating {
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .tile .desc {
-      color: var(--muted);
-      font-size: 13px;
-      margin: 8px 0 0 0;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    /* Clear List Actions */
-    .list-actions {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .tile:hover .list-actions {
-      opacity: 1;
-    }
-
-    .list-btn {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 6px 10px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-      white-space: nowrap;
-    }
-
-    .list-btn:hover {
-      transform: scale(1.05);
-    }
-
-    .list-btn.favorite.active {
-      background: #ff4757;
-      color: white;
-    }
-
-    .list-btn.visited.active {
-      background: #2ed573;
-      color: white;
-    }
-
-    .list-btn.want-to-go.active {
-      background: #3742fa;
-      color: white;
-    }
-
-    .empty {
-      padding: 60px 20px;
-      text-align: center;
-      color: var(--muted);
-      display: none;
-    }
-
-    .empty-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
-
-    /* ---------- FOOTER ---------- */
-    footer {
-      padding: 28px;
-      color: var(--muted);
-      text-align: center;
-      border-top: 1px solid var(--border);
-      margin-top: 40px;
-    }
-
-    footer a {
-      color: var(--accent);
-      transition: color 0.3s ease;
-    }
-
-    footer a:hover {
-      color: var(--white);
-    }
-
-    /* ---------- RESPONSIVE ---------- */
-    @media (max-width: 980px) {
-      .search {
-        width: 280px;
-      }
-      
-      .grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      }
-    }
-
+    /* Mobile Improvements */
     @media (max-width: 768px) {
-      header {
-        padding: 14px 16px;
-        flex-wrap: wrap;
-      }
-      
-      .toolbar {
-        margin-left: 0;
-        width: 100%;
-        justify-content: space-between;
-        margin-top: 12px;
-      }
-      
-      .search {
-        width: 100%;
-        max-width: 300px;
-      }
-      
-      .container {
-        padding: 0 16px;
-      }
-      
-      .category-filters {
-        margin-left: 0;
-        width: 100%;
-        justify-content: center;
-        margin-top: 12px;
-      }
-
-      .list-tabs {
-        overflow-x: auto;
-        padding-bottom: 8px;
-      }
-
-      .list-actions {
-        opacity: 1; /* Always show on mobile */
-      }
+      header { padding: 10px 15px; flex-wrap: wrap; gap: 12px; }
+      .toolbar { margin-left: 0; width: 100%; justify-content: space-between; }
+      .search { width: 180px; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+      .tile .media { height: 80px; }
+      .tile .inner { padding: 8px; }
+      .tile h3 { font-size: 13px; }
+      .tile .desc { font-size: 10px; }
+      .list-actions { opacity: 1; } /* Always show on mobile */
     }
 
-    @media (max-width: 560px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .search {
-        max-width: 200px;
-      }
-
-      .user-auth {
-        flex-direction: column;
-        gap: 8px;
-      }
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: repeat(2, 1fr); } /* 2 columns on very small screens */
+      .search { width: 140px; }
+      .toolbar { gap: 6px; }
     }
   </style>
 </head>
@@ -543,42 +92,31 @@
         <input id="q" placeholder="Search restaurants...">
       </div>
       <button class="btn" id="reset">Reset</button>
-      <button class="btn" id="sortBtn">Sort: Popular</button>
       
-      <!-- User Auth Section -->
       <div class="user-auth">
         <div class="user-welcome" id="userWelcome">
           <div class="user-avatar" id="userAvatar">U</div>
-          <span>Hi, <span id="userName">User</span>!</span>
-          <a href="account/index.html" class="account-link">My Account</a>
+          <span id="userName">User</span>
         </div>
         <button class="auth-btn" id="loginBtn">Sign In</button>
       </div>
       
-      <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+      <button class="theme-toggle" id="themeToggle">🌙</button>
     </div>
   </header>
 
-  <main class="container" role="main">
-    <!-- Login Prompt (shown to guests) -->
+  <main class="container">
     <div class="login-prompt" id="loginPrompt">
       <h3>✨ Get the full experience!</h3>
-      <p>Sign in to create favorites lists, track visited restaurants, and save your preferences.</p>
+      <p>Sign in to create favorites lists and save your preferences.</p>
       <button class="auth-btn" onclick="location.href='login.html'">Sign In Now</button>
     </div>
 
-    <!-- List Tabs (only for logged-in users) -->
     <div class="list-tabs" id="listTabs">
-      <button class="list-tab active" data-list="all">All Restaurants</button>
-      <button class="list-tab" data-list="favorites">
-        My Favorites <span class="count" id="favoritesCount">0</span>
-      </button>
-      <button class="list-tab" data-list="visited">
-        Visited <span class="count" id="visitedCount">0</span>
-      </button>
-      <button class="list-tab" data-list="want-to-go">
-        Want to Go <span class="count" id="wantToGoCount">0</span>
-      </button>
+      <button class="list-tab active" data-list="all">All</button>
+      <button class="list-tab" data-list="favorites">Favorites <span class="count" id="favoritesCount">0</span></button>
+      <button class="list-tab" data-list="visited">Visited <span class="count" id="visitedCount">0</span></button>
+      <button class="list-tab" data-list="want-to-go">Want to Go <span class="count" id="wantToGoCount">0</span></button>
     </div>
 
     <div class="controls">
@@ -600,595 +138,212 @@
       </div>
     </div>
 
-    <div id="grid" class="grid" aria-live="polite"></div>
+    <div id="grid" class="grid"></div>
     <div id="empty" class="empty">
-      <div class="empty-icon">🍽️</div>
+      <div>🍽️</div>
       <h3>No restaurants found</h3>
-      <p>Try adjusting your search or filter criteria</p>
+      <p>Try adjusting your search or filters</p>
     </div>
   </main>
 
-  <footer>
-    © 2025 Zo2y — Built with ❤️ • <a href="terms.html">Terms</a> • <a href="privacy.html">Privacy</a>
-  </footer>
+  <footer>© 2025 Zo2y — Built with ❤️</footer>
 
   <script>
-    // ===== DARK MODE SYSTEM =====
+    // Theme System
     const themeToggle = document.getElementById('themeToggle');
-
     function applyTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
-      themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
       localStorage.setItem('zo2y-theme', theme);
     }
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      applyTheme(current === 'light' ? 'dark' : 'light');
+    });
+    const savedTheme = localStorage.getItem('zo2y-theme');
+    if (savedTheme) applyTheme(savedTheme);
 
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      applyTheme(newTheme);
-    }
-
-    function initializeTheme() {
-      const savedTheme = localStorage.getItem('zo2y-theme');
-      if (savedTheme) {
-        applyTheme(savedTheme);
-      } else {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        applyTheme(prefersDark ? 'dark' : 'light');
-      }
-    }
-
-    themeToggle.addEventListener('click', toggleTheme);
-
-    // ===== USER AUTH SYSTEM =====
+    // Auth System
     const authManager = {
       currentUser: null,
-      
-      init() {
-        this.loadUser();
-        this.updateUI();
+      init() { this.loadUser(); this.updateUI(); },
+      loadUser() { this.currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser')); },
+      login(userData) { 
+        this.currentUser = userData; 
+        localStorage.setItem('zo2y-currentUser', JSON.stringify(userData)); 
+        this.updateUI(); 
+        listManager.init();
+        filterAndRender();
       },
-      
-      loadUser() {
-        this.currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser'));
+      logout() { 
+        this.currentUser = null; 
+        localStorage.removeItem('zo2y-currentUser'); 
+        this.updateUI(); 
+        filterAndRender();
       },
-      
-      login(userData) {
-        this.currentUser = userData;
-        localStorage.setItem('zo2y-currentUser', JSON.stringify(userData));
-        this.updateUI();
-        listManager.init(); // Initialize lists for the logged-in user
-        filterAndRender(); // Re-render to show list buttons
-      },
-      
-      logout() {
-        this.currentUser = null;
-        localStorage.removeItem('zo2y-currentUser');
-        this.updateUI();
-        filterAndRender(); // Re-render to hide list buttons
-      },
-      
       updateUI() {
-        const userWelcome = document.getElementById('userWelcome');
-        const loginBtn = document.getElementById('loginBtn');
-        const listTabs = document.getElementById('listTabs');
-        const loginPrompt = document.getElementById('loginPrompt');
-        
-        if (this.currentUser) {
-          userWelcome.style.display = 'flex';
-          loginBtn.style.display = 'none';
-          listTabs.style.display = 'flex';
-          loginPrompt.style.display = 'none';
-          
+        const isLoggedIn = this.currentUser !== null;
+        document.getElementById('userWelcome').style.display = isLoggedIn ? 'flex' : 'none';
+        document.getElementById('loginBtn').style.display = isLoggedIn ? 'none' : 'block';
+        document.getElementById('listTabs').style.display = isLoggedIn ? 'flex' : 'none';
+        document.getElementById('loginPrompt').style.display = isLoggedIn ? 'none' : 'block';
+        if (isLoggedIn) {
           document.getElementById('userName').textContent = this.currentUser.name;
           document.getElementById('userAvatar').textContent = this.currentUser.name.charAt(0).toUpperCase();
-        } else {
-          userWelcome.style.display = 'none';
-          loginBtn.style.display = 'block';
-          listTabs.style.display = 'none';
-          loginPrompt.style.display = 'block';
         }
       },
-      
-      isLoggedIn() {
-        return this.currentUser !== null;
-      }
+      isLoggedIn() { return this.currentUser !== null; }
     };
 
-    // ===== LIST MANAGEMENT =====
+    // List Management
     const listManager = {
-      init() {
-        if (!authManager.isLoggedIn()) return;
-        
+      favorites: [], visited: [], wantToGo: [],
+      init() { if (!authManager.isLoggedIn()) return;
         const userId = authManager.currentUser.id;
         this.favorites = JSON.parse(localStorage.getItem(`zo2y-favorites-${userId}`)) || [];
         this.visited = JSON.parse(localStorage.getItem(`zo2y-visited-${userId}`)) || [];
         this.wantToGo = JSON.parse(localStorage.getItem(`zo2y-wantToGo-${userId}`)) || [];
-        
         this.updateListCounts();
       },
-
-      saveLists() {
-        if (!authManager.isLoggedIn()) return;
-        
+      saveLists() { if (!authManager.isLoggedIn()) return;
         const userId = authManager.currentUser.id;
         localStorage.setItem(`zo2y-favorites-${userId}`, JSON.stringify(this.favorites));
         localStorage.setItem(`zo2y-visited-${userId}`, JSON.stringify(this.visited));
         localStorage.setItem(`zo2y-wantToGo-${userId}`, JSON.stringify(this.wantToGo));
         this.updateListCounts();
       },
-
       updateListCounts() {
-        if (!authManager.isLoggedIn()) return;
-        
         document.getElementById('favoritesCount').textContent = this.favorites.length;
         document.getElementById('visitedCount').textContent = this.visited.length;
         document.getElementById('wantToGoCount').textContent = this.wantToGo.length;
       },
-
       toggleInList(listName, slug) {
         const list = this[listName];
         const index = list.indexOf(slug);
-        
-        if (index > -1) {
-          list.splice(index, 1);
-        } else {
-          list.push(slug);
-        }
-        
+        if (index > -1) list.splice(index, 1);
+        else list.push(slug);
         this.saveLists();
         return index === -1;
       },
-
-      isInList(listName, slug) {
-        return this[listName].includes(slug);
-      }
+      isInList(listName, slug) { return this[listName].includes(slug); }
     };
 
-    // ===== RESTAURANT DATA =====
+    // Restaurant Data (shortened)
     const restaurants = [
-      { 
-        slug:'mori', 
-        name:'Mori Sushi', 
-        category:'Asian', 
-        desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', 
-        rating:4.7,
-        image: 'mori.png'
-      },
-      { 
-        slug:'kilo', 
-        name:'Kilo Kebab', 
-        category:'Middle Eastern', 
-        desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
-        rating:4.5,
-        image: 'kilo.png'
-      },
-      { 
-        slug:'hameed', 
-        name:'Hameed', 
-        category:'Fast Food', 
-        desc:'Local favorite for sandwiches & quick bites.', 
-        rating:4.3,
-        image: 'hameed.png'
-      },
-      { 
-        slug:'bazooka', 
-        name:'Bazooka', 
-        category:'Burgers', 
-        desc:'Loaded burgers & crispy fried chicken combos.', 
-        rating:4.2,
-        image: 'bazooka.jpg'
-      },
-      { 
-        slug:'mexican', 
-        name:'Mexican Corn', 
-        category:'Mexican', 
-        desc:'Elote, tacos & cheesy Mexican street snacks.', 
-        rating:4.0,
-        image: 'mexican.jpg'
-      },
-      { 
-        slug:'chikin', 
-        name:'Chikin Worx', 
-        category:'Chicken', 
-        desc:'Crunchy chicken, sandwiches & family buckets.', 
-        rating:4.5,
-        image: 'chikin.png'
-      },
-      { 
-        slug:'vasko', 
-        name:'Vasko', 
-        category:'Cafe & Bakery', 
-        desc:'Artisanal coffee and pastries in a modern European-style cafe.', 
-        rating:4.6,
-        image: 'vasko.jpg'
-      },
-      { 
-        slug:'secondcup', 
-        name:'Second Cup', 
-        category:'Cafe & Bakery', 
-        desc:'Canadian coffeehouse serving espresso, lattes & pastries.', 
-        rating:4.4,
-        image: 'secondcup.png'
-      },
-      { 
-        slug:'station', 
-        name:'Pizza Station', 
-        category:'Pizza', 
-        desc:'Classic pizzas & comfort food.', 
-        rating:4.3,
-        image: 'station.png'
-      },
-      { 
-        slug:'brgr', 
-        name:'BRGR', 
-        category:'Burgers', 
-        desc:'Gourmet burgers with premium toppings & sides.', 
-        rating:4.4,
-        image: 'brgr.jpg'
-      },
-      { 
-        slug:'country', 
-        name:'Country Hills', 
-        category:'Fast Food', 
-        desc:'Grilled meats, casual dining & family meals.', 
-        rating:4.2,
-        image: 'country.jpg'
-      },
-      { 
-        slug:'bayoki', 
-        name:'Bayouki Rotisserie', 
-        category:'Chicken', 
-        desc:'Authentic grilled chicken & rotisserie meals.', 
-        rating:4.3,
-        image: 'bayoki.png'
-      },
-      { 
-        slug:'maine', 
-        name:'Maine', 
-        category:'Fast Food', 
-        desc:'Fresh seafood, lobster rolls & New England classics.', 
-        rating:4.5,
-        image: 'maine.jpg'
-      },
-      { 
-        slug:'barbar', 
-        name:'Barbar Shawarma', 
-        category:'Middle Eastern', 
-        desc:'Iconic shawarma spot serving beef, chicken & falafel.', 
-        rating:4.4,
-        image: 'barbar.png'
-      },
-      { 
-        slug:'labash', 
-        name:'Labash', 
-        category:'Chicken', 
-        desc:'Known for charcoal-grilled chicken, meat & fast bites.', 
-        rating:4.3,
-        image: 'labash.jpg'
-      },
-      { 
-        slug:'pickl', 
-        name:'Pickl Egypt', 
-        category:'Burgers', 
-        desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', 
-        rating:4.6,
-        image: 'pickl.jpg'
-      },
-      { 
-        slug:'akleh', 
-        name:'Akleh', 
-        category:'Middle Eastern', 
-        desc:'Authentic Lebanese mezze, grills & traditional dishes.', 
-        rating:4.4,
-        image: 'akleh.jpg'
-      },
-      { 
-        slug:'howlin', 
-        name:'Howlin\' Birds', 
-        category:'Chicken', 
-        desc:'Nashville-style hot chicken sandwiches & tenders.', 
-        rating:4.5,
-        image: 'howlin.png'
-      },
-      { 
-        slug:'sauce', 
-        name:'Sauce', 
-        category:'Burgers', 
-        desc:'Trendy burgers & loaded fries; street food vibes.', 
-        rating:4.4,
-        image: 'sauce.jpg'
-      },
-      { 
-        slug:'papa', 
-        name:'Pappa Roti', 
-        category:'Cafe & Bakery', 
-        desc:'Famous for their signature coffee buns and artisanal baked goods.', 
-        rating:4.5,
-        image: 'papa.png'
-      },
-      { 
-        slug:'qasr', 
-        name:'Qasr El Kababgy', 
-        category:'Middle Eastern', 
-        desc:'Elegant dining experience with authentic Middle Eastern cuisine.', 
-        rating:4.8,
-        image: 'qasr.png'
-      },
-      // NEW RESTAURANTS ADDED HERE
-      { 
-        slug:'heart', 
-        name:'Heart Attack', 
-        category:'Chicken', 
-        desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', 
-        rating:4.3,
-        image: 'heart.jpg'
-      },
-      { 
-        slug:'what', 
-        name:'What The Crust', 
-        category:'Pizza', 
-        desc:'Creative pizza combinations with unique crust options and gourmet toppings.', 
-        rating:4.4,
-        image: 'what.png'
-      },
-      { 
-        slug:'buffalo', 
-        name:'Buffalo Burger', 
-        category:'Burgers', 
-        desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', 
-        rating:4.5,
-        image: 'buffalo.jpg'
-      },
-      { 
-        slug:'mince', 
-        name:'Mince', 
-        category:'Burgers', 
-        desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', 
-        rating:4.6,
-        image: 'mince.jpg'
-      },
-      // YOUR NEW RESTAURANTS
-      { 
-        slug:'88', 
-        name:'Pizza 88', 
-        category:'Pizza', 
-        desc:'Delicious pizzas with fresh ingredients and perfect crust.', 
-        rating:4.3,
-        image: '88.jpg'
-      },
-      { 
-        slug:'kansas', 
-        name:'Kansas Chicken', 
-        category:'Chicken', 
-        desc:'Crispy fried chicken with signature spices and family meal options.', 
-        rating:4.4,
-        image: 'kansas.png'
-      },
-      { 
-        slug:'ward', 
-        name:'Koshary Ward', 
-        category:'Middle Eastern', 
-        desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', 
-        rating:4.7,
-        image: 'ward.png'
-      },
-      { 
-        slug:'willys', 
-        name:'Willy\'s', 
-        category:'Burgers', 
-        desc:'Classic burgers with juicy patties and all your favorite toppings.', 
-        rating:4.5,
-        image: 'willys.png'
-      }
+      { slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain', rating:4.7, image: 'mori.png' },
+      { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs', rating:4.5, image: 'kilo.png' },
+      { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite', rating:4.3, image: 'hameed.png' },
+      { slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers', rating:4.2, image: 'bazooka.jpg' },
+      { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote & tacos', rating:4.0, image: 'mexican.jpg' },
+      { slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken', rating:4.5, image: 'chikin.png' },
+      { slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Coffee & pastries', rating:4.6, image: 'vasko.jpg' },
+      { slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse', rating:4.4, image: 'secondcup.png' },
+      { slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas', rating:4.3, image: 'station.png' },
+      { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers', rating:4.4, image: 'brgr.jpg' },
+      { slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Loaded burgers & chicken', rating:4.6, image: 'pickl.jpg' },
+      { slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Spicy fried chicken', rating:4.3, image: 'heart.jpg' },
+      { slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza', rating:4.4, image: 'what.png' },
+      { slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers', rating:4.5, image: 'buffalo.jpg' },
+      { slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers', rating:4.6, image: 'mince.jpg' },
+      { slug:'88', name:'Pizza 88', category:'Pizza', desc:'Fresh ingredient pizzas', rating:4.3, image: '88.jpg' },
+      { slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken', rating:4.4, image: 'kansas.png' },
+      { slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian', rating:4.7, image: 'ward.png' },
+      { slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers', rating:4.5, image: 'willys.png' }
     ];
 
+    // Rendering and Filtering
     const grid = document.getElementById('grid');
     const empty = document.getElementById('empty');
     const countEl = document.getElementById('count');
     const qInput = document.getElementById('q');
     const categorySelect = document.getElementById('categorySelect');
-
     let currentList = 'all';
 
-    // ===== IMAGE HELPER =====
-    function imageSrcset(slug, imageName){
-      return {
-        src: `images/${imageName}`,
-        srcset: `images/${imageName} 1x`
-      };
-    }
-
-    function renderList(list){
+    function renderList(list) {
       grid.innerHTML = '';
-      if(!list.length){ 
-        empty.style.display='block'; 
-        grid.style.display='none'; 
-        countEl.textContent='0'; 
-        return; 
-      }
-      
-      empty.style.display='none'; 
-      grid.style.display='grid';
-      countEl.textContent = list.length;
+      if (!list.length) { empty.style.display = 'block'; grid.style.display = 'none'; countEl.textContent = '0'; return; }
+      empty.style.display = 'none'; grid.style.display = 'grid'; countEl.textContent = list.length;
       
       list.forEach(r => {
-        const a = document.createElement('a'); 
-        a.className = 'tile'; 
-        a.href = `cards/${r.slug}.html`;
-        
-        const imgInfo = imageSrcset(r.slug, r.image);
-        
         const isLoggedIn = authManager.isLoggedIn();
-        const isFavorite = isLoggedIn && listManager.isInList('favorites', r.slug);
-        const isVisited = isLoggedIn && listManager.isInList('visited', r.slug);
-        const isWantToGo = isLoggedIn && listManager.isInList('wantToGo', r.slug);
-        
-        a.innerHTML = `
-          <div class="media">
-            <img src="${imgInfo.src}" srcset="${imgInfo.srcset}" alt="${r.name}" loading="lazy">
-          </div>
+        const tile = document.createElement('a');
+        tile.className = 'tile';
+        tile.href = `cards/${r.slug}.html`;
+        tile.innerHTML = `
+          <div class="media"><img src="images/${r.image}" alt="${r.name}" loading="lazy"></div>
           <div class="inner">
             <h3>${r.name}</h3>
-            <div class="category">
-              <span class="rating">⭐ ${r.rating.toFixed(1)}</span> • ${r.category}
-            </div>
+            <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
             <p class="desc">${r.desc}</p>
           </div>
           ${isLoggedIn ? `
             <div class="list-actions">
-              <button class="list-btn favorite ${isFavorite ? 'active' : ''}" 
-                      data-slug="${r.slug}" data-list="favorites" title="Add to Favorites">
-                ${isFavorite ? '❤️' : '🤍'} Favorite
-              </button>
-              <button class="list-btn want-to-go ${isWantToGo ? 'active' : ''}" 
-                      data-slug="${r.slug}" data-list="wantToGo" title="Want to Go">
-                📍 Want to Go
-              </button>
-              <button class="list-btn visited ${isVisited ? 'active' : ''}" 
-                      data-slug="${r.slug}" data-list="visited" title="Mark as Visited">
-                ✓ Visited
-              </button>
+              <button class="list-btn favorite ${listManager.isInList('favorites', r.slug) ? 'active' : ''}" data-slug="${r.slug}" data-list="favorites">🤍</button>
+              <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.slug) ? 'active' : ''}" data-slug="${r.slug}" data-list="wantToGo">📍</button>
+              <button class="list-btn visited ${listManager.isInList('visited', r.slug) ? 'active' : ''}" data-slug="${r.slug}" data-list="visited">✓</button>
             </div>
           ` : ''}
         `;
-        grid.appendChild(a);
+        grid.appendChild(tile);
       });
 
-      // Add event listeners to list buttons (only if user is logged in)
-      if (authManager.isLoggedIn()) {
+      if (isLoggedIn) {
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const slug = btn.dataset.slug;
-            const listName = btn.dataset.list;
-            const wasAdded = listManager.toggleInList(listName, slug);
-            
-            // Update button appearance
+            e.preventDefault(); e.stopPropagation();
+            const wasAdded = listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
             btn.classList.toggle('active', wasAdded);
-            if (listName === 'favorites') {
-              btn.innerHTML = wasAdded ? '❤️ Favorite' : '🤍 Favorite';
-            } else if (listName === 'visited') {
-              btn.innerHTML = wasAdded ? '✓ Visited' : '✓ Visited';
-            } else if (listName === 'wantToGo') {
-              btn.innerHTML = wasAdded ? '📍 Want to Go' : '📍 Want to Go';
-            }
-            
-            // If we're viewing a specific list, re-filter
-            if (currentList !== 'all') {
-              filterAndRender();
-            }
+            if (currentList !== 'all') filterAndRender();
           });
         });
       }
     }
 
-    // initial render (optionally use query param to pre-filter)
-    const params = new URLSearchParams(location.search);
-    const qParam = params.get('q') || '';
-    if(qParam){ qInput.value = qParam; }
-
-    function filterAndRender(){
-      let out = restaurants.slice();
-      
-      // Apply search filter
-      const q = qInput.value.trim().toLowerCase();
-      if(q){
-        out = out.filter(r => 
-          r.name.toLowerCase().includes(q) || 
-          r.category.toLowerCase().includes(q) || 
-          r.desc.toLowerCase().includes(q)
-        );
-      }
-      
-      // Apply category filter
-      const selectedCategory = categorySelect.value;
-      if(selectedCategory && selectedCategory !== 'All'){
-        out = out.filter(r => r.category.includes(selectedCategory));
-      }
-      
-      // Apply list filter (only for logged-in users)
-      if (authManager.isLoggedIn()) {
-        if (currentList === 'favorites') {
-          out = out.filter(r => listManager.isInList('favorites', r.slug));
-        } else if (currentList === 'visited') {
-          out = out.filter(r => listManager.isInList('visited', r.slug));
-        } else if (currentList === 'want-to-go') {
-          out = out.filter(r => listManager.isInList('wantToGo', r.slug));
+    function filterAndRender() {
+      let out = restaurants.filter(r => {
+        const q = qInput.value.trim().toLowerCase();
+        const categoryMatch = categorySelect.value === 'All' || r.category.includes(categorySelect.value);
+        const searchMatch = !q || r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
+        let listMatch = true;
+        if (authManager.isLoggedIn()) {
+          if (currentList === 'favorites') listMatch = listManager.isInList('favorites', r.slug);
+          else if (currentList === 'visited') listMatch = listManager.isInList('visited', r.slug);
+          else if (currentList === 'want-to-go') listMatch = listManager.isInList('wantToGo', r.slug);
         }
-      }
-      
+        return categoryMatch && searchMatch && listMatch;
+      });
       renderList(out);
     }
 
     // Event Listeners
-    qInput.addEventListener('input', () => { 
-      filterAndRender(); 
-    });
-
-    categorySelect.addEventListener('change', () => {
-      filterAndRender();
-    });
-
+    qInput.addEventListener('input', filterAndRender);
+    categorySelect.addEventListener('change', filterAndRender);
     document.getElementById('reset').addEventListener('click', () => {
-      qInput.value = ''; 
-      categorySelect.value = 'All';
-      currentList = 'all';
-      document.querySelectorAll('.list-tab').forEach(tab => tab.classList.remove('active'));
+      qInput.value = ''; categorySelect.value = 'All'; currentList = 'all';
+      document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
       document.querySelector('[data-list="all"]').classList.add('active');
       filterAndRender();
     });
 
-    // List tab switching
     document.querySelectorAll('.list-tab').forEach(tab => {
-      tab.addEventListener('click', (e) => {
+      tab.addEventListener('click', () => {
         if (!authManager.isLoggedIn()) return;
-        
         document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        
         currentList = tab.dataset.list;
         filterAndRender();
       });
     });
 
-    // Login button handler
-    document.getElementById('loginBtn').addEventListener('click', function() {
-      // For demo - create a mock user. In real app, redirect to login page
-      authManager.login({
-        id: 'user-' + Date.now(),
-        name: 'Demo User',
-        email: 'demo@example.com'
-      });
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      authManager.login({ id: 'user-' + Date.now(), name: 'Demo User', email: 'demo@example.com' });
     });
 
-    // simple sort toggle
-    document.getElementById('sortBtn').addEventListener('click', (e) => {
-      const b = e.target;
-      if(b.dataset.mode === 'rating'){ 
-        b.dataset.mode = 'alpha'; 
-        b.textContent = 'Sort: A → Z'; 
-        restaurants.sort((a,b) => a.name.localeCompare(b.name)); 
-      } else { 
-        b.dataset.mode = 'rating'; 
-        b.textContent = 'Sort: Popular'; 
-        restaurants.sort((a,b) => b.rating - a.rating); 
-      }
-      filterAndRender();
-    });
-
-    // initialize
-    (function init(){
-      initializeTheme();
-      authManager.init();
-      listManager.init();
-      
-      // default sort by rating
-      restaurants.sort((a,b) => b.rating - a.rating);
-      filterAndRender();
-    })();
+    // Initialize
+    authManager.init();
+    listManager.init();
+    restaurants.sort((a,b) => b.rating - a.rating);
+    filterAndRender();
   </script>
 </body>
 </html>
