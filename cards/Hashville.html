@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hashville - Nashville Hot Chicken</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6B35;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+[data-theme="dark"]{--bg:#1a1a2e;--text:#fff;--text2:#cbd5e1;--nav-bg:#16213e;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#FF8C42;--btn-text:#111;--card:#0f3460;--input-bg:#0f3460;--input-text:#fff}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:#FF6B35;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;background:linear-gradient(45deg,#FF6B35,#FF8C42);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#FF6B35;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,107,53,0.3)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF6B35;border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-desc{font-size:0.85rem;color:var(--text2);margin-top:4px;font-style:italic}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF6B35;box-shadow:0 0 0 2px rgba(255,107,53,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+</style>
+</head>
+<body>
+
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../restraunts.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
+
+<section class="hero">
+  <img src="../images/hashville.png" alt="Hashville Nashville Hot Chicken" class="logo" onclick="window.location.href='../restraunts.html'">
+  <h1>Hashville</h1>
+  <p>Authentic Nashville-style hot chicken with explosive flavor and perfect crunch. Premium chicken sandwiches and tenders with signature sauces.</p>
+  <div class="rating">⭐ 4.4/5 (850+ reviews)</div>
+
+  <a href="tel:1908" class="btn">Call Hotline: 1908</a>
+  <a href=" https://www.instagram.com/hashville.eg/?hl=en" target="_blank" class="btn secondary">Order Online</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:1908">1908</a>
+    <strong>Delivery:</strong> <a href="tel:1908">1908</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Sheikh Zayed City</h3>
+      <p>Zayed Promenade, Waslet Dahshour, Entrance 3<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+Zayed+Promenade+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>New Cairo</h3>
+      <p>Arabella Plaza Mall, 1st Floor<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+Arabella+Plaza+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>El Tagmo3 El Awal</h3>
+      <p>Arabella Plaza Mall<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+Arabella+Plaza+Mall+Tagmo3" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Nasr City</h3>
+      <p>The Garden Mall, Nasr City<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+The+Garden+Mall+Nasr+City" target="_blank">📍 Get Directions</a>
+    </div>
+
+    <div class="branch-card">
+      <h3>Maadi</h3>
+      <p>Rd. 213, beside EspressoLab, Maadi<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+Maadi+Road+213" target="_blank">📍 Get Directions</a>
+    </div>
+
+    <div class="branch-card">
+      <h3>6th of October, Giza</h3>
+      <p>Inside West Yard Mall, Waslet Dahshour area<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+West+Yard+Mall+6th+October" target="_blank">📍 Get Directions</a>
+    </div>
+
+    <div class="branch-card">
+      <h3>North Coast - Km 56</h3>
+      <p>Alex/Matrouh Desert Rd., inside Seashell Walk<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+Seashell+Walk+North+Coast" target="_blank">📍 Get Directions</a>
+    </div>
+
+    <div class="branch-card">
+      <h3>North Coast - El Alamein</h3>
+      <p>Km 112 Alex/Matrouh Desert Rd., North Square Mall<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+North+Square+Mall+El+Alamein" target="_blank">📍 Get Directions</a>
+    </div>
+
+    <div class="branch-card">
+      <h3>North Coast - Sidi Abdel Rahman</h3>
+      <p>Km 126 Alex/Matrouh Desert Rd., Stella Walk<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hashville+Stella+Walk+Sidi+Abdel+Rahman" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Hashville Meals</h2>
+    
+    <div class="menu-item">
+      <div>
+        <div>Hashville Fried Chicken 2 Pieces</div>
+        <div class="menu-desc">2 pieces of tenders, 1 toast, fries and sauce</div>
+      </div>
+      <span>EGP 280.00</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <div>Hashville Fried Chicken 3 Pieces</div>
+        <div class="menu-desc">3 pieces of tenders, 1 toast, fries and sauce</div>
+      </div>
+      <span>EGP 365.00</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <div>Hashville Fried Chicken 5 Pieces</div>
+        <div class="menu-desc">5 pieces of tenders, 2 toast, fries and sauce</div>
+      </div>
+      <span>EGP 515.00</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">In Da Sauce</h2>
+
+    <div class="menu-item">
+      <div>
+        <div>Creamy Onion Sandwich</div>
+        <div class="menu-desc">Soft bread filled with seasoned creamy onion mix, grilled for a warm bite.</div>
+      </div>
+      <span>EGP 250.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Crispy Cheese Sandwich</div>
+        <div class="menu-desc">Golden crispy coating with melted cheese inside, served in a sandwich for a crunchy, cheesy treat.</div>
+      </div>
+      <span>EGP 285.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Creamy Onion 3 Pieces</div>
+        <div class="menu-desc">3 pieces of creamy onion bites, golden-fried with a creamy onion filling inside.</div>
+      </div>
+      <span>EGP 390.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Crispy Cheese 3 Pieces</div>
+        <div class="menu-desc">3 crunchy pieces stuffed with molten cheese, ideal as an appetizer or side dish.</div>
+      </div>
+      <span>EGP 410.00</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Sandwiches</h2>
+
+    <div class="menu-item">
+      <div>
+        <div>Truffle Chicken</div>
+        <div class="menu-desc">250 grams of chicken breast dipped in our secret nashville sauce with truffle cheese, lettuce and pickles</div>
+      </div>
+      <span>EGP 235.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Burnout Butter</div>
+        <div class="menu-desc">250 grams of chicken breast dipped in our secret nashville sauce with honeybutter, lettuce and pickles</div>
+      </div>
+      <span>EGP 235.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Sriracha Honey</div>
+        <div class="menu-desc">250 Grams of chicken breast dipped in our secret nashville sauce with sriracha honey, lettuce and pickles</div>
+      </div>
+      <span>EGP 230.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Burrata Chicken</div>
+        <div class="menu-desc">250 grams of chicken breast dipped in our secret nashville sauce with pesto sauce, burrata cheese, lettuce and pickles</div>
+      </div>
+      <span>EGP 290.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Mangoana</div>
+        <div class="menu-desc">250 grams of chicken breast dipped in our secret nashville sauce with mango sauce, lettuce and pickles</div>
+      </div>
+      <span>EGP 235.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>The Hashville</div>
+        <div class="menu-desc">250 grams of chicken breast dipped in our secret nashville sauce with hashville sauce, lettuce and pickles</div>
+      </div>
+      <span>EGP 230.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Chicken Slaw</div>
+        <div class="menu-desc">250 grams of chicken breast dipped in our secret nashville sauce with coleslaw, lettuce and pickles</div>
+      </div>
+      <span>EGP 230.00</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Drinks</h2>
+
+    <div class="menu-item">
+      <div>
+        <div>Mineral Water</div>
+        <div class="menu-desc">Chilled bottled mineral water for clean, pure hydration</div>
+      </div>
+      <span>EGP 20.00</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Sides</h2>
+
+    <div class="menu-item">
+      <div>
+        <div>Cheese Hashville Fries</div>
+        <div class="menu-desc">Crispy fries topped with melted cheese and savory seasonings, served hot.</div>
+      </div>
+      <span>EGP 155.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>French Fries</div>
+        <div class="menu-desc">French fries fingers</div>
+      </div>
+      <span>EGP 40.00</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Sauces</h2>
+
+    <div class="menu-item">
+      <div>
+        <div>Honey Spicy</div>
+        <div class="menu-desc">Smooth honey with a spicy kick, perfect for balancing sweet and heat in every bite.</div>
+      </div>
+      <span>EGP 30.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Hashville Sauce</div>
+        <div class="menu-desc">Signature house sauce with creamy, mildly spicy flavor, ideal for dipping fries or topping sandwiches.</div>
+      </div>
+      <span>EGP 30.00</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <div>Smoked Honey Mustard</div>
+        <div class="menu-desc">Classic honey mustard with a smoky twist, offering a sweet, tangy, and smoky flavor profile.</div>
+      </div>
+      <span>EGP 30.00</span>
+    </div>
+  
+  <a href="https://www.instagram.com/hashville.eg/?hl=en" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Omar H.</strong></p>
+      <p>The Nashville Hot Chicken is absolutely incredible! Perfect balance of heat and flavor. The crunch is unbelievable!</p>
+    </div>
+    <div class="review">
+      <p><strong>Layla M.</strong></p>
+      <p>Best fried chicken in Egypt! The spice levels are perfect and the chicken is always juicy inside with that amazing crispy coating.</p>
+    </div>
+    <div class="review">
+      <p><strong>Karim S.</strong></p>
+      <p>Their hot chicken sandwich is life-changing! The bread is perfect, the chicken is massive, and the heat builds up just right.</p>
+    </div>
+    <div class="review">
+      <p><strong>Nadia A.</strong></p>
+      <p>The family feast is our go-to for game nights! Everything stays crispy and the variety of spice levels keeps everyone happy.</p>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
+
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Hashville - Authentic Nashville Hot Chicken</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">9 branches across Cairo and North Coast</p>
+</footer>
+
+<script>
+const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('hashville-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('hashville-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF6B35',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+</script>
+
+</body>
+</html>

@@ -39,6 +39,7 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
 .menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-description{font-size:0.85rem;color:var(--text2);margin-top:5px;font-style:italic}
 .review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
 .review p{margin-bottom:5px;color:var(--text2)}
 .review p:first-child{font-weight:600;color:var(--text)}
@@ -61,8 +62,8 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 <section class="hero">
   <img src="../images/country.jpg" alt="Country Hills Restaurant" class="logo" onclick="window.location.href='../index.html'">
   <h1>Country Hills</h1>
-  <p>Authentic American cuisine with premium steaks, burgers, and family-friendly dining experience</p>
-  <div class="rating">⭐ 4.0/5 (650+ reviews)</div>
+  <p>Premium American burgers, steaks, and authentic comfort food with a modern twist</p>
+  <div class="rating">⭐ 4.3/5 (850+ reviews)</div>
 
   <a href="tel:17025" class="btn">Call Hotline: 17025</a>
   <a href="https://order.countryhillseg.com/en" target="_blank" class="btn secondary">Order Online</a>
@@ -77,69 +78,215 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
   <div class="branches">
     <div class="branch-card">
-      <h3>Sheikh Zayed</h3>
-      <p>Majarrah Mall, Food Court<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Country+Hills+Majarrah+Mall+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+      <h3>Alexandria - Fouad Street</h3>
+      <p>73 El-Horeya Rd (Fouad St.), Alexandria<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Country+Hills+Fouad+Street+Alexandria" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Alexandria - Louran (Mahrousa)</h3>
+      <p>Cournich Rd., Alexandria<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Country+Hills+Louran+Alexandria" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
       <h3>Heliopolis</h3>
-      <p>24 El Merghani Street<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Country+Hills+Heliopolis+El+Merghani" target="_blank">📍 Get Directions</a>
+      <p>City Center Almaza, El Nasr Rd<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Country+Hills+City+Center+Almaza" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
-      <h3>Alexandria</h3>
-      <p>73 Fouad Street<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Country+Hills+Alexandria+Fouad+Street" target="_blank">📍 Get Directions</a>
+      <h3>Sheikh Zayed</h3>
+      <p>Mall of Egypt, El Wahat Rd, Gate F2<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Country+Hills+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
       <h3>New Cairo</h3>
-      <p>Downtown Mall<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Country+Hills+New+Cairo" target="_blank">📍 Get Directions</a>
+      <p>Cairo Festival City Mall, Ring Rd<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Country+Hills+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Alexandria - City Center</h3>
+      <p>City Center Alexandria, Ring Rd<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Country+Hills+City+Center+Alexandria" target="_blank">📍 Get Directions</a>
     </div>
   </div>
 </section>
 
 <section class="section menu">
-  <h2>Signature Steaks</h2>
+  <h2>Signature Burgers</h2>
     
-    <div class="menu-item"><span>Hills County Steak</span><span>EGP 289</span></div>
+    <div class="menu-item">
+      <div>
+        <span>CHEESEBURGER 👑</span>
+        <div class="menu-description">The Iconic American beef burger topped with cheddar cheese, pickles, onions</div>
+      </div>
+      <span>EGP 149 - 199</span>
+    </div>
   
-    <div class="menu-item"><span>Ribeye Steak</span><span>EGP 320</span></div>
+    <div class="menu-item">
+      <div>
+        <span>CARAMELISED STEAK</span>
+        <div class="menu-description">Thick steak-style beef patty topped with sweet caramelised onion and creamy sauce</div>
+      </div>
+      <span>EGP 219 - 309</span>
+    </div>
   
-    <div class="menu-item"><span>T-Bone Steak</span><span>EGP 350</span></div>
+    <div class="menu-item">
+      <div>
+        <span>BUFFALO CHIPS</span>
+        <div class="menu-description">A bunchy burger loaded with crunchy onion chips, buffalo sauce, and creamy dressing</div>
+      </div>
+      <span>EGP 209 - 275</span>
+    </div>
   
-    <div class="menu-item"><span>Filet Mignon</span><span>EGP 380</span></div>
+    <div class="menu-item">
+      <div>
+        <span>MUSHROOM & CHEESE 👑</span>
+        <div class="menu-description">Fresh mushrooms grilled and topped with ranch sauce, tomato, melted cheese</div>
+      </div>
+      <span>EGP 209 - 269</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>NESTY MUSHROOM</span>
+        <div class="menu-description">Grilled mushrooms and creamy guacamole over our juicy charbroiled patty</div>
+      </div>
+      <span>EGP 224 - 264</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>BANG BANG</span>
+        <div class="menu-description">Signature burger with special bang bang sauce and premium toppings</div>
+      </div>
+      <span>EGP 229 - 289</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>COWBOY 👑</span>
+        <div class="menu-description">Smoked beef bacon, fresh mushrooms, fried onions, cheddar cheese with hickory sauce</div>
+      </div>
+      <span>EGP 229 - 289</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>DOUBLE CHEESEBURGER 👑</span>
+        <div class="menu-description">A delightful experience of two beef burger patties topped with cheddar cheese</div>
+      </div>
+      <span>EGP 209 - 299</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>STEAK</span>
+        <div class="menu-description">Premium fillet steak, Emmental cheese, caramelized onions & grilled bell peppers</div>
+      </div>
+      <span>EGP 239 - 299</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>SMOKEY TEXAS</span>
+        <div class="menu-description">Grilled beef bacon, cheddar cheese, caramelized onions, pickles & texas sauce</div>
+      </div>
+      <span>EGP 219 - 279</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>MR. BRISKET</span>
+        <div class="menu-description">Premium brisket burger with special seasoning and signature sauce</div>
+      </div>
+      <span>EGP 239 - 299</span>
+    </div>
 
-  <h2 style="margin-top: 30px;">Burgers & Sandwiches</h2>
+  <h2 style="margin-top: 30px;">American Starters</h2>
   
-    <div class="menu-item"><span>Double Crispy Mac Burger</span><span>EGP 239</span></div>
+    <div class="menu-item">
+      <div>
+        <span>HILLS COUNTY 👑</span>
+        <div class="menu-description">Crispy Chicken balls, buffalo wings, bacon mac'n' cheese balls, fried onion rings</div>
+      </div>
+      <span>EGP 289</span>
+    </div>
   
-    <div class="menu-item"><span>Classic Cheese Burger</span><span>EGP 180</span></div>
+    <div class="menu-item">
+      <div>
+        <span>HILLS COUNTY JUMBO</span>
+        <div class="menu-description">3 Crispy Chicken balls, 6 buffalo wings, 3 bacon mac'n' cheese balls, fried onion rings</div>
+      </div>
+      <span>EGP 399</span>
+    </div>
   
-    <div class="menu-item"><span>BBQ Bacon Burger</span><span>EGP 220</span></div>
-  
-    <div class="menu-item"><span>Chicken Sandwich</span><span>EGP 160</span></div>
-
-  <h2 style="margin-top: 30px;">Appetizers & Sides</h2>
-
-    <div class="menu-item"><span>Crispy Cheesy Chicken Balls</span><span>EGP 149</span></div>
-
-    <div class="menu-item"><span>Large Fries</span><span>EGP 89</span></div>
-
-    <div class="menu-item"><span>Onion Rings</span><span>EGP 75</span></div>
-
-    <div class="menu-item"><span>Mozzarella Sticks</span><span>EGP 95</span></div>
-
-  <h2 style="margin-top: 30px;">Pizza & Special Offers</h2>
-
-    <div class="menu-item"><span>Pizza + Wedges + 4 Wings</span><span>EGP 199-349</span></div>
-
-    <div class="menu-item"><span>Pepperoni Pizza</span><span>EGP 180</span></div>
-
-    <div class="menu-item"><span>Chicken BBQ Pizza</span><span>EGP 210</span></div>
+    <div class="menu-item">
+      <div>
+        <span>CRISPY CHEESY CHICKEN BALLS</span>
+        <div class="menu-description">Fried chicken balls stuffed with mozzarella and cheddar cheese mix</div>
+      </div>
+      <span>EGP 149</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>BACON MAC N'CHEESE BALLS</span>
+        <div class="menu-description">Fried balls of mac 'n' cheese stuffed with beef bacon and mozzarella</div>
+      </div>
+      <span>EGP 149</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>LARGE FRIES</span>
+        <div class="menu-description">Premium fries of potato seasoned with a special herbs mix</div>
+      </div>
+      <span>EGP 89</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>LARGE FRIES WITH CHEESE</span>
+        <div class="menu-description">Premium fries of potato seasoned with a special herbs mix, mozzarella and ranch</div>
+      </div>
+      <span>EGP 124</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>LARGE WEDGES</span>
+        <div class="menu-description">Premium wedges of potato seasoned with a special herb mix. Served with thousand island</div>
+      </div>
+      <span>EGP 89</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>LARGE WEDGES W. CHEESE</span>
+        <div class="menu-description">Premium wedges of potato seasoned with a special herb mix. Served with Cheddar cheese sauce</div>
+      </div>
+      <span>EGP 124</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>MOZZARELLA STICKS</span>
+        <div class="menu-description">Mozzarella sticks cheese encrusted in a flavorful breading & fried until golden</div>
+      </div>
+      <span>EGP 149</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>BANG BANG SHRIMP</span>
+        <div class="menu-description">Crispy shrimp coated in flavorful batter, fried to perfection and served with bang bang sauce</div>
+      </div>
+      <span>EGP 169</span>
+    </div>
   
   <a href="https://order.countryhillseg.com/en" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
 </section>
@@ -148,20 +295,20 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <h2>Customer Reviews</h2>
   <div id="reviews-list">
     <div class="review">
+      <p><strong>Ahmed S.</strong></p>
+      <p>The Cowboy burger is absolutely incredible! Perfectly cooked with amazing flavors. Best burger I've had in Egypt.</p>
+    </div>
+    <div class="review">
+      <p><strong>Nour K.</strong></p>
+      <p>Their Hills County platter is perfect for sharing. The variety and quality are outstanding. Great value for money!</p>
+    </div>
+    <div class="review">
       <p><strong>Mohamed R.</strong></p>
-      <p>The Hills County steak is absolutely incredible! Perfectly cooked and seasoned. Best steak I've had in Cairo.</p>
+      <p>The Mushroom & Cheese burger is my go-to order. Fresh ingredients and perfectly seasoned. Always consistent quality.</p>
     </div>
     <div class="review">
-      <p><strong>Sarah K.</strong></p>
-      <p>Their burgers are amazing and the portions are generous. The Double Crispy Mac is my favorite!</p>
-    </div>
-    <div class="review">
-      <p><strong>Ahmed F.</strong></p>
-      <p>Great family restaurant with excellent service. The pizza offers are perfect for family dinners.</p>
-    </div>
-    <div class="review">
-      <p><strong>Layla M.</strong></p>
-      <p>Authentic American flavors that remind me of my time in the States. The cheesy chicken balls are a must-try!</p>
+      <p><strong>Sarah M.</strong></p>
+      <p>Perfect spot for family dinners. The portions are generous and everything tastes amazing. The bang bang shrimp is a must-try!</p>
     </div>
   </div>
   
@@ -175,8 +322,8 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
-  <p style="margin-top: 10px; font-size: 0.8rem;">Country Hills - Authentic American Cuisine Since 2015</p>
-  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Sheikh Zayed, Heliopolis, Alexandria, New Cairo, Nasr City</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Country Hills - Premium American Cuisine</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Alexandria, Heliopolis, Sheikh Zayed, New Cairo</p>
 </footer>
 
 <script>

@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hameed - Fried Chicken & Shawarma</title>
+<title>Hameed - Authentic American Diner</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 :root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
 [data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top-stripe{background:#FF6B00;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
 .back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
 .back-btn{display:flex;align-items:center;gap:6px}
@@ -18,13 +18,13 @@ body{background-color:var(--bg);color:var(--text);transition:background-color 0.
 .logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
 .hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
 .hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.rating{color:#FF6B00;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
 .btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
-.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,107,0,0.2)}
 .section{max-width:900px;margin:0 auto;padding:40px 20px}
 h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
-h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF6B00;border-radius:2px}
 .hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
 .hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
@@ -39,12 +39,13 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
 .menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-description{font-size:0.85rem;color:var(--text2);margin-top:5px;font-style:italic}
 .review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
 .review p{margin-bottom:5px;color:var(--text2)}
 .review p:first-child{font-weight:600;color:var(--text)}
 .review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
 .review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
-.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF6B00;box-shadow:0 0 0 2px rgba(255,107,0,0.2)}
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
@@ -59,13 +60,13 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 </div>
 
 <section class="hero">
-  <img src="../images/hameed.png" alt="Hameed Restaurant" class="logo" onclick="window.location.href='../index.html'">
+  <img src="../images/hameed.png" alt="Hameed American Diner" class="logo" onclick="window.location.href='../index.html'">
   <h1>Hameed</h1>
-  <p>Premium fried chicken, shawarma, and authentic Middle Eastern cuisine made with traditional recipes</p>
-  <div class="rating">⭐ 4.2/5 (850+ reviews)</div>
+  <p>Authentic American Diner Experience - Burgers, Fries, Shakes & Classic Comfort Food</p>
+  <div class="rating">⭐ 4.5/5 (1,200+ reviews)</div>
 
   <a href="tel:17108" class="btn">Call Hotline: 17108</a>
-  <a href="https://www.talabat.com/egypt/hameed" target="_blank" class="btn secondary">Order Online</a>
+  <a href="https://www.elmenus.com/cairo/hameed-aq6x6" target="_blank" class="btn secondary">Order Online</a>
 </section>
 
 <section class="section">
@@ -78,92 +79,168 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <div class="branches">
     <div class="branch-card">
       <h3>New Cairo</h3>
-      <p>CFC Mall, Food Court<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Hameed+CFC+New+Cairo" target="_blank">📍 Get Directions</a>
+      <p>Cloud 9 Mall<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hameed+Cloud+9+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
-      <h3>Nasr City</h3>
-      <p>City Stars Mall<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Hameed+City+Stars+Nasr+City" target="_blank">📍 Get Directions</a>
+      <h3>Madinaty</h3>
+      <p>Open Air Mall, Madinaty<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hameed+Madinaty+Open+Air+Mall" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
-      <h3>Heliopolis</h3>
-      <p>City Centre Almaza<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Hameed+Heliopolis" target="_blank">📍 Get Directions</a>
+      <h3>5th Settlement</h3>
+      <p>Cairo Festival City Mall<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hameed+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
-      <h3>Sheikh Zayed</h3>
-      <p>Mall of Egypt<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Hameed+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
+      <h3>Sheikh Zayed City</h3>
+      <p>West Mark Mall – 26 July axis<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hameed+West+Mark+Mall+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>North Coast - Marassi</h3>
+      <p>The Hub Marassi<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hameed+The+Hub+Marassi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>North Coast - Amwaj</h3>
+      <p>Seashell Hill – Amwaj<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Hameed+Seashell+Hill+Amwaj" target="_blank">📍 Get Directions</a>
     </div>
   </div>
 </section>
 
 <section class="section menu">
-  <h2>Fried Chicken</h2>
+  <h2>Signature Burgers</h2>
     
-    <div class="menu-item"><span>Classic Fried Chicken (4 pcs)</span><span>EGP 120</span></div>
+    <div class="menu-item">
+      <div>
+        <span>Classic Cheeseburger</span>
+        <div class="menu-description">Beef patty, American cheese, lettuce, tomato, special sauce</div>
+      </div>
+      <span>EGP 145</span>
+    </div>
   
-    <div class="menu-item"><span>Spicy Fried Chicken (4 pcs)</span><span>EGP 130</span></div>
+    <div class="menu-item">
+      <div>
+        <span>Bacon Deluxe Burger</span>
+        <div class="menu-description">Double beef patty, crispy bacon, cheddar, onion rings</div>
+      </div>
+      <span>EGP 195</span>
+    </div>
   
-    <div class="menu-item"><span>Chicken Tenders Meal</span><span>EGP 95</span></div>
+    <div class="menu-item">
+      <div>
+        <span>Mushroom Swiss Burger</span>
+        <div class="menu-description">Beef patty, sautéed mushrooms, Swiss cheese, garlic aioli</div>
+      </div>
+      <span>EGP 175</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Specialty Fries</h2>
   
-    <div class="menu-item"><span>Chicken Wings (8 pcs)</span><span>EGP 110</span></div>
-
-  <h2 style="margin-top: 30px;">Shawarma & Sandwiches</h2>
+    <div class="menu-item">
+      <div>
+        <span>Truffle N Mushroom Fries</span>
+        <div class="menu-description">French fries, mushroom, gravy sauce, truffle sauce</div>
+      </div>
+      <span>EGP 165</span>
+    </div>
   
-    <div class="menu-item"><span>Chicken Shawarma Sandwich</span><span>EGP 65</span></div>
+    <div class="menu-item">
+      <div>
+        <span>Loaded Cheese Fries</span>
+        <div class="menu-description">Crispy fries topped with melted cheese, bacon bits, chives</div>
+      </div>
+      <span>EGP 120</span>
+    </div>
   
-    <div class="menu-item"><span>Beef Shawarma Sandwich</span><span>EGP 75</span></div>
+    <div class="menu-item">
+      <div>
+        <span>Classic French Fries</span>
+        <div class="menu-description">Golden crispy fries with sea salt</div>
+      </div>
+      <span>EGP 65</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Sandwiches & Wraps</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Grilled Chicken Club</span>
+        <div class="menu-description">Grilled chicken, bacon, avocado, lettuce, tomato, mayo</div>
+      </div>
+      <span>EGP 135</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Philly Cheesesteak</span>
+        <div class="menu-description">Sliced beef, peppers, onions, melted provolone</div>
+      </div>
+      <span>EGP 155</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Crispy Chicken Wrap</span>
+        <div class="menu-description">Breaded chicken, lettuce, tomato, ranch dressing</div>
+      </div>
+      <span>EGP 110</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Milkshakes & Drinks</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Classic Vanilla Milkshake</span>
+        <div class="menu-description">Creamy vanilla milkshake with whipped cream</div>
+      </div>
+      <span>EGP 75</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Chocolate Fudge Shake</span>
+        <div class="menu-description">Rich chocolate shake with fudge sauce</div>
+      </div>
+      <span>EGP 80</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Strawberry Delight</span>
+        <div class="menu-description">Fresh strawberry milkshake with real fruit</div>
+      </div>
+      <span>EGP 75</span>
+    </div>
   
-    <div class="menu-item"><span>Mixed Shawarma Plate</span><span>EGP 140</span></div>
-  
-    <div class="menu-item"><span>Shawarma Family Meal</span><span>EGP 280</span></div>
-
-  <h2 style="margin-top: 30px;">Burgers</h2>
-
-    <div class="menu-item"><span>Caramelized Onions & Mushroom Burger</span><span>EGP 215</span></div>
-
-    <div class="menu-item"><span>Classic Double Cheese Burger</span><span>EGP 195</span></div>
-
-    <div class="menu-item"><span>Original Maple Glazed Sandwich</span><span>EGP 195</span></div>
-
-    <div class="menu-item"><span>Double Original Burger</span><span>EGP 195</span></div>
-
-  <h2 style="margin-top: 30px;">Sides & Extras</h2>
-
-    <div class="menu-item"><span>French Fries</span><span>EGP 65</span></div>
-
-    <div class="menu-item"><span>Garlic Sauce</span><span>EGP 15</span></div>
-
-    <div class="menu-item"><span>Tahini Sauce</span><span>EGP 12</span></div>
-
-    <div class="menu-item"><span>Coleslaw</span><span>EGP 25</span></div>
-  
-  <a href="https://www.talabat.com/egypt/hameed" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+  <a href="https://www.elmenus.com/cairo/hameed-aq6x6" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
 </section>
 
 <section class="section reviews">
   <h2>Customer Reviews</h2>
   <div id="reviews-list">
     <div class="review">
-      <p><strong>Ahmed S.</strong></p>
-      <p>Best shawarma in Cairo! The chicken is always fresh and perfectly seasoned. Their garlic sauce is incredible!</p>
+      <p><strong>Michael T.</strong></p>
+      <p>Best American-style burgers in Cairo! The Truffle Mushroom Fries are absolutely addictive. Reminds me of diners back in the States.</p>
     </div>
     <div class="review">
-      <p><strong>Nour K.</strong></p>
-      <p>The fried chicken is crispy and delicious. Great value for money and fast delivery service.</p>
+      <p><strong>Jessica L.</strong></p>
+      <p>Their milkshakes are incredible! Thick, creamy, and perfectly sweet. The bacon deluxe burger is my go-to order every time.</p>
     </div>
     <div class="review">
-      <p><strong>Mohamed R.</strong></p>
-      <p>Authentic flavors that remind me of traditional street food. The beef shawarma is my favorite!</p>
+      <p><strong>Robert K.</strong></p>
+      <p>Authentic diner experience with great atmosphere. The Philly cheesesteak is spot on, and the service is always friendly.</p>
     </div>
     <div class="review">
       <p><strong>Sarah M.</strong></p>
-      <p>Perfect for family dinners. The family meal portions are generous and everything tastes amazing.</p>
+      <p>Perfect spot for family dinners. The kids love the shakes, and we love the quality burgers. Great value for money!</p>
     </div>
   </div>
   
@@ -177,12 +254,12 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
-  <p style="margin-top: 10px; font-size: 0.8rem;">Hameed - Authentic Fried Chicken & Shawarma Since 2012</p>
-  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Nasr City, Heliopolis, Sheikh Zayed, Maadi</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Hameed - Authentic American Diner Experience Since 2012</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Madinaty, 5th Settlement, Sheikh Zayed, North Coast</p>
 </footer>
 
 <script>
-const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('hameed-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('hameed-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('hameed-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('hameed-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF6B00',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
 </script>
 
 </body>
