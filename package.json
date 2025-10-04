@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Zo2y restaurant app backend",
-  "main": "index.js",
+  "main": "backend/index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "cd backend && node index.js",
+    "dev": "cd backend && nodemon index.js"
   },
   "keywords": ["restaurant", "auth", "mongodb"],
   "author": "Your Name",
