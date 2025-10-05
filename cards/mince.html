@@ -6,20 +6,21 @@
 <title>Mince - Artisanal Burgers & Fresh Beef</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800}
 [data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
 .back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
 .back-btn{display:flex;align-items:center;gap:6px}
 .back-btn:hover{transform:translateX(-3px)}
-.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
-.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
-.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
-.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
+.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,152,0,0.05)"/></svg>');background-size:cover;pointer-events:none}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
 .btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
 .btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
 .section{max-width:900px;margin:0 auto;padding:40px 20px}
@@ -35,10 +36,14 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
+.menu-categories{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.menu-category-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
+.menu-category-btn.active,.menu-category-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
 .menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
 .review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
 .review p{margin-bottom:5px;color:var(--text2)}
 .review p:first-child{font-weight:600;color:var(--text)}
@@ -48,6 +53,11 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+.branch-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.branch-filter-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease}
+.branch-filter-btn.active,.branch-filter-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
+.popular-badge{background:#FF9800;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
+.busy-badge{background:#f44336;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
 </style>
 </head>
@@ -75,93 +85,374 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     <strong>Delivery:</strong> <a href="tel:0120962742">0120 962 742</a>
   </div>
 
-  <div class="branches">
-    <div class="branch-card">
-      <h3>New Cairo</h3>
-      <p>Point 90 Mall, Food Court<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Mince+Point+90+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
+  <div class="branch-filter" id="branchFilter">
+    <button class="branch-filter-btn active" data-location="all">All Locations</button>
+    <button class="branch-filter-btn" data-location="cairo">Cairo</button>
+    <button class="branch-filter-btn" data-location="giza">Giza</button>
+    <button class="branch-filter-btn" data-location="smart-village">Smart Village</button>
+  </div>
+
+  <div class="branches" id="branchesContainer">
+    <div class="branch-card" data-location="cairo">
+      <h3>Almaza <span class="busy-badge">Busy</span></h3>
+      <p>Passage Inside City Center Almaza, Suez Rd, Sheraton Al Matar, El Nozha, Cairo Governorate<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+City+Center+Almaza" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Sheikh Zayed</h3>
-      <p>Arkan Plaza, Ground Floor<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Mince+Arkan+Plaza+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+    <div class="branch-card" data-location="smart-village">
+      <h3>Smart Village</h3>
+      <p>Inside Smart Village, Cairo - Alexandria desert Rd, Giza Governorate<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Smart+Village" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Heliopolis</h3>
-      <p>City Centre Almaza<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Mince+Heliopolis" target="_blank">📍 Get Directions</a>
+    <div class="branch-card" data-location="cairo">
+      <h3>El Rehab</h3>
+      <p>El Rehab City<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+El+Rehab" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Nasr City</h3>
-      <p>City Stars Mall<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Mince+City+Stars+Nasr+City" target="_blank">📍 Get Directions</a>
+    <div class="branch-card" data-location="cairo">
+      <h3>Madinaty</h3>
+      <p>Open Air Mall Madinaty, Suez Rd<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="giza">
+      <h3>Giza <span class="busy-badge">Busy</span></h3>
+      <p>12 Nile St, Oula, Al Giza, Giza Governorate<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Giza" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>City Stars</h3>
+      <p>City Stars Mall, Omar Ibn El-Khattab St<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+City+Stars" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="giza">
+      <h3>Shooting Club</h3>
+      <p>Shooting Club, Gate NO.9, Ad Doqi, Giza Governorate<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Shooting+Club" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Point 90 Mall</h3>
+      <p>Point 90 Mall, New Cairo 1, Cairo Governorate<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Point+90+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Cairo Festival City Mall</h3>
+      <p>Cairo Festival City Mall, Ring Rd, New Cairo<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="giza">
+      <h3>Capital</h3>
+      <p>Capital Business Park, El Bostan st, Sheikh Zayed 6th of October City<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Capital+Business+Park" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="giza">
+      <h3>Mall Of Egypt</h3>
+      <p>Mall of Egypt, El Wahat Rd<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="giza">
+      <h3>Swell Lake</h3>
+      <p>Swell Lake Mall, بجوار مركز المنتخبات الوطنية, Waslet Dahshur Rd, First 6th of October, Giza Governorate<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Swell+Lake+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Maadi Branch</h3>
+      <p>1 ش 20 - ميدان فيكتوريا - المعادي, الجديدة, القاهرة, Cairo Governorate<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Mince+Maadi" target="_blank">📍 Get Directions</a>
     </div>
   </div>
 </section>
 
 <section class="section menu">
-  <h2>Signature Burgers</h2>
-    
-    <div class="menu-item"><span>Classic Beef Burger</span><span>EGP 120</span></div>
+  <h2>Our Artisanal Menu</h2>
   
-    <div class="menu-item"><span>Double Cheeseburger</span><span>EGP 160</span></div>
+  <div class="menu-categories" id="menuCategories">
+    <button class="menu-category-btn active" data-category="all">All Items</button>
+    <button class="menu-category-btn" data-category="burgers">Signature Burgers</button>
+    <button class="menu-category-btn" data-category="appetizers">Appetizers</button>
+    <button class="menu-category-btn" data-category="chicken">Chicken</button>
+    <button class="menu-category-btn" data-category="sandwiches">Sandwiches & Wraps</button>
+    <button class="menu-category-btn" data-category="combos">Meals & Combos</button>
+  </div>
+
+  <div class="menu-items-container">
+    <!-- Signature Burgers -->
+    <div class="menu-category-section" data-category="burgers">
+      <h3>Signature Burgers</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>MINCE ORIGINAL</span>
+        </div>
+        <span>EGP 185</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>MUSHROOM</span>
+        </div>
+        <span>EGP 195</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>JUICY LUCY</span>
+        </div>
+        <span>EGP 200</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Classic Beef Burger</span>
+        </div>
+        <span>EGP 120</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Double Cheeseburger</span>
+        </div>
+        <span>EGP 160</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Bacon Deluxe Burger</span>
+        </div>
+        <span>EGP 140</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mince Special Burger</span>
+        </div>
+        <span>EGP 150</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>BBQ Smokehouse Burger</span>
+        </div>
+        <span>EGP 145</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Truffle Mushroom Burger</span>
+        </div>
+        <span>EGP 155</span>
+      </div>
+    </div>
+
+    <!-- Appetizers -->
+    <div class="menu-category-section" data-category="appetizers">
+      <h3>Appetizers</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mesahero Bites</span>
+        </div>
+        <span>EGP 185</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>LOADED SMASHED FRIES</span>
+        </div>
+        <span>EGP 135</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Honey Mustard Crunch Fries</span>
+        </div>
+        <span>EGP 155</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mince French Fries (With Spices) - Large</span>
+        </div>
+        <span>EGP 75</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mince French Fries (With Spices) - Regular</span>
+        </div>
+        <span>EGP 70</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>French Fries Large 200 gm</span>
+        </div>
+        <span>EGP 70</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>French Fries Regular 150gm</span>
+        </div>
+        <span>EGP 65</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Wings</span>
+        </div>
+        <span>EGP 145</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>CHICKEN TENDERS</span>
+        </div>
+        <span>EGP 150</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Sweet Potato Fries</span>
+        </div>
+        <span>EGP 35</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Onion Rings</span>
+        </div>
+        <span>EGP 25</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mozzarella Sticks</span>
+        </div>
+        <span>EGP 40</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Coleslaw</span>
+        </div>
+        <span>EGP 20</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Garlic Sauce</span>
+        </div>
+        <span>EGP 10</span>
+      </div>
+    </div>
+
+    <!-- Chicken -->
+    <div class="menu-category-section" data-category="chicken">
+      <h3>Chicken & Alternatives</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Crispy Chicken Burger</span>
+        </div>
+        <span>EGP 100</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Grilled Chicken Burger</span>
+        </div>
+        <span>EGP 95</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Veggie Burger</span>
+        </div>
+        <span>EGP 100</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Fish Burger</span>
+        </div>
+        <span>EGP 110</span>
+      </div>
+    </div>
+
+    <!-- Sandwiches & Wraps -->
+    <div class="menu-category-section" data-category="sandwiches">
+      <h3>Sandwiches & Wraps</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Chicken Sandwich</span>
+        </div>
+        <span>EGP 80</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Beef Shawarma Wrap</span>
+        </div>
+        <span>EGP 75</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Grilled Cheese Sandwich</span>
+        </div>
+        <span>EGP 65</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Club Sandwich</span>
+        </div>
+        <span>EGP 90</span>
+      </div>
+    </div>
+
+    <!-- Meals & Combos -->
+    <div class="menu-category-section" data-category="combos">
+      <h3>Meals & Combos</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Burger Meal (Burger + Fries + Drink)</span>
+        </div>
+        <span>EGP 150</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Double Burger Combo</span>
+        </div>
+        <span>EGP 190</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Family Combo (4 burgers + fries)</span>
+        </div>
+        <span>EGP 480</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mince Feast Platter</span>
+        </div>
+        <span>EGP 350</span>
+      </div>
+    </div>
+  </div>
   
-    <div class="menu-item"><span>Bacon Deluxe Burger</span><span>EGP 140</span></div>
-  
-    <div class="menu-item"><span>Mince Special Burger</span><span>EGP 150</span></div>
-
-    <div class="menu-item"><span>BBQ Smokehouse Burger</span><span>EGP 145</span></div>
-
-    <div class="menu-item"><span>Truffle Mushroom Burger</span><span>EGP 155</span></div>
-
-  <h2 style="margin-top: 30px;">Chicken & Alternatives</h2>
-  
-    <div class="menu-item"><span>Crispy Chicken Burger</span><span>EGP 100</span></div>
-  
-    <div class="menu-item"><span>Grilled Chicken Burger</span><span>EGP 95</span></div>
-  
-    <div class="menu-item"><span>Veggie Burger</span><span>EGP 100</span></div>
-  
-    <div class="menu-item"><span>Fish Burger</span><span>EGP 110</span></div>
-
-  <h2 style="margin-top: 30px;">Sandwiches & Wraps</h2>
-
-    <div class="menu-item"><span>Chicken Sandwich</span><span>EGP 80</span></div>
-
-    <div class="menu-item"><span>Beef Shawarma Wrap</span><span>EGP 75</span></div>
-
-    <div class="menu-item"><span>Grilled Cheese Sandwich</span><span>EGP 65</span></div>
-
-    <div class="menu-item"><span>Club Sandwich</span><span>EGP 90</span></div>
-
-  <h2 style="margin-top: 30px;">Meals & Combos</h2>
-
-    <div class="menu-item"><span>Burger Meal (Burger + Fries + Drink)</span><span>EGP 150</span></div>
-
-    <div class="menu-item"><span>Double Burger Combo</span><span>EGP 190</span></div>
-
-    <div class="menu-item"><span>Family Combo (4 burgers + fries)</span><span>EGP 480</span></div>
-
-    <div class="menu-item"><span>Mince Feast Platter</span><span>EGP 350</span></div>
-
-  <h2 style="margin-top: 30px;">Sides & Extras</h2>
-
-    <div class="menu-item"><span>French Fries</span><span>EGP 30</span></div>
-
-    <div class="menu-item"><span>Sweet Potato Fries</span><span>EGP 35</span></div>
-
-    <div class="menu-item"><span>Onion Rings</span><span>EGP 25</span></div>
-
-    <div class="menu-item"><span>Mozzarella Sticks</span><span>EGP 40</span></div>
-
-    <div class="menu-item"><span>Coleslaw</span><span>EGP 20</span></div>
-
-    <div class="menu-item"><span>Garlic Sauce</span><span>EGP 10</span></div>
-  
-  <a href="https://www.minceburgers.com/en" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+  <a href="https://www.minceburgers.com/en" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu & Order Online</a>
 </section>
 
 <section class="section reviews">
@@ -169,19 +460,23 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <div id="reviews-list">
     <div class="review">
       <p><strong>Ahmed R.</strong></p>
-      <p>The Mince Special Burger is absolutely incredible! Freshly minced beef with perfect seasoning and amazing sauces. Best burger I've had in Cairo!</p>
+      <p>The MINCE ORIGINAL burger is absolutely incredible! Freshly minced beef with perfect seasoning and amazing sauces. Best burger I've had in Cairo!</p>
     </div>
     <div class="review">
       <p><strong>Nour K.</strong></p>
-      <p>Artisanal burgers done right! The double cheeseburger is perfectly balanced and the brioche buns are always fresh. Quality ingredients make all the difference!</p>
+      <p>Artisanal burgers done right! The JUICY LUCY is perfectly balanced and the brioche buns are always fresh. Quality ingredients make all the difference!</p>
     </div>
     <div class="review">
       <p><strong>Mohamed S.</strong></p>
-      <p>The bacon deluxe burger is a game-changer! Crispy bacon, juicy beef, and amazing cheese. The sweet potato fries are the perfect side!</p>
+      <p>The MUSHROOM burger is a game-changer! Juicy beef, amazing mushroom sauce, and perfect cheese. The LOADED SMASHED FRIES are the perfect side!</p>
     </div>
     <div class="review">
       <p><strong>Sarah M.</strong></p>
-      <p>Fresh ingredients and creative flavor combinations! The truffle mushroom burger is sophisticated and delicious. Mince sets the standard for burgers in Egypt!</p>
+      <p>Fresh ingredients and creative flavor combinations! The Mesahero Bites are delicious and unique. Mince sets the standard for burgers in Egypt!</p>
+    </div>
+    <div class="review">
+      <p><strong>Omar H.</strong></p>
+      <p>The variety of fries options is amazing! From the honey mustard crunch fries to the loaded smashed fries - each one is better than the last!</p>
     </div>
   </div>
   
@@ -196,11 +491,113 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
   <p style="margin-top: 10px; font-size: 0.8rem;">Mince - Artisanal Burgers & Fresh Beef Since 2018</p>
-  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Sheikh Zayed, Heliopolis, Nasr City, Maadi</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Cairo, Giza, Smart Village, and surrounding areas</p>
 </footer>
 
 <script>
-const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('mince-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('mince-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('mince-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('mince-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const reviewer = document.getElementById('reviewer').value.trim();
+  const reviewText = document.getElementById('review-text').value.trim();
+  
+  if (reviewer && reviewText) {
+    const reviewElement = document.createElement('div');
+    reviewElement.className = 'review';
+    reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+    reviewsList.appendChild(reviewElement);
+    reviewForm.reset();
+    
+    const thankYouMessage = document.createElement('p');
+    thankYouMessage.textContent = 'Thank you for your review!';
+    thankYouMessage.style.color = '#FF9800';
+    thankYouMessage.style.fontWeight = '600';
+    thankYouMessage.style.marginTop = '10px';
+    reviewForm.appendChild(thankYouMessage);
+    
+    setTimeout(() => {
+      thankYouMessage.remove();
+    }, 3000);
+  }
+});
+
+// Branch Filter Functionality
+const branchFilterBtns = document.querySelectorAll('.branch-filter-btn');
+const branchCards = document.querySelectorAll('.branch-card');
+
+branchFilterBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const location = this.getAttribute('data-location');
+    
+    // Update active button
+    branchFilterBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter branches
+    branchCards.forEach(card => {
+      if (location === 'all' || card.getAttribute('data-location') === location) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+menuCategoryBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const category = this.getAttribute('data-category');
+    
+    // Update active button
+    menuCategoryBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter menu items
+    menuCategorySections.forEach(section => {
+      if (category === 'all' || section.getAttribute('data-category') === category) {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Initialize the page
+initializeTheme();
 </script>
 
 </body>
