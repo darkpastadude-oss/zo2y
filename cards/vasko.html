@@ -6,8 +6,8 @@
 <title>Vasko - Premium Patisserie & Cafe</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
-[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800;--discount:#e53935}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff;--accent:#ff944d;--discount:#ff6b6b}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
 .top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
@@ -47,8 +47,34 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
+
+/* Enhanced Menu Styles */
+.menu-category {margin-bottom: 40px;}
+.menu-category h3 {font-size: 1.4rem;margin-bottom: 15px;color: var(--accent);border-left: 4px solid var(--accent);padding-left: 10px;}
+.menu-grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));gap: 20px;}
+.menu-card {background: var(--card);border-radius: 12px;padding: 20px;transition: all 0.3s ease;border: 1px solid var(--nav-shadow);box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+.menu-card:hover {transform: translateY(-5px);box-shadow: 0 8px 15px rgba(0,0,0,0.1);}
+.menu-card h4 {margin-bottom: 10px;font-size: 1.1rem;color: var(--text);}
+.menu-card p {font-size: 0.9rem;color: var(--text2);margin-bottom: 15px;line-height: 1.5;}
+.menu-card .price {font-weight: bold;font-size: 1.1rem;color: var(--accent);}
+.menu-card .price-range {font-weight: bold;font-size: 1rem;color: var(--accent);}
+.menu-card .popular {font-size: 0.8rem;color: var(--discount);margin-top: 10px;font-weight: 600;}
+
+/* Menu Filter */
+.menu-filter {display: flex;gap: 10px;margin-bottom: 30px;flex-wrap: wrap;justify-content: center;}
+.filter-btn {padding: 8px 16px;border-radius: 20px;background: var(--nav-bg);color: var(--text);border: 1px solid var(--nav-shadow);cursor: pointer;transition: all 0.3s ease;font-size: 0.9rem;}
+.filter-btn.active, .filter-btn:hover {background: var(--accent);color: white;}
+
+/* Branch List Styles */
+.branch-list {display: grid;grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));gap: 20px;margin-top: 20px;}
+.branch-list-item {background: var(--card);border-radius: 12px;padding: 20px;border: 1px solid var(--nav-shadow);}
+.branch-list-item h4 {margin-bottom: 10px;font-size: 1.1rem;color: var(--text);}
+.branch-list-item p {font-size: 0.9rem;color: var(--text2);margin-bottom: 10px;}
+.branch-list-item a {font-size: 0.9rem;color: var(--text);text-decoration: none;display: flex;align-items: center;gap: 5px;}
+.branch-list-item a:hover {text-decoration: underline;}
+
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
-@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}.menu-grid{grid-template-columns:1fr}.branch-list{grid-template-columns:1fr}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}.menu-filter{justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -65,7 +91,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <div class="rating">⭐ 4.7/5 (2,800+ reviews)</div>
 
   <a href="tel:19995" class="btn">Call Hotline: 19995</a>
-  <a href="https://www.instagram.com/vasko.egypt/" target="_blank" class="btn secondary">View Menu</a>
+  <a href="https://vasko.coffee/" target="_blank" class="btn secondary">View Menu</a>
 </section>
 
 <section class="section">
@@ -102,48 +128,73 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   </div>
 </section>
 
+<!-- Enhanced Menu Section -->
 <section class="section menu">
-  <h2>Signature Cakes</h2>
+  <h2>Our Menu</h2>
+  
+  <div class="menu-filter" id="menuFilter">
+    <button class="filter-btn active" data-filter="all">All Items</button>
+    <button class="filter-btn" data-filter="sandwiches">Sandwiches</button>
+    <button class="filter-btn" data-filter="bakery">Bakery</button>
+    <button class="filter-btn" data-filter="pastries">Pastries</button>
+    <button class="filter-btn" data-filter="coffee">Coffee</button>
+    <button class="filter-btn" data-filter="beverages">Beverages</button>
+  </div>
+  
+  <div id="menuContainer">
+    <!-- Menu items will be dynamically populated by JavaScript -->
+  </div>
+  
+  <a href="https://vasko.coffee/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<!-- Additional Branches Section -->
+<section class="section">
+  <h2>All Branches</h2>
+  
+  <div class="branch-list">
+    <div class="branch-list-item">
+      <h4>Heliopolis (Korba)</h4>
+      <p>3 Ramses St. from Baghdad – Korba, Heliopolis</p>
+      <a href="https://maps.google.com/search?q=Vasko+Korba+Heliopolis" target="_blank">📍 Get Directions</a>
+    </div>
     
-    <div class="menu-item"><span>Red Velvet Cake</span><span>EGP 85</span></div>
-  
-    <div class="menu-item"><span>Chocolate Symphony</span><span>EGP 90</span></div>
-  
-    <div class="menu-item"><span>New York Cheesecake</span><span>EGP 75</span></div>
-  
-    <div class="menu-item"><span>Tiramisu</span><span>EGP 80</span></div>
-
-  <h2 style="margin-top: 30px;">French Pastries</h2>
-  
-    <div class="menu-item"><span>Pain au Chocolat</span><span>EGP 35</span></div>
-  
-    <div class="menu-item"><span>Croissant</span><span>EGP 25</span></div>
-  
-    <div class="menu-item"><span>Éclair</span><span>EGP 40</span></div>
-
-    <div class="menu-item"><span>Mille-feuille</span><span>EGP 45</span></div>
-
-  <h2 style="margin-top: 30px;">Specialty Coffee</h2>
-
-    <div class="menu-item"><span>Espresso</span><span>EGP 30</span></div>
-
-    <div class="menu-item"><span>Cappuccino</span><span>EGP 45</span></div>
-
-    <div class="menu-item"><span>Latte</span><span>EGP 50</span></div>
-
-    <div class="menu-item"><span>Flat White</span><span>EGP 48</span></div>
-
-  <h2 style="margin-top: 30px;">Beverages</h2>
-
-    <div class="menu-item"><span>Fresh Orange Juice</span><span>EGP 40</span></div>
-
-    <div class="menu-item"><span>Iced Tea</span><span>EGP 35</span></div>
-
-    <div class="menu-item"><span>Hot Chocolate</span><span>EGP 45</span></div>
-
-    <div class="menu-item"><span>Milkshake</span><span>EGP 55</span></div>
-  
-  <a href="https://www.instagram.com/vasko.egypt/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+    <div class="branch-list-item">
+      <h4>Cloud 9 Mall, New Cairo</h4>
+      <p>Inside Cloud 9 Mall, Mohamed Naguib Spine, New Cairo</p>
+      <a href="https://maps.google.com/search?q=Vasko+Cloud+9+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Cairo Festival City Mall, New Cairo</h4>
+      <p>Inside Cairo Festival City Mall</p>
+      <a href="https://maps.google.com/search?q=Vasko+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Maadi</h4>
+      <p>Branch in Maadi area</p>
+      <a href="https://maps.google.com/search?q=Vasko+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Gate Way Mall, Al Rehab City</h4>
+      <p>VASKO in Gate Way Mall, Al Rehab City</p>
+      <a href="https://maps.google.com/search?q=Vasko+Gate+Way+Mall+Al+Rehab" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Mall of Arabia, 6th of October</h4>
+      <p>Gate 5 in Mall of Arabia</p>
+      <a href="https://maps.google.com/search?q=Vasko+Mall+of+Arabia" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Open Air Mall, Madinaty</h4>
+      <p>Inside Open Air Mall, Madinaty</p>
+      <a href="https://maps.google.com/search?q=Vasko+Open+Air+Mall+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
 </section>
 
 <section class="section reviews">
@@ -182,7 +233,451 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 </footer>
 
 <script>
-const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('vasko-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('vasko-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+// Theme toggle functionality
+const themeToggle=document.getElementById('themeToggle');
+function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('vasko-theme',e)}
+function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
+function initializeTheme(){const e=localStorage.getItem('vasko-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+themeToggle.addEventListener('click',toggleTheme);
+
+// Review form functionality
+const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
+reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
+
+// Menu data
+const menuData = [
+  // Salads
+  {
+    id: 1,
+    title: "Chicken Caesar Salad",
+    description: "Fresh romaine lettuce with grilled chicken, parmesan cheese, croutons, and Caesar dressing",
+    price: "175 EGP",
+    category: "salads"
+  },
+  
+  // Sandwiches
+  {
+    id: 2,
+    title: "Spicy Ranch Chicken Panini Sandwich",
+    description: "Panini bread, chicken breast, cheddar cheese, ranch sauce, pickles, lettuce",
+    price: "169 EGP",
+    category: "sandwiches"
+  },
+  {
+    id: 3,
+    title: "Crisp Alpine Roast Beef Sandwich",
+    description: "Multigrain Toast, roasted beef, cheddar cheese, caramelized onion, mayonnaise, rocca, cucumber, relish",
+    price: "210 EGP",
+    category: "sandwiches"
+  },
+  {
+    id: 4,
+    title: "Chicken Cranberry Pretzel Sandwich",
+    description: "Pretzel bread, chicken breast, cheddar cheese, cream cheese, roquefort cheese, lettuce, sundried tomato, cranberry",
+    price: "165 EGP",
+    category: "sandwiches"
+  },
+  {
+    id: 5,
+    title: "Smoked Turkey Sandwich",
+    description: "Multigrain brown bread, smoked turkey, cheddar cheese, mayonnaise, lettuce, pickles",
+    price: "145 EGP",
+    category: "sandwiches"
+  },
+  {
+    id: 6,
+    title: "Halomui Simit Sandwich",
+    description: "Sesame simit, halloumi cheese, sundried tomatoes, cream cheese, olive paste, lettuce, pesto sauce",
+    price: "135 EGP",
+    category: "sandwiches"
+  },
+  {
+    id: 7,
+    title: "Salmon Bagel Sandwich",
+    description: "Bagel, smoked salmon, cream cheese, rocca, onion, dill, lemon, olive oil, capers",
+    price: "210 EGP",
+    category: "sandwiches"
+  },
+  
+  // Bakery
+  {
+    id: 8,
+    title: "Feta Mint Pate",
+    description: "Flaky pastry filled with feta cheese and fresh mint",
+    price: "89 EGP",
+    category: "bakery"
+  },
+  {
+    id: 9,
+    title: "Nutella Trio Croissant",
+    description: "Croissant filled with rich Nutella",
+    price: "89 EGP",
+    category: "bakery"
+  },
+  {
+    id: 10,
+    title: "Plain Croissant",
+    description: "Classic buttery French croissant",
+    price: "70 EGP",
+    category: "bakery"
+  },
+  {
+    id: 11,
+    title: "Chocolate Chunk Cookies",
+    description: "Cookies loaded with chocolate chunks",
+    price: "72 EGP",
+    category: "bakery"
+  },
+  {
+    id: 12,
+    title: "Double Chocolate Cookies",
+    description: "Rich double chocolate cookies",
+    price: "72 EGP",
+    category: "bakery"
+  },
+  {
+    id: 13,
+    title: "Blueberry Muffin",
+    description: "Moist muffin with fresh blueberries",
+    price: "82 EGP",
+    category: "bakery"
+  },
+  {
+    id: 14,
+    title: "Chocolate Chips Muffin",
+    description: "Classic muffin with chocolate chips",
+    price: "79 EGP",
+    category: "bakery"
+  },
+  {
+    id: 15,
+    title: "Banana Bread",
+    description: "Moist and flavorful banana bread",
+    price: "65 EGP",
+    category: "bakery"
+  },
+  {
+    id: 16,
+    title: "Marble Cake",
+    description: "Classic marble cake with chocolate and vanilla",
+    price: "65 EGP",
+    category: "bakery"
+  },
+  
+  // Pastries
+  {
+    id: 17,
+    title: "Brownie Bites",
+    description: "Rich chocolate brownie bites",
+    price: "98 EGP",
+    category: "pastries"
+  },
+  {
+    id: 18,
+    title: "Sugar Millefeuille",
+    description: "Classic French pastry with layers of puff pastry and cream",
+    price: "125 EGP",
+    category: "pastries"
+  },
+  {
+    id: 19,
+    title: "Caramelized Almond Cheesecake",
+    description: "Creamy cheesecake with caramelized almonds",
+    price: "155 EGP",
+    category: "pastries"
+  },
+  {
+    id: 20,
+    title: "Honey Cake",
+    description: "Layered cake with honey cream",
+    price: "135 EGP",
+    category: "pastries"
+  },
+  {
+    id: 21,
+    title: "Blueberry Cheesecake",
+    description: "Classic cheesecake with blueberry topping",
+    price: "145 EGP",
+    category: "pastries"
+  },
+  {
+    id: 22,
+    title: "Tiramisu",
+    description: "Classic Italian dessert with coffee-soaked ladyfingers",
+    price: "145 EGP",
+    category: "pastries"
+  },
+  {
+    id: 23,
+    title: "Chocolate Fudge Cake",
+    description: "Rich and moist chocolate fudge cake",
+    price: "135 EGP",
+    category: "pastries"
+  },
+  {
+    id: 24,
+    title: "Black Forest Brownies",
+    description: "Decadent brownies with cherry and chocolate",
+    price: "145 EGP",
+    category: "pastries"
+  },
+  
+  // Coffee - Espresso
+  {
+    id: 25,
+    title: "Espresso",
+    description: "Strong and rich espresso shot",
+    price: "60 EGP",
+    category: "coffee"
+  },
+  {
+    id: 26,
+    title: "Espresso Macchiato",
+    description: "Espresso with a dash of steamed milk",
+    price: "65 EGP",
+    category: "coffee"
+  },
+  
+  // Coffee - Hot Coffee
+  {
+    id: 27,
+    title: "Flat White",
+    description: "Smooth coffee with velvety microfoam",
+    price: "80 EGP",
+    category: "coffee"
+  },
+  {
+    id: 28,
+    title: "Cortado",
+    description: "Equal parts espresso and steamed milk",
+    price: "80 EGP",
+    category: "coffee"
+  },
+  {
+    id: 29,
+    title: "Cream Double Shot",
+    description: "Double shot of espresso with cream",
+    price: "95 - 135 EGP",
+    category: "coffee"
+  },
+  {
+    id: 30,
+    title: "Spanish Latte",
+    description: "Latte with condensed milk",
+    price: "120 - 135 EGP",
+    category: "coffee",
+    popular: true
+  },
+  {
+    id: 31,
+    title: "Caramel Nuts Macchiato",
+    description: "Macchiato with caramel and nuts",
+    price: "115 - 135 EGP",
+    category: "coffee"
+  },
+  {
+    id: 32,
+    title: "Latte",
+    description: "Espresso with steamed milk",
+    price: "90 - 105 EGP",
+    category: "coffee"
+  },
+  {
+    id: 33,
+    title: "Cappuccino",
+    description: "Espresso with equal parts steamed milk and foam",
+    price: "90 - 105 EGP",
+    category: "coffee"
+  },
+  {
+    id: 34,
+    title: "Americano",
+    description: "Espresso with hot water",
+    price: "70 - 80 EGP",
+    category: "coffee"
+  },
+  {
+    id: 35,
+    title: "Mocha",
+    description: "Espresso with chocolate and steamed milk",
+    price: "110 - 125 EGP",
+    category: "coffee"
+  },
+  {
+    id: 36,
+    title: "White Mocha",
+    description: "Espresso with white chocolate and steamed milk",
+    price: "110 - 125 EGP",
+    category: "coffee"
+  },
+  
+  // Beverages
+  {
+    id: 37,
+    title: "Hot Chocolate",
+    description: "Rich and creamy hot chocolate",
+    price: "125 - 150 EGP",
+    category: "beverages"
+  },
+  {
+    id: 38,
+    title: "Tea",
+    description: "Selection of premium teas",
+    price: "60 EGP",
+    category: "beverages"
+  },
+  {
+    id: 39,
+    title: "Green Tea with Mint",
+    description: "Refreshing green tea with fresh mint",
+    price: "60 EGP",
+    category: "beverages"
+  },
+  {
+    id: 40,
+    title: "Iced Spanish Latte",
+    description: "Chilled Spanish latte with condensed milk",
+    price: "125 EGP",
+    category: "beverages",
+    popular: true
+  },
+  {
+    id: 41,
+    title: "Iced Latte",
+    description: "Chilled latte with espresso and milk",
+    price: "100 EGP",
+    category: "beverages"
+  },
+  {
+    id: 42,
+    title: "Iced Mocha",
+    description: "Chilled mocha with chocolate and espresso",
+    price: "120 EGP",
+    category: "beverages"
+  },
+  {
+    id: 43,
+    title: "Caramel Frappe",
+    description: "Blended ice drink with caramel flavor",
+    price: "110 EGP",
+    category: "beverages"
+  },
+  {
+    id: 44,
+    title: "Passion Fruit Frappe",
+    description: "Refreshing passion fruit blended drink",
+    price: "120 EGP",
+    category: "beverages"
+  },
+  {
+    id: 45,
+    title: "Iced Belgian Chocolate",
+    description: "Rich Belgian chocolate chilled drink",
+    price: "150 EGP",
+    category: "beverages"
+  },
+  {
+    id: 46,
+    title: "Passion Fruit Mojito",
+    description: "Refreshing passion fruit mojito",
+    price: "125 EGP",
+    category: "beverages"
+  },
+  {
+    id: 47,
+    title: "Watermelon Mojito",
+    description: "Fresh watermelon mojito",
+    price: "125 EGP",
+    category: "beverages"
+  },
+  {
+    id: 48,
+    title: "Mojito",
+    description: "Classic mojito with peach or watermelon",
+    price: "98 EGP",
+    category: "beverages"
+  },
+  {
+    id: 49,
+    title: "Iced Tea",
+    description: "Chilled tea with lemon or peach",
+    price: "98 EGP",
+    category: "beverages"
+  },
+  {
+    id: 50,
+    title: "Lemon Mint",
+    description: "Refreshing lemon and mint drink",
+    price: "72 EGP",
+    category: "beverages"
+  }
+];
+
+// Function to render menu
+function renderMenu(filter = 'all') {
+  const menuContainer = document.getElementById('menuContainer');
+  menuContainer.innerHTML = '';
+  
+  // Group items by category
+  const categories = {};
+  menuData.forEach(item => {
+    if (filter === 'all' || item.category === filter) {
+      if (!categories[item.category]) {
+        categories[item.category] = [];
+      }
+      categories[item.category].push(item);
+    }
+  });
+  
+  // Render categories
+  Object.keys(categories).forEach(category => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'menu-category';
+    
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+    categoryDiv.appendChild(categoryTitle);
+    
+    const menuGrid = document.createElement('div');
+    menuGrid.className = 'menu-grid';
+    
+    categories[category].forEach(item => {
+      const menuCard = document.createElement('div');
+      menuCard.className = 'menu-card';
+      
+      menuCard.innerHTML = `
+        <h4>${item.title}</h4>
+        ${item.description ? `<p>${item.description}</p>` : ''}
+        <div class="${item.price.includes('-') ? 'price-range' : 'price'}">${item.price}</div>
+        ${item.popular ? `<div class="popular">★ Popular Choice</div>` : ''}
+      `;
+      
+      menuGrid.appendChild(menuCard);
+    });
+    
+    categoryDiv.appendChild(menuGrid);
+    menuContainer.appendChild(categoryDiv);
+  });
+}
+
+// Filter functionality for menu
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTheme();
+  renderMenu();
+  
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+      // Filter menu
+      const filter = this.getAttribute('data-filter');
+      renderMenu(filter);
+    });
+  });
+});
 </script>
 
 </body>

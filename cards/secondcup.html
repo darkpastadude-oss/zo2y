@@ -6,20 +6,21 @@
 <title>Second Cup Coffee - Premium Canadian Coffee Experience</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800}
 [data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
 .back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
 .back-btn{display:flex;align-items:center;gap:6px}
 .back-btn:hover{transform:translateX(-3px)}
-.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
-.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
-.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
-.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
+.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,152,0,0.05)"/></svg>');background-size:cover;pointer-events:none}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
 .btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
 .btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
 .section{max-width:900px;margin:0 auto;padding:40px 20px}
@@ -35,10 +36,14 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
+.menu-categories{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.menu-category-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
+.menu-category-btn.active,.menu-category-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
 .menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
 .review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
 .review p{margin-bottom:5px;color:var(--text2)}
 .review p:first-child{font-weight:600;color:var(--text)}
@@ -48,6 +53,11 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+.branch-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.branch-filter-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease}
+.branch-filter-btn.active,.branch-filter-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
+.popular-badge{background:#FF9800;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
+.price-range{font-size:0.8rem;color:var(--text2);margin-left:5px}
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
 </style>
 </head>
@@ -75,79 +85,449 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     <strong>Delivery:</strong> <a href="tel:19995">19995</a>
   </div>
 
-  <div class="branches">
-    <div class="branch-card">
-      <h3>New Cairo</h3>
-      <p>Point 90 Mall, Food Court<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Point+90+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
+  <div class="branch-filter" id="branchFilter">
+    <button class="branch-filter-btn active" data-location="all">All Locations</button>
+    <button class="branch-filter-btn" data-location="cairo">Cairo</button>
+    <button class="branch-filter-btn" data-location="giza">Giza</button>
+    <button class="branch-filter-btn" data-location="tanta">Tanta</button>
+  </div>
+
+  <div class="branches" id="branchesContainer">
+    <div class="branch-card" data-location="cairo">
+      <h3>Heliopolis - Rafale Food Court</h3>
+      <p>22 Ahmed Tayseer St., Intersection of El Shaheed Abdel Wahab El Qady St.<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+Rafale+Food+Court+Heliopolis" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Sheikh Zayed</h3>
-      <p>Mall of Egypt, Ground Floor<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Mall+of+Egypt+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+    <div class="branch-card" data-location="cairo">
+      <h3>Heliopolis - El Korba</h3>
+      <p>8 Baghdad St., in front of Mandarine Koueider Pastry<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+El+Korba+Heliopolis" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Nasr City</h3>
-      <p>City Stars Mall, Level 2<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+City+Stars+Nasr+City" target="_blank">📍 Get Directions</a>
+    <div class="branch-card" data-location="cairo">
+      <h3>Al Rehab City - Avenue Mall</h3>
+      <p>Phase 9, Al Rehab City<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+Avenue+Mall+Al+Rehab" target="_blank">📍 Get Directions</a>
     </div>
     
-    <div class="branch-card">
-      <h3>Heliopolis</h3>
-      <p>City Centre Almaza<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+City+Centre+Almaza+Heliopolis" target="_blank">📍 Get Directions</a>
+    <div class="branch-card" data-location="cairo">
+      <h3>New Cairo - Cairo Festival City Mall</h3>
+      <p>Ring Rd., inside CFC, 3rd floor, Shop 19<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="giza">
+      <h3>6th of October - Mall of Arabia</h3>
+      <p>Juhayna Square inside Mall of Arabia Gate 22<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+Mall+of+Arabia" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Maadi - Strip 1 Mall</h3>
+      <p>Strip 1 Mall, Maadi<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+Strip+1+Mall+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="cairo">
+      <h3>Nasr City - Child Garden</h3>
+      <p>International Park, Nasr City<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+Child+Garden+Nasr+City" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="giza">
+      <h3>El Haram - Chillout Gas Station</h3>
+      <p>Gate 4, Chillout gas station<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+El+Haram+Chillout" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card" data-location="tanta">
+      <h3>Tanta - Chillout Gas Station</h3>
+      <p>Inside Chillout gas station, El Guish, Tanta<br>Open: 8:00 AM - 12:00 AM</p>
+      <a href="https://maps.google.com/search?q=Second+Cup+Tanta+Chillout" target="_blank">📍 Get Directions</a>
     </div>
   </div>
 </section>
 
 <section class="section menu">
-  <h2>Hot Coffee</h2>
-    
-    <div class="menu-item"><span>Americano</span><span>EGP 45</span></div>
+  <h2>Our Premium Canadian Menu</h2>
   
-    <div class="menu-item"><span>Cappuccino</span><span>EGP 50</span></div>
+  <div class="menu-categories" id="menuCategories">
+    <button class="menu-category-btn active" data-category="all">All Items</button>
+    <button class="menu-category-btn" data-category="hot">Hot Coffee</button>
+    <button class="menu-category-btn" data-category="cold">Cold Coffee</button>
+    <button class="menu-category-btn" data-category="tea">Tea & Chocolate</button>
+    <button class="menu-category-btn" data-category="pastries">Pastries</button>
+    <button class="menu-category-btn" data-category="desserts">Desserts</button>
+    <button class="menu-category-btn" data-category="extras">Extras</button>
+  </div>
+
+  <div class="menu-items-container">
+    <!-- Hot Coffee -->
+    <div class="menu-category-section" data-category="hot">
+      <h3>Hot Coffee</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Espresso Forte <span class="popular-badge">Popular</span></span>
+          <div class="menu-item-description">A shot of espresso from forte coffee beans</div>
+        </div>
+        <span>EGP 55<span class="price-range"> - 65</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Vanilla Bean Latte</span>
+          <div class="menu-item-description">Vanilla with espresso, milk</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 125</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Hot Spanish Latte</span>
+          <div class="menu-item-description">A rich, creamy espresso, infused with warm spices, topped with steamed milk and cinnamon</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 125</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Hot Toffee Nut Latte</span>
+          <div class="menu-item-description">Toffee nut flavor with espresso, milk</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 125</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Flat White</span>
+          <div class="menu-item-description">Made with a double shot of espresso and steamed milk</div>
+        </div>
+        <span>EGP 90</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Hazelnut Latte</span>
+          <div class="menu-item-description">Espresso with milk, mixed with hazelnut syrup</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 125</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Caffe Latte</span>
+          <div class="menu-item-description">Coffee-based beverage made with espresso shots and steamed milk</div>
+        </div>
+        <span>EGP 85<span class="price-range"> - 105</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>White Mocha</span>
+          <div class="menu-item-description">Made with espresso shots, steamed milk and whipped cream</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 125</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Americano</span>
+          <div class="menu-item-description">Made with freshly brewed espresso and hot water</div>
+        </div>
+        <span>EGP 75</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Cappuccino</span>
+          <div class="menu-item-description">Made with espresso and steamed milk creating rich, velvety taste</div>
+        </div>
+        <span>EGP 85<span class="price-range"> - 105</span></span>
+      </div>
+    </div>
+
+    <!-- Cold Coffee -->
+    <div class="menu-category-section" data-category="cold">
+      <h3>Cold Coffee</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Iced Salted Caramel Latte</span>
+          <div class="menu-item-description">Cold coffee-based beverage made with espresso, milk, and salted caramel syrup</div>
+        </div>
+        <span>EGP 95<span class="price-range"> - 115</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Ice Spanish Latte <span class="popular-badge">Popular</span></span>
+          <div class="menu-item-description">Shot of espresso with condensed cold milk adds creamy sweetness</div>
+        </div>
+        <span>EGP 110<span class="price-range"> - 130</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Iced Latte</span>
+          <div class="menu-item-description">Cold coffee-based beverage made with espresso and milk</div>
+        </div>
+        <span>EGP 95<span class="price-range"> - 105</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Cold Brew Bottle</span>
+          <div class="menu-item-description">A bottle of cold brew coffee</div>
+        </div>
+        <span>EGP 100</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Iced Coffee</span>
+          <div class="menu-item-description">Made with freshly brewed coffee, ice, sweetened to perfection</div>
+        </div>
+        <span>EGP 75</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Caramel Corretto Chiller</span>
+          <div class="menu-item-description">Caramel corito with crushed ice</div>
+        </div>
+        <span>EGP 110<span class="price-range"> - 130</span></span>
+      </div>
+    </div>
+
+    <!-- Tea & Chocolate -->
+    <div class="menu-category-section" data-category="tea">
+      <h3>Tea & Hot Chocolate</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Hot Karak Tea <span class="popular-badge">Popular</span></span>
+          <div class="menu-item-description">A strong and flavorful tea brewed with aromatic spices</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 115</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Dark Hot Chocolate</span>
+          <div class="menu-item-description">Hot beverage made with chocolate, cocoa powder with a pinch of sugar</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 125</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Creamy Hot Chocolate</span>
+          <div class="menu-item-description">Hot chocolate with whipped cream</div>
+        </div>
+        <span>EGP 105<span class="price-range"> - 125</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>English Breakfast Tea</span>
+          <div class="menu-item-description">Full-bodied english breakfast tea, a robust blend of premium black teas</div>
+        </div>
+        <span>EGP 65<span class="price-range"> - 75</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Earl Grey Tea</span>
+          <div class="menu-item-description">Harmonious blend of aromatic black tea and delicate bergamot</div>
+        </div>
+        <span>EGP 65<span class="price-range"> - 75</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Green Tea</span>
+          <div class="menu-item-description">Premium green tea, expertly harvested to preserve natural antioxidants</div>
+        </div>
+        <span>EGP 60<span class="price-range"> - 70</span></span>
+      </div>
+    </div>
+
+    <!-- Pastries -->
+    <div class="menu-category-section" data-category="pastries">
+      <h3>Pastries & Croissants</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Cheese Croissant <span class="popular-badge">Popular</span></span>
+          <div class="menu-item-description">Flaky layers of buttery pastry filled with creamy melted cheese, baked to golden perfection</div>
+        </div>
+        <span>EGP 105</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Smoked Turkey Croissant</span>
+          <div class="menu-item-description">Croissant with smoked turkey slices, cheddar cheese</div>
+        </div>
+        <span>EGP 125</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Plain Croissant</span>
+          <div class="menu-item-description">Made with layers of flaky, buttery pastry dough, perfect for breakfast or snack</div>
+        </div>
+        <span>EGP 75</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Thyme Croissant</span>
+          <div class="menu-item-description">Flaky croissant infused with thyme flavor</div>
+        </div>
+        <span>EGP 85</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Halloumi Cheese Croissant</span>
+          <div class="menu-item-description">Croissant filled with halloumi cheese</div>
+        </div>
+        <span>EGP 105</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Blueberry Muffin</span>
+        </div>
+        <span>EGP 80</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Vanilla Muffin</span>
+          <div class="menu-item-description">Delicate muffin with a vanilla flavor</div>
+        </div>
+        <span>EGP 85</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Chocolate Doughnut</span>
+        </div>
+        <span>EGP 60</span>
+      </div>
+    </div>
+
+    <!-- Desserts -->
+    <div class="menu-category-section" data-category="desserts">
+      <h3>Desserts & Cakes</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Carrot Cake</span>
+          <div class="menu-item-description">Made with fresh carrots, moist layers infused with spices, topped with cream cheese frosting</div>
+        </div>
+        <span>EGP 130</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>San Sebastian Cheesecake</span>
+          <div class="menu-item-description">Creamy and burnt caramel-flavored cheesecake from San Sebastian, Spain</div>
+        </div>
+        <span>EGP 130</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Lotus Cheesecake</span>
+        </div>
+        <span>EGP 130</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Blueberry Cheesecake</span>
+        </div>
+        <span>EGP 130</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Chubby Dough Lotus Cookies</span>
+        </div>
+        <span>EGP 90</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Oats with Lemon and Raisins Cookies</span>
+        </div>
+        <span>EGP 80</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Vanilla Ice Cream</span>
+          <div class="menu-item-description">Creamy, smooth, sweet flavor of pure vanilla in classic vanilla ice cream</div>
+        </div>
+        <span>EGP 40</span>
+      </div>
+    </div>
+
+    <!-- Extras -->
+    <div class="menu-category-section" data-category="extras">
+      <h3>Extras & Add-ons</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extra Hazelnut Flavor</span>
+        </div>
+        <span>EGP 40</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extra Caramel Flavor</span>
+        </div>
+        <span>EGP 40</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extra Vanilla Flavor</span>
+        </div>
+        <span>EGP 40</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extra Espresso Shot</span>
+        </div>
+        <span>EGP 40</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extra Almond Milk</span>
+        </div>
+        <span>EGP 50</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extra Oat Milk</span>
+        </div>
+        <span>EGP 50</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Red Bull Energy Drink</span>
+        </div>
+        <span>EGP 80</span>
+      </div>
+    </div>
+  </div>
   
-    <div class="menu-item"><span>Latte</span><span>EGP 55</span></div>
-  
-    <div class="menu-item"><span>Flat White</span><span>EGP 52</span></div>
-
-    <div class="menu-item"><span>Mocha</span><span>EGP 60</span></div>
-
-  <h2 style="margin-top: 30px;">Cold Coffee</h2>
-  
-    <div class="menu-item"><span>Iced Americano</span><span>EGP 48</span></div>
-  
-    <div class="menu-item"><span>Iced Latte</span><span>EGP 58</span></div>
-  
-    <div class="menu-item"><span>Cold Brew</span><span>EGP 55</span></div>
-
-    <div class="menu-item"><span>Frappé</span><span>EGP 65</span></div>
-
-  <h2 style="margin-top: 30px;">Specialty Drinks</h2>
-
-    <div class="menu-item"><span>Caramel Macchiato</span><span>EGP 65</span></div>
-
-    <div class="menu-item"><span>Hazelnut Latte</span><span>EGP 62</span></div>
-
-    <div class="menu-item"><span>Vanilla Bean Latte</span><span>EGP 62</span></div>
-
-    <div class="menu-item"><span>White Chocolate Mocha</span><span>EGP 68</span></div>
-
-  <h2 style="margin-top: 30px;">Pastries & Desserts</h2>
-
-    <div class="menu-item"><span>Chocolate Croissant</span><span>EGP 40</span></div>
-
-    <div class="menu-item"><span>Blueberry Muffin</span><span>EGP 35</span></div>
-
-    <div class="menu-item"><span>Cheesecake Slice</span><span>EGP 65</span></div>
-
-    <div class="menu-item"><span>Chocolate Chip Cookie</span><span>EGP 25</span></div>
-
-    <div class="menu-item"><span>Tiramisu</span><span>EGP 70</span></div>
-  
-  <a href="https://www.secondcup.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+  <a href="https://www.secondcup.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu & Order Online</a>
 </section>
 
 <section class="section reviews">
@@ -155,19 +535,23 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <div id="reviews-list">
     <div class="review">
       <p><strong>Sarah M.</strong></p>
-      <p>Best Canadian coffee experience in Egypt! Their lattes are consistently perfect and the atmosphere is so cozy. The chocolate croissants are freshly baked and delicious.</p>
+      <p>Best Canadian coffee experience in Egypt! The Espresso Forte is consistently perfect and the Cheese Croissants are freshly baked and delicious. Authentic taste every time!</p>
     </div>
     <div class="review">
       <p><strong>Ahmed K.</strong></p>
-      <p>Second Cup has become my go-to spot for working remotely. Fast WiFi, comfortable seating, and amazing coffee. The caramel macchiato is my favorite!</p>
+      <p>Second Cup has become my go-to spot for working remotely. Fast WiFi, comfortable seating, and amazing coffee. The Hot Karak Tea is incredible - perfectly spiced!</p>
     </div>
     <div class="review">
       <p><strong>Nour S.</strong></p>
-      <p>Authentic Canadian coffee chain with premium quality. Their cold brew is smooth and refreshing, perfect for Cairo's hot weather. The staff is always friendly and professional.</p>
+      <p>Authentic Canadian coffee chain with premium quality. The Ice Spanish Latte is smooth and refreshing, perfect for Cairo's hot weather. The San Sebastian Cheesecake is to die for!</p>
     </div>
     <div class="review">
       <p><strong>Mark T.</strong></p>
-      <p>As someone who lived in Canada, I can confirm this is the real deal! The coffee beans are imported and you can taste the quality. Great place for meetings or casual hangouts.</p>
+      <p>As someone who lived in Canada, I can confirm this is the real deal! The coffee beans are imported and you can taste the quality. The Flat White is exactly like what I had in Toronto.</p>
+    </div>
+    <div class="review">
+      <p><strong>Layla R.</strong></p>
+      <p>The Carrot Cake is absolutely divine! Moist, perfectly spiced, and the cream cheese frosting is heavenly. Great place for meetings or casual hangouts with consistent quality.</p>
     </div>
   </div>
   
@@ -182,11 +566,113 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
   <p style="margin-top: 10px; font-size: 0.8rem;">Second Cup Coffee - Canada's Premium Coffee Experience Since 1975</p>
-  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Sheikh Zayed, Nasr City, Heliopolis, Maadi, Zamalek</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Cairo, Giza, Tanta, and surrounding areas</p>
 </footer>
 
 <script>
-const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('secondcup-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('secondcup-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('secondcup-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('secondcup-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const reviewer = document.getElementById('reviewer').value.trim();
+  const reviewText = document.getElementById('review-text').value.trim();
+  
+  if (reviewer && reviewText) {
+    const reviewElement = document.createElement('div');
+    reviewElement.className = 'review';
+    reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+    reviewsList.appendChild(reviewElement);
+    reviewForm.reset();
+    
+    const thankYouMessage = document.createElement('p');
+    thankYouMessage.textContent = 'Thank you for your review!';
+    thankYouMessage.style.color = '#FF9800';
+    thankYouMessage.style.fontWeight = '600';
+    thankYouMessage.style.marginTop = '10px';
+    reviewForm.appendChild(thankYouMessage);
+    
+    setTimeout(() => {
+      thankYouMessage.remove();
+    }, 3000);
+  }
+});
+
+// Branch Filter Functionality
+const branchFilterBtns = document.querySelectorAll('.branch-filter-btn');
+const branchCards = document.querySelectorAll('.branch-card');
+
+branchFilterBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const location = this.getAttribute('data-location');
+    
+    // Update active button
+    branchFilterBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter branches
+    branchCards.forEach(card => {
+      if (location === 'all' || card.getAttribute('data-location') === location) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+menuCategoryBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const category = this.getAttribute('data-category');
+    
+    // Update active button
+    menuCategoryBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter menu items
+    menuCategorySections.forEach(section => {
+      if (category === 'all' || section.getAttribute('data-category') === category) {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Initialize the page
+initializeTheme();
 </script>
 
 </body>

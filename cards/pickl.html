@@ -6,20 +6,21 @@
 <title>Pickl Egypt - Gourmet Burgers & Sandwiches</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800}
 [data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
 .back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
 .back-btn{display:flex;align-items:center;gap:6px}
 .back-btn:hover{transform:translateX(-3px)}
-.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
-.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
-.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
-.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
+.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,152,0,0.05)"/></svg>');background-size:cover;pointer-events:none}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
 .btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
 .btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
 .section{max-width:900px;margin:0 auto;padding:40px 20px}
@@ -35,10 +36,14 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
+.menu-categories{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.menu-category-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
+.menu-category-btn.active,.menu-category-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
 .menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
 .review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
 .review p{margin-bottom:5px;color:var(--text2)}
 .review p:first-child{font-weight:600;color:var(--text)}
@@ -48,6 +53,11 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+.branch-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.branch-filter-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease}
+.branch-filter-btn.active,.branch-filter-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
+.popular-badge{background:#FF9800;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
+.price-range{font-size:0.8rem;color:var(--text2);margin-left:5px}
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
 </style>
 </head>
@@ -61,109 +71,377 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 <section class="hero">
   <img src="../images/pickl.jpg" alt="Pickl Egypt Logo" class="logo" onclick="window.location.href='../index.html'">
   <h1>Pickl Egypt</h1>
-  <p>Dubai's famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.</p>
-  <div class="rating">⭐ 4.6/5 (2,300+ reviews)</div>
+  <p>Dubai's famous gourmet burger chain now in Egypt. Authentic smashed burgers, crispy chicken sandwiches & hand-spun shakes.</p>
+  <div class="rating">⭐ 4.7/5 (1,800+ reviews)</div>
 
-  <a href="tel:0120931000" class="btn">Call Hotline: 0120 931 000</a>
-  <a href="https://picklegypt.com/" target="_blank" class="btn secondary">Order Online</a>
+  <a href="tel:16233" class="btn">Call Hotline: 16233</a>
+  <a href="https://thepickl.com/" target="_blank" class="btn secondary">Order Online</a>
 </section>
 
 <section class="section">
   <h2>Contact & Branches</h2>
   <div class="hotline">
-    <strong>Hotline:</strong> <a href="tel:0120931000">0120 931 000</a>
-    <strong>Delivery:</strong> <a href="tel:0120931000">0120 931 000</a>
+    <strong>Hotline:</strong> <a href="tel:16233">16233</a>
+    <strong>Delivery:</strong> <a href="tel:16233">16233</a>
   </div>
 
   <div class="branches">
     <div class="branch-card">
-      <h3>New Cairo</h3>
-      <p>Downtown Mall, Food Court<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Pickl+Egypt+Downtown+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
+      <h3>Park Street West</h3>
+      <p>Sunday - Thursday 11am-2am<br>Friday - Saturday 11am-2am</p>
+      <a href="https://maps.google.com/search?q=Pickl+Park+Street+West" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
-      <h3>Sheikh Zayed</h3>
-      <p>Zahraa Mall, Ground Floor<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Pickl+Egypt+Zahraa+Mall+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+      <h3>Park Street East</h3>
+      <p>Sunday - Thursday 11am-2am<br>Friday - Saturday 11am-2am</p>
+      <a href="https://maps.google.com/search?q=Pickl+Park+Street+East" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
-      <h3>Nasr City</h3>
-      <p>City Stars Mall, Food Court<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Pickl+Egypt+City+Stars+Nasr+City" target="_blank">📍 Get Directions</a>
+      <h3>North Lane Alamein</h3>
+      <p>Sunday - Thursday 12pm-2am<br>Friday - Saturday 12pm-2am</p>
+      <a href="https://maps.google.com/search?q=Pickl+North+Lane+Alamein" target="_blank">📍 Get Directions</a>
     </div>
     
     <div class="branch-card">
-      <h3>Maadi</h3>
-      <p>Maadi Grand Mall<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=Pickl+Egypt+Maadi+Grand+Mall" target="_blank">📍 Get Directions</a>
+      <h3>North Square Alamein</h3>
+      <p>Sunday - Thursday 12pm-2am<br>Friday - Saturday 12pm-2am</p>
+      <a href="https://maps.google.com/search?q=Pickl+North+Square+Alamein" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Seashell</h3>
+      <p>Sunday - Thursday 12pm-2am<br>Friday - Saturday 12pm-2am</p>
+      <a href="https://maps.google.com/search?q=Pickl+Seashell" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Hacienda</h3>
+      <p>Sunday - Thursday 12pm-2am<br>Friday - Saturday 12pm-2am</p>
+      <a href="https://maps.google.com/search?q=Pickl+Hacienda" target="_blank">📍 Get Directions</a>
     </div>
   </div>
 </section>
 
 <section class="section menu">
-  <h2>Signature Burgers</h2>
-    
-    <div class="menu-item"><span>The Classic Cheeseburger</span><span>EGP 120</span></div>
+  <h2>Our Legendary Menu</h2>
   
-    <div class="menu-item"><span>Double Cheeseburger</span><span>EGP 160</span></div>
+  <div class="menu-categories" id="menuCategories">
+    <button class="menu-category-btn active" data-category="all">All Items</button>
+    <button class="menu-category-btn" data-category="cheeseburgers">Cheeseburgers</button>
+    <button class="menu-category-btn" data-category="chicken">Chicken Sandos</button>
+    <button class="menu-category-btn" data-category="plant">Plant-Based</button>
+    <button class="menu-category-btn" data-category="fries">Fries & Sides</button>
+    <button class="menu-category-btn" data-category="shakes">Shakes & Sweets</button>
+    <button class="menu-category-btn" data-category="kids">Little Pickl</button>
+  </div>
+
+  <div class="menu-items-container">
+    <!-- Cheeseburgers -->
+    <div class="menu-category-section" data-category="cheeseburgers">
+      <h3>Cheeseburgers</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE ORIGINAL CHEESEBURGER <span class="popular-badge">Popular</span></span>
+          <div class="menu-item-description">Single or double chuck patty, cheese, dill pickles, white onion, mustard, ketchup & brioche bun</div>
+        </div>
+        <span>EGP 180<span class="price-range"> / 265</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>BESPOKE YOUR CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double chuck patty, cheese, brioche bun & your choice of toppings</div>
+        </div>
+        <span>EGP 200<span class="price-range"> / 285</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE NEW YORKER CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double chuck patty, cheese, tomato, lettuce, secret sauce & brioche bun</div>
+        </div>
+        <span>EGP 200<span class="price-range"> / 285</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE JEFF CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double chuck patty, cheese, feel the heat spice, fried onions, ranch sauce & brioche bun</div>
+        </div>
+        <span>EGP 200<span class="price-range"> / 285</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE BBQ CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double chuck patty, cheese, fried onions, bbq sauce, ranch sauce & brioche bun</div>
+        </div>
+        <span>EGP 200<span class="price-range"> / 285</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE BUFFALO CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double chuck patty, cheese, lettuce, buffalo sauce, ranch sauce, parmesan & brioche bun</div>
+        </div>
+        <span>EGP 200<span class="price-range"> / 285</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE LEGENDARY PATTY MELT</span>
+          <div class="menu-item-description">Double chuck patty, cheese, white onion, secret sauce & brioche bun</div>
+        </div>
+        <span>EGP 285</span>
+      </div>
+    </div>
+
+    <!-- Chicken Sandos -->
+    <div class="menu-category-section" data-category="chicken">
+      <h3>Chicken Sandos</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE CHICKEN SANDO <span class="popular-badge">Popular</span></span>
+          <div class="menu-item-description">Plain fresh fried chicken, dill pickles, lettuce, comeback sauce & brioche bun</div>
+        </div>
+        <span>EGP 245</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>CHICKEN CAESAR SANDO</span>
+          <div class="menu-item-description">Plain fresh fried chicken, caesar sauce, lettuce, parmesan, cheese & brioche bun</div>
+        </div>
+        <span>EGP 250</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>BUFFALO SANDO</span>
+          <div class="menu-item-description">Buffalo fried chicken, ranch sauce, lettuce, parmesan, brioche bun</div>
+        </div>
+        <span>EGP 250</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE LEGENDARY CHICKEN MELT</span>
+          <div class="menu-item-description">Two fresh fried tenders, cheese, comeback sauce & brioche bun</div>
+        </div>
+        <span>EGP 245</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>LRG TENDERS</span>
+          <div class="menu-item-description">Six fresh fried chicken tenders, dill pickles & comeback sauce</div>
+        </div>
+        <span>EGP 400</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>SML TENDERS</span>
+          <div class="menu-item-description">Three fresh fried chicken tenders, dill pickles & comeback sauce</div>
+        </div>
+        <span>EGP 210</span>
+      </div>
+    </div>
+
+    <!-- Plant-Based Burgers -->
+    <div class="menu-category-section" data-category="plant">
+      <h3>Plant-Based Burgers</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE ORIGINAL PLANT-BASED CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double plant-based patty, cheese, dill pickles, white onion, mustard, ketchup & brioche bun</div>
+        </div>
+        <span>EGP 145<span class="price-range"> / 205</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>BESPOKE YOUR PLANT-BASED CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double plant-based patty, cheese, brioche bun & your choice of toppings</div>
+        </div>
+        <span>EGP 165<span class="price-range"> / 225</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE NEW YORKER PLANT-BASED CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double plant-based patty, cheese, tomato, lettuce, secret sauce & brioche bun</div>
+        </div>
+        <span>EGP 165<span class="price-range"> / 225</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE JEFF PLANT-BASED CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double plant-based patty, cheese, feel the heat spice, fried onions, ranch sauce & brioche bun</div>
+        </div>
+        <span>EGP 165<span class="price-range"> / 225</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE BBQ PLANT-BASED CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double plant-based patty, cheese, fried onions, bbq sauce, ranch sauce & brioche bun</div>
+        </div>
+        <span>EGP 165<span class="price-range"> / 225</span></span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>THE BUFFALO PLANT-BASED CHEESEBURGER</span>
+          <div class="menu-item-description">Single or double plant-based patty, cheese, lettuce, buffalo sauce, ranch sauce, parmesan & brioche bun</div>
+        </div>
+        <span>EGP 165<span class="price-range"> / 225</span></span>
+      </div>
+    </div>
+
+    <!-- Fries & Sides -->
+    <div class="menu-category-section" data-category="fries">
+      <h3>Fries & Sides</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>SANDO FRIES</span>
+          <div class="menu-item-description">Fresh fried chicken, dill pickles, comeback sauce & parsley</div>
+        </div>
+        <span>EGP 190</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>MESSY FRIES</span>
+          <div class="menu-item-description">Dill pickles, secret sauce & parsley</div>
+        </div>
+        <span>EGP 150</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>SPICY FRIES</span>
+          <div class="menu-item-description">Skin-on fries with feel the heat spice</div>
+        </div>
+        <span>EGP 100</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>FRIES</span>
+          <div class="menu-item-description">Skin-on fries</div>
+        </div>
+        <span>EGP 90</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>ROCKET PARMA SALAD</span>
+          <div class="menu-item-description">Fresh rocket, white onion, parmesan, balsamic</div>
+        </div>
+        <span>EGP 90</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>TUB O' HOUSE PICKLES</span>
+          <div class="menu-item-description">Dill | onion | chilli</div>
+        </div>
+        <span>EGP 70</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>SAUCES</span>
+          <div class="menu-item-description">Comeback, secret, ranch, bbq, caesar, mustard</div>
+        </div>
+        <span>EGP 40</span>
+      </div>
+    </div>
+
+    <!-- Shakes & Sweets -->
+    <div class="menu-category-section" data-category="shakes">
+      <h3>Shakes & Sweets</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>SHAKES</span>
+          <div class="menu-item-description">Your choice of ice cream, blended oh so good - Vanilla, Strawberry, Chocolate</div>
+        </div>
+        <span>EGP 120</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>MAKE IT GOODER</span>
+          <div class="menu-item-description">Add Oreo, Lotus, or chocolate blend with your choice of sauce</div>
+        </div>
+        <span>EGP +50</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>ICE CREAM SANDOS</span>
+          <div class="menu-item-description">Your choice of ice cream in a deep-fried cinnamon sugar bun</div>
+        </div>
+        <span>EGP 100</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>SOFT DRINKS</span>
+        </div>
+        <span>EGP 35</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>WATER</span>
+        </div>
+        <span>EGP 25</span>
+      </div>
+    </div>
+
+    <!-- Little Pickl -->
+    <div class="menu-category-section" data-category="kids">
+      <h3>Little Pickl</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>LITTLE PICKL MEAL</span>
+          <div class="menu-item-description">Main (Cheeseburger, Chicken Sando, or Chicken Tenders) + Side (Fries or Carrot Sticks) + Drink (Water, Chocolate Milk, or Apple Juice)</div>
+        </div>
+        <span>EGP 180</span>
+      </div>
+    </div>
+  </div>
   
-    <div class="menu-item"><span>Smash Burger</span><span>EGP 130</span></div>
-  
-    <div class="menu-item"><span>Truffle Burger</span><span>EGP 180</span></div>
-
-  <h2 style="margin-top: 30px;">Chicken Sandwiches</h2>
-  
-    <div class="menu-item"><span>Classic Chicken Sandwich</span><span>EGP 110</span></div>
-  
-    <div class="menu-item"><span>Spicy Chicken Sandwich</span><span>EGP 115</span></div>
-  
-    <div class="menu-item"><span>Chicken Tenders (4 pcs)</span><span>EGP 95</span></div>
-  
-    <div class="menu-item"><span>Buffalo Chicken Sandwich</span><span>EGP 125</span></div>
-
-  <h2 style="margin-top: 30px;">Sides & Extras</h2>
-
-    <div class="menu-item"><span>Beef Bacon Fries</span><span>EGP 45</span></div>
-
-    <div class="menu-item"><span>Cheese Fries</span><span>EGP 40</span></div>
-
-    <div class="menu-item"><span>Onion Rings</span><span>EGP 35</span></div>
-
-    <div class="menu-item"><span>Coleslaw</span><span>EGP 25</span></div>
-
-  <h2 style="margin-top: 30px;">Beverages & Shakes</h2>
-
-    <div class="menu-item"><span>Classic Milkshake</span><span>EGP 50</span></div>
-
-    <div class="menu-item"><span>Oreo Milkshake</span><span>EGP 55</span></div>
-
-    <div class="menu-item"><span>Soft Drinks</span><span>EGP 20</span></div>
-
-    <div class="menu-item"><span>Fresh Lemonade</span><span>EGP 30</span></div>
-  
-  <a href="https://picklegypt.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+  <a href="https://thepickl.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu & Order Online</a>
 </section>
 
 <section class="section reviews">
   <h2>Customer Reviews</h2>
   <div id="reviews-list">
     <div class="review">
-      <p><strong>Mohamed R.</strong></p>
-      <p>Best burgers in Cairo! The smash burger is incredible - perfectly cooked and loaded with flavor. Reminds me of the ones I had in Dubai!</p>
+      <p><strong>Karim A.</strong></p>
+      <p>Finally a proper smashed burger in Egypt! The Original Cheeseburger is exactly like what I had in Dubai - perfectly crispy edges and juicy inside. Pickl lives up to the hype!</p>
     </div>
     <div class="review">
-      <p><strong>Sarah K.</strong></p>
-      <p>Pickl lives up to the hype! The chicken sandwich is crispy and juicy, and the truffle burger is absolutely worth trying. Great quality ingredients.</p>
+      <p><strong>Nada S.</strong></p>
+      <p>The Chicken Sando is incredible! Perfectly crispy chicken with just the right amount of heat. The Sando Fries are a game-changer too - loaded with flavor!</p>
     </div>
     <div class="review">
       <p><strong>Omar T.</strong></p>
-      <p>Finally a proper burger joint in Egypt! The double cheeseburger is my go-to, and the beef bacon fries are addictive. Fast service too!</p>
+      <p>Best burger joint in Cairo right now! The Double Cheeseburger is my go-to, and the Oreo milkshake is the perfect complement. Fast service and consistent quality.</p>
     </div>
     <div class="review">
-      <p><strong>Lina M.</strong></p>
-      <p>The Oreo milkshake is to die for! Perfect balance of sweetness and creaminess. Great spot for casual dining with friends.</p>
+      <p><strong>Layla M.</strong></p>
+      <p>Authentic Dubai-style burgers right here in Egypt! The buns are always fresh and the patties have that perfect crispy edge. The plant-based options are surprisingly delicious too!</p>
+    </div>
+    <div class="review">
+      <p><strong>Ahmed R.</strong></p>
+      <p>The Jeff Cheeseburger with Feel the Heat spice is absolutely amazing! Perfect balance of flavors and the quality is consistently excellent across all branches.</p>
     </div>
   </div>
   
@@ -177,12 +455,91 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
-  <p style="margin-top: 10px; font-size: 0.8rem;">Pickl Egypt - Premium Burgers & Sandwiches Since 2022</p>
-  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Sheikh Zayed, Nasr City, Maadi, Heliopolis</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Pickl Egypt - Authentic Dubai-style Burgers & Sandwiches</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Beef smashed, seasoned & sizzled. Chicken flipped, fried & flavoured. Burgers made legendary by the people who serve them.</p>
 </footer>
 
 <script>
-const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('pickl-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('pickl-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('pickl-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('pickl-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const reviewer = document.getElementById('reviewer').value.trim();
+  const reviewText = document.getElementById('review-text').value.trim();
+  
+  if (reviewer && reviewText) {
+    const reviewElement = document.createElement('div');
+    reviewElement.className = 'review';
+    reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+    reviewsList.appendChild(reviewElement);
+    reviewForm.reset();
+    
+    const thankYouMessage = document.createElement('p');
+    thankYouMessage.textContent = 'Thank you for your review!';
+    thankYouMessage.style.color = '#FF9800';
+    thankYouMessage.style.fontWeight = '600';
+    thankYouMessage.style.marginTop = '10px';
+    reviewForm.appendChild(thankYouMessage);
+    
+    setTimeout(() => {
+      thankYouMessage.remove();
+    }, 3000);
+  }
+});
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+menuCategoryBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const category = this.getAttribute('data-category');
+    
+    // Update active button
+    menuCategoryBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter menu items
+    menuCategorySections.forEach(section => {
+      if (category === 'all' || section.getAttribute('data-category') === category) {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Initialize the page
+initializeTheme();
 </script>
 
 </body>
