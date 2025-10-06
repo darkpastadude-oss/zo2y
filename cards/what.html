@@ -6,25 +6,26 @@
 <title>What The Crust - Gourmet Pizza & Unique Crusts</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
-[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800;--italian-red:#CD212A;--italian-green:#008C45;--italian-white:#F4F5F0}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff;--accent:#ff944d;--italian-red:#ff6b6b;--italian-green:#4CAF50;--italian-white:#e0e0e0}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top-stripe{background:var(--italian-red);height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
 .back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
 .back-btn{display:flex;align-items:center;gap:6px}
 .back-btn:hover{transform:translateX(-3px)}
-.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--italian-green) 0%,var(--italian-red) 100%);color:white}
+.hero p{color:rgba(255,255,255,0.9)}
 .logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
 .hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
-.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.hero p{font-size:1rem;margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#FFD700;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
-.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn.secondary{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3)}
 .btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
 .section{max-width:900px;margin:0 auto;padding:40px 20px}
 h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
-h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:var(--italian-red);border-radius:2px}
 .hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
 .hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
@@ -47,8 +48,38 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
+
+/* Enhanced Menu Styles */
+.menu-category {margin-bottom: 40px;}
+.menu-category h3 {font-size: 1.4rem;margin-bottom: 15px;color: var(--italian-red);border-left: 4px solid var(--italian-red);padding-left: 10px;}
+.menu-grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));gap: 20px;}
+.menu-card {background: var(--card);border-radius: 12px;padding: 20px;transition: all 0.3s ease;border: 1px solid var(--nav-shadow);box-shadow: 0 4px 6px rgba(0,0,0,0.05);position: relative;}
+.menu-card:hover {transform: translateY(-5px);box-shadow: 0 8px 15px rgba(0,0,0,0.1);}
+.menu-card h4 {margin-bottom: 10px;font-size: 1.1rem;color: var(--text);}
+.menu-card .subtitle {font-style: italic;color: var(--italian-green);margin-bottom: 10px;font-size: 0.9rem;}
+.menu-card p {font-size: 0.9rem;color: var(--text2);margin-bottom: 15px;line-height: 1.5;}
+.menu-card .ingredients {font-size: 0.85rem;color: var(--text2);margin-bottom: 15px;font-style: italic;}
+.menu-card .allergens {font-size: 0.8rem;color: var(--italian-red);margin-bottom: 10px;font-weight: 600;}
+.menu-card .price {font-weight: bold;font-size: 1.1rem;color: var(--italian-red);}
+.menu-card .price-range {font-weight: bold;font-size: 1rem;color: var(--italian-red);}
+.menu-card .popular {font-size: 0.8rem;color: var(--italian-green);margin-top: 10px;font-weight: 600;}
+.menu-card .special {position: absolute;top: 10px;right: 10px;background: var(--italian-green);color: white;padding: 4px 8px;border-radius: 4px;font-size: 0.7rem;font-weight: bold;}
+
+/* Menu Filter */
+.menu-filter {display: flex;gap: 10px;margin-bottom: 30px;flex-wrap: wrap;justify-content: center;}
+.filter-btn {padding: 8px 16px;border-radius: 20px;background: var(--nav-bg);color: var(--text);border: 1px solid var(--nav-shadow);cursor: pointer;transition: all 0.3s ease;font-size: 0.9rem;}
+.filter-btn.active, .filter-btn:hover {background: var(--italian-red);color: white;}
+
+/* Branch List Styles */
+.branch-list {display: grid;grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));gap: 20px;margin-top: 20px;}
+.branch-list-item {background: var(--card);border-radius: 12px;padding: 20px;border: 1px solid var(--nav-shadow);}
+.branch-list-item h4 {margin-bottom: 10px;font-size: 1.1rem;color: var(--text);}
+.branch-list-item p {font-size: 0.9rem;color: var(--text2);margin-bottom: 10px;}
+.branch-list-item a {font-size: 0.9rem;color: var(--text);text-decoration: none;display: flex;align-items: center;gap: 5px;}
+.branch-list-item a:hover {text-decoration: underline;}
+
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
-@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}.menu-grid{grid-template-columns:1fr}.branch-list{grid-template-columns:1fr}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}.menu-filter{justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -61,7 +92,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 <section class="hero">
   <img src="../images/wtc.png" alt="What The Crust Logo" class="logo" onclick="window.location.href='../index.html'">
   <h1>What The Crust</h1>
-  <p>Gourmet pizzas with unique crust options, creative toppings, and premium ingredients. Experience pizza reimagined!</p>
+  <p>Authentic Neapolitan pizzas with unique crust options, creative toppings, and premium ingredients. Experience pizza reimagined!</p>
   <div class="rating">⭐ 4.6/5 (3,200+ reviews)</div>
 
   <a href="tel:19995" class="btn">Call Hotline: 19995</a>
@@ -77,6 +108,18 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
   <div class="branches">
     <div class="branch-card">
+      <h3>Maadi - The Drive</h3>
+      <p>The Drive, Maadi<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=What+The+Crust+The+Drive+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Lakehouse Dusit Thani</h3>
+      <p>Lakehouse, Dusit Thani<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=What+The+Crust+Lakehouse+Dusit+Thani" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
       <h3>New Cairo</h3>
       <p>Cairo Festival City Mall<br>Open: 10:00 AM - 2:00 AM</p>
       <a href="https://maps.google.com/search?q=What+The+Crust+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
@@ -87,69 +130,57 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
       <p>Mall of Egypt, Food Court<br>Open: 10:00 AM - 2:00 AM</p>
       <a href="https://maps.google.com/search?q=What+The+Crust+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
     </div>
-    
-    <div class="branch-card">
-      <h3>Heliopolis</h3>
-      <p>City Centre Almaza<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=What+The+Crust+City+Centre+Almaza" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card">
-      <h3>Nasr City</h3>
-      <p>City Stars Mall<br>Open: 10:00 AM - 2:00 AM</p>
-      <a href="https://maps.google.com/search?q=What+The+Crust+City+Stars+Mall" target="_blank">📍 Get Directions</a>
-    </div>
   </div>
 </section>
 
+<!-- Enhanced Menu Section -->
 <section class="section menu">
-  <h2>Signature Pizzas</h2>
-    
-    <div class="menu-item"><span>Truffle Shuffle</span><span>EGP 185</span></div>
+  <h2>Our Authentic Neapolitan Pizzas</h2>
   
-    <div class="menu-item"><span>BBQ Chicken Ranch</span><span>EGP 165</span></div>
+  <div class="menu-filter" id="menuFilter">
+    <button class="filter-btn active" data-filter="all">All Items</button>
+    <button class="filter-btn" data-filter="classic">Classic Pizzas</button>
+    <button class="filter-btn" data-filter="specialty">Specialty Pizzas</button>
+    <button class="filter-btn" data-filter="dessert">Desserts</button>
+    <button class="filter-btn" data-filter="drinks">Drinks</button>
+  </div>
   
-    <div class="menu-item"><span>Spicy Hawaiian</span><span>EGP 155</span></div>
-  
-    <div class="menu-item"><span>Mediterranean Veggie</span><span>EGP 145</span></div>
-
-  <h2 style="margin-top: 30px;">Crust Options</h2>
-  
-    <div class="menu-item"><span>Classic Thin Crust</span><span>+ EGP 0</span></div>
-  
-    <div class="menu-item"><span>Stuffed Crust</span><span>+ EGP 25</span></div>
-  
-    <div class="menu-item"><span>Cheese Burst Crust</span><span>+ EGP 30</span></div>
-
-    <div class="menu-item"><span>Whole Wheat Crust</span><span>+ EGP 15</span></div>
-
-  <h2 style="margin-top: 30px;">Appetizers & Sides</h2>
-
-    <div class="menu-item"><span>Garlic Knots (6 pcs)</span><span>EGP 45</span></div>
-
-    <div class="menu-item"><span>Mozzarella Sticks</span><span>EGP 55</span></div>
-
-    <div class="menu-item"><span>Buffalo Wings (8 pcs)</span><span>EGP 85</span></div>
-
-    <div class="menu-item"><span>Loaded Fries</span><span>EGP 65</span></div>
-
-  <h2 style="margin-top: 30px;">Salads</h2>
-
-    <div class="menu-item"><span>Caesar Salad</span><span>EGP 75</span></div>
-
-    <div class="menu-item"><span>Greek Salad</span><span>EGP 70</span></div>
-
-    <div class="menu-item"><span>Garden Fresh Salad</span><span>EGP 65</span></div>
-
-  <h2 style="margin-top: 30px;">Desserts</h2>
-
-    <div class="menu-item"><span>Nutella Pizza</span><span>EGP 95</span></div>
-
-    <div class="menu-item"><span>Chocolate Brownie</span><span>EGP 55</span></div>
-
-    <div class="menu-item"><span>Ice Cream Scoop</span><span>EGP 35</span></div>
+  <div id="menuContainer">
+    <!-- Menu items will be dynamically populated by JavaScript -->
+  </div>
   
   <a href="https://www.whatthecrust.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<!-- Additional Branches Section -->
+<section class="section">
+  <h2>All Branches</h2>
+  
+  <div class="branch-list">
+    <div class="branch-list-item">
+      <h4>Maadi - The Drive</h4>
+      <p>The Drive, Maadi</p>
+      <a href="https://maps.google.com/search?q=What+The+Crust+The+Drive+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Lakehouse Dusit Thani</h4>
+      <p>Lakehouse, Dusit Thani</p>
+      <a href="https://maps.google.com/search?q=What+The+Crust+Lakehouse+Dusit+Thani" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Heliopolis</h4>
+      <p>City Centre Almaza</p>
+      <a href="https://maps.google.com/search?q=What+The+Crust+City+Centre+Almaza" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Nasr City</h4>
+      <p>City Stars Mall</p>
+      <a href="https://maps.google.com/search?q=What+The+Crust+City+Stars+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
 </section>
 
 <section class="section reviews">
@@ -161,15 +192,15 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     </div>
     <div class="review">
       <p><strong>Nour S.</strong></p>
-      <p>Their stuffed crust options are game-changing! The cheese burst crust is perfectly gooey and delicious. The BBQ Chicken Ranch is our family's favorite.</p>
+      <p>Their authentic Neapolitan pizzas are incredible! The Marinara is so simple yet bursting with flavor. The crust is perfectly chewy with just the right amount of char.</p>
     </div>
     <div class="review">
       <p><strong>Mark T.</strong></p>
-      <p>Creative pizza combinations that actually work! The Spicy Hawaiian with jalapeños and pineapple is surprisingly amazing. Great quality ingredients and fast delivery.</p>
+      <p>Creative pizza combinations that actually work! The Carnivora with homemade Italian sausage is amazing. Great quality ingredients and fast delivery.</p>
     </div>
     <div class="review">
       <p><strong>Layla M.</strong></p>
-      <p>The Nutella pizza for dessert is to die for! Perfect ending to any meal. Consistent quality across all branches and friendly service every time.</p>
+      <p>The Impasto al Cacao dessert pizza is to die for! Perfect ending to any meal. Consistent quality across all branches and friendly service every time.</p>
     </div>
   </div>
   
@@ -183,12 +214,389 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
-  <p style="margin-top: 10px; font-size: 0.8rem;">What The Crust - Gourmet Pizza Experience Since 2018</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">What The Crust - Authentic Neapolitan Pizza Experience</p>
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Follow us: @whatthecrust.egypt on Instagram</p>
 </footer>
 
 <script>
-const themeToggle=document.getElementById('themeToggle');function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('whatthecrust-theme',e)}function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}function initializeTheme(){const e=localStorage.getItem('whatthecrust-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}themeToggle.addEventListener('click',toggleTheme);const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}}),initializeTheme();
+// Theme toggle functionality
+const themeToggle=document.getElementById('themeToggle');
+function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('whatthecrust-theme',e)}
+function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
+function initializeTheme(){const e=localStorage.getItem('whatthecrust-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+themeToggle.addEventListener('click',toggleTheme);
+
+// Review form functionality
+const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
+reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
+
+// Menu data from the provided content
+const menuData = [
+  // Classic Pizzas
+  {
+    id: 1,
+    title: "MARINARA",
+    subtitle: "THE SAILOR'S PIE",
+    description: "This is how it all started. Tomatoes were abundant, bread was cheap. Bakers put the two together. Sailors made it their go-to meal for long voyages, hence the name (marinaro=sailor in Italian). The original Neapolitan street food.",
+    ingredients: "Italian Tomatoes, Oregano, Garlic, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "180 LE",
+    category: "classic"
+  },
+  {
+    id: 2,
+    title: "COSACCA",
+    subtitle: "THE KING'S PIE",
+    description: "This simple pizza was created in honour of the Russian King Nicholas II during his visit to Napoli.",
+    ingredients: "Italian Tomatoes, Garlic, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil, Black Pepper",
+    allergens: "gluten, dairy",
+    price: "240 LE",
+    category: "classic"
+  },
+  {
+    id: 3,
+    title: "SCARPARIELLO",
+    subtitle: "THE SHOEMAKER'S PIE",
+    description: "It is said that shoemakers invented this recipe (scarparo = shoemaker in the Neapolitan dialect) out of a desire to eat something quick, tasty and nutritious while working. Also traditionally a pasta dish.",
+    ingredients: "Italian Tomatoes, Sundried Tomatoes, Garlic, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil, Black Pepper",
+    allergens: "gluten, dairy",
+    price: "260 LE",
+    category: "classic"
+  },
+  {
+    id: 4,
+    title: "MARGHERITA VERACE",
+    subtitle: "THE QUEEN",
+    description: "This pizza was presented by Raffaele Esposito in 1889 to honour Queen Margherita di Savoia during her visit, and was garnished to represent the three colours of the Italian flag.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
+    allergens: "gluten, dairy",
+    price: "340 LE",
+    category: "classic"
+  },
+  {
+    id: 5,
+    title: "DIAVOLA",
+    subtitle: "THE DEVIL'S PIE",
+    description: "Before the 'pepperoni' pizzas you know, Neapolitans put spicy salami on a Margherita base. As the name suggests, this fiery combo is perfect for those looking for a flavourful kick to their pizza.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Salami, Dried Chilli to taste, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
+    allergens: "gluten, dairy",
+    price: "390 LE",
+    category: "classic"
+  },
+  {
+    id: 6,
+    title: "AI FUNGHI",
+    subtitle: "THE MUSHROOM PIE",
+    description: "Not much of a history there. We love mushrooms so we lightly sauté them in extra virgin olive oil with garlic and oregano then put them on our Margherita pizza.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Mushrooms, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "380 LE",
+    category: "classic"
+  },
+  {
+    id: 7,
+    title: "ROMANA",
+    subtitle: "THE ROMAN PIE",
+    description: "In Rome, it's called a Neapolitan. But we make Neapolitan pizza, so for us, this anchovy-topped Margherita is Roman.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Anchovies, Kalamata Olives, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
+    allergens: "gluten, dairy",
+    price: "370 LE",
+    category: "classic"
+  },
+  {
+    id: 8,
+    title: "RIPIENO",
+    subtitle: "THE CALZONE",
+    description: "It means 'ma7shi' in Italian. This ricotta-based pizza is filled with either salami or mushrooms, then folded over and baked to perfection.",
+    ingredients: "Fresh Mozzarella, Salami, Fresh Mushrooms, Italian Tomatoes, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
+    allergens: "gluten, dairy",
+    price: "390 LE",
+    category: "classic"
+  },
+  
+  // Specialty Pizzas
+  {
+    id: 9,
+    title: "CAPRICCIOSA",
+    subtitle: "THE WILD ONE",
+    description: "The 'Capricious' brings together a medley of flavour with its blend of mushrooms, air-dried salami and sautéed artichokes.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Mushrooms, Salami, Sliced Artichokes, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
+    allergens: "gluten, dairy",
+    price: "420 LE",
+    category: "specialty"
+  },
+  {
+    id: 10,
+    title: "QUATTRO FORMAGGI",
+    subtitle: "THE CHEESE LOVER'S PIE",
+    description: "This is a pizza Bianca - or 'white pizza' - meaning it has no tomato base. It's just lots of premium Italian cheese. Baked and melted. Together. Forever.",
+    ingredients: "Fresh Mozzarella, Smoked Mozzarella, Gorgonzola, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
+    allergens: "gluten, dairy",
+    price: "430 LE",
+    category: "specialty"
+  },
+  {
+    id: 11,
+    title: "AL PESTO",
+    subtitle: "HOMEMADE PESTO PIE",
+    description: "This classic 'green' pizza has become a WTC favourite! Made with no-holes-barred homemade Pesto alla Genovese using quality ingredient. We're pretty sure you'll like it too!",
+    ingredients: "Homemade Pesto Alla Genovese, Fresh Mozzarella, Italian Sundried Tomatoes, Fresh Basil, Pecorino DOP",
+    allergens: "gluten, dairy, nuts",
+    price: "430 LE",
+    category: "specialty"
+  },
+  {
+    id: 12,
+    title: "CARNIVORA",
+    subtitle: "MEAT LOVER'S PIE",
+    description: "This Winter 2023 Specials fan-favourite has earned its rightful permanent spot on our menu! Made with salami, homemade Italian sausage and bresaola on our classic Margherita base.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Salami, Italian Sausage, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
+    allergens: "gluten, dairy",
+    price: "450 LE",
+    category: "specialty"
+  },
+  {
+    id: 13,
+    title: "LA SBAGLIATA",
+    subtitle: "THE UPSIDE DOWN PIE",
+    description: "Inspired by both Franco Pepe's 'Margherita Sbagliata' - The Mistaken Margherita — and Stranger Things on Netflix, this pizza is topped the wrong way around. You can also call it 'el ma2looba'.",
+    ingredients: "Homemade Pesto Alla Genovese, Fresh Mozzarella, Italian Tomatoes, Pecorino DOP, Fresh Basil",
+    allergens: "gluten, dairy, nuts",
+    price: "400 LE",
+    category: "specialty"
+  },
+  {
+    id: 14,
+    title: "TONNO E CIPOLLA",
+    subtitle: "THE TUNA PIE",
+    description: "A delicious combination of tuna and red onion on our classic pizza base.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Tuna Fillets, Red Onion, Kalamata Olives, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "470 LE",
+    category: "specialty"
+  },
+  {
+    id: 15,
+    title: "LA TARTUFATA",
+    subtitle: "THE TRUFFLE LOVER",
+    description: "Indulge in the luxurious flavor of truffles with this specialty pizza.",
+    ingredients: "Truffle Cream, Fresh Mozzarella, Fresh Mushrooms, Truffle Paste, Pecorino DOP, Fresh Basil, Black Pepper, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "490 LE",
+    category: "specialty"
+  },
+  {
+    id: 16,
+    title: "CANADIAN ALL-DRESSED",
+    subtitle: "THE 'GREAT WHITE NORTH' PIE",
+    description: "A Canadian-inspired pizza with a variety of delicious toppings.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Mushrooms, Salami, Red Onions, Bell Peppers, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "420 LE",
+    category: "specialty"
+  },
+  {
+    id: 17,
+    title: "ORTOLANA",
+    subtitle: "THE VEGETARIAN PIE",
+    description: "A delicious vegetarian option packed with fresh vegetables.",
+    ingredients: "Italian Tomatoes, Fresh Mozzarella, Zucchini, Aubergine, Fresh Mushrooms, Bell Peppers, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "350 LE",
+    category: "specialty"
+  },
+  {
+    id: 18,
+    title: "MARINARA ESTIVA",
+    subtitle: "THE SUMMERY SAILOR",
+    description: "A summer version of our classic Marinara pizza.",
+    ingredients: "Cherry Tomatoes, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "220 LE",
+    category: "specialty"
+  },
+  {
+    id: 19,
+    title: "MARGHERITA ESTIVA",
+    subtitle: "THE SUMMERY QUEEN",
+    description: "A summer version of our classic Margherita pizza.",
+    ingredients: "Cherry Tomatoes, Fresh Mozzarella, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
+    allergens: "gluten",
+    price: "320 LE",
+    category: "specialty"
+  },
+  
+  // Desserts
+  {
+    id: 20,
+    title: "GARLIC BREAD",
+    description: "Aromatic garlic butter on pizza dough.",
+    ingredients: "Aromatic garlic butter on pizza dough, topped with Pecorino and parsley",
+    allergens: "gluten, dairy, nuts",
+    price: "200 LE",
+    category: "dessert"
+  },
+  {
+    id: 21,
+    title: "IMPASTO AL CACAO",
+    description: "Our house-special cocoa dough with hazelnut chocolate spread, nuts, whipped cream and dusted with sugar.",
+    ingredients: "",
+    allergens: "gluten, nuts, dairy",
+    price: "280 LE",
+    category: "dessert"
+  },
+  {
+    id: 22,
+    title: "RIPIENO AL GIANDUJA",
+    description: "Folded over then filled with hazelnut chocolate spread and dusted with sugar.",
+    ingredients: "",
+    allergens: "gluten, nuts",
+    price: "180 LE",
+    category: "dessert"
+  },
+  
+  // Drinks
+  {
+    id: 23,
+    title: "WATER",
+    description: "Still water (S/L)",
+    ingredients: "",
+    allergens: "",
+    price: "15/25 LE",
+    category: "drinks"
+  },
+  {
+    id: 24,
+    title: "NESTLE PURE WATER",
+    description: "Nestle Pure Fizz 240ml",
+    ingredients: "",
+    allergens: "",
+    price: "25 LE",
+    category: "drinks"
+  },
+  {
+    id: 25,
+    title: "SODAS",
+    description: "Assorted soft drinks",
+    ingredients: "",
+    allergens: "",
+    price: "25 LE",
+    category: "drinks"
+  },
+  {
+    id: 26,
+    title: "FRESH JUICES, LEMONADES & ICED TEA",
+    description: "Refreshing beverages",
+    ingredients: "",
+    allergens: "",
+    price: "75 LE",
+    category: "drinks"
+  },
+  {
+    id: 27,
+    title: "SINGLE-SHOT ESPRESSO",
+    description: "Strong Italian espresso",
+    ingredients: "",
+    allergens: "",
+    price: "50 LE",
+    category: "drinks"
+  },
+  {
+    id: 28,
+    title: "DOUBLE-SHOT ESPRESSO",
+    description: "Double shot of Italian espresso",
+    ingredients: "",
+    allergens: "",
+    price: "65 LE",
+    category: "drinks"
+  },
+  {
+    id: 29,
+    title: "CAPPUCCINO OR LATTE",
+    description: "Classic Italian coffee drinks",
+    ingredients: "",
+    allergens: "",
+    price: "70 LE",
+    category: "drinks"
+  },
+  {
+    id: 30,
+    title: "TEA",
+    description: "Hot tea selection",
+    ingredients: "",
+    allergens: "",
+    price: "30 LE",
+    category: "drinks"
+  }
+];
+
+// Function to render menu
+function renderMenu(filter = 'all') {
+  const menuContainer = document.getElementById('menuContainer');
+  menuContainer.innerHTML = '';
+  
+  // Group items by category
+  const categories = {};
+  menuData.forEach(item => {
+    if (filter === 'all' || item.category === filter) {
+      if (!categories[item.category]) {
+        categories[item.category] = [];
+      }
+      categories[item.category].push(item);
+    }
+  });
+  
+  // Render categories
+  Object.keys(categories).forEach(category => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'menu-category';
+    
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1) + (category === 'classic' || category === 'specialty' ? ' Pizzas' : '');
+    categoryDiv.appendChild(categoryTitle);
+    
+    const menuGrid = document.createElement('div');
+    menuGrid.className = 'menu-grid';
+    
+    categories[category].forEach(item => {
+      const menuCard = document.createElement('div');
+      menuCard.className = 'menu-card';
+      
+      menuCard.innerHTML = `
+        <h4>${item.title}</h4>
+        ${item.subtitle ? `<div class="subtitle">${item.subtitle}</div>` : ''}
+        ${item.description ? `<p>${item.description}</p>` : ''}
+        ${item.ingredients ? `<div class="ingredients">${item.ingredients}</div>` : ''}
+        ${item.allergens ? `<div class="allergens">Allergens: ${item.allergens}</div>` : ''}
+        <div class="${item.price.includes('/') ? 'price-range' : 'price'}">${item.price}</div>
+      `;
+      
+      menuGrid.appendChild(menuCard);
+    });
+    
+    categoryDiv.appendChild(menuGrid);
+    menuContainer.appendChild(categoryDiv);
+  });
+}
+
+// Filter functionality for menu
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTheme();
+  renderMenu();
+  
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+      // Filter menu
+      const filter = this.getAttribute('data-filter');
+      renderMenu(filter);
+    });
+  });
+});
 </script>
 
 </body>
