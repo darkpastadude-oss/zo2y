@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Butcher's Burger - Premium Gourmet Burgers</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#8B0000;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#8B0000;--discount:#e53935}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#B22222;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff;--accent:#B22222;--discount:#ff6b6b}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:#8B0000;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#8B0000;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(139,0,0,0.2)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#8B0000;border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#8B0000;box-shadow:0 0 0 2px rgba(139,0,0,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+
+/* New Offers Section Styles */
+.offers-grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));gap: 20px;margin-top: 20px;}
+.offer-card {background: var(--card);border-radius: 12px;overflow: hidden;box-shadow: 0 4px 6px rgba(0,0,0,0.05);transition: all 0.3s ease;border: 1px solid var(--nav-shadow);}
+.offer-card:hover {transform: translateY(-5px);box-shadow: 0 8px 15px rgba(0,0,0,0.1);}
+.offer-header {background: var(--accent);color: white;padding: 15px;position: relative;}
+.offer-header h3 {margin: 0;font-size: 1.2rem;}
+.offer-badge {position: absolute;top: 10px;right: 10px;background: var(--discount);color: white;padding: 4px 8px;border-radius: 4px;font-size: 0.8rem;font-weight: bold;}
+.offer-content {padding: 20px;}
+.offer-description {margin-bottom: 15px;color: var(--text2);font-size: 0.95rem;line-height: 1.5;}
+.offer-price {display: flex;align-items: center;gap: 10px;margin-bottom: 15px;}
+.original-price {text-decoration: line-through;color: var(--text2);font-size: 0.9rem;}
+.discounted-price {font-weight: bold;font-size: 1.2rem;color: var(--discount);}
+.offer-popularity {font-size: 0.8rem;color: var(--text2);margin-bottom: 15px;}
+.offer-popularity span {font-weight: bold;color: var(--accent);}
+.offer-actions {display: flex;gap: 10px;}
+.offer-btn {flex: 1;text-align: center;padding: 10px;border-radius: 6px;background: var(--btn-bg);color: var(--btn-text);text-decoration: none;font-weight: 600;transition: all 0.2s ease;font-size: 0.9rem;}
+.offer-btn:hover {background: var(--accent);transform: scale(1.03);}
+.offer-btn.secondary {background: var(--nav-bg);color: var(--text);border: 1px solid var(--text);}
+.offer-btn.secondary:hover {background: var(--text);color: var(--bg);}
+
+/* Filter buttons for offers */
+.offers-filter {display: flex;gap: 10px;margin-bottom: 20px;flex-wrap: wrap;}
+.filter-btn {padding: 8px 16px;border-radius: 20px;background: var(--nav-bg);color: var(--text);border: 1px solid var(--nav-shadow);cursor: pointer;transition: all 0.3s ease;font-size: 0.9rem;}
+.filter-btn.active, .filter-btn:hover {background: var(--accent);color: white;}
+
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}.offers-grid{grid-template-columns:1fr}.offers-filter{justify-content:center}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}.offer-actions{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
+
+<section class="hero">
+  <img src="../images/butchers.jpg" alt="Butcher's Burger Logo" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Butcher's Burger</h1>
+  <p>Premium gourmet burgers made with the finest ingredients and crafted with passion!</p>
+  <div class="rating">⭐ 4.6/5 (4,200+ reviews)</div>
+
+  <a href="tel:17318" class="btn">Call Hotline: 17318</a>
+  <a href="https://www.orderbutchersburger.com/" target="_blank" class="btn secondary">Order Online</a>
+</section>
+
+<!-- New Offers Section -->
+<section class="section offers">
+  <h2>Special Offers & Deals</h2>
+  <div class="offers-filter" id="offersFilter">
+    <button class="filter-btn active" data-filter="all">All Offers</button>
+    <button class="filter-btn" data-filter="value">Value Meals</button>
+    <button class="filter-btn" data-filter="hot">Hot Deals</button>
+    <button class="filter-btn" data-filter="top">Top Dishes</button>
+  </div>
+  
+  <div class="offers-grid" id="offersGrid">
+    <!-- Offers will be dynamically populated by JavaScript -->
+  </div>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:17318">17318</a>
+    <strong>Delivery:</strong> <a href="tel:17318">17318</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Zamalek</h3>
+      <p>5 Abou El Feda St, Om Kholthoum Tower<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Butcher's+Burger+Zamalek" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Heliopolis – Korba</h3>
+      <p>19 Ramses Street, from Baghdad Street, Al-Korba<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Butcher's+Burger+Heliopolis" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Nasr City</h3>
+      <p>Omar Ibn El Khattab St, inside City Stars Mall Phase 2<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Butcher's+Burger+Nasr+City" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Cairo Festival City (New Cairo)</h3>
+      <p>The Village, inside Cairo Festival City Mall<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Butcher's+Burger+Cairo+Festival+City" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Top Burgers</h2>
+    
+    <div class="menu-item">
+      <span>BB Mushroom Burger<br><small>Double Swiss cheese, grilled mushrooms, caramelized onions, smoky mayo</small></span>
+      <span>EGP 215.46 - 339.72</span>
+    </div>
+  
+    <div class="menu-item">
+      <span>Portobello Mushroom Burger<br><small>Portobello mushrooms, emmental cheese, rocket leaves, balsamic sauce</small></span>
+      <span>EGP 255.36 - 379.62</span>
+    </div>
+  
+    <div class="menu-item">
+      <span>Southern BBQ Burger<br><small>Onion rings, cheddar cheese, BBQ sauce, jalapenos, lettuce, smoky mayo</small></span>
+      <span>EGP 238.26 - 368.22</span>
+    </div>
+  
+    <div class="menu-item">
+      <span>BB Cheese Burger<br><small>Double cheese, caramelized onions, pickles, lettuce, BB mayo</small></span>
+      <span>EGP 215.46 - 339.72</span>
+    </div>
+
+    <div class="menu-item">
+      <span>BB Bacon Burger<br><small>Beef bacon, cheddar cheese, grilled onions, lettuce, dijon mayo</small></span>
+      <span>EGP 226.86 - 351.12</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Double & Super Size Burgers</h2>
+  
+    <div class="menu-item">
+      <span>Butcher's Juicy Lucy<br><small>Double patties loaded with melting red cheddar cheese, chili con carne, pickles, lettuce, mayo</small></span>
+      <span>EGP 329.46</span>
+    </div>
+  
+    <div class="menu-item">
+      <span>The Masterpiece<br><small>Double patties, double cheese, bacon, jalapenos, pickles, lettuce, masterpiece sauce</small></span>
+      <span>EGP 329.46</span>
+    </div>
+  
+    <div class="menu-item">
+      <span>The Mighty Butcher<br><small>300 gm, double cheese, beef bacon, caramelized onions, jalapenos, lettuce, pickles, garlic mayo</small></span>
+      <span>EGP 420.66</span>
+    </div>
+
+    <div class="menu-item">
+      <span>The Son of a Gun<br><small>600 gm, 2 flame grilled patties 300g each, grilled mushrooms with herbal butter, 3 layers of Swiss cheese, smoky BBQ sauce, roasted garlic mayo</small></span>
+      <span>EGP 568.86</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Wings & Starters</h2>
+
+    <div class="menu-item">
+      <span>Buffalo Wings (Addictive!)<br><small>Our signature buffalo wings, served with your choice from ranch or blue cheese sauce</small></span>
+      <span>EGP 141.36 - 420.66</span>
+    </div>
+
+    <div class="menu-item">
+      <span>BBQ Wings<br><small>Wings with hickory BBQ sauce, served with your choice from ranch or blue cheese sauce</small></span>
+      <span>EGP 141.36 - 420.66</span>
+    </div>
+
+    <div class="menu-item">
+      <span>Chili Cheese Fries<br><small>Generous portion of fries topped with chili con carne, cheese sauce, jalapenos, pico de gallo and sour cream</small></span>
+      <span>EGP 204.06</span>
+    </div>
+
+    <div class="menu-item">
+      <span>Brisket Fries<br><small>Crispy fries topped with slow cooked pulled BBQ brisket, cheese sauce, red beans, sweet corn, onions, jalapenos and served with hickory BBQ dip</small></span>
+      <span>EGP 261.06</span>
+    </div>
+
+    <div class="menu-item">
+      <span>BB Mac 'N' Cheese (Addictive!)<br><small>Our famous macaroni in our secret rich cheese blend sauce</small></span>
+      <span>EGP 181.26</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Desserts</h2>
+
+    <div class="menu-item"><span>Chocolate Lava</span><span>EGP 249.66</span></div>
+
+    <div class="menu-item"><span>Sticky Toffee Pudding Cake</span><span>EGP 204.06</span></div>
+
+    <div class="menu-item"><span>7th Sky Cookie Pie</span><span>EGP 204.06</span></div>
+  
+  <a href="https://www.orderbutchersburger.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Ahmed S.</strong></p>
+      <p>The BB Mushroom Burger is absolutely incredible! The combination of Swiss cheese, grilled mushrooms and caramelized onions is perfection. Best burger I've had in Cairo!</p>
+    </div>
+    <div class="review">
+      <p><strong>Nour E.</strong></p>
+      <p>Butcher's Burger never disappoints! The Buffalo Wings are addictive just like they claim. Perfectly crispy with amazing sauce. The burgers are always juicy and flavorful.</p>
+    </div>
+    <div class="review">
+      <p><strong>Mark T.</strong></p>
+      <p>As a burger connoisseur, I can confidently say this is the best burger joint in Egypt. The quality of ingredients and attention to detail is exceptional. The Portobello Mushroom Burger is my favorite!</p>
+    </div>
+    <div class="review">
+      <p><strong>Layla M.</strong></p>
+      <p>Great value for money considering the premium quality! The Southern BBQ Burger with onion rings and BBQ sauce is heavenly. Their fries are always perfectly crispy too!</p>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
+
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Butcher's Burger - Premium Gourmet Burgers Since 2015</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Zamalek, Heliopolis, Nasr City, New Cairo, Sheikh Zayed, Mohandeseen, 6th of October</p>
+</footer>
+
+<script>
+// Theme toggle functionality
+const themeToggle=document.getElementById('themeToggle');
+function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('butchersburger-theme',e)}
+function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
+function initializeTheme(){const e=localStorage.getItem('butchersburger-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+themeToggle.addEventListener('click',toggleTheme);
+
+// Review form functionality
+const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
+reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#8B0000',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
+
+// Offers data
+const offersData = [
+  {
+    id: 1,
+    title: "Sandwich & Wings Offer",
+    description: "Sandwich from your choice, 3 wings with your choice of sauce, fries, coleslaw",
+    originalPrice: "465 EGP",
+    discountedPrice: "350 EGP",
+    category: "value",
+    popularity: 12,
+    badge: "Popular"
+  },
+  {
+    id: 2,
+    title: "Lunch Box Offer",
+    description: "Sandwich from your choice, fries, juice",
+    originalPrice: "226.86 EGP",
+    discountedPrice: "179 EGP",
+    category: "value",
+    popularity: 0,
+    badge: "Best Value"
+  },
+  {
+    id: 3,
+    title: "School Spirit Offer",
+    description: "Sandwich from your choice, go meal, small taco salad",
+    originalPrice: "386.08 EGP",
+    discountedPrice: "275 EGP",
+    category: "value",
+    popularity: 6
+  },
+  {
+    id: 4,
+    title: "Cheese Burger Day Offer",
+    description: "Cheese burger sandwich, 3 BBQ wings, go meal, soft drink",
+    originalPrice: "468.54 EGP",
+    discountedPrice: "295.15 EGP",
+    category: "hot",
+    popularity: 3,
+    badge: "Hot Deal"
+  },
+  {
+    id: 5,
+    title: "BB Mushroom Burger",
+    description: "Double Swiss cheese, grilled mushrooms, caramelized onions, smoky mayo",
+    priceRange: "215.46 - 339.72 EGP",
+    category: "top",
+    popularity: 1724,
+    badge: "Top Seller"
+  },
+  {
+    id: 6,
+    title: "Buffalo Wings (Addictive!)",
+    description: "Our signature buffalo wings, served with your choice from ranch or blue cheese sauce",
+    priceRange: "141.36 - 420.66 EGP",
+    category: "top",
+    popularity: 796,
+    badge: "Customer Favorite"
+  },
+  {
+    id: 7,
+    title: "Portobello Mushroom Burger",
+    description: "Portobello mushrooms, emmental cheese, rocket leaves, balsamic sauce",
+    priceRange: "255.36 - 379.62 EGP",
+    category: "top",
+    popularity: 702
+  },
+  {
+    id: 8,
+    title: "Southern BBQ Burger",
+    description: "Onion rings, cheddar cheese, BBQ sauce, jalapenos, lettuce, smoky mayo",
+    priceRange: "238.26 - 368.22 EGP",
+    category: "top",
+    popularity: 676
+  }
+];
+
+// Function to render offers
+function renderOffers(filter = 'all') {
+  const offersGrid = document.getElementById('offersGrid');
+  offersGrid.innerHTML = '';
+  
+  const filteredOffers = filter === 'all' 
+    ? offersData 
+    : offersData.filter(offer => offer.category === filter);
+  
+  filteredOffers.forEach(offer => {
+    const offerCard = document.createElement('div');
+    offerCard.className = 'offer-card';
+    
+    // Calculate discount percentage if applicable
+    let discountBadge = '';
+    if (offer.originalPrice && offer.discountedPrice) {
+      const original = parseInt(offer.originalPrice);
+      const discounted = parseInt(offer.discountedPrice);
+      const discount = Math.round(((original - discounted) / original) * 100);
+      discountBadge = `${discount}% OFF`;
+    }
+    
+    offerCard.innerHTML = `
+      <div class="offer-header">
+        <h3>${offer.title}</h3>
+        ${offer.badge ? `<div class="offer-badge">${offer.badge}</div>` : ''}
+      </div>
+      <div class="offer-content">
+        <p class="offer-description">${offer.description}</p>
+        ${offer.originalPrice && offer.discountedPrice ? `
+          <div class="offer-price">
+            <span class="original-price">${offer.originalPrice}</span>
+            <span class="discounted-price">${offer.discountedPrice}</span>
+            ${discountBadge ? `<span style="color: var(--discount); font-weight: bold;">${discountBadge}</span>` : ''}
+          </div>
+        ` : `
+          <div class="offer-price">
+            <span class="discounted-price">${offer.priceRange}</span>
+          </div>
+        `}
+        <div class="offer-popularity">Ordered <span>${offer.popularity}</span> times</div>
+        <div class="offer-actions">
+          <a href="tel:17318" class="offer-btn">Order Now</a>
+          <a href="https://butchersburger.com" target="_blank" class="offer-btn secondary">View Details</a>
+        </div>
+      </div>
+    `;
+    
+    offersGrid.appendChild(offerCard);
+  });
+}
+
+// Filter functionality for offers
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTheme();
+  renderOffers();
+  
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+      // Filter offers
+      const filter = this.getAttribute('data-filter');
+      renderOffers(filter);
+    });
+  });
+});
+</script>
+
+</body>
+</html>
