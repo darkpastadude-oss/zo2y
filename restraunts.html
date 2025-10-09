@@ -75,6 +75,7 @@
       width: 44px;
       height: 44px;
       transition: all 0.2s ease;
+      z-index: 10;
     }
     .list-btn:hover { 
       transform: scale(1.1); 
@@ -103,14 +104,50 @@
       .tile .inner { padding: 10px; }
       .tile h3 { font-size: 14px; }
       .tile .desc { font-size: 11px; -webkit-line-clamp: 2; }
-      .list-actions { opacity: 1; }
-      .list-btn { width: 40px; height: 40px; font-size: 13px; }
+      
+      /* FIX FOR MOBILE: Always show action buttons and make them larger */
+      .list-actions { 
+        opacity: 1; 
+        top: 6px; 
+        right: 6px; 
+        gap: 6px;
+      }
+      .list-btn { 
+        width: 42px; 
+        height: 42px; 
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1.5px solid var(--border);
+      }
+      [data-theme="dark"] .list-btn {
+        background: rgba(30, 42, 74, 0.9);
+      }
+      .list-btn.active {
+        background: var(--accent);
+      }
     }
 
     @media (max-width: 480px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
       .search { width: 140px; }
       .toolbar { gap: 6px; }
+      
+      /* Even larger buttons on very small screens */
+      .list-btn { 
+        width: 38px; 
+        height: 38px; 
+        font-size: 14px;
+      }
+    }
+
+    /* Touch device detection */
+    @media (hover: none) and (pointer: coarse) {
+      .list-actions {
+        opacity: 1;
+      }
+      .list-btn:hover {
+        transform: none;
+      }
     }
   </style>
 </head>
@@ -273,7 +310,7 @@
       { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
       { slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
       { slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
-      { slug:'maine', name:'Maine', category:'Fast Food', desc:'Fresh seafood, lobster rolls & New England classics.', rating:4.5, image: 'maine.jpg' },
+      { slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' }, // UPDATED DESCRIPTION
       { slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
       { slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
       { slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
@@ -335,7 +372,24 @@
       if (isLoggedIn) {
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault(); 
+            e.stopPropagation();
+            const wasAdded = listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
+            btn.classList.toggle('active', wasAdded);
+            if (currentList !== 'all') filterAndRender();
+          });
+        });
+
+        // Add touch event listeners for better mobile support
+        document.querySelectorAll('.list-btn').forEach(btn => {
+          btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          });
+          
+          btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const wasAdded = listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
             btn.classList.toggle('active', wasAdded);
             if (currentList !== 'all') filterAndRender();
