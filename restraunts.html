@@ -201,6 +201,7 @@
             <option value="Mexican">Mexican</option>
             <option value="Cafe & Bakery">Cafe & Bakery</option>
             <option value="Fast Food">Fast Food</option>
+            <option value="BBQ & Ribs">BBQ & Ribs</option>
           </select>
         </div>
       </div>
@@ -296,7 +297,7 @@
       isInList(listName, slug) { return this[listName].includes(slug); }
     };
 
-    // COMPLETE Restaurant Data
+    // COMPLETE Restaurant Data - UPDATED WITH NEW RESTAURANTS
     const restaurants = [
       { slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
       { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
@@ -310,7 +311,7 @@
       { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
       { slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
       { slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
-      { slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' }, // UPDATED DESCRIPTION
+      { slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
       { slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
       { slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
       { slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
@@ -327,10 +328,14 @@
       { slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
       { slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
       { slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
-      // NEW RESTAURANTS ADDED HERE
       { slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
       { slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
-      { slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' }
+      { slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
+      
+      // NEW RESTAURANTS ADDED
+      { slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
+      { slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
+      { slug:'chickenplace', name:'The Chicken Place', category:'Chicken', desc:'Specializing in perfectly cooked chicken with various marinades and crispy coatings for every taste.', rating:4.3, image: 'chickenplace.jpg' }
     ];
 
     // Rendering and Filtering
