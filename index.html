@@ -46,28 +46,11 @@
         .account-btn{
             background: var(--gradient); color:#111; padding:10px 18px; border-radius:20px;
             border:none; cursor:pointer; font-weight:700; transition: transform 0.2s ease;
-            display: flex; align-items: center; gap: 8px;
         }
         .account-btn:hover {transform: translateY(-2px);}
         .theme-toggle {
             background: var(--card); border: 1px solid var(--border); color: var(--white);
             padding: 8px 14px; border-radius: 20px; cursor: pointer; transition: all 0.3s ease;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .theme-toggle:hover {background: var(--accent); color: #111;}
-
-        /* User Welcome Styles */
-        .user-welcome {
-            display: flex; align-items: center; gap: 8px; cursor: pointer;
-            padding: 8px 16px; border-radius: 20px; transition: all 0.3s ease;
-        }
-        .user-welcome:hover {
-            background: var(--accent-light); transform: translateY(-1px);
-        }
-        .user-avatar {
-            width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; color: #111; font-size: 14px;
         }
 
         /* Hero Section */
@@ -176,13 +159,6 @@
             .nav{padding: 14px 16px;}
             .hero{padding: 40px 16px;}
             .section { padding: 40px 16px; }
-            
-            .user-welcome span {
-                display: none;
-            }
-            .user-welcome {
-                padding: 6px;
-            }
         }
     </style>
 </head>
@@ -197,19 +173,9 @@
             </div>
         </div>
         <div class="right">
-            <a class="ghost" href="restraunts.html" style="padding: 8px 16px; border-radius: 12px; transition: all 0.3s ease;">Explore</a>
-            <button class="theme-toggle" id="themeToggle">
-                <span id="themeIcon">🌙</span>
-                <span id="themeText">Dark Mode</span>
-            </button>
-            <div id="userWelcome" class="user-welcome" style="display: none;">
-                <div class="user-avatar" id="userAvatar">U</div>
-                <span id="userName">User</span>
-            </div>
-            <button class="account-btn" id="userAccountBtn">
-                <i class="fas fa-user"></i>
-                <span>Account</span>
-            </button>
+            <a class="ghost" href="restraunts.html">Explore</a>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+            <button class="account-btn" id="userAccountBtn">Account</button>
         </div>
     </header>
 
@@ -297,9 +263,7 @@
             { slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving fresh rolls & nigiri.', rating:4.7, image: 'mori.png', link: 'cards/mori.html' },
             { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', link: 'cards/kilo.html' },
             { slug:'bazooka', name:'Bazooka', category:'Burger & Fried Chicken', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg', link: 'cards/bazooka.html' },
-            { slug:'barbar', name:'Barbar', category:'Lebanese', desc:'Traditional Lebanese dishes in a cozy atmosphere.', rating:4.4, image: 'barbar.png', link: 'cards/barbar.html' },
-            { slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations.', rating:4.7, image: 'holmes.jpg', link: 'cards/holmes.html' },
-            { slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken.', rating:4.4, image: 'ribs.jpg', link: 'cards/ribs.html' }
+            { slug:'barbar', name:'Barbar', category:'Lebanese', desc:'Traditional Lebanese dishes in a cozy atmosphere.', rating:4.4, image: 'barbar.png', link: 'cards/barbar.html' }
         ];
 
         // Theme Management
@@ -309,16 +273,7 @@
             const theme = savedTheme || (prefersDark ? 'dark' : 'light');
             
             document.documentElement.setAttribute('data-theme', theme);
-            const themeIcon = document.getElementById('themeIcon');
-            const themeText = document.getElementById('themeText');
-            
-            if (theme === 'dark') {
-                themeIcon.textContent = '☀️';
-                themeText.textContent = 'Light Mode';
-            } else {
-                themeIcon.textContent = '🌙';
-                themeText.textContent = 'Dark Mode';
-            }
+            document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
         }
 
         document.getElementById('themeToggle').addEventListener('click', () => {
@@ -329,56 +284,30 @@
             initializeTheme();
         });
 
-        // Enhanced User Account Management with Profile Integration
+        // User Account Management - UPDATED NAV ONLY
         function updateUserInterface() {
             const accountBtn = document.getElementById('userAccountBtn');
-            const userWelcome = document.getElementById('userWelcome');
             const mainCtaBtn = document.getElementById('mainCtaBtn');
             const heroTitle = document.getElementById('heroTitle');
             
-            // Check both legacy auth and new profile system
-            const legacyUser = localStorage.getItem('user');
-            const legacyToken = localStorage.getItem('token');
-            const currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser'));
+            const userData = localStorage.getItem('user');
+            const token = localStorage.getItem('token');
             
-            const isLoggedIn = currentUser || (legacyToken && legacyUser);
-            
-            if (isLoggedIn) {
-                let userData, userProfile;
+            if (token && userData) {
+                const user = JSON.parse(userData);
+                // Update account button with username - CHANGED TO GO TO PROFILE
+                accountBtn.innerHTML = `<i class="fas fa-user"></i> ${user.username}`;
+                accountBtn.onclick = () => location.href = 'profile.html'; // CHANGED THIS LINE
                 
-                // Use new profile system if available
-                if (currentUser) {
-                    userData = currentUser;
-                    userProfile = JSON.parse(localStorage.getItem(`zo2y-profile-${currentUser.id}`));
-                } else {
-                    // Fallback to legacy system
-                    userData = JSON.parse(legacyUser);
-                }
-                
-                const displayName = userProfile?.displayName || userData?.username || userData?.name || 'User';
-                const avatar = userProfile?.avatar || (displayName?.charAt(0).toUpperCase() || 'U');
-                
-                // Show user welcome and hide account button
-                userWelcome.style.display = 'flex';
-                accountBtn.style.display = 'none';
-                
-                // Update user welcome section
-                document.getElementById('userName').textContent = displayName;
-                document.getElementById('userAvatar').textContent = avatar;
-                
-                // Update main CTA for logged-in users
+                // Update main CTA
                 mainCtaBtn.innerHTML = `<span>Continue Exploring</span> →`;
                 mainCtaBtn.onclick = () => location.href = 'restraunts.html';
                 
                 // Update hero title for logged-in users
-                heroTitle.textContent = `Welcome back, ${displayName}!`;
-                
+                heroTitle.textContent = `Welcome back, ${user.username}!`;
             } else {
                 // Default state for non-logged-in users
-                userWelcome.style.display = 'none';
-                accountBtn.style.display = 'flex';
-                
-                accountBtn.innerHTML = `<i class="fas fa-user"></i> <span>Account</span>`;
+                accountBtn.innerHTML = `<i class="fas fa-user"></i> Account`;
                 accountBtn.onclick = () => location.href = 'login.html';
                 
                 mainCtaBtn.innerHTML = `<span>Join the Community</span> →`;
@@ -387,11 +316,6 @@
                 heroTitle.textContent = `Discover Hidden Gems & Local Favorites`;
             }
         }
-
-        // Navigation to profile
-        document.getElementById('userWelcome').addEventListener('click', () => {
-            location.href = 'profile.html';
-        });
 
         // Restaurant Cards
         function createCard(restaurant) {
@@ -448,21 +372,14 @@
             updateSpotlight();
             setInterval(updateSpotlight, 5000);
             
-            // Update stats with actual restaurant count
+            // Update stats
             document.getElementById('restaurantCount').textContent = restaurants.length;
             document.getElementById('reviewCount').textContent = '1.4K+';
         });
 
         // Nav scroll effect
         window.addEventListener('scroll', () => {
-            const nav = document.querySelector('.nav');
-            if (window.scrollY > 50) {
-                nav.style.background = 'var(--card)';
-                nav.style.boxShadow = '0 4px 20px var(--shadow)';
-            } else {
-                nav.style.background = 'var(--card)';
-                nav.style.boxShadow = 'none';
-            }
+            document.querySelector('.nav').classList.toggle('scrolled', window.scrollY > 50);
         });
     </script>
 </body>
