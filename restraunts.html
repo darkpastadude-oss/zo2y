@@ -24,11 +24,35 @@
     .btn, .theme-toggle { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; transition: all 0.3s ease; }
     .btn:hover, .theme-toggle:hover { background: var(--accent); color: #111; }
 
-    /* User Auth */
+    /* User Auth - UPDATED */
     .user-auth { display: flex; align-items: center; gap: 10px; }
     .auth-btn { background: var(--accent); color: #111; border: none; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 600; }
-    .user-welcome { display: none; align-items: center; gap: 6px; font-size: 13px; }
-    .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #111; }
+    .user-welcome { 
+      display: none; 
+      align-items: center; 
+      gap: 8px; 
+      font-size: 13px; 
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 16px;
+      transition: all 0.3s ease;
+    }
+    .user-welcome:hover {
+      background: var(--accent-light);
+      transform: translateY(-1px);
+    }
+    .user-avatar { 
+      width: 32px; 
+      height: 32px; 
+      border-radius: 50%; 
+      background: var(--accent); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+      color: #111;
+      font-size: 14px;
+    }
 
     /* Main Content */
     .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
@@ -125,6 +149,16 @@
       .list-btn.active {
         background: var(--accent);
       }
+
+      .user-welcome {
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+      .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -137,6 +171,13 @@
         width: 38px; 
         height: 38px; 
         font-size: 14px;
+      }
+
+      .user-welcome span {
+        display: none;
+      }
+      .user-welcome {
+        padding: 6px;
       }
     }
 
@@ -162,7 +203,7 @@
       <button class="btn" id="reset">Reset</button>
       
       <div class="user-auth">
-        <div class="user-welcome" id="userWelcome">
+        <div class="user-welcome" id="userWelcome" onclick="goToProfile()">
           <div class="user-avatar" id="userAvatar">U</div>
           <span id="userName">User</span>
         </div>
@@ -232,20 +273,41 @@
     const savedTheme = localStorage.getItem('zo2y-theme');
     if (savedTheme) applyTheme(savedTheme);
 
-    // Auth System
+    // Navigation function
+    function goToProfile() {
+      if (authManager.isLoggedIn()) {
+        location.href = 'profile.html';
+      }
+    }
+
+    // Enhanced Auth System with Profile Integration
     const authManager = {
       currentUser: null,
-      init() { this.loadUser(); this.updateUI(); },
-      loadUser() { this.currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser')); },
+      userProfile: null,
+      init() { 
+        this.loadUser(); 
+        this.loadUserProfile();
+        this.updateUI(); 
+      },
+      loadUser() { 
+        this.currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser')); 
+      },
+      loadUserProfile() {
+        if (this.currentUser) {
+          this.userProfile = JSON.parse(localStorage.getItem(`zo2y-profile-${this.currentUser.id}`));
+        }
+      },
       login(userData) { 
         this.currentUser = userData; 
         localStorage.setItem('zo2y-currentUser', JSON.stringify(userData)); 
+        this.loadUserProfile();
         this.updateUI(); 
         listManager.init();
         filterAndRender();
       },
       logout() { 
         this.currentUser = null; 
+        this.userProfile = null;
         localStorage.removeItem('zo2y-currentUser'); 
         this.updateUI(); 
         filterAndRender();
@@ -256,13 +318,96 @@
         document.getElementById('loginBtn').style.display = isLoggedIn ? 'none' : 'block';
         document.getElementById('listTabs').style.display = isLoggedIn ? 'flex' : 'none';
         document.getElementById('loginPrompt').style.display = isLoggedIn ? 'none' : 'block';
+        
         if (isLoggedIn) {
-          document.getElementById('userName').textContent = this.currentUser.name;
-          document.getElementById('userAvatar').textContent = this.currentUser.name.charAt(0).toUpperCase();
+          // Use profile data if available, fall back to basic user data
+          if (this.userProfile) {
+            document.getElementById('userName').textContent = this.userProfile.displayName || this.currentUser.name;
+            document.getElementById('userAvatar').textContent = this.userProfile.avatar || this.currentUser.name.charAt(0).toUpperCase();
+          } else {
+            document.getElementById('userName').textContent = this.currentUser.name;
+            document.getElementById('userAvatar').textContent = this.currentUser.name.charAt(0).toUpperCase();
+          }
         }
       },
       isLoggedIn() { return this.currentUser !== null; }
     };
+
+    // Enhanced Login Function with Profile Creation
+    function enhancedLogin(userData) {
+      // Create proper user data with profile
+      const userDataWithProfile = { 
+        id: 'user-' + Date.now(), 
+        name: userData.name || 'Zo2y User',
+        username: userData.username || userData.email.split('@')[0],
+        email: userData.email 
+      };
+      
+      // Initialize user profile
+      const existingProfile = localStorage.getItem(`zo2y-profile-${userDataWithProfile.id}`);
+      if (!existingProfile) {
+        const userProfile = {
+          id: userDataWithProfile.id,
+          displayName: userDataWithProfile.username,
+          username: userDataWithProfile.username,
+          email: userDataWithProfile.email,
+          bio: 'Food enthusiast exploring local gems',
+          avatar: userDataWithProfile.username.charAt(0).toUpperCase(),
+          favoriteCuisines: ['Burgers', 'Pizza', 'Asian'],
+          friends: [
+            {
+              id: 'friend-1',
+              name: 'FoodieFriend',
+              avatar: 'F',
+              mutualFriends: 3
+            },
+            {
+              id: 'friend-2', 
+              name: 'BurgerLover',
+              avatar: 'B',
+              mutualFriends: 1
+            }
+          ],
+          customLists: [
+            {
+              id: 'list-1',
+              name: 'Favorite Burger Spots',
+              description: 'The best burger joints in town',
+              restaurants: ['butchers', 'brgr', 'maine'],
+              createdAt: new Date().toISOString()
+            }
+          ],
+          activity: [
+            {
+              type: 'welcome',
+              message: 'Joined Zo2y community!',
+              timestamp: new Date().toISOString()
+            },
+            {
+              type: 'login',
+              message: 'Signed in to explore restaurants',
+              timestamp: new Date().toISOString()
+            }
+          ],
+          stats: {
+            reviews: 8,
+            friends: 2,
+            lists: 1,
+            restaurantsVisited: 5
+          },
+          preferences: {
+            theme: localStorage.getItem('zo2y-theme') || 'light',
+            notifications: true,
+            emailUpdates: false
+          },
+          joinedDate: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        };
+        localStorage.setItem(`zo2y-profile-${userDataWithProfile.id}`, JSON.stringify(userProfile));
+      }
+      
+      authManager.login(userDataWithProfile);
+    }
 
     // List Management
     const listManager = {
@@ -280,6 +425,12 @@
         localStorage.setItem(`zo2y-visited-${userId}`, JSON.stringify(this.visited));
         localStorage.setItem(`zo2y-wantToGo-${userId}`, JSON.stringify(this.wantToGo));
         this.updateListCounts();
+
+        // Update user profile stats
+        if (authManager.userProfile) {
+          authManager.userProfile.stats.lists = this.favorites.length + this.visited.length + this.wantToGo.length;
+          localStorage.setItem(`zo2y-profile-${userId}`, JSON.stringify(authManager.userProfile));
+        }
       },
       updateListCounts() {
         document.getElementById('favoritesCount').textContent = this.favorites.length;
@@ -299,6 +450,7 @@
 
     // COMPLETE Restaurant Data - UPDATED WITH NEW RESTAURANTS
     const restaurants = [
+      // ... (restaurant data remains the same as before)
       { slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
       { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
       { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
@@ -331,13 +483,11 @@
       { slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
       { slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
       { slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
-      
-      // NEW RESTAURANTS ADDED
       { slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
       { slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
     ];
 
-    // Rendering and Filtering
+    // Rendering and Filtering (unchanged)
     const grid = document.getElementById('grid');
     const empty = document.getElementById('empty');
     const countEl = document.getElementById('count');
@@ -438,8 +588,13 @@
       });
     });
 
+    // UPDATED: Use enhanced login with profile creation
     document.getElementById('loginBtn').addEventListener('click', () => {
-      authManager.login({ id: 'user-' + Date.now(), name: 'Demo User', email: 'demo@example.com' });
+      enhancedLogin({ 
+        name: 'Zo2y User', 
+        email: 'user@example.com',
+        username: 'zo2yuser'
+      });
     });
 
     // Initialize

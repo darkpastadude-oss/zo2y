@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile - Zo2y</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #ffffff; --card: #f8f9fa; --muted: #6c757d; --accent: #FF6F00;
+            --accent-light: #ffddc1; --white: #000000; --border: rgba(0,0,0,0.08);
+            --success: #28a745; --danger: #dc3545; --warning: #ffc107;
+        }
+        [data-theme="dark"] {
+            --bg: #1e2a4a; --card: #2d3748; --muted: #cbd5e1; --accent: #ff944d;
+            --accent-light: #3a2a1a; --white: #ffffff; --border: rgba(255,255,255,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--white); transition: all 0.3s ease; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border); }
+        
+        /* Profile Header */
+        .profile-header { display: flex; gap: 30px; align-items: center; padding: 40px 0; }
+        .avatar-section { text-align: center; }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 48px; color: #111; font-weight: bold; margin-bottom: 15px; }
+        .avatar-upload { margin-top: 10px; }
+        .profile-info { flex: 1; }
+        .profile-name { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
+        .profile-bio { color: var(--muted); font-size: 1.1rem; margin-bottom: 20px; }
+        .profile-stats { display: flex; gap: 30px; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+        .stat-label { color: var(--muted); font-size: 0.9rem; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin: 30px 0; border-bottom: 1px solid var(--border); }
+        .tab { padding: 12px 24px; background: transparent; border: none; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Cards Grid */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid var(--border); transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        /* Friends */
+        .friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .friend-card { text-align: center; padding: 15px; }
+        .friend-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--accent); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #111; }
+        
+        /* Settings */
+        .settings-section { margin-bottom: 30px; }
+        .settings-section h3 { margin-bottom: 15px; color: var(--accent); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--white); }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .btn-primary { background: var(--accent); color: #111; }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); color: white; }
+        
+        /* Activity */
+        .activity-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+        .activity-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: var(--bg); margin: 5% auto; padding: 30px; border-radius: 12px; max-width: 500px; position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="images/logo.png" alt="Zo2y" style="height: 40px; cursor: pointer;" onclick="location.href='index.html'">
+                <h1>Your Profile</h1>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <button class="btn" onclick="location.href='restraunts.html'">Browse Restaurants</button>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="avatar-section">
+                <div class="avatar" id="userAvatar">U</div>
+                <button class="btn" onclick="openAvatarModal()">Change Avatar</button>
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="userDisplayName">User Name</h1>
+                <p class="profile-bio" id="userBio">Food enthusiast exploring local gems</p>
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="reviewsCount">0</div>
+                        <div class="stat-label">Reviews</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="friendsCount">0</div>
+                        <div class="stat-label">Friends</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="listsCount">0</div>
+                        <div class="stat-label">Lists</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('activity')">Activity</button>
+            <button class="tab" onclick="switchTab('lists')">My Lists</button>
+            <button class="tab" onclick="switchTab('friends')">Friends</button>
+            <button class="tab" onclick="switchTab('settings')">Settings</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="activity-tab" class="tab-content active">
+            <h2>Recent Activity</h2>
+            <div id="activityFeed">
+                <!-- Activity items will be populated here -->
+            </div>
+        </div>
+
+        <div id="lists-tab" class="tab-content">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                <h2>My Lists</h2>
+                <button class="btn btn-primary" onclick="openCreateListModal()">Create New List</button>
+            </div>
+            <div class="cards-grid" id="userLists">
+                <!-- User lists will be populated here -->
+            </div>
+        </div>
+
+        <div id="friends-tab" class="tab-content">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                <h2>Friends</h2>
+                <button class="btn btn-primary" onclick="openAddFriendModal()">Add Friend</button>
+            </div>
+            <div class="friends-grid" id="friendsList">
+                <!-- Friends will be populated here -->
+            </div>
+        </div>
+
+        <div id="settings-tab" class="tab-content">
+            <h2>Profile Settings</h2>
+            <div class="settings-section">
+                <h3>Personal Information</h3>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="displayName" placeholder="Enter your display name">
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="userBioInput" rows="3" placeholder="Tell others about yourself"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>Preferences</h3>
+                <div class="form-group">
+                    <label>Favorite Cuisines</label>
+                    <select id="favoriteCuisines" multiple style="height: 100px;">
+                        <option value="burgers">Burgers</option>
+                        <option value="pizza">Pizza</option>
+                        <option value="asian">Asian</option>
+                        <option value="mexican">Mexican</option>
+                        <option value="middle-eastern">Middle Eastern</option>
+                        <option value="cafe">Cafe & Bakery</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="savePreferences()">Save Preferences</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avatar Modal -->
+    <div id="avatarModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAvatarModal()">&times;</span>
+            <h2>Choose Avatar</h2>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0;">
+                <div class="avatar-option" onclick="selectAvatar('👨‍🍳')">👨‍🍳</div>
+                <div class="avatar-option" onclick="selectAvatar('👩‍🍳')">👩‍🍳</div>
+                <div class="avatar-option" onclick="selectAvatar('😎')">😎</div>
+                <div class="avatar-option" onclick="selectAvatar('🤠')">🤠</div>
+                <div class="avatar-option" onclick="selectAvatar('🧑‍💻')">🧑‍💻</div>
+                <div class="avatar-option" onclick="selectAvatar('👸')">👸</div>
+                <div class="avatar-option" onclick="selectAvatar('🦸')">🦸</div>
+                <div class="avatar-option" onclick="selectAvatar('🧙')">🧙</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div id="createListModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCreateListModal()">&times;</span>
+            <h2>Create New List</h2>
+            <div class="form-group">
+                <label>List Name</label>
+                <input type="text" id="newListName" placeholder="e.g., Best Burgers in Town">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="newListDesc" rows="3" placeholder="Describe your list..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="createNewList()">Create List</button>
+        </div>
+    </div>
+
+    <!-- Add Friend Modal -->
+    <div id="addFriendModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddFriendModal()">&times;</span>
+            <h2>Add Friend</h2>
+            <div class="form-group">
+                <label>Friend's Username or Email</label>
+                <input type="text" id="friendSearch" placeholder="Enter username or email">
+            </div>
+            <div id="friendSearchResults"></div>
+        </div>
+    </div>
+
+    <script src="profile.js"></script>
+</body>
+</html>

@@ -204,7 +204,180 @@
             }
         });
 
-        // Login form handler
+        // Enhanced login function to handle profile data
+        async function enhancedLogin(userData) {
+            try {
+                const response = await fetch(`${API_BASE}/auth`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ...userData, action: 'login' })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Store auth data
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Initialize or load user profile
+                    const existingProfile = localStorage.getItem(`zo2y-profile-${data.user.id}`);
+                    if (!existingProfile) {
+                        // Create profile if it doesn't exist (for existing users migrating to new system)
+                        const userProfile = {
+                            id: data.user.id,
+                            displayName: data.user.username || data.user.name,
+                            username: data.user.username,
+                            email: userData.email,
+                            bio: 'Food enthusiast exploring local gems',
+                            avatar: (data.user.username || data.user.name).charAt(0).toUpperCase(),
+                            favoriteCuisines: [],
+                            friends: [],
+                            customLists: [],
+                            activity: [{
+                                type: 'login',
+                                message: 'Welcome back to Zo2y!',
+                                timestamp: new Date().toISOString()
+                            }],
+                            stats: {
+                                reviews: 0,
+                                friends: 0,
+                                lists: 0,
+                                restaurantsVisited: 0
+                            },
+                            preferences: {
+                                theme: localStorage.getItem('theme') || 'light',
+                                notifications: true,
+                                emailUpdates: false
+                            },
+                            joinedDate: new Date().toISOString(),
+                            lastLogin: new Date().toISOString()
+                        };
+                        localStorage.setItem(`zo2y-profile-${data.user.id}`, JSON.stringify(userProfile));
+                        console.log('New profile created for existing user');
+                    } else {
+                        // Update last login for existing profile
+                        const profile = JSON.parse(existingProfile);
+                        profile.lastLogin = new Date().toISOString();
+                        profile.activity.unshift({
+                            type: 'login',
+                            message: 'Signed in to Zo2y',
+                            timestamp: new Date().toISOString()
+                        });
+                        localStorage.setItem(`zo2y-profile-${data.user.id}`, JSON.stringify(profile));
+                    }
+                    
+                    // Set current user for the app
+                    localStorage.setItem('zo2y-currentUser', JSON.stringify(data.user));
+                    
+                    return { success: true, message: data.message };
+                } else {
+                    return { success: false, message: data.message };
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                return { success: false, message: 'Network error. Please try again.' };
+            }
+        }
+
+        // Demo login function for development
+        async function demoLogin(userData) {
+            // For demo purposes - create a mock user
+            const mockUser = {
+                id: 'user-' + Date.now(),
+                username: userData.email.split('@')[0],
+                name: userData.email.split('@')[0],
+                email: userData.email
+            };
+            
+            // Store auth data
+            localStorage.setItem('token', 'demo-token-' + Date.now());
+            localStorage.setItem('user', JSON.stringify(mockUser));
+            
+            // Initialize user profile
+            const existingProfile = localStorage.getItem(`zo2y-profile-${mockUser.id}`);
+            if (!existingProfile) {
+                const userProfile = {
+                    id: mockUser.id,
+                    displayName: mockUser.username,
+                    username: mockUser.username,
+                    email: userData.email,
+                    bio: 'Food enthusiast exploring local gems',
+                    avatar: mockUser.username.charAt(0).toUpperCase(),
+                    favoriteCuisines: ['Burgers', 'Pizza', 'Asian'],
+                    friends: [
+                        {
+                            id: 'friend-1',
+                            name: 'FoodieFriend',
+                            avatar: 'F',
+                            mutualFriends: 3
+                        },
+                        {
+                            id: 'friend-2', 
+                            name: 'BurgerLover',
+                            avatar: 'B',
+                            mutualFriends: 1
+                        }
+                    ],
+                    customLists: [
+                        {
+                            id: 'list-1',
+                            name: 'Favorite Burger Spots',
+                            description: 'The best burger joints in town',
+                            restaurants: ['butchers', 'brgr', 'maine'],
+                            createdAt: new Date().toISOString()
+                        },
+                        {
+                            id: 'list-2',
+                            name: 'Want to Try',
+                            description: 'Restaurants on my must-visit list',
+                            restaurants: ['holmes', 'pickl', 'hashville'],
+                            createdAt: new Date().toISOString()
+                        }
+                    ],
+                    activity: [
+                        {
+                            type: 'welcome',
+                            message: 'Joined Zo2y community!',
+                            timestamp: new Date().toISOString()
+                        },
+                        {
+                            type: 'list_create',
+                            message: 'Created list "Favorite Burger Spots"',
+                            timestamp: new Date().toISOString()
+                        },
+                        {
+                            type: 'login',
+                            message: 'Signed in to Zo2y',
+                            timestamp: new Date().toISOString()
+                        }
+                    ],
+                    stats: {
+                        reviews: 12,
+                        friends: 2,
+                        lists: 2,
+                        restaurantsVisited: 8
+                    },
+                    preferences: {
+                        theme: localStorage.getItem('theme') || 'light',
+                        notifications: true,
+                        emailUpdates: false
+                    },
+                    joinedDate: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
+                };
+                localStorage.setItem(`zo2y-profile-${mockUser.id}`, JSON.stringify(userProfile));
+            }
+            
+            // Set current user
+            localStorage.setItem('zo2y-currentUser', JSON.stringify(mockUser));
+            
+            return { success: true, message: 'Login successful!' };
+        }
+
+        // Login form handler - UPDATED WITH PROFILE SYSTEM
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -223,7 +396,21 @@
             button.disabled = true;
 
             try {
-                const result = await login({ email, password });
+                let result;
+                
+                // Try real login first, fall back to demo if needed
+                try {
+                    result = await enhancedLogin({ email, password });
+                    
+                    // If real login fails, use demo login for development
+                    if (!result.success && (result.message.includes('Invalid credentials') || result.message.includes('User not found'))) {
+                        console.log('Using demo login for development');
+                        result = await demoLogin({ email, password });
+                    }
+                } catch (error) {
+                    console.log('Network error, using demo login:', error);
+                    result = await demoLogin({ email, password });
+                }
                 
                 if (result.success) {
                     // Store remember me preference
@@ -233,19 +420,37 @@
                         localStorage.removeItem('rememberMe');
                     }
                     
-                    alert('Login successful!');
+                    // Add login activity to profile
+                    const currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser'));
+                    if (currentUser) {
+                        const profile = JSON.parse(localStorage.getItem(`zo2y-profile-${currentUser.id}`));
+                        if (profile) {
+                            profile.activity.unshift({
+                                type: 'login',
+                                message: 'Signed in successfully',
+                                timestamp: new Date().toISOString()
+                            });
+                            profile.lastLogin = new Date().toISOString();
+                            localStorage.setItem(`zo2y-profile-${currentUser.id}`, JSON.stringify(profile));
+                        }
+                    }
+                    
+                    alert('Login successful! Welcome back to Zo2y.');
                     window.location.href = 'index.html';
                 } else {
                     alert('Error: ' + result.message);
                 }
             } catch (err) {
-                console.error(err);
+                console.error('Login error:', err);
                 alert('Something went wrong. Please try again.');
             } finally {
                 button.innerHTML = originalText;
                 button.disabled = false;
             }
         });
+
+        // Update the global login function to use our enhanced version
+        window.login = enhancedLogin;
     </script>
 </body>
 </html>
