@@ -9,91 +9,220 @@
         :root {
             --bg: #ffffff; --card: #f8f9fa; --muted: #6c757d; --accent: #FF6F00;
             --accent-light: #ffddc1; --white: #000000; --border: rgba(0,0,0,0.08);
-            --success: #28a745; --danger: #dc3545; --warning: #ffc107;
+            --shadow: rgba(0,0,0,0.1); --gradient: linear-gradient(135deg, #FF6F00 0%, #FF8C42 100%);
         }
         [data-theme="dark"] {
             --bg: #1e2a4a; --card: #2d3748; --muted: #cbd5e1; --accent: #ff944d;
             --accent-light: #3a2a1a; --white: #ffffff; --border: rgba(255,255,255,0.1);
+            --shadow: rgba(0,0,0,0.3);
+        }
+        *{box-sizing:border-box; margin:0; padding:0}
+        body {
+            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--white);
+            -webkit-font-smoothing:antialiased; transition: background-color 0.3s ease;
+            min-height: 100vh;
+        }
+        a{color:inherit; text-decoration:none}
+        img{max-width:100%; height:auto}
+
+        /* Navigation */
+        .nav{
+            position:sticky; top:0; z-index:100; display:flex; align-items:center; gap:24px;
+            padding:14px 28px; backdrop-filter: blur(12px); background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {height:44px; cursor:pointer; transition: transform 0.3s ease;}
+        .logo:hover {transform: scale(1.05);}
+        .nav .right {margin-left:auto; display:flex; align-items:center; gap:14px;}
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; 
+            font-weight: 600; transition: all 0.3s ease; font-size: 14px;
+        }
+        .btn-primary {
+            background: var(--gradient); color:#111; 
+        }
+        .btn-primary:hover {transform: translateY(-2px);}
+        .btn-outline {
+            background:transparent; color:var(--white); border:1px solid var(--border);
+        }
+        .btn-outline:hover {border-color: var(--accent); color: var(--accent);}
+        .btn-danger {
+            background: #dc3545; color: white;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--white); transition: all 0.3s ease; }
-        
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border); }
+        /* Container */
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 28px; }
         
         /* Profile Header */
-        .profile-header { display: flex; gap: 30px; align-items: center; padding: 40px 0; }
+        .profile-header { 
+            display: flex; gap: 40px; align-items: center; padding: 40px 0; 
+            border-bottom: 1px solid var(--border); margin-bottom: 40px;
+        }
         .avatar-section { text-align: center; }
-        .avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 48px; color: #111; font-weight: bold; margin-bottom: 15px; }
-        .avatar-upload { margin-top: 10px; }
+        .avatar { 
+            width: 120px; height: 120px; border-radius: 50%; background: var(--gradient); 
+            display: flex; align-items: center; justify-content: center; font-size: 48px; 
+            color: #111; font-weight: bold; margin-bottom: 15px; 
+        }
         .profile-info { flex: 1; }
-        .profile-name { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
+        .profile-name { 
+            font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;
+            background: var(--gradient); -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; background-clip: text;
+        }
         .profile-bio { color: var(--muted); font-size: 1.1rem; margin-bottom: 20px; }
-        .profile-stats { display: flex; gap: 30px; }
+        .profile-stats { display: flex; gap: 40px; }
         .stat { text-align: center; }
         .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
         .stat-label { color: var(--muted); font-size: 0.9rem; }
         
         /* Tabs */
-        .tabs { display: flex; gap: 10px; margin: 30px 0; border-bottom: 1px solid var(--border); }
-        .tab { padding: 12px 24px; background: transparent; border: none; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
+        .tabs { 
+            display: flex; gap: 0; margin: 40px 0; border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        .tab { 
+            padding: 16px 32px; background: transparent; border: none; color: var(--muted); 
+            cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease;
+            white-space: nowrap; font-weight: 500;
+        }
         .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
         
         /* Tab Content */
-        .tab-content { display: none; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         /* Cards Grid */
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid var(--border); transition: all 0.3s ease; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .cards-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 24px; margin-top: 20px; 
+        }
+        .card { 
+            background: var(--card); border-radius: 16px; padding: 24px; 
+            border: 1px solid var(--border); transition: all 0.3s ease;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px var(--shadow); }
         
         /* Friends */
-        .friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .friend-card { text-align: center; padding: 15px; }
-        .friend-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--accent); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #111; }
+        .friends-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 20px; 
+        }
+        .friend-card { 
+            text-align: center; padding: 20px; background: var(--card); border-radius: 16px;
+            border: 1px solid var(--border); transition: all 0.3s ease;
+        }
+        .friend-card:hover { transform: translateY(-3px); }
+        .friend-avatar { 
+            width: 60px; height: 60px; border-radius: 50%; background: var(--gradient); 
+            margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; color: #111; font-size: 20px;
+        }
         
         /* Settings */
-        .settings-section { margin-bottom: 30px; }
-        .settings-section h3 { margin-bottom: 15px; color: var(--accent); }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--white); }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
-        .btn-primary { background: var(--accent); color: #111; }
-        .btn-primary:hover { transform: translateY(-2px); }
-        .btn-danger { background: var(--danger); color: white; }
+        .settings-section { margin-bottom: 40px; }
+        .settings-section h3 { margin-bottom: 20px; color: var(--accent); font-size: 1.3rem; }
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; padding: 12px 16px; border: 1px solid var(--border); 
+            border-radius: 12px; background: var(--card); color: var(--white); 
+            font-size: 14px; transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--accent); outline: none;
+        }
         
         /* Activity */
-        .activity-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        .activity-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+        .activity-item { 
+            padding: 20px; border-bottom: 1px solid var(--border); 
+            display: flex; align-items: center; gap: 16px; transition: all 0.3s ease;
+        }
+        .activity-item:hover { background: var(--card); }
+        .activity-icon { 
+            width: 44px; height: 44px; border-radius: 50%; background: var(--accent-light); 
+            display: flex; align-items: center; justify-content: center; color: var(--accent);
+            font-size: 18px;
+        }
         
         /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-        .modal-content { background: var(--bg); margin: 5% auto; padding: 30px; border-radius: 12px; max-width: 500px; position: relative; }
-        .close-modal { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
+        .modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(5px);
+        }
+        .modal-content { 
+            background: var(--bg); margin: 5% auto; padding: 40px; border-radius: 20px; 
+            max-width: 500px; position: relative; border: 1px solid var(--border);
+            box-shadow: 0 20px 60px var(--shadow);
+        }
+        .close-modal { 
+            position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer; 
+            color: var(--muted); transition: color 0.3s ease;
+        }
+        .close-modal:hover { color: var(--accent); }
+
+        /* Avatar Options */
+        .avatar-options {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0;
+        }
+        .avatar-option {
+            width: 60px; height: 60px; border-radius: 50%; background: var(--card);
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent;
+        }
+        .avatar-option:hover, .avatar-option.selected {
+            border-color: var(--accent); transform: scale(1.1);
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: var(--muted);
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+        @media (max-width: 768px) {
+            .profile-header { flex-direction: column; text-align: center; gap: 24px; }
+            .profile-stats { justify-content: center; }
+            .tabs { gap: 0; }
+            .tab { padding: 12px 20px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .container { padding: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .nav { padding: 12px 16px; }
+            .profile-name { font-size: 2rem; }
+            .tabs { gap: 0; }
+            .tab { padding: 10px 16px; font-size: 14px; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <img src="images/logo.png" alt="Zo2y" style="height: 40px; cursor: pointer;" onclick="location.href='index.html'">
-                <h1>Your Profile</h1>
-            </div>
-            <div style="display: flex; gap: 15px;">
-                <button class="btn" onclick="location.href='restraunts.html'">Browse Restaurants</button>
-                <button class="btn btn-danger" onclick="logout()">Logout</button>
-            </div>
+    <!-- Navigation -->
+    <header class="nav">
+        <div class="left">
+            <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
         </div>
+        <div class="right">
+            <button class="btn btn-outline" onclick="location.href='restraunts.html'">
+                <i class="fas fa-utensils"></i> Browse Restaurants
+            </button>
+            <button class="btn btn-danger" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </header>
 
+    <div class="container">
         <!-- Profile Header -->
         <div class="profile-header">
             <div class="avatar-section">
                 <div class="avatar" id="userAvatar">U</div>
-                <button class="btn" onclick="openAvatarModal()">Change Avatar</button>
+                <button class="btn btn-outline" onclick="openAvatarModal()">
+                    <i class="fas fa-camera"></i> Change Avatar
+                </button>
             </div>
             <div class="profile-info">
                 <h1 class="profile-name" id="userDisplayName">User Name</h1>
@@ -111,30 +240,44 @@
                         <div class="stat-value" id="listsCount">0</div>
                         <div class="stat-label">Lists</div>
                     </div>
+                    <div class="stat">
+                        <div class="stat-value" id="visitedCount">0</div>
+                        <div class="stat-label">Visited</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('activity')">Activity</button>
-            <button class="tab" onclick="switchTab('lists')">My Lists</button>
-            <button class="tab" onclick="switchTab('friends')">Friends</button>
-            <button class="tab" onclick="switchTab('settings')">Settings</button>
+            <button class="tab active" onclick="switchTab('activity')">
+                <i class="fas fa-stream"></i> Activity
+            </button>
+            <button class="tab" onclick="switchTab('lists')">
+                <i class="fas fa-list"></i> My Lists
+            </button>
+            <button class="tab" onclick="switchTab('friends')">
+                <i class="fas fa-users"></i> Friends
+            </button>
+            <button class="tab" onclick="switchTab('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </button>
         </div>
 
         <!-- Tab Content -->
         <div id="activity-tab" class="tab-content active">
-            <h2>Recent Activity</h2>
+            <h2 style="margin-bottom: 24px;">Recent Activity</h2>
             <div id="activityFeed">
                 <!-- Activity items will be populated here -->
             </div>
         </div>
 
         <div id="lists-tab" class="tab-content">
-            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <h2>My Lists</h2>
-                <button class="btn btn-primary" onclick="openCreateListModal()">Create New List</button>
+                <button class="btn btn-primary" onclick="openCreateListModal()">
+                    <i class="fas fa-plus"></i> Create New List
+                </button>
             </div>
             <div class="cards-grid" id="userLists">
                 <!-- User lists will be populated here -->
@@ -142,9 +285,11 @@
         </div>
 
         <div id="friends-tab" class="tab-content">
-            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <h2>Friends</h2>
-                <button class="btn btn-primary" onclick="openAddFriendModal()">Add Friend</button>
+                <button class="btn btn-primary" onclick="openAddFriendModal()">
+                    <i class="fas fa-user-plus"></i> Add Friend
+                </button>
             </div>
             <div class="friends-grid" id="friendsList">
                 <!-- Friends will be populated here -->
@@ -152,7 +297,8 @@
         </div>
 
         <div id="settings-tab" class="tab-content">
-            <h2>Profile Settings</h2>
+            <h2 style="margin-bottom: 32px;">Profile Settings</h2>
+            
             <div class="settings-section">
                 <h3>Personal Information</h3>
                 <div class="form-group">
@@ -161,25 +307,33 @@
                 </div>
                 <div class="form-group">
                     <label>Bio</label>
-                    <textarea id="userBioInput" rows="3" placeholder="Tell others about yourself"></textarea>
+                    <textarea id="userBioInput" rows="3" placeholder="Tell others about yourself..."></textarea>
                 </div>
-                <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
+                <button class="btn btn-primary" onclick="updateProfile()">
+                    <i class="fas fa-save"></i> Update Profile
+                </button>
             </div>
 
             <div class="settings-section">
-                <h3>Preferences</h3>
+                <h3>Favorite Cuisines</h3>
                 <div class="form-group">
-                    <label>Favorite Cuisines</label>
-                    <select id="favoriteCuisines" multiple style="height: 100px;">
-                        <option value="burgers">Burgers</option>
-                        <option value="pizza">Pizza</option>
-                        <option value="asian">Asian</option>
-                        <option value="mexican">Mexican</option>
-                        <option value="middle-eastern">Middle Eastern</option>
-                        <option value="cafe">Cafe & Bakery</option>
+                    <select id="favoriteCuisines" multiple style="height: 120px;">
+                        <option value="burgers">🍔 Burgers</option>
+                        <option value="pizza">🍕 Pizza</option>
+                        <option value="asian">🍜 Asian</option>
+                        <option value="mexican">🌮 Mexican</option>
+                        <option value="middle-eastern">🥙 Middle Eastern</option>
+                        <option value="cafe">☕ Cafe & Bakery</option>
+                        <option value="bbq">🍖 BBQ & Ribs</option>
+                        <option value="chicken">🍗 Chicken</option>
                     </select>
+                    <small style="color: var(--muted); display: block; margin-top: 8px;">
+                        Hold Ctrl/Cmd to select multiple options
+                    </small>
                 </div>
-                <button class="btn btn-primary" onclick="savePreferences()">Save Preferences</button>
+                <button class="btn btn-primary" onclick="savePreferences()">
+                    <i class="fas fa-save"></i> Save Preferences
+                </button>
             </div>
         </div>
     </div>
@@ -188,8 +342,8 @@
     <div id="avatarModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeAvatarModal()">&times;</span>
-            <h2>Choose Avatar</h2>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0;">
+            <h2>Choose Your Avatar</h2>
+            <div class="avatar-options">
                 <div class="avatar-option" onclick="selectAvatar('👨‍🍳')">👨‍🍳</div>
                 <div class="avatar-option" onclick="selectAvatar('👩‍🍳')">👩‍🍳</div>
                 <div class="avatar-option" onclick="selectAvatar('😎')">😎</div>
@@ -215,7 +369,9 @@
                 <label>Description</label>
                 <textarea id="newListDesc" rows="3" placeholder="Describe your list..."></textarea>
             </div>
-            <button class="btn btn-primary" onclick="createNewList()">Create List</button>
+            <button class="btn btn-primary" onclick="createNewList()" style="width: 100%;">
+                <i class="fas fa-plus"></i> Create List
+            </button>
         </div>
     </div>
 
@@ -225,13 +381,476 @@
             <span class="close-modal" onclick="closeAddFriendModal()">&times;</span>
             <h2>Add Friend</h2>
             <div class="form-group">
-                <label>Friend's Username or Email</label>
-                <input type="text" id="friendSearch" placeholder="Enter username or email">
+                <label>Friend's Username</label>
+                <input type="text" id="friendSearch" placeholder="Enter username...">
             </div>
-            <div id="friendSearchResults"></div>
+            <div id="friendSearchResults" style="margin-top: 20px;"></div>
         </div>
     </div>
 
-    <script src="profile.js"></script>
+    <script>
+        // Profile Management System
+        class ProfileManager {
+            constructor() {
+                this.currentUser = null;
+                this.userProfile = null;
+                this.init();
+            }
+
+            init() {
+                this.loadUserData();
+                if (!this.currentUser) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                this.loadProfileData();
+                this.setupEventListeners();
+                this.loadProfilePage();
+            }
+
+            loadUserData() {
+                this.currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser'));
+                if (!this.currentUser) {
+                    // Fallback to legacy system
+                    const legacyUser = localStorage.getItem('user');
+                    const legacyToken = localStorage.getItem('token');
+                    if (legacyToken && legacyUser) {
+                        const userData = JSON.parse(legacyUser);
+                        this.currentUser = {
+                            id: 'user-' + Date.now(),
+                            name: userData.username,
+                            username: userData.username,
+                            email: userData.email
+                        };
+                        localStorage.setItem('zo2y-currentUser', JSON.stringify(this.currentUser));
+                    }
+                }
+            }
+
+            loadProfileData() {
+                if (this.currentUser) {
+                    this.userProfile = JSON.parse(localStorage.getItem(`zo2y-profile-${this.currentUser.id}`));
+                    if (!this.userProfile) {
+                        this.createDefaultProfile();
+                    }
+                }
+            }
+
+            createDefaultProfile() {
+                this.userProfile = {
+                    id: this.currentUser.id,
+                    displayName: this.currentUser.username || this.currentUser.name,
+                    username: this.currentUser.username,
+                    email: this.currentUser.email,
+                    bio: 'Food enthusiast exploring local gems',
+                    avatar: (this.currentUser.username || this.currentUser.name).charAt(0).toUpperCase(),
+                    favoriteCuisines: [],
+                    friends: [],
+                    customLists: [],
+                    activity: [
+                        {
+                            type: 'welcome',
+                            message: 'Joined Zo2y! Start exploring amazing restaurants.',
+                            timestamp: new Date().toISOString(),
+                            icon: '🎉'
+                        }
+                    ],
+                    stats: {
+                        reviews: 0,
+                        friends: 0,
+                        lists: 0,
+                        visited: 0
+                    },
+                    preferences: {
+                        theme: 'light',
+                        notifications: true
+                    },
+                    joinedDate: new Date().toISOString()
+                };
+                this.saveProfile();
+            }
+
+            setupEventListeners() {
+                // Friend search
+                document.getElementById('friendSearch').addEventListener('input', (e) => {
+                    this.searchFriends(e.target.value);
+                });
+            }
+
+            loadProfilePage() {
+                this.updateProfileHeader();
+                this.loadActivityFeed();
+                this.loadUserLists();
+                this.loadFriends();
+                this.loadSettings();
+            }
+
+            updateProfileHeader() {
+                document.getElementById('userDisplayName').textContent = this.userProfile.displayName;
+                document.getElementById('userBio').textContent = this.userProfile.bio;
+                document.getElementById('userAvatar').textContent = this.userProfile.avatar;
+                
+                // Update stats
+                document.getElementById('reviewsCount').textContent = this.userProfile.stats.reviews;
+                document.getElementById('friendsCount').textContent = this.userProfile.friends.length;
+                document.getElementById('listsCount').textContent = this.userProfile.customLists.length;
+                
+                // Calculate visited count from localStorage
+                const visited = JSON.parse(localStorage.getItem(`zo2y-visited-${this.currentUser.id}`)) || [];
+                document.getElementById('visitedCount').textContent = visited.length;
+            }
+
+            loadActivityFeed() {
+                const activityFeed = document.getElementById('activityFeed');
+                
+                if (!this.userProfile.activity || this.userProfile.activity.length === 0) {
+                    activityFeed.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-stream"></i>
+                            <h3>No activity yet</h3>
+                            <p>Your restaurant adventures will appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                activityFeed.innerHTML = this.userProfile.activity.map(activity => `
+                    <div class="activity-item">
+                        <div class="activity-icon">${activity.icon || this.getActivityIcon(activity.type)}</div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">${activity.message}</div>
+                            <div style="color: var(--muted); font-size: 0.9rem;">${this.formatTime(activity.timestamp)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            getActivityIcon(type) {
+                const icons = {
+                    'review': '⭐',
+                    'friend_add': '👥',
+                    'list_create': '📝',
+                    'restaurant_add': '🍽️',
+                    'login': '🔐',
+                    'welcome': '🎉'
+                };
+                return icons[type] || '📢';
+            }
+
+            formatTime(timestamp) {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diff = now - date;
+                
+                if (diff < 60000) return 'Just now';
+                if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+                if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+                if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`;
+                
+                return date.toLocaleDateString();
+            }
+
+            loadUserLists() {
+                const userLists = document.getElementById('userLists');
+                
+                if (!this.userProfile.customLists || this.userProfile.customLists.length === 0) {
+                    userLists.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-list"></i>
+                            <h3>No lists created yet</h3>
+                            <p>Create your first list to organize favorite restaurants</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                userLists.innerHTML = this.userProfile.customLists.map(list => `
+                    <div class="card">
+                        <h3 style="margin-bottom: 8px;">${list.name}</h3>
+                        <p style="color: var(--muted); margin-bottom: 16px;">${list.description}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--accent); font-weight: 600;">
+                                ${list.restaurants.length} restaurants
+                            </span>
+                            <button class="btn btn-outline" onclick="viewList('${list.id}')">
+                                View
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            loadFriends() {
+                const friendsList = document.getElementById('friendsList');
+                
+                if (!this.userProfile.friends || this.userProfile.friends.length === 0) {
+                    friendsList.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-users"></i>
+                            <h3>No friends yet</h3>
+                            <p>Add friends to see their restaurant recommendations</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                friendsList.innerHTML = this.userProfile.friends.map(friend => `
+                    <div class="friend-card">
+                        <div class="friend-avatar">${friend.avatar}</div>
+                        <h4 style="margin-bottom: 8px;">${friend.name}</h4>
+                        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 12px;">
+                            ${friend.mutualFriends || 0} mutual friends
+                        </p>
+                        <button class="btn btn-outline" onclick="viewFriendProfile('${friend.id}')" style="width: 100%;">
+                            View Profile
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            loadSettings() {
+                document.getElementById('displayName').value = this.userProfile.displayName;
+                document.getElementById('userBioInput').value = this.userProfile.bio;
+                
+                // Load favorite cuisines
+                const cuisineSelect = document.getElementById('favoriteCuisines');
+                Array.from(cuisineSelect.options).forEach(option => {
+                    option.selected = this.userProfile.favoriteCuisines.includes(option.value);
+                });
+            }
+
+            searchFriends(query) {
+                const resultsDiv = document.getElementById('friendSearchResults');
+                
+                if (!query.trim()) {
+                    resultsDiv.innerHTML = '';
+                    return;
+                }
+
+                // Mock friend search results
+                const mockUsers = [
+                    { id: 'friend1', name: 'FoodieFriend', avatar: 'F', mutualFriends: 3 },
+                    { id: 'friend2', name: 'BurgerLover', avatar: 'B', mutualFriends: 1 },
+                    { id: 'friend3', name: 'SushiMaster', avatar: 'S', mutualFriends: 2 }
+                ].filter(user => user.name.toLowerCase().includes(query.toLowerCase()));
+
+                if (mockUsers.length === 0) {
+                    resultsDiv.innerHTML = '<p style="color: var(--muted); text-align: center;">No users found</p>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = mockUsers.map(user => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--card); border-radius: 12px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #111;">
+                                ${user.avatar}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">${user.name}</div>
+                                <div style="color: var(--muted); font-size: 0.8rem;">${user.mutualFriends} mutual friends</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="sendFriendRequest('${user.id}')">
+                            Add Friend
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            updateProfile() {
+                const displayName = document.getElementById('displayName').value.trim();
+                const bio = document.getElementById('userBioInput').value.trim();
+
+                if (!displayName) {
+                    alert('Please enter a display name');
+                    return;
+                }
+
+                this.userProfile.displayName = displayName;
+                this.userProfile.bio = bio;
+
+                // Add activity
+                this.addActivity('profile_update', 'Updated profile information', '✏️');
+
+                this.saveProfile();
+                this.updateProfileHeader();
+                
+                this.showNotification('Profile updated successfully!');
+            }
+
+            savePreferences() {
+                const cuisineSelect = document.getElementById('favoriteCuisines');
+                const selectedCuisines = Array.from(cuisineSelect.selectedOptions).map(option => option.value);
+                
+                this.userProfile.favoriteCuisines = selectedCuisines;
+                this.saveProfile();
+                
+                this.showNotification('Preferences saved successfully!');
+            }
+
+            selectAvatar(avatar) {
+                this.userProfile.avatar = avatar;
+                this.saveProfile();
+                this.updateProfileHeader();
+                closeAvatarModal();
+                
+                this.addActivity('avatar_change', 'Changed profile avatar', '🖼️');
+                this.showNotification('Avatar updated!');
+            }
+
+            createNewList() {
+                const name = document.getElementById('newListName').value.trim();
+                const description = document.getElementById('newListDesc').value.trim();
+
+                if (!name) {
+                    alert('Please enter a list name');
+                    return;
+                }
+
+                const newList = {
+                    id: 'list-' + Date.now(),
+                    name: name,
+                    description: description || 'No description',
+                    restaurants: [],
+                    createdAt: new Date().toISOString()
+                };
+
+                this.userProfile.customLists.push(newList);
+                this.userProfile.stats.lists = this.userProfile.customLists.length;
+                
+                // Add activity
+                this.addActivity('list_create', `Created list "${name}"`, '📝');
+                
+                this.saveProfile();
+                this.loadUserLists();
+                closeCreateListModal();
+                
+                this.showNotification('List created successfully!');
+            }
+
+            addActivity(type, message, icon) {
+                this.userProfile.activity.unshift({
+                    type: type,
+                    message: message,
+                    icon: icon,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Keep only last 20 activities
+                this.userProfile.activity = this.userProfile.activity.slice(0, 20);
+            }
+
+            saveProfile() {
+                localStorage.setItem(`zo2y-profile-${this.currentUser.id}`, JSON.stringify(this.userProfile));
+            }
+
+            showNotification(message) {
+                // Create a simple notification
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--accent);
+                    color: #111;
+                    padding: 12px 20px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    z-index: 1001;
+                    box-shadow: 0 4px 20px var(--shadow);
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        }
+
+        // Global functions
+        let profileManager;
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function openAvatarModal() {
+            document.getElementById('avatarModal').style.display = 'block';
+        }
+
+        function closeAvatarModal() {
+            document.getElementById('avatarModal').style.display = 'none';
+        }
+
+        function openCreateListModal() {
+            document.getElementById('createListModal').style.display = 'block';
+        }
+
+        function closeCreateListModal() {
+            document.getElementById('createListModal').style.display = 'none';
+        }
+
+        function openAddFriendModal() {
+            document.getElementById('addFriendModal').style.display = 'block';
+        }
+
+        function closeAddFriendModal() {
+            document.getElementById('addFriendModal').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('zo2y-currentUser');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        function sendFriendRequest(friendId) {
+            // In a real app, this would send a friend request
+            profileManager.showNotification('Friend request sent!');
+            closeAddFriendModal();
+        }
+
+        function viewList(listId) {
+            // Navigate to list detail page
+            profileManager.showNotification(`Opening list ${listId}`);
+        }
+
+        function viewFriendProfile(friendId) {
+            // Navigate to friend's profile
+            profileManager.showNotification(`Viewing friend ${friendId}`);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            profileManager = new ProfileManager();
+        });
+
+        // Add CSS for notification animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
