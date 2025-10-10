@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Zo2y — Discover Local Favorites</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ---------- CSS Variables for Theme Switching ---------- */
         :root {
@@ -116,6 +116,9 @@
             font-weight:700;
             box-shadow:0 8px 30px rgba(255,111,0,0.2);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .account-btn:hover {
             transform: translateY(-2px);
@@ -703,7 +706,10 @@
         <div class="right">
             <a class="ghost" href="restraunts.html">Explore</a>
             <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
-            <button class="account-btn" onclick="location.href='login.html'">Account</button>
+            <button class="account-btn" id="userAccountBtn">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </button>
         </div>
     </header>
 
@@ -737,7 +743,7 @@
                     </div>
                     
                     <div class="cta-row">
-                        <button class="btn-primary" onclick="location.href='login.html'">
+                        <button class="btn-primary" id="mainCtaBtn">
                             <span>Join the Community</span> →
                         </button>
                         <button class="btn-outline" onclick="location.href='restraunts.html'">
@@ -877,6 +883,47 @@
     </footer>
 
     <script>
+        // ===== USER AUTHENTICATION SYSTEM =====
+        function checkAuthStatus() {
+            const userData = localStorage.getItem('zo2y-currentUser');
+            const token = localStorage.getItem('zo2y-token');
+            return !!(userData && token);
+        }
+
+        function getCurrentUser() {
+            const userData = localStorage.getItem('zo2y-currentUser');
+            return userData ? JSON.parse(userData) : null;
+        }
+
+        function updateAuthUI() {
+            const accountBtn = document.getElementById('userAccountBtn');
+            const mainCtaBtn = document.getElementById('mainCtaBtn');
+            const heroTitle = document.getElementById('heroTitle');
+            
+            if (checkAuthStatus()) {
+                const user = getCurrentUser();
+                // Update account button
+                accountBtn.innerHTML = `<i class="fas fa-user"></i> ${user.name || user.username}`;
+                accountBtn.onclick = () => location.href = 'profile.html';
+                
+                // Update main CTA button
+                mainCtaBtn.innerHTML = `<span>Continue Exploring</span> →`;
+                mainCtaBtn.onclick = () => location.href = 'restraunts.html';
+                
+                // Update hero title for logged-in users
+                heroTitle.textContent = `Welcome back, ${user.name || user.username}!`;
+            } else {
+                // Default state for non-logged-in users
+                accountBtn.innerHTML = `<i class="fas fa-user"></i> Account`;
+                accountBtn.onclick = () => location.href = 'login.html';
+                
+                mainCtaBtn.innerHTML = `<span>Join the Community</span> →`;
+                mainCtaBtn.onclick = () => location.href = 'login.html';
+                
+                heroTitle.textContent = `Discover Hidden Gems & Local Favorites`;
+            }
+        }
+
         // ===== DARK MODE SYSTEM =====
         const themeToggle = document.getElementById('themeToggle');
 
@@ -903,7 +950,6 @@
         }
 
         themeToggle.addEventListener('click', toggleTheme);
-        document.addEventListener('DOMContentLoaded', initializeTheme);
 
         // ===== NAV SCROLL EFFECT =====
         window.addEventListener('scroll', function() {
@@ -1249,9 +1295,12 @@
             }
         });
 
-        // Calculate and display real stats
-        calculateStats();
+        // ===== INITIALIZE EVERYTHING =====
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            updateAuthUI();
+            calculateStats();
+        });
     </script>
 </body>
 </html>
- 
