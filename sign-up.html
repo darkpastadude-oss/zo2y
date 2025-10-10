@@ -163,8 +163,10 @@
         </div>
     </div>
 
-    <script src="auth.js"></script>
     <script>
+        // Use Netlify functions
+        const API_BASE = '/.netlify/functions';
+
         // Check if user is already logged in
         if(localStorage.getItem('token')) {
             window.location.href = 'index.html';
@@ -210,7 +212,7 @@
             strengthMeter.style.background = strength < 50 ? '#ff4757' : strength < 75 ? '#ffa502' : '#2ed573';
         });
 
-        // Signup form handler - UPDATED TO CREATE USER PROFILE
+        // Signup form handler - USING NETLIFY FUNCTIONS
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -229,92 +231,39 @@
             button.disabled = true;
 
             try {
-                const result = await signUp({ username, email, password });
+                // Call Netlify function for signup
+                const response = await fetch(`${API_BASE}/auth`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        action: 'signup',
+                        username, 
+                        email, 
+                        password 
+                    })
+                });
+
+                const data = await response.json();
                 
-                if (result.success) {
-                    // CREATE USER PROFILE AFTER SUCCESSFUL SIGNUP
-                    const userData = result.user;
-                    if (userData && userData.id) {
-                        const userProfile = {
-                            id: userData.id,
-                            displayName: username,
-                            username: username,
-                            email: email,
-                            bio: 'Food enthusiast exploring local gems',
-                            avatar: username.charAt(0).toUpperCase(),
-                            favoriteCuisines: [],
-                            friends: [],
-                            customLists: [],
-                            activity: [{
-                                type: 'welcome',
-                                message: 'Joined Zo2y! Start exploring restaurants.',
-                                timestamp: new Date().toISOString()
-                            }],
-                            stats: {
-                                reviews: 0,
-                                friends: 0,
-                                lists: 0,
-                                restaurantsVisited: 0
-                            },
-                            preferences: {
-                                theme: 'light',
-                                notifications: true,
-                                emailUpdates: false
-                            },
-                            joinedDate: new Date().toISOString()
-                        };
-                        
-                        // Save profile to localStorage
-                        localStorage.setItem(`zo2y-profile-${userData.id}`, JSON.stringify(userProfile));
-                        console.log('User profile created successfully!');
-                    }
-                    
-                    alert('Account created successfully! You can now login.');
-                    window.location.href = 'login.html';
+                if (response.ok) {
+                    // Store token and user data
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    alert('Account created successfully! You are now logged in.');
+                    window.location.href = 'index.html';
                 } else {
-                    alert('Error: ' + result.message);
+                    alert('Error: ' + data.message);
                 }
-            } catch (err) {
-                console.error('Signup error:', err);
+            } catch (error) {
+                console.error('Signup error:', error);
                 alert('Something went wrong. Please try again.');
             } finally {
                 button.innerHTML = originalText;
                 button.disabled = false;
             }
         });
-
-        // Enhanced signUp function to return user data
-        async function signUp(userData) {
-            try {
-                const response = await fetch(`${API_BASE}/auth`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ ...userData, action: 'signup' })
-                });
-
-                const data = await response.json();
-                
-                if (response.ok) {
-                    // Return user data along with success
-                    return { 
-                        success: true, 
-                        message: data.message,
-                        user: {
-                            id: data.user.id,
-                            username: userData.username,
-                            email: userData.email
-                        }
-                    };
-                } else {
-                    return { success: false, message: data.message };
-                }
-            } catch (error) {
-                console.error('Signup error:', error);
-                return { success: false, message: 'Network error. Please try again.' };
-            }
-        }
     </script>
 </body>
 </html>

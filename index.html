@@ -883,27 +883,55 @@
     </footer>
 
     <script>
-        // ===== USER AUTHENTICATION SYSTEM =====
-        function checkAuthStatus() {
-            const userData = localStorage.getItem('zo2y-currentUser');
-            const token = localStorage.getItem('zo2y-token');
-            return !!(userData && token);
+        // ===== NETLIFY FUNCTIONS AUTHENTICATION SYSTEM =====
+        const API_BASE = '/.netlify/functions';
+
+        async function checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (!token || !user) return false;
+            
+            try {
+                // Verify token with Netlify function
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    return true;
+                } else {
+                    // Token is invalid, clear it
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                return false;
+            }
         }
 
         function getCurrentUser() {
-            const userData = localStorage.getItem('zo2y-currentUser');
+            const userData = localStorage.getItem('user');
             return userData ? JSON.parse(userData) : null;
         }
 
-        function updateAuthUI() {
+        async function updateAuthUI() {
             const accountBtn = document.getElementById('userAccountBtn');
             const mainCtaBtn = document.getElementById('mainCtaBtn');
             const heroTitle = document.getElementById('heroTitle');
             
-            if (checkAuthStatus()) {
+            const isLoggedIn = await checkAuthStatus();
+            
+            if (isLoggedIn) {
                 const user = getCurrentUser();
-                // Update account button
-                accountBtn.innerHTML = `<i class="fas fa-user"></i> ${user.name || user.username}`;
+                // Update account button - show username and go to profile
+                accountBtn.innerHTML = `<i class="fas fa-user"></i> ${user.username || user.name || 'User'}`;
                 accountBtn.onclick = () => location.href = 'profile.html';
                 
                 // Update main CTA button
@@ -911,7 +939,7 @@
                 mainCtaBtn.onclick = () => location.href = 'restraunts.html';
                 
                 // Update hero title for logged-in users
-                heroTitle.textContent = `Welcome back, ${user.name || user.username}!`;
+                heroTitle.textContent = `Welcome back, ${user.username || user.name || 'User'}!`;
             } else {
                 // Default state for non-logged-in users
                 accountBtn.innerHTML = `<i class="fas fa-user"></i> Account`;
