@@ -25,91 +25,148 @@ exports.handler = async (event) => {
   // Handle CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
   };
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
 
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ message: 'Method Not Allowed' }) };
-  }
+  // Handle different endpoints based on the path
+  const path = event.path;
 
   try {
-    await connectDB();
-    
-    const { action, username, email, password } = JSON.parse(event.body);
-
-    if (action === 'signup') {
-      // Check if user exists
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
+    // GET /auth/me - Verify token and get user data
+    if (event.httpMethod === 'GET' && path.endsWith('/auth/me')) {
+      const authHeader = event.headers.authorization;
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return { 
-          statusCode: 400, 
+          statusCode: 401, 
           headers,
-          body: JSON.stringify({ message: 'User already exists' }) 
+          body: JSON.stringify({ message: 'No token provided' }) 
         };
       }
 
-      // Hash password and create user
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = new User({ username, email, password: hashedPassword });
-      await user.save();
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+        // Verify JWT token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        await connectDB();
+        const user = await User.findById(decoded.id).select('-password');
+        
+        if (!user) {
+          return { 
+            statusCode: 401, 
+            headers,
+            body: JSON.stringify({ message: 'User not found' }) 
+          };
+        }
 
-      // Create token
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify({ 
-          token, 
-          user: { id: user._id, username: user.username, email: user.email },
-          message: 'User created successfully!'
-        })
-      };
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ 
+            user: { 
+              id: user._id, 
+              username: user.username, 
+              email: user.email 
+            }
+          })
+        };
+      } catch (error) {
+        return { 
+          statusCode: 401, 
+          headers,
+          body: JSON.stringify({ message: 'Invalid token' }) 
+        };
+      }
     }
 
-    if (action === 'login') {
-      // Find user and validate
-      const user = await User.findOne({ email });
-      if (!user) {
-        return { 
-          statusCode: 400, 
+    // POST /auth - Handle login/signup
+    if (event.httpMethod === 'POST' && path.endsWith('/auth')) {
+      await connectDB();
+      
+      const { action, username, email, password } = JSON.parse(event.body);
+
+      if (action === 'signup') {
+        // Check if user exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          return { 
+            statusCode: 400, 
+            headers,
+            body: JSON.stringify({ message: 'User already exists' }) 
+          };
+        }
+
+        // Hash password and create user
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = new User({ username, email, password: hashedPassword });
+        await user.save();
+
+        // Create token
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+        return {
+          statusCode: 201,
           headers,
-          body: JSON.stringify({ message: 'Invalid credentials' }) 
+          body: JSON.stringify({ 
+            token, 
+            user: { id: user._id, username: user.username, email: user.email },
+            message: 'User created successfully!'
+          })
         };
       }
 
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return { 
-          statusCode: 400, 
+      if (action === 'login') {
+        // Find user and validate
+        const user = await User.findOne({ email });
+        if (!user) {
+          return { 
+            statusCode: 400, 
+            headers,
+            body: JSON.stringify({ message: 'Invalid credentials' }) 
+          };
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return { 
+            statusCode: 400, 
+            headers,
+            body: JSON.stringify({ message: 'Invalid credentials' }) 
+          };
+        }
+
+        // Create token
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+        return {
+          statusCode: 200,
           headers,
-          body: JSON.stringify({ message: 'Invalid credentials' }) 
+          body: JSON.stringify({ 
+            token, 
+            user: { id: user._id, username: user.username, email: user.email },
+            message: 'Login successful!'
+          })
         };
       }
 
-      // Create token
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-
-      return {
-        statusCode: 200,
+      return { 
+        statusCode: 400, 
         headers,
-        body: JSON.stringify({ 
-          token, 
-          user: { id: user._id, username: user.username, email: user.email },
-          message: 'Login successful!'
-        })
+        body: JSON.stringify({ message: 'Invalid action' }) 
       };
     }
 
     return { 
-      statusCode: 400, 
+      statusCode: 404, 
       headers,
-      body: JSON.stringify({ message: 'Invalid action' }) 
+      body: JSON.stringify({ message: 'Endpoint not found' }) 
     };
 
   } catch (error) {
@@ -119,5 +176,5 @@ exports.handler = async (event) => {
       headers,
       body: JSON.stringify({ message: 'Server error' }) 
     };
-  }
+  } 
 };
