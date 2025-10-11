@@ -6,6 +6,12 @@
     <title>Zo2y - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s'
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey)
+    </script>
     <style>
         :root {
             --primary-color: #FF6F00; --primary-dark: #e65c00; --primary-light: #ff8f33;
@@ -167,11 +173,9 @@
     </div>
 
     <script>
-        // Use Netlify functions
-        const API_BASE = '/.netlify/functions';
-
         // Check if user is already logged in
-        if(localStorage.getItem('token')) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if(session) {
             window.location.href = 'index.html';
         }
 
@@ -206,7 +210,7 @@
             }
         });
 
-        // Login form handler - USING NETLIFY FUNCTIONS
+        // Login form handler - USING SUPABASE
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -225,85 +229,54 @@
             button.disabled = true;
 
             try {
-                // Call Netlify function for login
-                const response = await fetch(`${API_BASE}/auth`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        action: 'login',
-                        email, 
-                        password 
-                    })
+                // Sign in with Supabase
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
                 });
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    // Store auth data
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    
+                if (error) {
+                    alert('Login failed: ' + error.message);
+                    return;
+                }
+
+                if (data.user) {
                     // Store remember me preference
                     if (remember) {
                         localStorage.setItem('rememberMe', 'true');
                     } else {
                         localStorage.removeItem('rememberMe');
                     }
-                    
-                    // Create or update user profile
-                    const existingProfile = localStorage.getItem(`zo2y-profile-${data.user.id}`);
-                    if (!existingProfile) {
-                        const userProfile = {
-                            id: data.user.id,
-                            displayName: data.user.username,
-                            username: data.user.username,
-                            email: data.user.email,
-                            bio: 'Food enthusiast exploring local gems',
-                            avatar: data.user.username.charAt(0).toUpperCase(),
-                            favoriteCuisines: [],
-                            friends: [],
-                            customLists: [],
-                            activity: [{
-                                type: 'login',
-                                message: 'Welcome to Zo2y!',
-                                timestamp: new Date().toISOString()
-                            }],
-                            stats: {
-                                reviews: 0,
-                                friends: 0,
-                                lists: 0,
-                                restaurantsVisited: 0
-                            },
-                            preferences: {
-                                theme: localStorage.getItem('theme') || 'light',
-                                notifications: true,
-                                emailUpdates: false
-                            },
-                            joinedDate: new Date().toISOString(),
-                            lastLogin: new Date().toISOString()
-                        };
-                        localStorage.setItem(`zo2y-profile-${data.user.id}`, JSON.stringify(userProfile));
-                    } else {
-                        // Update last login for existing profile
-                        const profile = JSON.parse(existingProfile);
-                        profile.lastLogin = new Date().toISOString();
-                        profile.activity.unshift({
-                            type: 'login',
-                            message: 'Signed in to Zo2y',
-                            timestamp: new Date().toISOString()
-                        });
-                        localStorage.setItem(`zo2y-profile-${data.user.id}`, JSON.stringify(profile));
+
+                    // Get or create user profile
+                    const { data: profile, error: profileError } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .eq('id', data.user.id)
+                        .single();
+
+                    if (profileError && profileError.code === 'PGRST116') {
+                        // Profile doesn't exist, create one
+                        const username = data.user.email.split('@')[0];
+                        const { error: createError } = await supabase
+                            .from('user_profiles')
+                            .insert([
+                                {
+                                    id: data.user.id,
+                                    username: username,
+                                    display_name: username,
+                                    bio: 'Food enthusiast exploring local gems',
+                                    avatar: username.charAt(0).toUpperCase()
+                                }
+                            ]);
+
+                        if (createError) {
+                            console.error('Profile creation error:', createError);
+                        }
                     }
-                    
-                    // Set current user
-                    localStorage.setItem('zo2y-currentUser', JSON.stringify(data.user));
-                    
+
                     alert('Login successful! Welcome to Zo2y.');
                     window.location.href = 'index.html';
-                } else {
-                    alert('Error: ' + data.message);
                 }
             } catch (error) {
                 console.error('Login error:', error);
