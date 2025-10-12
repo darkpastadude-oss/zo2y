@@ -155,7 +155,7 @@
       <div class="divider"><span>or continue with</span></div>
 
       <div class="social-login">
-        <div class="social-btn"><i class="fab fa-google"></i><span>Google</span></div>
+        <div class="social-btn" id="googleLogin"><i class="fab fa-google"></i><span>Google</span></div>
         <div class="social-btn"><i class="fab fa-facebook-f"></i><span>Facebook</span></div>
       </div>
 
@@ -163,7 +163,6 @@
     </div>
   </div>
 
-  <!-- JS -->
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -172,19 +171,16 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    console.log("🧪 Testing Supabase connection...");
 
-    const { data: testData, error: testError } = await supabase.from("restraunts").select("*").limit(1);
-    if (testError) console.error("❌ Connection failed:", testError.message);
-    else console.log("✅ Supabase connection works:", testData);
+    document.addEventListener("DOMContentLoaded", async () => {
+      // auto redirect if logged in
+      const { data: session } = await supabase.auth.getSession();
+      if (session.session) {
+        window.location.href = "index.html";
+        return;
+      }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      // check session
-      supabase.auth.getSession().then(({ data }) => {
-        if (data.session) window.location.href = "index.html";
-      });
-
-      // theme
+      // theme toggle
       const themeToggle = document.getElementById("themeToggle");
       const themeIcon = themeToggle.querySelector("i");
       const themeText = themeToggle.querySelector("span");
@@ -211,33 +207,33 @@
         e.preventDefault();
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
-        const remember = document.getElementById("remember").checked;
-        const button = document.querySelector("button");
-        const originalText = button.innerHTML;
+        const button = e.target.querySelector("button");
+        const original = button.innerHTML;
 
-        if (!email || !password) return alert("Please enter both email and password.");
+        if (!email || !password) return alert("Enter both fields bro 😭");
 
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
         button.disabled = true;
 
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) return alert("Login failed: " + error.message);
-
-          if (data.user) {
-            if (remember) localStorage.setItem("rememberMe", "true");
-            else localStorage.removeItem("rememberMe");
-
-            alert("Login successful! Welcome back 👋");
-            window.location.href = "index.html";
-          }
-        } catch (err) {
-          console.error("Login error:", err);
-          alert("Something went wrong. Please try again.");
-        } finally {
-          button.innerHTML = originalText;
-          button.disabled = false;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          alert("❌ " + error.message);
+        } else {
+          alert("✅ Logged in successfully!");
+          window.location.href = "index.html";
         }
+
+        button.innerHTML = original;
+        button.disabled = false;
+      });
+
+      // google login
+      document.getElementById("googleLogin").addEventListener("click", async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: window.location.origin + "/index.html" },
+        });
+        if (error) alert("Google login failed: " + error.message);
       });
     });
   </script>
