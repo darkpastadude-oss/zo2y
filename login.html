@@ -248,7 +248,7 @@
                         localStorage.removeItem('rememberMe');
                     }
 
-                    // Get or create user profile
+                    // Get or create user profile - WITH CORRECT COLUMN NAMES
                     const { data: profile, error: profileError } = await supabase
                         .from('user_profiles')
                         .select('*')
@@ -256,7 +256,7 @@
                         .single();
 
                     if (profileError && profileError.code === 'PGRST116') {
-                        // Profile doesn't exist, create one
+                        // Profile doesn't exist, create one WITH CORRECT COLUMNS
                         const username = data.user.email.split('@')[0];
                         const { error: createError } = await supabase
                             .from('user_profiles')
@@ -264,9 +264,9 @@
                                 {
                                     id: data.user.id,
                                     username: username,
-                                    display_name: username,
+                                    full_name: username, // CHANGED FROM display_name
                                     bio: 'Food enthusiast exploring local gems',
-                                    avatar: username.charAt(0).toUpperCase()
+                                    avatar_url: null // CHANGED FROM avatar
                                 }
                             ]);
 
