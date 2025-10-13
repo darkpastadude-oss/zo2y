@@ -44,39 +44,37 @@
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) { window.location.href = "login.html"; return; }
 
-      // DEBUG: Let's see what data we're getting
-      console.log("Auth User:", user);
+      console.log("Auth User ID:", user.id);
       
-      // Fetch profile data from user_profiles table - ONLY username
+      // Fetch username and fullname from user_profiles
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
-        .select("username")
+        .select("username, fullname")
         .eq("id", user.id)
         .single();
 
       console.log("Profile Data:", profile);
       console.log("Profile Error:", profileError);
 
-      // Set username from profile table
-      if (profile && profile.username) {
-        document.getElementById("username").textContent = username;
+      // Set the username - prioritize username field, then fullname, then fallback
+      if (profile) {
+        if (profile.username && profile.username.trim() !== "") {
+          document.getElementById("username").textContent = profile.username;
+        } else if (profile.fullname && profile.fullname.trim() !== "") {
+          document.getElementById("username").textContent = profile.fullname;
+        } else {
+          // If both are empty, use email username
+          const emailUsername = user.email.split('@')[0];
+          document.getElementById("username").textContent = emailUsername;
+        }
       } else {
-        document.getElementById("username").textContent = "Anonymous User";
+        // No profile found - use email username
+        const emailUsername = user.email.split('@')[0];
+        document.getElementById("username").textContent = emailUsername;
       }
 
       document.getElementById("email").textContent = user.email;
       document.getElementById("joinDate").textContent = `Joined on ${new Date(user.created_at).toLocaleDateString()}`;
-
-      // Fetch bio separately if needed
-      const { data: bioData } = await supabase
-        .from("user_profiles")
-        .select("bio")
-        .eq("id", user.id)
-        .single();
-
-      if (bioData && bioData.bio) {
-        document.getElementById("bioText").textContent = bioData.bio;
-      }
     }
 
     loadProfile();
