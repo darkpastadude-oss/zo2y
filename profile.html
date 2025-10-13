@@ -1,130 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Profile - Zo2y</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script type="module" src="supabase.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Profile — Zo2y</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #ffffff; --card: #f8f9fa; --muted: #6c757d; --accent: #FF6F00;
-      --accent-light: #ffddc1; --white: #000000; --border: rgba(0,0,0,0.08);
-      --shadow: rgba(0,0,0,0.1); --gradient: linear-gradient(135deg, #FF6F00 0%, #FF8C42 100%);
-    }
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      margin: 0;
+      padding: 0;
       min-height: 100vh;
-    }
-    .nav {
       display: flex;
+      justify-content: center;
       align-items: center;
-      gap: 24px;
-      padding: 14px 28px;
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
     }
-    .logo { height: 44px; cursor: pointer; }
-    .nav .right { margin-left: auto; display: flex; gap: 14px; }
-    .btn { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; }
-    .btn-primary { background: var(--gradient); color: #111; }
-    .btn-outline { background: transparent; color: var(--white); border: 1px solid var(--border); }
-    .btn-danger { background: #dc3545; color: white; }
-    .container { max-width: 1000px; margin: 0 auto; padding: 40px 28px; }
-    .profile-header { display: flex; gap: 40px; align-items: center; margin-bottom: 40px; }
-    .avatar { width: 100px; height: 100px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; font-size: 40px; color: #111; font-weight: bold; }
-    .profile-name { font-size: 2rem; font-weight: 800; margin-bottom: 8px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .profile-bio { color: var(--muted); margin-bottom: 20px; }
-    .form-group { margin-bottom: 20px; }
-    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--white); }
+
+    .profile-container {
+      background: #181818;
+      border-radius: 20px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 25px rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar {
+      background: #272727;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 40px;
+      margin-bottom: 1rem;
+      color: #ffcc00;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    }
+
+    .username {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    .bio {
+      color: #aaa;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .profile-actions {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+    }
+
+    button {
+      padding: 0.8rem 1.2rem;
+      border: none;
+      border-radius: 12px;
+      background: #ffcc00;
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #ffd633;
+      transform: translateY(-2px);
+    }
+
+    .logout {
+      background: #d33;
+      color: #fff;
+    }
+
+    .logout:hover {
+      background: #f55;
+    }
+
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #666;
+    }
   </style>
 </head>
 <body>
-  <header class="nav">
-    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-    <div class="right">
-      <button class="btn btn-outline" onclick="location.href='restraunts.html'">Browse Restaurants</button>
-      <button class="btn btn-danger" onclick="logout()">Logout</button>
-    </div>
-  </header>
-
-  <div class="container">
-    <div class="profile-header">
-      <div class="avatar" id="userAvatar">U</div>
-      <div class="profile-info">
-        <h1 class="profile-name" id="userDisplayName">User Name</h1>
-        <p class="profile-bio" id="userBio">Loading bio...</p>
-      </div>
+  <div class="profile-container">
+    <div class="avatar" id="avatar"></div>
+    <div class="username" id="username">Loading...</div>
+    <div class="bio" id="bio">No bio yet. Add something cool about yourself!</div>
+    
+    <div class="profile-actions">
+      <button onclick="editProfile()">Edit Profile</button>
+      <button onclick="addFriend()">Add Friend</button>
+      <button onclick="viewLists()">My Lists</button>
+      <button class="logout" onclick="logout()">Logout</button>
     </div>
 
-    <div class="form-group">
-      <label>Display Name</label>
-      <input type="text" id="displayName" placeholder="Enter your name">
-    </div>
-    <div class="form-group">
-      <label>Bio</label>
-      <textarea id="bio" rows="3" placeholder="Write your bio"></textarea>
-    </div>
-    <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+    <div class="footer">Zo2y — Built for local legends 🌍</div>
   </div>
 
-  <script type="module">
-    import { supabase } from './supabase.js'
+  <script>
+    const supabase = supabase.createClient(
+      "https://YOUR-PROJECT.supabase.co",
+      "YOUR-ANON-KEY"
+    );
+
+    const icons = ['⭐', '🔥', '⚡', '🌙', '🎯', '💎', '🌀', '🐉', '🚀', '💥'];
+    document.getElementById("avatar").textContent = icons[Math.floor(Math.random() * icons.length)];
 
     async function loadProfile() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.location.href = 'login.html'
-        return
+        window.location.href = "login.html";
+        return;
       }
 
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (error) {
-        console.error(error)
-        return
-      }
-
-      document.getElementById('userDisplayName').textContent = profile.display_name || user.email
-      document.getElementById('userAvatar').textContent = profile.display_name
-        ? profile.display_name.charAt(0).toUpperCase()
-        : 'U'
-      document.getElementById('userBio').textContent = profile.bio || 'Food enthusiast exploring local gems'
-      document.getElementById('displayName').value = profile.display_name || ''
-      document.getElementById('bio').value = profile.bio || ''
-    }
-
-    async function updateProfile() {
-      const name = document.getElementById('displayName').value
-      const bio = document.getElementById('bio').value
-
-      const { data: { user } } = await supabase.auth.getUser()
-      const { error } = await supabase
-        .from('profiles')
-        .update({ display_name: name, bio })
-        .eq('id', user.id)
-
-      if (error) {
-        alert('Error updating profile')
-        console.error(error)
-      } else {
-        alert('Profile updated!')
-        loadProfile()
-      }
+      document.getElementById("username").textContent = user.user_metadata.full_name || user.email.split("@")[0];
     }
 
     async function logout() {
-      await supabase.auth.signOut()
-      window.location.href = 'login.html'
+      await supabase.auth.signOut();
+      window.location.href = "index.html";
     }
 
-    loadProfile()
+    function editProfile() {
+      alert("Coming soon — custom bio & avatar update 🔧");
+    }
+
+    function addFriend() {
+      alert("Friend system coming soon 👥");
+    }
+
+    function viewLists() {
+      alert("Your saved spots and lists — in progress 🗺️");
+    }
+
+    loadProfile();
   </script>
 </body>
 </html>
+
