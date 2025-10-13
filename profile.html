@@ -1,160 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Profile — Zo2y</title>
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #0f0f0f;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .profile-container {
-      background: #181818;
-      border-radius: 20px;
-      padding: 2rem;
-      width: 90%;
-      max-width: 600px;
-      box-shadow: 0 0 25px rgba(255,255,255,0.1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .avatar {
-      background: #272727;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 40px;
-      margin-bottom: 1rem;
-      color: #ffcc00;
-      box-shadow: 0 0 20px rgba(255,255,255,0.1);
-    }
-    .username {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
-    }
-    .bio {
-      color: #aaa;
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
-    }
-    .profile-actions {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      gap: 10px;
-    }
-    button {
-      padding: 0.8rem 1.2rem;
-      border: none;
-      border-radius: 12px;
-      background: #ffcc00;
-      color: #000;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #ffd633;
-      transform: translateY(-2px);
-    }
-    .logout {
-      background: #d33;
-      color: #fff;
-    }
-    .logout:hover {
-      background: #f55;
-    }
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.8rem;
-      color: #666;
-    }
-  </style>
-</head>
-<body>
-  <div class="profile-container">
-    <div class="avatar" id="avatar"></div>
-    <div class="username" id="username">Loading...</div>
-    <div class="bio" id="bio">No bio yet. Add something cool about yourself!</div>
-    
-    <div class="profile-actions">
-      <button onclick="editProfile()">Edit Profile</button>
-      <button onclick="addFriend()">Add Friend</button>
-      <button onclick="viewLists()">My Lists</button>
-      <button class="logout" onclick="logout()">Logout</button>
-    </div>
+<script>
+  const supabase = supabase.createClient(
+    "https://gfkhjbztayjyojsgdpgk.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s"
+  );
 
-    <div class="footer">Zo2y — Built for local legends 🌍</div>
-  </div>
+  const icons = ['⭐', '🔥', '⚡', '🌙', '🎯', '💎', '🌀', '🐉', '🚀', '💥'];
+  document.getElementById("avatar").textContent = icons[Math.floor(Math.random() * icons.length)];
 
-  <script>
-    const supabase = supabase.createClient(
-      "https://YOUR-PROJECT.supabase.co",
-      "YOUR-ANON-KEY"
-    );
-
-    const icons = ['⭐', '🔥', '⚡', '🌙', '🎯', '💎', '🌀', '🐉', '🚀', '💥'];
-    document.getElementById("avatar").textContent = icons[Math.floor(Math.random() * icons.length)];
-
-    async function loadProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
-
-      // fetch username from user_profiles
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .select('username, bio')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        document.getElementById("username").textContent = user.email.split("@")[0];
-      } else {
-        document.getElementById("username").textContent = profile.username || user.email.split("@")[0];
-        if(profile.bio) document.getElementById("bio").textContent = profile.bio;
-      }
+  async function loadProfile() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      window.location.href = "login.html";
+      return;
     }
 
-    async function logout() {
-      await supabase.auth.signOut();
-      window.location.href = "index.html";
-    }
+    // fetch username from user_profiles
+    const { data: profile, error } = await supabase
+      .from('user_profiles')
+      .select('username, bio')
+      .eq('id', user.id)
+      .single();
 
-    function editProfile() {
-      alert("Coming soon — custom bio & avatar update 🔧");
+    if (error || !profile) {
+      console.log("No profile found, showing fallback");
+      document.getElementById("username").textContent = user.email.split("@")[0];
+    } else {
+      document.getElementById("username").textContent = profile.username || user.email.split("@")[0];
+      if(profile.bio) document.getElementById("bio").textContent = profile.bio;
     }
+  }
 
-    function addFriend() {
-      alert("Friend system coming soon 👥");
-    }
+  async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
+  }
 
-    function viewLists() {
-      alert("Your saved spots and lists — in progress 🗺️");
-    }
+  function editProfile() {
+    alert("Coming soon — custom bio & avatar update 🔧");
+  }
 
-    loadProfile();
-  </script>
-</body>
-</html>
+  function addFriend() {
+    alert("Friend system coming soon 👥");
+  }
+
+  function viewLists() {
+    alert("Your saved spots and lists — in progress 🗺️");
+  }
+
+  loadProfile();
+</script>
