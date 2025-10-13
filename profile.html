@@ -15,9 +15,18 @@
     .avatar { font-size: 5rem; background-color: #f59e0b; color: #0b1633; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
     .username { font-size: 1.8rem; text-align: center; font-weight: 600; }
     .email { text-align: center; color: #c0c0c0; font-size: 1rem; margin-bottom: 20px; }
-    .bio, .lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
-    h3 { color: #f59e0b; margin-bottom: 10px; }
+    .bio, .lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; position: relative; }
+    h3 { color: #f59e0b; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .edit-btn { background: none; border: 1px solid #f59e0b; color: #f59e0b; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; } .edit-btn:hover { background: #f59e0b; color: #0b1633; }
     .join-date { text-align: center; color: #aaa; font-size: 0.9rem; margin-top: 10px; }
+    .bio-textarea { width: 100%; min-height: 100px; background: #0b1633; border: 1px solid #f59e0b; border-radius: 8px; color: white; padding: 10px; font-family: inherit; resize: vertical; }
+    .bio-actions { display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end; }
+    .save-btn { background: #f59e0b; color: #0b1633; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; } .save-btn:hover { background: #ffb84d; }
+    .cancel-btn { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; padding: 6px 12px; border-radius: 6px; cursor: pointer; } .cancel-btn:hover { background: #f59e0b22; }
+    .list-item { background: #0b1633; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .list-name { font-weight: 600; margin-bottom: 5px; }
+    .list-desc { color: #c0c0c0; font-size: 0.9rem; }
+    .create-list-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; } .create-list-btn:hover { background: #ffb84d; }
   </style>
 </head>
 <body>
@@ -31,14 +40,48 @@
     <div class="username" id="username">Loading...</div>
     <div class="email" id="email"></div>
     <div class="join-date" id="joinDate"></div>
-    <div class="bio"><h3>Bio</h3><p id="bioText">No bio yet. Add one soon!</p></div>
-    <div class="lists"><h3>Saved Lists</h3><p id="listsText">You don't have any saved lists yet.</p></div>
+
+    <div class="bio">
+      <h3>
+        Bio
+        <button class="edit-btn" id="editBioBtn">Edit Bio</button>
+      </h3>
+      <p id="bioText">No bio yet. Add one soon!</p>
+      <div id="bioEdit" style="display: none;">
+        <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell others about your food preferences, favorite restaurants, or dining experiences..."></textarea>
+        <div class="bio-actions">
+          <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
+          <button class="save-btn" id="saveBioBtn">Save Bio</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lists">
+      <h3>
+        My Lists
+        <button class="edit-btn" id="createListBtn">Create List</button>
+      </h3>
+      <div id="listsContainer">
+        <p id="listsText">You don't have any saved lists yet.</p>
+      </div>
+      
+      <div id="createListForm" style="display: none;">
+        <input type="text" id="listNameInput" placeholder="List name (e.g., Favorite Burgers)" style="width: 100%; padding: 8px; margin-bottom: 10px; background: #0b1633; border: 1px solid #f59e0b; border-radius: 6px; color: white;">
+        <textarea id="listDescInput" placeholder="List description..." style="width: 100%; min-height: 60px; padding: 8px; background: #0b1633; border: 1px solid #f59e0b; border-radius: 6px; color: white; resize: vertical;"></textarea>
+        <div class="bio-actions">
+          <button class="cancel-btn" id="cancelListBtn">Cancel</button>
+          <button class="save-btn" id="saveListBtn">Create List</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let currentUser = null;
 
     const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
     const avatar = document.getElementById("avatar");
@@ -47,39 +90,172 @@
     async function loadProfile() {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) { window.location.href = "login.html"; return; }
-
+      
+      currentUser = user;
       console.log("Auth User ID:", user.id);
       
-      // Fetch username and fullname from user_profiles
+      // Fetch profile data - using your exact table structure
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
-        .select("username, fullname")
+        .select("username, full_name, bio, created_at")
         .eq("id", user.id)
         .single();
 
       console.log("Profile Data:", profile);
-      console.log("Profile Error:", profileError);
 
-      // Set the username - prioritize username field, then fullname, then fallback
+      // Set username - using full_name field from your table
       if (profile) {
         if (profile.username && profile.username.trim() !== "") {
           document.getElementById("username").textContent = profile.username;
-        } else if (profile.fullname && profile.fullname.trim() !== "") {
-          document.getElementById("username").textContent = profile.fullname;
+        } else if (profile.full_name && profile.full_name.trim() !== "") {
+          document.getElementById("username").textContent = profile.full_name;
         } else {
-          // If both are empty, use email username
           const emailUsername = user.email.split('@')[0];
           document.getElementById("username").textContent = emailUsername;
         }
+
+        // Set bio if it exists
+        if (profile.bio) {
+          document.getElementById("bioText").textContent = profile.bio;
+          document.getElementById("bioTextarea").value = profile.bio;
+        }
       } else {
-        // No profile found - use email username
         const emailUsername = user.email.split('@')[0];
         document.getElementById("username").textContent = emailUsername;
       }
 
       document.getElementById("email").textContent = user.email;
-      document.getElementById("joinDate").textContent = `Joined on ${new Date(user.created_at).toLocaleDateString()}`;
+      
+      // Use profile created_at if available, otherwise auth user created_at
+      const joinDate = profile?.created_at || user.created_at;
+      document.getElementById("joinDate").textContent = `Joined on ${new Date(joinDate).toLocaleDateString()}`;
+
+      // Load user lists
+      await loadUserLists();
     }
+
+    async function loadUserLists() {
+      const { data: lists, error } = await supabase
+        .from("user_lists")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error loading lists:", error);
+        return;
+      }
+
+      const listsContainer = document.getElementById("listsContainer");
+      
+      if (lists && lists.length > 0) {
+        listsContainer.innerHTML = '';
+        lists.forEach(list => {
+          const listItem = document.createElement('div');
+          listItem.className = 'list-item';
+          listItem.innerHTML = `
+            <div class="list-name">${list.name}</div>
+            <div class="list-desc">${list.description || 'No description'}</div>
+            <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">
+              ${list.restaurants_count || 0} restaurants • Created ${new Date(list.created_at).toLocaleDateString()}
+            </div>
+          `;
+          listsContainer.appendChild(listItem);
+        });
+      } else {
+        listsContainer.innerHTML = '<p id="listsText">You don\'t have any saved lists yet.</p>';
+      }
+    }
+
+    // Bio editing functionality
+    document.getElementById("editBioBtn").addEventListener("click", () => {
+      document.getElementById("bioText").style.display = 'none';
+      document.getElementById("bioEdit").style.display = 'block';
+    });
+
+    document.getElementById("cancelBioBtn").addEventListener("click", () => {
+      document.getElementById("bioEdit").style.display = 'none';
+      document.getElementById("bioText").style.display = 'block';
+    });
+
+    document.getElementById("saveBioBtn").addEventListener("click", async () => {
+      const newBio = document.getElementById("bioTextarea").value.trim();
+      
+      // Update bio in user_profiles table - using your exact table structure
+      const { error } = await supabase
+        .from("user_profiles")
+        .upsert({
+          id: currentUser.id,
+          bio: newBio,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
+        });
+
+      if (error) {
+        console.error("Error saving bio:", error);
+        alert("Error saving bio. Please try again.");
+        return;
+      }
+
+      // Update display
+      document.getElementById("bioText").textContent = newBio || "No bio yet. Add one soon!";
+      document.getElementById("bioEdit").style.display = 'none';
+      document.getElementById("bioText").style.display = 'block';
+      
+      alert("Bio updated successfully!");
+    });
+
+    // List creation functionality
+    document.getElementById("createListBtn").addEventListener("click", () => {
+      document.getElementById("createListForm").style.display = 'block';
+      document.getElementById("createListBtn").style.display = 'none';
+    });
+
+    document.getElementById("cancelListBtn").addEventListener("click", () => {
+      document.getElementById("createListForm").style.display = 'none';
+      document.getElementById("createListBtn").style.display = 'block';
+      document.getElementById("listNameInput").value = '';
+      document.getElementById("listDescInput").value = '';
+    });
+
+    document.getElementById("saveListBtn").addEventListener("click", async () => {
+      const listName = document.getElementById("listNameInput").value.trim();
+      const listDesc = document.getElementById("listDescInput").value.trim();
+
+      if (!listName) {
+        alert("Please enter a list name");
+        return;
+      }
+
+      // Create new list
+      const { data, error } = await supabase
+        .from("user_lists")
+        .insert({
+          user_id: currentUser.id,
+          name: listName,
+          description: listDesc,
+          restaurants_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select();
+
+      if (error) {
+        console.error("Error creating list:", error);
+        alert("Error creating list. Please try again.");
+        return;
+      }
+
+      // Reset form and reload lists
+      document.getElementById("createListForm").style.display = 'none';
+      document.getElementById("createListBtn").style.display = 'block';
+      document.getElementById("listNameInput").value = '';
+      document.getElementById("listDescInput").value = '';
+
+      await loadUserLists();
+      alert("List created successfully!");
+    });
 
     loadProfile();
 
