@@ -1,406 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Profile - Zo2y</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg: #ffffff; --card: #f8f9fa; --muted: #6c757d; --accent: #FF6F00;
-            --accent-light: #ffddc1; --white: #000000; --border: rgba(0,0,0,0.08);
-            --shadow: rgba(0,0,0,0.1); --gradient: linear-gradient(135deg, #FF6F00 0%, #FF8C42 100%);
-        }
-        [data-theme="dark"] {
-            --bg: #1e2a4a; --card: #2d3748; --muted: #cbd5e1; --accent: #ff944d;
-            --accent-light: #3a2a1a; --white: #ffffff; --border: rgba(255,255,255,0.1);
-            --shadow: rgba(0,0,0,0.3);
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-            color: var(--white); min-height: 100vh;
-        }
-        [data-theme="dark"] body {
-            background: linear-gradient(135deg, #1e1e2d 0%, #2d2d44 100%);
-        }
-        
-        .nav {
-            display: flex; align-items: center; gap: 24px; padding: 14px 28px;
-            background: var(--card); border-bottom: 1px solid var(--border);
-        }
-        .logo { height: 44px; cursor: pointer; }
-        .nav .right { margin-left: auto; display: flex; gap: 14px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; }
-        .btn-primary { background: var(--gradient); color: #111; }
-        .btn-outline { background: transparent; color: var(--white); border: 1px solid var(--border); }
-        .btn-danger { background: #dc3545; color: white; }
-        
-        .container { max-width: 1000px; margin: 0 auto; padding: 40px 28px; }
-        
-        .profile-header { display: flex; gap: 40px; align-items: center; margin-bottom: 40px; }
-        .avatar { width: 100px; height: 100px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; font-size: 40px; color: #111; font-weight: bold; }
-        .profile-info { flex: 1; }
-        .profile-name { font-size: 2rem; font-weight: 800; margin-bottom: 8px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .profile-bio { color: var(--muted); margin-bottom: 20px; }
-        .profile-stats { display: flex; gap: 30px; }
-        .stat-value { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-        .stat-label { color: var(--muted); font-size: 0.9rem; }
-        
-        .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
-        .tab { padding: 12px 24px; background: transparent; border: none; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; }
-        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid var(--border); }
-        
-        .friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        .friend-card { text-align: center; padding: 15px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
-        .friend-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--gradient); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #111; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--white); }
-        
-        .activity-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        .activity-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; color: var(--accent); }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-        .modal-content { background: var(--bg); margin: 10% auto; padding: 30px; border-radius: 16px; max-width: 400px; position: relative; border: 1px solid var(--border); }
-        .close-modal { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
-        
-        .avatar-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
-        .avatar-option { width: 50px; height: 50px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid transparent; }
-        .avatar-option:hover { border-color: var(--accent); }
-        
-        .empty-state { text-align: center; padding: 40px; color: var(--muted); }
-        
-        @media (max-width: 768px) {
-            .profile-header { flex-direction: column; text-align: center; }
-            .nav { padding: 12px 16px; }
-            .container { padding: 20px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Profile - Zo2y</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" src="supabase.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff; --card: #f8f9fa; --muted: #6c757d; --accent: #FF6F00;
+      --accent-light: #ffddc1; --white: #000000; --border: rgba(0,0,0,0.08);
+      --shadow: rgba(0,0,0,0.1); --gradient: linear-gradient(135deg, #FF6F00 0%, #FF8C42 100%);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      color: var(--white);
+      min-height: 100vh;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 14px 28px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { height: 44px; cursor: pointer; }
+    .nav .right { margin-left: auto; display: flex; gap: 14px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: var(--gradient); color: #111; }
+    .btn-outline { background: transparent; color: var(--white); border: 1px solid var(--border); }
+    .btn-danger { background: #dc3545; color: white; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 40px 28px; }
+    .profile-header { display: flex; gap: 40px; align-items: center; margin-bottom: 40px; }
+    .avatar { width: 100px; height: 100px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; font-size: 40px; color: #111; font-weight: bold; }
+    .profile-name { font-size: 2rem; font-weight: 800; margin-bottom: 8px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .profile-bio { color: var(--muted); margin-bottom: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--white); }
+  </style>
 </head>
 <body>
-    <header class="nav">
-        <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-        <div class="right">
-            <button class="btn btn-outline" onclick="location.href='restraunts.html'">Browse Restaurants</button>
-            <button class="btn btn-danger" onclick="logout()">Logout</button>
-        </div>
-    </header>
+  <header class="nav">
+    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+    <div class="right">
+      <button class="btn btn-outline" onclick="location.href='restraunts.html'">Browse Restaurants</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+  </header>
 
-    <div class="container">
-        <div class="profile-header">
-            <div>
-                <div class="avatar" id="userAvatar">U</div>
-                <button class="btn btn-outline" onclick="openAvatarModal()" style="margin-top: 10px;">Change Avatar</button>
-            </div>
-            <div class="profile-info">
-                <h1 class="profile-name" id="userDisplayName">User Name</h1>
-                <p class="profile-bio" id="userBio">Food enthusiast exploring local gems</p>
-                <div class="profile-stats">
-                    <div class="stat"><div class="stat-value" id="reviewsCount">0</div><div class="stat-label">Reviews</div></div>
-                    <div class="stat"><div class="stat-value" id="friendsCount">0</div><div class="stat-label">Friends</div></div>
-                    <div class="stat"><div class="stat-value" id="listsCount">0</div><div class="stat-label">Lists</div></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('activity')">Activity</button>
-            <button class="tab" onclick="switchTab('lists')">My Lists</button>
-            <button class="tab" onclick="switchTab('friends')">Friends</button>
-            <button class="tab" onclick="switchTab('settings')">Settings</button>
-        </div>
-
-        <div id="activity-tab" class="tab-content active">
-            <h2 style="margin-bottom: 20px;">Recent Activity</h2>
-            <div id="activityFeed"></div>
-        </div>
-
-        <div id="lists-tab" class="tab-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>My Lists</h2>
-                <button class="btn btn-primary" onclick="openCreateListModal()">Create List</button>
-            </div>
-            <div class="cards-grid" id="userLists"></div>
-        </div>
-
-        <div id="friends-tab" class="tab-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>Friends</h2>
-                <button class="btn btn-primary" onclick="openAddFriendModal()">Add Friend</button>
-            </div>
-            <div class="friends-grid" id="friendsList"></div>
-        </div>
-
-        <div id="settings-tab" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Profile Settings</h2>
-            <div class="form-group">
-                <label>Display Name</label>
-                <input type="text" id="displayName" placeholder="Enter your display name">
-            </div>
-            <div class="form-group">
-                <label>Bio</label>
-                <textarea id="userBioInput" rows="3" placeholder="Tell others about yourself"></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="updateProfile()">Update Profile</button>
-        </div>
+  <div class="container">
+    <div class="profile-header">
+      <div class="avatar" id="userAvatar">U</div>
+      <div class="profile-info">
+        <h1 class="profile-name" id="userDisplayName">User Name</h1>
+        <p class="profile-bio" id="userBio">Loading bio...</p>
+      </div>
     </div>
 
-    <!-- Modals -->
-    <div id="avatarModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeAvatarModal()">&times;</span>
-            <h2>Choose Avatar</h2>
-            <div class="avatar-options">
-                <div class="avatar-option" onclick="selectAvatar('👨‍🍳')">👨‍🍳</div>
-                <div class="avatar-option" onclick="selectAvatar('👩‍🍳')">👩‍🍳</div>
-                <div class="avatar-option" onclick="selectAvatar('😎')">😎</div>
-                <div class="avatar-option" onclick="selectAvatar('🤠')">🤠</div>
-            </div>
-        </div>
+    <div class="form-group">
+      <label>Display Name</label>
+      <input type="text" id="displayName" placeholder="Enter your name">
     </div>
-
-    <div id="createListModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeCreateListModal()">&times;</span>
-            <h2>Create List</h2>
-            <div class="form-group">
-                <input type="text" id="newListName" placeholder="List name">
-            </div>
-            <div class="form-group">
-                <textarea id="newListDesc" rows="2" placeholder="Description"></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="createNewList()">Create</button>
-        </div>
+    <div class="form-group">
+      <label>Bio</label>
+      <textarea id="bio" rows="3" placeholder="Write your bio"></textarea>
     </div>
+    <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+  </div>
 
-    <div id="addFriendModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeAddFriendModal()">&times;</span>
-            <h2>Add Friend</h2>
-            <div class="form-group">
-                <input type="text" id="friendSearch" placeholder="Username">
-            </div>
-            <div id="friendSearchResults"></div>
-        </div>
-    </div>
+  <script type="module">
+    import { supabase } from './supabase.js'
 
-    <script>
-        let currentUser = null;
-        let userProfile = null;
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        window.location.href = 'login.html'
+        return
+      }
 
-        function init() {
-            currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser'));
-            if (!currentUser) {
-                window.location.href = 'login.html';
-                return;
-            }
-            loadProfile();
-        }
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
 
-        function loadProfile() {
-            userProfile = JSON.parse(localStorage.getItem(`zo2y-profile-${currentUser.id}`));
-            if (!userProfile) createDefaultProfile();
-            
-            document.getElementById('userDisplayName').textContent = userProfile.displayName;
-            document.getElementById('userBio').textContent = userProfile.bio;
-            document.getElementById('userAvatar').textContent = userProfile.avatar;
-            document.getElementById('displayName').value = userProfile.displayName;
-            document.getElementById('userBioInput').value = userProfile.bio;
-            
-            updateStats();
-            loadActivity();
-            loadLists();
-            loadFriends();
-        }
+      if (error) {
+        console.error(error)
+        return
+      }
 
-        function createDefaultProfile() {
-            userProfile = {
-                id: currentUser.id,
-                displayName: currentUser.username,
-                bio: 'Food enthusiast exploring local gems',
-                avatar: currentUser.username.charAt(0).toUpperCase(),
-                friends: [],
-                customLists: [],
-                activity: [{ type: 'welcome', message: 'Joined Zo2y!', timestamp: new Date().toISOString(), icon: '🎉' }],
-                stats: { reviews: 0, friends: 0, lists: 0 }
-            };
-            saveProfile();
-        }
+      document.getElementById('userDisplayName').textContent = profile.display_name || user.email
+      document.getElementById('userAvatar').textContent = profile.display_name
+        ? profile.display_name.charAt(0).toUpperCase()
+        : 'U'
+      document.getElementById('userBio').textContent = profile.bio || 'Food enthusiast exploring local gems'
+      document.getElementById('displayName').value = profile.display_name || ''
+      document.getElementById('bio').value = profile.bio || ''
+    }
 
-        function updateStats() {
-            document.getElementById('reviewsCount').textContent = userProfile.stats.reviews;
-            document.getElementById('friendsCount').textContent = userProfile.friends.length;
-            document.getElementById('listsCount').textContent = userProfile.customLists.length;
-        }
+    async function updateProfile() {
+      const name = document.getElementById('displayName').value
+      const bio = document.getElementById('bio').value
 
-        function loadActivity() {
-            const container = document.getElementById('activityFeed');
-            if (!userProfile.activity.length) {
-                container.innerHTML = '<div class="empty-state">No activity yet</div>';
-                return;
-            }
-            container.innerHTML = userProfile.activity.map(a => `
-                <div class="activity-item">
-                    <div class="activity-icon">${a.icon || '📢'}</div>
-                    <div>${a.message}<br><small>${new Date(a.timestamp).toLocaleDateString()}</small></div>
-                </div>
-            `).join('');
-        }
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error } = await supabase
+        .from('profiles')
+        .update({ display_name: name, bio })
+        .eq('id', user.id)
 
-        function loadLists() {
-            const container = document.getElementById('userLists');
-            if (!userProfile.customLists.length) {
-                container.innerHTML = '<div class="empty-state">No lists created yet</div>';
-                return;
-            }
-            container.innerHTML = userProfile.customLists.map(list => `
-                <div class="card">
-                    <h3>${list.name}</h3>
-                    <p style="color: var(--muted); margin: 10px 0;">${list.description}</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: var(--accent); font-weight: 600;">${list.restaurants.length} restaurants</span>
-                        <button class="btn btn-outline">View</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+      if (error) {
+        alert('Error updating profile')
+        console.error(error)
+      } else {
+        alert('Profile updated!')
+        loadProfile()
+      }
+    }
 
-        function loadFriends() {
-            const container = document.getElementById('friendsList');
-            if (!userProfile.friends.length) {
-                container.innerHTML = '<div class="empty-state">No friends yet</div>';
-                return;
-            }
-            container.innerHTML = userProfile.friends.map(friend => `
-                <div class="friend-card">
-                    <div class="friend-avatar">${friend.avatar}</div>
-                    <h4>${friend.name}</h4>
-                    <p style="color: var(--muted); font-size: 0.9rem;">${friend.mutualFriends || 0} mutual friends</p>
-                    <button class="btn btn-outline" style="margin-top: 10px;">View Profile</button>
-                </div>
-            `).join('');
-        }
+    async function logout() {
+      await supabase.auth.signOut()
+      window.location.href = 'login.html'
+    }
 
-        function updateProfile() {
-            const name = document.getElementById('displayName').value;
-            const bio = document.getElementById('userBioInput').value;
-            userProfile.displayName = name;
-            userProfile.bio = bio;
-            addActivity('Updated profile', '✏️');
-            saveProfile();
-            loadProfile();
-            showNotification('Profile updated!');
-        }
-
-        function selectAvatar(avatar) {
-            userProfile.avatar = avatar;
-            saveProfile();
-            loadProfile();
-            closeAvatarModal();
-            showNotification('Avatar updated!');
-        }
-
-        function createNewList() {
-            const name = document.getElementById('newListName').value;
-            const desc = document.getElementById('newListDesc').value;
-            if (!name) return alert('Enter list name');
-            
-            userProfile.customLists.push({
-                id: 'list-' + Date.now(),
-                name: name,
-                description: desc,
-                restaurants: [],
-                createdAt: new Date().toISOString()
-            });
-            addActivity(`Created list "${name}"`, '📝');
-            saveProfile();
-            loadLists();
-            closeCreateListModal();
-            showNotification('List created!');
-        }
-
-        function searchFriends(query) {
-            const results = document.getElementById('friendSearchResults');
-            if (!query) return results.innerHTML = '';
-            
-            const mockUsers = [
-                { id: '1', name: 'FoodieFriend', avatar: 'F', mutualFriends: 3 },
-                { id: '2', name: 'BurgerLover', avatar: 'B', mutualFriends: 1 }
-            ].filter(u => u.name.toLowerCase().includes(query.toLowerCase()));
-            
-            results.innerHTML = mockUsers.map(u => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--card); border-radius: 8px; margin: 5px 0;">
-                    <div>${u.name}</div>
-                    <button class="btn btn-primary" onclick="addFriend('${u.id}')">Add</button>
-                </div>
-            `).join('');
-        }
-
-        function addFriend(id) {
-            const friend = { id: id, name: 'New Friend', avatar: 'F', mutualFriends: 0 };
-            userProfile.friends.push(friend);
-            addActivity('Added a new friend', '👥');
-            saveProfile();
-            loadFriends();
-            closeAddFriendModal();
-            showNotification('Friend added!');
-        }
-
-        function addActivity(message, icon) {
-            userProfile.activity.unshift({
-                message: message,
-                icon: icon,
-                timestamp: new Date().toISOString()
-            });
-            userProfile.activity = userProfile.activity.slice(0, 10);
-        }
-
-        function saveProfile() {
-            localStorage.setItem(`zo2y-profile-${currentUser.id}`, JSON.stringify(userProfile));
-        }
-
-        function showNotification(message) {
-            const note = document.createElement('div');
-            note.style.cssText = 'position:fixed; top:20px; right:20px; background:var(--accent); color:#111; padding:10px 20px; border-radius:10px; font-weight:600; z-index:1000;';
-            note.textContent = message;
-            document.body.appendChild(note);
-            setTimeout(() => note.remove(), 2000);
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(tab + '-tab').classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'block'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function openAvatarModal() { openModal('avatarModal'); }
-        function closeAvatarModal() { closeModal('avatarModal'); }
-        function openCreateListModal() { openModal('createListModal'); }
-        function closeCreateListModal() { closeModal('createListModal'); }
-        function openAddFriendModal() { openModal('addFriendModal'); }
-        function closeAddFriendModal() { closeModal('addFriendModal'); }
-
-        function logout() {
-            localStorage.removeItem('zo2y-currentUser');
-            window.location.href = 'login.html';
-        }
-
-        // Event listeners
-        document.getElementById('friendSearch').addEventListener('input', (e) => searchFriends(e.target.value));
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
+    loadProfile()
+  </script>
 </body>
 </html>
