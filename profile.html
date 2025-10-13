@@ -1,51 +1,165 @@
-<script>
-  const supabase = supabase.createClient(
-    "https://gfkhjbztayjyojsgdpgk.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s"
-  );
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Profile | Zo2y</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #0b1633;
+      color: #fefefe;
+    }
 
-  const icons = ['⭐', '🔥', '⚡', '🌙', '🎯', '💎', '🌀', '🐉', '🚀', '💥'];
-  document.getElementById("avatar").textContent = icons[Math.floor(Math.random() * icons.length)];
+    header {
+      background-color: #0b1633;
+      padding: 15px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
 
-  async function loadProfile() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    .logo {
+      color: #f59e0b;
+      font-weight: 700;
+      font-size: 1.6rem;
+    }
+
+    .logout-btn {
+      background-color: #f59e0b;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      color: #0b1633;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .logout-btn:hover {
+      background-color: #ffb84d;
+    }
+
+    .profile-container {
+      max-width: 800px;
+      margin: 50px auto;
+      background-color: #132347;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .avatar {
+      font-size: 5rem;
+      background-color: #f59e0b;
+      color: #0b1633;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .username {
+      font-size: 1.8rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .email {
+      text-align: center;
+      color: #c0c0c0;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    .bio, .lists {
+      background-color: #1e2f5c;
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    h3 {
+      color: #f59e0b;
+      margin-bottom: 10px;
+    }
+
+    .join-date {
+      text-align: center;
+      color: #aaa;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Zo2y</div>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </header>
+
+  <div class="profile-container">
+    <div class="avatar" id="avatar"></div>
+    <div class="username" id="username">Loading...</div>
+    <div class="email" id="email"></div>
+    <div class="join-date" id="joinDate"></div>
+
+    <div class="bio">
+      <h3>Bio</h3>
+      <p id="bioText">No bio yet. Add one soon!</p>
+    </div>
+
+    <div class="lists">
+      <h3>Saved Lists</h3>
+      <p id="listsText">You don’t have any saved lists yet.</p>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+    const avatar = document.getElementById("avatar");
+    avatar.textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+
+    async function loadProfile() {
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      document.getElementById("username").textContent = user.user_metadata.username || "Anonymous User";
+      document.getElementById("email").textContent = user.email;
+      document.getElementById("joinDate").textContent = `Joined on ${new Date(user.created_at).toLocaleDateString()}`;
+
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("bio")
+        .eq("id", user.id)
+        .single();
+
+      if (profile && profile.bio) {
+        document.getElementById("bioText").textContent = profile.bio;
+      }
+    }
+
+    loadProfile();
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
       window.location.href = "login.html";
-      return;
-    }
-
-    // fetch username from user_profiles
-    const { data: profile, error } = await supabase
-      .from('user_profiles')
-      .select('username, bio')
-      .eq('id', user.id)
-      .single();
-
-    if (error || !profile) {
-      console.log("No profile found, showing fallback");
-      document.getElementById("username").textContent = user.email.split("@")[0];
-    } else {
-      document.getElementById("username").textContent = profile.username || user.email.split("@")[0];
-      if(profile.bio) document.getElementById("bio").textContent = profile.bio;
-    }
-  }
-
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = "index.html";
-  }
-
-  function editProfile() {
-    alert("Coming soon — custom bio & avatar update 🔧");
-  }
-
-  function addFriend() {
-    alert("Friend system coming soon 👥");
-  }
-
-  function viewLists() {
-    alert("Your saved spots and lists — in progress 🗺️");
-  }
-
-  loadProfile();
-</script>
+    });
+  </script>
+</body>
+</html>
