@@ -9,7 +9,7 @@
   <style>
     body { margin: 0; font-family: 'Poppins', sans-serif; background-color: #0b1633; color: #fefefe; }
     header { background-color: #0b1633; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .logo { color: #f59e0b; font-weight: 700; font-size: 1.6rem; }
+    .logo { height: 40px; cursor: pointer; }
     .logout-btn { background-color: #f59e0b; border: none; padding: 8px 18px; border-radius: 8px; color: #0b1633; font-weight: 600; cursor: pointer; transition: 0.2s; } .logout-btn:hover { background-color: #ffb84d; }
     .profile-container { max-width: 800px; margin: 50px auto; background-color: #132347; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
     .avatar { font-size: 5rem; background-color: #f59e0b; color: #0b1633; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
@@ -21,7 +21,11 @@
   </style>
 </head>
 <body>
-  <header><div class="logo">Zo2y</div><button class="logout-btn" id="logoutBtn">Logout</button></header>
+  <header>
+    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </header>
+
   <div class="profile-container">
     <div class="avatar" id="avatar"></div>
     <div class="username" id="username">Loading...</div>
