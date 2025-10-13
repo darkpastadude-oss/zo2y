@@ -3,165 +3,158 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Profile | Zo2y</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>Your Profile — Zo2y</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      margin: 0;
       font-family: 'Poppins', sans-serif;
-      background-color: #0b1633;
-      color: #fefefe;
-    }
-
-    header {
-      background-color: #0b1633;
-      padding: 15px 40px;
+      background: #0f0f0f;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
       display: flex;
+      justify-content: center;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-
-    .logo {
-      color: #f59e0b;
-      font-weight: 700;
-      font-size: 1.6rem;
-    }
-
-    .logout-btn {
-      background-color: #f59e0b;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      color: #0b1633;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .logout-btn:hover {
-      background-color: #ffb84d;
-    }
-
     .profile-container {
-      max-width: 800px;
-      margin: 50px auto;
-      background-color: #132347;
-      padding: 30px;
+      background: #181818;
       border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      padding: 2rem;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 0 25px rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-
     .avatar {
-      font-size: 5rem;
-      background-color: #f59e0b;
-      color: #0b1633;
-      width: 100px;
-      height: 100px;
+      background: #272727;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       display: flex;
-      align-items: center;
       justify-content: center;
-      margin: 0 auto 20px;
+      align-items: center;
+      font-size: 40px;
+      margin-bottom: 1rem;
+      color: #ffcc00;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
     }
-
     .username {
-      font-size: 1.8rem;
-      text-align: center;
+      font-size: 1.5rem;
       font-weight: 600;
+      margin-bottom: 0.3rem;
     }
-
-    .email {
-      text-align: center;
-      color: #c0c0c0;
-      font-size: 1rem;
-      margin-bottom: 20px;
-    }
-
-    .bio, .lists {
-      background-color: #1e2f5c;
-      border-radius: 15px;
-      padding: 20px;
-      margin-top: 20px;
-    }
-
-    h3 {
-      color: #f59e0b;
-      margin-bottom: 10px;
-    }
-
-    .join-date {
-      text-align: center;
+    .bio {
       color: #aaa;
       font-size: 0.9rem;
-      margin-top: 10px;
+      margin-bottom: 2rem;
+    }
+    .profile-actions {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+    }
+    button {
+      padding: 0.8rem 1.2rem;
+      border: none;
+      border-radius: 12px;
+      background: #ffcc00;
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #ffd633;
+      transform: translateY(-2px);
+    }
+    .logout {
+      background: #d33;
+      color: #fff;
+    }
+    .logout:hover {
+      background: #f55;
+    }
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #666;
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">Zo2y</div>
-    <button class="logout-btn" id="logoutBtn">Logout</button>
-  </header>
-
   <div class="profile-container">
     <div class="avatar" id="avatar"></div>
     <div class="username" id="username">Loading...</div>
-    <div class="email" id="email"></div>
-    <div class="join-date" id="joinDate"></div>
-
-    <div class="bio">
-      <h3>Bio</h3>
-      <p id="bioText">No bio yet. Add one soon!</p>
+    <div class="bio" id="bio">No bio yet. Add something cool about yourself!</div>
+    
+    <div class="profile-actions">
+      <button onclick="editProfile()">Edit Profile</button>
+      <button onclick="addFriend()">Add Friend</button>
+      <button onclick="viewLists()">My Lists</button>
+      <button class="logout" onclick="logout()">Logout</button>
     </div>
 
-    <div class="lists">
-      <h3>Saved Lists</h3>
-      <p id="listsText">You don’t have any saved lists yet.</p>
-    </div>
+    <div class="footer">Zo2y — Built for local legends 🌍</div>
   </div>
 
   <script>
-    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = supabase.createClient(
+      "https://YOUR-PROJECT.supabase.co",
+      "YOUR-ANON-KEY"
+    );
 
-    const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-    const avatar = document.getElementById("avatar");
-    avatar.textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+    const icons = ['⭐', '🔥', '⚡', '🌙', '🎯', '💎', '🌀', '🐉', '🚀', '💥'];
+    document.getElementById("avatar").textContent = icons[Math.floor(Math.random() * icons.length)];
 
     async function loadProfile() {
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (error || !user) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         window.location.href = "login.html";
         return;
       }
 
-      document.getElementById("username").textContent = user.user_metadata.username || "Anonymous User";
-      document.getElementById("email").textContent = user.email;
-      document.getElementById("joinDate").textContent = `Joined on ${new Date(user.created_at).toLocaleDateString()}`;
-
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("bio")
-        .eq("id", user.id)
+      // fetch username from user_profiles
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('username, bio')
+        .eq('id', user.id)
         .single();
 
-      if (profile && profile.bio) {
-        document.getElementById("bioText").textContent = profile.bio;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        document.getElementById("username").textContent = user.email.split("@")[0];
+      } else {
+        document.getElementById("username").textContent = profile.username || user.email.split("@")[0];
+        if(profile.bio) document.getElementById("bio").textContent = profile.bio;
       }
     }
 
-    loadProfile();
-
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
+    async function logout() {
       await supabase.auth.signOut();
-      window.location.href = "login.html";
-    });
+      window.location.href = "index.html";
+    }
+
+    function editProfile() {
+      alert("Coming soon — custom bio & avatar update 🔧");
+    }
+
+    function addFriend() {
+      alert("Friend system coming soon 👥");
+    }
+
+    function viewLists() {
+      alert("Your saved spots and lists — in progress 🗺️");
+    }
+
+    loadProfile();
   </script>
 </body>
 </html>
-
-
