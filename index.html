@@ -67,6 +67,11 @@
           margin-right: 10px;
           font-size: 1.2rem;
         }
+        
+        /* Hide element utility */
+        .hidden {
+          display: none !important;
+        }
 
         @media (max-width:980px){.search{display:none} .hero-inner{flex-direction:column-reverse; gap:30px; align-items:stretch} .hero-right{max-width:100%} .spotlight{grid-template-columns:100px 1fr} .hero { height: auto; min-height: auto; padding: 40px 24px; } .section { padding: 60px 24px; } h1 { font-size: 36px; }} 
         @media (max-width:560px){h1{font-size:28px} .btn-primary, .btn-outline{padding:12px 20px; width: 100%; justify-content: center;} .cta-row { flex-direction: column; } .card{min-width:260px; flex:0 0 260px} .spotlight .thumb{height:80px} .nav{padding: 14px 16px;} .hero{padding: 40px 16px;} .section { padding: 40px 16px; } .stats { justify-content: space-around; } .section-header { flex-direction: column; align-items: flex-start; gap: 16px; } .list-actions { opacity: 1; top: 6px; right: 6px; gap: 6px; } .list-btn { width: 42px; height: 42px; font-size: 16px; background: rgba(11, 22, 51, 0.9); border: 1.5px solid var(--border); } .list-btn.active { background: var(--accent); }}
@@ -368,9 +373,12 @@
 
       // ---------- ACCOUNT BUTTON LOGIC ----------
       const accountBtn = document.getElementById('userAccountBtn');
+      const mainCtaBtn = document.getElementById('mainCtaBtn');
+      
       function setAccountText(text){
         accountBtn.innerHTML = `<i class="fas fa-user"></i> <span>${escapeHtml(text)}</span>`;
       }
+      
       function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
       async function updateAuthUI(){
@@ -415,6 +423,9 @@
               e.preventDefault();
               safeGoToProfile();
             };
+            
+            // Hide the Join Community button if user is logged in
+            mainCtaBtn.classList.add('hidden');
 
             // Initialize list manager when user is logged in
             await listManager.init();
@@ -422,12 +433,17 @@
           } else {
             setAccountText('Account');
             accountBtn.onclick = () => location.href = 'login.html';
+            
+            // Show the Join Community button if user is not logged in
+            mainCtaBtn.classList.remove('hidden');
+            
             try { localStorage.removeItem('zo2y_user'); } catch(e){}
           }
         } catch (e) {
           console.error('updateAuthUI error', e);
           setAccountText('Account');
           accountBtn.onclick = () => location.href = 'login.html';
+          mainCtaBtn.classList.remove('hidden');
         }
       }
 
@@ -667,7 +683,7 @@
       });
 
       // Main CTA button - FIXED to go to login.html
-      document.getElementById('mainCtaBtn').addEventListener('click', () => {
+      mainCtaBtn.addEventListener('click', () => {
         location.href = 'login.html';
       });
 
