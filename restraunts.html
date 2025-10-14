@@ -4,204 +4,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Zo2y — All Restaurants</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --bg: #ffffff; --card: #f8f9fa; --muted: #6c757d; --accent: #FF6F00; --glass: rgba(0,0,0,0.03); --white: #000000; --border: rgba(0,0,0,0.08); }
-    [data-theme="dark"] { --bg: #1e2a4a; --card: #2d3748; --muted: #cbd5e1; --accent: #ff944d; --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--white); transition: background-color 0.3s ease, color 0.3s ease; }
-    a { color: inherit; text-decoration: none; }
-    img { display: block; max-width: 100%; height: auto; }
-
-    /* Header */
-    header { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 20px; padding: 12px 20px; backdrop-filter: blur(6px); background: var(--glass); border-bottom: 1px solid var(--border); }
-    .logo { height: 40px; cursor: pointer; }
-    .toolbar { display: flex; gap: 10px; margin-left: auto; align-items: center; flex-wrap: wrap; }
-    .search { width: 280px; position: relative; }
-    .search input { width: 100%; padding: 8px 12px 8px 36px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; }
-    .search input:focus { border-color: var(--accent); }
-    .search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.85; }
-    .btn, .theme-toggle { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; transition: all 0.3s ease; }
-    .btn:hover, .theme-toggle:hover { background: var(--accent); color: #111; }
-
-    /* User Auth - UPDATED */
-    .user-auth { display: flex; align-items: center; gap: 10px; }
-    .auth-btn { background: var(--accent); color: #111; border: none; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 600; }
-    .user-welcome { 
-      display: none; 
-      align-items: center; 
-      gap: 8px; 
-      font-size: 13px; 
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 16px;
-      transition: all 0.3s ease;
-    }
-    .user-welcome:hover {
-      background: var(--accent-light);
-      transform: translateY(-1px);
-    }
-    .user-avatar { 
-      width: 32px; 
-      height: 32px; 
-      border-radius: 50%; 
-      background: var(--accent); 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-weight: bold; 
-      color: #111;
-      font-size: 14px;
-    }
-
-    /* Main Content */
-    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
-    .login-prompt { display: none; background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center; }
-    .list-tabs { display: none; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
-    .list-tab { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; white-space: nowrap; }
-    .list-tab.active { background: var(--accent); color: #111; }
-    .list-tab .count { background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 8px; font-size: 11px; margin-left: 4px; }
-    [data-theme="dark"] .list-tab .count { background: rgba(255,255,255,0.1); }
-
-    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-    .controls-info { color: var(--muted); font-size: 13px; }
-    .category-filters { margin-left: auto; }
-    .category-dropdown select { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 13px; }
-
-    /* Grid - MEDIUM SIZED CARDS */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-    .tile { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s ease; position: relative; }
-    .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-    .tile .media { height: 140px; overflow: hidden; background: var(--glass); display: flex; align-items: center; justify-content: center; padding: 12px; }
-    .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
-    .tile .inner { padding: 14px; }
-    .tile h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; }
-    .tile .category { color: var(--muted); font-size: 12px; margin: 0 0 8px 0; }
-    .tile .rating { color: var(--accent); font-weight: 700; }
-    .tile .desc { color: var(--muted); font-size: 12px; margin: 8px 0 0 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-
-    /* Big Clear Action Buttons - Letterboxd Style */
-    .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity 0.3s ease; }
-    .tile:hover .list-actions { opacity: 1; }
-    .list-btn { 
-      background: var(--bg); 
-      border: 1px solid var(--border); 
-      color: var(--white); 
-      padding: 8px 10px; 
-      border-radius: 12px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center;
-      gap: 4px; 
-      cursor: pointer; 
-      font-size: 14px; 
-      backdrop-filter: blur(10px);
-      width: 44px;
-      height: 44px;
-      transition: all 0.2s ease;
-      z-index: 10;
-    }
-    .list-btn:hover { 
-      transform: scale(1.1); 
-      background: var(--accent);
-      color: #111;
-    }
-    .list-btn.active { 
-      background: var(--accent); 
-      color: #111;
-      border-color: var(--accent);
-    }
-    .list-btn .btn-text {
-      display: none;
-    }
-
-    .empty { padding: 40px 16px; text-align: center; color: var(--muted); display: none; }
-    footer { padding: 20px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 30px; }
-
-    /* Mobile Improvements */
-    @media (max-width: 768px) {
-      header { padding: 10px 15px; flex-wrap: wrap; gap: 12px; }
-      .toolbar { margin-left: 0; width: 100%; justify-content: space-between; }
-      .search { width: 180px; }
-      .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-      .tile .media { height: 100px; padding: 8px; }
-      .tile .inner { padding: 10px; }
-      .tile h3 { font-size: 14px; }
-      .tile .desc { font-size: 11px; -webkit-line-clamp: 2; }
-      
-      /* FIX FOR MOBILE: Always show action buttons and make them larger */
-      .list-actions { 
-        opacity: 1; 
-        top: 6px; 
-        right: 6px; 
-        gap: 6px;
-      }
-      .list-btn { 
-        width: 42px; 
-        height: 42px; 
-        font-size: 16px;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1.5px solid var(--border);
-      }
-      [data-theme="dark"] .list-btn {
-        background: rgba(30, 42, 74, 0.9);
-      }
-      .list-btn.active {
-        background: var(--accent);
-      }
-
-      .user-welcome {
-        padding: 4px 8px;
-        font-size: 12px;
-      }
-      .user-avatar {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .grid { grid-template-columns: repeat(2, 1fr); }
-      .search { width: 140px; }
-      .toolbar { gap: 6px; }
-      
-      /* Even larger buttons on very small screens */
-      .list-btn { 
-        width: 38px; 
-        height: 38px; 
-        font-size: 14px;
-      }
-
-      .user-welcome span {
-        display: none;
-      }
-      .user-welcome {
-        padding: 6px;
-      }
-    }
-
-    /* Touch device detection */
-    @media (hover: none) and (pointer: coarse) {
-      .list-actions {
-        opacity: 1;
-      }
-      .list-btn:hover {
-        transform: none;
-      }
-    }
+    :root { --bg: #0b1633; --card: #132347; --muted: #cbd5e1; --accent: #f59e0b; --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); }
+    * { box-sizing: border-box; } html, body { height: 100%; margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--white); transition: background-color 0.3s ease, color 0.3s ease; } a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
+    header { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 20px; padding: 12px 20px; backdrop-filter: blur(6px); background: var(--glass); border-bottom: 1px solid var(--border); } .logo { height: 40px; cursor: pointer; } .toolbar { display: flex; gap: 10px; margin-left: auto; align-items: center; flex-wrap: wrap; } .search { width: 280px; position: relative; } .search input { width: 100%; padding: 8px 12px 8px 36px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; } .search input:focus { border-color: var(--accent); } .search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.85; } .btn, .theme-toggle { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; transition: all 0.3s ease; } .btn:hover, .theme-toggle:hover { background: var(--accent); color: #0b1633; }
+    .user-auth { display: flex; align-items: center; gap: 10px; } .auth-btn { background: var(--accent); color: #0b1633; border: none; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 600; } .user-welcome { display: none; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 6px 12px; border-radius: 16px; transition: all 0.3s ease; } .user-welcome:hover { background: var(--accent); color: #0b1633; } .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0b1633; font-size: 14px; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; } .login-prompt { display: none; background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center; } .list-tabs { display: none; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; } .list-tab { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; white-space: nowrap; } .list-tab.active { background: var(--accent); color: #0b1633; } .list-tab .count { background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 8px; font-size: 11px; margin-left: 4px; }
+    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; } .controls-info { color: var(--muted); font-size: 13px; } .category-filters { margin-left: auto; } .category-dropdown select { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; } .tile { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s ease; position: relative; } .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); } .tile .media { height: 140px; overflow: hidden; background: var(--glass); display: flex; align-items: center; justify-content: center; padding: 12px; } .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; } .tile .inner { padding: 14px; } .tile h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; } .tile .category { color: var(--muted); font-size: 12px; margin: 0 0 8px 0; } .tile .rating { color: var(--accent); font-weight: 700; } .tile .desc { color: var(--muted); font-size: 12px; margin: 8px 0 0 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity 0.3s ease; } .tile:hover .list-actions { opacity: 1; } .list-btn { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 8px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); width: 44px; height: 44px; transition: all 0.2s ease; z-index: 10; } .list-btn:hover { transform: scale(1.1); background: var(--accent); color: #0b1633; } .list-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); } .list-btn .btn-text { display: none; }
+    .empty { padding: 40px 16px; text-align: center; color: var(--muted); display: none; } footer { padding: 20px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 30px; }
+    @media (max-width: 768px) { header { padding: 10px 15px; flex-wrap: wrap; gap: 12px; } .toolbar { margin-left: 0; width: 100%; justify-content: space-between; } .search { width: 180px; } .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; } .tile .media { height: 100px; padding: 8px; } .tile .inner { padding: 10px; } .tile h3 { font-size: 14px; } .tile .desc { font-size: 11px; -webkit-line-clamp: 2; } .list-actions { opacity: 1; top: 6px; right: 6px; gap: 6px; } .list-btn { width: 42px; height: 42px; font-size: 16px; background: rgba(11, 22, 51, 0.9); border: 1.5px solid var(--border); } .list-btn.active { background: var(--accent); } .user-welcome { padding: 4px 8px; font-size: 12px; } .user-avatar { width: 28px; height: 28px; font-size: 12px; }
+    @media (max-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); } .search { width: 140px; } .toolbar { gap: 6px; } .list-btn { width: 38px; height: 38px; font-size: 14px; } .user-welcome span { display: none; } .user-welcome { padding: 6px; } }
+    @media (hover: none) and (pointer: coarse) { .list-actions { opacity: 1; } .list-btn:hover { transform: none; } }
   </style>
 </head>
 <body>
   <header>
     <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
     <div class="toolbar">
-      <div class="search">
-        <span class="icon">🔎</span>
-        <input id="q" placeholder="Search restaurants...">
-      </div>
+      <div class="search"><span class="icon">🔎</span><input id="q" placeholder="Search restaurants..."></div>
       <button class="btn" id="reset">Reset</button>
-      
       <div class="user-auth">
         <div class="user-welcome" id="userWelcome" onclick="goToProfile()">
           <div class="user-avatar" id="userAvatar">U</div>
@@ -209,108 +33,88 @@
         </div>
         <button class="auth-btn" id="loginBtn">Sign In</button>
       </div>
-      
       <button class="theme-toggle" id="themeToggle">🌙</button>
     </div>
   </header>
 
   <main class="container">
-    <div class="login-prompt" id="loginPrompt">
-      <h3>✨ Get the full experience!</h3>
-      <p>Sign in to create favorites lists and save your preferences.</p>
-      <button class="auth-btn" onclick="location.href='login.html'">Sign In Now</button>
-    </div>
-
+    <div class="login-prompt" id="loginPrompt"><h3>✨ Get the full experience!</h3><p>Sign in to create favorites lists and save your preferences.</p><button class="auth-btn" onclick="location.href='login.html'">Sign In Now</button></div>
     <div class="list-tabs" id="listTabs">
       <button class="list-tab active" data-list="all">All</button>
       <button class="list-tab" data-list="favorites">Favorites <span class="count" id="favoritesCount">0</span></button>
       <button class="list-tab" data-list="visited">Visited <span class="count" id="visitedCount">0</span></button>
       <button class="list-tab" data-list="want-to-go">Want to Go <span class="count" id="wantToGoCount">0</span></button>
     </div>
-
     <div class="controls">
       <div class="controls-info">Showing <span id="count">0</span> restaurants</div>
       <div class="category-filters">
         <div class="category-dropdown">
           <select id="categorySelect">
-            <option value="All">All Categories</option>
-            <option value="Burgers">Burgers</option>
-            <option value="Chicken">Chicken</option>
-            <option value="Pizza">Pizza</option>
-            <option value="Middle Eastern">Middle Eastern</option>
-            <option value="Asian">Asian</option>
-            <option value="Mexican">Mexican</option>
-            <option value="Cafe & Bakery">Cafe & Bakery</option>
-            <option value="Fast Food">Fast Food</option>
-            <option value="BBQ & Ribs">BBQ & Ribs</option>
+            <option value="All">All Categories</option><option value="Burgers">Burgers</option><option value="Chicken">Chicken</option><option value="Pizza">Pizza</option><option value="Middle Eastern">Middle Eastern</option><option value="Asian">Asian</option><option value="Mexican">Mexican</option><option value="Cafe & Bakery">Cafe & Bakery</option><option value="Fast Food">Fast Food</option><option value="BBQ & Ribs">BBQ & Ribs</option>
           </select>
         </div>
       </div>
     </div>
-
     <div id="grid" class="grid"></div>
-    <div id="empty" class="empty">
-      <div>🍽️</div>
-      <h3>No restaurants found</h3>
-      <p>Try adjusting your search or filters</p>
-    </div>
+    <div id="empty" class="empty"><div>🍽️</div><h3>No restaurants found</h3><p>Try adjusting your search or filters</p></div>
   </main>
 
   <footer>© 2025 Zo2y — Built with ❤️</footer>
 
   <script>
-    // Theme System
-    const themeToggle = document.getElementById('themeToggle');
-    function applyTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-      localStorage.setItem('zo2y-theme', theme);
-    }
-    themeToggle.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      applyTheme(current === 'light' ? 'dark' : 'light');
-    });
-    const savedTheme = localStorage.getItem('zo2y-theme');
-    if (savedTheme) applyTheme(savedTheme);
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let currentUser = null;
+
+    // Theme System - Force dark theme like profile.html
+    document.documentElement.style.setProperty('--bg', '#0b1633');
+    document.documentElement.style.setProperty('--card', '#132347');
+    document.documentElement.style.setProperty('--muted', '#cbd5e1');
+    document.documentElement.style.setProperty('--accent', '#f59e0b');
+    document.documentElement.style.setProperty('--white', '#ffffff');
+    document.documentElement.style.setProperty('--border', 'rgba(255,255,255,0.1)');
 
     // Navigation function
     function goToProfile() {
-      if (authManager.isLoggedIn()) {
+      if (currentUser) {
         location.href = 'profile.html';
       }
     }
 
-    // Enhanced Auth System with Profile Integration
+    // Auth System with Supabase
     const authManager = {
       currentUser: null,
-      userProfile: null,
       init() { 
-        this.loadUser(); 
-        this.loadUserProfile();
-        this.updateUI(); 
+        this.checkAuth(); 
       },
-      loadUser() { 
-        this.currentUser = JSON.parse(localStorage.getItem('zo2y-currentUser')); 
-      },
-      loadUserProfile() {
-        if (this.currentUser) {
-          this.userProfile = JSON.parse(localStorage.getItem(`zo2y-profile-${this.currentUser.id}`));
+      async checkAuth() {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          this.currentUser = null;
+          this.updateUI();
+          return;
         }
-      },
-      login(userData) { 
-        this.currentUser = userData; 
-        localStorage.setItem('zo2y-currentUser', JSON.stringify(userData)); 
-        this.loadUserProfile();
-        this.updateUI(); 
+        
+        this.currentUser = user;
+        await this.loadUserProfile();
+        this.updateUI();
         listManager.init();
         filterAndRender();
       },
-      logout() { 
-        this.currentUser = null; 
-        this.userProfile = null;
-        localStorage.removeItem('zo2y-currentUser'); 
-        this.updateUI(); 
-        filterAndRender();
+      async loadUserProfile() {
+        if (!this.currentUser) return;
+        
+        const { data: profile, error } = await supabase
+          .from("user_profiles")
+          .select("username, full_name")
+          .eq("id", this.currentUser.id)
+          .single();
+
+        if (profile && !error) {
+          this.currentUser.profile = profile;
+        }
       },
       updateUI() {
         const isLoggedIn = this.currentUser !== null;
@@ -320,94 +124,31 @@
         document.getElementById('loginPrompt').style.display = isLoggedIn ? 'none' : 'block';
         
         if (isLoggedIn) {
-          // Use profile data if available, fall back to basic user data
-          if (this.userProfile) {
-            document.getElementById('userName').textContent = this.userProfile.displayName || this.currentUser.name;
-            document.getElementById('userAvatar').textContent = this.userProfile.avatar || this.currentUser.name.charAt(0).toUpperCase();
+          // Use actual username from Supabase profile
+          let displayName = "User";
+          if (this.currentUser.profile) {
+            if (this.currentUser.profile.username && this.currentUser.profile.username.trim() !== "") {
+              displayName = this.currentUser.profile.username;
+            } else if (this.currentUser.profile.full_name && this.currentUser.profile.full_name.trim() !== "") {
+              displayName = this.currentUser.profile.full_name;
+            } else {
+              displayName = this.currentUser.email.split('@')[0];
+            }
           } else {
-            document.getElementById('userName').textContent = this.currentUser.name;
-            document.getElementById('userAvatar').textContent = this.currentUser.name.charAt(0).toUpperCase();
+            displayName = this.currentUser.email.split('@')[0];
           }
+          
+          document.getElementById('userName').textContent = displayName;
+          document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
         }
       },
       isLoggedIn() { return this.currentUser !== null; }
     };
 
-    // Enhanced Login Function with Profile Creation
-    function enhancedLogin(userData) {
-      // Create proper user data with profile
-      const userDataWithProfile = { 
-        id: 'user-' + Date.now(), 
-        name: userData.name || 'Zo2y User',
-        username: userData.username || userData.email.split('@')[0],
-        email: userData.email 
-      };
-      
-      // Initialize user profile
-      const existingProfile = localStorage.getItem(`zo2y-profile-${userDataWithProfile.id}`);
-      if (!existingProfile) {
-        const userProfile = {
-          id: userDataWithProfile.id,
-          displayName: userDataWithProfile.username,
-          username: userDataWithProfile.username,
-          email: userDataWithProfile.email,
-          bio: 'Food enthusiast exploring local gems',
-          avatar: userDataWithProfile.username.charAt(0).toUpperCase(),
-          favoriteCuisines: ['Burgers', 'Pizza', 'Asian'],
-          friends: [
-            {
-              id: 'friend-1',
-              name: 'FoodieFriend',
-              avatar: 'F',
-              mutualFriends: 3
-            },
-            {
-              id: 'friend-2', 
-              name: 'BurgerLover',
-              avatar: 'B',
-              mutualFriends: 1
-            }
-          ],
-          customLists: [
-            {
-              id: 'list-1',
-              name: 'Favorite Burger Spots',
-              description: 'The best burger joints in town',
-              restaurants: ['butchers', 'brgr', 'maine'],
-              createdAt: new Date().toISOString()
-            }
-          ],
-          activity: [
-            {
-              type: 'welcome',
-              message: 'Joined Zo2y community!',
-              timestamp: new Date().toISOString()
-            },
-            {
-              type: 'login',
-              message: 'Signed in to explore restaurants',
-              timestamp: new Date().toISOString()
-            }
-          ],
-          stats: {
-            reviews: 8,
-            friends: 2,
-            lists: 1,
-            restaurantsVisited: 5
-          },
-          preferences: {
-            theme: localStorage.getItem('zo2y-theme') || 'light',
-            notifications: true,
-            emailUpdates: false
-          },
-          joinedDate: new Date().toISOString(),
-          lastLogin: new Date().toISOString()
-        };
-        localStorage.setItem(`zo2y-profile-${userDataWithProfile.id}`, JSON.stringify(userProfile));
-      }
-      
-      authManager.login(userDataWithProfile);
-    }
+    // Simple login function for demo
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      location.href = 'login.html';
+    });
 
     // List Management
     const listManager = {
@@ -425,12 +166,6 @@
         localStorage.setItem(`zo2y-visited-${userId}`, JSON.stringify(this.visited));
         localStorage.setItem(`zo2y-wantToGo-${userId}`, JSON.stringify(this.wantToGo));
         this.updateListCounts();
-
-        // Update user profile stats
-        if (authManager.userProfile) {
-          authManager.userProfile.stats.lists = this.favorites.length + this.visited.length + this.wantToGo.length;
-          localStorage.setItem(`zo2y-profile-${userId}`, JSON.stringify(authManager.userProfile));
-        }
       },
       updateListCounts() {
         document.getElementById('favoritesCount').textContent = this.favorites.length;
@@ -448,9 +183,8 @@
       isInList(listName, slug) { return this[listName].includes(slug); }
     };
 
-    // COMPLETE Restaurant Data - UPDATED WITH NEW RESTAURANTS
+    // Restaurant Data
     const restaurants = [
-      // ... (restaurant data remains the same as before)
       { slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
       { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
       { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
@@ -487,7 +221,7 @@
       { slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
     ];
 
-    // Rendering and Filtering (unchanged)
+    // Rendering and Filtering
     const grid = document.getElementById('grid');
     const empty = document.getElementById('empty');
     const countEl = document.getElementById('count');
@@ -534,7 +268,6 @@
           });
         });
 
-        // Add touch event listeners for better mobile support
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -585,15 +318,6 @@
         tab.classList.add('active');
         currentList = tab.dataset.list;
         filterAndRender();
-      });
-    });
-
-    // UPDATED: Use enhanced login with profile creation
-    document.getElementById('loginBtn').addEventListener('click', () => {
-      enhancedLogin({ 
-        name: 'Zo2y User', 
-        email: 'user@example.com',
-        username: 'zo2yuser'
       });
     });
 
