@@ -10,23 +10,28 @@
     body { margin: 0; font-family: 'Poppins', sans-serif; background-color: #0b1633; color: #fefefe; }
     header { background-color: #0b1633; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .logo { height: 40px; cursor: pointer; }
-    .logout-btn { background-color: #f59e0b; border: none; padding: 8px 18px; border-radius: 8px; color: #0b1633; font-weight: 600; cursor: pointer; transition: 0.2s; } .logout-btn:hover { background-color: #ffb84d; }
+    .logout-btn { background-color: #f59e0b; border: none; padding: 8px 18px; border-radius: 8px; color: #0b1633; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .logout-btn:hover { background-color: #ffb84d; }
     .profile-container { max-width: 800px; margin: 50px auto; background-color: #132347; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
     .avatar { font-size: 5rem; background-color: #f59e0b; color: #0b1633; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
     .username { font-size: 1.8rem; text-align: center; font-weight: 600; }
     .email { text-align: center; color: #c0c0c0; font-size: 1rem; margin-bottom: 20px; }
     .bio, .lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; position: relative; }
     h3 { color: #f59e0b; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .edit-btn { background: none; border: 1px solid #f59e0b; color: #f59e0b; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; } .edit-btn:hover { background: #f59e0b; color: #0b1633; }
+    .edit-btn { background: none; border: 1px solid #f59e0b; color: #f59e0b; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+    .edit-btn:hover { background: #f59e0b; color: #0b1633; }
     .join-date { text-align: center; color: #aaa; font-size: 0.9rem; margin-top: 10px; }
     .bio-textarea { width: 100%; min-height: 100px; background: #0b1633; border: 1px solid #f59e0b; border-radius: 8px; color: white; padding: 10px; font-family: inherit; resize: vertical; }
     .bio-actions { display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end; }
-    .save-btn { background: #f59e0b; color: #0b1633; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; } .save-btn:hover { background: #ffb84d; }
-    .cancel-btn { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; padding: 6px 12px; border-radius: 6px; cursor: pointer; } .cancel-btn:hover { background: #f59e0b22; }
+    .save-btn { background: #f59e0b; color: #0b1633; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .save-btn:hover { background: #ffb84d; }
+    .cancel-btn { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    .cancel-btn:hover { background: #f59e0b22; }
     .list-item { background: #0b1633; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
     .list-name { font-weight: 600; margin-bottom: 5px; }
     .list-desc { color: #c0c0c0; font-size: 0.9rem; }
-    .create-list-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; } .create-list-btn:hover { background: #ffb84d; }
+    .create-list-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; }
+    .create-list-btn:hover { background: #ffb84d; }
   </style>
 </head>
 <body>
@@ -39,22 +44,6 @@
     <div class="avatar" id="avatar"></div>
     <div class="username" id="username">Loading...</div>
     <div class="email" id="email"></div>
-    <div class="join-date" id="joinDate"></div>
-
-    <div class="bio">
-      <h3>
-        Bio
-        <button class="edit-btn" id="editBioBtn">Edit Bio</button>
-      </h3>
-      <p id="bioText">No bio yet. Add one soon!</p>
-      <div id="bioEdit" style="display: none;">
-        <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell others about your food preferences, favorite restaurants, or dining experiences..."></textarea>
-        <div class="bio-actions">
-          <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
-          <button class="save-btn" id="saveBioBtn">Save Bio</button>
-        </div>
-      </div>
-    </div>
 
     <div class="lists">
       <h3>
@@ -84,59 +73,22 @@
     let currentUser = null;
 
     const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-    const avatar = document.getElementById("avatar");
-    avatar.textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+    document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
 
     async function loadProfile() {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) { window.location.href = "login.html"; return; }
-      
+
       currentUser = user;
-      console.log("Auth User ID:", user.id);
-      
-      // Fetch profile data - using your exact table structure
-      const { data: profile, error: profileError } = await supabase
-        .from("user_profiles")
-        .select("username, full_name, bio, created_at")
-        .eq("id", user.id)
-        .single();
-
-      console.log("Profile Data:", profile);
-
-      // Set username - using full_name field from your table
-      if (profile) {
-        if (profile.username && profile.username.trim() !== "") {
-          document.getElementById("username").textContent = profile.username;
-        } else if (profile.full_name && profile.full_name.trim() !== "") {
-          document.getElementById("username").textContent = profile.full_name;
-        } else {
-          const emailUsername = user.email.split('@')[0];
-          document.getElementById("username").textContent = emailUsername;
-        }
-
-        // Set bio if it exists
-        if (profile.bio) {
-          document.getElementById("bioText").textContent = profile.bio;
-          document.getElementById("bioTextarea").value = profile.bio;
-        }
-      } else {
-        const emailUsername = user.email.split('@')[0];
-        document.getElementById("username").textContent = emailUsername;
-      }
-
+      document.getElementById("username").textContent = user.email.split('@')[0];
       document.getElementById("email").textContent = user.email;
-      
-      // Use profile created_at if available, otherwise auth user created_at
-      const joinDate = profile?.created_at || user.created_at;
-      document.getElementById("joinDate").textContent = `Joined on ${new Date(joinDate).toLocaleDateString()}`;
 
-      // Load user lists
       await loadUserLists();
     }
 
     async function loadUserLists() {
       const { data: lists, error } = await supabase
-        .from("user_lists")
+        .from("lists")
         .select("*")
         .eq("user_id", currentUser.id)
         .order("created_at", { ascending: false });
@@ -147,99 +99,56 @@
       }
 
       const listsContainer = document.getElementById("listsContainer");
-      
-      if (lists && lists.length > 0) {
-        listsContainer.innerHTML = '';
-        lists.forEach(list => {
-          const listItem = document.createElement('div');
-          listItem.className = 'list-item';
-          listItem.innerHTML = `
-            <div class="list-name">${list.name}</div>
-            <div class="list-desc">${list.description || 'No description'}</div>
-            <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">
-              ${list.restaurants_count || 0} restaurants • Created ${new Date(list.created_at).toLocaleDateString()}
-            </div>
-          `;
-          listsContainer.appendChild(listItem);
-        });
-      } else {
+      if (!lists || lists.length === 0) {
         listsContainer.innerHTML = '<p id="listsText">You don\'t have any saved lists yet.</p>';
-      }
-    }
-
-    // Bio editing functionality
-    document.getElementById("editBioBtn").addEventListener("click", () => {
-      document.getElementById("bioText").style.display = 'none';
-      document.getElementById("bioEdit").style.display = 'block';
-    });
-
-    document.getElementById("cancelBioBtn").addEventListener("click", () => {
-      document.getElementById("bioEdit").style.display = 'none';
-      document.getElementById("bioText").style.display = 'block';
-    });
-
-    document.getElementById("saveBioBtn").addEventListener("click", async () => {
-      const newBio = document.getElementById("bioTextarea").value.trim();
-      
-      // Update bio in user_profiles table - using your exact table structure
-      const { error } = await supabase
-        .from("user_profiles")
-        .upsert({
-          id: currentUser.id,
-          bio: newBio,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'id'
-        });
-
-      if (error) {
-        console.error("Error saving bio:", error);
-        alert("Error saving bio. Please try again.");
         return;
       }
 
-      // Update display
-      document.getElementById("bioText").textContent = newBio || "No bio yet. Add one soon!";
-      document.getElementById("bioEdit").style.display = 'none';
-      document.getElementById("bioText").style.display = 'block';
-      
-      alert("Bio updated successfully!");
-    });
+      listsContainer.innerHTML = '';
+      for (const list of lists) {
+        const { count, error: countErr } = await supabase
+          .from("lists_restraunts")
+          .select("id", { count: "exact", head: true })
+          .eq("list_id", list.id);
 
-    // List creation functionality
+        const restrauntCount = count || 0;
+        const listItem = document.createElement("div");
+        listItem.className = "list-item";
+        listItem.innerHTML = `
+          <div class="list-name">${list.name}</div>
+          <div class="list-desc">${list.description || 'No description'}</div>
+          <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">
+            ${restrauntCount} restaurants • Created ${new Date(list.created_at).toLocaleDateString()}
+          </div>
+        `;
+        listsContainer.appendChild(listItem);
+      }
+    }
+
     document.getElementById("createListBtn").addEventListener("click", () => {
-      document.getElementById("createListForm").style.display = 'block';
-      document.getElementById("createListBtn").style.display = 'none';
+      document.getElementById("createListForm").style.display = "block";
+      document.getElementById("createListBtn").style.display = "none";
     });
 
     document.getElementById("cancelListBtn").addEventListener("click", () => {
-      document.getElementById("createListForm").style.display = 'none';
-      document.getElementById("createListBtn").style.display = 'block';
-      document.getElementById("listNameInput").value = '';
-      document.getElementById("listDescInput").value = '';
+      document.getElementById("createListForm").style.display = "none";
+      document.getElementById("createListBtn").style.display = "block";
+      document.getElementById("listNameInput").value = "";
+      document.getElementById("listDescInput").value = "";
     });
 
     document.getElementById("saveListBtn").addEventListener("click", async () => {
       const listName = document.getElementById("listNameInput").value.trim();
       const listDesc = document.getElementById("listDescInput").value.trim();
 
-      if (!listName) {
-        alert("Please enter a list name");
-        return;
-      }
+      if (!listName) return alert("Please enter a list name");
 
-      // Create new list
-      const { data, error } = await supabase
-        .from("user_lists")
-        .insert({
-          user_id: currentUser.id,
-          name: listName,
-          description: listDesc,
-          restaurants_count: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select();
+      const { error } = await supabase.from("lists").insert({
+        user_id: currentUser.id,
+        name: listName,
+        description: listDesc,
+        created_at: new Date().toISOString()
+      });
 
       if (error) {
         console.error("Error creating list:", error);
@@ -247,12 +156,10 @@
         return;
       }
 
-      // Reset form and reload lists
-      document.getElementById("createListForm").style.display = 'none';
-      document.getElementById("createListBtn").style.display = 'block';
-      document.getElementById("listNameInput").value = '';
-      document.getElementById("listDescInput").value = '';
-
+      document.getElementById("createListForm").style.display = "none";
+      document.getElementById("createListBtn").style.display = "block";
+      document.getElementById("listNameInput").value = "";
+      document.getElementById("listDescInput").value = "";
       await loadUserLists();
       alert("List created successfully!");
     });
