@@ -32,6 +32,50 @@
     .list-desc { color: #c0c0c0; font-size: 0.9rem; }
     .create-list-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; }
     .create-list-btn:hover { background: #ffb84d; }
+    
+    /* Custom Lists Section */
+    .custom-lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
+    .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .list-card { background: #0b1633; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; }
+    .list-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
+    .list-icon { font-size: 2rem; margin-bottom: 10px; text-align: center; }
+    .list-card-title { font-weight: 600; text-align: center; margin-bottom: 5px; }
+    .list-card-count { text-align: center; color: #f59e0b; font-size: 0.9rem; }
+    
+    /* Notification Styles */
+    .custom-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      max-width: 400px;
+      transform: translateX(120%);
+      transition: transform 0.4s ease;
+    }
+    
+    .notification-success {
+      background: #10b981;
+      color: white;
+    }
+    
+    .notification-info {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .notification-show {
+      transform: translateX(0);
+    }
+    
+    .notification-icon {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
@@ -44,14 +88,56 @@
     <div class="avatar" id="avatar"></div>
     <div class="username" id="username">Loading...</div>
     <div class="email" id="email"></div>
+    <div class="join-date" id="joinDate"></div>
 
+    <!-- Bio Section -->
+    <div class="bio">
+      <h3>
+        About Me
+        <button class="edit-btn" id="editBioBtn">Edit Bio</button>
+      </h3>
+      <div id="bioDisplay">
+        <p id="bioText">No bio yet. Click edit to add one!</p>
+      </div>
+      <div id="bioEdit" style="display: none;">
+        <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
+        <div class="bio-actions">
+          <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
+          <button class="save-btn" id="saveBioBtn">Save Bio</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Lists Section -->
+    <div class="custom-lists">
+      <h3>My Lists</h3>
+      <div class="list-grid">
+        <div class="list-card" onclick="showList('favorites')">
+          <div class="list-icon">❤️</div>
+          <div class="list-card-title">Favorites</div>
+          <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+        </div>
+        <div class="list-card" onclick="showList('visited')">
+          <div class="list-icon">🍽️</div>
+          <div class="list-card-title">Visited</div>
+          <div class="list-card-count" id="visitedCount">0 restaurants</div>
+        </div>
+        <div class="list-card" onclick="showList('wantToGo')">
+          <div class="list-icon">📍</div>
+          <div class="list-card-title">Want to Go</div>
+          <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Lists Section -->
     <div class="lists">
       <h3>
-        My Lists
+        Custom Lists
         <button class="edit-btn" id="createListBtn">Create List</button>
       </h3>
       <div id="listsContainer">
-        <p id="listsText">You don't have any saved lists yet.</p>
+        <p id="listsText">You don't have any custom lists yet.</p>
       </div>
       
       <div id="createListForm" style="display: none;">
@@ -65,12 +151,45 @@
     </div>
   </div>
 
+  <!-- Custom Notification -->
+  <div id="customNotification" class="custom-notification">
+    <i class="notification-icon"></i>
+    <span class="notification-message"></span>
+  </div>
+
   <script>
     const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     let currentUser = null;
+    let userProfile = null;
+
+    // Custom notification function
+    function showNotification(message, type = "info") {
+      const notification = document.getElementById("customNotification");
+      const icon = notification.querySelector(".notification-icon");
+      const messageEl = notification.querySelector(".notification-message");
+      
+      // Set notification content and style
+      messageEl.textContent = message;
+      notification.className = `custom-notification notification-${type}`;
+      
+      // Set icon based on type
+      if (type === "success") {
+        icon.className = "notification-icon fas fa-check-circle";
+      } else {
+        icon.className = "notification-icon fas fa-info-circle";
+      }
+      
+      // Show notification
+      notification.classList.add("notification-show");
+      
+      // Auto hide after 2.5 seconds
+      setTimeout(() => {
+        notification.classList.remove("notification-show");
+      }, 2500);
+    }
 
     const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
     document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
@@ -80,10 +199,92 @@
       if (error || !user) { window.location.href = "login.html"; return; }
 
       currentUser = user;
-      document.getElementById("username").textContent = user.email.split('@')[0];
+      
+      // Load user profile data
+      await loadUserProfile();
+      
+      // Set user info
+      document.getElementById("username").textContent = userProfile?.username || user.email.split('@')[0];
       document.getElementById("email").textContent = user.email;
+      document.getElementById("joinDate").textContent = `Joined ${new Date(user.created_at).toLocaleDateString()}`;
+      
+      // Load bio
+      if (userProfile?.bio) {
+        document.getElementById("bioText").textContent = userProfile.bio;
+      }
 
       await loadUserLists();
+      await loadDefaultLists();
+    }
+
+    async function loadUserProfile() {
+      const { data: profile, error } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+        console.error("Error loading profile:", error);
+      }
+
+      userProfile = profile || {};
+      
+      // Create profile if it doesn't exist
+      if (!profile) {
+        const { error: insertError } = await supabase
+          .from("user_profiles")
+          .insert({
+            id: currentUser.id,
+            username: currentUser.email.split('@')[0],
+            bio: "",
+            created_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+        }
+      }
+    }
+
+    async function loadDefaultLists() {
+      // Try to get lists from the restaurants page first
+      if (window.getUserLists) {
+        const userLists = window.getUserLists();
+        if (userLists) {
+          document.getElementById("favoritesCount").textContent = `${userLists.favorites.length} restaurants`;
+          document.getElementById("visitedCount").textContent = `${userLists.visited.length} restaurants`;
+          document.getElementById("wantToGoCount").textContent = `${userLists.wantToGo.length} restaurants`;
+          return;
+        }
+      }
+      
+      // Fallback: Get from Supabase
+      try {
+        const { data: favorites } = await supabase
+          .from("lists_restraunts")
+          .select("id")
+          .eq("user_id", currentUser.id)
+          .eq("list_name", "favorites");
+
+        const { data: visited } = await supabase
+          .from("lists_restraunts")
+          .select("id")
+          .eq("user_id", currentUser.id)
+          .eq("list_name", "visited");
+
+        const { data: wantToGo } = await supabase
+          .from("lists_restraunts")
+          .select("id")
+          .eq("user_id", currentUser.id)
+          .eq("list_name", "wantToGo");
+
+        document.getElementById("favoritesCount").textContent = `${favorites?.length || 0} restaurants`;
+        document.getElementById("visitedCount").textContent = `${visited?.length || 0} restaurants`;
+        document.getElementById("wantToGoCount").textContent = `${wantToGo?.length || 0} restaurants`;
+      } catch (error) {
+        console.error("Error loading default lists:", error);
+      }
     }
 
     async function loadUserLists() {
@@ -100,7 +301,7 @@
 
       const listsContainer = document.getElementById("listsContainer");
       if (!lists || lists.length === 0) {
-        listsContainer.innerHTML = '<p id="listsText">You don\'t have any saved lists yet.</p>';
+        listsContainer.innerHTML = '<p id="listsText">You don\'t have any custom lists yet.</p>';
         return;
       }
 
@@ -111,20 +312,55 @@
           .select("id", { count: "exact", head: true })
           .eq("list_id", list.id);
 
-        const restrauntCount = count || 0;
+        const restaurantCount = count || 0;
         const listItem = document.createElement("div");
         listItem.className = "list-item";
         listItem.innerHTML = `
           <div class="list-name">${list.name}</div>
           <div class="list-desc">${list.description || 'No description'}</div>
           <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">
-            ${restrauntCount} restaurants • Created ${new Date(list.created_at).toLocaleDateString()}
+            ${restaurantCount} restaurants • Created ${new Date(list.created_at).toLocaleDateString()}
           </div>
         `;
         listsContainer.appendChild(listItem);
       }
     }
 
+    // Bio functionality
+    document.getElementById("editBioBtn").addEventListener("click", () => {
+      document.getElementById("bioDisplay").style.display = "none";
+      document.getElementById("bioEdit").style.display = "block";
+      document.getElementById("bioTextarea").value = userProfile?.bio || "";
+    });
+
+    document.getElementById("cancelBioBtn").addEventListener("click", () => {
+      document.getElementById("bioDisplay").style.display = "block";
+      document.getElementById("bioEdit").style.display = "none";
+    });
+
+    document.getElementById("saveBioBtn").addEventListener("click", async () => {
+      const newBio = document.getElementById("bioTextarea").value.trim();
+      
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ bio: newBio })
+        .eq("id", currentUser.id);
+
+      if (error) {
+        console.error("Error updating bio:", error);
+        showNotification("Error saving bio. Please try again.", "info");
+        return;
+      }
+
+      userProfile.bio = newBio;
+      document.getElementById("bioText").textContent = newBio || "No bio yet. Click edit to add one!";
+      document.getElementById("bioDisplay").style.display = "block";
+      document.getElementById("bioEdit").style.display = "none";
+      
+      showNotification("Bio updated successfully!", "success");
+    });
+
+    // List functionality
     document.getElementById("createListBtn").addEventListener("click", () => {
       document.getElementById("createListForm").style.display = "block";
       document.getElementById("createListBtn").style.display = "none";
@@ -141,7 +377,10 @@
       const listName = document.getElementById("listNameInput").value.trim();
       const listDesc = document.getElementById("listDescInput").value.trim();
 
-      if (!listName) return alert("Please enter a list name");
+      if (!listName) {
+        showNotification("Please enter a list name", "info");
+        return;
+      }
 
       const { error } = await supabase.from("lists").insert({
         user_id: currentUser.id,
@@ -152,7 +391,7 @@
 
       if (error) {
         console.error("Error creating list:", error);
-        alert("Error creating list. Please try again.");
+        showNotification("Error creating list. Please try again.", "info");
         return;
       }
 
@@ -161,8 +400,13 @@
       document.getElementById("listNameInput").value = "";
       document.getElementById("listDescInput").value = "";
       await loadUserLists();
-      alert("List created successfully!");
+      showNotification("List created successfully!", "success");
     });
+
+    function showList(listType) {
+      // Redirect to restaurants page with the list filter applied
+      window.location.href = `restaurants.html?list=${listType}`;
+    }
 
     loadProfile();
 
