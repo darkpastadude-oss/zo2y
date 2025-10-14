@@ -3,156 +3,320 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Profile — Zo2y</title>
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>Zo2y - Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary-color: #f59e0b; --primary-dark: #d97706; --primary-light: #fbbf24;
+      --bg-color: #0b1633; --card-color: #132347; --text-primary: #ffffff; 
+      --text-secondary: #cbd5e1; --border-color: rgba(255,255,255,0.1);
+      --shadow: 0 10px 30px rgba(0,0,0,0.3); --transition: all 0.3s ease;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
     body {
-      font-family: 'Poppins', sans-serif;
-      background: #0f0f0f;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: var(--bg-color); min-height: 100vh; display: flex; 
+      justify-content: center; align-items: center; padding: 20px;
+      transition: var(--transition); color: var(--text-primary);
     }
-
-    .profile-container {
-      background: #181818;
-      border-radius: 20px;
-      padding: 2rem;
-      width: 90%;
-      max-width: 600px;
-      box-shadow: 0 0 25px rgba(255,255,255,0.1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
+    .container {
+      display: flex; max-width: 1100px; width: 100%; border-radius: 20px; 
+      overflow: hidden; box-shadow: var(--shadow); background: var(--card-color);
+      transition: var(--transition);
     }
-
-    .avatar {
-      background: #272727;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 40px;
-      margin-bottom: 1rem;
-      color: #ffcc00;
-      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    .illustration {
+      flex: 1; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 40px; color: white; text-align: center; position: relative;
     }
-
-    .username {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
+    .logo-small { position: absolute; top: 20px; left: 20px; display: flex; align-items: center; }
+    .logo-small img { width: 35px; height: 35px; }
+    .logo-small span { color: white; font-weight: 600; font-size: 1.2rem; margin-left: 8px; }
+    .illustration h2 { font-size: 2rem; margin-bottom: 15px; font-weight: 600; }
+    .illustration p { font-size: 1rem; opacity: 0.9; max-width: 350px; margin-bottom: 30px; }
+    .feature-list { text-align: left; max-width: 350px; margin-top: 20px; }
+    .feature { display: flex; align-items: center; margin-bottom: 15px; }
+    .feature i { color: white; margin-right: 10px; font-size: 1.2rem; }
+    .form-container { flex: 1; padding: 50px 40px; display: flex; flex-direction: column; justify-content: center; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .logo { display: flex; align-items: center; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+    .logo img { width: 40px; margin-right: 10px; }
+    .theme-toggle {
+      background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 20px;
+      padding: 8px 15px; cursor: pointer; display: flex; align-items: center;
+      color: var(--text-primary); transition: var(--transition);
     }
-
-    .bio {
-      color: #aaa;
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
+    .theme-toggle:hover { background: var(--primary-color); color: #0b1633; }
+    .theme-toggle i { margin-right: 8px; }
+    .form-container h2 { font-size: 2rem; margin-bottom: 10px; color: var(--text-primary); font-weight: 600; }
+    .subtitle { color: var(--text-secondary); margin-bottom: 30px; font-size: 0.95rem; }
+    .input-group { position: relative; margin-bottom: 20px; }
+    .input-group i { 
+      position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+      color: var(--text-secondary); transition: var(--transition); 
     }
-
-    .profile-actions {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      gap: 10px;
+    .form-container input {
+      width: 100%; padding: 14px 15px 14px 45px; border: 1px solid var(--border-color);
+      border-radius: 12px; font-size: 1rem; outline: none; transition: var(--transition);
+      background-color: var(--bg-color); color: var(--text-primary);
     }
-
-    button {
-      padding: 0.8rem 1.2rem;
-      border: none;
-      border-radius: 12px;
-      background: #ffcc00;
-      color: #000;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.3s;
+    .form-container input:focus { 
+      border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); 
     }
-
-    button:hover {
-      background: #ffd633;
-      transform: translateY(-2px);
+    .form-container input:focus + i { color: var(--primary-color); }
+    .name-group { display: flex; gap: 15px; }
+    .name-group .input-group { flex: 1; }
+    .terms { display: flex; align-items: flex-start; margin-bottom: 20px; font-size: 0.9rem; }
+    .terms input { margin-right: 8px; margin-top: 3px; }
+    .terms label { color: var(--text-secondary); }
+    .terms a { color: var(--primary-color); text-decoration: none; }
+    .terms a:hover { text-decoration: underline; }
+    .form-container button {
+      width: 100%; padding: 14px; margin-top: 10px; background: var(--primary-color);
+      border: none; border-radius: 30px; color: #0b1633; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: var(--transition); display: flex; justify-content: center; align-items: center;
     }
-
-    .logout {
-      background: #d33;
-      color: #fff;
+    .form-container button:hover { 
+      background: var(--primary-light); transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3); 
     }
-
-    .logout:hover {
-      background: #f55;
+    .form-container button i { margin-left: 8px; }
+    .divider { 
+      display: flex; align-items: center; margin: 25px 0; color: var(--text-secondary); 
     }
-
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.8rem;
-      color: #666;
+    .divider::before, .divider::after { 
+      content: ""; flex: 1; border-bottom: 1px solid var(--border-color); 
+    }
+    .divider span { padding: 0 15px; font-size: 0.9rem; }
+    .social-login { display: flex; gap: 15px; margin-bottom: 25px; }
+    .social-btn {
+      flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px;
+      background: var(--bg-color); color: var(--text-primary); display: flex;
+      justify-content: center; align-items: center; cursor: pointer; transition: var(--transition);
+    }
+    .social-btn:hover { 
+      background: var(--primary-color); color: #0b1633; border-color: var(--primary-color); 
+    }
+    .social-btn i { font-size: 1.2rem; margin-right: 8px; }
+    .link { 
+      text-align: center; color: var(--primary-color); text-decoration: none;
+      font-size: 0.95rem; transition: var(--transition); display: block; margin-top: 10px;
+    }
+    .link:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .illustration, .form-container { padding: 30px 25px; }
+      .illustration h2 { font-size: 1.5rem; }
+      .logo-small { top: 15px; left: 15px; }
+      .logo-small img { width: 30px; height: 30px; }
+      .logo-small span { font-size: 1rem; }
+      .name-group { flex-direction: column; gap: 0; }
     }
   </style>
 </head>
+
 <body>
-  <div class="profile-container">
-    <div class="avatar" id="avatar"></div>
-    <div class="username" id="username">Loading...</div>
-    <div class="bio" id="bio">No bio yet. Add something cool about yourself!</div>
-    
-    <div class="profile-actions">
-      <button onclick="editProfile()">Edit Profile</button>
-      <button onclick="addFriend()">Add Friend</button>
-      <button onclick="viewLists()">My Lists</button>
-      <button class="logout" onclick="logout()">Logout</button>
+  <div class="container">
+    <div class="illustration">
+      <div class="logo-small">
+        <img src="images/logo.png" alt="Zo2y Logo" />
+        <span>Zo2y</span>
+      </div>
+      <h2>Join Our Food Community!</h2>
+      <p>Create an account to discover amazing restaurants, save your favorites, and connect with fellow food lovers.</p>
+      
+      <div class="feature-list">
+        <div class="feature">
+          <i class="fas fa-utensils"></i>
+          <span>Discover new restaurants</span>
+        </div>
+        <div class="feature">
+          <i class="fas fa-heart"></i>
+          <span>Save your favorites</span>
+        </div>
+        <div class="feature">
+          <i class="fas fa-star"></i>
+          <span>Rate and review places</span>
+        </div>
+        <div class="feature">
+          <i class="fas fa-users"></i>
+          <span>Connect with food lovers</span>
+        </div>
+      </div>
     </div>
 
-    <div class="footer">Zo2y — Built for local legends 🌍</div>
+    <div class="form-container">
+      <div class="header">
+        <div class="logo">
+          <img src="images/logo.png" alt="Zo2y Logo" />
+          <span>Zo2y</span>
+        </div>
+        <div class="theme-toggle" id="themeToggle">
+          <i class="fas fa-sun"></i>
+          <span>Light Mode</span>
+        </div>
+      </div>
+
+      <h2>Create Your Account</h2>
+      <p class="subtitle">Join our community of food lovers today!</p>
+
+      <form id="signupForm">
+        <div class="name-group">
+          <div class="input-group">
+            <i class="fas fa-user"></i>
+            <input type="text" placeholder="First Name" id="firstName" required />
+          </div>
+          <div class="input-group">
+            <i class="fas fa-user"></i>
+            <input type="text" placeholder="Last Name" id="lastName" required />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <i class="fas fa-envelope"></i>
+          <input type="email" placeholder="Email" id="email" required />
+        </div>
+
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" placeholder="Password" id="password" required />
+        </div>
+
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" placeholder="Confirm Password" id="confirmPassword" required />
+        </div>
+
+        <div class="terms">
+          <input type="checkbox" id="terms" required />
+          <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+        </div>
+
+        <button type="submit">
+          <span>Create Account</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="divider"><span>or sign up with</span></div>
+
+      <div class="social-login">
+        <div class="social-btn" id="googleSignup">
+          <i class="fab fa-google"></i>
+          <span>Google</span>
+        </div>
+        <div class="social-btn">
+          <i class="fab fa-facebook-f"></i>
+          <span>Facebook</span>
+        </div>
+      </div>
+
+      <a href="login.html" class="link">Already have an account? Login</a>
+    </div>
   </div>
 
-  <script>
-    const supabase = supabase.createClient(
-      "https://YOUR-PROJECT.supabase.co",
-      "YOUR-ANON-KEY"
-    );
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    const icons = ['⭐', '🔥', '⚡', '🌙', '🎯', '💎', '🌀', '🐉', '🚀', '💥'];
-    document.getElementById("avatar").textContent = icons[Math.floor(Math.random() * icons.length)];
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 
-    async function loadProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = "login.html";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // auto redirect if logged in
+      const { data: session } = await supabase.auth.getSession();
+      if (session.session) {
+        window.location.href = "index.html";
         return;
       }
 
-      document.getElementById("username").textContent = user.user_metadata.full_name || user.email.split("@")[0];
-    }
+      // theme toggle
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = themeToggle.querySelector("i");
+      const themeText = themeToggle.querySelector("span");
+      
+      // Set initial theme to dark (matching your app)
+      document.body.classList.add("dark-theme");
+      themeIcon.className = "fas fa-sun";
+      themeText.textContent = "Light Mode";
+      
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-theme");
+        if (document.body.classList.contains("dark-theme")) {
+          localStorage.setItem("theme", "dark");
+          themeIcon.className = "fas fa-sun";
+          themeText.textContent = "Light Mode";
+        } else {
+          localStorage.setItem("theme", "light");
+          themeIcon.className = "fas fa-moon";
+          themeText.textContent = "Dark Mode";
+        }
+      });
 
-    async function logout() {
-      await supabase.auth.signOut();
-      window.location.href = "index.html";
-    }
+      // signup form
+      document.getElementById("signupForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const firstName = document.getElementById("firstName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const confirmPassword = document.getElementById("confirmPassword").value.trim();
+        const button = e.target.querySelector("button");
+        const original = button.innerHTML;
 
-    function editProfile() {
-      alert("Coming soon — custom bio & avatar update 🔧");
-    }
+        // Validation
+        if (!firstName || !lastName || !email || !password || !confirmPassword) {
+          alert("Please fill in all fields");
+          return;
+        }
 
-    function addFriend() {
-      alert("Friend system coming soon 👥");
-    }
+        if (password !== confirmPassword) {
+          alert("Passwords do not match");
+          return;
+        }
 
-    function viewLists() {
-      alert("Your saved spots and lists — in progress 🗺️");
-    }
+        if (password.length < 6) {
+          alert("Password must be at least 6 characters long");
+          return;
+        }
 
-    loadProfile();
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+        button.disabled = true;
+
+        // Create user in Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+              username: firstName.toLowerCase() + lastName.toLowerCase()
+            }
+          }
+        });
+
+        if (error) {
+          alert("❌ " + error.message);
+        } else {
+          alert("✅ Account created successfully! Please check your email for verification.");
+          window.location.href = "login.html";
+        }
+
+        button.innerHTML = original;
+        button.disabled = false;
+      });
+
+      // google signup
+      document.getElementById("googleSignup").addEventListener("click", async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: window.location.origin + "/index.html" },
+        });
+        if (error) alert("Google signup failed: " + error.message);
+      });
+    });
   </script>
 </body>
 </html>
