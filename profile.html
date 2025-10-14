@@ -292,11 +292,11 @@
           if (list) {
             const { data: listRestaurants, error } = await supabase
               .from('lists_restraunts')  // FIXED: added 's' to table name
-              .select('restraint_id')   // FIXED: changed to 'restraint_id' (with 'i')
+              .select('restraunt_id')   // FIXED: changed to 'restraint_id' (with 'i')
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraint_id);  // FIXED: changed to 'restraint_id' (with 'i')
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // FIXED: changed to 'restraint_id' (with 'i')
             } else {
               list.restaurants = [];
             }
@@ -344,7 +344,6 @@
               .insert([{ 
                 list_id: list.id, 
                 restraunt_id: restaurantId,  // FIXED: changed to 'restraint_id' (with 'i')
-                user_id: user.id,
                 added_at: new Date().toISOString()
               }]);
             

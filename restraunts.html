@@ -218,9 +218,9 @@
       location.href = 'login.html';
     });
 
-    // List Management - FIXED for your actual lists table
+    // List Management - CORRECTED table and column names
     const listManager = {
-      userLists: [], // This will store {id, title, description, restaurants: []}
+      userLists: [],
       currentLists: {
         favorites: null,
         visited: null,
@@ -230,7 +230,6 @@
       async init() { 
         if (!authManager.isLoggedIn()) return;
         
-        // Load user's lists from database
         await this.loadUserLists();
         this.updateListCounts();
       },
@@ -240,7 +239,6 @@
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
 
-          // Get user's lists
           const { data: lists, error } = await supabase
             .from('lists')
             .select('*')
@@ -249,11 +247,7 @@
           if (error) throw error;
           
           this.userLists = lists || [];
-          
-          // Find or create the default lists
           await this.setupDefaultLists();
-          
-          // Load restaurants for each list
           await this.loadListRestaurants();
           
         } catch (error) {
@@ -264,12 +258,10 @@
       async setupDefaultLists() {
         const { data: { user } } = await supabase.auth.getUser();
         
-        // Find existing default lists
         this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
         this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
         this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
         
-        // Create missing default lists
         if (!this.currentLists.favorites) {
           this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
         }
@@ -310,12 +302,12 @@
           const list = this.currentLists[listType];
           if (list) {
             const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')  // FIXED: ADDED 's'
-              .select('restraint_id')    // FIXED: WITH 'i'
+              .from('lists_restraunts')  // CORRECTED: Table name with 's'
+              .select('restraunt_id')    // CORRECTED: Column name with 'a'
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraint_id);  // FIXED: WITH 'i'
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // CORRECTED: Column name with 'a'
             } else {
               list.restaurants = [];
             }
@@ -342,18 +334,13 @@
         const isInList = list.restaurants?.includes(restaurantId);
         
         try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) throw new Error('No user found');
-
           if (isInList) {
-            // Remove from list
             const { error } = await supabase
-              .from('lists_restraunts')  // FIXED: ADDED 's'
+              .from('lists_restraunts')  // CORRECTED: Table name with 's'
               .delete()
               .match({
                 list_id: list.id,
-                restraint_id: restaurantId,  // FIXED: WITH 'i'
-                user_id: user.id
+                restraunt_id: restaurantId  // CORRECTED: Column name with 'a'
               });
             
             if (error) throw error;
@@ -362,14 +349,13 @@
             showNotification(`Removed from ${list.title}`, "info");
             
           } else {
-            // Add to list
+            // CORRECTED: Removed user_id from insert
             const { error } = await supabase
-              .from('lists_restraunts')  // FIXED: ADDED 's'
+              .from('lists_restraunts')  // CORRECTED: Table name with 's'
               .insert([
                 {
                   list_id: list.id,
-                  restraunt_id: restaurantId,  // FIXED: WITH 'i'
-                  user_id: user.id,
+                  restraunt_id: restaurantId,  // CORRECTED: Column name with 'a'
                   added_at: new Date().toISOString()
                 }
               ]);
