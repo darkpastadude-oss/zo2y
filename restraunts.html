@@ -69,7 +69,7 @@
       <div class="search"><span class="icon">🔎</span><input id="q" placeholder="Search restaurants..."></div>
       <button class="btn" id="reset">Reset</button>
       <div class="user-auth">
-        <div class="user-welcome" id="userWelcome" onclick="goToProfile()">
+        <div class="user-welcome" id="userWelcome">
           <div class="user-avatar" id="userAvatar">U</div>
           <span id="userName">User</span>
         </div>
@@ -113,15 +113,112 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    let currentUser = null;
+    // ---------- WORKING ACCOUNT SYSTEM ----------
+    const userWelcome = document.getElementById('userWelcome');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const loginBtn = document.getElementById('loginBtn');
 
-    // Fixed: Proper profile navigation
-    function goToProfile() {
-      if (currentUser) {
-        window.location.href = 'profile.html';
-      } else {
+    // Helper to escape HTML
+    function escapeHtml(s) { 
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); 
+    }
+
+    // Updates UI based on supabase session
+    async function updateAuthUI() {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('supabase getSession err', error);
+        }
+
+        if (session && session.user) {
+          // User is logged in
+          const userId = session.user.id;
+
+          // Fetch profile from user_profiles table
+          let username = null;
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('username, full_name, avatar_url')
+              .eq('id', userId)
+              .limit(1)
+              .maybeSingle();
+
+            if (profileError) {
+              console.warn('profile fetch err', profileError);
+            } else if (profile) {
+              username = profile.username || profile.full_name || null;
+              // Store profile locally for other pages
+              try { localStorage.setItem('zo2y_user', JSON.stringify(profile)); } catch(e){}
+            }
+          } catch (err) {
+            console.warn('profile fetch catch', err);
+          }
+
+          // Fallback display name
+          const displayName = username || session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User';
+
+          // Set UI elements
+          userWelcome.style.display = 'flex';
+          loginBtn.style.display = 'none';
+          document.getElementById('listTabs').style.display = 'flex';
+          document.getElementById('loginPrompt').style.display = 'none';
+          
+          userName.textContent = displayName;
+          userAvatar.textContent = displayName.charAt(0).toUpperCase();
+
+          // Set click handler for profile redirect
+          userWelcome.onclick = (e) => {
+            e.preventDefault();
+            safeGoToProfile();
+          };
+
+        } else {
+          // Not logged in
+          userWelcome.style.display = 'none';
+          loginBtn.style.display = 'block';
+          document.getElementById('listTabs').style.display = 'none';
+          document.getElementById('loginPrompt').style.display = 'block';
+          
+          try { localStorage.removeItem('zo2y_user'); } catch(e){}
+          
+          loginBtn.onclick = () => location.href = 'login.html';
+        }
+      } catch (e) {
+        console.error('updateAuthUI error', e);
+        // Fallback to logged out state
+        userWelcome.style.display = 'none';
+        loginBtn.style.display = 'block';
+        document.getElementById('listTabs').style.display = 'none';
+        document.getElementById('loginPrompt').style.display = 'block';
+        loginBtn.onclick = () => location.href = 'login.html';
+      }
+    }
+
+    // Safe redirect function: verifies session before sending to profile
+    async function safeGoToProfile() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          // Go to profile
+          window.location.href = 'profile.html';
+        } else {
+          // No session -> go to login
+          window.location.href = 'login.html';
+        }
+      } catch (err) {
+        console.error('safeGoToProfile err', err);
         window.location.href = 'login.html';
       }
+    }
+
+    // Listen for auth changes so UI updates automatically
+    if (supabase) {
+      supabase.auth.onAuthStateChange((event, session) => {
+        setTimeout(updateAuthUI, 50);
+      });
     }
 
     // Custom notification function
@@ -130,11 +227,9 @@
       const icon = notification.querySelector(".notification-icon");
       const messageEl = notification.querySelector(".notification-message");
       
-      // Set notification content and style
       messageEl.textContent = message;
       notification.className = `custom-notification notification-${type}`;
       
-      // Set icon based on type
       if (type === "success") {
         icon.className = "notification-icon fas fa-check-circle";
       } else if (type === "error") {
@@ -143,80 +238,12 @@
         icon.className = "notification-icon fas fa-info-circle";
       }
       
-      // Show notification
       notification.classList.add("notification-show");
       
-      // Auto hide after 2.5 seconds
       setTimeout(() => {
         notification.classList.remove("notification-show");
       }, 2500);
     }
-
-    // Auth System with Supabase
-    const authManager = {
-      currentUser: null,
-      init() { 
-        this.checkAuth(); 
-      },
-      async checkAuth() {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error || !user) {
-          this.currentUser = null;
-          this.updateUI();
-          return;
-        }
-        
-        this.currentUser = user;
-        await this.loadUserProfile();
-        this.updateUI();
-        await listManager.init();
-        filterAndRender();
-      },
-      async loadUserProfile() {
-        if (!this.currentUser) return;
-        
-        const { data: profile, error } = await supabase
-          .from("user_profiles")
-          .select("username, full_name")
-          .eq("id", this.currentUser.id)
-          .single();
-
-        if (profile && !error) {
-          this.currentUser.profile = profile;
-        }
-      },
-      updateUI() {
-        const isLoggedIn = this.currentUser !== null;
-        document.getElementById('userWelcome').style.display = isLoggedIn ? 'flex' : 'none';
-        document.getElementById('loginBtn').style.display = isLoggedIn ? 'none' : 'block';
-        document.getElementById('listTabs').style.display = isLoggedIn ? 'flex' : 'none';
-        document.getElementById('loginPrompt').style.display = isLoggedIn ? 'none' : 'block';
-        
-        if (isLoggedIn) {
-          let displayName = "User";
-          if (this.currentUser.profile) {
-            if (this.currentUser.profile.username && this.currentUser.profile.username.trim() !== "") {
-              displayName = this.currentUser.profile.username;
-            } else if (this.currentUser.profile.full_name && this.currentUser.profile.full_name.trim() !== "") {
-              displayName = this.currentUser.profile.full_name;
-            } else {
-              displayName = this.currentUser.email.split('@')[0];
-            }
-          } else {
-            displayName = this.currentUser.email.split('@')[0];
-          }
-          
-          document.getElementById('userName').textContent = displayName;
-          document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-        }
-      },
-      isLoggedIn() { return this.currentUser !== null; }
-    };
-
-    // Simple login function
-    document.getElementById('loginBtn').addEventListener('click', () => {
-      location.href = 'login.html';
-    });
 
     // List Management - CORRECTED table and column names
     const listManager = {
@@ -228,7 +255,8 @@
       },
       
       async init() { 
-        if (!authManager.isLoggedIn()) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         
         await this.loadUserLists();
         this.updateListCounts();
@@ -302,12 +330,12 @@
           const list = this.currentLists[listType];
           if (list) {
             const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')  // CORRECTED: Table name with 's'
-              .select('restraunt_id')    // CORRECTED: Column name with 'a'
+              .from('lists_restraunts')
+              .select('restraunt_id')
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // CORRECTED: Column name with 'a'
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);
             } else {
               list.restaurants = [];
             }
@@ -336,11 +364,11 @@
         try {
           if (isInList) {
             const { error } = await supabase
-              .from('lists_restraunts')  // CORRECTED: Table name with 's'
+              .from('lists_restraunts')
               .delete()
               .match({
                 list_id: list.id,
-                restraunt_id: restaurantId  // CORRECTED: Column name with 'a'
+                restraunt_id: restaurantId
               });
             
             if (error) throw error;
@@ -349,13 +377,12 @@
             showNotification(`Removed from ${list.title}`, "info");
             
           } else {
-            // CORRECTED: Removed user_id from insert
             const { error } = await supabase
-              .from('lists_restraunts')  // CORRECTED: Table name with 's'
+              .from('lists_restraunts')
               .insert([
                 {
                   list_id: list.id,
-                  restraunt_id: restaurantId,  // CORRECTED: Column name with 'a'
+                  restraunt_id: restaurantId,
                   added_at: new Date().toISOString()
                 }
               ]);
@@ -380,15 +407,6 @@
       isInList(listType, restaurantId) {
         const list = this.currentLists[listType];
         return list?.restaurants?.includes(restaurantId) || false;
-      },
-      
-      getListDisplayName(listType) {
-        const names = {
-          'favorites': 'Favorites',
-          'visited': 'Visited',
-          'wantToGo': 'Want to Go'
-        };
-        return names[listType] || listType;
       }
     };
 
@@ -444,7 +462,8 @@
       empty.style.display = 'none'; grid.style.display = 'grid'; countEl.textContent = list.length;
       
       list.forEach(r => {
-        const isLoggedIn = authManager.isLoggedIn();
+        const { data: { session } } = await supabase.auth.getSession();
+        const isLoggedIn = !!session;
         const tile = document.createElement('div');
         tile.className = 'tile';
         
@@ -483,7 +502,8 @@
       });
 
       // Add event listeners for list buttons
-      if (authManager.isLoggedIn()) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.preventDefault(); 
@@ -516,13 +536,16 @@
       }
     }
 
-    function filterAndRender() {
+    async function filterAndRender() {
+      const { data: { session } } = await supabase.auth.getSession();
+      const isLoggedIn = !!session;
+      
       let out = restaurants.filter(r => {
         const q = qInput.value.trim().toLowerCase();
         const categoryMatch = categorySelect.value === 'All' || r.category.includes(categorySelect.value);
         const searchMatch = !q || r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
         let listMatch = true;
-        if (authManager.isLoggedIn()) {
+        if (isLoggedIn) {
           if (currentList === 'favorites') listMatch = listManager.isInList('favorites', r.id);
           else if (currentList === 'visited') listMatch = listManager.isInList('visited', r.id);
           else if (currentList === 'want-to-go') listMatch = listManager.isInList('wantToGo', r.id);
@@ -543,8 +566,9 @@
     });
 
     document.querySelectorAll('.list-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        if (!authManager.isLoggedIn()) return;
+      tab.addEventListener('click', async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentList = tab.dataset.list;
@@ -553,9 +577,12 @@
     });
 
     // Initialize
-    authManager.init();
-    restaurants.sort((a,b) => b.rating - a.rating);
-    filterAndRender();
+    document.addEventListener('DOMContentLoaded', function() {
+      updateAuthUI();
+      listManager.init();
+      restaurants.sort((a,b) => b.rating - a.rating);
+      filterAndRender();
+    });
   </script>
 </body>
 </html>
