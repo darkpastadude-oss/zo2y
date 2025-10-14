@@ -115,6 +115,15 @@
 
     let currentUser = null;
 
+    // Fixed: Proper profile navigation
+    function goToProfile() {
+      if (currentUser) {
+        window.location.href = 'profile.html';
+      } else {
+        window.location.href = 'login.html';
+      }
+    }
+
     // Custom notification function
     function showNotification(message, type = "info") {
       const notification = document.getElementById("customNotification");
@@ -143,13 +152,6 @@
       }, 2500);
     }
 
-    // Navigation function
-    function goToProfile() {
-      if (currentUser) {
-        location.href = 'profile.html';
-      }
-    }
-
     // Auth System with Supabase
     const authManager = {
       currentUser: null,
@@ -167,7 +169,7 @@
         this.currentUser = user;
         await this.loadUserProfile();
         this.updateUI();
-        await listManager.init(); // Make this async
+        await listManager.init();
         filterAndRender();
       },
       async loadUserProfile() {
@@ -216,185 +218,227 @@
       location.href = 'login.html';
     });
 
-    // List Management - FIXED VERSION
+    // List Management - FIXED for your actual lists table
     const listManager = {
-      favorites: [], visited: [], wantToGo: [],
+      userLists: [], // This will store {id, title, description, restaurants: []}
+      currentLists: {
+        favorites: null,
+        visited: null,
+        wantToGo: null
+      },
+      
       async init() { 
         if (!authManager.isLoggedIn()) return;
-        const userId = authManager.currentUser.id;
         
-        // Load from localStorage first for instant UI
-        this.favorites = JSON.parse(localStorage.getItem(`zo2y-favorites-${userId}`)) || [];
-        this.visited = JSON.parse(localStorage.getItem(`zo2y-visited-${userId}`)) || [];
-        this.wantToGo = JSON.parse(localStorage.getItem(`zo2y-wantToGo-${userId}`)) || [];
-        
-        // Then sync with Supabase
-        await this.syncWithSupabase();
+        // Load user's lists from database
+        await this.loadUserLists();
         this.updateListCounts();
       },
       
-      async syncWithSupabase() {
-        if (!authManager.isLoggedIn()) return;
-        const userId = authManager.currentUser.id;
-        
-        try {
-          // Get user's lists from Supabase
-          const { data: userLists, error } = await supabase
-            .from('lists_restraunts')
-            .select('list_name, restaurant_slug')
-            .eq('user_id', userId);
-          
-          if (error) throw error;
-          
-          // Clear current lists and populate from Supabase
-          this.favorites = [];
-          this.visited = [];
-          this.wantToGo = [];
-          
-          if (userLists) {
-            userLists.forEach(item => {
-              if (item.list_name === 'favorites') this.favorites.push(item.restaurant_slug);
-              else if (item.list_name === 'visited') this.visited.push(item.restaurant_slug);
-              else if (item.list_name === 'wantToGo') this.wantToGo.push(item.restaurant_slug);
-            });
-          }
-          
-          // Update localStorage
-          this.saveToLocalStorage();
-          
-        } catch (error) {
-          console.error('Error syncing with Supabase:', error);
-        }
-      },
-      
-      saveToLocalStorage() {
-        if (!authManager.isLoggedIn()) return;
-        const userId = authManager.currentUser.id;
-        localStorage.setItem(`zo2y-favorites-${userId}`, JSON.stringify(this.favorites));
-        localStorage.setItem(`zo2y-visited-${userId}`, JSON.stringify(this.visited));
-        localStorage.setItem(`zo2y-wantToGo-${userId}`, JSON.stringify(this.wantToGo));
-      },
-      
-      saveLists() { 
-        if (!authManager.isLoggedIn()) return;
-        this.saveToLocalStorage();
-        this.updateListCounts();
-      },
-      
-      updateListCounts() {
-        document.getElementById('favoritesCount').textContent = this.favorites.length;
-        document.getElementById('visitedCount').textContent = this.visited.length;
-        document.getElementById('wantToGoCount').textContent = this.wantToGo.length;
-      },
-      
-      async toggleInList(listName, slug) {
-        const list = this[listName];
-        const index = list.indexOf(slug);
-        const restaurant = restaurants.find(r => r.slug === slug);
-        
-        if (index > -1) {
-          list.splice(index, 1);
-          showNotification(`Removed from ${this.getListDisplayName(listName)}`, "info");
-        } else {
-          list.push(slug);
-          showNotification(`Added to ${this.getListDisplayName(listName)}`, "success");
-        }
-        this.saveLists();
-        
-        // Save to Supabase
-        await this.saveToSupabase(listName, slug, index === -1);
-        
-        return index === -1;
-      },
-      
-      async saveToSupabase(listName, slug, wasAdded) {
+      async loadUserLists() {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
 
-          if (wasAdded) {
-            const { error } = await supabase
-              .from('lists_restraunts')
-              .insert([
-                {
-                  user_id: user.id,
-                  list_name: listName,
-                  restaurant_slug: slug,
-                  restaurant_name: restaurants.find(r => r.slug === slug)?.name || slug,
-                  added_at: new Date().toISOString()
-                }
-              ]);
-            if (error) {
-              console.error('Error saving to Supabase:', error);
-              showNotification('Error saving to server', 'error');
-            }
-          } else {
-            const { error } = await supabase
-              .from('lists_restraunts')
-              .delete()
-              .match({
-                user_id: user.id,
-                list_name: listName,
-                restaurant_slug: slug
-              });
-            if (error) {
-              console.error('Error removing from Supabase:', error);
-              showNotification('Error removing from server', 'error');
-            }
-          }
+          // Get user's lists
+          const { data: lists, error } = await supabase
+            .from('lists')
+            .select('*')
+            .eq('user_id', user.id);
+          
+          if (error) throw error;
+          
+          this.userLists = lists || [];
+          
+          // Find or create the default lists
+          await this.setupDefaultLists();
+          
+          // Load restaurants for each list
+          await this.loadListRestaurants();
+          
         } catch (error) {
-          console.error('Supabase operation failed:', error);
+          console.error('Error loading lists:', error);
         }
       },
       
-      getListDisplayName(listName) {
+      async setupDefaultLists() {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Find existing default lists
+        this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+        this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+        
+        // Create missing default lists
+        if (!this.currentLists.favorites) {
+          this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+        }
+        if (!this.currentLists.visited) {
+          this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+        }
+        if (!this.currentLists.wantToGo) {
+          this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+        }
+      },
+      
+      async createList(title, description) {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const { data: newList, error } = await supabase
+          .from('lists')
+          .insert([
+            {
+              user_id: user.id,
+              title: title,
+              description: description
+            }
+          ])
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error creating list:', error);
+          return null;
+        }
+        
+        this.userLists.push(newList);
+        return newList;
+      },
+      
+      async loadListRestaurants() {
+        for (const listType in this.currentLists) {
+          const list = this.currentLists[listType];
+          if (list) {
+            const { data: listRestaurants, error } = await supabase
+              .from('list_restraunts')  // FIXED: removed 's'
+              .select('restraunt_id')   // FIXED: added 'a'
+              .eq('list_id', list.id);
+            
+            if (!error && listRestaurants) {
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // FIXED: added 'a'
+            } else {
+              list.restaurants = [];
+            }
+          }
+        }
+      },
+      
+      updateListCounts() {
+        if (this.currentLists.favorites) {
+          document.getElementById('favoritesCount').textContent = this.currentLists.favorites.restaurants?.length || 0;
+        }
+        if (this.currentLists.visited) {
+          document.getElementById('visitedCount').textContent = this.currentLists.visited.restaurants?.length || 0;
+        }
+        if (this.currentLists.wantToGo) {
+          document.getElementById('wantToGoCount').textContent = this.currentLists.wantToGo.restaurants?.length || 0;
+        }
+      },
+      
+      async toggleInList(listType, restaurantId) {
+        const list = this.currentLists[listType];
+        if (!list) return false;
+        
+        const isInList = list.restaurants?.includes(restaurantId);
+        
+        try {
+          if (isInList) {
+            // Remove from list
+            const { error } = await supabase
+              .from('list_restraunts')  // FIXED: removed 's'
+              .delete()
+              .match({
+                list_id: list.id,
+                restraunt_id: restaurantId  // FIXED: added 'a'
+              });
+            
+            if (error) throw error;
+            
+            list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+            showNotification(`Removed from ${list.title}`, "info");
+            
+          } else {
+            // Add to list
+            const { data: { user } } = await supabase.auth.getUser();
+            const { error } = await supabase
+              .from('list_restraunts')  // FIXED: removed 's'
+              .insert([
+                {
+                  list_id: list.id,
+                  restraunt_id: restaurantId,  // FIXED: added 'a'
+                  user_id: user.id,
+                  added_at: new Date().toISOString()
+                }
+              ]);
+            
+            if (error) throw error;
+            
+            if (!list.restaurants) list.restaurants = [];
+            list.restaurants.push(restaurantId);
+            showNotification(`Added to ${list.title}`, "success");
+          }
+          
+          this.updateListCounts();
+          return !isInList;
+          
+        } catch (error) {
+          console.error('Error updating list:', error);
+          showNotification('Error saving changes', 'error');
+          return isInList;
+        }
+      },
+      
+      isInList(listType, restaurantId) {
+        const list = this.currentLists[listType];
+        return list?.restaurants?.includes(restaurantId) || false;
+      },
+      
+      getListDisplayName(listType) {
         const names = {
           'favorites': 'Favorites',
           'visited': 'Visited',
           'wantToGo': 'Want to Go'
         };
-        return names[listName] || listName;
-      },
-      
-      isInList(listName, slug) { return this[listName].includes(slug); }
+        return names[listType] || listType;
+      }
     };
 
-    // Restaurant Data
+    // Restaurant Data with proper IDs
     const restaurants = [
-      { slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-      { slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-      { slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-      { slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-      { slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
-      { slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
-      { slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
-      { slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
-      { slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
-      { slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
-      { slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
-      { slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
-      { slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
-      { slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
-      { slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
-      { slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
-      { slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
-      { slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
-      { slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
-      { slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
-      { slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
-      { slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
-      { slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
-      { slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
-      { slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
-      { slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
-      { slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
-      { slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
-      { slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
-      { slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
-      { slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
-      { slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
-      { slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
-      { slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
+      { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
+      { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
+      { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
+      { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
+      { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
+      { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
+      { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
+      { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
+      { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
+      { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
+      { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
+      { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
+      { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
+      { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
+      { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
+      { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
+      { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
+      { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
+      { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
+      { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
+      { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
+      { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
+      { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
+      { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
+      { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
+      { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
+      { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
+      { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
+      { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
+      { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
+      { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
+      { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
+      { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
+      { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
     ];
 
     // Rendering and Filtering
@@ -439,9 +483,9 @@
           const listActions = document.createElement('div');
           listActions.className = 'list-actions';
           listActions.innerHTML = `
-            <button class="list-btn favorite ${listManager.isInList('favorites', r.slug) ? 'active' : ''}" data-slug="${r.slug}" data-list="favorites" title="Add to Favorites">❤️</button>
-            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.slug) ? 'active' : ''}" data-slug="${r.slug}" data-list="wantToGo" title="Want to Go">📍</button>
-            <button class="list-btn visited ${listManager.isInList('visited', r.slug) ? 'active' : ''}" data-slug="${r.slug}" data-list="visited" title="Mark as Visited">🍽️</button>
+            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
+            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
           `;
           tile.appendChild(listActions);
         }
@@ -455,7 +499,8 @@
           btn.addEventListener('click', async (e) => {
             e.preventDefault(); 
             e.stopPropagation();
-            const wasAdded = await listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
             btn.classList.toggle('active', wasAdded);
             
             if (currentList !== 'all') filterAndRender();
@@ -472,7 +517,8 @@
           btn.addEventListener('touchend', async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const wasAdded = await listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
             btn.classList.toggle('active', wasAdded);
             
             if (currentList !== 'all') filterAndRender();
@@ -488,9 +534,9 @@
         const searchMatch = !q || r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
         let listMatch = true;
         if (authManager.isLoggedIn()) {
-          if (currentList === 'favorites') listMatch = listManager.isInList('favorites', r.slug);
-          else if (currentList === 'visited') listMatch = listManager.isInList('visited', r.slug);
-          else if (currentList === 'want-to-go') listMatch = listManager.isInList('wantToGo', r.slug);
+          if (currentList === 'favorites') listMatch = listManager.isInList('favorites', r.id);
+          else if (currentList === 'visited') listMatch = listManager.isInList('visited', r.id);
+          else if (currentList === 'want-to-go') listMatch = listManager.isInList('wantToGo', r.id);
         }
         return categoryMatch && searchMatch && listMatch;
       });

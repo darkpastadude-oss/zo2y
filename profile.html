@@ -291,12 +291,12 @@
           const list = this.currentLists[listType];
           if (list) {
             const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')
-              .select('restraint_id')
+              .from('list_restraunts')  // FIXED: removed 's'
+              .select('restraunt_id')   // FIXED: added 'a'
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraint_id);
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // FIXED: added 'a'
             } else {
               list.restaurants = [];
             }
@@ -325,9 +325,12 @@
         try {
           if (isInList) {
             const { error } = await supabase
-              .from('lists_restraunts')
+              .from('list_restraunts')  // FIXED: removed 's'
               .delete()
-              .match({ list_id: list.id, restraint_id: restaurantId });
+              .match({ 
+                list_id: list.id, 
+                restraunt_id: restaurantId  // FIXED: added 'a'
+              });
             
             if (error) throw error;
             
@@ -335,9 +338,15 @@
             showNotification(`Removed from ${list.title}`, "info");
             
           } else {
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
-              .from('lists_restraunts')
-              .insert([{ list_id: list.id, restraint_id: restaurantId }]);
+              .from('list_restraunts')  // FIXED: removed 's'
+              .insert([{ 
+                list_id: list.id, 
+                restraunt_id: restaurantId,  // FIXED: added 'a'
+                user_id: user.id,
+                added_at: new Date().toISOString()
+              }]);
             
             if (error) throw error;
             
