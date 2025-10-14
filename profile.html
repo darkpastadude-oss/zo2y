@@ -343,7 +343,7 @@
               .from('lists_restraunts')  // FIXED: added 's' to table name
               .insert([{ 
                 list_id: list.id, 
-                restraint_id: restaurantId,  // FIXED: changed to 'restraint_id' (with 'i')
+                restraunt_id: restaurantId,  // FIXED: changed to 'restraint_id' (with 'i')
                 user_id: user.id,
                 added_at: new Date().toISOString()
               }]);
