@@ -310,12 +310,12 @@
           const list = this.currentLists[listType];
           if (list) {
             const { data: listRestaurants, error } = await supabase
-              .from('list_restraunts')  // FIXED: removed 's'
-              .select('restraunt_id')   // FIXED: added 'a'
+              .from('lists_restraunts')  // FIXED: ADDED 's'
+              .select('restraint_id')    // FIXED: WITH 'i'
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // FIXED: added 'a'
+              list.restaurants = listRestaurants.map(item => item.restraint_id);  // FIXED: WITH 'i'
             } else {
               list.restaurants = [];
             }
@@ -342,14 +342,18 @@
         const isInList = list.restaurants?.includes(restaurantId);
         
         try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('No user found');
+
           if (isInList) {
             // Remove from list
             const { error } = await supabase
-              .from('list_restraunts')  // FIXED: removed 's'
+              .from('lists_restraunts')  // FIXED: ADDED 's'
               .delete()
               .match({
                 list_id: list.id,
-                restraunt_id: restaurantId  // FIXED: added 'a'
+                restraint_id: restaurantId,  // FIXED: WITH 'i'
+                user_id: user.id
               });
             
             if (error) throw error;
@@ -359,13 +363,12 @@
             
           } else {
             // Add to list
-            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
-              .from('list_restraunts')  // FIXED: removed 's'
+              .from('lists_restraunts')  // FIXED: ADDED 's'
               .insert([
                 {
                   list_id: list.id,
-                  restraunt_id: restaurantId,  // FIXED: added 'a'
+                  restraint_id: restaurantId,  // FIXED: WITH 'i'
                   user_id: user.id,
                   added_at: new Date().toISOString()
                 }
