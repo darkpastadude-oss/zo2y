@@ -8,13 +8,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root { --bg: #0b1633; --card: #132347; --muted: #cbd5e1; --accent: #f59e0b; --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); }
-    * { box-sizing: border-box; } html, body { height: 100%; margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--white); transition: background-color 0.3s ease, color 0.3s ease; } a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
-    header { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 20px; padding: 12px 20px; backdrop-filter: blur(6px); background: var(--glass); border-bottom: 1px solid var(--border); } .logo { height: 40px; cursor: pointer; } .toolbar { display: flex; gap: 10px; margin-left: auto; align-items: center; flex-wrap: wrap; } .search { width: 280px; position: relative; } .search input { width: 100%; padding: 8px 12px 8px 36px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; } .search input:focus { border-color: var(--accent); } .search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.85; } .btn { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; transition: all 0.3s ease; } .btn:hover { background: var(--accent); color: #0b1633; }
-    .user-auth { display: flex; align-items: center; gap: 10px; } .auth-btn { background: var(--accent); color: #0b1633; border: none; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 600; } .user-welcome { display: none; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 6px 12px; border-radius: 16px; transition: all 0.3s ease; } .user-welcome:hover { background: var(--accent); color: #0b1633; } .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0b1633; font-size: 14px; }
+    * { box-sizing: border-box; } html, body { height: 100%; margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--white); } a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
+    header { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 20px; padding: 12px 20px; backdrop-filter: blur(6px); background: var(--glass); border-bottom: 1px solid var(--border); } .logo { height: 40px; cursor: pointer; } .toolbar { display: flex; gap: 10px; margin-left: auto; align-items: center; flex-wrap: wrap; } .search { width: 280px; position: relative; } .search input { width: 100%; padding: 8px 12px 8px 36px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; } .search input:focus { border-color: var(--accent); } .search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.85; } .btn { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; } .btn:hover { background: var(--accent); color: #0b1633; }
+    .user-auth { display: flex; align-items: center; gap: 10px; } .auth-btn { background: var(--accent); color: #0b1633; border: none; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 600; } .user-welcome { display: none; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 6px 12px; border-radius: 16px; } .user-welcome:hover { background: var(--accent); color: #0b1633; } .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0b1633; font-size: 14px; }
     .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; } .login-prompt { display: none; background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center; } .list-tabs { display: none; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; } .list-tab { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; white-space: nowrap; } .list-tab.active { background: var(--accent); color: #0b1633; } .list-tab .count { background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 8px; font-size: 11px; margin-left: 4px; }
     .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; } .controls-info { color: var(--muted); font-size: 13px; } .category-filters { margin-left: auto; } .category-dropdown select { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 13px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; } .tile { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s ease; position: relative; } .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); } .tile .media { height: 140px; overflow: hidden; background: var(--glass); display: flex; align-items: center; justify-content: center; padding: 12px; } .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; } .tile .inner { padding: 14px; } .tile h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; } .tile .category { color: var(--muted); font-size: 12px; margin: 0 0 8px 0; } .tile .rating { color: var(--accent); font-weight: 700; } .tile .desc { color: var(--muted); font-size: 12px; margin: 8px 0 0 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity 0.3s ease; } .tile:hover .list-actions { opacity: 1; } .list-btn { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 8px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); width: 44px; height: 44px; transition: all 0.2s ease; z-index: 10; } .list-btn:hover { transform: scale(1.1); background: var(--accent); color: #0b1633; } .list-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); } .list-btn .btn-text { display: none; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; } .tile { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; position: relative; } .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); } .tile .media { height: 140px; overflow: hidden; background: var(--glass); display: flex; align-items: center; justify-content: center; padding: 12px; } .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; } .tile .inner { padding: 14px; } .tile h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; } .tile .category { color: var(--muted); font-size: 12px; margin: 0 0 8px 0; } .tile .rating { color: var(--accent); font-weight: 700; } .tile .desc { color: var(--muted); font-size: 12px; margin: 8px 0 0 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; z-index: 10; } .tile:hover .list-actions { opacity: 1; } .list-btn { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 8px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); width: 44px; height: 44px; } .list-btn:hover { transform: scale(1.1); background: var(--accent); color: #0b1633; } .list-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); } .list-btn .btn-text { display: none; }
     .empty { padding: 40px 16px; text-align: center; color: var(--muted); display: none; } footer { padding: 20px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 30px; }
     
     /* Custom Notification Styles */
@@ -69,7 +69,7 @@
       <div class="search"><span class="icon">🔎</span><input id="q" placeholder="Search restaurants..."></div>
       <button class="btn" id="reset">Reset</button>
       <div class="user-auth">
-        <div class="user-welcome" id="userWelcome" onclick="goToProfile()">
+        <div class="user-welcome" id="userWelcome">
           <div class="user-avatar" id="userAvatar">U</div>
           <span id="userName">User</span>
         </div>
@@ -113,15 +113,112 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    let currentUser = null;
+    // ---------- WORKING ACCOUNT SYSTEM ----------
+    const userWelcome = document.getElementById('userWelcome');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const loginBtn = document.getElementById('loginBtn');
 
-    // Fixed: Proper profile navigation
-    function goToProfile() {
-      if (currentUser) {
-        window.location.href = 'profile.html';
-      } else {
+    // Helper to escape HTML
+    function escapeHtml(s) { 
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); 
+    }
+
+    // Updates UI based on supabase session
+    async function updateAuthUI() {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('supabase getSession err', error);
+        }
+
+        if (session && session.user) {
+          // User is logged in
+          const userId = session.user.id;
+
+          // Fetch profile from user_profiles table
+          let username = null;
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('username, full_name, avatar_url')
+              .eq('id', userId)
+              .limit(1)
+              .maybeSingle();
+
+            if (profileError) {
+              console.warn('profile fetch err', profileError);
+            } else if (profile) {
+              username = profile.username || profile.full_name || null;
+              // Store profile locally for other pages
+              try { localStorage.setItem('zo2y_user', JSON.stringify(profile)); } catch(e){}
+            }
+          } catch (err) {
+            console.warn('profile fetch catch', err);
+          }
+
+          // Fallback display name
+          const displayName = username || session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User';
+
+          // Set UI elements
+          userWelcome.style.display = 'flex';
+          loginBtn.style.display = 'none';
+          document.getElementById('listTabs').style.display = 'flex';
+          document.getElementById('loginPrompt').style.display = 'none';
+          
+          userName.textContent = displayName;
+          userAvatar.textContent = displayName.charAt(0).toUpperCase();
+
+          // Set click handler for profile redirect
+          userWelcome.onclick = (e) => {
+            e.preventDefault();
+            safeGoToProfile();
+          };
+
+        } else {
+          // Not logged in
+          userWelcome.style.display = 'none';
+          loginBtn.style.display = 'block';
+          document.getElementById('listTabs').style.display = 'none';
+          document.getElementById('loginPrompt').style.display = 'block';
+          
+          try { localStorage.removeItem('zo2y_user'); } catch(e){}
+          
+          loginBtn.onclick = () => location.href = 'login.html';
+        }
+      } catch (e) {
+        console.error('updateAuthUI error', e);
+        // Fallback to logged out state
+        userWelcome.style.display = 'none';
+        loginBtn.style.display = 'block';
+        document.getElementById('listTabs').style.display = 'none';
+        document.getElementById('loginPrompt').style.display = 'block';
+        loginBtn.onclick = () => location.href = 'login.html';
+      }
+    }
+
+    // Safe redirect function: verifies session before sending to profile
+    async function safeGoToProfile() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          // Go to profile
+          window.location.href = 'profile.html';
+        } else {
+          // No session -> go to login
+          window.location.href = 'login.html';
+        }
+      } catch (err) {
+        console.error('safeGoToProfile err', err);
         window.location.href = 'login.html';
       }
+    }
+
+    // Listen for auth changes so UI updates automatically
+    if (supabase) {
+      supabase.auth.onAuthStateChange((event, session) => {
+        setTimeout(updateAuthUI, 50);
+      });
     }
 
     // Custom notification function
@@ -130,11 +227,9 @@
       const icon = notification.querySelector(".notification-icon");
       const messageEl = notification.querySelector(".notification-message");
       
-      // Set notification content and style
       messageEl.textContent = message;
       notification.className = `custom-notification notification-${type}`;
       
-      // Set icon based on type
       if (type === "success") {
         icon.className = "notification-icon fas fa-check-circle";
       } else if (type === "error") {
@@ -143,80 +238,12 @@
         icon.className = "notification-icon fas fa-info-circle";
       }
       
-      // Show notification
       notification.classList.add("notification-show");
       
-      // Auto hide after 2.5 seconds
       setTimeout(() => {
         notification.classList.remove("notification-show");
       }, 2500);
     }
-
-    // Auth System with Supabase
-    const authManager = {
-      currentUser: null,
-      init() { 
-        this.checkAuth(); 
-      },
-      async checkAuth() {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error || !user) {
-          this.currentUser = null;
-          this.updateUI();
-          return;
-        }
-        
-        this.currentUser = user;
-        await this.loadUserProfile();
-        this.updateUI();
-        await listManager.init();
-        filterAndRender();
-      },
-      async loadUserProfile() {
-        if (!this.currentUser) return;
-        
-        const { data: profile, error } = await supabase
-          .from("user_profiles")
-          .select("username, full_name")
-          .eq("id", this.currentUser.id)
-          .single();
-
-        if (profile && !error) {
-          this.currentUser.profile = profile;
-        }
-      },
-      updateUI() {
-        const isLoggedIn = this.currentUser !== null;
-        document.getElementById('userWelcome').style.display = isLoggedIn ? 'flex' : 'none';
-        document.getElementById('loginBtn').style.display = isLoggedIn ? 'none' : 'block';
-        document.getElementById('listTabs').style.display = isLoggedIn ? 'flex' : 'none';
-        document.getElementById('loginPrompt').style.display = isLoggedIn ? 'none' : 'block';
-        
-        if (isLoggedIn) {
-          let displayName = "User";
-          if (this.currentUser.profile) {
-            if (this.currentUser.profile.username && this.currentUser.profile.username.trim() !== "") {
-              displayName = this.currentUser.profile.username;
-            } else if (this.currentUser.profile.full_name && this.currentUser.profile.full_name.trim() !== "") {
-              displayName = this.currentUser.profile.full_name;
-            } else {
-              displayName = this.currentUser.email.split('@')[0];
-            }
-          } else {
-            displayName = this.currentUser.email.split('@')[0];
-          }
-          
-          document.getElementById('userName').textContent = displayName;
-          document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-        }
-      },
-      isLoggedIn() { return this.currentUser !== null; }
-    };
-
-    // Simple login function
-    document.getElementById('loginBtn').addEventListener('click', () => {
-      location.href = 'login.html';
-    });
 
     // List Management - CORRECTED table and column names
     const listManager = {
@@ -228,7 +255,8 @@
       },
       
       async init() { 
-        if (!authManager.isLoggedIn()) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         
         await this.loadUserLists();
         this.updateListCounts();
@@ -302,12 +330,12 @@
           const list = this.currentLists[listType];
           if (list) {
             const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')  // CORRECTED: Table name with 's'
-              .select('restraunt_id')    // CORRECTED: Column name with 'a'
+              .from('lists_restraunts')
+              .select('restraunt_id')
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // CORRECTED: Column name with 'a'
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);
             } else {
               list.restaurants = [];
             }
@@ -336,11 +364,11 @@
         try {
           if (isInList) {
             const { error } = await supabase
-              .from('lists_restraunts')  // CORRECTED: Table name with 's'
+              .from('lists_restraunts')
               .delete()
               .match({
                 list_id: list.id,
-                restraunt_id: restaurantId  // CORRECTED: Column name with 'a'
+                restraunt_id: restaurantId
               });
             
             if (error) throw error;
@@ -349,13 +377,12 @@
             showNotification(`Removed from ${list.title}`, "info");
             
           } else {
-            // CORRECTED: Removed user_id from insert
             const { error } = await supabase
-              .from('lists_restraunts')  // CORRECTED: Table name with 's'
+              .from('lists_restraunts')
               .insert([
                 {
                   list_id: list.id,
-                  restraunt_id: restaurantId,  // CORRECTED: Column name with 'a'
+                  restraunt_id: restaurantId,
                   added_at: new Date().toISOString()
                 }
               ]);
@@ -380,15 +407,6 @@
       isInList(listType, restaurantId) {
         const list = this.currentLists[listType];
         return list?.restaurants?.includes(restaurantId) || false;
-      },
-      
-      getListDisplayName(listType) {
-        const names = {
-          'favorites': 'Favorites',
-          'visited': 'Visited',
-          'wantToGo': 'Want to Go'
-        };
-        return names[listType] || listType;
       }
     };
 
@@ -438,13 +456,15 @@
     const categorySelect = document.getElementById('categorySelect');
     let currentList = 'all';
 
-    function renderList(list) {
+    async function renderList(list) {
       grid.innerHTML = '';
       if (!list.length) { empty.style.display = 'block'; grid.style.display = 'none'; countEl.textContent = '0'; return; }
       empty.style.display = 'none'; grid.style.display = 'grid'; countEl.textContent = list.length;
       
+      const { data: { session } } = await supabase.auth.getSession();
+      const isLoggedIn = !!session;
+      
       list.forEach(r => {
-        const isLoggedIn = authManager.isLoggedIn();
         const tile = document.createElement('div');
         tile.className = 'tile';
         
@@ -483,7 +503,7 @@
       });
 
       // Add event listeners for list buttons
-      if (authManager.isLoggedIn()) {
+      if (isLoggedIn) {
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.preventDefault(); 
@@ -492,7 +512,7 @@
             const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
             btn.classList.toggle('active', wasAdded);
             
-            if (currentList !== 'all') filterAndRender();
+            if (currentList !== 'all') await filterAndRender();
           });
         });
 
@@ -510,26 +530,29 @@
             const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
             btn.classList.toggle('active', wasAdded);
             
-            if (currentList !== 'all') filterAndRender();
+            if (currentList !== 'all') await filterAndRender();
           });
         });
       }
     }
 
-    function filterAndRender() {
+    async function filterAndRender() {
+      const { data: { session } } = await supabase.auth.getSession();
+      const isLoggedIn = !!session;
+      
       let out = restaurants.filter(r => {
         const q = qInput.value.trim().toLowerCase();
         const categoryMatch = categorySelect.value === 'All' || r.category.includes(categorySelect.value);
         const searchMatch = !q || r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
         let listMatch = true;
-        if (authManager.isLoggedIn()) {
+        if (isLoggedIn) {
           if (currentList === 'favorites') listMatch = listManager.isInList('favorites', r.id);
           else if (currentList === 'visited') listMatch = listManager.isInList('visited', r.id);
           else if (currentList === 'want-to-go') listMatch = listManager.isInList('wantToGo', r.id);
         }
         return categoryMatch && searchMatch && listMatch;
       });
-      renderList(out);
+      await renderList(out);
     }
 
     // Event Listeners
@@ -543,19 +566,23 @@
     });
 
     document.querySelectorAll('.list-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        if (!authManager.isLoggedIn()) return;
+      tab.addEventListener('click', async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentList = tab.dataset.list;
-        filterAndRender();
+        await filterAndRender();
       });
     });
 
     // Initialize
-    authManager.init();
-    restaurants.sort((a,b) => b.rating - a.rating);
-    filterAndRender();
+    document.addEventListener('DOMContentLoaded', function() {
+      updateAuthUI();
+      listManager.init();
+      restaurants.sort((a,b) => b.rating - a.rating);
+      filterAndRender();
+    });
   </script>
 </body>
 </html>
