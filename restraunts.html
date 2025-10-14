@@ -137,10 +137,10 @@
       // Show notification
       notification.classList.add("notification-show");
       
-      // Auto hide after 5 seconds
+      // Auto hide after 2.5 seconds
       setTimeout(() => {
         notification.classList.remove("notification-show");
-      }, 5000);
+      }, 2500);
     }
 
     // Navigation function
@@ -167,7 +167,7 @@
         this.currentUser = user;
         await this.loadUserProfile();
         this.updateUI();
-        listManager.init();
+        await listManager.init(); // Make this async
         filterAndRender();
       },
       async loadUserProfile() {
@@ -216,29 +216,78 @@
       location.href = 'login.html';
     });
 
-    // List Management
+    // List Management - FIXED VERSION
     const listManager = {
       favorites: [], visited: [], wantToGo: [],
-      init() { if (!authManager.isLoggedIn()) return;
+      async init() { 
+        if (!authManager.isLoggedIn()) return;
         const userId = authManager.currentUser.id;
+        
+        // Load from localStorage first for instant UI
         this.favorites = JSON.parse(localStorage.getItem(`zo2y-favorites-${userId}`)) || [];
         this.visited = JSON.parse(localStorage.getItem(`zo2y-visited-${userId}`)) || [];
         this.wantToGo = JSON.parse(localStorage.getItem(`zo2y-wantToGo-${userId}`)) || [];
+        
+        // Then sync with Supabase
+        await this.syncWithSupabase();
         this.updateListCounts();
       },
-      saveLists() { if (!authManager.isLoggedIn()) return;
+      
+      async syncWithSupabase() {
+        if (!authManager.isLoggedIn()) return;
+        const userId = authManager.currentUser.id;
+        
+        try {
+          // Get user's lists from Supabase
+          const { data: userLists, error } = await supabase
+            .from('lists_restraunts')
+            .select('list_name, restaurant_slug')
+            .eq('user_id', userId);
+          
+          if (error) throw error;
+          
+          // Clear current lists and populate from Supabase
+          this.favorites = [];
+          this.visited = [];
+          this.wantToGo = [];
+          
+          if (userLists) {
+            userLists.forEach(item => {
+              if (item.list_name === 'favorites') this.favorites.push(item.restaurant_slug);
+              else if (item.list_name === 'visited') this.visited.push(item.restaurant_slug);
+              else if (item.list_name === 'wantToGo') this.wantToGo.push(item.restaurant_slug);
+            });
+          }
+          
+          // Update localStorage
+          this.saveToLocalStorage();
+          
+        } catch (error) {
+          console.error('Error syncing with Supabase:', error);
+        }
+      },
+      
+      saveToLocalStorage() {
+        if (!authManager.isLoggedIn()) return;
         const userId = authManager.currentUser.id;
         localStorage.setItem(`zo2y-favorites-${userId}`, JSON.stringify(this.favorites));
         localStorage.setItem(`zo2y-visited-${userId}`, JSON.stringify(this.visited));
         localStorage.setItem(`zo2y-wantToGo-${userId}`, JSON.stringify(this.wantToGo));
+      },
+      
+      saveLists() { 
+        if (!authManager.isLoggedIn()) return;
+        this.saveToLocalStorage();
         this.updateListCounts();
       },
+      
       updateListCounts() {
         document.getElementById('favoritesCount').textContent = this.favorites.length;
         document.getElementById('visitedCount').textContent = this.visited.length;
         document.getElementById('wantToGoCount').textContent = this.wantToGo.length;
       },
-      toggleInList(listName, slug) {
+      
+      async toggleInList(listName, slug) {
         const list = this[listName];
         const index = list.indexOf(slug);
         const restaurant = restaurants.find(r => r.slug === slug);
@@ -251,8 +300,53 @@
           showNotification(`Added to ${this.getListDisplayName(listName)}`, "success");
         }
         this.saveLists();
+        
+        // Save to Supabase
+        await this.saveToSupabase(listName, slug, index === -1);
+        
         return index === -1;
       },
+      
+      async saveToSupabase(listName, slug, wasAdded) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          if (wasAdded) {
+            const { error } = await supabase
+              .from('lists_restraunts')
+              .insert([
+                {
+                  user_id: user.id,
+                  list_name: listName,
+                  restaurant_slug: slug,
+                  restaurant_name: restaurants.find(r => r.slug === slug)?.name || slug,
+                  added_at: new Date().toISOString()
+                }
+              ]);
+            if (error) {
+              console.error('Error saving to Supabase:', error);
+              showNotification('Error saving to server', 'error');
+            }
+          } else {
+            const { error } = await supabase
+              .from('lists_restraunts')
+              .delete()
+              .match({
+                user_id: user.id,
+                list_name: listName,
+                restaurant_slug: slug
+              });
+            if (error) {
+              console.error('Error removing from Supabase:', error);
+              showNotification('Error removing from server', 'error');
+            }
+          }
+        } catch (error) {
+          console.error('Supabase operation failed:', error);
+        }
+      },
+      
       getListDisplayName(listName) {
         const names = {
           'favorites': 'Favorites',
@@ -261,6 +355,7 @@
         };
         return names[listName] || listName;
       },
+      
       isInList(listName, slug) { return this[listName].includes(slug); }
     };
 
@@ -357,40 +452,11 @@
       // Add event listeners for list buttons
       if (authManager.isLoggedIn()) {
         document.querySelectorAll('.list-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+          btn.addEventListener('click', async (e) => {
             e.preventDefault(); 
             e.stopPropagation();
-            const wasAdded = listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
             btn.classList.toggle('active', wasAdded);
-            
-            // --- save/remove restaurant in Supabase ---
-            (async () => {
-              const { data: { user } } = await supabase.auth.getUser();
-              if (!user) return;
-
-              if (wasAdded) {
-                const { error } = await supabase
-                  .from('lists_restraunts')
-                  .insert([
-                    {
-                      user_id: user.id,
-                      list_name: btn.dataset.list,
-                      restaurant_slug: btn.dataset.slug
-                    }
-                  ]);
-                if (error) console.error('Error saving to Supabase:', error);
-              } else {
-                const { error } = await supabase
-                  .from('lists_restraunts')
-                  .delete()
-                  .match({
-                    user_id: user.id,
-                    list_name: btn.dataset.list,
-                    restaurant_slug: btn.dataset.slug
-                  });
-                if (error) console.error('Error removing from Supabase:', error);
-              }
-            })();
             
             if (currentList !== 'all') filterAndRender();
           });
@@ -403,40 +469,11 @@
             e.stopPropagation();
           });
           
-          btn.addEventListener('touchend', (e) => {
+          btn.addEventListener('touchend', async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const wasAdded = listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, btn.dataset.slug);
             btn.classList.toggle('active', wasAdded);
-            
-            // --- save/remove restaurant in Supabase ---
-            (async () => {
-              const { data: { user } } = await supabase.auth.getUser();
-              if (!user) return;
-
-              if (wasAdded) {
-                const { error } = await supabase
-                  .from('lists_restraunts')
-                  .insert([
-                    {
-                      user_id: user.id,
-                      list_name: btn.dataset.list,
-                      restaurant_slug: btn.dataset.slug
-                    }
-                  ]);
-                if (error) console.error('Error saving to Supabase:', error);
-              } else {
-                const { error } = await supabase
-                  .from('lists_restraunts')
-                  .delete()
-                  .match({
-                    user_id: user.id,
-                    list_name: btn.dataset.list,
-                    restaurant_slug: btn.dataset.slug
-                  });
-                if (error) console.error('Error removing from Supabase:', error);
-              }
-            })();
             
             if (currentList !== 'all') filterAndRender();
           });
@@ -482,7 +519,6 @@
 
     // Initialize
     authManager.init();
-    listManager.init();
     restaurants.sort((a,b) => b.rating - a.rating);
     filterAndRender();
   </script>

@@ -248,42 +248,43 @@
     }
 
     async function loadDefaultLists() {
-      // Try to get lists from the restaurants page first
-      if (window.getUserLists) {
-        const userLists = window.getUserLists();
-        if (userLists) {
-          document.getElementById("favoritesCount").textContent = `${userLists.favorites.length} restaurants`;
-          document.getElementById("visitedCount").textContent = `${userLists.visited.length} restaurants`;
-          document.getElementById("wantToGoCount").textContent = `${userLists.wantToGo.length} restaurants`;
-          return;
-        }
-      }
-      
-      // Fallback: Get from Supabase
+      if (!currentUser) return;
+
       try {
-        const { data: favorites } = await supabase
+        console.log("Loading lists for user:", currentUser.id);
+        
+        // Get counts for each list type from Supabase
+        const { count: favoritesCount, error: favError } = await supabase
           .from("lists_restraunts")
-          .select("id")
+          .select("id", { count: 'exact', head: true })
           .eq("user_id", currentUser.id)
           .eq("list_name", "favorites");
 
-        const { data: visited } = await supabase
+        const { count: visitedCount, error: visError } = await supabase
           .from("lists_restraunts")
-          .select("id")
+          .select("id", { count: 'exact', head: true })
           .eq("user_id", currentUser.id)
           .eq("list_name", "visited");
 
-        const { data: wantToGo } = await supabase
+        const { count: wantToGoCount, error: wtgError } = await supabase
           .from("lists_restraunts")
-          .select("id")
+          .select("id", { count: 'exact', head: true })
           .eq("user_id", currentUser.id)
           .eq("list_name", "wantToGo");
 
-        document.getElementById("favoritesCount").textContent = `${favorites?.length || 0} restaurants`;
-        document.getElementById("visitedCount").textContent = `${visited?.length || 0} restaurants`;
-        document.getElementById("wantToGoCount").textContent = `${wantToGo?.length || 0} restaurants`;
+        console.log("Counts from Supabase:", {
+          favorites: favoritesCount,
+          visited: visitedCount, 
+          wantToGo: wantToGoCount
+        });
+
+        // Update the UI
+        document.getElementById("favoritesCount").textContent = `${favoritesCount || 0} restaurants`;
+        document.getElementById("visitedCount").textContent = `${visitedCount || 0} restaurants`;
+        document.getElementById("wantToGoCount").textContent = `${wantToGoCount || 0} restaurants`;
+
       } catch (error) {
-        console.error("Error loading default lists:", error);
+        console.error("Error loading lists from Supabase:", error);
       }
     }
 
