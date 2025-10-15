@@ -17,12 +17,46 @@
         .hero-right {width:420px; max-width:42%; min-width:320px; display:flex; align-items:center; justify-content:center; position: relative;} .spotlight {width:100%; border-radius:20px; overflow:hidden; background:var(--card); box-shadow:0 20px 60px var(--shadow); border:1px solid var(--border); display:grid; grid-template-columns:120px 1fr; gap:16px; padding:16px; align-items:center; position: relative; z-index: 2;} .spotlight::before {content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: var(--gradient); border-radius: 22px; z-index: -1; opacity: 0;} .spotlight:hover {transform: translateY(-8px) scale(1.02); box-shadow: 0 30px 80px var(--shadow);} .spotlight:hover::before {opacity: 1;} .spotlight .thumb {width:100%; height:100px; border-radius:12px; overflow:hidden; flex:0 0 120px; background:var(--glass); position: relative;} .spotlight .thumb img{width:100%; height:100%; object-fit:cover; display:block;} .spotlight:hover .thumb img {transform: scale(1.1);} .spotlight .meta {padding-right:6px} .spotlight h3{margin:0; font-size:18px; font-weight:700; color:var(--white); line-height: 1.3;} .spotlight p{margin:6px 0 0 0; color:var(--muted); font-size:14px; line-height: 1.4;} .rating {margin-top:8px; color:var(--accent); font-weight:800; letter-spacing:.6px; display: flex; align-items: center; gap: 4px;} .spotlight .shuffle {margin-top:12px; font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center;} .dot {width:8px; height:8px; border-radius:50%; background:var(--muted); opacity: 0.3;} .dot.active {background:var(--accent); opacity: 1; transform: scale(1.2);} .floating-element {position: absolute; border-radius: 50%; background: var(--gradient); opacity: 0.1; filter: blur(20px); z-index: 1;} .float-1 {width: 200px; height: 200px; top: 10%; right: 5%;} .float-2 {width: 150px; height: 150px; bottom: 20%; left: 5%;}
         .section {padding:80px 48px; position: relative;} .section-header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;} .section h2 {font-size:32px; margin:0; color:var(--white); font-weight: 700;} .section-subtitle {color: var(--muted); font-size: 16px; margin-top: 8px; max-width: 600px;} .view-all {color: var(--accent); font-weight: 600; display: flex; align-items: center; gap: 6px;} .view-all:hover {gap: 10px;} .slider-container {position: relative;} .slider {display:flex; gap:20px; overflow-x:auto; padding:10px 0 30px 0; scroll-snap-type:x mandatory; scrollbar-width: none;} .slider::-webkit-scrollbar { display: none;} .card {flex:0 0 280px; min-width:280px; background:var(--card); border-radius:16px; overflow:hidden; scroll-snap-align:start; box-shadow:0 8px 28px var(--shadow); border:1px solid var(--border); cursor:pointer; position: relative;} .card::before {content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--gradient); opacity: 0; z-index: 1;} .card:hover{transform:translateY(-8px) scale(1.02); box-shadow: 0 20px 50px var(--shadow);} .card:hover::before {opacity: 0.05;} .card .imgwrap{height:160px; overflow:hidden; background:var(--glass); position: relative; display: flex; align-items: center; justify-content: center; padding: 20px;} .card .imgwrap img{width:100%; height:100%; object-fit: contain; display:block; background-color: var(--bg); border-radius: 8px; padding: 10px;} .card:hover .imgwrap img {transform: scale(1.1);} .card .body{padding:20px; position: relative; z-index: 2;} .card h3{margin:0 0 8px 0; font-size:18px; color:var(--white); font-weight: 700;} .card p{font-size:14px; color:var(--muted); margin:0 0 12px 0; line-height: 1.5;} .card .meta{display:flex; justify-content:space-between; align-items:center;} .card-rating {display: flex; align-items: center; gap: 4px; color: var(--accent); font-weight: 700;} .card-category {font-size: 12px; padding: 4px 10px; background: var(--accent-light); color: var(--accent); border-radius: 20px; font-weight: 600;} .explore-cta {display:flex; justify-content:center; margin-top:32px;} .category-filters {display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;} .category-filter {padding: 8px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-size: 14px; cursor: pointer;} .category-filter.active, .category-filter:hover {background: var(--accent); color: #111; border-color: var(--accent);}
         
-        /* List Actions for Cards */
-        .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; z-index: 10; } 
+        /* List Actions for Cards - FIXED POSITIONING */
+        .list-actions { 
+            position: absolute; 
+            top: 8px; 
+            right: 8px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            opacity: 0; 
+            z-index: 20; /* Higher z-index to stay above card content */
+            pointer-events: auto;
+        } 
         .card:hover .list-actions { opacity: 1; } 
-        .list-btn { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 8px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); width: 44px; height: 44px; } 
-        .list-btn:hover { transform: scale(1.1); background: var(--accent); color: #0b1633; } 
-        .list-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); } 
+        .list-btn { 
+            background: var(--bg); 
+            border: 1px solid var(--border); 
+            color: var(--white); 
+            padding: 8px 10px; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 4px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            backdrop-filter: blur(10px); 
+            width: 44px; 
+            height: 44px; 
+            pointer-events: auto;
+        } 
+        .list-btn:hover { 
+            transform: scale(1.1); 
+            background: var(--accent); 
+            color: #0b1633; 
+        } 
+        .list-btn.active { 
+            background: var(--accent); 
+            color: #0b1633; 
+            border-color: var(--accent); 
+        } 
         .list-btn .btn-text { display: none; }
 
         .features {display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 48px;} .feature-card {background: var(--card); border-radius: 16px; padding: 24px; border: 1px solid var(--border);} .feature-card:hover {transform: translateY(-5px); box-shadow: 0 10px 30px var(--shadow);} .feature-icon {width: 50px; height: 50px; border-radius: 12px; background: var(--gradient); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 24px;} .feature-card h3 {margin: 0 0 8px 0; font-size: 18px; color: var(--white);} .feature-card p {margin: 0; color:var(--muted); line-height: 1.5;}
@@ -190,11 +224,7 @@
       // ---------- CONFIG ----------
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const supabase = supabase_createClient();
-
-      function supabase_createClient(){
-        return window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       // ---------- LIST MANAGEMENT ----------
       const listManager = {
@@ -383,12 +413,6 @@
 
       async function updateAuthUI(){
         try {
-          if (!supabase) {
-            setAccountText('Account');
-            accountBtn.onclick = () => location.href = 'login.html';
-            return;
-          }
-
           const { data: { session }, error } = await supabase.auth.getSession();
           if (error) {
             console.warn('supabase getSession err', error);
@@ -498,13 +522,15 @@
         el.className = 'card'; 
         el.setAttribute('data-categories', r.tags.join(' '));
         
-        // Create clickable content
+        // Create clickable content - FIXED: Make entire card clickable
         const clickableContent = document.createElement('a');
         clickableContent.href = r.link;
         clickableContent.style.textDecoration = 'none';
         clickableContent.style.color = 'inherit';
         clickableContent.style.display = 'block';
         clickableContent.style.height = '100%';
+        clickableContent.style.position = 'relative';
+        clickableContent.style.zIndex = '10';
         
         clickableContent.innerHTML = `
           <div class="imgwrap">
@@ -522,7 +548,7 @@
         
         el.appendChild(clickableContent);
         
-        // Add list buttons
+        // Add list buttons - FIXED: Proper positioning and event handling
         const listActions = document.createElement('div');
         listActions.className = 'list-actions';
         listActions.innerHTML = `
@@ -567,7 +593,7 @@
           });
         }
 
-        // Add click handlers for list buttons
+        // Add click handlers for list buttons - FIXED: Proper authentication check
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.preventDefault(); 
@@ -575,7 +601,10 @@
             
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-              showNotification('Please sign in to save restaurants', 'info');
+              showNotification('Please sign in to save restaurants to your lists', 'info');
+              setTimeout(() => {
+                window.location.href = 'login.html';
+              }, 2000);
               return;
             }
 
@@ -598,7 +627,10 @@
             
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-              showNotification('Please sign in to save restaurants', 'info');
+              showNotification('Please sign in to save restaurants to your lists', 'info');
+              setTimeout(() => {
+                window.location.href = 'login.html';
+              }, 2000);
               return;
             }
 
@@ -682,7 +714,7 @@
         } 
       });
 
-      // Main CTA button - FIXED to go to login.html
+      // Main CTA button
       mainCtaBtn.addEventListener('click', () => {
         location.href = 'login.html';
       });
