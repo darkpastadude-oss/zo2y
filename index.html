@@ -556,18 +556,18 @@
       }
 
       async function addListButtonListeners() {
+        // Update button states for logged-in users
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        if (session) {
+          document.querySelectorAll('.list-btn').forEach(btn => {
+            const restaurantId = parseInt(btn.dataset.id);
+            const listType = btn.dataset.list;
+            const isInList = listManager.isInList(listType, restaurantId);
+            btn.classList.toggle('active', isInList);
+          });
+        }
 
-        // Update button states
-        document.querySelectorAll('.list-btn').forEach(btn => {
-          const restaurantId = parseInt(btn.dataset.id);
-          const listType = btn.dataset.list;
-          const isInList = listManager.isInList(listType, restaurantId);
-          btn.classList.toggle('active', isInList);
-        });
-
-        // Add click handlers
+        // Add click handlers for list buttons
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.preventDefault(); 
