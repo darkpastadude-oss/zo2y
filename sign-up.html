@@ -407,7 +407,7 @@
           <i class="fab fa-google"></i>
           <span>Google</span>
         </div>
-        <div class="social-btn">
+        <div class="social-btn" id="facebookSignup">
           <i class="fab fa-facebook-f"></i>
           <span>Facebook</span>
         </div>
@@ -485,4 +485,172 @@
   </div>
 
   <script type="module">
-    import { create
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Auto redirect if already logged in
+      const { data: session } = await supabase.auth.getSession();
+      if (session.session) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      // Theme toggle functionality
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = themeToggle.querySelector("i");
+      const themeText = themeToggle.querySelector("span");
+      
+      // Set initial theme to dark (matching your app)
+      document.body.classList.add("dark-theme");
+      themeIcon.className = "fas fa-sun";
+      themeText.textContent = "Light Mode";
+      
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-theme");
+        if (document.body.classList.contains("dark-theme")) {
+          localStorage.setItem("theme", "dark");
+          themeIcon.className = "fas fa-sun";
+          themeText.textContent = "Light Mode";
+        } else {
+          localStorage.setItem("theme", "light");
+          themeIcon.className = "fas fa-moon";
+          themeText.textContent = "Dark Mode";
+        }
+      });
+
+      // Sign-up form submission
+      document.getElementById("signupForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const firstName = document.getElementById("firstName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        const terms = document.getElementById("terms").checked;
+        
+        const button = e.target.querySelector("button");
+        const original = button.innerHTML;
+
+        // Validation
+        if (!firstName || !lastName || !email || !password || !confirmPassword) {
+          showNotification("Please fill in all fields", "error");
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          showNotification("Passwords do not match", "error");
+          return;
+        }
+        
+        if (password.length < 6) {
+          showNotification("Password must be at least 6 characters", "error");
+          return;
+        }
+        
+        if (!terms) {
+          showNotification("Please agree to the Terms of Service and Privacy Policy", "error");
+          return;
+        }
+
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+        button.disabled = true;
+
+        try {
+          // Sign up with Supabase
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                first_name: firstName,
+                last_name: lastName
+              }
+            }
+          });
+
+          if (error) {
+            showNotification("❌ " + error.message, "error");
+          } else {
+            showNotification("✅ Account created successfully! Please check your email to verify your account.", "success");
+            
+            // Show welcome popup after a short delay
+            setTimeout(() => {
+              document.getElementById("welcomePopup").classList.add("show");
+            }, 1500);
+          }
+        } catch (error) {
+          showNotification("❌ An unexpected error occurred", "error");
+        }
+
+        button.innerHTML = original;
+        button.disabled = false;
+      });
+
+      // Google sign-up
+      document.getElementById("googleSignup").addEventListener("click", async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: window.location.origin + "/index.html" },
+        });
+        if (error) showNotification("Google sign-up failed: " + error.message, "error");
+      });
+
+      // Facebook sign-up
+      document.getElementById("facebookSignup").addEventListener("click", async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "facebook",
+          options: { redirectTo: window.location.origin + "/index.html" },
+        });
+        if (error) showNotification("Facebook sign-up failed: " + error.message, "error");
+      });
+
+      // Welcome popup functionality
+      document.getElementById("welcomeClose").addEventListener("click", () => {
+        document.getElementById("welcomePopup").classList.remove("show");
+        window.location.href = "index.html";
+      });
+
+      document.getElementById("exploreBtn").addEventListener("click", () => {
+        document.getElementById("welcomePopup").classList.remove("show");
+        window.location.href = "index.html";
+      });
+
+      document.getElementById("profileBtn").addEventListener("click", () => {
+        document.getElementById("welcomePopup").classList.remove("show");
+        window.location.href = "profile.html";
+      });
+
+      // Notification function
+      function showNotification(message, type) {
+        const notification = document.getElementById("customNotification");
+        const icon = notification.querySelector(".notification-icon");
+        const messageEl = notification.querySelector(".notification-message");
+        
+        notification.className = "custom-notification";
+        notification.classList.add(`notification-${type}`);
+        
+        if (type === "success") {
+          icon.className = "notification-icon fas fa-check-circle";
+        } else if (type === "error") {
+          icon.className = "notification-icon fas fa-exclamation-circle";
+        } else {
+          icon.className = "notification-icon fas fa-info-circle";
+        }
+        
+        messageEl.textContent = message;
+        notification.classList.add("notification-show");
+        
+        setTimeout(() => {
+          notification.classList.remove("notification-show");
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>
