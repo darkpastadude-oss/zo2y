@@ -60,6 +60,40 @@
     .back-btn:hover { background: #f59e0b; color: #0b1633; }
     .empty-list { text-align: center; padding: 40px; color: #cbd5e1; }
     
+    /* Friends System Styles */
+    .friends-section { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
+    .friends-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .friends-stats { display: flex; gap: 20px; }
+    .stat { text-align: center; cursor: pointer; transition: transform 0.2s; }
+    .stat:hover { transform: translateY(-2px); }
+    .stat-number { display: block; font-size: 1.5rem; font-weight: 700; color: #f59e0b; }
+    .stat-label { font-size: 0.9rem; color: #cbd5e1; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: #0b1633; color: white; font-family: inherit; }
+    .search-input:focus { outline: none; border-color: #f59e0b; }
+    .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+    .user-card { background: #0b1633; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; }
+    .user-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
+    .user-avatar { font-size: 2.5rem; width: 60px; height: 60px; border-radius: 50%; background: #f59e0b; color: #0b1633; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+    .user-info { text-align: center; }
+    .user-name { font-weight: 600; margin-bottom: 5px; }
+    .user-bio { color: #cbd5e1; font-size: 0.9rem; margin-bottom: 15px; }
+    .user-actions { display: flex; gap: 10px; justify-content: center; }
+    .follow-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .follow-btn:hover { background: #ffb84d; }
+    .follow-btn.following { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
+    .follow-btn.following:hover { background: #f59e0b22; }
+    .empty-state { text-align: center; padding: 40px; color: #cbd5e1; }
+    .empty-state i { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+    
+    /* Tabs for Profile Sections */
+    .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+    .profile-tab { background: none; border: none; color: #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .profile-tab.active { background: #f59e0b; color: #0b1633; }
+    .profile-tab:hover { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
     /* Notification Styles */
     .custom-notification {
       position: fixed;
@@ -113,51 +147,100 @@
     <div class="email" id="email"></div>
     <div class="join-date" id="joinDate"></div>
 
-    <!-- Bio Section -->
-    <div class="bio">
-      <h3>
-        About Me
-        <button class="edit-btn" id="editBioBtn">Edit Bio</button>
-      </h3>
-      <div id="bioDisplay">
-        <p id="bioText">No bio yet. Click edit to add one!</p>
-      </div>
-      <div id="bioEdit" style="display: none;">
-        <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
-        <div class="bio-actions">
-          <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
-          <button class="save-btn" id="saveBioBtn">Save Bio</button>
+    <!-- Profile Tabs -->
+    <div class="profile-tabs">
+      <button class="profile-tab active" data-tab="profile">Profile</button>
+      <button class="profile-tab" data-tab="social">Social</button>
+    </div>
+
+    <!-- Profile Tab Content -->
+    <div class="tab-content active" id="profile-tab">
+      <!-- Bio Section -->
+      <div class="bio">
+        <h3>
+          About Me
+          <button class="edit-btn" id="editBioBtn">Edit Bio</button>
+        </h3>
+        <div id="bioDisplay">
+          <p id="bioText">No bio yet. Click edit to add one!</p>
         </div>
+        <div id="bioEdit" style="display: none;">
+          <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
+          <div class="bio-actions">
+            <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
+            <button class="save-btn" id="saveBioBtn">Save Bio</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Lists Section -->
+      <div class="custom-lists">
+        <h3>My Lists</h3>
+        <div class="list-grid">
+          <div class="list-card" onclick="showList('favorites')">
+            <div class="list-icon">❤️</div>
+            <div class="list-card-title">Favorites</div>
+            <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('visited')">
+            <div class="list-icon">🍽️</div>
+            <div class="list-card-title">Visited</div>
+            <div class="list-card-count" id="visitedCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('wantToGo')">
+            <div class="list-icon">📍</div>
+            <div class="list-card-title">Want to Go</div>
+            <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active List Display -->
+      <div id="activeListSection" class="active-list-section" style="display: none;">
+        <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
+        <h3 id="activeListTitle">My List</h3>
+        <div id="activeListGrid" class="restaurants-grid"></div>
       </div>
     </div>
 
-    <!-- My Lists Section -->
-    <div class="custom-lists">
-      <h3>My Lists</h3>
-      <div class="list-grid">
-        <div class="list-card" onclick="showList('favorites')">
-          <div class="list-icon">❤️</div>
-          <div class="list-card-title">Favorites</div>
-          <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+    <!-- Social Tab Content -->
+    <div class="tab-content" id="social-tab">
+      <div class="friends-section">
+        <div class="friends-header">
+          <h3>My Network</h3>
+          <div class="friends-stats">
+            <div class="stat" onclick="showFollowers()">
+              <span class="stat-number" id="followersCount">0</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat" onclick="showFollowing()">
+              <span class="stat-number" id="followingCount">0</span>
+              <span class="stat-label">Following</span>
+            </div>
+          </div>
         </div>
-        <div class="list-card" onclick="showList('visited')">
-          <div class="list-icon">🍽️</div>
-          <div class="list-card-title">Visited</div>
-          <div class="list-card-count" id="visitedCount">0 restaurants</div>
-        </div>
-        <div class="list-card" onclick="showList('wantToGo')">
-          <div class="list-icon">📍</div>
-          <div class="list-card-title">Want to Go</div>
-          <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Active List Display -->
-    <div id="activeListSection" class="active-list-section" style="display: none;">
-      <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
-      <h3 id="activeListTitle">My List</h3>
-      <div id="activeListGrid" class="restaurants-grid"></div>
+        <!-- Search Users -->
+        <div class="search-bar">
+          <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
+          <button class="follow-btn" onclick="searchUsers()">Search</button>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults">
+          <div class="empty-state">
+            <div>🔍</div>
+            <p>Search for users to find friends</p>
+            <p class="text-light">Connect with other food lovers!</p>
+          </div>
+        </div>
+
+        <!-- Followers List -->
+        <div id="followersList" class="user-grid" style="display: none;"></div>
+
+        <!-- Following List -->
+        <div id="followingList" class="user-grid" style="display: none;"></div>
+      </div>
     </div>
   </div>
 
@@ -176,45 +259,13 @@
     let userProfile = null;
     let currentActiveList = null;
 
-    // Restaurant Data (same as restaurants.html)
+    // Restaurant Data
     const restaurants = [
       { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-      { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-      { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-      { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-      { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
-      { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
-      { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
-      { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
-      { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
-      { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
-      { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
-      { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
-      { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
-      { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
-      { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
-      { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
-      { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
-      { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
-      { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
-      { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
-      { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
-      { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
-      { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
-      { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
-      { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
-      { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
-      { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
-      { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
-      { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
-      { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
-      { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
-      { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
-      { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
-      { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
+      // ... (your existing restaurant data)
     ];
 
-    // List Management (same as restaurants.html)
+    // List Management
     const listManager = {
       userLists: [],
       currentLists: {
@@ -291,12 +342,12 @@
           const list = this.currentLists[listType];
           if (list) {
             const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')  // FIXED: added 's' to table name
-              .select('restraunt_id')   // FIXED: changed to 'restraint_id' (with 'i')
+              .from('lists_restraunts')
+              .select('restraunt_id')
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // FIXED: changed to 'restraint_id' (with 'i')
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);
             } else {
               list.restaurants = [];
             }
@@ -325,11 +376,11 @@
         try {
           if (isInList) {
             const { error } = await supabase
-              .from('lists_restraunts')  // FIXED: added 's' to table name
+              .from('lists_restraunts')
               .delete()
               .match({ 
                 list_id: list.id, 
-                restraint_id: restaurantId  // FIXED: changed to 'restraint_id' (with 'i')
+                restraint_id: restaurantId
               });
             
             if (error) throw error;
@@ -340,10 +391,10 @@
           } else {
             const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
-              .from('lists_restraunts')  // FIXED: added 's' to table name
+              .from('lists_restraunts')
               .insert([{ 
                 list_id: list.id, 
-                restraunt_id: restaurantId,  // FIXED: changed to 'restraint_id' (with 'i')
+                restraunt_id: restaurantId,
                 added_at: new Date().toISOString()
               }]);
             
@@ -367,6 +418,248 @@
       isInList(listType, restaurantId) {
         const list = this.currentLists[listType];
         return list?.restaurants?.includes(restaurantId) || false;
+      }
+    };
+
+    // Friend System
+    const friendSystem = {
+      async init() {
+        if (!currentUser) return;
+        await this.loadFollowStats();
+      },
+
+      async loadFollowStats() {
+        try {
+          // Get followers count
+          const { data: followers, error: followersError } = await supabase
+            .from('follows')
+            .select('follower_id')
+            .eq('following_id', currentUser.id);
+
+          if (!followersError) {
+            document.getElementById('followersCount').textContent = followers?.length || 0;
+          }
+
+          // Get following count
+          const { data: following, error: followingError } = await supabase
+            .from('follows')
+            .select('following_id')
+            .eq('follower_id', currentUser.id);
+
+          if (!followingError) {
+            document.getElementById('followingCount').textContent = following?.length || 0;
+          }
+
+        } catch (error) {
+          console.error('Error loading follow stats:', error);
+        }
+      },
+
+      async searchUsers(query = null) {
+        const searchInput = document.getElementById('userSearch');
+        const searchTerm = query || searchInput.value.trim();
+        
+        if (!searchTerm) {
+          showNotification('Please enter a search term', 'error');
+          return;
+        }
+
+        try {
+          const { data: users, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .neq('id', currentUser.id)
+            .or(`username.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+            .limit(20);
+
+          if (error) throw error;
+
+          this.displayUsers(users, 'searchResults');
+          
+        } catch (error) {
+          console.error('Error searching users:', error);
+          showNotification('Error searching users', 'error');
+        }
+      },
+
+      async showFollowers() {
+        try {
+          const { data: follows, error } = await supabase
+            .from('follows')
+            .select('follower_id')
+            .eq('following_id', currentUser.id);
+
+          if (error) throw error;
+
+          if (!follows || follows.length === 0) {
+            document.getElementById('followersList').innerHTML = `
+              <div class="empty-state">
+                <div>👥</div>
+                <p>No followers yet</p>
+              </div>
+            `;
+          } else {
+            const followerIds = follows.map(f => f.follower_id);
+            const { data: users, error: usersError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .in('id', followerIds);
+
+            if (!usersError) {
+              this.displayUsers(users, 'followersList');
+            }
+          }
+
+          // Show followers list and hide others
+          document.getElementById('searchResults').style.display = 'none';
+          document.getElementById('followingList').style.display = 'none';
+          document.getElementById('followersList').style.display = 'grid';
+
+        } catch (error) {
+          console.error('Error loading followers:', error);
+        }
+      },
+
+      async showFollowing() {
+        try {
+          const { data: follows, error } = await supabase
+            .from('follows')
+            .select('following_id')
+            .eq('follower_id', currentUser.id);
+
+          if (error) throw error;
+
+          if (!follows || follows.length === 0) {
+            document.getElementById('followingList').innerHTML = `
+              <div class="empty-state">
+                <div>👥</div>
+                <p>Not following anyone yet</p>
+              </div>
+            `;
+          } else {
+            const followingIds = follows.map(f => f.following_id);
+            const { data: users, error: usersError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .in('id', followingIds);
+
+            if (!usersError) {
+              this.displayUsers(users, 'followingList');
+            }
+          }
+
+          // Show following list and hide others
+          document.getElementById('searchResults').style.display = 'none';
+          document.getElementById('followersList').style.display = 'none';
+          document.getElementById('followingList').style.display = 'grid';
+
+        } catch (error) {
+          console.error('Error loading following:', error);
+        }
+      },
+
+      async displayUsers(users, containerId) {
+        const container = document.getElementById(containerId);
+        
+        if (!users || users.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div>🔍</div>
+              <p>No users found</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+
+        for (const user of users) {
+          const isFollowing = await this.checkIfFollowing(user.id);
+          
+          const userCard = document.createElement('div');
+          userCard.className = 'user-card';
+          userCard.innerHTML = `
+            <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
+            <div class="user-info">
+              <div class="user-name">${user.username || 'Unknown User'}</div>
+              <div class="user-bio">${user.bio || 'No bio available'}</div>
+              <div class="user-actions">
+                <button class="follow-btn ${isFollowing ? 'following' : ''}" 
+                        onclick="friendSystem.toggleFollow('${user.id}')">
+                  ${isFollowing ? 'Following' : 'Follow'}
+                </button>
+              </div>
+            </div>
+          `;
+          
+          container.appendChild(userCard);
+        }
+      },
+
+      async checkIfFollowing(targetUserId) {
+        try {
+          const { data, error } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', currentUser.id)
+            .eq('following_id', targetUserId)
+            .single();
+
+          return !!data;
+        } catch (error) {
+          return false;
+        }
+      },
+
+      async toggleFollow(targetUserId) {
+        try {
+          const isFollowing = await this.checkIfFollowing(targetUserId);
+          
+          if (isFollowing) {
+            // Unfollow
+            const { error } = await supabase
+              .from('follows')
+              .delete()
+              .eq('follower_id', currentUser.id)
+              .eq('following_id', targetUserId);
+
+            if (error) throw error;
+            
+            showNotification('Unfollowed user', 'info');
+          } else {
+            // Follow
+            const { error } = await supabase
+              .from('follows')
+              .insert({
+                follower_id: currentUser.id,
+                following_id: targetUserId,
+                created_at: new Date().toISOString()
+              });
+
+            if (error) throw error;
+            
+            showNotification('Started following user', 'success');
+          }
+
+          // Refresh the display
+          await this.loadFollowStats();
+          
+          // Refresh current view
+          if (document.getElementById('followersList').style.display === 'grid') {
+            this.showFollowers();
+          } else if (document.getElementById('followingList').style.display === 'grid') {
+            this.showFollowing();
+          } else {
+            const searchTerm = document.getElementById('userSearch').value;
+            if (searchTerm) {
+              this.searchUsers(searchTerm);
+            }
+          }
+
+        } catch (error) {
+          console.error('Error toggling follow:', error);
+          showNotification('Error updating follow status', 'error');
+        }
       }
     };
 
@@ -412,6 +705,7 @@
       }
 
       await listManager.init();
+      await friendSystem.init();
     }
 
     async function loadUserProfile() {
@@ -533,6 +827,21 @@
       });
     }
 
+    // Tab functionality
+    document.querySelectorAll('.profile-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.dataset.tab;
+        
+        // Update active tab
+        document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
+    });
+
     // Bio functionality
     document.getElementById("editBioBtn").addEventListener("click", () => {
       document.getElementById("bioDisplay").style.display = "none";
@@ -566,6 +875,18 @@
       
       showNotification("Bio updated successfully!", "success");
     });
+
+    // Search functionality
+    document.getElementById('userSearch').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        friendSystem.searchUsers();
+      }
+    });
+
+    // Global functions
+    window.searchUsers = () => friendSystem.searchUsers();
+    window.showFollowers = () => friendSystem.showFollowers();
+    window.showFollowing = () => friendSystem.showFollowing();
 
     loadProfile();
 
