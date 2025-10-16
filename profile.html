@@ -7,32 +7,293 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* ... (keep all your existing CSS styles exactly as they were) ... */
+    body { margin: 0; font-family: 'Poppins', sans-serif; background-color: #0b1633; color: #fefefe; }
+    header { background-color: #0b1633; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .logo { height: 40px; cursor: pointer; }
+    .logout-btn { background-color: #f59e0b; border: none; padding: 8px 18px; border-radius: 8px; color: #0b1633; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .logout-btn:hover { background-color: #ffb84d; }
+    .profile-container { max-width: 1200px; margin: 50px auto; background-color: #132347; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    .avatar { font-size: 5rem; background-color: #f59e0b; color: #0b1633; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .username { font-size: 1.8rem; text-align: center; font-weight: 600; }
+    .email { text-align: center; color: #c0c0c0; font-size: 1rem; margin-bottom: 20px; }
+    .bio, .lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; position: relative; }
+    h3 { color: #f59e0b; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .edit-btn { background: none; border: 1px solid #f59e0b; color: #f59e0b; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+    .edit-btn:hover { background: #f59e0b; color: #0b1633; }
+    .join-date { text-align: center; color: #aaa; font-size: 0.9rem; margin-top: 10px; }
+    .bio-textarea { width: 100%; min-height: 100px; background: #0b1633; border: 1px solid #f59e0b; border-radius: 8px; color: white; padding: 10px; font-family: inherit; resize: vertical; }
+    .bio-actions { display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end; }
+    .save-btn { background: #f59e0b; color: #0b1633; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .save-btn:hover { background: #ffb84d; }
+    .cancel-btn { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    .cancel-btn:hover { background: #f59e0b22; }
+    
+    .custom-lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
+    .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .list-card { background: #0b1633; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; }
+    .list-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
+    .list-icon { font-size: 2rem; margin-bottom: 10px; text-align: center; }
+    .list-card-title { font-weight: 600; text-align: center; margin-bottom: 5px; }
+    .list-card-count { text-align: center; color: #f59e0b; font-size: 0.9rem; }
+    
+    .restaurants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+    .tile { background: #0b1633; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; position: relative; }
+    .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .tile .media { height: 140px; overflow: hidden; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; padding: 12px; }
+    .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
+    .tile .inner { padding: 14px; }
+    .tile h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: white; }
+    .tile .category { color: #cbd5e1; font-size: 12px; margin: 0 0 8px 0; }
+    .tile .rating { color: #f59e0b; font-weight: 700; }
+    .tile .desc { color: #cbd5e1; font-size: 12px; margin: 8px 0 0 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity 0.3s ease; }
+    .tile:hover .list-actions { opacity: 1; }
+    .list-btn { background: #0b1633; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); width: 44px; height: 44px; transition: all 0.2s ease; z-index: 10; }
+    .list-btn:hover { transform: scale(1.1); background: #f59e0b; color: #0b1633; }
+    .list-btn.active { background: #f59e0b; color: #0b1633; border-color: #f59e0b; }
+    
+    .active-list-section { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
+    .back-btn { background: none; border: 1px solid #f59e0b; color: #f59e0b; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
+    .back-btn:hover { background: #f59e0b; color: #0b1633; }
+    .empty-list { text-align: center; padding: 40px; color: #cbd5e1; }
+    
+    .friends-section { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
+    .friends-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .friends-stats { display: flex; gap: 20px; }
+    .stat { text-align: center; cursor: pointer; transition: transform 0.2s; }
+    .stat:hover { transform: translateY(-2px); }
+    .stat-number { display: block; font-size: 1.5rem; font-weight: 700; color: #f59e0b; }
+    .stat-label { font-size: 0.9rem; color: #cbd5e1; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: #0b1633; color: white; font-family: inherit; }
+    .search-input:focus { outline: none; border-color: #f59e0b; }
+    .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+    .user-card { background: #0b1633; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; }
+    .user-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
+    .user-avatar { font-size: 2.5rem; width: 60px; height: 60px; border-radius: 50%; background: #f59e0b; color: #0b1633; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+    .user-info { text-align: center; }
+    .user-name { font-weight: 600; margin-bottom: 5px; }
+    .user-bio { color: #cbd5e1; font-size: 0.9rem; margin-bottom: 15px; }
+    .user-actions { display: flex; gap: 10px; justify-content: center; }
+    .follow-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .follow-btn:hover { background: #ffb84d; }
+    .follow-btn.following { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
+    .follow-btn.following:hover { background: #f59e0b22; }
+    .follow-btn.requested { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
+    .follow-btn.requested:hover { background: #f59e0b22; }
+    .empty-state { text-align: center; padding: 40px; color: #cbd5e1; }
+    .empty-state i { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+    
+    .privacy-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #0b1633; transition: .4s; border-radius: 24px; border: 1px solid #f59e0b; }
+    .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: #f59e0b; transition: .4s; border-radius: 50%; }
+    input:checked + .toggle-slider { background-color: #f59e0b; }
+    input:checked + .toggle-slider:before { transform: translateX(26px); background-color: #0b1633; }
+    .privacy-label { color: #cbd5e1; font-size: 0.9rem; }
+    
+    .request-actions { display: flex; gap: 8px; justify-content: center; }
+    .accept-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    .reject-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    
+    .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+    .profile-tab { background: none; border: none; color: #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .profile-tab.active { background: #f59e0b; color: #0b1633; }
+    .profile-tab:hover { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .custom-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      max-width: 400px;
+      transform: translateX(120%);
+      transition: transform 0.4s ease;
+    }
+    
+    .notification-success {
+      background: #10b981;
+      color: white;
+    }
+    
+    .notification-info {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .notification-error {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .notification-show {
+      transform: translateX(0);
+    }
+    
+    .notification-icon {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
   </style>
 </head>
 <body>
-  <!-- ... (keep all your existing HTML exactly as it was) ... -->
+  <header>
+    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </header>
+
+  <div class="profile-container">
+    <div class="avatar" id="avatar"></div>
+    <div class="username" id="username">Loading...</div>
+    <div class="email" id="email"></div>
+    <div class="join-date" id="joinDate"></div>
+
+    <!-- Profile Tabs -->
+    <div class="profile-tabs">
+      <button class="profile-tab active" data-tab="profile">Profile</button>
+      <button class="profile-tab" data-tab="social">Social</button>
+    </div>
+
+    <!-- Profile Tab Content -->
+    <div class="tab-content active" id="profile-tab">
+      <!-- Bio Section -->
+      <div class="bio">
+        <h3>
+          About Me
+          <button class="edit-btn" id="editBioBtn">Edit Bio</button>
+        </h3>
+        <div id="bioDisplay">
+          <p id="bioText">No bio yet. Click edit to add one!</p>
+        </div>
+        <div id="bioEdit" style="display: none;">
+          <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
+          <div class="bio-actions">
+            <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
+            <button class="save-btn" id="saveBioBtn">Save Bio</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Lists Section -->
+      <div class="custom-lists">
+        <h3>My Lists</h3>
+        <div class="list-grid">
+          <div class="list-card" onclick="showList('favorites')">
+            <div class="list-icon">❤️</div>
+            <div class="list-card-title">Favorites</div>
+            <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('visited')">
+            <div class="list-icon">🍽️</div>
+            <div class="list-card-title">Visited</div>
+            <div class="list-card-count" id="visitedCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('wantToGo')">
+            <div class="list-icon">📍</div>
+            <div class="list-card-title">Want to Go</div>
+            <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active List Display -->
+      <div id="activeListSection" class="active-list-section" style="display: none;">
+        <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
+        <h3 id="activeListTitle">My List</h3>
+        <div id="activeListGrid" class="restaurants-grid"></div>
+      </div>
+    </div>
+
+    <!-- Social Tab Content -->
+    <div class="tab-content" id="social-tab">
+      <div class="friends-section">
+        <div class="friends-header">
+          <h3>My Network</h3>
+          <div class="friends-stats">
+            <div class="stat" onclick="friendSystem.showFollowers()">
+              <span class="stat-number" id="followersCount">0</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat" onclick="friendSystem.showFollowing()">
+              <span class="stat-number" id="followingCount">0</span>
+              <span class="stat-label">Following</span>
+            </div>
+            <div class="stat" onclick="friendSystem.showRequests()">
+              <span class="stat-number" id="requestsCount">0</span>
+              <span class="stat-label">Requests</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy Settings -->
+        <div class="privacy-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="privacyToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="privacy-label" id="privacyLabel">Public Account</span>
+        </div>
+
+        <!-- Search Users -->
+        <div class="search-bar">
+          <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
+          <button class="follow-btn" onclick="friendSystem.searchUsers()">Search</button>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults">
+          <div class="empty-state">
+            <div>🔍</div>
+            <p>Search for users to find friends</p>
+            <p class="text-light">Connect with other food lovers!</p>
+          </div>
+        </div>
+
+        <!-- Followers List -->
+        <div id="followersList" class="user-grid" style="display: none;"></div>
+
+        <!-- Following List -->
+        <div id="followingList" class="user-grid" style="display: none;"></div>
+
+        <!-- Requests List -->
+        <div id="requestsList" class="user-grid" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Notification -->
+  <div id="customNotification" class="custom-notification">
+    <i class="notification-icon"></i>
+    <span class="notification-message"></span>
+  </div>
 
   <script>
+    // Supabase configuration
     const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    // Global variables
     let currentUser = null;
     let userProfile = null;
     let currentActiveList = null;
 
-    // Restaurant Data
+    // Simple restaurant data for testing
     const restaurants = [
-      { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-      { id: 2, slug:'burger-king', name:'Burger King', category:'Fast Food', desc:'Fast-food chain for grilled burgers, fries & shakes.', rating:4.2, image: 'burger-king.png' },
-      { id: 3, slug:'pizza-hut', name:'Pizza Hut', category:'Italian', desc:'Chain pizzeria with classic & specialty pies, wings & more.', rating:4.1, image: 'pizza-hut.png' },
-      { id: 4, slug:'kfc', name:'KFC', category:'Fast Food', desc:'Fast-food chain known for its fried chicken buckets & sides.', rating:4.3, image: 'kfc.png' },
-      { id: 5, slug:'starbucks', name:'Starbucks', category:'Cafe', desc:'Coffeehouse chain serving coffee, tea, pastries & sandwiches.', rating:4.5, image: 'starbucks.png' },
-      { id: 6, slug:'subway', name:'Subway', category:'Fast Food', desc:'Fast-food chain offering build-your-own sandwiches & salads.', rating:4.0, image: 'subway.png' }
+      { id: 1, slug: 'mori', name: 'Mori Sushi', category: 'Asian', desc: 'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating: 4.7, image: 'mori.png' },
+      { id: 2, slug: 'burger-king', name: 'Burger King', category: 'Fast Food', desc: 'Fast-food chain for grilled burgers, fries & shakes.', rating: 4.2, image: 'burger-king.png' },
+      { id: 3, slug: 'pizza-hut', name: 'Pizza Hut', category: 'Italian', desc: 'Chain pizzeria with classic & specialty pies, wings & more.', rating: 4.1, image: 'pizza-hut.png' }
     ];
 
-    // List Management - FIXED VERSION
+    // List Management
     const listManager = {
       userLists: [],
       currentLists: {
@@ -49,15 +310,15 @@
       
       async loadUserLists() {
         try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) return;
-
           const { data: lists, error } = await supabase
             .from('lists')
             .select('*')
-            .eq('user_id', user.id);
+            .eq('user_id', currentUser.id);
           
-          if (error) throw error;
+          if (error) {
+            console.error('Error loading lists:', error);
+            return;
+          }
           
           this.userLists = lists || [];
           await this.setupDefaultLists();
@@ -69,8 +330,6 @@
       },
       
       async setupDefaultLists() {
-        const { data: { user } } = await supabase.auth.getUser();
-        
         // Find existing lists
         this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
         this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
@@ -89,12 +348,10 @@
       },
       
       async createList(title, description) {
-        const { data: { user } } = await supabase.auth.getUser();
-        
         const { data: newList, error } = await supabase
           .from('lists')
           .insert([{ 
-            user_id: user.id, 
+            user_id: currentUser.id, 
             title: title, 
             description: description,
             created_at: new Date().toISOString()
@@ -163,7 +420,6 @@
             
           } else {
             // Add to list
-            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
               .from('lists_restraunts')
               .insert([{ 
@@ -195,18 +451,23 @@
       }
     };
 
-    // Friend System - CORRECTED VERSION (same as before)
+    // Friend System
     const friendSystem = {
       async init() {
         if (!currentUser) return;
         await this.loadFollowStats();
         await this.loadPrivacySetting();
         await this.loadPendingRequests();
+        
+        // Add event listener for privacy toggle
+        document.getElementById('privacyToggle').addEventListener('change', () => {
+          this.togglePrivacy();
+        });
       },
 
       async loadFollowStats() {
         try {
-          // Get followers count (people who follow current user)
+          // Get followers count
           const { data: followers, error: followersError } = await supabase
             .from('follows')
             .select('follower_id')
@@ -216,7 +477,7 @@
             document.getElementById('followersCount').textContent = followers?.length || 0;
           }
 
-          // Get following count (people current user follows)
+          // Get following count
           const { data: following, error: followingError } = await supabase
             .from('follows')
             .select('followed_id')
@@ -285,9 +546,9 @@
         }
       },
 
-      async searchUsers(query = null) {
+      async searchUsers() {
         const searchInput = document.getElementById('userSearch');
-        const searchTerm = query || searchInput.value.trim();
+        const searchTerm = searchInput.value.trim();
         
         if (!searchTerm) {
           showNotification('Please enter a search term', 'error');
@@ -302,16 +563,13 @@
             .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
             .limit(20);
 
-          if (error) {
-            console.error('Supabase error:', error);
-            throw error;
-          }
+          if (error) throw error;
 
           this.displayUsers(users, 'searchResults');
           
         } catch (error) {
           console.error('Error searching users:', error);
-          showNotification('Error searching users. Please try a different search term.', 'error');
+          showNotification('Error searching users', 'error');
         }
       },
 
@@ -343,11 +601,7 @@
             }
           }
 
-          // Show followers list and hide others
-          document.getElementById('searchResults').style.display = 'none';
-          document.getElementById('followingList').style.display = 'none';
-          document.getElementById('requestsList').style.display = 'none';
-          document.getElementById('followersList').style.display = 'grid';
+          this.showSection('followersList');
 
         } catch (error) {
           console.error('Error loading followers:', error);
@@ -382,11 +636,7 @@
             }
           }
 
-          // Show following list and hide others
-          document.getElementById('searchResults').style.display = 'none';
-          document.getElementById('followersList').style.display = 'none';
-          document.getElementById('requestsList').style.display = 'none';
-          document.getElementById('followingList').style.display = 'grid';
+          this.showSection('followingList');
 
         } catch (error) {
           console.error('Error loading following:', error);
@@ -414,15 +664,22 @@
             this.displayRequests(requests);
           }
 
-          // Show requests list and hide others
-          document.getElementById('searchResults').style.display = 'none';
-          document.getElementById('followersList').style.display = 'none';
-          document.getElementById('followingList').style.display = 'none';
-          document.getElementById('requestsList').style.display = 'grid';
+          this.showSection('requestsList');
 
         } catch (error) {
           console.error('Error loading requests:', error);
         }
+      },
+
+      showSection(sectionId) {
+        // Hide all sections
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('followersList').style.display = 'none';
+        document.getElementById('followingList').style.display = 'none';
+        document.getElementById('requestsList').style.display = 'none';
+        
+        // Show the requested section
+        document.getElementById(sectionId).style.display = 'grid';
       },
 
       async displayUsers(users, containerId) {
@@ -497,7 +754,7 @@
       async getFollowStatus(targetUserId) {
         try {
           // Check if already following
-          const { data: follow, error: followError } = await supabase
+          const { data: follow } = await supabase
             .from('follows')
             .select('id')
             .eq('follower_id', currentUser.id)
@@ -505,7 +762,7 @@
             .single();
 
           // Check if request pending
-          const { data: request, error: requestError } = await supabase
+          const { data: request } = await supabase
             .from('follow_requests')
             .select('id')
             .eq('sender_id', currentUser.id)
@@ -514,8 +771,8 @@
             .single();
 
           return {
-            isFollowing: !!follow && !followError,
-            hasRequested: !!request && !requestError
+            isFollowing: !!follow,
+            hasRequested: !!request
           };
         } catch (error) {
           return { isFollowing: false, hasRequested: false };
@@ -536,8 +793,6 @@
           if (error) throw error;
           
           showNotification('Follow request sent!', 'success');
-          
-          // Refresh the display
           this.refreshCurrentView();
 
         } catch (error) {
@@ -562,7 +817,7 @@
             
             showNotification('Unfollowed user', 'info');
           } else {
-            // Follow directly (for public accounts or if already approved)
+            // Follow
             const { error } = await supabase
               .from('follows')
               .insert({
@@ -576,7 +831,6 @@
             showNotification('Started following user', 'success');
           }
 
-          // Refresh the display
           await this.loadFollowStats();
           this.refreshCurrentView();
 
@@ -588,7 +842,6 @@
 
       async acceptRequest(requestId) {
         try {
-          // Get the request details
           const { data: request, error: requestError } = await supabase
             .from('follow_requests')
             .select('*')
@@ -648,14 +901,14 @@
 
       async checkIfFollowing(targetUserId) {
         try {
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from('follows')
             .select('id')
             .eq('follower_id', currentUser.id)
             .eq('followed_id', targetUserId)
             .single();
 
-          return !!data && !error;
+          return !!data;
         } catch (error) {
           return false;
         }
@@ -671,13 +924,13 @@
         } else {
           const searchTerm = document.getElementById('userSearch').value;
           if (searchTerm) {
-            this.searchUsers(searchTerm);
+            this.searchUsers();
           }
         }
       }
     };
 
-    // Custom notification function
+    // Utility Functions
     function showNotification(message, type = "info") {
       const notification = document.getElementById("customNotification");
       const icon = notification.querySelector(".notification-icon");
@@ -700,55 +953,73 @@
       }, 2500);
     }
 
-    const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-    document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
-
+    // Profile Functions
     async function loadProfile() {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) { window.location.href = "login.html"; return; }
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          window.location.href = "login.html";
+          return;
+        }
 
-      currentUser = user;
-      await loadUserProfile();
-      
-      document.getElementById("username").textContent = userProfile?.username || user.email.split('@')[0];
-      document.getElementById("email").textContent = user.email;
-      document.getElementById("joinDate").textContent = `Joined ${new Date(user.created_at).toLocaleDateString()}`;
-      
-      if (userProfile?.bio) {
-        document.getElementById("bioText").textContent = userProfile.bio;
+        currentUser = user;
+        await loadUserProfile();
+        
+        // Set user info
+        document.getElementById("username").textContent = userProfile?.username || user.email.split('@')[0];
+        document.getElementById("email").textContent = user.email;
+        document.getElementById("joinDate").textContent = `Joined ${new Date(user.created_at).toLocaleDateString()}`;
+        
+        // Set bio
+        if (userProfile?.bio) {
+          document.getElementById("bioText").textContent = userProfile.bio;
+        }
+
+        // Set random avatar
+        const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+        document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+
+        // Initialize systems
+        await listManager.init();
+        await friendSystem.init();
+
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        showNotification('Error loading profile', 'error');
       }
-
-      await listManager.init();
-      await friendSystem.init();
     }
 
     async function loadUserProfile() {
-      const { data: profile, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", currentUser.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error loading profile:", error);
-      }
-
-      userProfile = profile || {};
-      
-      if (!profile) {
-        const { error: insertError } = await supabase
+      try {
+        const { data: profile, error } = await supabase
           .from("user_profiles")
-          .insert({
-            id: currentUser.id,
-            username: currentUser.email.split('@')[0],
-            bio: "",
-            is_private: false,
-            created_at: new Date().toISOString()
-          });
+          .select("*")
+          .eq("id", currentUser.id)
+          .single();
 
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
+        if (error && error.code !== 'PGRST116') {
+          console.error("Error loading profile:", error);
         }
+
+        userProfile = profile || {};
+        
+        if (!profile) {
+          const { error: insertError } = await supabase
+            .from("user_profiles")
+            .insert({
+              id: currentUser.id,
+              username: currentUser.email.split('@')[0],
+              bio: "",
+              is_private: false,
+              created_at: new Date().toISOString()
+            });
+
+          if (insertError) {
+            console.error("Error creating profile:", insertError);
+          }
+        }
+      } catch (error) {
+        console.error('Error in loadUserProfile:', error);
       }
     }
 
@@ -834,7 +1105,6 @@
           const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
           btn.classList.toggle('active', wasAdded);
           
-          // If current list is the same as the button clicked, update the view
           if (currentActiveList === btn.dataset.list) {
             showList(currentActiveList);
           }
@@ -842,67 +1112,70 @@
       });
     }
 
-    // Tab functionality
-    document.querySelectorAll('.profile-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const tabId = tab.dataset.tab;
-        
-        // Update active tab
-        document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        // Update active content
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`${tabId}-tab`).classList.add('active');
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Tab functionality
+      document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.dataset.tab;
+          
+          document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+          document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
       });
-    });
 
-    // Bio functionality
-    document.getElementById("editBioBtn").addEventListener("click", () => {
-      document.getElementById("bioDisplay").style.display = "none";
-      document.getElementById("bioEdit").style.display = "block";
-      document.getElementById("bioTextarea").value = userProfile?.bio || "";
-    });
+      // Bio functionality
+      document.getElementById("editBioBtn").addEventListener("click", () => {
+        document.getElementById("bioDisplay").style.display = "none";
+        document.getElementById("bioEdit").style.display = "block";
+        document.getElementById("bioTextarea").value = userProfile?.bio || "";
+      });
 
-    document.getElementById("cancelBioBtn").addEventListener("click", () => {
-      document.getElementById("bioDisplay").style.display = "block";
-      document.getElementById("bioEdit").style.display = "none";
-    });
+      document.getElementById("cancelBioBtn").addEventListener("click", () => {
+        document.getElementById("bioDisplay").style.display = "block";
+        document.getElementById("bioEdit").style.display = "none";
+      });
 
-    document.getElementById("saveBioBtn").addEventListener("click", async () => {
-      const newBio = document.getElementById("bioTextarea").value.trim();
-      
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({ bio: newBio })
-        .eq("id", currentUser.id);
+      document.getElementById("saveBioBtn").addEventListener("click", async () => {
+        const newBio = document.getElementById("bioTextarea").value.trim();
+        
+        const { error } = await supabase
+          .from("user_profiles")
+          .update({ bio: newBio })
+          .eq("id", currentUser.id);
 
-      if (error) {
-        console.error("Error updating bio:", error);
-        showNotification("Error saving bio. Please try again.", "info");
-        return;
-      }
+        if (error) {
+          console.error("Error updating bio:", error);
+          showNotification("Error saving bio", "error");
+          return;
+        }
 
-      userProfile.bio = newBio;
-      document.getElementById("bioText").textContent = newBio || "No bio yet. Click edit to add one!";
-      document.getElementById("bioDisplay").style.display = "block";
-      document.getElementById("bioEdit").style.display = "none";
-      
-      showNotification("Bio updated successfully!", "success");
-    });
+        userProfile.bio = newBio;
+        document.getElementById("bioText").textContent = newBio || "No bio yet. Click edit to add one!";
+        document.getElementById("bioDisplay").style.display = "block";
+        document.getElementById("bioEdit").style.display = "none";
+        
+        showNotification("Bio updated successfully!", "success");
+      });
 
-    // Search functionality
-    document.getElementById('userSearch').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        friendSystem.searchUsers();
-      }
-    });
+      // Search functionality
+      document.getElementById('userSearch').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          friendSystem.searchUsers();
+        }
+      });
 
-    loadProfile();
+      // Logout
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "login.html";
+      });
 
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      window.location.href = "login.html";
+      // Load profile
+      loadProfile();
     });
   </script>
 </body>
