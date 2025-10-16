@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Profile | Zo2y</title>
+  <title>Profile | Zo2y</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -110,6 +110,32 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     
+    /* Additional styles for view-only mode */
+    .view-only .edit-btn { display: none; }
+    .view-only .profile-tabs { display: none; }
+    .view-only .privacy-toggle { display: none; }
+    .view-only .search-bar { display: none; }
+    .view-only #logoutBtn { display: none; }
+    
+    /* Back button for view-only mode */
+    .back-to-home {
+      background: none;
+      border: 1px solid #f59e0b;
+      color: #f59e0b;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .back-to-home:hover {
+      background: #f59e0b;
+      color: #0b1633;
+    }
+
+    /* Private Profile Message */
+    .private-message { text-align: center; padding: 40px; color: #cbd5e1; }
+    .private-message i { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+    
     /* Notification Styles */
     .custom-notification {
       position: fixed;
@@ -154,17 +180,23 @@
 <body>
   <header>
     <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-    <button class="logout-btn" id="logoutBtn">Logout</button>
+    <div>
+      <button class="back-to-home" id="backButton" style="display: none;" onclick="goBack()">← Back</button>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
   </header>
 
-  <div class="profile-container">
+  <div class="profile-container" id="profileContainer">
     <div class="avatar" id="avatar"></div>
     <div class="username" id="username">Loading...</div>
     <div class="email" id="email"></div>
     <div class="join-date" id="joinDate"></div>
 
-    <!-- Profile Tabs -->
-    <div class="profile-tabs">
+    <!-- Follow Button (only shown when viewing other users) -->
+    <button class="follow-btn" id="followButton" style="display: none; margin: 20px auto;"></button>
+
+    <!-- Profile Tabs (only shown when viewing own profile) -->
+    <div class="profile-tabs" id="profileTabs">
       <button class="profile-tab active" data-tab="profile">Profile</button>
       <button class="profile-tab" data-tab="social">Social</button>
     </div>
@@ -211,6 +243,13 @@
         </div>
       </div>
 
+      <!-- Private Profile Message (for other users' private accounts) -->
+      <div class="private-message" id="privateMessage" style="display: none;">
+        <div>🔒</div>
+        <h3>Private Account</h3>
+        <p>This account is private. Send a follow request to see their lists.</p>
+      </div>
+
       <!-- Active List Display -->
       <div id="activeListSection" class="active-list-section" style="display: none;">
         <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
@@ -219,7 +258,7 @@
       </div>
     </div>
 
-    <!-- Social Tab Content -->
+    <!-- Social Tab Content (only shown when viewing own profile) -->
     <div class="tab-content" id="social-tab">
       <div class="friends-section">
         <div class="friends-header">
@@ -289,9 +328,12 @@
 
     let currentUser = null;
     let userProfile = null;
+    let targetUser = null;
+    let targetUserId = null;
     let currentActiveList = null;
+    let isViewingOwnProfile = true;
 
-    // Restaurant Data (same as restaurants.html)
+    // Restaurant Data
     const restaurants = [
       { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
       { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
@@ -329,7 +371,7 @@
       { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
     ];
 
-    // List Management (same as restaurants.html)
+    // List Management
     const listManager = {
       userLists: [],
       currentLists: {
@@ -738,9 +780,9 @@
           const userCard = document.createElement('div');
           userCard.className = 'user-card';
           userCard.innerHTML = `
-            <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
+            <div class="user-avatar" onclick="viewUserProfile('${user.id}')" style="cursor: pointer;">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
             <div class="user-info">
-              <div class="user-name">${user.username || user.full_name || 'Unknown User'}</div>
+              <div class="user-name" onclick="viewUserProfile('${user.id}')" style="cursor: pointer; text-decoration: underline;">${user.username || user.full_name || 'Unknown User'}</div>
               <div class="user-bio">${user.bio || 'No bio available'}</div>
               <div class="user-actions">
                 ${isPrivate && !followStatus.isFollowing ? `
@@ -987,26 +1029,319 @@
       }, 2500);
     }
 
-    const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-    document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+    // Get user ID from URL parameters
+    function getUserIdFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id');
+    }
 
     async function loadProfile() {
+      targetUserId = getUserIdFromUrl();
+      
       const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) { window.location.href = "login.html"; return; }
+      if (error || !user) { 
+        window.location.href = "login.html"; 
+        return; 
+      }
 
       currentUser = user;
+
+      // Determine if we're viewing own profile or another user's profile
+      if (targetUserId && targetUserId !== user.id) {
+        isViewingOwnProfile = false;
+        await loadOtherUserProfile();
+      } else {
+        isViewingOwnProfile = true;
+        await loadOwnProfile();
+      }
+    }
+
+    async function loadOwnProfile() {
+      // Show own profile elements
+      document.getElementById('profileTabs').style.display = 'flex';
+      document.getElementById('logoutBtn').style.display = 'block';
+      document.getElementById('backButton').style.display = 'none';
+      document.getElementById('followButton').style.display = 'none';
+      document.getElementById('privateMessage').style.display = 'none';
+
       await loadUserProfile();
       
-      document.getElementById("username").textContent = userProfile?.username || user.email.split('@')[0];
-      document.getElementById("email").textContent = user.email;
-      document.getElementById("joinDate").textContent = `Joined ${new Date(user.created_at).toLocaleDateString()}`;
+      document.getElementById("username").textContent = userProfile?.username || currentUser.email.split('@')[0];
+      document.getElementById("email").textContent = currentUser.email;
+      document.getElementById("joinDate").textContent = `Joined ${new Date(currentUser.created_at).toLocaleDateString()}`;
       
       if (userProfile?.bio) {
         document.getElementById("bioText").textContent = userProfile.bio;
       }
 
+      // Set avatar
+      const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+      document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+
       await listManager.init();
       await friendSystem.init();
+    }
+
+    async function loadOtherUserProfile() {
+      // Hide elements for other users' profiles
+      document.getElementById('profileTabs').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('backButton').style.display = 'block';
+      document.getElementById('editBioBtn').style.display = 'none';
+      
+      // Show only the profile tab
+      document.getElementById('profile-tab').classList.add('active');
+      document.getElementById('social-tab').style.display = 'none';
+
+      // Load target user profile
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', targetUserId)
+        .single();
+
+      if (error || !profile) {
+        alert('User not found');
+        window.location.href = 'profile.html';
+        return;
+      }
+
+      targetUser = profile;
+
+      // Display user info
+      document.getElementById("username").textContent = profile.username || 'User';
+      document.getElementById("email").textContent = profile.email || '';
+      document.getElementById("joinDate").textContent = `Joined ${new Date(profile.created_at).toLocaleDateString()}`;
+      
+      if (profile.bio) {
+        document.getElementById("bioText").textContent = profile.bio;
+      }
+
+      // Set avatar
+      const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+      document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+
+      // Load follow status and lists
+      await loadFollowStatus();
+      await loadUserLists();
+    }
+
+    async function loadFollowStatus() {
+      if (isViewingOwnProfile) return;
+
+      const followButton = document.getElementById('followButton');
+      followButton.style.display = 'block';
+
+      try {
+        // Check if already following
+        const { data: follow } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('followed_id', targetUserId)
+          .single();
+
+        // Check if request pending
+        const { data: request } = await supabase
+          .from('follow_requests')
+          .select('id')
+          .eq('sender_id', currentUser.id)
+          .eq('receiver_id', targetUserId)
+          .eq('status', 'pending')
+          .single();
+
+        if (follow) {
+          followButton.textContent = 'Following';
+          followButton.className = 'follow-btn following';
+          followButton.onclick = () => toggleFollow();
+        } else if (request) {
+          followButton.textContent = 'Requested';
+          followButton.className = 'follow-btn requested';
+          followButton.onclick = () => sendFollowRequest();
+        } else if (targetUser.is_private) {
+          followButton.textContent = 'Request to Follow';
+          followButton.className = 'follow-btn';
+          followButton.onclick = () => sendFollowRequest();
+        } else {
+          followButton.textContent = 'Follow';
+          followButton.className = 'follow-btn';
+          followButton.onclick = () => toggleFollow();
+        }
+      } catch (error) {
+        console.error('Error loading follow status:', error);
+      }
+    }
+
+    async function toggleFollow() {
+      try {
+        const isFollowing = await checkIfFollowing();
+        
+        if (isFollowing) {
+          // Unfollow
+          const { error } = await supabase
+            .from('follows')
+            .delete()
+            .eq('follower_id', currentUser.id)
+            .eq('followed_id', targetUserId);
+
+          if (error) throw error;
+          
+          document.getElementById('followButton').textContent = 'Follow';
+          document.getElementById('followButton').className = 'follow-btn';
+          
+        } else {
+          // Follow
+          const { error } = await supabase
+            .from('follows')
+            .insert({
+              follower_id: currentUser.id,
+              followed_id: targetUserId,
+              created_at: new Date().toISOString()
+            });
+
+          if (error) throw error;
+          
+          document.getElementById('followButton').textContent = 'Following';
+          document.getElementById('followButton').className = 'follow-btn following';
+        }
+
+        // Reload lists if privacy status changed
+        await loadUserLists();
+
+      } catch (error) {
+        console.error('Error toggling follow:', error);
+      }
+    }
+
+    async function sendFollowRequest() {
+      try {
+        const { error } = await supabase
+          .from('follow_requests')
+          .insert({
+            sender_id: currentUser.id,
+            receiver_id: targetUserId,
+            status: 'pending',
+            created_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+        
+        document.getElementById('followButton').textContent = 'Requested';
+        document.getElementById('followButton').className = 'follow-btn requested';
+
+      } catch (error) {
+        console.error('Error sending follow request:', error);
+      }
+    }
+
+    async function checkIfFollowing() {
+      try {
+        const { data } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('followed_id', targetUserId)
+          .single();
+
+        return !!data;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    async function loadUserLists() {
+      if (isViewingOwnProfile) {
+        await listManager.init();
+        return;
+      }
+
+      const canViewLists = await canViewUserContent();
+      
+      if (!canViewLists) {
+        document.querySelector('.custom-lists').style.display = 'none';
+        document.getElementById('privateMessage').style.display = 'block';
+        return;
+      }
+
+      document.querySelector('.custom-lists').style.display = 'block';
+      document.getElementById('privateMessage').style.display = 'none';
+
+      try {
+        // Load user's lists
+        const { data: lists, error } = await supabase
+          .from('lists')
+          .select('*')
+          .eq('user_id', targetUserId);
+
+        if (error) throw error;
+
+        const userLists = lists || [];
+        
+        // Find default lists
+        const favoritesList = userLists.find(list => list.title === 'Favorites');
+        const visitedList = userLists.find(list => list.title === 'Visited');
+        const wantToGoList = userLists.find(list => list.title === 'Want to Go');
+
+        // Load restaurant counts for each list
+        await loadListCounts(favoritesList, 'favoritesCount');
+        await loadListCounts(visitedList, 'visitedCount');
+        await loadListCounts(wantToGoList, 'wantToGoCount');
+
+        // Store lists for viewing
+        window.userLists = {
+          favorites: favoritesList,
+          visited: visitedList,
+          wantToGo: wantToGoList
+        };
+
+      } catch (error) {
+        console.error('Error loading user lists:', error);
+      }
+    }
+
+    async function loadListCounts(list, countElementId) {
+      if (!list) return;
+
+      try {
+        const { data: listRestaurants, error } = await supabase
+          .from('lists_restraunts')
+          .select('restraunt_id')
+          .eq('list_id', list.id);
+
+        if (!error && listRestaurants) {
+          document.getElementById(countElementId).textContent = `${listRestaurants.length} restaurants`;
+          list.restaurants = listRestaurants.map(item => item.restraunt_id);
+        } else {
+          document.getElementById(countElementId).textContent = '0 restaurants';
+          list.restaurants = [];
+        }
+      } catch (error) {
+        console.error('Error loading list counts:', error);
+      }
+    }
+
+    async function canViewUserContent() {
+      // Users can always view their own content
+      if (currentUser && currentUser.id === targetUserId) return true;
+      
+      // Public accounts can be viewed by anyone
+      if (!targetUser.is_private) return true;
+      
+      // For private accounts, check if current user is following
+      if (!currentUser) return false;
+      
+      try {
+        const { data } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('followed_id', targetUserId)
+          .single();
+
+        return !!data;
+      } catch (error) {
+        return false;
+      }
     }
 
     async function loadUserProfile() {
@@ -1040,14 +1375,21 @@
     }
 
     function showList(listType) {
-      currentActiveList = listType;
-      const list = listManager.currentLists[listType];
+      let list;
+      
+      if (isViewingOwnProfile) {
+        list = listManager.currentLists[listType];
+      } else {
+        list = window.userLists[listType];
+      }
       
       if (!list) return;
       
+      currentActiveList = listType;
       document.getElementById('activeListTitle').textContent = list.title;
       document.querySelector('.custom-lists').style.display = 'none';
       document.querySelector('.bio').style.display = 'none';
+      document.getElementById('privateMessage').style.display = 'none';
       document.getElementById('activeListSection').style.display = 'block';
       
       renderListRestaurants(list.restaurants || [], listType);
@@ -1057,6 +1399,12 @@
       document.getElementById('activeListSection').style.display = 'none';
       document.querySelector('.custom-lists').style.display = 'block';
       document.querySelector('.bio').style.display = 'block';
+      
+      // Show private message if applicable
+      if (!isViewingOwnProfile && document.getElementById('privateMessage').style.display !== 'none') {
+        document.getElementById('privateMessage').style.display = 'block';
+      }
+      
       currentActiveList = null;
     }
 
@@ -1071,7 +1419,7 @@
           <div class="empty-list">
             <div style="font-size: 3rem; margin-bottom: 10px;">🍽️</div>
             <h3>No restaurants yet</h3>
-            <p>Start adding restaurants to your ${listManager.currentLists[listType].title} list!</p>
+            <p>Start adding restaurants to your ${listType} list!</p>
           </div>
         `;
         return;
@@ -1099,34 +1447,45 @@
         
         tile.appendChild(clickableContent);
         
-        // Add list buttons
-        const listActions = document.createElement('div');
-        listActions.className = 'list-actions';
-        listActions.innerHTML = `
-          <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
-          <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
-          <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
-        `;
-        tile.appendChild(listActions);
+        // Only show list buttons when viewing own profile
+        if (isViewingOwnProfile) {
+          const listActions = document.createElement('div');
+          listActions.className = 'list-actions';
+          listActions.innerHTML = `
+            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
+            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+          `;
+          tile.appendChild(listActions);
+        }
         
         grid.appendChild(tile);
       });
 
-      // Add event listeners for list buttons
-      document.querySelectorAll('.list-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.preventDefault(); 
-          e.stopPropagation();
-          const restaurantId = parseInt(btn.dataset.id);
-          const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-          btn.classList.toggle('active', wasAdded);
-          
-          // If current list is the same as the button clicked, update the view
-          if (currentActiveList === btn.dataset.list) {
-            showList(currentActiveList);
-          }
+      // Add event listeners for list buttons (only for own profile)
+      if (isViewingOwnProfile) {
+        document.querySelectorAll('.list-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault(); 
+            e.stopPropagation();
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
+            btn.classList.toggle('active', wasAdded);
+            
+            if (currentActiveList === btn.dataset.list) {
+              showList(currentActiveList);
+            }
+          });
         });
-      });
+      }
+    }
+
+    function viewUserProfile(userId) {
+      window.location.href = `profile.html?id=${userId}`;
+    }
+
+    function goBack() {
+      window.history.back();
     }
 
     // Event Listeners
