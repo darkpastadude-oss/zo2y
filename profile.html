@@ -83,8 +83,24 @@
     .follow-btn:hover { background: #ffb84d; }
     .follow-btn.following { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
     .follow-btn.following:hover { background: #f59e0b22; }
+    .follow-btn.requested { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
+    .follow-btn.requested:hover { background: #f59e0b22; }
     .empty-state { text-align: center; padding: 40px; color: #cbd5e1; }
     .empty-state i { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+    
+    /* Privacy & Request Styles */
+    .privacy-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #0b1633; transition: .4s; border-radius: 24px; border: 1px solid #f59e0b; }
+    .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: #f59e0b; transition: .4s; border-radius: 50%; }
+    input:checked + .toggle-slider { background-color: #f59e0b; }
+    input:checked + .toggle-slider:before { transform: translateX(26px); background-color: #0b1633; }
+    .privacy-label { color: #cbd5e1; font-size: 0.9rem; }
+    
+    .request-actions { display: flex; gap: 8px; justify-content: center; }
+    .accept-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    .reject-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
     
     /* Tabs for Profile Sections */
     .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
@@ -209,21 +225,34 @@
         <div class="friends-header">
           <h3>My Network</h3>
           <div class="friends-stats">
-            <div class="stat" onclick="showFollowers()">
+            <div class="stat" onclick="friendSystem.showFollowers()">
               <span class="stat-number" id="followersCount">0</span>
               <span class="stat-label">Followers</span>
             </div>
-            <div class="stat" onclick="showFollowing()">
+            <div class="stat" onclick="friendSystem.showFollowing()">
               <span class="stat-number" id="followingCount">0</span>
               <span class="stat-label">Following</span>
             </div>
+            <div class="stat" onclick="friendSystem.showRequests()">
+              <span class="stat-number" id="requestsCount">0</span>
+              <span class="stat-label">Requests</span>
+            </div>
           </div>
+        </div>
+
+        <!-- Privacy Settings -->
+        <div class="privacy-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="privacyToggle" onchange="friendSystem.togglePrivacy()">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="privacy-label" id="privacyLabel">Public Account</span>
         </div>
 
         <!-- Search Users -->
         <div class="search-bar">
           <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
-          <button class="follow-btn" onclick="searchUsers()">Search</button>
+          <button class="follow-btn" onclick="friendSystem.searchUsers()">Search</button>
         </div>
 
         <!-- Search Results -->
@@ -240,6 +269,9 @@
 
         <!-- Following List -->
         <div id="followingList" class="user-grid" style="display: none;"></div>
+
+        <!-- Requests List -->
+        <div id="requestsList" class="user-grid" style="display: none;"></div>
       </div>
     </div>
   </div>
@@ -426,6 +458,8 @@
       async init() {
         if (!currentUser) return;
         await this.loadFollowStats();
+        await this.loadPrivacySetting();
+        await this.loadPendingRequests();
       },
 
       async loadFollowStats() {
@@ -455,6 +489,60 @@
         }
       },
 
+      async loadPrivacySetting() {
+        try {
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('is_public')
+            .eq('id', currentUser.id)
+            .single();
+
+          if (!error && profile) {
+            const isPublic = profile.is_public !== false; // Default to public
+            document.getElementById('privacyToggle').checked = isPublic;
+            document.getElementById('privacyLabel').textContent = isPublic ? 'Public Account' : 'Private Account';
+          }
+        } catch (error) {
+          console.error('Error loading privacy setting:', error);
+        }
+      },
+
+      async togglePrivacy() {
+        const isPublic = document.getElementById('privacyToggle').checked;
+        
+        try {
+          const { error } = await supabase
+            .from('user_profiles')
+            .update({ is_public: isPublic })
+            .eq('id', currentUser.id);
+
+          if (error) throw error;
+
+          document.getElementById('privacyLabel').textContent = isPublic ? 'Public Account' : 'Private Account';
+          showNotification(`Account set to ${isPublic ? 'public' : 'private'}`, 'success');
+
+        } catch (error) {
+          console.error('Error updating privacy:', error);
+          showNotification('Error updating privacy setting', 'error');
+        }
+      },
+
+      async loadPendingRequests() {
+        try {
+          const { data: requests, error } = await supabase
+            .from('follow_requests')
+            .select('*')
+            .eq('requested_id', currentUser.id)
+            .eq('status', 'pending');
+
+          if (!error) {
+            document.getElementById('requestsCount').textContent = requests?.length || 0;
+          }
+        } catch (error) {
+          console.error('Error loading requests:', error);
+        }
+      },
+
       async searchUsers(query = null) {
         const searchInput = document.getElementById('userSearch');
         const searchTerm = query || searchInput.value.trim();
@@ -469,16 +557,19 @@
             .from('user_profiles')
             .select('*')
             .neq('id', currentUser.id)
-            .or(`username.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+            .or(`username.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
             .limit(20);
 
-          if (error) throw error;
+          if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+          }
 
           this.displayUsers(users, 'searchResults');
           
         } catch (error) {
           console.error('Error searching users:', error);
-          showNotification('Error searching users', 'error');
+          showNotification('Error searching users. Please try a different search term.', 'error');
         }
       },
 
@@ -513,6 +604,7 @@
           // Show followers list and hide others
           document.getElementById('searchResults').style.display = 'none';
           document.getElementById('followingList').style.display = 'none';
+          document.getElementById('requestsList').style.display = 'none';
           document.getElementById('followersList').style.display = 'grid';
 
         } catch (error) {
@@ -551,10 +643,43 @@
           // Show following list and hide others
           document.getElementById('searchResults').style.display = 'none';
           document.getElementById('followersList').style.display = 'none';
+          document.getElementById('requestsList').style.display = 'none';
           document.getElementById('followingList').style.display = 'grid';
 
         } catch (error) {
           console.error('Error loading following:', error);
+        }
+      },
+
+      async showRequests() {
+        try {
+          const { data: requests, error } = await supabase
+            .from('follow_requests')
+            .select('*, user_profiles!follow_requests_requester_id_fkey(*)')
+            .eq('requested_id', currentUser.id)
+            .eq('status', 'pending');
+
+          if (error) throw error;
+
+          if (!requests || requests.length === 0) {
+            document.getElementById('requestsList').innerHTML = `
+              <div class="empty-state">
+                <div>📥</div>
+                <p>No pending requests</p>
+              </div>
+            `;
+          } else {
+            this.displayRequests(requests);
+          }
+
+          // Show requests list and hide others
+          document.getElementById('searchResults').style.display = 'none';
+          document.getElementById('followersList').style.display = 'none';
+          document.getElementById('followingList').style.display = 'none';
+          document.getElementById('requestsList').style.display = 'grid';
+
+        } catch (error) {
+          console.error('Error loading requests:', error);
         }
       },
 
@@ -574,20 +699,27 @@
         container.innerHTML = '';
 
         for (const user of users) {
-          const isFollowing = await this.checkIfFollowing(user.id);
+          const followStatus = await this.getFollowStatus(user.id);
+          const isPrivate = user.is_public === false;
           
           const userCard = document.createElement('div');
           userCard.className = 'user-card';
           userCard.innerHTML = `
             <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
             <div class="user-info">
-              <div class="user-name">${user.username || 'Unknown User'}</div>
+              <div class="user-name">${user.username || user.email?.split('@')[0] || 'Unknown User'}</div>
               <div class="user-bio">${user.bio || 'No bio available'}</div>
               <div class="user-actions">
-                <button class="follow-btn ${isFollowing ? 'following' : ''}" 
-                        onclick="friendSystem.toggleFollow('${user.id}')">
-                  ${isFollowing ? 'Following' : 'Follow'}
-                </button>
+                ${isPrivate && !followStatus.isFollowing ? `
+                  <button class="follow-btn requested" onclick="friendSystem.sendFollowRequest('${user.id}')">
+                    ${followStatus.hasRequested ? 'Requested' : 'Request to Follow'}
+                  </button>
+                ` : `
+                  <button class="follow-btn ${followStatus.isFollowing ? 'following' : ''}" 
+                          onclick="friendSystem.toggleFollow('${user.id}')">
+                    ${followStatus.isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                `}
               </div>
             </div>
           `;
@@ -596,18 +728,81 @@
         }
       },
 
-      async checkIfFollowing(targetUserId) {
+      async displayRequests(requests) {
+        const container = document.getElementById('requestsList');
+        container.innerHTML = '';
+
+        for (const request of requests) {
+          const user = request.user_profiles;
+          const userCard = document.createElement('div');
+          userCard.className = 'user-card';
+          userCard.innerHTML = `
+            <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
+            <div class="user-info">
+              <div class="user-name">${user.username || 'Unknown User'}</div>
+              <div class="user-bio">${user.bio || 'No bio available'}</div>
+              <div class="request-actions">
+                <button class="accept-btn" onclick="friendSystem.acceptRequest('${request.id}')">Accept</button>
+                <button class="reject-btn" onclick="friendSystem.rejectRequest('${request.id}')">Reject</button>
+              </div>
+            </div>
+          `;
+          container.appendChild(userCard);
+        }
+      },
+
+      async getFollowStatus(targetUserId) {
         try {
-          const { data, error } = await supabase
+          // Check if already following
+          const { data: follow, error: followError } = await supabase
             .from('follows')
             .select('id')
             .eq('follower_id', currentUser.id)
             .eq('following_id', targetUserId)
             .single();
 
-          return !!data;
+          // Check if request pending
+          const { data: request, error: requestError } = await supabase
+            .from('follow_requests')
+            .select('id')
+            .eq('requester_id', currentUser.id)
+            .eq('requested_id', targetUserId)
+            .eq('status', 'pending')
+            .single();
+
+          return {
+            isFollowing: !!follow,
+            hasRequested: !!request
+          };
         } catch (error) {
-          return false;
+          return { isFollowing: false, hasRequested: false };
+        }
+      },
+
+      async sendFollowRequest(targetUserId) {
+        try {
+          const { error } = await supabase
+            .from('follow_requests')
+            .insert({
+              requester_id: currentUser.id,
+              requested_id: targetUserId,
+              status: 'pending',
+              created_at: new Date().toISOString()
+            });
+
+          if (error) throw error;
+          
+          showNotification('Follow request sent!', 'success');
+          
+          // Refresh the display
+          const searchTerm = document.getElementById('userSearch').value;
+          if (searchTerm) {
+            this.searchUsers(searchTerm);
+          }
+
+        } catch (error) {
+          console.error('Error sending follow request:', error);
+          showNotification('Error sending follow request', 'error');
         }
       },
 
@@ -627,7 +822,7 @@
             
             showNotification('Unfollowed user', 'info');
           } else {
-            // Follow
+            // Follow directly (for public accounts)
             const { error } = await supabase
               .from('follows')
               .insert({
@@ -645,20 +840,101 @@
           await this.loadFollowStats();
           
           // Refresh current view
-          if (document.getElementById('followersList').style.display === 'grid') {
-            this.showFollowers();
-          } else if (document.getElementById('followingList').style.display === 'grid') {
-            this.showFollowing();
-          } else {
-            const searchTerm = document.getElementById('userSearch').value;
-            if (searchTerm) {
-              this.searchUsers(searchTerm);
-            }
-          }
+          this.refreshCurrentView();
 
         } catch (error) {
           console.error('Error toggling follow:', error);
           showNotification('Error updating follow status', 'error');
+        }
+      },
+
+      async acceptRequest(requestId) {
+        try {
+          // Get the request details
+          const { data: request, error: requestError } = await supabase
+            .from('follow_requests')
+            .select('*')
+            .eq('id', requestId)
+            .single();
+
+          if (requestError) throw requestError;
+
+          // Create follow relationship
+          const { error: followError } = await supabase
+            .from('follows')
+            .insert({
+              follower_id: request.requester_id,
+              following_id: request.requested_id,
+              created_at: new Date().toISOString()
+            });
+
+          if (followError) throw followError;
+
+          // Update request status
+          const { error: updateError } = await supabase
+            .from('follow_requests')
+            .update({ status: 'accepted' })
+            .eq('id', requestId);
+
+          if (updateError) throw updateError;
+
+          showNotification('Follow request accepted!', 'success');
+          await this.loadFollowStats();
+          await this.loadPendingRequests();
+          this.showRequests();
+
+        } catch (error) {
+          console.error('Error accepting request:', error);
+          showNotification('Error accepting request', 'error');
+        }
+      },
+
+      async rejectRequest(requestId) {
+        try {
+          const { error } = await supabase
+            .from('follow_requests')
+            .update({ status: 'rejected' })
+            .eq('id', requestId);
+
+          if (error) throw error;
+
+          showNotification('Follow request rejected', 'info');
+          await this.loadPendingRequests();
+          this.showRequests();
+
+        } catch (error) {
+          console.error('Error rejecting request:', error);
+          showNotification('Error rejecting request', 'error');
+        }
+      },
+
+      async checkIfFollowing(targetUserId) {
+        try {
+          const { data, error } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', currentUser.id)
+            .eq('following_id', targetUserId)
+            .single();
+
+          return !!data;
+        } catch (error) {
+          return false;
+        }
+      },
+
+      refreshCurrentView() {
+        if (document.getElementById('followersList').style.display === 'grid') {
+          this.showFollowers();
+        } else if (document.getElementById('followingList').style.display === 'grid') {
+          this.showFollowing();
+        } else if (document.getElementById('requestsList').style.display === 'grid') {
+          this.showRequests();
+        } else {
+          const searchTerm = document.getElementById('userSearch').value;
+          if (searchTerm) {
+            this.searchUsers(searchTerm);
+          }
         }
       }
     };
@@ -728,6 +1004,7 @@
             id: currentUser.id,
             username: currentUser.email.split('@')[0],
             bio: "",
+            is_public: true,
             created_at: new Date().toISOString()
           });
 
@@ -882,11 +1159,6 @@
         friendSystem.searchUsers();
       }
     });
-
-    // Global functions
-    window.searchUsers = () => friendSystem.searchUsers();
-    window.showFollowers = () => friendSystem.showFollowers();
-    window.showFollowing = () => friendSystem.showFollowing();
 
     loadProfile();
 
