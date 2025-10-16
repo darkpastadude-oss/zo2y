@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peking - Authentic Chinese Cuisine</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-description{font-size:0.85rem;color:var(--text2);margin-top:5px;font-style:italic}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+</style>
+</head>
+<body>
+
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
+
+<section class="hero">
+  <img src="../images/peking.png" alt="Peking Restaurant" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Peking Restaurant</h1>
+  <p>Authentic Chinese cuisine with traditional flavors and modern presentation</p>
+  <div class="rating">⭐ 4.5/5 (3,026+ reviews)</div>
+
+  <a href="tel:16078" class="btn">Call Hotline: 16078</a>
+  <a href="https://www.peking-eg.com/" target="_blank" class="btn secondary">Order Online</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:16078">16078</a>
+    <strong>Website:</strong> <a href="https://www.peking-eg.com/" target="_blank">www.peking-eg.com</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Mohandessin</h3>
+      <p>26 El Atteba St.<br>+202-3366734 / +202-37496713</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+Mohandessin" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Heliopolis</h3>
+      <p>115 Osman ibn Affan St.<br>+202-24185612 / +202-24192247</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+Heliopolis" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Maadi</h3>
+      <p>29 Road 257, El Nasr St.<br>+202-25164218 / +202-25164145</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Rehab</h3>
+      <p>Sporting Club<br>+202-26931114/5</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+Rehab" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>El-Sherouk</h3>
+      <p>City Plaza Beside BUE<br>+202-01092084433 / +202-01092128866</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+El+Sherouk" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Katameya</h3>
+      <p>Downtown Mall<br>+202-23146251/2</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+Katameya" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>El-Sheikh Zayed City</h3>
+      <p>Al Guezira Plaza<br>+202-38517713/4</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>North Coast</h3>
+      <p>Rivette Mall @Amwaj<br>km 136 Alexandria Matrouh Road<br>+20-01019497946</p>
+      <a href="https://maps.google.com/search?q=Peking+Restaurant+North+Coast" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Top Dishes</h2>
+    
+    <div class="menu-item">
+      <div>
+        <span>Vegetables Spring Rolls</span>
+        <div class="menu-description">Crispy spring rolls filled with fresh vegetables</div>
+      </div>
+      <span>EGP 75</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Fried Noodles with Vegetables & Soya</span>
+        <div class="menu-description">Stir-fried noodles with mixed vegetables and soya sauce</div>
+      </div>
+      <span>EGP 105</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Fried Rice with Vegetables</span>
+        <div class="menu-description">Classic fried rice with assorted vegetables</div>
+      </div>
+      <span>EGP 55</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Steamed Rice</span>
+        <div class="menu-description">Perfectly steamed white rice</div>
+      </div>
+      <span>EGP 45</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Crisp Shandong Vegetables</span>
+        <div class="menu-description">With chili sauce</div>
+      </div>
+      <span>EGP 75</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Chicken BBQ</span>
+        <div class="menu-description">Barbecue chicken with special sauce</div>
+      </div>
+      <span>EGP 260</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Beef BBQ</span>
+        <div class="menu-description">Tender beef with barbecue glaze</div>
+      </div>
+      <span>EGP 290</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Starters</h2>
+  
+    <div class="menu-item">
+      <div>
+        <span>Beef Dumplings</span>
+        <div class="menu-description">Traditional Chinese beef dumplings</div>
+      </div>
+      <span>EGP 90</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Beef Wun Ton</span>
+        <div class="menu-description">Classic beef wontons</div>
+      </div>
+      <span>EGP 80</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Soups</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Peking Soup</span>
+        <div class="menu-description">Creamy soup with chicken and mushroom</div>
+      </div>
+      <span>EGP 90</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Sweet Corn and Chicken Soup</span>
+        <div class="menu-description">Classic sweet corn soup with chicken</div>
+      </div>
+      <span>EGP 95</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Chicken Hot and Sour Soup</span>
+        <div class="menu-description">Spicy and tangy chicken soup</div>
+      </div>
+      <span>EGP 90</span>
+    </div>
+  
+  <a href="https://www.peking-eg.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Mohamed A.</strong></p>
+      <p>The best Chinese food in Cairo! Their spring rolls are always crispy and fresh. The service is excellent!</p>
+    </div>
+    <div class="review">
+      <p><strong>Lina K.</strong></p>
+      <p>Authentic flavors and generous portions. The Chicken BBQ is my absolute favorite. Highly recommended!</p>
+    </div>
+    <div class="review">
+      <p><strong>Omar S.</strong></p>
+      <p>Consistently great quality across all branches. Their fried rice is the best I've had in Egypt.</p>
+    </div>
+    <div class="review">
+      <p><strong>Nada R.</strong></p>
+      <p>Perfect for family dinners. The variety is amazing and everything tastes fresh and authentic.</p>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
+
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Peking Restaurant - Authentic Chinese Cuisine Since 1978</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Mohandessin, Heliopolis, Maadi, Rehab, El-Sherouk, Katameya, Sheikh Zayed, North Coast</p>
+</footer>
+
+<script>
+// Theme toggle functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('peking-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('peking-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+
+// Review form functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const reviewer = document.getElementById('reviewer').value.trim();
+  const reviewText = document.getElementById('review-text').value.trim();
+  
+  if (reviewer && reviewText) {
+    const reviewElement = document.createElement('div');
+    reviewElement.className = 'review';
+    reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+    reviewsList.appendChild(reviewElement);
+    
+    reviewForm.reset();
+    
+    const thankYouMessage = document.createElement('p');
+    thankYouMessage.textContent = 'Thank you for your review!';
+    thankYouMessage.style.color = '#FF9800';
+    thankYouMessage.style.fontWeight = '600';
+    thankYouMessage.style.marginTop = '10px';
+    reviewForm.appendChild(thankYouMessage);
+    
+    setTimeout(() => {
+      thankYouMessage.remove();
+    }, 3000);
+  }
+});
+
+// Initialize everything
+themeToggle.addEventListener('click', toggleTheme);
+initializeTheme();
+</script>
+
+</body>
+</html>
