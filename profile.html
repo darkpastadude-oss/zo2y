@@ -453,7 +453,7 @@
       }
     };
 
-    // Friend System
+    // Friend System - CORRECTED VERSION
     const friendSystem = {
       async init() {
         if (!currentUser) return;
@@ -464,20 +464,20 @@
 
       async loadFollowStats() {
         try {
-          // Get followers count
+          // Get followers count (people who follow current user)
           const { data: followers, error: followersError } = await supabase
             .from('follows')
             .select('follower_id')
-            .eq('following_id', currentUser.id);
+            .eq('followed_id', currentUser.id);
 
           if (!followersError) {
             document.getElementById('followersCount').textContent = followers?.length || 0;
           }
 
-          // Get following count
+          // Get following count (people current user follows)
           const { data: following, error: followingError } = await supabase
             .from('follows')
-            .select('following_id')
+            .select('followed_id')
             .eq('follower_id', currentUser.id);
 
           if (!followingError) {
@@ -493,14 +493,14 @@
         try {
           const { data: profile, error } = await supabase
             .from('user_profiles')
-            .select('is_public')
+            .select('is_private')
             .eq('id', currentUser.id)
             .single();
 
           if (!error && profile) {
-            const isPublic = profile.is_public !== false; // Default to public
-            document.getElementById('privacyToggle').checked = isPublic;
-            document.getElementById('privacyLabel').textContent = isPublic ? 'Public Account' : 'Private Account';
+            const isPrivate = profile.is_private === true;
+            document.getElementById('privacyToggle').checked = !isPrivate;
+            document.getElementById('privacyLabel').textContent = isPrivate ? 'Private Account' : 'Public Account';
           }
         } catch (error) {
           console.error('Error loading privacy setting:', error);
@@ -513,7 +513,7 @@
         try {
           const { error } = await supabase
             .from('user_profiles')
-            .update({ is_public: isPublic })
+            .update({ is_private: !isPublic })
             .eq('id', currentUser.id);
 
           if (error) throw error;
@@ -532,7 +532,7 @@
           const { data: requests, error } = await supabase
             .from('follow_requests')
             .select('*')
-            .eq('requested_id', currentUser.id)
+            .eq('receiver_id', currentUser.id)
             .eq('status', 'pending');
 
           if (!error) {
@@ -557,7 +557,7 @@
             .from('user_profiles')
             .select('*')
             .neq('id', currentUser.id)
-            .or(`username.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
+            .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
             .limit(20);
 
           if (error) {
@@ -578,7 +578,7 @@
           const { data: follows, error } = await supabase
             .from('follows')
             .select('follower_id')
-            .eq('following_id', currentUser.id);
+            .eq('followed_id', currentUser.id);
 
           if (error) throw error;
 
@@ -616,7 +616,7 @@
         try {
           const { data: follows, error } = await supabase
             .from('follows')
-            .select('following_id')
+            .select('followed_id')
             .eq('follower_id', currentUser.id);
 
           if (error) throw error;
@@ -629,7 +629,7 @@
               </div>
             `;
           } else {
-            const followingIds = follows.map(f => f.following_id);
+            const followingIds = follows.map(f => f.followed_id);
             const { data: users, error: usersError } = await supabase
               .from('user_profiles')
               .select('*')
@@ -655,8 +655,8 @@
         try {
           const { data: requests, error } = await supabase
             .from('follow_requests')
-            .select('*, user_profiles!follow_requests_requester_id_fkey(*)')
-            .eq('requested_id', currentUser.id)
+            .select('*, user_profiles!follow_requests_sender_id_fkey(*)')
+            .eq('receiver_id', currentUser.id)
             .eq('status', 'pending');
 
           if (error) throw error;
@@ -700,18 +700,19 @@
 
         for (const user of users) {
           const followStatus = await this.getFollowStatus(user.id);
-          const isPrivate = user.is_public === false;
+          const isPrivate = user.is_private === true;
           
           const userCard = document.createElement('div');
           userCard.className = 'user-card';
           userCard.innerHTML = `
             <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
             <div class="user-info">
-              <div class="user-name">${user.username || user.email?.split('@')[0] || 'Unknown User'}</div>
+              <div class="user-name">${user.username || user.full_name || 'Unknown User'}</div>
               <div class="user-bio">${user.bio || 'No bio available'}</div>
               <div class="user-actions">
                 ${isPrivate && !followStatus.isFollowing ? `
-                  <button class="follow-btn requested" onclick="friendSystem.sendFollowRequest('${user.id}')">
+                  <button class="follow-btn ${followStatus.hasRequested ? 'requested' : ''}" 
+                          onclick="friendSystem.sendFollowRequest('${user.id}')">
                     ${followStatus.hasRequested ? 'Requested' : 'Request to Follow'}
                   </button>
                 ` : `
@@ -739,7 +740,7 @@
           userCard.innerHTML = `
             <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
             <div class="user-info">
-              <div class="user-name">${user.username || 'Unknown User'}</div>
+              <div class="user-name">${user.username || user.full_name || 'Unknown User'}</div>
               <div class="user-bio">${user.bio || 'No bio available'}</div>
               <div class="request-actions">
                 <button class="accept-btn" onclick="friendSystem.acceptRequest('${request.id}')">Accept</button>
@@ -758,21 +759,21 @@
             .from('follows')
             .select('id')
             .eq('follower_id', currentUser.id)
-            .eq('following_id', targetUserId)
+            .eq('followed_id', targetUserId)
             .single();
 
           // Check if request pending
           const { data: request, error: requestError } = await supabase
             .from('follow_requests')
             .select('id')
-            .eq('requester_id', currentUser.id)
-            .eq('requested_id', targetUserId)
+            .eq('sender_id', currentUser.id)
+            .eq('receiver_id', targetUserId)
             .eq('status', 'pending')
             .single();
 
           return {
-            isFollowing: !!follow,
-            hasRequested: !!request
+            isFollowing: !!follow && !followError,
+            hasRequested: !!request && !requestError
           };
         } catch (error) {
           return { isFollowing: false, hasRequested: false };
@@ -784,8 +785,8 @@
           const { error } = await supabase
             .from('follow_requests')
             .insert({
-              requester_id: currentUser.id,
-              requested_id: targetUserId,
+              sender_id: currentUser.id,
+              receiver_id: targetUserId,
               status: 'pending',
               created_at: new Date().toISOString()
             });
@@ -795,10 +796,7 @@
           showNotification('Follow request sent!', 'success');
           
           // Refresh the display
-          const searchTerm = document.getElementById('userSearch').value;
-          if (searchTerm) {
-            this.searchUsers(searchTerm);
-          }
+          this.refreshCurrentView();
 
         } catch (error) {
           console.error('Error sending follow request:', error);
@@ -816,18 +814,18 @@
               .from('follows')
               .delete()
               .eq('follower_id', currentUser.id)
-              .eq('following_id', targetUserId);
+              .eq('followed_id', targetUserId);
 
             if (error) throw error;
             
             showNotification('Unfollowed user', 'info');
           } else {
-            // Follow directly (for public accounts)
+            // Follow directly (for public accounts or if already approved)
             const { error } = await supabase
               .from('follows')
               .insert({
                 follower_id: currentUser.id,
-                following_id: targetUserId,
+                followed_id: targetUserId,
                 created_at: new Date().toISOString()
               });
 
@@ -838,8 +836,6 @@
 
           // Refresh the display
           await this.loadFollowStats();
-          
-          // Refresh current view
           this.refreshCurrentView();
 
         } catch (error) {
@@ -863,8 +859,8 @@
           const { error: followError } = await supabase
             .from('follows')
             .insert({
-              follower_id: request.requester_id,
-              following_id: request.requested_id,
+              follower_id: request.sender_id,
+              followed_id: request.receiver_id,
               created_at: new Date().toISOString()
             });
 
@@ -914,10 +910,10 @@
             .from('follows')
             .select('id')
             .eq('follower_id', currentUser.id)
-            .eq('following_id', targetUserId)
+            .eq('followed_id', targetUserId)
             .single();
 
-          return !!data;
+          return !!data && !error;
         } catch (error) {
           return false;
         }
@@ -1004,7 +1000,7 @@
             id: currentUser.id,
             username: currentUser.email.split('@')[0],
             bio: "",
-            is_public: true,
+            is_private: false,
             created_at: new Date().toISOString()
           });
 
