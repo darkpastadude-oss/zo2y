@@ -91,7 +91,16 @@
       <div class="category-filters">
         <div class="category-dropdown">
           <select id="categorySelect">
-            <option value="All">All Categories</option><option value="Burgers">Burgers</option><option value="Chicken">Chicken</option><option value="Pizza">Pizza</option><option value="Middle Eastern">Middle Eastern</option><option value="Asian">Asian</option><option value="Mexican">Mexican</option><option value="Cafe & Bakery">Cafe & Bakery</option><option value="Fast Food">Fast Food</option><option value="BBQ & Ribs">BBQ & Ribs</option>
+            <option value="All">All Categories</option>
+            <option value="Asian">Asian</option>
+            <option value="Burgers">Burgers</option>
+            <option value="Chicken">Chicken</option>
+            <option value="Middle Eastern">Middle Eastern</option>
+            <option value="Mexican">Mexican</option>
+            <option value="Fast Food">Fast Food</option>
+            <option value="Cafe & Bakery">Cafe & Bakery</option>
+            <option value="Pizza">Pizza</option>
+            <option value="BBQ & Ribs">BBQ & Ribs</option>
           </select>
         </div>
       </div>
@@ -410,8 +419,9 @@
       }
     };
 
-    // Restaurant Data with proper IDs
+    // Restaurant Data with proper IDs - UPDATED WITH ALL RESTAURANTS
     const restaurants = [
+      // Existing restaurants
       { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
       { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
       { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
@@ -446,6 +456,14 @@
       { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
       { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
       { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
+
+      // NEW RESTAURANTS FROM YOUR FILE
+      { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', desc:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png' },
+      { id: 36, slug:'wokandwalk', name:'Wok and Walk', category:'Asian', desc:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png' },
+      { id: 37, slug:'daddys', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddys.png' },
+      { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
+      { id: 39, slug:'crispyhen', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
+      { id: 40, slug:'lordwings', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' }
     ];
 
     // Rendering and Filtering
