@@ -60,6 +60,56 @@
     .back-btn:hover { background: #f59e0b; color: #0b1633; }
     .empty-list { text-align: center; padding: 40px; color: #cbd5e1; }
     
+    /* Friends System Styles */
+    .friends-section { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
+    .friends-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .friends-stats { display: flex; gap: 20px; }
+    .stat { text-align: center; cursor: pointer; transition: transform 0.2s; }
+    .stat:hover { transform: translateY(-2px); }
+    .stat-number { display: block; font-size: 1.5rem; font-weight: 700; color: #f59e0b; }
+    .stat-label { font-size: 0.9rem; color: #cbd5e1; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: #0b1633; color: white; font-family: inherit; }
+    .search-input:focus { outline: none; border-color: #f59e0b; }
+    .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+    .user-card { background: #0b1633; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; }
+    .user-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
+    .user-avatar { font-size: 2.5rem; width: 60px; height: 60px; border-radius: 50%; background: #f59e0b; color: #0b1633; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+    .user-info { text-align: center; }
+    .user-name { font-weight: 600; margin-bottom: 5px; }
+    .user-bio { color: #cbd5e1; font-size: 0.9rem; margin-bottom: 15px; }
+    .user-actions { display: flex; gap: 10px; justify-content: center; }
+    .follow-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .follow-btn:hover { background: #ffb84d; }
+    .follow-btn.following { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
+    .follow-btn.following:hover { background: #f59e0b22; }
+    .follow-btn.requested { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
+    .follow-btn.requested:hover { background: #f59e0b22; }
+    .empty-state { text-align: center; padding: 40px; color: #cbd5e1; }
+    .empty-state i { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+    
+    /* Privacy & Request Styles */
+    .privacy-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #0b1633; transition: .4s; border-radius: 24px; border: 1px solid #f59e0b; }
+    .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: #f59e0b; transition: .4s; border-radius: 50%; }
+    input:checked + .toggle-slider { background-color: #f59e0b; }
+    input:checked + .toggle-slider:before { transform: translateX(26px); background-color: #0b1633; }
+    .privacy-label { color: #cbd5e1; font-size: 0.9rem; }
+    
+    .request-actions { display: flex; gap: 8px; justify-content: center; }
+    .accept-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    .reject-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    
+    /* Tabs for Profile Sections */
+    .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+    .profile-tab { background: none; border: none; color: #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .profile-tab.active { background: #f59e0b; color: #0b1633; }
+    .profile-tab:hover { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
     /* Notification Styles */
     .custom-notification {
       position: fixed;
@@ -113,51 +163,116 @@
     <div class="email" id="email"></div>
     <div class="join-date" id="joinDate"></div>
 
-    <!-- Bio Section -->
-    <div class="bio">
-      <h3>
-        About Me
-        <button class="edit-btn" id="editBioBtn">Edit Bio</button>
-      </h3>
-      <div id="bioDisplay">
-        <p id="bioText">No bio yet. Click edit to add one!</p>
-      </div>
-      <div id="bioEdit" style="display: none;">
-        <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
-        <div class="bio-actions">
-          <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
-          <button class="save-btn" id="saveBioBtn">Save Bio</button>
+    <!-- Profile Tabs -->
+    <div class="profile-tabs">
+      <button class="profile-tab active" data-tab="profile">Profile</button>
+      <button class="profile-tab" data-tab="social">Social</button>
+    </div>
+
+    <!-- Profile Tab Content -->
+    <div class="tab-content active" id="profile-tab">
+      <!-- Bio Section -->
+      <div class="bio">
+        <h3>
+          About Me
+          <button class="edit-btn" id="editBioBtn">Edit Bio</button>
+        </h3>
+        <div id="bioDisplay">
+          <p id="bioText">No bio yet. Click edit to add one!</p>
         </div>
+        <div id="bioEdit" style="display: none;">
+          <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
+          <div class="bio-actions">
+            <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
+            <button class="save-btn" id="saveBioBtn">Save Bio</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- My Lists Section -->
+      <div class="custom-lists">
+        <h3>My Lists</h3>
+        <div class="list-grid">
+          <div class="list-card" onclick="showList('favorites')">
+            <div class="list-icon">❤️</div>
+            <div class="list-card-title">Favorites</div>
+            <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('visited')">
+            <div class="list-icon">🍽️</div>
+            <div class="list-card-title">Visited</div>
+            <div class="list-card-count" id="visitedCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('wantToGo')">
+            <div class="list-icon">📍</div>
+            <div class="list-card-title">Want to Go</div>
+            <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active List Display -->
+      <div id="activeListSection" class="active-list-section" style="display: none;">
+        <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
+        <h3 id="activeListTitle">My List</h3>
+        <div id="activeListGrid" class="restaurants-grid"></div>
       </div>
     </div>
 
-    <!-- My Lists Section -->
-    <div class="custom-lists">
-      <h3>My Lists</h3>
-      <div class="list-grid">
-        <div class="list-card" onclick="showList('favorites')">
-          <div class="list-icon">❤️</div>
-          <div class="list-card-title">Favorites</div>
-          <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+    <!-- Social Tab Content -->
+    <div class="tab-content" id="social-tab">
+      <div class="friends-section">
+        <div class="friends-header">
+          <h3>My Network</h3>
+          <div class="friends-stats">
+            <div class="stat" onclick="friendSystem.showFollowers()">
+              <span class="stat-number" id="followersCount">0</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat" onclick="friendSystem.showFollowing()">
+              <span class="stat-number" id="followingCount">0</span>
+              <span class="stat-label">Following</span>
+            </div>
+            <div class="stat" onclick="friendSystem.showRequests()">
+              <span class="stat-number" id="requestsCount">0</span>
+              <span class="stat-label">Requests</span>
+            </div>
+          </div>
         </div>
-        <div class="list-card" onclick="showList('visited')">
-          <div class="list-icon">🍽️</div>
-          <div class="list-card-title">Visited</div>
-          <div class="list-card-count" id="visitedCount">0 restaurants</div>
-        </div>
-        <div class="list-card" onclick="showList('wantToGo')">
-          <div class="list-icon">📍</div>
-          <div class="list-card-title">Want to Go</div>
-          <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Active List Display -->
-    <div id="activeListSection" class="active-list-section" style="display: none;">
-      <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
-      <h3 id="activeListTitle">My List</h3>
-      <div id="activeListGrid" class="restaurants-grid"></div>
+        <!-- Privacy Settings -->
+        <div class="privacy-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="privacyToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="privacy-label" id="privacyLabel">Public Account</span>
+        </div>
+
+        <!-- Search Users -->
+        <div class="search-bar">
+          <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
+          <button class="follow-btn" onclick="friendSystem.searchUsers()">Search</button>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults">
+          <div class="empty-state">
+            <div>🔍</div>
+            <p>Search for users to find friends</p>
+            <p class="text-light">Connect with other food lovers!</p>
+          </div>
+        </div>
+
+        <!-- Followers List -->
+        <div id="followersList" class="user-grid" style="display: none;"></div>
+
+        <!-- Following List -->
+        <div id="followingList" class="user-grid" style="display: none;"></div>
+
+        <!-- Requests List -->
+        <div id="requestsList" class="user-grid" style="display: none;"></div>
+      </div>
     </div>
   </div>
 
@@ -291,12 +406,12 @@
           const list = this.currentLists[listType];
           if (list) {
             const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')  // FIXED: added 's' to table name
-              .select('restraunt_id')   // FIXED: changed to 'restraint_id' (with 'i')
+              .from('lists_restraunts')
+              .select('restraunt_id')
               .eq('list_id', list.id);
             
             if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraunt_id);  // FIXED: changed to 'restraint_id' (with 'i')
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);
             } else {
               list.restaurants = [];
             }
@@ -325,11 +440,11 @@
         try {
           if (isInList) {
             const { error } = await supabase
-              .from('lists_restraunts')  // FIXED: added 's' to table name
+              .from('lists_restraunts')
               .delete()
               .match({ 
                 list_id: list.id, 
-                restraint_id: restaurantId  // FIXED: changed to 'restraint_id' (with 'i')
+                restraunt_id: restaurantId
               });
             
             if (error) throw error;
@@ -340,10 +455,10 @@
           } else {
             const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
-              .from('lists_restraunts')  // FIXED: added 's' to table name
+              .from('lists_restraunts')
               .insert([{ 
                 list_id: list.id, 
-                restraunt_id: restaurantId,  // FIXED: changed to 'restraint_id' (with 'i')
+                restraunt_id: restaurantId,
                 added_at: new Date().toISOString()
               }]);
             
@@ -367,6 +482,485 @@
       isInList(listType, restaurantId) {
         const list = this.currentLists[listType];
         return list?.restaurants?.includes(restaurantId) || false;
+      }
+    };
+
+    // Friend System
+    const friendSystem = {
+      async init() {
+        if (!currentUser) return;
+        await this.loadFollowStats();
+        await this.loadPrivacySetting();
+        await this.loadPendingRequests();
+        
+        // Add event listener for privacy toggle
+        document.getElementById('privacyToggle').addEventListener('change', () => {
+          this.togglePrivacy();
+        });
+      },
+
+      async loadFollowStats() {
+        try {
+          // Get followers count (people who follow current user)
+          const { data: followers, error: followersError } = await supabase
+            .from('follows')
+            .select('follower_id')
+            .eq('followed_id', currentUser.id);
+
+          if (!followersError) {
+            document.getElementById('followersCount').textContent = followers?.length || 0;
+          }
+
+          // Get following count (people current user follows)
+          const { data: following, error: followingError } = await supabase
+            .from('follows')
+            .select('followed_id')
+            .eq('follower_id', currentUser.id);
+
+          if (!followingError) {
+            document.getElementById('followingCount').textContent = following?.length || 0;
+          }
+
+        } catch (error) {
+          console.error('Error loading follow stats:', error);
+        }
+      },
+
+      async loadPrivacySetting() {
+        try {
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('is_private')
+            .eq('id', currentUser.id)
+            .single();
+
+          if (!error && profile) {
+            const isPrivate = profile.is_private === true;
+            document.getElementById('privacyToggle').checked = !isPrivate;
+            document.getElementById('privacyLabel').textContent = isPrivate ? 'Private Account' : 'Public Account';
+          }
+        } catch (error) {
+          console.error('Error loading privacy setting:', error);
+        }
+      },
+
+      async togglePrivacy() {
+        const isPublic = document.getElementById('privacyToggle').checked;
+        
+        try {
+          const { error } = await supabase
+            .from('user_profiles')
+            .update({ is_private: !isPublic })
+            .eq('id', currentUser.id);
+
+          if (error) throw error;
+
+          document.getElementById('privacyLabel').textContent = isPublic ? 'Public Account' : 'Private Account';
+          showNotification(`Account set to ${isPublic ? 'public' : 'private'}`, 'success');
+
+        } catch (error) {
+          console.error('Error updating privacy:', error);
+          showNotification('Error updating privacy setting', 'error');
+        }
+      },
+
+      async loadPendingRequests() {
+        try {
+          const { data: requests, error } = await supabase
+            .from('follow_requests')
+            .select('*')
+            .eq('receiver_id', currentUser.id)
+            .eq('status', 'pending');
+
+          if (!error) {
+            document.getElementById('requestsCount').textContent = requests?.length || 0;
+          }
+        } catch (error) {
+          console.error('Error loading requests:', error);
+        }
+      },
+
+      async searchUsers() {
+        const searchInput = document.getElementById('userSearch');
+        const searchTerm = searchInput.value.trim();
+        
+        if (!searchTerm) {
+          showNotification('Please enter a search term', 'error');
+          return;
+        }
+
+        try {
+          const { data: users, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .neq('id', currentUser.id)
+            .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
+            .limit(20);
+
+          if (error) throw error;
+
+          this.displayUsers(users, 'searchResults');
+          
+        } catch (error) {
+          console.error('Error searching users:', error);
+          showNotification('Error searching users', 'error');
+        }
+      },
+
+      async showFollowers() {
+        try {
+          const { data: follows, error } = await supabase
+            .from('follows')
+            .select('follower_id')
+            .eq('followed_id', currentUser.id);
+
+          if (error) throw error;
+
+          if (!follows || follows.length === 0) {
+            document.getElementById('followersList').innerHTML = `
+              <div class="empty-state">
+                <div>👥</div>
+                <p>No followers yet</p>
+              </div>
+            `;
+          } else {
+            const followerIds = follows.map(f => f.follower_id);
+            const { data: users, error: usersError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .in('id', followerIds);
+
+            if (!usersError) {
+              this.displayUsers(users, 'followersList');
+            }
+          }
+
+          this.showSection('followersList');
+
+        } catch (error) {
+          console.error('Error loading followers:', error);
+        }
+      },
+
+      async showFollowing() {
+        try {
+          const { data: follows, error } = await supabase
+            .from('follows')
+            .select('followed_id')
+            .eq('follower_id', currentUser.id);
+
+          if (error) throw error;
+
+          if (!follows || follows.length === 0) {
+            document.getElementById('followingList').innerHTML = `
+              <div class="empty-state">
+                <div>👥</div>
+                <p>Not following anyone yet</p>
+              </div>
+            `;
+          } else {
+            const followingIds = follows.map(f => f.followed_id);
+            const { data: users, error: usersError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .in('id', followingIds);
+
+            if (!usersError) {
+              this.displayUsers(users, 'followingList');
+            }
+          }
+
+          this.showSection('followingList');
+
+        } catch (error) {
+          console.error('Error loading following:', error);
+        }
+      },
+
+      async showRequests() {
+        try {
+          const { data: requests, error } = await supabase
+            .from('follow_requests')
+            .select('*, user_profiles!follow_requests_sender_id_fkey(*)')
+            .eq('receiver_id', currentUser.id)
+            .eq('status', 'pending');
+
+          if (error) throw error;
+
+          if (!requests || requests.length === 0) {
+            document.getElementById('requestsList').innerHTML = `
+              <div class="empty-state">
+                <div>📥</div>
+                <p>No pending requests</p>
+              </div>
+            `;
+          } else {
+            this.displayRequests(requests);
+          }
+
+          this.showSection('requestsList');
+
+        } catch (error) {
+          console.error('Error loading requests:', error);
+        }
+      },
+
+      showSection(sectionId) {
+        // Hide all sections
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('followersList').style.display = 'none';
+        document.getElementById('followingList').style.display = 'none';
+        document.getElementById('requestsList').style.display = 'none';
+        
+        // Show the requested section
+        document.getElementById(sectionId).style.display = 'grid';
+      },
+
+      async displayUsers(users, containerId) {
+        const container = document.getElementById(containerId);
+        
+        if (!users || users.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div>🔍</div>
+              <p>No users found</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+
+        for (const user of users) {
+          const followStatus = await this.getFollowStatus(user.id);
+          const isPrivate = user.is_private === true;
+          
+          const userCard = document.createElement('div');
+          userCard.className = 'user-card';
+          userCard.innerHTML = `
+            <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
+            <div class="user-info">
+              <div class="user-name">${user.username || user.full_name || 'Unknown User'}</div>
+              <div class="user-bio">${user.bio || 'No bio available'}</div>
+              <div class="user-actions">
+                ${isPrivate && !followStatus.isFollowing ? `
+                  <button class="follow-btn ${followStatus.hasRequested ? 'requested' : ''}" 
+                          onclick="friendSystem.sendFollowRequest('${user.id}')">
+                    ${followStatus.hasRequested ? 'Requested' : 'Request to Follow'}
+                  </button>
+                ` : `
+                  <button class="follow-btn ${followStatus.isFollowing ? 'following' : ''}" 
+                          onclick="friendSystem.toggleFollow('${user.id}')">
+                    ${followStatus.isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+          
+          container.appendChild(userCard);
+        }
+      },
+
+      async displayRequests(requests) {
+        const container = document.getElementById('requestsList');
+        container.innerHTML = '';
+
+        for (const request of requests) {
+          const user = request.user_profiles;
+          const userCard = document.createElement('div');
+          userCard.className = 'user-card';
+          userCard.innerHTML = `
+            <div class="user-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
+            <div class="user-info">
+              <div class="user-name">${user.username || user.full_name || 'Unknown User'}</div>
+              <div class="user-bio">${user.bio || 'No bio available'}</div>
+              <div class="request-actions">
+                <button class="accept-btn" onclick="friendSystem.acceptRequest('${request.id}')">Accept</button>
+                <button class="reject-btn" onclick="friendSystem.rejectRequest('${request.id}')">Reject</button>
+              </div>
+            </div>
+          `;
+          container.appendChild(userCard);
+        }
+      },
+
+      async getFollowStatus(targetUserId) {
+        try {
+          // Check if already following
+          const { data: follow } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', currentUser.id)
+            .eq('followed_id', targetUserId)
+            .single();
+
+          // Check if request pending
+          const { data: request } = await supabase
+            .from('follow_requests')
+            .select('id')
+            .eq('sender_id', currentUser.id)
+            .eq('receiver_id', targetUserId)
+            .eq('status', 'pending')
+            .single();
+
+          return {
+            isFollowing: !!follow,
+            hasRequested: !!request
+          };
+        } catch (error) {
+          return { isFollowing: false, hasRequested: false };
+        }
+      },
+
+      async sendFollowRequest(targetUserId) {
+        try {
+          const { error } = await supabase
+            .from('follow_requests')
+            .insert({
+              sender_id: currentUser.id,
+              receiver_id: targetUserId,
+              status: 'pending',
+              created_at: new Date().toISOString()
+            });
+
+          if (error) throw error;
+          
+          showNotification('Follow request sent!', 'success');
+          this.refreshCurrentView();
+
+        } catch (error) {
+          console.error('Error sending follow request:', error);
+          showNotification('Error sending follow request', 'error');
+        }
+      },
+
+      async toggleFollow(targetUserId) {
+        try {
+          const isFollowing = await this.checkIfFollowing(targetUserId);
+          
+          if (isFollowing) {
+            // Unfollow
+            const { error } = await supabase
+              .from('follows')
+              .delete()
+              .eq('follower_id', currentUser.id)
+              .eq('followed_id', targetUserId);
+
+            if (error) throw error;
+            
+            showNotification('Unfollowed user', 'info');
+          } else {
+            // Follow
+            const { error } = await supabase
+              .from('follows')
+              .insert({
+                follower_id: currentUser.id,
+                followed_id: targetUserId,
+                created_at: new Date().toISOString()
+              });
+
+            if (error) throw error;
+            
+            showNotification('Started following user', 'success');
+          }
+
+          await this.loadFollowStats();
+          this.refreshCurrentView();
+
+        } catch (error) {
+          console.error('Error toggling follow:', error);
+          showNotification('Error updating follow status', 'error');
+        }
+      },
+
+      async acceptRequest(requestId) {
+        try {
+          const { data: request, error: requestError } = await supabase
+            .from('follow_requests')
+            .select('*')
+            .eq('id', requestId)
+            .single();
+
+          if (requestError) throw requestError;
+
+          // Create follow relationship
+          const { error: followError } = await supabase
+            .from('follows')
+            .insert({
+              follower_id: request.sender_id,
+              followed_id: request.receiver_id,
+              created_at: new Date().toISOString()
+            });
+
+          if (followError) throw followError;
+
+          // Update request status
+          const { error: updateError } = await supabase
+            .from('follow_requests')
+            .update({ status: 'accepted' })
+            .eq('id', requestId);
+
+          if (updateError) throw updateError;
+
+          showNotification('Follow request accepted!', 'success');
+          await this.loadFollowStats();
+          await this.loadPendingRequests();
+          this.showRequests();
+
+        } catch (error) {
+          console.error('Error accepting request:', error);
+          showNotification('Error accepting request', 'error');
+        }
+      },
+
+      async rejectRequest(requestId) {
+        try {
+          const { error } = await supabase
+            .from('follow_requests')
+            .update({ status: 'rejected' })
+            .eq('id', requestId);
+
+          if (error) throw error;
+
+          showNotification('Follow request rejected', 'info');
+          await this.loadPendingRequests();
+          this.showRequests();
+
+        } catch (error) {
+          console.error('Error rejecting request:', error);
+          showNotification('Error rejecting request', 'error');
+        }
+      },
+
+      async checkIfFollowing(targetUserId) {
+        try {
+          const { data } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', currentUser.id)
+            .eq('followed_id', targetUserId)
+            .single();
+
+          return !!data;
+        } catch (error) {
+          return false;
+        }
+      },
+
+      refreshCurrentView() {
+        if (document.getElementById('followersList').style.display === 'grid') {
+          this.showFollowers();
+        } else if (document.getElementById('followingList').style.display === 'grid') {
+          this.showFollowing();
+        } else if (document.getElementById('requestsList').style.display === 'grid') {
+          this.showRequests();
+        } else {
+          const searchTerm = document.getElementById('userSearch').value;
+          if (searchTerm) {
+            this.searchUsers();
+          }
+        }
       }
     };
 
@@ -412,6 +1006,7 @@
       }
 
       await listManager.init();
+      await friendSystem.init();
     }
 
     async function loadUserProfile() {
@@ -434,6 +1029,7 @@
             id: currentUser.id,
             username: currentUser.email.split('@')[0],
             bio: "",
+            is_private: false,
             created_at: new Date().toISOString()
           });
 
@@ -533,45 +1129,71 @@
       });
     }
 
-    // Bio functionality
-    document.getElementById("editBioBtn").addEventListener("click", () => {
-      document.getElementById("bioDisplay").style.display = "none";
-      document.getElementById("bioEdit").style.display = "block";
-      document.getElementById("bioTextarea").value = userProfile?.bio || "";
-    });
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Tab functionality
+      document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.dataset.tab;
+          
+          document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+          document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+      });
 
-    document.getElementById("cancelBioBtn").addEventListener("click", () => {
-      document.getElementById("bioDisplay").style.display = "block";
-      document.getElementById("bioEdit").style.display = "none";
-    });
+      // Bio functionality
+      document.getElementById("editBioBtn").addEventListener("click", () => {
+        document.getElementById("bioDisplay").style.display = "none";
+        document.getElementById("bioEdit").style.display = "block";
+        document.getElementById("bioTextarea").value = userProfile?.bio || "";
+      });
 
-    document.getElementById("saveBioBtn").addEventListener("click", async () => {
-      const newBio = document.getElementById("bioTextarea").value.trim();
-      
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({ bio: newBio })
-        .eq("id", currentUser.id);
+      document.getElementById("cancelBioBtn").addEventListener("click", () => {
+        document.getElementById("bioDisplay").style.display = "block";
+        document.getElementById("bioEdit").style.display = "none";
+      });
 
-      if (error) {
-        console.error("Error updating bio:", error);
-        showNotification("Error saving bio. Please try again.", "info");
-        return;
-      }
+      document.getElementById("saveBioBtn").addEventListener("click", async () => {
+        const newBio = document.getElementById("bioTextarea").value.trim();
+        
+        const { error } = await supabase
+          .from("user_profiles")
+          .update({ bio: newBio })
+          .eq("id", currentUser.id);
 
-      userProfile.bio = newBio;
-      document.getElementById("bioText").textContent = newBio || "No bio yet. Click edit to add one!";
-      document.getElementById("bioDisplay").style.display = "block";
-      document.getElementById("bioEdit").style.display = "none";
-      
-      showNotification("Bio updated successfully!", "success");
-    });
+        if (error) {
+          console.error("Error updating bio:", error);
+          showNotification("Error saving bio", "error");
+          return;
+        }
 
-    loadProfile();
+        userProfile.bio = newBio;
+        document.getElementById("bioText").textContent = newBio || "No bio yet. Click edit to add one!";
+        document.getElementById("bioDisplay").style.display = "block";
+        document.getElementById("bioEdit").style.display = "none";
+        
+        showNotification("Bio updated successfully!", "success");
+      });
 
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      window.location.href = "login.html";
+      // Search functionality
+      document.getElementById('userSearch').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          friendSystem.searchUsers();
+        }
+      });
+
+      // Logout
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "login.html";
+      });
+
+      // Load profile
+      loadProfile();
     });
   </script>
 </body>
+</html>
