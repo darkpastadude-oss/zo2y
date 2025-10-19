@@ -7,295 +7,214 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { margin: 0; font-family: 'Poppins', sans-serif; background-color: #0b1633; color: #fefefe; }
-    header { background-color: #0b1633; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .logo { height: 40px; cursor: pointer; }
-    .logout-btn { background-color: #f59e0b; border: none; padding: 8px 18px; border-radius: 8px; color: #0b1633; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .logout-btn:hover { background-color: #ffb84d; }
-    .profile-container { max-width: 1200px; margin: 50px auto; background-color: #132347; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-    .avatar { font-size: 5rem; background-color: #f59e0b; color: #0b1633; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-    .username { font-size: 1.8rem; text-align: center; font-weight: 600; }
-    .email { text-align: center; color: #c0c0c0; font-size: 1rem; margin-bottom: 20px; }
-    .bio, .lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; position: relative; }
-    h3 { color: #f59e0b; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .edit-btn { background: none; border: 1px solid #f59e0b; color: #f59e0b; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
-    .edit-btn:hover { background: #f59e0b; color: #0b1633; }
-    .join-date { text-align: center; color: #aaa; font-size: 0.9rem; margin-top: 10px; }
-    .bio-textarea { width: 100%; min-height: 100px; background: #0b1633; border: 1px solid #f59e0b; border-radius: 8px; color: white; padding: 10px; font-family: inherit; resize: vertical; }
-    .bio-actions { display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end; }
-    .save-btn { background: #f59e0b; color: #0b1633; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .save-btn:hover { background: #ffb84d; }
-    .cancel-btn { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-    .cancel-btn:hover { background: #f59e0b22; }
-    
-    /* Custom Lists Section */
-    .custom-lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
-    .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
-    .list-card { background: #0b1633; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; }
-    .list-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
-    .list-icon { font-size: 2rem; margin-bottom: 10px; text-align: center; }
-    .list-card-title { font-weight: 600; text-align: center; margin-bottom: 5px; }
-    .list-card-count { text-align: center; color: #f59e0b; font-size: 0.9rem; }
-    
-    /* Restaurant Grid Styles */
-    .restaurants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
-    .tile { background: #0b1633; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; position: relative; }
-    .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-    .tile .media { height: 140px; overflow: hidden; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; padding: 12px; }
-    .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
-    .tile .inner { padding: 14px; }
-    .tile h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: white; }
-    .tile .category { color: #cbd5e1; font-size: 12px; margin: 0 0 8px 0; }
-    .tile .rating { color: #f59e0b; font-weight: 700; }
-    .tile .desc { color: #cbd5e1; font-size: 12px; margin: 8px 0 0 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity 0.3s ease; }
-    .tile:hover .list-actions { opacity: 1; }
-    .list-btn { background: #0b1633; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); width: 44px; height: 44px; transition: all 0.2s ease; z-index: 10; }
-    .list-btn:hover { transform: scale(1.1); background: #f59e0b; color: #0b1633; }
-    .list-btn.active { background: #f59e0b; color: #0b1633; border-color: #f59e0b; }
-    
-    /* Active List Display */
-    .active-list-section { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
-    .back-btn { background: none; border: 1px solid #f59e0b; color: #f59e0b; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
-    .back-btn:hover { background: #f59e0b; color: #0b1633; }
-    .empty-list { text-align: center; padding: 40px; color: #cbd5e1; }
-    
-    /* Friends System Styles */
-    .friends-section { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
-    .friends-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .friends-stats { display: flex; gap: 20px; }
-    .stat { text-align: center; cursor: pointer; transition: transform 0.2s; }
-    .stat:hover { transform: translateY(-2px); }
-    .stat-number { display: block; font-size: 1.5rem; font-weight: 700; color: #f59e0b; }
-    .stat-label { font-size: 0.9rem; color: #cbd5e1; }
-    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
-    .search-input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: #0b1633; color: white; font-family: inherit; }
-    .search-input:focus { outline: none; border-color: #f59e0b; }
-    .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
-    .user-card { background: #0b1633; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; }
-    .user-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
-    .user-avatar { font-size: 2.5rem; width: 60px; height: 60px; border-radius: 50%; background: #f59e0b; color: #0b1633; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
-    .user-info { text-align: center; }
-    .user-name { font-weight: 600; margin-bottom: 5px; }
-    .user-bio { color: #cbd5e1; font-size: 0.9rem; margin-bottom: 15px; }
-    .user-actions { display: flex; gap: 10px; justify-content: center; }
-    .follow-btn { background: #f59e0b; color: #0b1633; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-    .follow-btn:hover { background: #ffb84d; }
-    .follow-btn.following { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
-    .follow-btn.following:hover { background: #f59e0b22; }
-    .follow-btn.requested { background: transparent; color: #f59e0b; border: 1px solid #f59e0b; }
-    .follow-btn.requested:hover { background: #f59e0b22; }
-    .empty-state { text-align: center; padding: 40px; color: #cbd5e1; }
-    .empty-state i { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
-    
-    /* Privacy & Request Styles */
-    .privacy-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #0b1633; transition: .4s; border-radius: 24px; border: 1px solid #f59e0b; }
-    .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: #f59e0b; transition: .4s; border-radius: 50%; }
-    input:checked + .toggle-slider { background-color: #f59e0b; }
-    input:checked + .toggle-slider:before { transform: translateX(26px); background-color: #0b1633; }
-    .privacy-label { color: #cbd5e1; font-size: 0.9rem; }
-    
-    .request-actions { display: flex; gap: 8px; justify-content: center; }
-    .accept-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-    .reject-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-    
-    /* Tabs for Profile Sections */
-    .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-    .profile-tab { background: none; border: none; color: #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-    .profile-tab.active { background: #f59e0b; color: #0b1633; }
-    .profile-tab:hover { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    /* Additional styles for view-only mode */
-    .view-only .edit-btn { display: none; }
-    .view-only .profile-tabs { display: none; }
-    .view-only .privacy-toggle { display: none; }
-    .view-only .search-bar { display: none; }
-    .view-only #logoutBtn { display: none; }
-    
-    /* Back button for view-only mode */
-    .back-to-home {
-      background: none;
-      border: 1px solid #f59e0b;
-      color: #f59e0b;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-left: 10px;
+    /* kept original color scheme, redesigned layout for social-app vibe */
+    :root{
+      --bg:#0b1633; --card:#132347; --panel:#1e2f5c; --accent:#f59e0b; --muted:#cbd5e1; --text:#fefefe;
     }
-    .back-to-home:hover {
-      background: #f59e0b;
-      color: #0b1633;
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Poppins',sans-serif;background-color:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    header{background:var(--bg);padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between}
+    .logo{height:36px;cursor:pointer}
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .logout-btn{background:var(--accent);border:none;padding:8px 14px;border-radius:10px;color:var(--bg);font-weight:700;cursor:pointer}
+    .back-to-home{background:none;border:1px solid var(--accent);color:var(--accent);padding:6px 10px;border-radius:10px;cursor:pointer}
+
+    .container{max-width:1200px;margin:28px auto;padding:18px;display:grid;grid-template-columns:1fr;gap:18px}
+
+    /* Desktop layout: left profile column, right main column */
+    @media(min-width:900px){
+      .container{grid-template-columns:320px 1fr}
     }
 
-    /* Private Profile Message */
-    .private-message { text-align: center; padding: 40px; color: #cbd5e1; }
-    .private-message i { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
-    
-    /* Notification Styles */
-    .custom-notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      max-width: 400px;
-      transform: translateX(120%);
-      transition: transform 0.4s ease;
+    /* Profile card (left) */
+    .profile-card{background:var(--card);padding:20px;border-radius:16px;display:flex;flex-direction:column;align-items:center;gap:12px}
+    .avatar{font-size:3rem;background:var(--accent);color:var(--bg);width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .username{font-size:1.4rem;font-weight:700}
+    .email{color:#c0c0c0;font-size:0.95rem}
+    .join-date{color:#aaa;font-size:0.85rem}
+
+    .profile-stats{display:flex;gap:10px;margin-top:6px}
+    .stat{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;text-align:center;cursor:pointer}
+    .stat .num{color:var(--accent);font-weight:800;font-size:1.1rem}
+    .stat .label{font-size:0.8rem;color:var(--muted)}
+
+    .profile-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .btn{padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--accent);color:var(--bg)}
+    .btn-ghost{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+
+    /* Main column */
+    .main-column{display:flex;flex-direction:column;gap:14px}
+    .card{background:var(--panel);padding:16px;border-radius:14px}
+    h3{color:var(--accent);margin:0 0 10px 0;display:flex;align-items:center;justify-content:space-between}
+
+    /* Bio */
+    .bio-text{color:var(--muted);line-height:1.4}
+    .bio-edit{display:none}
+    .bio-textarea{width:100%;min-height:96px;background:var(--bg);border:1px solid var(--accent);border-radius:8px;color:var(--text);padding:10px}
+
+    /* Lists grid */
+    .list-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+    .list-card{background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+    .list-icon{font-size:1.6rem}
+    .list-title{font-weight:700}
+    .list-count{color:var(--accent)}
+
+    /* Active list (restaurants) */
+    .restaurants-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .tile{background:var(--card);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.04)}
+    .tile .media{height:140px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02)}
+    .tile img{max-width:100%;max-height:100%;object-fit:contain}
+    .tile .inner{padding:12px}
+    .list-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity 0.3s ease}
+    .tile:hover .list-actions{opacity:1}
+    .list-btn{background:#0b1633;border:1px solid rgba(255,255,255,0.1);color:white;padding:8px;border-radius:12px;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+    .list-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+
+    /* Friends section */
+    .friends-header{display:flex;align-items:center;justify-content:space-between}
+    .friends-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+    .user-card{background:var(--card);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);text-align:center}
+    .user-avatar{width:56px;height:56px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:var(--bg);font-weight:800;margin-bottom:8px}
+
+    /* Search area */
+    .search-row{display:flex;gap:8px}
+    .search-input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:var(--bg);color:var(--text)}
+
+    /* privacy row */
+    .privacy-row{display:flex;align-items:center;gap:10px}
+
+    /* active/empty states */
+    .empty-state{text-align:center;color:var(--muted);padding:20px}
+
+    /* notification */
+    .custom-notification{position:fixed;top:20px;right:20px;padding:12px 16px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,0.3);transform:translateX(120%);transition:transform .35s}
+    .notification-show{transform:translateX(0)}
+
+    /* small screens tweaks */
+    @media(max-width:420px){
+      .avatar{width:88px;height:88px;font-size:2.3rem}
+      .username{font-size:1.1rem}
     }
-    
-    .notification-success {
-      background: #10b981;
-      color: white;
-    }
-    
-    .notification-info {
-      background: #3b82f6;
-      color: white;
-    }
-    
-    .notification-error {
-      background: #ef4444;
-      color: white;
-    }
-    
-    .notification-show {
-      transform: translateX(0);
-    }
-    
-    .notification-icon {
-      margin-right: 10px;
-      font-size: 1.2rem;
-    }
+
+    /* toggle switch style (kept from original) */
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #0b1633; transition: .4s; border-radius: 24px; border: 1px solid var(--accent); }
+    .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: var(--accent); transition: .4s; border-radius: 50%; }
+    input:checked + .toggle-slider { background-color: var(--accent); }
+    input:checked + .toggle-slider:before { transform: translateX(26px); background-color: var(--bg); }
+
+    /* small helpers */
+    .back-btn{background:none;border:1px solid var(--accent);color:var(--accent);padding:6px 10px;border-radius:8px;cursor:pointer}
+    .cancel-btn{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:6px 12px;border-radius:6px}
+    .save-btn{background:var(--accent);color:var(--bg);border:none;padding:6px 12px;border-radius:6px}
   </style>
 </head>
 <body>
   <header>
     <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-    <div>
-      <button class="back-to-home" id="backButton" style="display: none;" onclick="goBack()">← Back</button>
+    <div class="top-actions">
+      <button class="back-to-home" id="backButton" style="display:none;" onclick="goBack()">← Back</button>
       <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
   </header>
 
-  <div class="profile-container" id="profileContainer">
-    <div class="avatar" id="avatar"></div>
-    <div class="username" id="username">Loading...</div>
-    <div class="email" id="email"></div>
-    <div class="join-date" id="joinDate"></div>
+  <main class="container">
+    <!-- LEFT: Profile Summary -->
+    <section class="profile-card">
+      <div class="avatar" id="avatar">🍔</div>
+      <div class="username" id="username">Loading...</div>
+      <div class="email" id="email"></div>
+      <div class="join-date" id="joinDate"></div>
 
-    <!-- Follow Button (only shown when viewing other users) -->
-    <button class="follow-btn" id="followButton" style="display: none; margin: 20px auto;"></button>
-
-    <!-- Profile Tabs (only shown when viewing own profile) -->
-    <div class="profile-tabs" id="profileTabs">
-      <button class="profile-tab active" data-tab="profile">Profile</button>
-      <button class="profile-tab" data-tab="social">Social</button>
-    </div>
-
-    <!-- Profile Tab Content -->
-    <div class="tab-content active" id="profile-tab">
-      <!-- Bio Section -->
-      <div class="bio">
-        <h3>
-          About Me
-          <button class="edit-btn" id="editBioBtn">Edit Bio</button>
-        </h3>
-        <div id="bioDisplay">
-          <p id="bioText">No bio yet. Click edit to add one!</p>
+      <div class="profile-stats" style="margin-top:12px">
+        <div class="stat" onclick="friendSystem.showFollowers()">
+          <div class="num" id="followersCount">0</div>
+          <div class="label">Followers</div>
         </div>
-        <div id="bioEdit" style="display: none;">
-          <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
-          <div class="bio-actions">
+        <div class="stat" onclick="friendSystem.showFollowing()">
+          <div class="num" id="followingCount">0</div>
+          <div class="label">Following</div>
+        </div>
+        <div class="stat" onclick="showList('favorites')">
+          <div class="num" id="favoritesCount">0</div>
+          <div class="label">Favorites</div>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <button class="btn btn-primary" id="editProfileBtn" style="display:none;">Edit Profile</button>
+        <button class="btn btn-ghost" id="followButton" style="display:none;">Follow</button>
+        <button class="btn btn-ghost" id="messageBtn" style="display:none;">Message</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: Main content (bio, lists, friends) -->
+    <section class="main-column">
+      <!-- Bio Card -->
+      <div class="card">
+        <h3>About Me <button class="edit-btn" id="editBioBtn" style="background:none;border:1px solid var(--accent);color:var(--accent);padding:6px 10px;border-radius:8px;">Edit</button></h3>
+        <div id="bioDisplay"><p class="bio-text" id="bioText">No bio yet. Click edit to add one!</p></div>
+        <div id="bioEdit" class="bio-edit" style="margin-top:10px">
+          <textarea id="bioTextarea" class="bio-textarea" placeholder="Tell us about yourself..."></textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
             <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
             <button class="save-btn" id="saveBioBtn">Save Bio</button>
           </div>
         </div>
       </div>
 
-      <!-- My Lists Section -->
-      <div class="custom-lists">
+      <!-- Lists Card -->
+      <div class="card">
         <h3>My Lists</h3>
         <div class="list-grid">
           <div class="list-card" onclick="showList('favorites')">
             <div class="list-icon">❤️</div>
-            <div class="list-card-title">Favorites</div>
-            <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+            <div class="list-title">Favorites</div>
+            <div class="list-count" id="favoritesCountSmall">0 restaurants</div>
           </div>
           <div class="list-card" onclick="showList('visited')">
             <div class="list-icon">🍽️</div>
-            <div class="list-card-title">Visited</div>
-            <div class="list-card-count" id="visitedCount">0 restaurants</div>
+            <div class="list-title">Visited</div>
+            <div class="list-count" id="visitedCountSmall">0 restaurants</div>
           </div>
           <div class="list-card" onclick="showList('wantToGo')">
             <div class="list-icon">📍</div>
-            <div class="list-card-title">Want to Go</div>
-            <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
+            <div class="list-title">Want to Go</div>
+            <div class="list-count" id="wantToGoCountSmall">0 restaurants</div>
           </div>
         </div>
       </div>
 
-      <!-- Private Profile Message (for other users' private accounts) -->
-      <div class="private-message" id="privateMessage" style="display: none;">
-        <div>🔒</div>
-        <h3>Private Account</h3>
-        <p>This account is private. Send a follow request to see their lists.</p>
-      </div>
-
-      <!-- Active List Display -->
-      <div id="activeListSection" class="active-list-section" style="display: none;">
-        <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
+      <!-- Active List (restaurants) -->
+      <div id="activeListSection" class="card" style="display:none">
+        <button class="back-btn" onclick="hideActiveList()">← Back</button>
         <h3 id="activeListTitle">My List</h3>
-        <div id="activeListGrid" class="restaurants-grid"></div>
+        <div id="activeListGrid" class="restaurants-grid" style="margin-top:12px"></div>
       </div>
-    </div>
 
-    <!-- Social Tab Content (only shown when viewing own profile) -->
-    <div class="tab-content" id="social-tab">
-      <div class="friends-section">
+      <!-- Friends / Social Card -->
+      <div class="card friends-section">
         <div class="friends-header">
           <h3>My Network</h3>
-          <div class="friends-stats">
-            <div class="stat" onclick="friendSystem.showFollowers()">
-              <span class="stat-number" id="followersCount">0</span>
-              <span class="stat-label">Followers</span>
-            </div>
-            <div class="stat" onclick="friendSystem.showFollowing()">
-              <span class="stat-number" id="followingCount">0</span>
-              <span class="stat-label">Following</span>
-            </div>
-            <div class="stat" onclick="friendSystem.showRequests()">
-              <span class="stat-number" id="requestsCount">0</span>
-              <span class="stat-label">Requests</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="privacy-row">
+              <label class="toggle-switch">
+                <input type="checkbox" id="privacyToggle">
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="privacy-label" id="privacyLabel">Public Account</span>
             </div>
           </div>
         </div>
 
-        <!-- Privacy Settings -->
-        <div class="privacy-toggle">
-          <label class="toggle-switch">
-            <input type="checkbox" id="privacyToggle">
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="privacy-label" id="privacyLabel">Public Account</span>
+        <div style="margin-top:12px" class="search-row">
+          <input id="userSearch" class="search-input" placeholder="Search for users...">
+          <button class="btn btn-primary" onclick="friendSystem.searchUsers()">Search</button>
         </div>
 
-        <!-- Search Users -->
-        <div class="search-bar">
-          <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
-          <button class="follow-btn" onclick="friendSystem.searchUsers()">Search</button>
-        </div>
-
-        <!-- Search Results -->
-        <div id="searchResults">
+        <div id="searchResults" style="margin-top:12px">
           <div class="empty-state">
             <div>🔍</div>
             <p>Search for users to find friends</p>
@@ -303,25 +222,29 @@
           </div>
         </div>
 
-        <!-- Followers List -->
-        <div id="followersList" class="user-grid" style="display: none;"></div>
-
-        <!-- Following List -->
-        <div id="followingList" class="user-grid" style="display: none;"></div>
-
-        <!-- Requests List -->
-        <div id="requestsList" class="user-grid" style="display: none;"></div>
+        <div id="followersList" class="friends-grid" style="display:none;margin-top:12px"></div>
+        <div id="followingList" class="friends-grid" style="display:none;margin-top:12px"></div>
+        <div id="requestsList" class="friends-grid" style="display:none;margin-top:12px"></div>
       </div>
-    </div>
-  </div>
 
-  <!-- Custom Notification -->
+      <!-- Private message -->
+      <div id="privateMessage" class="card" style="display:none;text-align:center">
+        <div style="font-size:34px">🔒</div>
+        <h3>Private Account</h3>
+        <p>This account is private. Send a follow request to see their lists.</p>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Notification -->
   <div id="customNotification" class="custom-notification">
     <i class="notification-icon"></i>
     <span class="notification-message"></span>
   </div>
 
   <script>
+    // ========== Supabase config ==========
     const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -333,7 +256,7 @@
     let currentActiveList = null;
     let isViewingOwnProfile = true;
 
-    // Restaurant Data
+    // Restaurant Data (full original array)
     const restaurants = [
       { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
       { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
@@ -379,13 +302,13 @@
         visited: null,
         wantToGo: null
       },
-      
-      async init() { 
+
+      async init() {
         if (!currentUser) return;
         await this.loadUserLists();
         this.updateListCounts();
       },
-      
+
       async loadUserLists() {
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -395,25 +318,25 @@
             .from('lists')
             .select('*')
             .eq('user_id', user.id);
-          
+
           if (error) throw error;
-          
+
           this.userLists = lists || [];
           await this.setupDefaultLists();
           await this.loadListRestaurants();
-          
+
         } catch (error) {
           console.error('Error loading lists:', error);
         }
       },
-      
+
       async setupDefaultLists() {
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited');
         this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-        
+
         if (!this.currentLists.favorites) {
           this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
         }
@@ -424,25 +347,25 @@
           this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
         }
       },
-      
+
       async createList(title, description) {
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         const { data: newList, error } = await supabase
           .from('lists')
           .insert([{ user_id: user.id, title: title, description: description }])
           .select()
           .single();
-        
+
         if (error) {
           console.error('Error creating list:', error);
           return null;
         }
-        
+
         this.userLists.push(newList);
         return newList;
       },
-      
+
       async loadListRestaurants() {
         for (const listType in this.currentLists) {
           const list = this.currentLists[listType];
@@ -451,7 +374,7 @@
               .from('lists_restraunts')
               .select('restraunt_id')
               .eq('list_id', list.id);
-            
+
             if (!error && listRestaurants) {
               list.restaurants = listRestaurants.map(item => item.restraunt_id);
             } else {
@@ -460,67 +383,77 @@
           }
         }
       },
-      
+
       updateListCounts() {
         if (this.currentLists.favorites) {
-          document.getElementById('favoritesCount').textContent = `${this.currentLists.favorites.restaurants?.length || 0} restaurants`;
+          const count = this.currentLists.favorites.restaurants?.length || 0;
+          document.getElementById('favoritesCount').textContent = `${count} restaurants`;
+          // also update small card
+          const el = document.getElementById('favoritesCountSmall');
+          if (el) el.textContent = `${count} restaurants`;
         }
         if (this.currentLists.visited) {
-          document.getElementById('visitedCount').textContent = `${this.currentLists.visited.restaurants?.length || 0} restaurants`;
+          const count = this.currentLists.visited.restaurants?.length || 0;
+          document.getElementById('visitedCount').textContent = `${count} restaurants`;
+          const el = document.getElementById('visitedCountSmall');
+          if (el) el.textContent = `${count} restaurants`;
         }
         if (this.currentLists.wantToGo) {
-          document.getElementById('wantToGoCount').textContent = `${this.currentLists.wantToGo.restaurants?.length || 0} restaurants`;
+          const count = this.currentLists.wantToGo.restaurants?.length || 0;
+          document.getElementById('wantToGoCount').textContent = `${count} restaurants`;
+          const el = document.getElementById('wantToGoCountSmall');
+          if (el) el.textContent = `${count} restaurants`;
         }
       },
-      
+
       async toggleInList(listType, restaurantId) {
         const list = this.currentLists[listType];
         if (!list) return false;
-        
+
         const isInList = list.restaurants?.includes(restaurantId);
-        
+
         try {
           if (isInList) {
             const { error } = await supabase
               .from('lists_restraunts')
               .delete()
-              .match({ 
-                list_id: list.id, 
+              .match({
+                list_id: list.id,
                 restraunt_id: restaurantId
               });
-            
+
             if (error) throw error;
-            
+
             list.restaurants = list.restaurants.filter(id => id !== restaurantId);
             showNotification(`Removed from ${list.title}`, "info");
-            
+
           } else {
             const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
               .from('lists_restraunts')
-              .insert([{ 
-                list_id: list.id, 
+              .insert([{
+                list_id: list.id,
                 restraunt_id: restaurantId,
                 added_at: new Date().toISOString()
               }]);
-            
+
             if (error) throw error;
-            
+
             if (!list.restaurants) list.restaurants = [];
             list.restaurants.push(restaurantId);
             showNotification(`Added to ${list.title}`, "success");
           }
-          
+
           this.updateListCounts();
           return !isInList;
-          
+
         } catch (error) {
           console.error('Error updating list:', error);
           showNotification('Error saving changes', 'error');
           return isInList;
         }
       },
-      
+
       isInList(listType, restaurantId) {
         const list = this.currentLists[listType];
         return list?.restaurants?.includes(restaurantId) || false;
@@ -534,7 +467,7 @@
         await this.loadFollowStats();
         await this.loadPrivacySetting();
         await this.loadPendingRequests();
-        
+
         // Add event listener for privacy toggle
         document.getElementById('privacyToggle').addEventListener('change', () => {
           this.togglePrivacy();
@@ -578,6 +511,7 @@
 
           if (!error && profile) {
             const isPrivate = profile.is_private === true;
+            // note: original logic used checked = !isPrivate; keep consistent
             document.getElementById('privacyToggle').checked = !isPrivate;
             document.getElementById('privacyLabel').textContent = isPrivate ? 'Private Account' : 'Public Account';
           }
@@ -588,7 +522,7 @@
 
       async togglePrivacy() {
         const isPublic = document.getElementById('privacyToggle').checked;
-        
+
         try {
           const { error } = await supabase
             .from('user_profiles')
@@ -615,7 +549,7 @@
             .eq('status', 'pending');
 
           if (!error) {
-            document.getElementById('requestsCount').textContent = requests?.length || 0;
+            document.getElementById('requestsCount')?.textContent = requests?.length || 0;
           }
         } catch (error) {
           console.error('Error loading requests:', error);
@@ -625,7 +559,7 @@
       async searchUsers() {
         const searchInput = document.getElementById('userSearch');
         const searchTerm = searchInput.value.trim();
-        
+
         if (!searchTerm) {
           showNotification('Please enter a search term', 'error');
           return;
@@ -642,7 +576,7 @@
           if (error) throw error;
 
           this.displayUsers(users, 'searchResults');
-          
+
         } catch (error) {
           console.error('Error searching users:', error);
           showNotification('Error searching users', 'error');
@@ -753,14 +687,15 @@
         document.getElementById('followersList').style.display = 'none';
         document.getElementById('followingList').style.display = 'none';
         document.getElementById('requestsList').style.display = 'none';
-        
+
         // Show the requested section
-        document.getElementById(sectionId).style.display = 'grid';
+        const el = document.getElementById(sectionId);
+        if (el) el.style.display = 'grid';
       },
 
       async displayUsers(users, containerId) {
         const container = document.getElementById(containerId);
-        
+
         if (!users || users.length === 0) {
           container.innerHTML = `
             <div class="empty-state">
@@ -776,7 +711,7 @@
         for (const user of users) {
           const followStatus = await this.getFollowStatus(user.id);
           const isPrivate = user.is_private === true;
-          
+
           const userCard = document.createElement('div');
           userCard.className = 'user-card';
           userCard.innerHTML = `
@@ -799,7 +734,7 @@
               </div>
             </div>
           `;
-          
+
           container.appendChild(userCard);
         }
       },
@@ -867,7 +802,7 @@
             });
 
           if (error) throw error;
-          
+
           showNotification('Follow request sent!', 'success');
           this.refreshCurrentView();
 
@@ -880,7 +815,7 @@
       async toggleFollow(targetUserId) {
         try {
           const isFollowing = await this.checkIfFollowing(targetUserId);
-          
+
           if (isFollowing) {
             // Unfollow
             const { error } = await supabase
@@ -890,7 +825,7 @@
               .eq('followed_id', targetUserId);
 
             if (error) throw error;
-            
+
             showNotification('Unfollowed user', 'info');
           } else {
             // Follow
@@ -903,7 +838,7 @@
               });
 
             if (error) throw error;
-            
+
             showNotification('Started following user', 'success');
           }
 
@@ -991,14 +926,14 @@
       },
 
       refreshCurrentView() {
-        if (document.getElementById('followersList').style.display === 'grid') {
+        if (document.getElementById('followersList')?.style.display === 'grid') {
           this.showFollowers();
-        } else if (document.getElementById('followingList').style.display === 'grid') {
+        } else if (document.getElementById('followingList')?.style.display === 'grid') {
           this.showFollowing();
-        } else if (document.getElementById('requestsList').style.display === 'grid') {
+        } else if (document.getElementById('requestsList')?.style.display === 'grid') {
           this.showRequests();
         } else {
-          const searchTerm = document.getElementById('userSearch').value;
+          const searchTerm = document.getElementById('userSearch')?.value;
           if (searchTerm) {
             this.searchUsers();
           }
@@ -1011,10 +946,10 @@
       const notification = document.getElementById("customNotification");
       const icon = notification.querySelector(".notification-icon");
       const messageEl = notification.querySelector(".notification-message");
-      
+
       messageEl.textContent = message;
       notification.className = `custom-notification notification-${type}`;
-      
+
       if (type === "success") {
         icon.className = "notification-icon fas fa-check-circle";
       } else if (type === "error") {
@@ -1022,7 +957,7 @@
       } else {
         icon.className = "notification-icon fas fa-info-circle";
       }
-      
+
       notification.classList.add("notification-show");
       setTimeout(() => {
         notification.classList.remove("notification-show");
@@ -1037,11 +972,11 @@
 
     async function loadProfile() {
       targetUserId = getUserIdFromUrl();
-      
+
       const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) { 
-        window.location.href = "login.html"; 
-        return; 
+      if (error || !user) {
+        window.location.href = "login.html";
+        return;
       }
 
       currentUser = user;
@@ -1058,18 +993,18 @@
 
     async function loadOwnProfile() {
       // Show own profile elements
-      document.getElementById('profileTabs').style.display = 'flex';
+      document.getElementById('profileTabs')?.style.display = 'flex';
       document.getElementById('logoutBtn').style.display = 'block';
       document.getElementById('backButton').style.display = 'none';
       document.getElementById('followButton').style.display = 'none';
       document.getElementById('privateMessage').style.display = 'none';
 
       await loadUserProfile();
-      
+
       document.getElementById("username").textContent = userProfile?.username || currentUser.email.split('@')[0];
       document.getElementById("email").textContent = currentUser.email;
       document.getElementById("joinDate").textContent = `Joined ${new Date(currentUser.created_at).toLocaleDateString()}`;
-      
+
       if (userProfile?.bio) {
         document.getElementById("bioText").textContent = userProfile.bio;
       }
@@ -1084,14 +1019,10 @@
 
     async function loadOtherUserProfile() {
       // Hide elements for other users' profiles
-      document.getElementById('profileTabs').style.display = 'none';
+      document.getElementById('profileTabs')?.style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
       document.getElementById('backButton').style.display = 'block';
-      document.getElementById('editBioBtn').style.display = 'none';
-      
-      // Show only the profile tab
-      document.getElementById('profile-tab').classList.add('active');
-      document.getElementById('social-tab').style.display = 'none';
+      document.getElementById('editBioBtn')?.style.display = 'none';
 
       // Load target user profile
       const { data: profile, error } = await supabase
@@ -1112,7 +1043,7 @@
       document.getElementById("username").textContent = profile.username || 'User';
       document.getElementById("email").textContent = profile.email || '';
       document.getElementById("joinDate").textContent = `Joined ${new Date(profile.created_at).toLocaleDateString()}`;
-      
+
       if (profile.bio) {
         document.getElementById("bioText").textContent = profile.bio;
       }
@@ -1152,19 +1083,19 @@
 
         if (follow) {
           followButton.textContent = 'Following';
-          followButton.className = 'follow-btn following';
+          followButton.className = 'btn btn-ghost following';
           followButton.onclick = () => toggleFollow();
         } else if (request) {
           followButton.textContent = 'Requested';
-          followButton.className = 'follow-btn requested';
+          followButton.className = 'btn btn-ghost requested';
           followButton.onclick = () => sendFollowRequest();
         } else if (targetUser.is_private) {
           followButton.textContent = 'Request to Follow';
-          followButton.className = 'follow-btn';
+          followButton.className = 'btn btn-ghost';
           followButton.onclick = () => sendFollowRequest();
         } else {
           followButton.textContent = 'Follow';
-          followButton.className = 'follow-btn';
+          followButton.className = 'btn btn-ghost';
           followButton.onclick = () => toggleFollow();
         }
       } catch (error) {
@@ -1175,7 +1106,7 @@
     async function toggleFollow() {
       try {
         const isFollowing = await checkIfFollowing();
-        
+
         if (isFollowing) {
           // Unfollow
           const { error } = await supabase
@@ -1185,10 +1116,10 @@
             .eq('followed_id', targetUserId);
 
           if (error) throw error;
-          
+
           document.getElementById('followButton').textContent = 'Follow';
-          document.getElementById('followButton').className = 'follow-btn';
-          
+          document.getElementById('followButton').className = 'btn btn-ghost';
+
         } else {
           // Follow
           const { error } = await supabase
@@ -1200,9 +1131,9 @@
             });
 
           if (error) throw error;
-          
+
           document.getElementById('followButton').textContent = 'Following';
-          document.getElementById('followButton').className = 'follow-btn following';
+          document.getElementById('followButton').className = 'btn btn-ghost following';
         }
 
         // Reload lists if privacy status changed
@@ -1225,9 +1156,9 @@
           });
 
         if (error) throw error;
-        
+
         document.getElementById('followButton').textContent = 'Requested';
-        document.getElementById('followButton').className = 'follow-btn requested';
+        document.getElementById('followButton').className = 'btn btn-ghost requested';
 
       } catch (error) {
         console.error('Error sending follow request:', error);
@@ -1256,14 +1187,14 @@
       }
 
       const canViewLists = await canViewUserContent();
-      
+
       if (!canViewLists) {
-        document.querySelector('.custom-lists').style.display = 'none';
+        document.querySelector('.list-grid').style.display = 'none';
         document.getElementById('privateMessage').style.display = 'block';
         return;
       }
 
-      document.querySelector('.custom-lists').style.display = 'block';
+      document.querySelector('.list-grid').style.display = 'grid';
       document.getElementById('privateMessage').style.display = 'none';
 
       try {
@@ -1276,7 +1207,7 @@
         if (error) throw error;
 
         const userLists = lists || [];
-        
+
         // Find default lists
         const favoritesList = userLists.find(list => list.title === 'Favorites');
         const visitedList = userLists.find(list => list.title === 'Visited');
@@ -1300,7 +1231,13 @@
     }
 
     async function loadListCounts(list, countElementId) {
-      if (!list) return;
+      if (!list) {
+        const el = document.getElementById(countElementId);
+        if (el) el.textContent = '0 restaurants';
+        const smallEl = document.getElementById(countElementId + 'Small');
+        if (smallEl) smallEl.textContent = '0 restaurants';
+        return;
+      }
 
       try {
         const { data: listRestaurants, error } = await supabase
@@ -1311,9 +1248,13 @@
         if (!error && listRestaurants) {
           document.getElementById(countElementId).textContent = `${listRestaurants.length} restaurants`;
           list.restaurants = listRestaurants.map(item => item.restraunt_id);
+          const smallEl = document.getElementById(countElementId + 'Small');
+          if (smallEl) smallEl.textContent = `${listRestaurants.length} restaurants`;
         } else {
           document.getElementById(countElementId).textContent = '0 restaurants';
           list.restaurants = [];
+          const smallEl = document.getElementById(countElementId + 'Small');
+          if (smallEl) smallEl.textContent = '0 restaurants';
         }
       } catch (error) {
         console.error('Error loading list counts:', error);
@@ -1323,13 +1264,13 @@
     async function canViewUserContent() {
       // Users can always view their own content
       if (currentUser && currentUser.id === targetUserId) return true;
-      
+
       // Public accounts can be viewed by anyone
       if (!targetUser.is_private) return true;
-      
+
       // For private accounts, check if current user is following
       if (!currentUser) return false;
-      
+
       try {
         const { data } = await supabase
           .from('follows')
@@ -1356,7 +1297,7 @@
       }
 
       userProfile = profile || {};
-      
+
       if (!profile) {
         const { error: insertError } = await supabase
           .from("user_profiles")
@@ -1376,47 +1317,49 @@
 
     function showList(listType) {
       let list;
-      
+
       if (isViewingOwnProfile) {
         list = listManager.currentLists[listType];
       } else {
-        list = window.userLists[listType];
+        list = window.userLists && window.userLists[listType];
       }
-      
+
       if (!list) return;
-      
+
       currentActiveList = listType;
       document.getElementById('activeListTitle').textContent = list.title;
-      document.querySelector('.custom-lists').style.display = 'none';
-      document.querySelector('.bio').style.display = 'none';
+      document.querySelector('.list-grid').style.display = 'none';
+      document.querySelector('.card .bio-text')?.parentElement?.classList.remove('active');
       document.getElementById('privateMessage').style.display = 'none';
       document.getElementById('activeListSection').style.display = 'block';
-      
+
       renderListRestaurants(list.restaurants || [], listType);
     }
 
     function hideActiveList() {
       document.getElementById('activeListSection').style.display = 'none';
-      document.querySelector('.custom-lists').style.display = 'block';
-      document.querySelector('.bio').style.display = 'block';
-      
+      document.querySelector('.list-grid').style.display = 'grid';
+      // show bio again
+      document.getElementById('bioDisplay').style.display = 'block';
+      document.getElementById('bioEdit').style.display = 'none';
+
       // Show private message if applicable
       if (!isViewingOwnProfile && document.getElementById('privateMessage').style.display !== 'none') {
         document.getElementById('privateMessage').style.display = 'block';
       }
-      
+
       currentActiveList = null;
     }
 
     function renderListRestaurants(restaurantIds, listType) {
       const grid = document.getElementById('activeListGrid');
       grid.innerHTML = '';
-      
+
       const listRestaurants = restaurants.filter(r => restaurantIds.includes(r.id));
-      
+
       if (listRestaurants.length === 0) {
         grid.innerHTML = `
-          <div class="empty-list">
+          <div class="empty-list" style="padding:30px;text-align:center;">
             <div style="font-size: 3rem; margin-bottom: 10px;">🍽️</div>
             <h3>No restaurants yet</h3>
             <p>Start adding restaurants to your ${listType} list!</p>
@@ -1424,29 +1367,30 @@
         `;
         return;
       }
-      
+
       listRestaurants.forEach(r => {
         const tile = document.createElement('div');
         tile.className = 'tile';
-        
+        tile.style.position = 'relative';
+
         const clickableContent = document.createElement('a');
         clickableContent.href = `cards/${r.slug}.html`;
         clickableContent.style.textDecoration = 'none';
         clickableContent.style.color = 'inherit';
         clickableContent.style.display = 'block';
         clickableContent.style.height = '100%';
-        
+
         clickableContent.innerHTML = `
           <div class="media"><img src="images/${r.image}" alt="${r.name}" loading="lazy"></div>
           <div class="inner">
-            <h3>${r.name}</h3>
-            <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
-            <p class="desc">${r.desc}</p>
+            <h3 style="margin:0 0 6px 0;font-size:16px;font-weight:700;color:white">${r.name}</h3>
+            <div class="category" style="color:#cbd5e1;font-size:12px;margin:0 0 8px 0"><span class="rating" style="color:var(--accent);font-weight:700">⭐ ${r.rating}</span> • ${r.category}</div>
+            <p class="desc" style="color:#cbd5e1;font-size:12px;margin:8px 0 0 0;line-height:1.4">${r.desc}</p>
           </div>
         `;
-        
+
         tile.appendChild(clickableContent);
-        
+
         // Only show list buttons when viewing own profile
         if (isViewingOwnProfile) {
           const listActions = document.createElement('div');
@@ -1458,20 +1402,21 @@
           `;
           tile.appendChild(listActions);
         }
-        
+
         grid.appendChild(tile);
       });
 
       // Add event listeners for list buttons (only for own profile)
       if (isViewingOwnProfile) {
+        // Remove previous listeners by cloning nodes (simple approach)
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
-            e.preventDefault(); 
+            e.preventDefault();
             e.stopPropagation();
             const restaurantId = parseInt(btn.dataset.id);
             const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
             btn.classList.toggle('active', wasAdded);
-            
+
             if (currentActiveList === btn.dataset.list) {
               showList(currentActiveList);
             }
@@ -1490,19 +1435,6 @@
 
     // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
-      // Tab functionality
-      document.querySelectorAll('.profile-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          const tabId = tab.dataset.tab;
-          
-          document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          
-          document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-          document.getElementById(`${tabId}-tab`).classList.add('active');
-        });
-      });
-
       // Bio functionality
       document.getElementById("editBioBtn").addEventListener("click", () => {
         document.getElementById("bioDisplay").style.display = "none";
@@ -1517,7 +1449,7 @@
 
       document.getElementById("saveBioBtn").addEventListener("click", async () => {
         const newBio = document.getElementById("bioTextarea").value.trim();
-        
+
         const { error } = await supabase
           .from("user_profiles")
           .update({ bio: newBio })
@@ -1533,7 +1465,7 @@
         document.getElementById("bioText").textContent = newBio || "No bio yet. Click edit to add one!";
         document.getElementById("bioDisplay").style.display = "block";
         document.getElementById("bioEdit").style.display = "none";
-        
+
         showNotification("Bio updated successfully!", "success");
       });
 
