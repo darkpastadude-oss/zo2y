@@ -8,11 +8,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { margin: 0; font-family: 'Poppins', sans-serif; background-color: #0b1633; color: #fefefe; }
-    header { background-color: #0b1633; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    header { background-color: #0b1633; padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .logo { height: 40px; cursor: pointer; }
     .logout-btn { background-color: #f59e0b; border: none; padding: 8px 18px; border-radius: 8px; color: #0b1633; font-weight: 600; cursor: pointer; transition: 0.2s; }
     .logout-btn:hover { background-color: #ffb84d; }
-    .profile-container { max-width: 1200px; margin: 30px auto; background-color: #132347; padding: 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    .profile-container { max-width: 1200px; margin: 50px auto; background-color: #132347; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
     .avatar { font-size: 5rem; background-color: #f59e0b; color: #0b1633; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
     .username { font-size: 1.8rem; text-align: center; font-weight: 600; }
     .email { text-align: center; color: #c0c0c0; font-size: 1rem; margin-bottom: 20px; }
@@ -30,7 +30,7 @@
     
     /* Custom Lists Section */
     .custom-lists { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
-    .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+    .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
     .list-card { background: #0b1633; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; }
     .list-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
     .list-icon { font-size: 2rem; margin-bottom: 10px; text-align: center; }
@@ -62,14 +62,14 @@
     
     /* Friends System Styles */
     .friends-section { background-color: #1e2f5c; border-radius: 15px; padding: 20px; margin-top: 20px; }
-    .friends-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .friends-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .friends-stats { display: flex; gap: 20px; }
     .stat { text-align: center; cursor: pointer; transition: transform 0.2s; }
     .stat:hover { transform: translateY(-2px); }
     .stat-number { display: block; font-size: 1.5rem; font-weight: 700; color: #f59e0b; }
     .stat-label { font-size: 0.9rem; color: #cbd5e1; }
-    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .search-input { flex: 1; min-width: 200px; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: #0b1633; color: white; font-family: inherit; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: #0b1633; color: white; font-family: inherit; }
     .search-input:focus { outline: none; border-color: #f59e0b; }
     .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
     .user-card { background: #0b1633; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s; }
@@ -102,24 +102,20 @@
     .accept-btn { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
     .reject-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
     
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-      .profile-container { margin: 15px; padding: 15px; }
-      .friends-header { flex-direction: column; align-items: flex-start; }
-      .friends-stats { width: 100%; justify-content: space-around; }
-      .list-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-      .restaurants-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-      .user-grid { grid-template-columns: 1fr; }
-      .search-bar { flex-direction: column; }
-      .search-input { min-width: auto; }
-    }
+    /* Tabs for Profile Sections */
+    .profile-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+    .profile-tab { background: none; border: none; color: #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .profile-tab.active { background: #f59e0b; color: #0b1633; }
+    .profile-tab:hover { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
     
     /* Additional styles for view-only mode */
     .view-only .edit-btn { display: none; }
+    .view-only .profile-tabs { display: none; }
     .view-only .privacy-toggle { display: none; }
     .view-only .search-bar { display: none; }
     .view-only #logoutBtn { display: none; }
-    .view-only .friends-section { display: none; }
     
     /* Back button for view-only mode */
     .back-to-home {
@@ -199,112 +195,123 @@
     <!-- Follow Button (only shown when viewing other users) -->
     <button class="follow-btn" id="followButton" style="display: none; margin: 20px auto;"></button>
 
-    <!-- Bio Section -->
-    <div class="bio">
-      <h3>
-        About Me
-        <button class="edit-btn" id="editBioBtn">Edit Bio</button>
-      </h3>
-      <div id="bioDisplay">
-        <p id="bioText">No bio yet. Click edit to add one!</p>
-      </div>
-      <div id="bioEdit" style="display: none;">
-        <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
-        <div class="bio-actions">
-          <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
-          <button class="save-btn" id="saveBioBtn">Save Bio</button>
-        </div>
-      </div>
+    <!-- Profile Tabs (only shown when viewing own profile) -->
+    <div class="profile-tabs" id="profileTabs">
+      <button class="profile-tab active" data-tab="profile">Profile</button>
+      <button class="profile-tab" data-tab="social">Social</button>
     </div>
 
-    <!-- My Lists Section -->
-    <div class="custom-lists">
-      <h3>My Lists</h3>
-      <div class="list-grid">
-        <div class="list-card" onclick="showList('favorites')">
-          <div class="list-icon">❤️</div>
-          <div class="list-card-title">Favorites</div>
-          <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+    <!-- Profile Tab Content -->
+    <div class="tab-content active" id="profile-tab">
+      <!-- Bio Section -->
+      <div class="bio">
+        <h3>
+          About Me
+          <button class="edit-btn" id="editBioBtn">Edit Bio</button>
+        </h3>
+        <div id="bioDisplay">
+          <p id="bioText">No bio yet. Click edit to add one!</p>
         </div>
-        <div class="list-card" onclick="showList('visited')">
-          <div class="list-icon">🍽️</div>
-          <div class="list-card-title">Visited</div>
-          <div class="list-card-count" id="visitedCount">0 restaurants</div>
-        </div>
-        <div class="list-card" onclick="showList('wantToGo')">
-          <div class="list-icon">📍</div>
-          <div class="list-card-title">Want to Go</div>
-          <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Social Section (only shown when viewing own profile) -->
-    <div class="friends-section" id="socialSection">
-      <div class="friends-header">
-        <h3>My Network</h3>
-        <div class="friends-stats">
-          <div class="stat" onclick="friendSystem.showFollowers()">
-            <span class="stat-number" id="followersCount">0</span>
-            <span class="stat-label">Followers</span>
-          </div>
-          <div class="stat" onclick="friendSystem.showFollowing()">
-            <span class="stat-number" id="followingCount">0</span>
-            <span class="stat-label">Following</span>
-          </div>
-          <div class="stat" onclick="friendSystem.showRequests()">
-            <span class="stat-number" id="requestsCount">0</span>
-            <span class="stat-label">Requests</span>
+        <div id="bioEdit" style="display: none;">
+          <textarea class="bio-textarea" id="bioTextarea" placeholder="Tell us about yourself..."></textarea>
+          <div class="bio-actions">
+            <button class="cancel-btn" id="cancelBioBtn">Cancel</button>
+            <button class="save-btn" id="saveBioBtn">Save Bio</button>
           </div>
         </div>
       </div>
 
-      <!-- Privacy Settings -->
-      <div class="privacy-toggle">
-        <label class="toggle-switch">
-          <input type="checkbox" id="privacyToggle">
-          <span class="toggle-slider"></span>
-        </label>
-        <span class="privacy-label" id="privacyLabel">Public Account</span>
-      </div>
-
-      <!-- Search Users -->
-      <div class="search-bar">
-        <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
-        <button class="follow-btn" onclick="friendSystem.searchUsers()">Search</button>
-      </div>
-
-      <!-- Search Results -->
-      <div id="searchResults">
-        <div class="empty-state">
-          <div>🔍</div>
-          <p>Search for users to find friends</p>
-          <p class="text-light">Connect with other food lovers!</p>
+      <!-- My Lists Section -->
+      <div class="custom-lists">
+        <h3>My Lists</h3>
+        <div class="list-grid">
+          <div class="list-card" onclick="showList('favorites')">
+            <div class="list-icon">❤️</div>
+            <div class="list-card-title">Favorites</div>
+            <div class="list-card-count" id="favoritesCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('visited')">
+            <div class="list-icon">🍽️</div>
+            <div class="list-card-title">Visited</div>
+            <div class="list-card-count" id="visitedCount">0 restaurants</div>
+          </div>
+          <div class="list-card" onclick="showList('wantToGo')">
+            <div class="list-icon">📍</div>
+            <div class="list-card-title">Want to Go</div>
+            <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
+          </div>
         </div>
       </div>
 
-      <!-- Followers List -->
-      <div id="followersList" class="user-grid" style="display: none;"></div>
+      <!-- Private Profile Message (for other users' private accounts) -->
+      <div class="private-message" id="privateMessage" style="display: none;">
+        <div>🔒</div>
+        <h3>Private Account</h3>
+        <p>This account is private. Send a follow request to see their lists.</p>
+      </div>
 
-      <!-- Following List -->
-      <div id="followingList" class="user-grid" style="display: none;"></div>
-
-      <!-- Requests List -->
-      <div id="requestsList" class="user-grid" style="display: none;"></div>
+      <!-- Active List Display -->
+      <div id="activeListSection" class="active-list-section" style="display: none;">
+        <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
+        <h3 id="activeListTitle">My List</h3>
+        <div id="activeListGrid" class="restaurants-grid"></div>
+      </div>
     </div>
 
-    <!-- Private Profile Message (for other users' private accounts) -->
-    <div class="private-message" id="privateMessage" style="display: none;">
-      <div>🔒</div>
-      <h3>Private Account</h3>
-      <p>This account is private. Send a follow request to see their lists.</p>
-    </div>
+    <!-- Social Tab Content (only shown when viewing own profile) -->
+    <div class="tab-content" id="social-tab">
+      <div class="friends-section">
+        <div class="friends-header">
+          <h3>My Network</h3>
+          <div class="friends-stats">
+            <div class="stat" onclick="friendSystem.showFollowers()">
+              <span class="stat-number" id="followersCount">0</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat" onclick="friendSystem.showFollowing()">
+              <span class="stat-number" id="followingCount">0</span>
+              <span class="stat-label">Following</span>
+            </div>
+            <div class="stat" onclick="friendSystem.showRequests()">
+              <span class="stat-number" id="requestsCount">0</span>
+              <span class="stat-label">Requests</span>
+            </div>
+          </div>
+        </div>
 
-    <!-- Active List Display -->
-    <div id="activeListSection" class="active-list-section" style="display: none;">
-      <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
-      <h3 id="activeListTitle">My List</h3>
-      <div id="activeListGrid" class="restaurants-grid"></div>
+        <!-- Privacy Settings -->
+        <div class="privacy-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="privacyToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="privacy-label" id="privacyLabel">Public Account</span>
+        </div>
+
+        <!-- Search Users -->
+        <div class="search-bar">
+          <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
+          <button class="follow-btn" onclick="friendSystem.searchUsers()">Search</button>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults">
+          <div class="empty-state">
+            <div>🔍</div>
+            <p>Search for users to find friends</p>
+            <p class="text-light">Connect with other food lovers!</p>
+          </div>
+        </div>
+
+        <!-- Followers List -->
+        <div id="followersList" class="user-grid" style="display: none;"></div>
+
+        <!-- Following List -->
+        <div id="followingList" class="user-grid" style="display: none;"></div>
+
+        <!-- Requests List -->
+        <div id="requestsList" class="user-grid" style="display: none;"></div>
+      </div>
     </div>
   </div>
 
@@ -315,6 +322,17 @@
   </div>
 
   <script>
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let currentUser = null;
+    let userProfile = null;
+    let targetUser = null;
+    let targetUserId = null;
+    let currentActiveList = null;
+    let isViewingOwnProfile = true;
+
     // Restaurant Data
     const restaurants = [
       { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
@@ -352,13 +370,6 @@
       { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
       { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
     ];
-
-    let currentUser = null;
-    let userProfile = null;
-    let targetUser = null;
-    let targetUserId = null;
-    let currentActiveList = null;
-    let isViewingOwnProfile = true;
 
     // List Management
     const listManager = {
@@ -475,20 +486,22 @@
               .delete()
               .match({ 
                 list_id: list.id, 
-                restraunt_id: restaurantId 
+                restraunt_id: restaurantId
               });
             
             if (error) throw error;
             
             list.restaurants = list.restaurants.filter(id => id !== restaurantId);
             showNotification(`Removed from ${list.title}`, "info");
-            return false;
+            
           } else {
+            const { data: { user } } = await supabase.auth.getUser();
             const { error } = await supabase
               .from('lists_restraunts')
               .insert([{ 
                 list_id: list.id, 
-                restraunt_id: restaurantId 
+                restraunt_id: restaurantId,
+                added_at: new Date().toISOString()
               }]);
             
             if (error) throw error;
@@ -496,18 +509,21 @@
             if (!list.restaurants) list.restaurants = [];
             list.restaurants.push(restaurantId);
             showNotification(`Added to ${list.title}`, "success");
-            return true;
           }
+          
+          this.updateListCounts();
+          return !isInList;
+          
         } catch (error) {
-          console.error('Error toggling restaurant in list:', error);
-          showNotification('Error updating list', 'error');
+          console.error('Error updating list:', error);
+          showNotification('Error saving changes', 'error');
           return isInList;
         }
       },
       
       isInList(listType, restaurantId) {
         const list = this.currentLists[listType];
-        return list && list.restaurants?.includes(restaurantId);
+        return list?.restaurants?.includes(restaurantId) || false;
       }
     };
 
@@ -519,6 +535,7 @@
         await this.loadPrivacySetting();
         await this.loadPendingRequests();
         
+        // Add event listener for privacy toggle
         document.getElementById('privacyToggle').addEventListener('change', () => {
           this.togglePrivacy();
         });
@@ -526,6 +543,7 @@
 
       async loadFollowStats() {
         try {
+          // Get followers count (people who follow current user)
           const { data: followers, error: followersError } = await supabase
             .from('follows')
             .select('follower_id')
@@ -535,6 +553,7 @@
             document.getElementById('followersCount').textContent = followers?.length || 0;
           }
 
+          // Get following count (people current user follows)
           const { data: following, error: followingError } = await supabase
             .from('follows')
             .select('followed_id')
@@ -623,8 +642,6 @@
           if (error) throw error;
 
           this.displayUsers(users, 'searchResults');
-          this.hideAllLists();
-          document.getElementById('searchResults').style.display = 'block';
           
         } catch (error) {
           console.error('Error searching users:', error);
@@ -660,8 +677,7 @@
             }
           }
 
-          this.hideAllLists();
-          document.getElementById('followersList').style.display = 'grid';
+          this.showSection('followersList');
 
         } catch (error) {
           console.error('Error loading followers:', error);
@@ -696,8 +712,7 @@
             }
           }
 
-          this.hideAllLists();
-          document.getElementById('followingList').style.display = 'grid';
+          this.showSection('followingList');
 
         } catch (error) {
           console.error('Error loading following:', error);
@@ -725,19 +740,22 @@
             this.displayRequests(requests);
           }
 
-          this.hideAllLists();
-          document.getElementById('requestsList').style.display = 'grid';
+          this.showSection('requestsList');
 
         } catch (error) {
           console.error('Error loading requests:', error);
         }
       },
 
-      hideAllLists() {
+      showSection(sectionId) {
+        // Hide all sections
         document.getElementById('searchResults').style.display = 'none';
         document.getElementById('followersList').style.display = 'none';
         document.getElementById('followingList').style.display = 'none';
         document.getElementById('requestsList').style.display = 'none';
+        
+        // Show the requested section
+        document.getElementById(sectionId).style.display = 'grid';
       },
 
       async displayUsers(users, containerId) {
@@ -811,6 +829,7 @@
 
       async getFollowStatus(targetUserId) {
         try {
+          // Check if already following
           const { data: follow } = await supabase
             .from('follows')
             .select('id')
@@ -818,6 +837,7 @@
             .eq('followed_id', targetUserId)
             .single();
 
+          // Check if request pending
           const { data: request } = await supabase
             .from('follow_requests')
             .select('id')
@@ -862,6 +882,7 @@
           const isFollowing = await this.checkIfFollowing(targetUserId);
           
           if (isFollowing) {
+            // Unfollow
             const { error } = await supabase
               .from('follows')
               .delete()
@@ -872,6 +893,7 @@
             
             showNotification('Unfollowed user', 'info');
           } else {
+            // Follow
             const { error } = await supabase
               .from('follows')
               .insert({
@@ -904,6 +926,7 @@
 
           if (requestError) throw requestError;
 
+          // Create follow relationship
           const { error: followError } = await supabase
             .from('follows')
             .insert({
@@ -914,6 +937,7 @@
 
           if (followError) throw followError;
 
+          // Update request status
           const { error: updateError } = await supabase
             .from('follow_requests')
             .update({ status: 'accepted' })
@@ -1022,6 +1046,7 @@
 
       currentUser = user;
 
+      // Determine if we're viewing own profile or another user's profile
       if (targetUserId && targetUserId !== user.id) {
         isViewingOwnProfile = false;
         await loadOtherUserProfile();
@@ -1032,11 +1057,12 @@
     }
 
     async function loadOwnProfile() {
+      // Show own profile elements
+      document.getElementById('profileTabs').style.display = 'flex';
       document.getElementById('logoutBtn').style.display = 'block';
       document.getElementById('backButton').style.display = 'none';
       document.getElementById('followButton').style.display = 'none';
       document.getElementById('privateMessage').style.display = 'none';
-      document.getElementById('socialSection').style.display = 'block';
 
       await loadUserProfile();
       
@@ -1048,6 +1074,7 @@
         document.getElementById("bioText").textContent = userProfile.bio;
       }
 
+      // Set avatar
       const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
       document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
 
@@ -1056,11 +1083,17 @@
     }
 
     async function loadOtherUserProfile() {
+      // Hide elements for other users' profiles
+      document.getElementById('profileTabs').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
       document.getElementById('backButton').style.display = 'block';
       document.getElementById('editBioBtn').style.display = 'none';
-      document.getElementById('socialSection').style.display = 'none';
+      
+      // Show only the profile tab
+      document.getElementById('profile-tab').classList.add('active');
+      document.getElementById('social-tab').style.display = 'none';
 
+      // Load target user profile
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -1075,6 +1108,7 @@
 
       targetUser = profile;
 
+      // Display user info
       document.getElementById("username").textContent = profile.username || 'User';
       document.getElementById("email").textContent = profile.email || '';
       document.getElementById("joinDate").textContent = `Joined ${new Date(profile.created_at).toLocaleDateString()}`;
@@ -1083,9 +1117,11 @@
         document.getElementById("bioText").textContent = profile.bio;
       }
 
+      // Set avatar
       const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
       document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
 
+      // Load follow status and lists
       await loadFollowStatus();
       await loadUserLists();
     }
@@ -1097,6 +1133,7 @@
       followButton.style.display = 'block';
 
       try {
+        // Check if already following
         const { data: follow } = await supabase
           .from('follows')
           .select('id')
@@ -1104,6 +1141,7 @@
           .eq('followed_id', targetUserId)
           .single();
 
+        // Check if request pending
         const { data: request } = await supabase
           .from('follow_requests')
           .select('id')
@@ -1139,6 +1177,7 @@
         const isFollowing = await checkIfFollowing();
         
         if (isFollowing) {
+          // Unfollow
           const { error } = await supabase
             .from('follows')
             .delete()
@@ -1151,6 +1190,7 @@
           document.getElementById('followButton').className = 'follow-btn';
           
         } else {
+          // Follow
           const { error } = await supabase
             .from('follows')
             .insert({
@@ -1165,6 +1205,7 @@
           document.getElementById('followButton').className = 'follow-btn following';
         }
 
+        // Reload lists if privacy status changed
         await loadUserLists();
 
       } catch (error) {
@@ -1226,6 +1267,7 @@
       document.getElementById('privateMessage').style.display = 'none';
 
       try {
+        // Load user's lists
         const { data: lists, error } = await supabase
           .from('lists')
           .select('*')
@@ -1235,14 +1277,17 @@
 
         const userLists = lists || [];
         
+        // Find default lists
         const favoritesList = userLists.find(list => list.title === 'Favorites');
         const visitedList = userLists.find(list => list.title === 'Visited');
         const wantToGoList = userLists.find(list => list.title === 'Want to Go');
 
+        // Load restaurant counts for each list
         await loadListCounts(favoritesList, 'favoritesCount');
         await loadListCounts(visitedList, 'visitedCount');
         await loadListCounts(wantToGoList, 'wantToGoCount');
 
+        // Store lists for viewing
         window.userLists = {
           favorites: favoritesList,
           visited: visitedList,
@@ -1276,10 +1321,13 @@
     }
 
     async function canViewUserContent() {
+      // Users can always view their own content
       if (currentUser && currentUser.id === targetUserId) return true;
       
+      // Public accounts can be viewed by anyone
       if (!targetUser.is_private) return true;
       
+      // For private accounts, check if current user is following
       if (!currentUser) return false;
       
       try {
@@ -1352,6 +1400,7 @@
       document.querySelector('.custom-lists').style.display = 'block';
       document.querySelector('.bio').style.display = 'block';
       
+      // Show private message if applicable
       if (!isViewingOwnProfile && document.getElementById('privateMessage').style.display !== 'none') {
         document.getElementById('privateMessage').style.display = 'block';
       }
@@ -1398,6 +1447,7 @@
         
         tile.appendChild(clickableContent);
         
+        // Only show list buttons when viewing own profile
         if (isViewingOwnProfile) {
           const listActions = document.createElement('div');
           listActions.className = 'list-actions';
@@ -1412,6 +1462,7 @@
         grid.appendChild(tile);
       });
 
+      // Add event listeners for list buttons (only for own profile)
       if (isViewingOwnProfile) {
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
@@ -1439,6 +1490,20 @@
 
     // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
+      // Tab functionality
+      document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.dataset.tab;
+          
+          document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+          document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+      });
+
+      // Bio functionality
       document.getElementById("editBioBtn").addEventListener("click", () => {
         document.getElementById("bioDisplay").style.display = "none";
         document.getElementById("bioEdit").style.display = "block";
@@ -1472,17 +1537,20 @@
         showNotification("Bio updated successfully!", "success");
       });
 
+      // Search functionality
       document.getElementById('userSearch').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           friendSystem.searchUsers();
         }
       });
 
+      // Logout
       document.getElementById("logoutBtn").addEventListener("click", async () => {
         await supabase.auth.signOut();
         window.location.href = "login.html";
       });
 
+      // Load profile
       loadProfile();
     });
   </script>
