@@ -101,6 +101,10 @@
             <option value="Cafe & Bakery">Cafe & Bakery</option>
             <option value="Pizza">Pizza</option>
             <option value="BBQ & Ribs">BBQ & Ribs</option>
+            <option value="Italian">Italian</option>
+            <option value="Seafood">Seafood</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Sandwiches">Sandwiches</option>
           </select>
         </div>
       </div>
@@ -461,7 +465,15 @@
       { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png' },
       { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
       { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
-      { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' }
+      { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' },
+      
+      // New restaurants from your file
+      { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', desc:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg' },
+      { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', desc:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'marios.jpg' },
+      { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', desc:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg' },
+      { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', desc:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'manoucheh.jpg' },
+      { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.jpg' },
+      { id: 46, slug:'crave', name:'Crave', category:'Seafood', desc:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.jpg' }
     ];
 
     // Rendering and Filtering
@@ -559,7 +571,10 @@
       let out = restaurants.filter(r => {
         const q = qInput.value.trim().toLowerCase();
         const categoryMatch = categorySelect.value === 'All' || r.category.includes(categorySelect.value);
-        const searchMatch = !q || r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
+        
+        // FIXED: Search only by name and only from the beginning
+        const searchMatch = !q || r.name.toLowerCase().startsWith(q);
+        
         let listMatch = true;
         if (isLoggedIn) {
           if (currentList === 'favorites') listMatch = listManager.isInList('favorites', r.id);

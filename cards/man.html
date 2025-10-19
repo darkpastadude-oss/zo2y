@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Man'oucheh - Authentic Lebanese Manakeesh</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
+.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,152,0,0.05)"/></svg>');background-size:cover;pointer-events:none}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
+.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-categories{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.menu-category-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
+.menu-category-btn.active,.menu-category-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+.popular-badge{background:#FF9800;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
+.price-note{font-size:0.8rem;color:var(--text2);font-style:italic}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+</style>
+</head>
+<body>
+
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
+
+<section class="hero">
+  <img src="../images/manoucheh.jpg" alt="Man'oucheh Authentic Lebanese" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Man'oucheh</h1>
+  <p>Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients and traditional recipes</p>
+  <div class="rating">⭐ 4.5/5 (3,000+ reviews)</div>
+
+  <a href="tel:19027" class="btn">Call Hotline: 19027</a>
+  <a href="https://www.facebook.com/manoucheh/" target="_blank" class="btn secondary">Order Online</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:19027">19027</a>
+    <strong>Facebook:</strong> <a href="https://www.facebook.com/manoucheh/" target="_blank">Man'oucheh</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Sheikh Zayed</h3>
+      <p>Karma Mall 4, Talat Shabakat, Next to Al-Ahly Club<br>Open: 6:00 AM - 10:30 PM</p>
+      <a href="https://maps.google.com/search?q=Man'oucheh+Sheikh+Zayed" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Heliopolis</h3>
+      <p>36 Abu Bakr El Seddik Street, Safir Square<br>Open: 5:00 AM - 10:30 PM</p>
+      <a href="https://maps.google.com/search?q=Man'oucheh+Heliopolis" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>New Cairo</h3>
+      <p>Cairo Business Gate 294 German Schneider jumper<br>Open: 5:00 AM - 10:30 PM</p>
+      <a href="https://maps.google.com/search?q=Man'oucheh+New+Cairo" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Maadi</h3>
+      <p>49 Road 9<br>Open: 5:00 AM - 11:30 PM</p>
+      <a href="https://maps.google.com/search?q=Man'oucheh+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Our Authentic Menu</h2>
+  
+  <div class="menu-categories" id="menuCategories">
+    <button class="menu-category-btn active" data-category="all">All Items</button>
+    <button class="menu-category-btn" data-category="xxl">XXL Specials</button>
+    <button class="menu-category-btn" data-category="zaatar">Zaatar</button>
+    <button class="menu-category-btn" data-category="jebneh">Cheese</button>
+    <button class="menu-category-btn" data-category="meat">Meat</button>
+    <button class="menu-category-btn" data-category="pizza">Pizza</button>
+    <button class="menu-category-btn" data-category="drinks">Drinks</button>
+  </div>
+
+  <div class="menu-items-container">
+    <!-- XXL Specials -->
+    <div class="menu-category-section" data-category="xxl">
+      <h3>XXL Special Manakeesh</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Djeij Special <span class="popular-badge">Popular</span></span>
+          <div class="menu-item-description">Chicken, cheese, sweet corn, mushroom, green pepper, pickles, garlic sauce, spicy</div>
+        </div>
+        <span>EGP 175.82</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Kofta Special</span>
+          <div class="menu-item-description">Kofta, cheese, tomato, mayo, spicy</div>
+        </div>
+        <span>EGP 175.82</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Sojouk Special</span>
+        </div>
+        <span>EGP 175.82</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Tuna Special</span>
+          <div class="menu-item-description">Tuna, sweet corn, cheese, pickles, mayo, spicy</div>
+        </div>
+        <span>EGP 175.82</span>
+      </div>
+    </div>
+
+    <!-- Zaatar -->
+    <div class="menu-category-section" data-category="zaatar">
+      <h3>Zaatar Manakeesh</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Zaatar w Halloum</span>
+        </div>
+        <span>EGP 107.99</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Zaatar w Jebneh</span>
+        </div>
+        <span>EGP 99.10</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Zaatar</span>
+        </div>
+        <span>EGP 88.94</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Sabanekh</span>
+        </div>
+        <span>EGP 101.64</span>
+      </div>
+    </div>
+
+    <!-- Cheese -->
+    <div class="menu-category-section" data-category="jebneh">
+      <h3>Cheese Manakeesh</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Jebneh Halloum <span class="popular-badge">Popular</span></span>
+        </div>
+        <span>EGP 107.99</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Sojouk w Jebneh</span>
+          <div class="menu-item-description">Jake, cheese, pickled cucumber, mayo and tomato</div>
+        </div>
+        <span>EGP 139.76</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Jebneh w Turkey</span>
+          <div class="menu-item-description">Turkey, cheese, corn, lettuce, mayo and ketchup</div>
+        </div>
+        <span>EGP 121.96</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Jebneh w Hot Dog</span>
+          <div class="menu-item-description">Hot dog, cheese, mayo and ketchup</div>
+        </div>
+        <span>EGP 121.96</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mix Cheese</span>
+          <div class="menu-item-description">Mozzarella and halloum cheese</div>
+        </div>
+        <span>EGP 114.35</span>
+      </div>
+    </div>
+
+    <!-- Meat -->
+    <div class="menu-category-section" data-category="meat">
+      <h3>Meat Manakeesh</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Philadelphia</span>
+          <div class="menu-item-description">Phili steak, cheese and mayo</div>
+        </div>
+        <span>EGP 127.05</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Lahmeh Bea'jien</span>
+          <div class="menu-item-description">Minced meat, tomato and onion</div>
+        </div>
+        <span>EGP 101.64</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Shawarma Lahmeh</span>
+          <div class="menu-item-description">Pickles, tehina, tomato, onion and parsley</div>
+        </div>
+        <span>EGP 139.30</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Shawarma Djeij</span>
+          <div class="menu-item-description">Pickles, lettuce and garlic sauce</div>
+        </div>
+        <span>EGP 127.05</span>
+      </div>
+    </div>
+
+    <!-- Pizza -->
+    <div class="menu-category-section" data-category="pizza">
+      <h3>Man' Pizza</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extra Pizza</span>
+          <div class="menu-item-description">Pizza sauce, cheese, beef slices, mushroom and olives</div>
+        </div>
+        <span>EGP 175.33</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Extreme Pizza</span>
+          <div class="menu-item-description">Pizza sauce, cheese, beef slices, hot dog, mushroom, olives and green pepper</div>
+        </div>
+        <span>EGP 175.33</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>A'adi Pizza</span>
+          <div class="menu-item-description">Pizza sauce, cheese, olives and mushroom</div>
+        </div>
+        <span>EGP 162.62</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Chicken Pizza</span>
+          <div class="menu-item-description">Chicken, mushroom, pizza sauce and BBQ sauce</div>
+        </div>
+        <span>EGP 188.03</span>
+      </div>
+    </div>
+
+    <!-- Drinks -->
+    <div class="menu-category-section" data-category="drinks">
+      <h3>Drinks</h3>
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Coca Cola Can</span>
+        </div>
+        <span>EGP 31.76</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Sprite Can</span>
+        </div>
+        <span>EGP 31.76</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Fanta Orange Can</span>
+        </div>
+        <span>EGP 31.76</span>
+      </div>
+      
+      <div class="menu-item">
+        <div style="flex: 1;">
+          <span>Mineral Water</span>
+        </div>
+        <span>EGP 31.76</span>
+      </div>
+    </div>
+  </div>
+  
+  <a href="https://www.facebook.com/manoucheh/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu on Facebook</a>
+</section>
+
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Rania S.</strong></p>
+      <p>The Djeij Special is absolutely amazing! Perfect blend of flavors and the dough is always fresh. Best manakeesh in Cairo!</p>
+    </div>
+    <div class="review">
+      <p><strong>Hassan M.</strong></p>
+      <p>Authentic Lebanese taste that reminds me of home. The zaatar with halloum is perfect for breakfast. Consistent quality across all branches.</p>
+    </div>
+    <div class="review">
+      <p><strong>Nadia K.</strong></p>
+      <p>Love their XXL options! Perfect for sharing with family. The Sojouk w Jebneh is my personal favorite. Always fresh and delicious.</p>
+    </div>
+    <div class="review">
+      <p><strong>Omar F.</strong></p>
+      <p>Great variety and authentic flavors. The cheese manakeesh are cheesy and perfectly baked. Perfect for any time of day!</p>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
+
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Man'oucheh - Authentic Lebanese Manakeesh</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">17+ Branches Across Cairo | Traditional Lebanese Cuisine</p>
+</footer>
+
+<script>
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('manoucheh-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('manoucheh-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const reviewer = document.getElementById('reviewer').value.trim();
+  const reviewText = document.getElementById('review-text').value.trim();
+  
+  if (reviewer && reviewText) {
+    const reviewElement = document.createElement('div');
+    reviewElement.className = 'review';
+    reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+    reviewsList.appendChild(reviewElement);
+    reviewForm.reset();
+    
+    const thankYouMessage = document.createElement('p');
+    thankYouMessage.textContent = 'Thank you for your review!';
+    thankYouMessage.style.color = '#FF9800';
+    thankYouMessage.style.fontWeight = '600';
+    thankYouMessage.style.marginTop = '10px';
+    reviewForm.appendChild(thankYouMessage);
+    
+    setTimeout(() => {
+      thankYouMessage.remove();
+    }, 3000);
+  }
+});
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+menuCategoryBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const category = this.getAttribute('data-category');
+    
+    // Update active button
+    menuCategoryBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Filter menu items
+    menuCategorySections.forEach(section => {
+      if (category === 'all' || section.getAttribute('data-category') === category) {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Initialize the page
+initializeTheme();
+</script>
+
+</body>
+</html>
