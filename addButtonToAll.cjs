@@ -55,33 +55,130 @@ const scriptCode = `
         injectListMenu() {
             const styles = \`
                 .list-menu-btn {
-                    position: fixed; top: 20px; right: 20px; background: #f59e0b; 
-                    color: #0b1633; border: none; width: 50px; height: 50px; 
-                    border-radius: 50%; font-size: 24px; font-weight: bold; 
-                    cursor: pointer; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    position: fixed; 
+                    top: 20px; 
+                    left: 20px; 
+                    background: #f59e0b; 
+                    color: #0b1633; 
+                    border: none; 
+                    width: 50px; 
+                    height: 50px; 
+                    border-radius: 50%; 
+                    font-size: 24px; 
+                    font-weight: bold; 
+                    cursor: pointer; 
+                    z-index: 10000; 
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                     transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
-                .list-menu-btn:hover { transform: scale(1.1); background: #ffb84d; }
+                .list-menu-btn:hover { 
+                    transform: scale(1.1); 
+                    background: #ffb84d; 
+                }
                 .list-dropdown {
-                    position: fixed; top: 80px; right: 20px; background: #132347; 
-                    border: 1px solid #f59e0b; border-radius: 10px; padding: 15px; 
-                    min-width: 250px; display: none; z-index: 10000;
+                    position: fixed; 
+                    top: 80px; 
+                    left: 20px; 
+                    background: #132347; 
+                    border: 1px solid #f59e0b; 
+                    border-radius: 10px; 
+                    padding: 15px; 
+                    min-width: 280px; 
+                    display: none; 
+                    z-index: 10000;
                     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                    backdrop-filter: blur(10px);
                 }
-                .list-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; 
-                    cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); }
-                .list-item:last-child { border-bottom: none; }
-                .list-item:hover { color: #f59e0b; }
-                .list-checkbox { width: 18px; height: 18px; border: 2px solid #f59e0b;
-                    border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-                .list-checkbox.checked { background: #f59e0b; }
-                .list-checkbox.checked::after { content: "✓"; color: #0b1633; 
-                    font-size: 12px; font-weight: bold; }
-                .new-list-input { width: 100%; padding: 8px; background: #0b1633;
-                    border: 1px solid #f59e0b; border-radius: 6px; color: white; margin: 10px 0; }
-                .add-list-btn { background: #f59e0b; color: #0b1633; border: none;
-                    padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; 
-                    width: 100%; margin-top: 10px; }
+                .list-section {
+                    margin-bottom: 15px;
+                }
+                .list-section-title {
+                    font-size: 12px;
+                    color: #f59e0b;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    letter-spacing: 0.5px;
+                }
+                .list-item { 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 12px; 
+                    padding: 10px 8px; 
+                    cursor: pointer; 
+                    border-radius: 6px;
+                    transition: all 0.2s ease;
+                }
+                .list-item:hover { 
+                    background: rgba(245, 158, 11, 0.1); 
+                    color: #f59e0b; 
+                }
+                .list-checkbox { 
+                    width: 18px; 
+                    height: 18px; 
+                    border: 2px solid #f59e0b;
+                    border-radius: 4px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    flex-shrink: 0;
+                }
+                .list-checkbox.checked { 
+                    background: #f59e0b; 
+                }
+                .list-checkbox.checked::after { 
+                    content: "✓"; 
+                    color: #0b1633; 
+                    font-size: 12px; 
+                    font-weight: bold; 
+                }
+                .list-item-text {
+                    flex: 1;
+                    font-size: 14px;
+                }
+                .new-list-section {
+                    border-top: 1px solid rgba(245, 158, 11, 0.3);
+                    padding-top: 15px;
+                    margin-top: 10px;
+                }
+                .new-list-input { 
+                    width: 100%; 
+                    padding: 10px 12px; 
+                    background: #0b1633;
+                    border: 1px solid rgba(245, 158, 11, 0.5); 
+                    border-radius: 6px; 
+                    color: white; 
+                    margin-bottom: 10px;
+                    font-size: 14px;
+                }
+                .new-list-input:focus {
+                    outline: none;
+                    border-color: #f59e0b;
+                }
+                .add-list-btn { 
+                    background: #f59e0b; 
+                    color: #0b1633; 
+                    border: none;
+                    padding: 10px 16px; 
+                    border-radius: 6px; 
+                    cursor: pointer; 
+                    font-weight: bold; 
+                    width: 100%; 
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+                }
+                .add-list-btn:hover {
+                    background: #ffb84d;
+                    transform: translateY(-1px);
+                }
+                .list-divider {
+                    height: 1px;
+                    background: rgba(245, 158, 11, 0.3);
+                    margin: 12px 0;
+                }
             \`;
 
             const styleSheet = document.createElement('style');
@@ -92,17 +189,22 @@ const scriptCode = `
             menuBtn.className = 'list-menu-btn';
             menuBtn.innerHTML = '⋮';
             menuBtn.title = 'Add to Lists';
+            menuBtn.setAttribute('aria-label', 'Add to lists');
 
             const dropdown = document.createElement('div');
             dropdown.className = 'list-dropdown';
 
             menuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                if (dropdown.style.display === 'block') this.updateDropdown(dropdown);
+                const isVisible = dropdown.style.display === 'block';
+                dropdown.style.display = isVisible ? 'none' : 'block';
+                if (!isVisible) this.updateDropdown(dropdown);
             });
 
-            document.addEventListener('click', () => dropdown.style.display = 'none');
+            document.addEventListener('click', () => {
+                dropdown.style.display = 'none';
+            });
+            
             dropdown.addEventListener('click', (e) => e.stopPropagation());
 
             document.body.appendChild(menuBtn);
@@ -110,49 +212,79 @@ const scriptCode = `
         }
 
         async updateDropdown(dropdown) {
-            dropdown.innerHTML = '<h4 style="margin:0 0 10px 0;color:#f59e0b">Add to Lists</h4>';
+            dropdown.innerHTML = '<div style="font-size:16px;font-weight:600;color:#f59e0b;margin-bottom:15px;text-align:center;">Add to Lists</div>';
 
-            // Default lists
-            const lists = [
-                { id: 'favorites', name: '❤️ Favorites' },
-                { id: 'visited', name: '🍽️ Visited' },
-                { id: 'wantToGo', name: '📍 Want to Go' }
+            // Quick Actions Section
+            const quickSection = document.createElement('div');
+            quickSection.className = 'list-section';
+            quickSection.innerHTML = '<div class="list-section-title">Quick Actions</div>';
+            
+            const quickLists = [
+                { id: 'favorites', name: '❤️ Add to Favorites', icon: '❤️' },
+                { id: 'wantToGo', name: '📍 Want to Go', icon: '📍' },
+                { id: 'visited', name: '🍽️ Mark as Visited', icon: '🍽️' }
             ];
 
-            for (const list of lists) {
+            for (const list of quickLists) {
                 const isInList = await this.checkIfInList(list.id);
                 const item = document.createElement('div');
                 item.className = 'list-item';
-                item.innerHTML = \`<div class="list-checkbox \${isInList ? 'checked' : ''}"></div><span>\${list.name}</span>\`;
+                item.innerHTML = \`
+                    <div class="list-checkbox \${isInList ? 'checked' : ''}"></div>
+                    <span class="list-item-text">\${list.name}</span>
+                \`;
                 item.onclick = () => this.toggleList(list.id);
-                dropdown.appendChild(item);
+                quickSection.appendChild(item);
             }
+            
+            dropdown.appendChild(quickSection);
 
-            // Custom lists
-            if (this.userLists.length) {
+            // Custom Lists Section (if any exist)
+            const customLists = this.userLists.filter(list => !['Favorites','Visited','Want to Go'].includes(list.title));
+            
+            if (customLists.length > 0) {
                 const divider = document.createElement('div');
-                divider.style.cssText = 'border-top:1px solid #f59e0b;margin:10px 0;padding-top:10px;';
+                divider.className = 'list-divider';
                 dropdown.appendChild(divider);
 
-                this.userLists.filter(list => !['Favorites','Visited','Want to Go'].includes(list.title))
-                    .forEach(list => {
-                        const isInList = await this.checkIfCustomList(list.id);
-                        const item = document.createElement('div');
-                        item.className = 'list-item';
-                        item.innerHTML = \`<div class="list-checkbox \${isInList ? 'checked' : ''}"></div><span>\${list.title}</span>\`;
-                        item.onclick = () => this.toggleCustomList(list.id);
-                        dropdown.appendChild(item);
-                    });
+                const customSection = document.createElement('div');
+                customSection.className = 'list-section';
+                customSection.innerHTML = '<div class="list-section-title">Your Lists</div>';
+
+                for (const list of customLists) {
+                    const isInList = await this.checkIfCustomList(list.id);
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.innerHTML = \`
+                        <div class="list-checkbox \${isInList ? 'checked' : ''}"></div>
+                        <span class="list-item-text">\${list.title}</span>
+                    \`;
+                    item.onclick = () => this.toggleCustomList(list.id);
+                    customSection.appendChild(item);
+                }
+                
+                dropdown.appendChild(customSection);
             }
 
-            // New list input
+            // Create New List Section
             const newDiv = document.createElement('div');
-            newDiv.style.cssText = 'border-top:1px solid #f59e0b;margin:10px 0;padding-top:10px;';
+            newDiv.className = 'new-list-section';
             newDiv.innerHTML = \`
-                <input type="text" class="new-list-input" placeholder="New list name" id="newListName">
-                <button class="add-list-btn">Create New List</button>
+                <div class="list-section-title">Create New List</div>
+                <input type="text" class="new-list-input" placeholder="Enter list name..." id="newListName">
+                <button class="add-list-btn">➕ Create List</button>
             \`;
-            newDiv.querySelector('button').onclick = () => this.createNewList();
+            
+            const input = newDiv.querySelector('input');
+            const button = newDiv.querySelector('button');
+            
+            button.onclick = () => this.createNewList();
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.createNewList();
+                }
+            });
+            
             dropdown.appendChild(newDiv);
         }
 
@@ -188,24 +320,29 @@ const scriptCode = `
             if (isInList) {
                 await this.supabase.from('lists_restraunts').delete()
                     .match({ list_id: list.id, restraunt_id: this.restaurantId });
+                this.showNotification(\`Removed from \${title}\`, 'info');
             } else {
                 await this.supabase.from('lists_restraunts').insert([
                     { list_id: list.id, restraunt_id: this.restaurantId }
                 ]);
+                this.showNotification(\`Added to \${title}\`, 'success');
             }
             this.updateDropdown(document.querySelector('.list-dropdown'));
         }
 
         async toggleCustomList(listId) {
             if (!this.currentUser || !this.restaurantId) return;
+            const list = this.userLists.find(l => l.id === listId);
             const isInList = await this.checkIfCustomList(listId);
             if (isInList) {
                 await this.supabase.from('lists_restraunts').delete()
                     .match({ list_id: listId, restraunt_id: this.restaurantId });
+                this.showNotification(\`Removed from \${list.title}\`, 'info');
             } else {
                 await this.supabase.from('lists_restraunts').insert([
                     { list_id: listId, restraunt_id: this.restaurantId }
                 ]);
+                this.showNotification(\`Added to \${list.title}\`, 'success');
             }
             this.updateDropdown(document.querySelector('.list-dropdown'));
         }
@@ -213,16 +350,57 @@ const scriptCode = `
         async createNewList() {
             const input = document.getElementById('newListName');
             const name = input.value.trim();
-            if (!name) return;
+            if (!name) {
+                this.showNotification('Please enter a list name', 'error');
+                return;
+            }
+
             const { data: newList } = await this.supabase.from('lists')
                 .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
+            
             if (newList) {
                 this.userLists.push(newList);
                 input.value = '';
+                this.showNotification(\`List "\${name}" created!\`, 'success');
                 this.updateDropdown(document.querySelector('.list-dropdown'));
             }
         }
+
+        showNotification(message, type = 'info') {
+            // Create a simple notification
+            const notification = document.createElement('div');
+            notification.style.cssText = \`
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: \${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10001;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+            \`;
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
     }
+
+    // Add CSS for notification animation
+    const notificationStyles = document.createElement('style');
+    notificationStyles.textContent = \`
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    \`;
+    document.head.appendChild(notificationStyles);
 
     setTimeout(() => new RestaurantListManager(), 1000);
 })();
