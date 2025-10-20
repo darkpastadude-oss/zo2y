@@ -646,78 +646,14 @@
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text-color-secondary);">Working Hours: 11:00 AM - 3:00 AM | Last Order: 2:00 AM</p>
 </footer>
 
-<script>
-  // Theme Toggle Functionality
-  const themeToggle = document.getElementById('themeToggle');
-  
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-    localStorage.setItem('88-theme', theme);
-  }
-  
-  function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    applyTheme(newTheme);
-  }
-  
-  function initializeTheme() {
-    const savedTheme = localStorage.getItem('88-theme');
-    if (savedTheme) {
-      applyTheme(savedTheme);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      applyTheme(prefersDark ? 'dark' : 'light');
-    }
-  }
-  
-  themeToggle.addEventListener('click', toggleTheme);
-  
-  // Review Form Functionality
-  const reviewForm = document.getElementById('review-form');
-  const reviewsList = document.getElementById('reviews-list');
-  
-  reviewForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = document.getElementById('reviewer').value.trim();
-    const text = document.getElementById('review-text').value.trim();
-    
-    if (name && text) {
-      const reviewDiv = document.createElement('div');
-      reviewDiv.className = 'review';
-      reviewDiv.innerHTML = '<p><strong>' + name + '</strong></p><p>' + text + '</p>';
-      reviewsList.appendChild(reviewDiv);
-      reviewForm.reset();
-      
-      // Show success message
-      const successMsg = document.createElement('p');
-      successMsg.textContent = 'Thank you for your review!';
-      successMsg.style.color = '#FF9800';
-      successMsg.style.fontWeight = '600';
-      successMsg.style.marginTop = '10px';
-      reviewForm.appendChild(successMsg);
-      
-      setTimeout(() => {
-        successMsg.remove();
-      }, 3000);
-    }
-  });
-  
-  // Initialize theme on page load
-  initializeTheme();
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -736,8 +672,8 @@
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -752,7 +688,7 @@
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -762,28 +698,29 @@
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

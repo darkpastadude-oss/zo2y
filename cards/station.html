@@ -224,179 +224,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Heliopolis, Zamalek, Sheikh Zayed, Nasr City, Maadi</p>
 </footer>
 
-<script>
-// Theme toggle functionality
-const themeToggle=document.getElementById('themeToggle');
-function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('pizzastation-theme',e)}
-function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
-function initializeTheme(){const e=localStorage.getItem('pizzastation-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
-themeToggle.addEventListener('click',toggleTheme);
-
-// Review form functionality
-const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
-reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
-
-// Offers data
-const offersData = [
-  {
-    id: 1,
-    title: "City Meal",
-    description: "Medium pizza, station fries, salad, soft drink 330ml",
-    originalPrice: "595 EGP",
-    discountedPrice: "385 EGP",
-    category: "value",
-    popularity: 38,
-    badge: "Popular"
-  },
-  {
-    id: 2,
-    title: "Double Station Meal Medium",
-    description: "2 medium pizza, station fries, 3 supreme salad, 2 pepsi can",
-    originalPrice: "1140 EGP",
-    discountedPrice: "645 EGP",
-    category: "value",
-    popularity: 81,
-    badge: "Best Value"
-  },
-  {
-    id: 3,
-    title: "Single Medium Meal",
-    description: "Medium pizza, coleslaw salad, soft drink 330ml",
-    originalPrice: "475 EGP",
-    discountedPrice: "345 EGP",
-    category: "value",
-    popularity: 101
-  },
-  {
-    id: 4,
-    title: "Double Deal Large",
-    description: "2 large pizzas of your choice from traditional pizza, meat pizza, chicken pizza",
-    originalPrice: "1100 EGP",
-    discountedPrice: "695 EGP",
-    category: "hot",
-    popularity: 1161,
-    badge: "Hot Deal"
-  },
-  {
-    id: 5,
-    title: "Double Deal Medium",
-    description: "2 medium pizzas of your choice from traditional pizza, meat pizza, chicken pizza",
-    originalPrice: "780 EGP",
-    discountedPrice: "445 EGP",
-    category: "hot",
-    popularity: 1852,
-    badge: "Top Seller"
-  },
-  {
-    id: 6,
-    title: "Triple Deal Medium",
-    description: "3 medium pizzas (1 margherita and 2 pizzas of your choice from traditional pizza, meat pizza, chicken pizza)",
-    originalPrice: "945 EGP",
-    discountedPrice: "645 EGP",
-    category: "hot",
-    popularity: 622
-  },
-  {
-    id: 7,
-    title: "Original Chicken Ranch Pizza",
-    description: "Grilled chicken, mushrooms, green peppers, onions, pizza sauce, mozzarella topped with ranch sauce",
-    priceRange: "165 - 840 EGP",
-    category: "top",
-    popularity: 1381,
-    badge: "Customer Favorite"
-  },
-  {
-    id: 8,
-    title: "Pepperoni Pizza",
-    description: "Pepperoni with a spicy seasoning, pizza sauce, and mozzarella",
-    priceRange: "125 - 680 EGP",
-    category: "top",
-    popularity: 660
-  }
-];
-
-// Function to render offers
-function renderOffers(filter = 'all') {
-  const offersGrid = document.getElementById('offersGrid');
-  offersGrid.innerHTML = '';
-  
-  const filteredOffers = filter === 'all' 
-    ? offersData 
-    : offersData.filter(offer => offer.category === filter);
-  
-  filteredOffers.forEach(offer => {
-    const offerCard = document.createElement('div');
-    offerCard.className = 'offer-card';
-    
-    // Calculate discount percentage if applicable
-    let discountBadge = '';
-    if (offer.originalPrice && offer.discountedPrice) {
-      const original = parseInt(offer.originalPrice);
-      const discounted = parseInt(offer.discountedPrice);
-      const discount = Math.round(((original - discounted) / original) * 100);
-      discountBadge = `${discount}% OFF`;
-    }
-    
-    offerCard.innerHTML = `
-      <div class="offer-header">
-        <h3>${offer.title}</h3>
-        ${offer.badge ? `<div class="offer-badge">${offer.badge}</div>` : ''}
-      </div>
-      <div class="offer-content">
-        <p class="offer-description">${offer.description}</p>
-        ${offer.originalPrice && offer.discountedPrice ? `
-          <div class="offer-price">
-            <span class="original-price">${offer.originalPrice}</span>
-            <span class="discounted-price">${offer.discountedPrice}</span>
-            ${discountBadge ? `<span style="color: var(--discount); font-weight: bold;">${discountBadge}</span>` : ''}
-          </div>
-        ` : `
-          <div class="offer-price">
-            <span class="discounted-price">${offer.priceRange}</span>
-          </div>
-        `}
-        <div class="offer-popularity">Ordered <span>${offer.popularity}</span> times</div>
-        <div class="offer-actions">
-          <a href="tel:17318" class="offer-btn">Order Now</a>
-          <a href="https://pizzastationeg.com/home" target="_blank" class="offer-btn secondary">View Details</a>
-        </div>
-      </div>
-    `;
-    
-    offersGrid.appendChild(offerCard);
-  });
-}
-
-// Filter functionality for offers
-document.addEventListener('DOMContentLoaded', function() {
-  initializeTheme();
-  renderOffers();
-  
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      filterButtons.forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      this.classList.add('active');
-      // Filter offers
-      const filter = this.getAttribute('data-filter');
-      renderOffers(filter);
-    });
-  });
-});
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -415,8 +250,8 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -431,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -441,28 +276,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

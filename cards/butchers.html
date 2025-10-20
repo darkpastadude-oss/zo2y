@@ -266,177 +266,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Zamalek, Heliopolis, Nasr City, New Cairo, Sheikh Zayed, Mohandeseen, 6th of October</p>
 </footer>
 
-<script>
-// Theme toggle functionality
-const themeToggle=document.getElementById('themeToggle');
-function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('butchersburger-theme',e)}
-function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
-function initializeTheme(){const e=localStorage.getItem('butchersburger-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
-themeToggle.addEventListener('click',toggleTheme);
-
-// Review form functionality
-const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
-reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#8B0000',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
-
-// Offers data
-const offersData = [
-  {
-    id: 1,
-    title: "Sandwich & Wings Offer",
-    description: "Sandwich from your choice, 3 wings with your choice of sauce, fries, coleslaw",
-    originalPrice: "465 EGP",
-    discountedPrice: "350 EGP",
-    category: "value",
-    popularity: 12,
-    badge: "Popular"
-  },
-  {
-    id: 2,
-    title: "Lunch Box Offer",
-    description: "Sandwich from your choice, fries, juice",
-    originalPrice: "226.86 EGP",
-    discountedPrice: "179 EGP",
-    category: "value",
-    popularity: 0,
-    badge: "Best Value"
-  },
-  {
-    id: 3,
-    title: "School Spirit Offer",
-    description: "Sandwich from your choice, go meal, small taco salad",
-    originalPrice: "386.08 EGP",
-    discountedPrice: "275 EGP",
-    category: "value",
-    popularity: 6
-  },
-  {
-    id: 4,
-    title: "Cheese Burger Day Offer",
-    description: "Cheese burger sandwich, 3 BBQ wings, go meal, soft drink",
-    originalPrice: "468.54 EGP",
-    discountedPrice: "295.15 EGP",
-    category: "hot",
-    popularity: 3,
-    badge: "Hot Deal"
-  },
-  {
-    id: 5,
-    title: "BB Mushroom Burger",
-    description: "Double Swiss cheese, grilled mushrooms, caramelized onions, smoky mayo",
-    priceRange: "215.46 - 339.72 EGP",
-    category: "top",
-    popularity: 1724,
-    badge: "Top Seller"
-  },
-  {
-    id: 6,
-    title: "Buffalo Wings (Addictive!)",
-    description: "Our signature buffalo wings, served with your choice from ranch or blue cheese sauce",
-    priceRange: "141.36 - 420.66 EGP",
-    category: "top",
-    popularity: 796,
-    badge: "Customer Favorite"
-  },
-  {
-    id: 7,
-    title: "Portobello Mushroom Burger",
-    description: "Portobello mushrooms, emmental cheese, rocket leaves, balsamic sauce",
-    priceRange: "255.36 - 379.62 EGP",
-    category: "top",
-    popularity: 702
-  },
-  {
-    id: 8,
-    title: "Southern BBQ Burger",
-    description: "Onion rings, cheddar cheese, BBQ sauce, jalapenos, lettuce, smoky mayo",
-    priceRange: "238.26 - 368.22 EGP",
-    category: "top",
-    popularity: 676
-  }
-];
-
-// Function to render offers
-function renderOffers(filter = 'all') {
-  const offersGrid = document.getElementById('offersGrid');
-  offersGrid.innerHTML = '';
-  
-  const filteredOffers = filter === 'all' 
-    ? offersData 
-    : offersData.filter(offer => offer.category === filter);
-  
-  filteredOffers.forEach(offer => {
-    const offerCard = document.createElement('div');
-    offerCard.className = 'offer-card';
-    
-    // Calculate discount percentage if applicable
-    let discountBadge = '';
-    if (offer.originalPrice && offer.discountedPrice) {
-      const original = parseInt(offer.originalPrice);
-      const discounted = parseInt(offer.discountedPrice);
-      const discount = Math.round(((original - discounted) / original) * 100);
-      discountBadge = `${discount}% OFF`;
-    }
-    
-    offerCard.innerHTML = `
-      <div class="offer-header">
-        <h3>${offer.title}</h3>
-        ${offer.badge ? `<div class="offer-badge">${offer.badge}</div>` : ''}
-      </div>
-      <div class="offer-content">
-        <p class="offer-description">${offer.description}</p>
-        ${offer.originalPrice && offer.discountedPrice ? `
-          <div class="offer-price">
-            <span class="original-price">${offer.originalPrice}</span>
-            <span class="discounted-price">${offer.discountedPrice}</span>
-            ${discountBadge ? `<span style="color: var(--discount); font-weight: bold;">${discountBadge}</span>` : ''}
-          </div>
-        ` : `
-          <div class="offer-price">
-            <span class="discounted-price">${offer.priceRange}</span>
-          </div>
-        `}
-        <div class="offer-popularity">Ordered <span>${offer.popularity}</span> times</div>
-        <div class="offer-actions">
-          <a href="tel:17318" class="offer-btn">Order Now</a>
-          <a href="https://butchersburger.com" target="_blank" class="offer-btn secondary">View Details</a>
-        </div>
-      </div>
-    `;
-    
-    offersGrid.appendChild(offerCard);
-  });
-}
-
-// Filter functionality for offers
-document.addEventListener('DOMContentLoaded', function() {
-  initializeTheme();
-  renderOffers();
-  
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      filterButtons.forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      this.classList.add('active');
-      // Filter offers
-      const filter = this.getAttribute('data-filter');
-      renderOffers(filter);
-    });
-  });
-});
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -455,8 +292,8 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -471,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -481,28 +318,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

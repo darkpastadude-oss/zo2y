@@ -244,83 +244,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: First Settlement, Sheikh Zayed, Nasr City, Maadi, Dokki, Rehab, Madinaty, Alexandria</p>
 </footer>
 
-<script>
-// Theme functionality
-const themeToggle = document.getElementById('themeToggle');
-
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-  localStorage.setItem('wokwalk-theme', theme);
-}
-
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  applyTheme(newTheme);
-}
-
-function initializeTheme() {
-  const savedTheme = localStorage.getItem('wokwalk-theme');
-  if (savedTheme) {
-    applyTheme(savedTheme);
-  } else {
-    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  }
-}
-
-// Review form functionality
-const reviewForm = document.getElementById('review-form');
-const reviewsList = document.getElementById('reviews-list');
-
-reviewForm.addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const reviewer = document.getElementById('reviewer').value.trim();
-  const reviewText = document.getElementById('review-text').value.trim();
-  
-  if (reviewer && reviewText) {
-    const newReview = document.createElement('div');
-    newReview.className = 'review';
-    newReview.innerHTML = `
-      <p><strong>${reviewer}</strong></p>
-      <p>${reviewText}</p>
-    `;
-    
-    reviewsList.appendChild(newReview);
-    reviewForm.reset();
-    
-    const thankYouMsg = document.createElement('p');
-    thankYouMsg.textContent = 'Thank you for your review!';
-    thankYouMsg.style.color = '#FF9800';
-    thankYouMsg.style.fontWeight = '600';
-    thankYouMsg.style.marginTop = '10px';
-    
-    reviewForm.appendChild(thankYouMsg);
-    
-    setTimeout(() => {
-      thankYouMsg.remove();
-    }, 3000);
-  }
-});
-
-// Initialize theme when page loads
-initializeTheme();
-
-// Add event listener for theme toggle
-themeToggle.addEventListener('click', toggleTheme);
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -339,8 +270,8 @@ themeToggle.addEventListener('click', toggleTheme);
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -355,7 +286,7 @@ themeToggle.addEventListener('click', toggleTheme);
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -365,28 +296,29 @@ themeToggle.addEventListener('click', toggleTheme);
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

@@ -232,464 +232,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Follow us: @vasko.egypt on Instagram</p>
 </footer>
 
-<script>
-// Theme toggle functionality
-const themeToggle=document.getElementById('themeToggle');
-function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('vasko-theme',e)}
-function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
-function initializeTheme(){const e=localStorage.getItem('vasko-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
-themeToggle.addEventListener('click',toggleTheme);
-
-// Review form functionality
-const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
-reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
-
-// Menu data
-const menuData = [
-  // Salads
-  {
-    id: 1,
-    title: "Chicken Caesar Salad",
-    description: "Fresh romaine lettuce with grilled chicken, parmesan cheese, croutons, and Caesar dressing",
-    price: "175 EGP",
-    category: "salads"
-  },
-  
-  // Sandwiches
-  {
-    id: 2,
-    title: "Spicy Ranch Chicken Panini Sandwich",
-    description: "Panini bread, chicken breast, cheddar cheese, ranch sauce, pickles, lettuce",
-    price: "169 EGP",
-    category: "sandwiches"
-  },
-  {
-    id: 3,
-    title: "Crisp Alpine Roast Beef Sandwich",
-    description: "Multigrain Toast, roasted beef, cheddar cheese, caramelized onion, mayonnaise, rocca, cucumber, relish",
-    price: "210 EGP",
-    category: "sandwiches"
-  },
-  {
-    id: 4,
-    title: "Chicken Cranberry Pretzel Sandwich",
-    description: "Pretzel bread, chicken breast, cheddar cheese, cream cheese, roquefort cheese, lettuce, sundried tomato, cranberry",
-    price: "165 EGP",
-    category: "sandwiches"
-  },
-  {
-    id: 5,
-    title: "Smoked Turkey Sandwich",
-    description: "Multigrain brown bread, smoked turkey, cheddar cheese, mayonnaise, lettuce, pickles",
-    price: "145 EGP",
-    category: "sandwiches"
-  },
-  {
-    id: 6,
-    title: "Halomui Simit Sandwich",
-    description: "Sesame simit, halloumi cheese, sundried tomatoes, cream cheese, olive paste, lettuce, pesto sauce",
-    price: "135 EGP",
-    category: "sandwiches"
-  },
-  {
-    id: 7,
-    title: "Salmon Bagel Sandwich",
-    description: "Bagel, smoked salmon, cream cheese, rocca, onion, dill, lemon, olive oil, capers",
-    price: "210 EGP",
-    category: "sandwiches"
-  },
-  
-  // Bakery
-  {
-    id: 8,
-    title: "Feta Mint Pate",
-    description: "Flaky pastry filled with feta cheese and fresh mint",
-    price: "89 EGP",
-    category: "bakery"
-  },
-  {
-    id: 9,
-    title: "Nutella Trio Croissant",
-    description: "Croissant filled with rich Nutella",
-    price: "89 EGP",
-    category: "bakery"
-  },
-  {
-    id: 10,
-    title: "Plain Croissant",
-    description: "Classic buttery French croissant",
-    price: "70 EGP",
-    category: "bakery"
-  },
-  {
-    id: 11,
-    title: "Chocolate Chunk Cookies",
-    description: "Cookies loaded with chocolate chunks",
-    price: "72 EGP",
-    category: "bakery"
-  },
-  {
-    id: 12,
-    title: "Double Chocolate Cookies",
-    description: "Rich double chocolate cookies",
-    price: "72 EGP",
-    category: "bakery"
-  },
-  {
-    id: 13,
-    title: "Blueberry Muffin",
-    description: "Moist muffin with fresh blueberries",
-    price: "82 EGP",
-    category: "bakery"
-  },
-  {
-    id: 14,
-    title: "Chocolate Chips Muffin",
-    description: "Classic muffin with chocolate chips",
-    price: "79 EGP",
-    category: "bakery"
-  },
-  {
-    id: 15,
-    title: "Banana Bread",
-    description: "Moist and flavorful banana bread",
-    price: "65 EGP",
-    category: "bakery"
-  },
-  {
-    id: 16,
-    title: "Marble Cake",
-    description: "Classic marble cake with chocolate and vanilla",
-    price: "65 EGP",
-    category: "bakery"
-  },
-  
-  // Pastries
-  {
-    id: 17,
-    title: "Brownie Bites",
-    description: "Rich chocolate brownie bites",
-    price: "98 EGP",
-    category: "pastries"
-  },
-  {
-    id: 18,
-    title: "Sugar Millefeuille",
-    description: "Classic French pastry with layers of puff pastry and cream",
-    price: "125 EGP",
-    category: "pastries"
-  },
-  {
-    id: 19,
-    title: "Caramelized Almond Cheesecake",
-    description: "Creamy cheesecake with caramelized almonds",
-    price: "155 EGP",
-    category: "pastries"
-  },
-  {
-    id: 20,
-    title: "Honey Cake",
-    description: "Layered cake with honey cream",
-    price: "135 EGP",
-    category: "pastries"
-  },
-  {
-    id: 21,
-    title: "Blueberry Cheesecake",
-    description: "Classic cheesecake with blueberry topping",
-    price: "145 EGP",
-    category: "pastries"
-  },
-  {
-    id: 22,
-    title: "Tiramisu",
-    description: "Classic Italian dessert with coffee-soaked ladyfingers",
-    price: "145 EGP",
-    category: "pastries"
-  },
-  {
-    id: 23,
-    title: "Chocolate Fudge Cake",
-    description: "Rich and moist chocolate fudge cake",
-    price: "135 EGP",
-    category: "pastries"
-  },
-  {
-    id: 24,
-    title: "Black Forest Brownies",
-    description: "Decadent brownies with cherry and chocolate",
-    price: "145 EGP",
-    category: "pastries"
-  },
-  
-  // Coffee - Espresso
-  {
-    id: 25,
-    title: "Espresso",
-    description: "Strong and rich espresso shot",
-    price: "60 EGP",
-    category: "coffee"
-  },
-  {
-    id: 26,
-    title: "Espresso Macchiato",
-    description: "Espresso with a dash of steamed milk",
-    price: "65 EGP",
-    category: "coffee"
-  },
-  
-  // Coffee - Hot Coffee
-  {
-    id: 27,
-    title: "Flat White",
-    description: "Smooth coffee with velvety microfoam",
-    price: "80 EGP",
-    category: "coffee"
-  },
-  {
-    id: 28,
-    title: "Cortado",
-    description: "Equal parts espresso and steamed milk",
-    price: "80 EGP",
-    category: "coffee"
-  },
-  {
-    id: 29,
-    title: "Cream Double Shot",
-    description: "Double shot of espresso with cream",
-    price: "95 - 135 EGP",
-    category: "coffee"
-  },
-  {
-    id: 30,
-    title: "Spanish Latte",
-    description: "Latte with condensed milk",
-    price: "120 - 135 EGP",
-    category: "coffee",
-    popular: true
-  },
-  {
-    id: 31,
-    title: "Caramel Nuts Macchiato",
-    description: "Macchiato with caramel and nuts",
-    price: "115 - 135 EGP",
-    category: "coffee"
-  },
-  {
-    id: 32,
-    title: "Latte",
-    description: "Espresso with steamed milk",
-    price: "90 - 105 EGP",
-    category: "coffee"
-  },
-  {
-    id: 33,
-    title: "Cappuccino",
-    description: "Espresso with equal parts steamed milk and foam",
-    price: "90 - 105 EGP",
-    category: "coffee"
-  },
-  {
-    id: 34,
-    title: "Americano",
-    description: "Espresso with hot water",
-    price: "70 - 80 EGP",
-    category: "coffee"
-  },
-  {
-    id: 35,
-    title: "Mocha",
-    description: "Espresso with chocolate and steamed milk",
-    price: "110 - 125 EGP",
-    category: "coffee"
-  },
-  {
-    id: 36,
-    title: "White Mocha",
-    description: "Espresso with white chocolate and steamed milk",
-    price: "110 - 125 EGP",
-    category: "coffee"
-  },
-  
-  // Beverages
-  {
-    id: 37,
-    title: "Hot Chocolate",
-    description: "Rich and creamy hot chocolate",
-    price: "125 - 150 EGP",
-    category: "beverages"
-  },
-  {
-    id: 38,
-    title: "Tea",
-    description: "Selection of premium teas",
-    price: "60 EGP",
-    category: "beverages"
-  },
-  {
-    id: 39,
-    title: "Green Tea with Mint",
-    description: "Refreshing green tea with fresh mint",
-    price: "60 EGP",
-    category: "beverages"
-  },
-  {
-    id: 40,
-    title: "Iced Spanish Latte",
-    description: "Chilled Spanish latte with condensed milk",
-    price: "125 EGP",
-    category: "beverages",
-    popular: true
-  },
-  {
-    id: 41,
-    title: "Iced Latte",
-    description: "Chilled latte with espresso and milk",
-    price: "100 EGP",
-    category: "beverages"
-  },
-  {
-    id: 42,
-    title: "Iced Mocha",
-    description: "Chilled mocha with chocolate and espresso",
-    price: "120 EGP",
-    category: "beverages"
-  },
-  {
-    id: 43,
-    title: "Caramel Frappe",
-    description: "Blended ice drink with caramel flavor",
-    price: "110 EGP",
-    category: "beverages"
-  },
-  {
-    id: 44,
-    title: "Passion Fruit Frappe",
-    description: "Refreshing passion fruit blended drink",
-    price: "120 EGP",
-    category: "beverages"
-  },
-  {
-    id: 45,
-    title: "Iced Belgian Chocolate",
-    description: "Rich Belgian chocolate chilled drink",
-    price: "150 EGP",
-    category: "beverages"
-  },
-  {
-    id: 46,
-    title: "Passion Fruit Mojito",
-    description: "Refreshing passion fruit mojito",
-    price: "125 EGP",
-    category: "beverages"
-  },
-  {
-    id: 47,
-    title: "Watermelon Mojito",
-    description: "Fresh watermelon mojito",
-    price: "125 EGP",
-    category: "beverages"
-  },
-  {
-    id: 48,
-    title: "Mojito",
-    description: "Classic mojito with peach or watermelon",
-    price: "98 EGP",
-    category: "beverages"
-  },
-  {
-    id: 49,
-    title: "Iced Tea",
-    description: "Chilled tea with lemon or peach",
-    price: "98 EGP",
-    category: "beverages"
-  },
-  {
-    id: 50,
-    title: "Lemon Mint",
-    description: "Refreshing lemon and mint drink",
-    price: "72 EGP",
-    category: "beverages"
-  }
-];
-
-// Function to render menu
-function renderMenu(filter = 'all') {
-  const menuContainer = document.getElementById('menuContainer');
-  menuContainer.innerHTML = '';
-  
-  // Group items by category
-  const categories = {};
-  menuData.forEach(item => {
-    if (filter === 'all' || item.category === filter) {
-      if (!categories[item.category]) {
-        categories[item.category] = [];
-      }
-      categories[item.category].push(item);
-    }
-  });
-  
-  // Render categories
-  Object.keys(categories).forEach(category => {
-    const categoryDiv = document.createElement('div');
-    categoryDiv.className = 'menu-category';
-    
-    const categoryTitle = document.createElement('h3');
-    categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-    categoryDiv.appendChild(categoryTitle);
-    
-    const menuGrid = document.createElement('div');
-    menuGrid.className = 'menu-grid';
-    
-    categories[category].forEach(item => {
-      const menuCard = document.createElement('div');
-      menuCard.className = 'menu-card';
-      
-      menuCard.innerHTML = `
-        <h4>${item.title}</h4>
-        ${item.description ? `<p>${item.description}</p>` : ''}
-        <div class="${item.price.includes('-') ? 'price-range' : 'price'}">${item.price}</div>
-        ${item.popular ? `<div class="popular">★ Popular Choice</div>` : ''}
-      `;
-      
-      menuGrid.appendChild(menuCard);
-    });
-    
-    categoryDiv.appendChild(menuGrid);
-    menuContainer.appendChild(categoryDiv);
-  });
-}
-
-// Filter functionality for menu
-document.addEventListener('DOMContentLoaded', function() {
-  initializeTheme();
-  renderMenu();
-  
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      filterButtons.forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      this.classList.add('active');
-      // Filter menu
-      const filter = this.getAttribute('data-filter');
-      renderMenu(filter);
-    });
-  });
-});
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -708,8 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -724,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -734,28 +284,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

@@ -262,179 +262,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Heliopolis, Zamalek, Sheikh Zayed, Nasr City, Maadi</p>
 </footer>
 
-<script>
-// Theme toggle functionality
-const themeToggle=document.getElementById('themeToggle');
-function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('dawgsnshakes-theme',e)}
-function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
-function initializeTheme(){const e=localStorage.getItem('dawgsnshakes-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
-themeToggle.addEventListener('click',toggleTheme);
-
-// Review form functionality
-const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
-reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF6B35',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
-
-// Offers data
-const offersData = [
-  {
-    id: 1,
-    title: "Classic Combo",
-    description: "Original Fried Chicken Sandwich + Large Fries + Soft Drink",
-    originalPrice: "285 EGP",
-    discountedPrice: "235 EGP",
-    category: "combo",
-    popularity: 156,
-    badge: "Popular"
-  },
-  {
-    id: 2,
-    title: "Spicy Lover's Deal",
-    description: "Spicy Fried Chicken Sandwich + Chili Cheese Fries + Soft Drink",
-    originalPrice: "375 EGP",
-    discountedPrice: "315 EGP",
-    category: "combo",
-    popularity: 89,
-    badge: "Spicy Deal"
-  },
-  {
-    id: 3,
-    title: "Family Feast",
-    description: "4 Chicken Sandwiches (your choice) + 2 Large Fries + 4 Soft Drinks",
-    originalPrice: "950 EGP",
-    discountedPrice: "799 EGP",
-    category: "combo",
-    popularity: 203
-  },
-  {
-    id: 4,
-    title: "Shake & Sandwich Deal",
-    description: "Any Chicken Sandwich + Any Premium Milkshake",
-    originalPrice: "315 EGP",
-    discountedPrice: "265 EGP",
-    category: "hot",
-    popularity: 421,
-    badge: "Hot Deal"
-  },
-  {
-    id: 5,
-    title: "Double Trouble",
-    description: "2 Chicken Sandwiches (your choice) + 2 Large Fries + 2 Soft Drinks",
-    originalPrice: "590 EGP",
-    discountedPrice: "475 EGP",
-    category: "hot",
-    popularity: 312,
-    badge: "Top Seller"
-  },
-  {
-    id: 6,
-    title: "Weekend Special",
-    description: "Any 3 Chicken Sandwiches + 2 Large Fries + 3 Soft Drinks",
-    originalPrice: "780 EGP",
-    discountedPrice: "625 EGP",
-    category: "hot",
-    popularity: 187
-  },
-  {
-    id: 7,
-    title: "Original Fried Chicken Sandwich",
-    description: "Crunchy chicken breast, melted cheese sauce, fresh lettuce, tomato, pickles and mayo",
-    priceRange: "184.99 EGP",
-    category: "top",
-    popularity: 892,
-    badge: "Customer Favorite"
-  },
-  {
-    id: 8,
-    title: "Oreo Shake",
-    description: "Creamy concoction of velvety vanilla ice cream, rich chocolate syrup, and chunks of crumbly oreo cookies blended to perfection",
-    priceRange: "129.99 EGP",
-    category: "top",
-    popularity: 756
-  }
-];
-
-// Function to render offers
-function renderOffers(filter = 'all') {
-  const offersGrid = document.getElementById('offersGrid');
-  offersGrid.innerHTML = '';
-  
-  const filteredOffers = filter === 'all' 
-    ? offersData 
-    : offersData.filter(offer => offer.category === filter);
-  
-  filteredOffers.forEach(offer => {
-    const offerCard = document.createElement('div');
-    offerCard.className = 'offer-card';
-    
-    // Calculate discount percentage if applicable
-    let discountBadge = '';
-    if (offer.originalPrice && offer.discountedPrice) {
-      const original = parseInt(offer.originalPrice);
-      const discounted = parseInt(offer.discountedPrice);
-      const discount = Math.round(((original - discounted) / original) * 100);
-      discountBadge = `${discount}% OFF`;
-    }
-    
-    offerCard.innerHTML = `
-      <div class="offer-header">
-        <h3>${offer.title}</h3>
-        ${offer.badge ? `<div class="offer-badge">${offer.badge}</div>` : ''}
-      </div>
-      <div class="offer-content">
-        <p class="offer-description">${offer.description}</p>
-        ${offer.originalPrice && offer.discountedPrice ? `
-          <div class="offer-price">
-            <span class="original-price">${offer.originalPrice}</span>
-            <span class="discounted-price">${offer.discountedPrice}</span>
-            ${discountBadge ? `<span style="color: var(--discount); font-weight: bold;">${discountBadge}</span>` : ''}
-          </div>
-        ` : `
-          <div class="offer-price">
-            <span class="discounted-price">${offer.priceRange}</span>
-          </div>
-        `}
-        <div class="offer-popularity">Ordered <span>${offer.popularity}</span> times</div>
-        <div class="offer-actions">
-          <a href="tel:17318" class="offer-btn">Order Now</a>
-          <a href="https://dawgsnshakes.com" target="_blank" class="offer-btn secondary">View Details</a>
-        </div>
-      </div>
-    `;
-    
-    offersGrid.appendChild(offerCard);
-  });
-}
-
-// Filter functionality for offers
-document.addEventListener('DOMContentLoaded', function() {
-  initializeTheme();
-  renderOffers();
-  
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      filterButtons.forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      this.classList.add('active');
-      // Filter offers
-      const filter = this.getAttribute('data-filter');
-      renderOffers(filter);
-    });
-  });
-});
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -453,8 +288,8 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -469,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -479,28 +314,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

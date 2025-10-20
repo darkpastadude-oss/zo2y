@@ -644,122 +644,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Cairo, Giza, Alexandria, North Coast, and surrounding areas</p>
 </footer>
 
-<script>
-// Theme Toggle Functionality
-const themeToggle = document.getElementById('themeToggle');
-
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-  localStorage.setItem('morisushi-theme', theme);
-}
-
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  applyTheme(newTheme);
-}
-
-function initializeTheme() {
-  const savedTheme = localStorage.getItem('morisushi-theme');
-  if (savedTheme) {
-    applyTheme(savedTheme);
-  } else {
-    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  }
-}
-
-themeToggle.addEventListener('click', toggleTheme);
-
-// Review Form Functionality
-const reviewForm = document.getElementById('review-form');
-const reviewsList = document.getElementById('reviews-list');
-
-reviewForm.addEventListener('submit', function(e) {
-  e.preventDefault();
-  const reviewer = document.getElementById('reviewer').value.trim();
-  const reviewText = document.getElementById('review-text').value.trim();
-  
-  if (reviewer && reviewText) {
-    const reviewElement = document.createElement('div');
-    reviewElement.className = 'review';
-    reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
-    reviewsList.appendChild(reviewElement);
-    reviewForm.reset();
-    
-    const thankYouMessage = document.createElement('p');
-    thankYouMessage.textContent = 'Thank you for your review!';
-    thankYouMessage.style.color = '#FF9800';
-    thankYouMessage.style.fontWeight = '600';
-    thankYouMessage.style.marginTop = '10px';
-    reviewForm.appendChild(thankYouMessage);
-    
-    setTimeout(() => {
-      thankYouMessage.remove();
-    }, 3000);
-  }
-});
-
-// Branch Filter Functionality
-const branchFilterBtns = document.querySelectorAll('.branch-filter-btn');
-const branchCards = document.querySelectorAll('.branch-card');
-
-branchFilterBtns.forEach(btn => {
-  btn.addEventListener('click', function() {
-    const location = this.getAttribute('data-location');
-    
-    // Update active button
-    branchFilterBtns.forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    
-    // Filter branches
-    branchCards.forEach(card => {
-      if (location === 'all' || card.getAttribute('data-location') === location) {
-        card.style.display = 'block';
-      } else {
-        card.style.display = 'none';
-      }
-    });
-  });
-});
-
-// Menu Category Filter Functionality
-const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
-const menuCategorySections = document.querySelectorAll('.menu-category-section');
-
-menuCategoryBtns.forEach(btn => {
-  btn.addEventListener('click', function() {
-    const category = this.getAttribute('data-category');
-    
-    // Update active button
-    menuCategoryBtns.forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    
-    // Filter menu items
-    menuCategorySections.forEach(section => {
-      if (category === 'all' || section.getAttribute('data-category') === category) {
-        section.style.display = 'block';
-      } else {
-        section.style.display = 'none';
-      }
-    });
-  });
-});
-
-// Initialize the page
-initializeTheme();
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -778,8 +670,8 @@ initializeTheme();
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -794,7 +686,7 @@ initializeTheme();
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -804,28 +696,29 @@ initializeTheme();
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

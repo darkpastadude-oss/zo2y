@@ -218,397 +218,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Follow us: @whatthecrust.egypt on Instagram</p>
 </footer>
 
-<script>
-// Theme toggle functionality
-const themeToggle=document.getElementById('themeToggle');
-function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('whatthecrust-theme',e)}
-function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
-function initializeTheme(){const e=localStorage.getItem('whatthecrust-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
-themeToggle.addEventListener('click',toggleTheme);
-
-// Review form functionality
-const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
-reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
-
-// Menu data from the provided content
-const menuData = [
-  // Classic Pizzas
-  {
-    id: 1,
-    title: "MARINARA",
-    subtitle: "THE SAILOR'S PIE",
-    description: "This is how it all started. Tomatoes were abundant, bread was cheap. Bakers put the two together. Sailors made it their go-to meal for long voyages, hence the name (marinaro=sailor in Italian). The original Neapolitan street food.",
-    ingredients: "Italian Tomatoes, Oregano, Garlic, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "180 LE",
-    category: "classic"
-  },
-  {
-    id: 2,
-    title: "COSACCA",
-    subtitle: "THE KING'S PIE",
-    description: "This simple pizza was created in honour of the Russian King Nicholas II during his visit to Napoli.",
-    ingredients: "Italian Tomatoes, Garlic, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil, Black Pepper",
-    allergens: "gluten, dairy",
-    price: "240 LE",
-    category: "classic"
-  },
-  {
-    id: 3,
-    title: "SCARPARIELLO",
-    subtitle: "THE SHOEMAKER'S PIE",
-    description: "It is said that shoemakers invented this recipe (scarparo = shoemaker in the Neapolitan dialect) out of a desire to eat something quick, tasty and nutritious while working. Also traditionally a pasta dish.",
-    ingredients: "Italian Tomatoes, Sundried Tomatoes, Garlic, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil, Black Pepper",
-    allergens: "gluten, dairy",
-    price: "260 LE",
-    category: "classic"
-  },
-  {
-    id: 4,
-    title: "MARGHERITA VERACE",
-    subtitle: "THE QUEEN",
-    description: "This pizza was presented by Raffaele Esposito in 1889 to honour Queen Margherita di Savoia during her visit, and was garnished to represent the three colours of the Italian flag.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
-    allergens: "gluten, dairy",
-    price: "340 LE",
-    category: "classic"
-  },
-  {
-    id: 5,
-    title: "DIAVOLA",
-    subtitle: "THE DEVIL'S PIE",
-    description: "Before the 'pepperoni' pizzas you know, Neapolitans put spicy salami on a Margherita base. As the name suggests, this fiery combo is perfect for those looking for a flavourful kick to their pizza.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Salami, Dried Chilli to taste, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
-    allergens: "gluten, dairy",
-    price: "390 LE",
-    category: "classic"
-  },
-  {
-    id: 6,
-    title: "AI FUNGHI",
-    subtitle: "THE MUSHROOM PIE",
-    description: "Not much of a history there. We love mushrooms so we lightly sauté them in extra virgin olive oil with garlic and oregano then put them on our Margherita pizza.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Mushrooms, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "380 LE",
-    category: "classic"
-  },
-  {
-    id: 7,
-    title: "ROMANA",
-    subtitle: "THE ROMAN PIE",
-    description: "In Rome, it's called a Neapolitan. But we make Neapolitan pizza, so for us, this anchovy-topped Margherita is Roman.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Anchovies, Kalamata Olives, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
-    allergens: "gluten, dairy",
-    price: "370 LE",
-    category: "classic"
-  },
-  {
-    id: 8,
-    title: "RIPIENO",
-    subtitle: "THE CALZONE",
-    description: "It means 'ma7shi' in Italian. This ricotta-based pizza is filled with either salami or mushrooms, then folded over and baked to perfection.",
-    ingredients: "Fresh Mozzarella, Salami, Fresh Mushrooms, Italian Tomatoes, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
-    allergens: "gluten, dairy",
-    price: "390 LE",
-    category: "classic"
-  },
-  
-  // Specialty Pizzas
-  {
-    id: 9,
-    title: "CAPRICCIOSA",
-    subtitle: "THE WILD ONE",
-    description: "The 'Capricious' brings together a medley of flavour with its blend of mushrooms, air-dried salami and sautéed artichokes.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Mushrooms, Salami, Sliced Artichokes, Fresh Basil, Pecorino DOP, Extra Virgin Olive Oil",
-    allergens: "gluten, dairy",
-    price: "420 LE",
-    category: "specialty"
-  },
-  {
-    id: 10,
-    title: "QUATTRO FORMAGGI",
-    subtitle: "THE CHEESE LOVER'S PIE",
-    description: "This is a pizza Bianca - or 'white pizza' - meaning it has no tomato base. It's just lots of premium Italian cheese. Baked and melted. Together. Forever.",
-    ingredients: "Fresh Mozzarella, Smoked Mozzarella, Gorgonzola, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
-    allergens: "gluten, dairy",
-    price: "430 LE",
-    category: "specialty"
-  },
-  {
-    id: 11,
-    title: "AL PESTO",
-    subtitle: "HOMEMADE PESTO PIE",
-    description: "This classic 'green' pizza has become a WTC favourite! Made with no-holes-barred homemade Pesto alla Genovese using quality ingredient. We're pretty sure you'll like it too!",
-    ingredients: "Homemade Pesto Alla Genovese, Fresh Mozzarella, Italian Sundried Tomatoes, Fresh Basil, Pecorino DOP",
-    allergens: "gluten, dairy, nuts",
-    price: "430 LE",
-    category: "specialty"
-  },
-  {
-    id: 12,
-    title: "CARNIVORA",
-    subtitle: "MEAT LOVER'S PIE",
-    description: "This Winter 2023 Specials fan-favourite has earned its rightful permanent spot on our menu! Made with salami, homemade Italian sausage and bresaola on our classic Margherita base.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Salami, Italian Sausage, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
-    allergens: "gluten, dairy",
-    price: "450 LE",
-    category: "specialty"
-  },
-  {
-    id: 13,
-    title: "LA SBAGLIATA",
-    subtitle: "THE UPSIDE DOWN PIE",
-    description: "Inspired by both Franco Pepe's 'Margherita Sbagliata' - The Mistaken Margherita — and Stranger Things on Netflix, this pizza is topped the wrong way around. You can also call it 'el ma2looba'.",
-    ingredients: "Homemade Pesto Alla Genovese, Fresh Mozzarella, Italian Tomatoes, Pecorino DOP, Fresh Basil",
-    allergens: "gluten, dairy, nuts",
-    price: "400 LE",
-    category: "specialty"
-  },
-  {
-    id: 14,
-    title: "TONNO E CIPOLLA",
-    subtitle: "THE TUNA PIE",
-    description: "A delicious combination of tuna and red onion on our classic pizza base.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Tuna Fillets, Red Onion, Kalamata Olives, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "470 LE",
-    category: "specialty"
-  },
-  {
-    id: 15,
-    title: "LA TARTUFATA",
-    subtitle: "THE TRUFFLE LOVER",
-    description: "Indulge in the luxurious flavor of truffles with this specialty pizza.",
-    ingredients: "Truffle Cream, Fresh Mozzarella, Fresh Mushrooms, Truffle Paste, Pecorino DOP, Fresh Basil, Black Pepper, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "490 LE",
-    category: "specialty"
-  },
-  {
-    id: 16,
-    title: "CANADIAN ALL-DRESSED",
-    subtitle: "THE 'GREAT WHITE NORTH' PIE",
-    description: "A Canadian-inspired pizza with a variety of delicious toppings.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Fresh Mushrooms, Salami, Red Onions, Bell Peppers, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "420 LE",
-    category: "specialty"
-  },
-  {
-    id: 17,
-    title: "ORTOLANA",
-    subtitle: "THE VEGETARIAN PIE",
-    description: "A delicious vegetarian option packed with fresh vegetables.",
-    ingredients: "Italian Tomatoes, Fresh Mozzarella, Zucchini, Aubergine, Fresh Mushrooms, Bell Peppers, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "350 LE",
-    category: "specialty"
-  },
-  {
-    id: 18,
-    title: "MARINARA ESTIVA",
-    subtitle: "THE SUMMERY SAILOR",
-    description: "A summer version of our classic Marinara pizza.",
-    ingredients: "Cherry Tomatoes, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "220 LE",
-    category: "specialty"
-  },
-  {
-    id: 19,
-    title: "MARGHERITA ESTIVA",
-    subtitle: "THE SUMMERY QUEEN",
-    description: "A summer version of our classic Margherita pizza.",
-    ingredients: "Cherry Tomatoes, Fresh Mozzarella, Oregano, Pecorino DOP, Fresh Basil, Extra Virgin Olive Oil",
-    allergens: "gluten",
-    price: "320 LE",
-    category: "specialty"
-  },
-  
-  // Desserts
-  {
-    id: 20,
-    title: "GARLIC BREAD",
-    description: "Aromatic garlic butter on pizza dough.",
-    ingredients: "Aromatic garlic butter on pizza dough, topped with Pecorino and parsley",
-    allergens: "gluten, dairy, nuts",
-    price: "200 LE",
-    category: "dessert"
-  },
-  {
-    id: 21,
-    title: "IMPASTO AL CACAO",
-    description: "Our house-special cocoa dough with hazelnut chocolate spread, nuts, whipped cream and dusted with sugar.",
-    ingredients: "",
-    allergens: "gluten, nuts, dairy",
-    price: "280 LE",
-    category: "dessert"
-  },
-  {
-    id: 22,
-    title: "RIPIENO AL GIANDUJA",
-    description: "Folded over then filled with hazelnut chocolate spread and dusted with sugar.",
-    ingredients: "",
-    allergens: "gluten, nuts",
-    price: "180 LE",
-    category: "dessert"
-  },
-  
-  // Drinks
-  {
-    id: 23,
-    title: "WATER",
-    description: "Still water (S/L)",
-    ingredients: "",
-    allergens: "",
-    price: "15/25 LE",
-    category: "drinks"
-  },
-  {
-    id: 24,
-    title: "NESTLE PURE WATER",
-    description: "Nestle Pure Fizz 240ml",
-    ingredients: "",
-    allergens: "",
-    price: "25 LE",
-    category: "drinks"
-  },
-  {
-    id: 25,
-    title: "SODAS",
-    description: "Assorted soft drinks",
-    ingredients: "",
-    allergens: "",
-    price: "25 LE",
-    category: "drinks"
-  },
-  {
-    id: 26,
-    title: "FRESH JUICES, LEMONADES & ICED TEA",
-    description: "Refreshing beverages",
-    ingredients: "",
-    allergens: "",
-    price: "75 LE",
-    category: "drinks"
-  },
-  {
-    id: 27,
-    title: "SINGLE-SHOT ESPRESSO",
-    description: "Strong Italian espresso",
-    ingredients: "",
-    allergens: "",
-    price: "50 LE",
-    category: "drinks"
-  },
-  {
-    id: 28,
-    title: "DOUBLE-SHOT ESPRESSO",
-    description: "Double shot of Italian espresso",
-    ingredients: "",
-    allergens: "",
-    price: "65 LE",
-    category: "drinks"
-  },
-  {
-    id: 29,
-    title: "CAPPUCCINO OR LATTE",
-    description: "Classic Italian coffee drinks",
-    ingredients: "",
-    allergens: "",
-    price: "70 LE",
-    category: "drinks"
-  },
-  {
-    id: 30,
-    title: "TEA",
-    description: "Hot tea selection",
-    ingredients: "",
-    allergens: "",
-    price: "30 LE",
-    category: "drinks"
-  }
-];
-
-// Function to render menu
-function renderMenu(filter = 'all') {
-  const menuContainer = document.getElementById('menuContainer');
-  menuContainer.innerHTML = '';
-  
-  // Group items by category
-  const categories = {};
-  menuData.forEach(item => {
-    if (filter === 'all' || item.category === filter) {
-      if (!categories[item.category]) {
-        categories[item.category] = [];
-      }
-      categories[item.category].push(item);
-    }
-  });
-  
-  // Render categories
-  Object.keys(categories).forEach(category => {
-    const categoryDiv = document.createElement('div');
-    categoryDiv.className = 'menu-category';
-    
-    const categoryTitle = document.createElement('h3');
-    categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1) + (category === 'classic' || category === 'specialty' ? ' Pizzas' : '');
-    categoryDiv.appendChild(categoryTitle);
-    
-    const menuGrid = document.createElement('div');
-    menuGrid.className = 'menu-grid';
-    
-    categories[category].forEach(item => {
-      const menuCard = document.createElement('div');
-      menuCard.className = 'menu-card';
-      
-      menuCard.innerHTML = `
-        <h4>${item.title}</h4>
-        ${item.subtitle ? `<div class="subtitle">${item.subtitle}</div>` : ''}
-        ${item.description ? `<p>${item.description}</p>` : ''}
-        ${item.ingredients ? `<div class="ingredients">${item.ingredients}</div>` : ''}
-        ${item.allergens ? `<div class="allergens">Allergens: ${item.allergens}</div>` : ''}
-        <div class="${item.price.includes('/') ? 'price-range' : 'price'}">${item.price}</div>
-      `;
-      
-      menuGrid.appendChild(menuCard);
-    });
-    
-    categoryDiv.appendChild(menuGrid);
-    menuContainer.appendChild(categoryDiv);
-  });
-}
-
-// Filter functionality for menu
-document.addEventListener('DOMContentLoaded', function() {
-  initializeTheme();
-  renderMenu();
-  
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      filterButtons.forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      this.classList.add('active');
-      // Filter menu
-      const filter = this.getAttribute('data-filter');
-      renderMenu(filter);
-    });
-  });
-});
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -627,8 +244,8 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -643,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -653,28 +270,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>

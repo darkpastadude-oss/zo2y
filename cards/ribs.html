@@ -270,177 +270,14 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Sheikh Zayed, New Cairo, 6th of October, Zamalek, Maadi, Mall of Arabia, Mall of Egypt, District 5</p>
 </footer>
 
-<script>
-// Theme toggle functionality
-const themeToggle=document.getElementById('themeToggle');
-function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('chickenribs-theme',e)}
-function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
-function initializeTheme(){const e=localStorage.getItem('chickenribs-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
-themeToggle.addEventListener('click',toggleTheme);
-
-// Review form functionality
-const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
-reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#8B4513',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
-
-// Offers data
-const offersData = [
-  {
-    id: 1,
-    title: "Family Feast Combo",
-    description: "2 Southern Fried Chicken Breasts + 1/3 Rack Ribs + 2 Large Sides + 4 Soft Drinks",
-    originalPrice: "1250 EGP",
-    discountedPrice: "899 EGP",
-    category: "combo",
-    popularity: 156,
-    badge: "Popular"
-  },
-  {
-    id: 2,
-    title: "Wings & Things",
-    description: "20 Buffalo Wings + Large Fries + Coleslaw + 2 Soft Drinks",
-    originalPrice: "650 EGP",
-    discountedPrice: "499 EGP",
-    category: "combo",
-    popularity: 203,
-    badge: "Best Value"
-  },
-  {
-    id: 3,
-    title: "Chicken Lover's Deal",
-    description: "4 Grilled Chicken Breasts + 4 Sides + 4 Soft Drinks",
-    originalPrice: "1800 EGP",
-    discountedPrice: "1299 EGP",
-    category: "combo",
-    popularity: 98
-  },
-  {
-    id: 4,
-    title: "Weekend Special",
-    description: "Any 2 Chicken Dishes + 1 Ribs + 3 Sides + 3 Soft Drinks",
-    originalPrice: "1650 EGP",
-    discountedPrice: "1199 EGP",
-    category: "hot",
-    popularity: 312,
-    badge: "Hot Deal"
-  },
-  {
-    id: 5,
-    title: "Southern Fried Chicken Breasts",
-    description: "Golden fried seasoned chicken breasts, topped with homemade mushroom gravy",
-    priceRange: "409.26 EGP",
-    category: "top",
-    popularity: 745,
-    badge: "Top Seller"
-  },
-  {
-    id: 6,
-    title: "House Grilled Chicken Breasts",
-    description: "Flame grilled chicken breasts, brushed with tangy BBQ sauce",
-    priceRange: "386.46 EGP",
-    category: "top",
-    popularity: 688,
-    badge: "Customer Favorite"
-  },
-  {
-    id: 7,
-    title: "Buffalo Wings",
-    description: "Our famous whole wings, crispy on the outside and juicy from the inside, tossed in your style of sauce",
-    priceRange: "141.36 - 420.66 EGP",
-    category: "top",
-    popularity: 612
-  },
-  {
-    id: 8,
-    title: "BBQ Wings",
-    description: "Our famous whole wings, crispy on the outside and juicy from the inside, tossed in your style of sauce",
-    priceRange: "141.36 - 420.66 EGP",
-    category: "top",
-    popularity: 577
-  }
-];
-
-// Function to render offers
-function renderOffers(filter = 'all') {
-  const offersGrid = document.getElementById('offersGrid');
-  offersGrid.innerHTML = '';
-  
-  const filteredOffers = filter === 'all' 
-    ? offersData 
-    : offersData.filter(offer => offer.category === filter);
-  
-  filteredOffers.forEach(offer => {
-    const offerCard = document.createElement('div');
-    offerCard.className = 'offer-card';
-    
-    // Calculate discount percentage if applicable
-    let discountBadge = '';
-    if (offer.originalPrice && offer.discountedPrice) {
-      const original = parseInt(offer.originalPrice);
-      const discounted = parseInt(offer.discountedPrice);
-      const discount = Math.round(((original - discounted) / original) * 100);
-      discountBadge = `${discount}% OFF`;
-    }
-    
-    offerCard.innerHTML = `
-      <div class="offer-header">
-        <h3>${offer.title}</h3>
-        ${offer.badge ? `<div class="offer-badge">${offer.badge}</div>` : ''}
-      </div>
-      <div class="offer-content">
-        <p class="offer-description">${offer.description}</p>
-        ${offer.originalPrice && offer.discountedPrice ? `
-          <div class="offer-price">
-            <span class="original-price">${offer.originalPrice}</span>
-            <span class="discounted-price">${offer.discountedPrice}</span>
-            ${discountBadge ? `<span style="color: var(--discount); font-weight: bold;">${discountBadge}</span>` : ''}
-          </div>
-        ` : `
-          <div class="offer-price">
-            <span class="discounted-price">${offer.priceRange}</span>
-          </div>
-        `}
-        <div class="offer-popularity">Ordered <span>${offer.popularity}</span> times</div>
-        <div class="offer-actions">
-          <a href="tel:17318" class="offer-btn">Order Now</a>
-          <a href="https://www.orderchickennribs.com/" target="_blank" class="offer-btn secondary">View Details</a>
-        </div>
-      </div>
-    `;
-    
-    offersGrid.appendChild(offerCard);
-  });
-}
-
-// Filter functionality for offers
-document.addEventListener('DOMContentLoaded', function() {
-  initializeTheme();
-  renderOffers();
-  
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      filterButtons.forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      this.classList.add('active');
-      // Filter offers
-      const filter = this.getAttribute('data-filter');
-      renderOffers(filter);
-    });
-  });
-});
-</script>
-
-
-
 
 
 <!-- List Manager - CLEAN VERSION -->
 <script>
 (function() {
     console.log('🚀 Loading clean list manager...');
-    
-    // Create button immediately - NO ASYNC/AWAIT
+
+    // create button (no async/await)
     const btn = document.createElement('button');
     btn.innerHTML = '⋮';
     btn.style.cssText = `
@@ -459,8 +296,8 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000 !important; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     `;
-    
-    // Simple dropdown
+
+    // dropdown
     const dropdown = document.createElement('div');
     dropdown.style.cssText = `
         position: fixed; 
@@ -475,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
         z-index: 10000;
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     `;
-    
+
     dropdown.innerHTML = `
         <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
         <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
@@ -485,28 +322,29 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
         </div>
     `;
-    
-    // Simple click handlers - NO ASYNC
-    btn.addEventListener('click', function(e) {
+
+    // events
+    btn.addEventListener('click', e => {
         e.stopPropagation();
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
-    
-    document.addEventListener('click', function() {
+
+    document.addEventListener('click', () => {
         dropdown.style.display = 'none';
     });
-    
-    dropdown.addEventListener('click', function(e) {
+
+    dropdown.addEventListener('click', e => {
         e.stopPropagation();
         alert('List functionality will work when logged in!');
     });
-    
-    // Add to page
+
+    // add to page
     document.body.appendChild(btn);
     document.body.appendChild(dropdown);
-    
+
     console.log('✅ CLEAN BUTTON ADDED!');
 })();
 </script>
+
 </body>
 </html>
