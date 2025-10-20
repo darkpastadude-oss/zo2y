@@ -454,6 +454,7 @@
             
             if (!error && listRestaurants) {
               list.restaurants = listRestaurants.map(item => item.restraunt_id);
+              console.log(`Loaded ${list.restaurants.length} restaurants for ${list.title}`);
             } else {
               list.restaurants = [];
             }
@@ -1412,7 +1413,13 @@
       const grid = document.getElementById('activeListGrid');
       grid.innerHTML = '';
       
-      const listRestaurants = restaurants.filter(r => restaurantIds.includes(r.id));
+      console.log(`Rendering ${restaurantIds.length} restaurants for ${listType}`);
+      
+      // Convert to numbers and filter
+      const numericIds = restaurantIds.map(id => Number(id));
+      const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
+      
+      console.log(`Found ${listRestaurants.length} matching restaurants`);
       
       if (listRestaurants.length === 0) {
         grid.innerHTML = `
