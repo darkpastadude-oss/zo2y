@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kansas Chicken - Premium Fried Chicken</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-description{font-size:0.85rem;color:var(--text2);margin-top:5px;font-style:italic}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+</style>
+</head>
+<body>
+
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
+
+<section class="hero">
+  <img src="../images/kansas.png" alt="Kansas Chicken Restaurant" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Kansas Chicken</h1>
+  <p>Premium fried chicken with authentic American flavors, signature spices, and family meal options</p>
+  <div class="rating">⭐ 4.4/5 (1,800+ reviews)</div>
+
+  <a href="tel:0120445120" class="btn">Call Hotline: 0120 445 120</a>
+  <a href="https://order.kansaschicken.com/" target="_blank" class="btn secondary">Order Online</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:0120445120">0120 445 120</a>
+    <strong>Delivery:</strong> <a href="tel:0120445120">0120 445 120</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Heliopolis - Masaken Sheraton</h3>
+      <p>77 Sakr Korish Building<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Kansas+Chicken+Masaken+Sheraton" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Nasr City - Abbas Akkad</h3>
+      <p>33 Batrawi Road<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Kansas+Chicken+Abbas+Akkad" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Mohandaseen</h3>
+      <p>44 Shehab Street, Jazerat El Arab<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Kansas+Chicken+Mohandaseen" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Open Air Mall</h3>
+      <p>Food Court, Open Air Mall<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Kansas+Chicken+Open+Air+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Maadi</h3>
+      <p>Total Gas Station, El Nasr Street<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Kansas+Chicken+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>El Rehab</h3>
+      <p>152 Old Commercial Market<br>Open: 10:00 AM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Kansas+Chicken+El+Rehab" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Signature Sandwiches</h2>
+    
+    <div class="menu-item">
+      <div>
+        <span>Classic Fillet Sandwich</span>
+        <div class="menu-description">Chicken breasts, lettuce and mayonnaise, served in sesame bun bread</div>
+      </div>
+      <span>EGP 120</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Double Up Sandwich</span>
+        <div class="menu-description">Double chicken fillet topped with beef bacon, pickles, cheese slice, ranch sauce and hot honey sauce</div>
+      </div>
+      <span>EGP 185</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>King Size Mesa7ab</span>
+        <div class="menu-description">Crispy Mesa7ab topped with jalapenos, cheddar cheese, turkey slice, coleslaw, and sriracha sauce</div>
+      </div>
+      <span>EGP 189</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Kansas Wrap</span>
+        <div class="menu-description">2 crispy chicken breasts pieces, tomatoes, lettuce and mayonnaise with pepper, served in tortilla bread</div>
+      </div>
+      <span>EGP 110</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Special Offers & Deals</h2>
+  
+    <div class="menu-item">
+      <div>
+        <span>Flash Offer</span>
+        <div class="menu-description">Large boss sandwich or club house sandwich, rice, medium coleslaw and V Cola</div>
+      </div>
+      <span>EGP 125</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>King Size Mesahab Deal</span>
+        <div class="menu-description">1 King size mesa7ab sandwich + V cola can + medium fries</div>
+      </div>
+      <span>EGP 235</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Big Boss Deal</span>
+        <div class="menu-description">1 Big boss sandwich + medium fries + V cola can</div>
+      </div>
+      <span>EGP 235</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Double Up Deal</span>
+        <div class="menu-description">1 Double up sandwich + 1 medium fries + 1 V cola can</div>
+      </div>
+      <span>EGP 235</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Chicken Pieces & Buckets</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Mesa7ab 5 Pieces</span>
+        <div class="menu-description">5 pieces of crispy Mesa7ab chicken with bun</div>
+      </div>
+      <span>EGP 159</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Mesa7ab Dunks</span>
+        <div class="menu-description">5 pieces of crispy Mesa7ab chicken stuffed with cheese and hot pepper, French fries, coleslaw, and sauces</div>
+      </div>
+      <span>EGP 245</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Nashville Mesa7ab</span>
+        <div class="menu-description">7 pieces Nashville hot and spicy chicken with toast fries, K sauce, pickle, and coleslaw</div>
+      </div>
+      <span>EGP 285</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Big Bucket Offer</span>
+        <div class="menu-description">6 pieces bucket with 2 coleslaw and 2 bun + free 2 pieces, 1 coleslaw and 1 bun</div>
+      </div>
+      <span>EGP 499</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Rice & Sides</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Arizo Rice</span>
+        <div class="menu-description">Rice with Kansas spices, crispy chicken pieces and spicy sauce or barbecue sauce</div>
+      </div>
+      <span>EGP 99</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>French Fries</span>
+        <div class="menu-description">Fried to a golden crisp perfection and perfectly seasoned</div>
+      </div>
+      <span>EGP 35</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Choice of Sauces</span>
+        <div class="menu-description">Your choice of Kansas signature sauces</div>
+      </div>
+      <span>EGP 25</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>My Cup</span>
+        <div class="menu-description">Special Kansas cup meal</div>
+      </div>
+      <span>EGP 79</span>
+    </div>
+  
+  <a href="https://order.kansaschicken.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Mohamed S.</strong></p>
+      <p>The Double Up Sandwich is absolutely incredible! Perfect combination of chicken, bacon, and that amazing hot honey sauce!</p>
+    </div>
+    <div class="review">
+      <p><strong>Nour K.</strong></p>
+      <p>King Size Mesa7ab is my new favorite! The jalapenos and sriracha sauce give it the perfect kick. Great value with the deals!</p>
+    </div>
+    <div class="review">
+      <p><strong>Ahmed R.</strong></p>
+      <p>Big Bucket Offer is perfect for family dinners! Generous portions and the chicken is always crispy and perfectly seasoned.</p>
+    </div>
+    <div class="review">
+      <p><strong>Sarah M.</strong></p>
+      <p>The Flash Offer is amazing value! Large sandwich with rice and coleslaw for such a great price. Arizo rice is delicious too!</p>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
+
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Kansas Chicken - Premium Fried Chicken Experience Since 2017</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Across Greater Cairo and Major Cities</p>
+</footer>
+
+
+
+<!-- List Manager - CLEAN VERSION -->
+
+
+
+
+<!-- Load Supabase First -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- List Manager Button -->
+<script>
+// Wait for page to load
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Page loaded, initializing list manager...');
+    
+    // Initialize Supabase
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    window.supabase = supabase;
+    
+    console.log('✅ Supabase initialized');
+    
+    // List Manager Class
+    class RestaurantListManager {
+        constructor() {
+            this.supabase = supabase;
+            this.restaurantId = this.getRestaurantIdFromSlug();
+            this.userLists = [];
+            this.customLists = [];
+            this.init();
+        }
+
+        getRestaurantIdFromSlug() {
+            const path = window.location.pathname;
+            const slug = path.split('/').pop().replace('.html', '');
+            const slugToId = {
+                'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
+                'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
+                'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
+                'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
+                'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
+                'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
+                'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
+            };
+            return slugToId[slug] || null;
+        }
+
+        async init() {
+            await this.checkAuth();
+            if (this.currentUser) {
+                await this.loadUserLists();
+            }
+            this.injectListMenu();
+        }
+
+        async checkAuth() {
+            try {
+                const { data: { session } } = await this.supabase.auth.getSession();
+                this.currentUser = session?.user || null;
+            } catch (error) {
+                console.error('Auth error:', error);
+                this.currentUser = null;
+            }
+        }
+
+        async loadUserLists() {
+            try {
+                const { data: lists } = await this.supabase
+                    .from('lists').select('*').eq('user_id', this.currentUser.id);
+                this.userLists = lists || [];
+                
+                // Separate custom lists from default lists
+                this.customLists = this.userLists.filter(list => 
+                    !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+                );
+            } catch (error) {
+                console.error('Error loading lists:', error);
+                this.userLists = [];
+                this.customLists = [];
+            }
+        }
+
+        injectListMenu() {
+            // Create the button
+            const btn = document.createElement('button');
+            btn.innerHTML = '⋮';
+            btn.className = 'list-menu-btn';
+            btn.style.cssText = `
+                position: fixed !important; 
+                top: 20px !important; 
+                left: 20px !important; 
+                background: #f59e0b !important; 
+                color: #0b1633 !important; 
+                border: none !important; 
+                width: 50px !important; 
+                height: 50px !important; 
+                border-radius: 50% !important; 
+                font-size: 24px !important; 
+                font-weight: bold !important; 
+                cursor: pointer !important; 
+                z-index: 10000 !important; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            `;
+            
+            // Add dropdown styles
+            const styles = `
+                .list-dropdown {
+                    position: fixed; 
+                    top: 80px; 
+                    left: 20px; 
+                    background: #132347; 
+                    border: 1px solid #f59e0b; 
+                    border-radius: 10px; 
+                    padding: 15px; 
+                    min-width: 280px; 
+                    display: none; 
+                    z-index: 10000;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                    max-height: 400px;
+                    overflow-y: auto;
+                }
+                .list-dropdown.show {
+                    display: block !important;
+                }
+                .list-section {
+                    margin-bottom: 15px;
+                }
+                .list-section-title {
+                    font-size: 12px;
+                    color: #f59e0b;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    letter-spacing: 0.5px;
+                }
+                .list-item { 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 12px; 
+                    padding: 10px 8px; 
+                    cursor: pointer; 
+                    border-radius: 6px;
+                    transition: all 0.2s ease;
+                }
+                .list-item:hover { 
+                    background: rgba(245, 158, 11, 0.1); 
+                    color: #f59e0b; 
+                }
+                .list-checkbox { 
+                    width: 18px; 
+                    height: 18px; 
+                    border: 2px solid #f59e0b;
+                    border-radius: 4px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    flex-shrink: 0;
+                }
+                .list-checkbox.checked { 
+                    background: #f59e0b; 
+                }
+                .list-checkbox.checked::after { 
+                    content: "✓"; 
+                    color: #0b1633; 
+                    font-size: 12px; 
+                    font-weight: bold; 
+                }
+                .list-item-text {
+                    flex: 1;
+                    font-size: 14px;
+                }
+                .new-list-section {
+                    border-top: 1px solid rgba(245, 158, 11, 0.3);
+                    padding-top: 15px;
+                    margin-top: 10px;
+                }
+                .new-list-input { 
+                    width: 100%; 
+                    padding: 10px 12px; 
+                    background: #0b1633;
+                    border: 1px solid rgba(245, 158, 11, 0.5); 
+                    border-radius: 6px; 
+                    color: white; 
+                    margin-bottom: 10px;
+                    font-size: 14px;
+                }
+                .new-list-input:focus {
+                    outline: none;
+                    border-color: #f59e0b;
+                }
+                .add-list-btn { 
+                    background: #f59e0b; 
+                    color: #0b1633; 
+                    border: none;
+                    padding: 10px 16px; 
+                    border-radius: 6px; 
+                    cursor: pointer; 
+                    font-weight: bold; 
+                    width: 100%; 
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+                }
+                .add-list-btn:hover {
+                    background: #ffb84d;
+                }
+                .list-divider {
+                    height: 1px;
+                    background: rgba(245, 158, 11, 0.3);
+                    margin: 12px 0;
+                }
+                .empty-custom-lists {
+                    text-align: center;
+                    color: #cbd5e1;
+                    font-size: 12px;
+                    padding: 10px;
+                }
+            `;
+            
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+            
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'list-dropdown';
+            
+            // Button click handler
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+                if (dropdown.classList.contains('show')) {
+                    this.updateDropdown(dropdown);
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', () => {
+                dropdown.classList.remove('show');
+            });
+            
+            dropdown.addEventListener('click', (e) => e.stopPropagation());
+            
+            // Add to page
+            document.body.appendChild(btn);
+            document.body.appendChild(dropdown);
+            
+            console.log('✅ List Manager Button Added!');
+        }
+
+        async updateDropdown(dropdown) {
+            dropdown.innerHTML = '<div style="font-size:16px;font-weight:600;color:#f59e0b;margin-bottom:15px;text-align:center;">Add to Lists</div>';
+
+            // Quick Actions Section
+            const quickSection = document.createElement('div');
+            quickSection.className = 'list-section';
+            quickSection.innerHTML = '<div class="list-section-title">Quick Actions</div>';
+            
+            const quickLists = [
+                { id: 'favorites', name: '❤️ Favorites', icon: '❤️' },
+                { id: 'wantToGo', name: '📍 Want to Go', icon: '📍' },
+                { id: 'visited', name: '🍽️ Visited', icon: '🍽️' }
+            ];
+
+            for (const list of quickLists) {
+                const isInList = await this.checkIfInList(list.id);
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
+                    <span class="list-item-text">${list.name}</span>
+                `;
+                item.onclick = () => this.toggleList(list.id);
+                quickSection.appendChild(item);
+            }
+            
+            dropdown.appendChild(quickSection);
+
+            // Custom Lists Section
+            if (this.customLists.length > 0) {
+                const divider = document.createElement('div');
+                divider.className = 'list-divider';
+                dropdown.appendChild(divider);
+
+                const customSection = document.createElement('div');
+                customSection.className = 'list-section';
+                customSection.innerHTML = '<div class="list-section-title">Your Custom Lists</div>';
+
+                for (const list of this.customLists) {
+                    const isInList = await this.checkIfCustomList(list.id);
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.innerHTML = `
+                        <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
+                        <span class="list-item-text">${list.title}</span>
+                    `;
+                    item.onclick = () => this.toggleCustomList(list.id);
+                    customSection.appendChild(item);
+                }
+                
+                dropdown.appendChild(customSection);
+            }
+
+            // Create New List Section
+            const newDiv = document.createElement('div');
+            newDiv.className = 'new-list-section';
+            newDiv.innerHTML = `
+                <div class="list-section-title">Create New List</div>
+                <input type="text" class="new-list-input" placeholder="Enter custom list name..." id="newListName">
+                <button class="add-list-btn">➕ Create Custom List</button>
+            `;
+            
+            const input = newDiv.querySelector('input');
+            const button = newDiv.querySelector('button');
+            
+            button.onclick = () => this.createNewList();
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.createNewList();
+                }
+            });
+            
+            dropdown.appendChild(newDiv);
+        }
+
+        async checkIfInList(listType) {
+            if (!this.currentUser || !this.restaurantId) return false;
+            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
+            const { data: list } = await this.supabase.from('lists').select('id')
+                .eq('user_id', this.currentUser.id).eq('title', title).single();
+            if (!list) return false;
+            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+                .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
+            return !!listRestaurants;
+        }
+
+        async checkIfCustomList(listId) {
+            if (!this.currentUser || !this.restaurantId) return false;
+            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+                .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
+            return !!listRestaurants;
+        }
+
+        async toggleList(listType) {
+            if (!this.currentUser || !this.restaurantId) {
+                alert('Please log in to use lists');
+                return;
+            }
+            
+            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
+            let { data: list } = await this.supabase.from('lists').select('id')
+                .eq('user_id', this.currentUser.id).eq('title', title).single();
+                
+            if (!list) {
+                const { data: newList } = await this.supabase.from('lists')
+                    .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
+                list = newList;
+            }
+            
+            const isInList = await this.checkIfInList(listType);
+            if (isInList) {
+                await this.supabase.from('lists_restraunts').delete()
+                    .match({ list_id: list.id, restraunt_id: this.restaurantId });
+                this.showNotification(`Removed from ${title}`);
+            } else {
+                await this.supabase.from('lists_restraunts').insert([
+                    { list_id: list.id, restraunt_id: this.restaurantId }
+                ]);
+                this.showNotification(`Added to ${title}`);
+            }
+            
+            this.updateDropdown(document.querySelector('.list-dropdown'));
+        }
+
+        async toggleCustomList(listId) {
+            if (!this.currentUser || !this.restaurantId) {
+                alert('Please log in to use lists');
+                return;
+            }
+            
+            const list = this.customLists.find(l => l.id === listId);
+            const isInList = await this.checkIfCustomList(listId);
+            
+            if (isInList) {
+                await this.supabase.from('lists_restraunts').delete()
+                    .match({ list_id: listId, restraunt_id: this.restaurantId });
+                this.showNotification(`Removed from ${list.title}`);
+            } else {
+                await this.supabase.from('lists_restraunts').insert([
+                    { list_id: listId, restraunt_id: this.restaurantId }
+                ]);
+                this.showNotification(`Added to ${list.title}`);
+            }
+            
+            this.updateDropdown(document.querySelector('.list-dropdown'));
+        }
+
+        async createNewList() {
+            const input = document.getElementById('newListName');
+            const name = input.value.trim();
+            
+            if (!name) {
+                alert('Please enter a list name');
+                return;
+            }
+
+            if (!this.currentUser) {
+                alert('Please log in to create lists');
+                return;
+            }
+
+            try {
+                const { data: newList } = await this.supabase.from('lists')
+                    .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
+                
+                if (newList) {
+                    this.customLists.push(newList);
+                    input.value = '';
+                    this.showNotification(`Custom list "${name}" created!`);
+                    this.updateDropdown(document.querySelector('.list-dropdown'));
+                }
+            } catch (error) {
+                alert('Error creating list: ' + error.message);
+            }
+        }
+
+        showNotification(message) {
+            // Simple notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10001;
+                font-weight: 500;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    }
+
+    // Initialize the list manager
+    setTimeout(() => {
+        new RestaurantListManager();
+    }, 1000);
+    
+});
+</script>
+</body>
+</html>

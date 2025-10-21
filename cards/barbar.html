@@ -6,8 +6,36 @@
 <title>Barbar - Legendary Shawarma</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333}
-[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff}
+:root {
+  --bg: #fff;
+  --text: #333;
+  --text2: #666;
+  --nav-bg: #f8f9fa;
+  --nav-shadow: rgba(0,0,0,0.1);
+  --btn-bg: #FF6F00;
+  --btn-text: #fff;
+  --card: #f8f9fa;
+  --input-bg: #fff;
+  --input-text: #333;
+  --accent: #FF9800;
+  --egyptian-blue: #0033A0;
+  --egyptian-red: #CE1126;
+}
+[data-theme="dark"] {
+  --bg: #1e2a4a;
+  --text: #fff;
+  --text2: #cbd5e1;
+  --nav-bg: #2d3748;
+  --nav-shadow: rgba(255,255,255,0.1);
+  --btn-bg: #ff944d;
+  --btn-text: #111;
+  --card: #2d3748;
+  --input-bg: #2d3748;
+  --input-text: #fff;
+  --accent: #ff944d;
+  --egyptian-blue: #4a6bff;
+  --egyptian-red: #ff6b6b;
+}
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
 .top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
@@ -707,6 +735,30 @@ window.addEventListener('DOMContentLoaded', function() {
     }, 1000);
     
 });
+</script>
+<script>
+// Theme toggle functionality
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('restaurant-theme', theme);
+}
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('restaurant-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+themeToggle.addEventListener('click', toggleTheme);
+initializeTheme();
 </script>
 </body>
 </html>

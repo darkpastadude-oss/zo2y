@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Willy's Kitchen - Gourmet Burgers & Sandwiches</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{--bg:#fff;--text:#333;--text2:#666;--nav-bg:#f8f9fa;--nav-shadow:rgba(0,0,0,0.1);--btn-bg:#FF6F00;--btn-text:#fff;--card:#f8f9fa;--input-bg:#fff;--input-text:#333;--accent:#FF9800;--burger-red:#D32F2F;--burger-yellow:#FFC107;--burger-brown:#5D4037}
+[data-theme="dark"]{--bg:#1e2a4a;--text:#fff;--text2:#cbd5e1;--nav-bg:#2d3748;--nav-shadow:rgba(255,255,255,0.1);--btn-bg:#ff944d;--btn-text:#111;--card:#2d3748;--input-bg:#2d3748;--input-text:#fff;--accent:#ff944d;--burger-red:#ff6b6b;--burger-yellow:#FFD54F;--burger-brown:#8D6E63}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:var(--burger-red);height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--burger-yellow) 0%,var(--burger-red) 100%);color:white}
+.hero p{color:rgba(255,255,255,0.9)}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
+.hero p{font-size:1rem;margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#FFD700;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
+.btn.secondary{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:var(--burger-red);border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+
+/* Enhanced Menu Styles */
+.menu-category {margin-bottom: 40px;}
+.menu-category h3 {font-size: 1.4rem;margin-bottom: 15px;color: var(--burger-red);border-left: 4px solid var(--burger-red);padding-left: 10px;}
+.menu-grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));gap: 20px;}
+.menu-card {background: var(--card);border-radius: 12px;padding: 20px;transition: all 0.3s ease;border: 1px solid var(--nav-shadow);box-shadow: 0 4px 6px rgba(0,0,0,0.05);position: relative;}
+.menu-card:hover {transform: translateY(-5px);box-shadow: 0 8px 15px rgba(0,0,0,0.1);}
+.menu-card h4 {margin-bottom: 10px;font-size: 1.1rem;color: var(--text);}
+.menu-card p {font-size: 0.9rem;color: var(--text2);margin-bottom: 15px;line-height: 1.5;}
+.menu-card .price {font-weight: bold;font-size: 1.1rem;color: var(--burger-red);}
+.menu-card .new-badge {position: absolute;top: 10px;right: 10px;background: var(--burger-yellow);color: var(--burger-brown);padding: 4px 8px;border-radius: 4px;font-size: 0.7rem;font-weight: bold;}
+
+/* Menu Filter */
+.menu-filter {display: flex;gap: 10px;margin-bottom: 30px;flex-wrap: wrap;justify-content: center;}
+.filter-btn {padding: 8px 16px;border-radius: 20px;background: var(--nav-bg);color: var(--text);border: 1px solid var(--nav-shadow);cursor: pointer;transition: all 0.3s ease;font-size: 0.9rem;}
+.filter-btn.active, .filter-btn:hover {background: var(--burger-red);color: white;}
+
+/* Branch List Styles */
+.branch-list {display: grid;grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));gap: 20px;margin-top: 20px;}
+.branch-list-item {background: var(--card);border-radius: 12px;padding: 20px;border: 1px solid var(--nav-shadow);}
+.branch-list-item h4 {margin-bottom: 10px;font-size: 1.1rem;color: var(--text);}
+.branch-list-item p {font-size: 0.9rem;color: var(--text2);margin-bottom: 10px;}
+.branch-list-item a {font-size: 0.9rem;color: var(--text);text-decoration: none;display: flex;align-items: center;gap: 5px;}
+.branch-list-item a:hover {text-decoration: underline;}
+
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}.menu-grid{grid-template-columns:1fr}.branch-list{grid-template-columns:1fr}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}.menu-filter{justify-content:flex-start}}
+</style>
+</head>
+<body>
+
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
+
+<section class="hero">
+  <img src="../images/willys.png" alt="Willy's Kitchen Logo" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Willy's Kitchen</h1>
+  <p>Gourmet burgers, premium sandwiches, and comfort food made with quality ingredients and bold flavors.</p>
+  <div class="rating">⭐ 4.4/5 (3,800+ reviews)</div>
+
+  <a href="tel:19777" class="btn">Call Hotline: 19777</a>
+  <a href="https://willys-kitchen.com/" target="_blank" class="btn secondary">Order Online</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:19777">19777</a>
+    <strong>Website:</strong> <a href="https://willys-kitchen.com/" target="_blank">willys-kitchen.com</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Sheikh Zayed</h3>
+      <p>Mall of Egypt<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>New Cairo</h3>
+      <p>Cairo Festival City Mall<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Cairo+Festival" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Madinaty</h3>
+      <p>Madinaty City<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Maadi</h3>
+      <p>Maadi Corniche<br>Open: 12:00 PM - 2:00 AM</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<!-- Enhanced Menu Section -->
+<section class="section menu">
+  <h2>Our Menu</h2>
+  
+  <div class="menu-filter" id="menuFilter">
+    <button class="filter-btn active" data-filter="all">All Items</button>
+    <button class="filter-btn" data-filter="offers">Special Offers</button>
+    <button class="filter-btn" data-filter="burgers">Burgers</button>
+    <button class="filter-btn" data-filter="chicken">Chicken</button>
+    <button class="filter-btn" data-filter="sides">Sides</button>
+    <button class="filter-btn" data-filter="desserts">Desserts</button>
+    <button class="filter-btn" data-filter="drinks">Drinks</button>
+  </div>
+  
+  <div id="menuContainer">
+    <!-- Menu items will be dynamically populated by JavaScript -->
+  </div>
+  
+  <a href="https://willys-kitchen.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<!-- Additional Branches Section -->
+<section class="section">
+  <h2>All Branches</h2>
+  
+  <div class="branch-list">
+    <div class="branch-list-item">
+      <h4>Sheikh Zayed</h4>
+      <p>Mall of Egypt</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>New Cairo</h4>
+      <p>Cairo Festival City Mall</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Cairo+Festival" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Madinaty</h4>
+      <p>Madinaty City</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Dokki</h4>
+      <p>Dokki District</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Dokki" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Maadi</h4>
+      <p>Maadi Corniche</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Heliopolis</h4>
+      <p>City Centre Almaza</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+City+Centre+Almaza" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Nasr City</h4>
+      <p>Nasr City District</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Nasr+City" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Zamalek</h4>
+      <p>26th of July Street</p>
+      <a href="https://maps.google.com/search?q=Willy's+Kitchen+Zamalek" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section reviews">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Ahmed K.</strong></p>
+      <p>Best burgers in Cairo! The Black Truffle burger is absolutely incredible. Generous portions and fresh ingredients.</p>
+    </div>
+    <div class="review">
+      <p><strong>Nour S.</strong></p>
+      <p>The Real Tasty burger lives up to its name! Perfect balance of flavors and the fries are always crispy. Great value for the quality.</p>
+    </div>
+    <div class="review">
+      <p><strong>Mark T.</strong></p>
+      <p>Their Fire Cracker Chicken is amazing! Perfectly spicy and juicy. The Willy's Chips are the perfect side. Highly recommended!</p>
+    </div>
+    <div class="review">
+      <p><strong>Layla M.</strong></p>
+      <p>The Cheese Lava burger is a cheese lover's dream! The loaded fries are incredible. Consistent quality across all branches.</p>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+</section>
+
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Willy's Kitchen - Gourmet Burgers & Sandwiches Since 2015</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: All Major Cities in Egypt</p>
+</footer>
+
+<script>
+// Theme toggle functionality
+const themeToggle=document.getElementById('themeToggle');
+function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('willys-theme',e)}
+function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
+function initializeTheme(){const e=localStorage.getItem('willys-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+themeToggle.addEventListener('click',toggleTheme);
+
+// Review form functionality
+const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
+reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
+
+// Menu data from the provided content
+const menuData = [
+  // Offers
+  {
+    id: 1,
+    title: "Real Tasty Offer",
+    price: "150.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 2,
+    title: "MAX 200",
+    price: "175.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 3,
+    title: "Double Double",
+    price: "289.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 4,
+    title: "Triple Flash",
+    price: "349.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 5,
+    title: "The 4X Bucket",
+    price: "699.00 EGP",
+    category: "offers"
+  },
+  
+  // Burger Meals
+  {
+    id: 6,
+    title: "Black Truffle Meal",
+    price: "268.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 7,
+    title: "Real Tasty Meal",
+    price: "169.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 8,
+    title: "Original Cheese Burger Meal",
+    price: "158.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 9,
+    title: "Brooklyn Shrooms Meal",
+    price: "214.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 10,
+    title: "Chilli Chilli Meal",
+    price: "228.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 11,
+    title: "Smokey Boss Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 12,
+    title: "Smokehouse BBQ Meal",
+    price: "228.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 13,
+    title: "Cheese Lava Meal",
+    price: "268.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 14,
+    title: "Pepperazzi Meal",
+    price: "244.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 15,
+    title: "Big Willy Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 16,
+    title: "Fire Cracker Burger Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 17,
+    title: "J Poppers Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 18,
+    title: "Blue Ribbon Meal",
+    price: "214.00 EGP",
+    category: "burgers"
+  },
+  
+  // Individual Burgers
+  {
+    id: 19,
+    title: "Black Truffle",
+    price: "209.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 20,
+    title: "Real Tasty",
+    price: "110.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 21,
+    title: "Original Cheese Burger",
+    price: "99.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 22,
+    title: "Brooklyn Shrooms",
+    price: "155.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 23,
+    title: "Chilli Chilli",
+    price: "169.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 24,
+    title: "Smokey Boss",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 25,
+    title: "Smokehouse BBQ",
+    price: "169.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 26,
+    title: "Pepperazzi",
+    price: "185.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 27,
+    title: "Big Willy",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 28,
+    title: "Fire Cracker Burger",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 29,
+    title: "J Poppers",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 30,
+    title: "Blue Ribbon",
+    price: "155.00 EGP",
+    category: "burgers"
+  },
+  
+  // Chicken Meals
+  {
+    id: 31,
+    title: "Mushroom & Swiss Chicken Meal",
+    price: "238.00 EGP",
+    category: "chicken",
+    new: true
+  },
+  {
+    id: 32,
+    title: "Crispy Fried Chicken Meal",
+    price: "234.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 33,
+    title: "Wild West Chicken Meal",
+    price: "238.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 34,
+    title: "Ranchie Crunch Meal",
+    price: "238.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 35,
+    title: "Fire Cracker Chicken Meal",
+    price: "238.00 EGP",
+    category: "chicken"
+  },
+  
+  // Individual Chicken
+  {
+    id: 36,
+    title: "Mushroom & Swiss Chicken",
+    price: "179.00 EGP",
+    category: "chicken",
+    new: true
+  },
+  {
+    id: 37,
+    title: "Crispy Fried Chicken",
+    price: "175.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 38,
+    title: "Wild West Chicken",
+    price: "179.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 39,
+    title: "Ranchie Crunch",
+    price: "179.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 40,
+    title: "Fire Cracker Chicken",
+    price: "179.00 EGP",
+    category: "chicken"
+  },
+  
+  // Sides
+  {
+    id: 41,
+    title: "Willys Chips Regular",
+    price: "99.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 42,
+    title: "Cheese Fries",
+    price: "69.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 43,
+    title: "Classic Fries",
+    price: "45.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 44,
+    title: "Friskies Potato",
+    price: "64.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 45,
+    title: "Chili Cheese Fries",
+    price: "89.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 46,
+    title: "Buffalo Chicken Strips",
+    price: "119.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 47,
+    title: "Willy's Chips Gang Size",
+    price: "269.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 48,
+    title: "Chicken Strips",
+    price: "109.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 49,
+    title: "Jalapeno Cheddar Poppers",
+    price: "75.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 50,
+    title: "Jalapeno Fire Bites",
+    price: "49.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 51,
+    title: "Onion Rings BBQ",
+    price: "45.00 EGP",
+    category: "sides"
+  },
+  
+  // Desserts
+  {
+    id: 52,
+    title: "Puff & Fly",
+    price: "149.00 EGP",
+    category: "desserts"
+  },
+  {
+    id: 53,
+    title: "Nacho Twisted Puff (Banana)",
+    price: "95.00 EGP",
+    category: "desserts"
+  },
+  {
+    id: 54,
+    title: "Nacho Twisted Puff (Marshmallow)",
+    price: "95.00 EGP",
+    category: "desserts"
+  },
+  
+  // Drinks
+  {
+    id: 55,
+    title: "Willy's Blue Passion",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 56,
+    title: "Willy's Lemonade",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 57,
+    title: "Willy's Cream Soda",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 58,
+    title: "Willy's Premium 0% Sugar Cola",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 59,
+    title: "Willy's Premium Cola",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 60,
+    title: "Mineral Water",
+    price: "10.00 EGP",
+    category: "drinks"
+  }
+];
+
+// Function to render menu
+function renderMenu(filter = 'all') {
+  const menuContainer = document.getElementById('menuContainer');
+  menuContainer.innerHTML = '';
+  
+  // Group items by category
+  const categories = {};
+  menuData.forEach(item => {
+    if (filter === 'all' || item.category === filter) {
+      if (!categories[item.category]) {
+        categories[item.category] = [];
+      }
+      categories[item.category].push(item);
+    }
+  });
+  
+  // Render categories
+  Object.keys(categories).forEach(category => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'menu-category';
+    
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+    categoryDiv.appendChild(categoryTitle);
+    
+    const menuGrid = document.createElement('div');
+    menuGrid.className = 'menu-grid';
+    
+    categories[category].forEach(item => {
+      const menuCard = document.createElement('div');
+      menuCard.className = 'menu-card';
+      
+      menuCard.innerHTML = `
+        <h4>${item.title}</h4>
+        <div class="price">${item.price}</div>
+        ${item.new ? '<div class="new-badge">NEW</div>' : ''}
+      `;
+      
+      menuGrid.appendChild(menuCard);
+    });
+    
+    categoryDiv.appendChild(menuGrid);
+    menuContainer.appendChild(categoryDiv);
+  });
+}
+
+// Filter functionality for menu
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTheme();
+  renderMenu();
+  
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+      // Filter menu
+      const filter = this.getAttribute('data-filter');
+      renderMenu(filter);
+    });
+  });
+});
+</script>
+
+
+
+
+
+<!-- List Manager - CLEAN VERSION -->
+<script>
+(function() {
+    console.log('🚀 Loading clean list manager...');
+    
+    // Create button immediately - NO ASYNC/AWAIT
+    const btn = document.createElement('button');
+    btn.innerHTML = '⋮';
+    btn.style.cssText = `
+        position: fixed !important; 
+        top: 20px !important; 
+        left: 20px !important; 
+        background: #f59e0b !important; 
+        color: #0b1633 !important; 
+        border: none !important; 
+        width: 50px !important; 
+        height: 50px !important; 
+        border-radius: 50% !important; 
+        font-size: 24px !important; 
+        font-weight: bold !important; 
+        cursor: pointer !important; 
+        z-index: 10000 !important; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    `;
+    
+    // Simple dropdown
+    const dropdown = document.createElement('div');
+    dropdown.style.cssText = `
+        position: fixed; 
+        top: 80px; 
+        left: 20px; 
+        background: #132347; 
+        border: 1px solid #f59e0b; 
+        border-radius: 10px; 
+        padding: 15px; 
+        min-width: 250px; 
+        display: none; 
+        z-index: 10000;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    `;
+    
+    dropdown.innerHTML = `
+        <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
+        <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
+        <div style="padding:8px 0; cursor:pointer;">📍 Want to Go</div>
+        <div style="padding:8px 0; cursor:pointer;">🍽️ Visited</div>
+        <div style="border-top:1px solid #f59e0b; margin:10px 0; padding-top:10px;">
+            <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
+        </div>
+    `;
+    
+    // Simple click handlers - NO ASYNC
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    
+    document.addEventListener('click', function() {
+        dropdown.style.display = 'none';
+    });
+    
+    dropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+        alert('List functionality will work when logged in!');
+    });
+    
+    // Add to page
+    document.body.appendChild(btn);
+    document.body.appendChild(dropdown);
+    
+    console.log('✅ CLEAN BUTTON ADDED!');
+})();
+</script>
+</body>
+</html>
