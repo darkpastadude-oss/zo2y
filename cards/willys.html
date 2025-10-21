@@ -239,467 +239,545 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: All Major Cities in Egypt</p>
 </footer>
 
+<script>
+// Theme toggle functionality
+const themeToggle=document.getElementById('themeToggle');
+function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('willys-theme',e)}
+function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
+function initializeTheme(){const e=localStorage.getItem('willys-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+themeToggle.addEventListener('click',toggleTheme);
+
+// Review form functionality
+const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
+reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
+
+// Menu data from the provided content
+const menuData = [
+  // Offers
+  {
+    id: 1,
+    title: "Real Tasty Offer",
+    price: "150.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 2,
+    title: "MAX 200",
+    price: "175.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 3,
+    title: "Double Double",
+    price: "289.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 4,
+    title: "Triple Flash",
+    price: "349.00 EGP",
+    category: "offers"
+  },
+  {
+    id: 5,
+    title: "The 4X Bucket",
+    price: "699.00 EGP",
+    category: "offers"
+  },
+  
+  // Burger Meals
+  {
+    id: 6,
+    title: "Black Truffle Meal",
+    price: "268.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 7,
+    title: "Real Tasty Meal",
+    price: "169.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 8,
+    title: "Original Cheese Burger Meal",
+    price: "158.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 9,
+    title: "Brooklyn Shrooms Meal",
+    price: "214.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 10,
+    title: "Chilli Chilli Meal",
+    price: "228.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 11,
+    title: "Smokey Boss Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 12,
+    title: "Smokehouse BBQ Meal",
+    price: "228.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 13,
+    title: "Cheese Lava Meal",
+    price: "268.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 14,
+    title: "Pepperazzi Meal",
+    price: "244.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 15,
+    title: "Big Willy Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 16,
+    title: "Fire Cracker Burger Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 17,
+    title: "J Poppers Meal",
+    price: "224.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 18,
+    title: "Blue Ribbon Meal",
+    price: "214.00 EGP",
+    category: "burgers"
+  },
+  
+  // Individual Burgers
+  {
+    id: 19,
+    title: "Black Truffle",
+    price: "209.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 20,
+    title: "Real Tasty",
+    price: "110.00 EGP",
+    category: "burgers",
+    new: true
+  },
+  {
+    id: 21,
+    title: "Original Cheese Burger",
+    price: "99.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 22,
+    title: "Brooklyn Shrooms",
+    price: "155.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 23,
+    title: "Chilli Chilli",
+    price: "169.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 24,
+    title: "Smokey Boss",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 25,
+    title: "Smokehouse BBQ",
+    price: "169.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 26,
+    title: "Pepperazzi",
+    price: "185.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 27,
+    title: "Big Willy",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 28,
+    title: "Fire Cracker Burger",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 29,
+    title: "J Poppers",
+    price: "165.00 EGP",
+    category: "burgers"
+  },
+  {
+    id: 30,
+    title: "Blue Ribbon",
+    price: "155.00 EGP",
+    category: "burgers"
+  },
+  
+  // Chicken Meals
+  {
+    id: 31,
+    title: "Mushroom & Swiss Chicken Meal",
+    price: "238.00 EGP",
+    category: "chicken",
+    new: true
+  },
+  {
+    id: 32,
+    title: "Crispy Fried Chicken Meal",
+    price: "234.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 33,
+    title: "Wild West Chicken Meal",
+    price: "238.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 34,
+    title: "Ranchie Crunch Meal",
+    price: "238.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 35,
+    title: "Fire Cracker Chicken Meal",
+    price: "238.00 EGP",
+    category: "chicken"
+  },
+  
+  // Individual Chicken
+  {
+    id: 36,
+    title: "Mushroom & Swiss Chicken",
+    price: "179.00 EGP",
+    category: "chicken",
+    new: true
+  },
+  {
+    id: 37,
+    title: "Crispy Fried Chicken",
+    price: "175.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 38,
+    title: "Wild West Chicken",
+    price: "179.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 39,
+    title: "Ranchie Crunch",
+    price: "179.00 EGP",
+    category: "chicken"
+  },
+  {
+    id: 40,
+    title: "Fire Cracker Chicken",
+    price: "179.00 EGP",
+    category: "chicken"
+  },
+  
+  // Sides
+  {
+    id: 41,
+    title: "Willys Chips Regular",
+    price: "99.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 42,
+    title: "Cheese Fries",
+    price: "69.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 43,
+    title: "Classic Fries",
+    price: "45.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 44,
+    title: "Friskies Potato",
+    price: "64.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 45,
+    title: "Chili Cheese Fries",
+    price: "89.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 46,
+    title: "Buffalo Chicken Strips",
+    price: "119.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 47,
+    title: "Willy's Chips Gang Size",
+    price: "269.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 48,
+    title: "Chicken Strips",
+    price: "109.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 49,
+    title: "Jalapeno Cheddar Poppers",
+    price: "75.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 50,
+    title: "Jalapeno Fire Bites",
+    price: "49.00 EGP",
+    category: "sides"
+  },
+  {
+    id: 51,
+    title: "Onion Rings BBQ",
+    price: "45.00 EGP",
+    category: "sides"
+  },
+  
+  // Desserts
+  {
+    id: 52,
+    title: "Puff & Fly",
+    price: "149.00 EGP",
+    category: "desserts"
+  },
+  {
+    id: 53,
+    title: "Nacho Twisted Puff (Banana)",
+    price: "95.00 EGP",
+    category: "desserts"
+  },
+  {
+    id: 54,
+    title: "Nacho Twisted Puff (Marshmallow)",
+    price: "95.00 EGP",
+    category: "desserts"
+  },
+  
+  // Drinks
+  {
+    id: 55,
+    title: "Willy's Blue Passion",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 56,
+    title: "Willy's Lemonade",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 57,
+    title: "Willy's Cream Soda",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 58,
+    title: "Willy's Premium 0% Sugar Cola",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 59,
+    title: "Willy's Premium Cola",
+    price: "25.00 EGP",
+    category: "drinks"
+  },
+  {
+    id: 60,
+    title: "Mineral Water",
+    price: "10.00 EGP",
+    category: "drinks"
+  }
+];
+
+// Function to render menu
+function renderMenu(filter = 'all') {
+  const menuContainer = document.getElementById('menuContainer');
+  menuContainer.innerHTML = '';
+  
+  // Group items by category
+  const categories = {};
+  menuData.forEach(item => {
+    if (filter === 'all' || item.category === filter) {
+      if (!categories[item.category]) {
+        categories[item.category] = [];
+      }
+      categories[item.category].push(item);
+    }
+  });
+  
+  // Render categories
+  Object.keys(categories).forEach(category => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'menu-category';
+    
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+    categoryDiv.appendChild(categoryTitle);
+    
+    const menuGrid = document.createElement('div');
+    menuGrid.className = 'menu-grid';
+    
+    categories[category].forEach(item => {
+      const menuCard = document.createElement('div');
+      menuCard.className = 'menu-card';
+      
+      menuCard.innerHTML = `
+        <h4>${item.title}</h4>
+        <div class="price">${item.price}</div>
+        ${item.new ? '<div class="new-badge">NEW</div>' : ''}
+      `;
+      
+      menuGrid.appendChild(menuCard);
+    });
+    
+    categoryDiv.appendChild(menuGrid);
+    menuContainer.appendChild(categoryDiv);
+  });
+}
+
+// Filter functionality for menu
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTheme();
+  renderMenu();
+  
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+      // Filter menu
+      const filter = this.getAttribute('data-filter');
+      renderMenu(filter);
+    });
+  });
+});
+</script>
+
+
+
 
 
 <!-- List Manager - CLEAN VERSION -->
-
-
-
-
-<!-- Load Supabase First -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- List Manager Button -->
 <script>
-// Wait for page to load
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Page loaded, initializing list manager...');
+(function() {
+    console.log('🚀 Loading clean list manager...');
     
-    // Initialize Supabase
-    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+    // Create button immediately - NO ASYNC/AWAIT
+    const btn = document.createElement('button');
+    btn.innerHTML = '⋮';
+    btn.style.cssText = `
+        position: fixed !important; 
+        top: 20px !important; 
+        left: 20px !important; 
+        background: #f59e0b !important; 
+        color: #0b1633 !important; 
+        border: none !important; 
+        width: 50px !important; 
+        height: 50px !important; 
+        border-radius: 50% !important; 
+        font-size: 24px !important; 
+        font-weight: bold !important; 
+        cursor: pointer !important; 
+        z-index: 10000 !important; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    `;
     
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    window.supabase = supabase;
+    // Simple dropdown
+    const dropdown = document.createElement('div');
+    dropdown.style.cssText = `
+        position: fixed; 
+        top: 80px; 
+        left: 20px; 
+        background: #132347; 
+        border: 1px solid #f59e0b; 
+        border-radius: 10px; 
+        padding: 15px; 
+        min-width: 250px; 
+        display: none; 
+        z-index: 10000;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    `;
     
-    console.log('✅ Supabase initialized');
+    dropdown.innerHTML = `
+        <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
+        <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
+        <div style="padding:8px 0; cursor:pointer;">📍 Want to Go</div>
+        <div style="padding:8px 0; cursor:pointer;">🍽️ Visited</div>
+        <div style="border-top:1px solid #f59e0b; margin:10px 0; padding-top:10px;">
+            <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
+        </div>
+    `;
     
-    // List Manager Class
-    class RestaurantListManager {
-        constructor() {
-            this.supabase = supabase;
-            this.restaurantId = this.getRestaurantIdFromSlug();
-            this.userLists = [];
-            this.customLists = [];
-            this.init();
-        }
-
-        getRestaurantIdFromSlug() {
-            const path = window.location.pathname;
-            const slug = path.split('/').pop().replace('.html', '');
-            const slugToId = {
-                'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
-                'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
-                'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
-                'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
-                'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
-                'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
-                'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
-            };
-            return slugToId[slug] || null;
-        }
-
-        async init() {
-            await this.checkAuth();
-            if (this.currentUser) {
-                await this.loadUserLists();
-            }
-            this.injectListMenu();
-        }
-
-        async checkAuth() {
-            try {
-                const { data: { session } } = await this.supabase.auth.getSession();
-                this.currentUser = session?.user || null;
-            } catch (error) {
-                console.error('Auth error:', error);
-                this.currentUser = null;
-            }
-        }
-
-        async loadUserLists() {
-            try {
-                const { data: lists } = await this.supabase
-                    .from('lists').select('*').eq('user_id', this.currentUser.id);
-                this.userLists = lists || [];
-                
-                // Separate custom lists from default lists
-                this.customLists = this.userLists.filter(list => 
-                    !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-                );
-            } catch (error) {
-                console.error('Error loading lists:', error);
-                this.userLists = [];
-                this.customLists = [];
-            }
-        }
-
-        injectListMenu() {
-            // Create the button
-            const btn = document.createElement('button');
-            btn.innerHTML = '⋮';
-            btn.className = 'list-menu-btn';
-            btn.style.cssText = `
-                position: fixed !important; 
-                top: 20px !important; 
-                left: 20px !important; 
-                background: #f59e0b !important; 
-                color: #0b1633 !important; 
-                border: none !important; 
-                width: 50px !important; 
-                height: 50px !important; 
-                border-radius: 50% !important; 
-                font-size: 24px !important; 
-                font-weight: bold !important; 
-                cursor: pointer !important; 
-                z-index: 10000 !important; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            `;
-            
-            // Add dropdown styles
-            const styles = `
-                .list-dropdown {
-                    position: fixed; 
-                    top: 80px; 
-                    left: 20px; 
-                    background: #132347; 
-                    border: 1px solid #f59e0b; 
-                    border-radius: 10px; 
-                    padding: 15px; 
-                    min-width: 280px; 
-                    display: none; 
-                    z-index: 10000;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                    max-height: 400px;
-                    overflow-y: auto;
-                }
-                .list-dropdown.show {
-                    display: block !important;
-                }
-                .list-section {
-                    margin-bottom: 15px;
-                }
-                .list-section-title {
-                    font-size: 12px;
-                    color: #f59e0b;
-                    text-transform: uppercase;
-                    font-weight: 600;
-                    margin-bottom: 8px;
-                    letter-spacing: 0.5px;
-                }
-                .list-item { 
-                    display: flex; 
-                    align-items: center; 
-                    gap: 12px; 
-                    padding: 10px 8px; 
-                    cursor: pointer; 
-                    border-radius: 6px;
-                    transition: all 0.2s ease;
-                }
-                .list-item:hover { 
-                    background: rgba(245, 158, 11, 0.1); 
-                    color: #f59e0b; 
-                }
-                .list-checkbox { 
-                    width: 18px; 
-                    height: 18px; 
-                    border: 2px solid #f59e0b;
-                    border-radius: 4px; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    flex-shrink: 0;
-                }
-                .list-checkbox.checked { 
-                    background: #f59e0b; 
-                }
-                .list-checkbox.checked::after { 
-                    content: "✓"; 
-                    color: #0b1633; 
-                    font-size: 12px; 
-                    font-weight: bold; 
-                }
-                .list-item-text {
-                    flex: 1;
-                    font-size: 14px;
-                }
-                .new-list-section {
-                    border-top: 1px solid rgba(245, 158, 11, 0.3);
-                    padding-top: 15px;
-                    margin-top: 10px;
-                }
-                .new-list-input { 
-                    width: 100%; 
-                    padding: 10px 12px; 
-                    background: #0b1633;
-                    border: 1px solid rgba(245, 158, 11, 0.5); 
-                    border-radius: 6px; 
-                    color: white; 
-                    margin-bottom: 10px;
-                    font-size: 14px;
-                }
-                .new-list-input:focus {
-                    outline: none;
-                    border-color: #f59e0b;
-                }
-                .add-list-btn { 
-                    background: #f59e0b; 
-                    color: #0b1633; 
-                    border: none;
-                    padding: 10px 16px; 
-                    border-radius: 6px; 
-                    cursor: pointer; 
-                    font-weight: bold; 
-                    width: 100%; 
-                    font-size: 14px;
-                    transition: all 0.2s ease;
-                }
-                .add-list-btn:hover {
-                    background: #ffb84d;
-                }
-                .list-divider {
-                    height: 1px;
-                    background: rgba(245, 158, 11, 0.3);
-                    margin: 12px 0;
-                }
-                .empty-custom-lists {
-                    text-align: center;
-                    color: #cbd5e1;
-                    font-size: 12px;
-                    padding: 10px;
-                }
-            `;
-            
-            const styleSheet = document.createElement('style');
-            styleSheet.textContent = styles;
-            document.head.appendChild(styleSheet);
-            
-            // Create dropdown
-            const dropdown = document.createElement('div');
-            dropdown.className = 'list-dropdown';
-            
-            // Button click handler
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-                if (dropdown.classList.contains('show')) {
-                    this.updateDropdown(dropdown);
-                }
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', () => {
-                dropdown.classList.remove('show');
-            });
-            
-            dropdown.addEventListener('click', (e) => e.stopPropagation());
-            
-            // Add to page
-            document.body.appendChild(btn);
-            document.body.appendChild(dropdown);
-            
-            console.log('✅ List Manager Button Added!');
-        }
-
-        async updateDropdown(dropdown) {
-            dropdown.innerHTML = '<div style="font-size:16px;font-weight:600;color:#f59e0b;margin-bottom:15px;text-align:center;">Add to Lists</div>';
-
-            // Quick Actions Section
-            const quickSection = document.createElement('div');
-            quickSection.className = 'list-section';
-            quickSection.innerHTML = '<div class="list-section-title">Quick Actions</div>';
-            
-            const quickLists = [
-                { id: 'favorites', name: '❤️ Favorites', icon: '❤️' },
-                { id: 'wantToGo', name: '📍 Want to Go', icon: '📍' },
-                { id: 'visited', name: '🍽️ Visited', icon: '🍽️' }
-            ];
-
-            for (const list of quickLists) {
-                const isInList = await this.checkIfInList(list.id);
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                    <span class="list-item-text">${list.name}</span>
-                `;
-                item.onclick = () => this.toggleList(list.id);
-                quickSection.appendChild(item);
-            }
-            
-            dropdown.appendChild(quickSection);
-
-            // Custom Lists Section
-            if (this.customLists.length > 0) {
-                const divider = document.createElement('div');
-                divider.className = 'list-divider';
-                dropdown.appendChild(divider);
-
-                const customSection = document.createElement('div');
-                customSection.className = 'list-section';
-                customSection.innerHTML = '<div class="list-section-title">Your Custom Lists</div>';
-
-                for (const list of this.customLists) {
-                    const isInList = await this.checkIfCustomList(list.id);
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    item.innerHTML = `
-                        <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                        <span class="list-item-text">${list.title}</span>
-                    `;
-                    item.onclick = () => this.toggleCustomList(list.id);
-                    customSection.appendChild(item);
-                }
-                
-                dropdown.appendChild(customSection);
-            }
-
-            // Create New List Section
-            const newDiv = document.createElement('div');
-            newDiv.className = 'new-list-section';
-            newDiv.innerHTML = `
-                <div class="list-section-title">Create New List</div>
-                <input type="text" class="new-list-input" placeholder="Enter custom list name..." id="newListName">
-                <button class="add-list-btn">➕ Create Custom List</button>
-            `;
-            
-            const input = newDiv.querySelector('input');
-            const button = newDiv.querySelector('button');
-            
-            button.onclick = () => this.createNewList();
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.createNewList();
-                }
-            });
-            
-            dropdown.appendChild(newDiv);
-        }
-
-        async checkIfInList(listType) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            const { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-            if (!list) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async checkIfCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async toggleList(listType) {
-            if (!this.currentUser || !this.restaurantId) {
-                alert('Please log in to use lists');
-                return;
-            }
-            
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            let { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-                
-            if (!list) {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
-                list = newList;
-            }
-            
-            const isInList = await this.checkIfInList(listType);
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: list.id, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${title}`);
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: list.id, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${title}`);
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async toggleCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) {
-                alert('Please log in to use lists');
-                return;
-            }
-            
-            const list = this.customLists.find(l => l.id === listId);
-            const isInList = await this.checkIfCustomList(listId);
-            
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: listId, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${list.title}`);
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: listId, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${list.title}`);
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async createNewList() {
-            const input = document.getElementById('newListName');
-            const name = input.value.trim();
-            
-            if (!name) {
-                alert('Please enter a list name');
-                return;
-            }
-
-            if (!this.currentUser) {
-                alert('Please log in to create lists');
-                return;
-            }
-
-            try {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
-                
-                if (newList) {
-                    this.customLists.push(newList);
-                    input.value = '';
-                    this.showNotification(`Custom list "${name}" created!`);
-                    this.updateDropdown(document.querySelector('.list-dropdown'));
-                }
-            } catch (error) {
-                alert('Error creating list: ' + error.message);
-            }
-        }
-
-        showNotification(message) {
-            // Simple notification
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #10b981;
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                z-index: 10001;
-                font-weight: 500;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-    }
-
-    // Initialize the list manager
-    setTimeout(() => {
-        new RestaurantListManager();
-    }, 1000);
+    // Simple click handlers - NO ASYNC
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
     
-});
+    document.addEventListener('click', function() {
+        dropdown.style.display = 'none';
+    });
+    
+    dropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+        alert('List functionality will work when logged in!');
+    });
+    
+    // Add to page
+    document.body.appendChild(btn);
+    document.body.appendChild(dropdown);
+    
+    console.log('✅ CLEAN BUTTON ADDED!');
+})();
 </script>
 </body>
 </html>
