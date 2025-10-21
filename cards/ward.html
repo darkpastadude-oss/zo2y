@@ -217,467 +217,375 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: New Cairo, Sheikh Zayed, Heliopolis, Nasr City, Maadi, Zamalek</p>
 </footer>
 
-
-
-<!-- List Manager - CLEAN VERSION -->
-
-
-
-
-<!-- Load Supabase First -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- List Manager Button -->
 <script>
-// Wait for page to load
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Page loaded, initializing list manager...');
-    
-    // Initialize Supabase
-    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-    
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    window.supabase = supabase;
-    
-    console.log('✅ Supabase initialized');
-    
-    // List Manager Class
-    class RestaurantListManager {
-        constructor() {
-            this.supabase = supabase;
-            this.restaurantId = this.getRestaurantIdFromSlug();
-            this.userLists = [];
-            this.customLists = [];
-            this.init();
-        }
+// Theme toggle functionality
+const themeToggle=document.getElementById('themeToggle');
+function applyTheme(e){document.documentElement.setAttribute('data-theme',e),themeToggle.textContent=e==='dark'?'☀️ Light Mode':'🌙 Dark Mode',localStorage.setItem('kosharyward-theme',e)}
+function toggleTheme(){const e=document.documentElement.getAttribute('data-theme')||'light',t=e==='light'?'dark':'light';applyTheme(t)}
+function initializeTheme(){const e=localStorage.getItem('kosharyward-theme');e?applyTheme(e):applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+themeToggle.addEventListener('click',toggleTheme);
 
-        getRestaurantIdFromSlug() {
-            const path = window.location.pathname;
-            const slug = path.split('/').pop().replace('.html', '');
-            const slugToId = {
-                'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
-                'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
-                'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
-                'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
-                'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
-                'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
-                'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
-            };
-            return slugToId[slug] || null;
-        }
+// Review form functionality
+const reviewForm=document.getElementById('review-form'),reviewsList=document.getElementById('reviews-list');
+reviewForm.addEventListener('submit',e=>{e.preventDefault();const t=document.getElementById('reviewer').value.trim(),a=document.getElementById('review-text').value.trim();if(t&&a){const e=document.createElement('div');e.className='review',e.innerHTML='<p><strong>'+t+'</strong></p><p>'+a+'</p>',reviewsList.appendChild(e),reviewForm.reset();const o=document.createElement('p');o.textContent='Thank you for your review!',o.style.color='#FF9800',o.style.fontWeight='600',o.style.marginTop='10px',reviewForm.appendChild(o),setTimeout(()=>{o.remove()},3e3)}});
 
-        async init() {
-            await this.checkAuth();
-            if (this.currentUser) {
-                await this.loadUserLists();
-            }
-            this.injectListMenu();
-        }
+// Menu data from the image
+const menuData = [
+  // Koshary
+  {
+    id: 1,
+    title: "Ward Koshary Small",
+    description: "Traditional Egyptian koshary with rice, lentils, chickpeas, and pasta",
+    price: "65 EGP",
+    category: "koshary"
+  },
+  {
+    id: 2,
+    title: "Ward Koshary Medium",
+    description: "Traditional Egyptian koshary with rice, lentils, chickpeas, and pasta",
+    price: "75 EGP",
+    category: "koshary"
+  },
+  {
+    id: 3,
+    title: "Ward Koshary Large",
+    description: "Traditional Egyptian koshary with rice, lentils, chickpeas, and pasta",
+    price: "95 EGP",
+    category: "koshary"
+  },
+  {
+    id: 4,
+    title: "Alexandrian Koshary Small",
+    description: "Alexandrian-style koshary with a unique flavor profile",
+    price: "80 EGP",
+    category: "koshary"
+  },
+  {
+    id: 5,
+    title: "Alexandrian Koshary Large",
+    description: "Alexandrian-style koshary with a unique flavor profile",
+    price: "100 EGP",
+    category: "koshary"
+  },
+  {
+    id: 6,
+    title: "Free Koshary",
+    description: "Yellow lentils topped with boiled chicken",
+    price: "Complimentary",
+    category: "koshary",
+    special: "Special Offer"
+  },
+  
+  // Pasta
+  {
+    id: 7,
+    title: "Red Sauce Pasta",
+    description: "Pasta with rich tomato sauce",
+    price: "65 EGP",
+    category: "pasta"
+  },
+  {
+    id: 8,
+    title: "Olive Pasta",
+    description: "Pasta with olive sauce",
+    price: "80 EGP",
+    category: "pasta"
+  },
+  {
+    id: 9,
+    title: "Sausage Pasta",
+    description: "Pasta with sausage and sauce",
+    price: "140 EGP",
+    category: "pasta"
+  },
+  {
+    id: 10,
+    title: "Alexandrian Liver Pasta",
+    description: "Pasta with Alexandrian-style liver",
+    price: "140 EGP",
+    category: "pasta"
+  },
+  {
+    id: 11,
+    title: "Bolognese Pasta",
+    description: "Classic Bolognese pasta with meat sauce",
+    price: "140 EGP",
+    category: "pasta"
+  },
+  {
+    id: 12,
+    title: "Butter Pasta",
+    description: "Simple and delicious butter pasta",
+    price: "165 EGP",
+    category: "pasta"
+  },
+  
+  // Starters
+  {
+    id: 13,
+    title: "Koshary Balls (4 pcs)",
+    description: "Crispy koshary balls filled with mixed beef & mixed cheese",
+    price: "55 EGP",
+    category: "starters"
+  },
+  {
+    id: 14,
+    title: "Ward Becaro",
+    description: "Served with toasted bread",
+    price: "45 EGP",
+    category: "starters"
+  },
+  {
+    id: 15,
+    title: "Ward Fried",
+    description: "Fried with butter, topped with chili & caramelized onions",
+    price: "45 EGP",
+    category: "starters"
+  },
+  {
+    id: 16,
+    title: "Jalapeno Bites (3 pcs)",
+    description: "Spicy jalapeno bites",
+    price: "90 EGP",
+    category: "starters"
+  },
+  {
+    id: 17,
+    title: "Garlic Butter Bread (4 pcs)",
+    description: "Fresh bread with garlic butter",
+    price: "12 EGP",
+    category: "starters"
+  },
+  
+  // Extras
+  {
+    id: 18,
+    title: "Ward (fried onions)",
+    description: "Crispy fried onions topping",
+    price: "17 EGP",
+    category: "extras"
+  },
+  {
+    id: 19,
+    title: "Hummus",
+    description: "Creamy hummus dip",
+    price: "17 EGP",
+    category: "extras"
+  },
+  {
+    id: 20,
+    title: "Dokka",
+    description: "Spicy dokka seasoning",
+    price: "17 EGP",
+    category: "extras"
+  },
+  {
+    id: 21,
+    title: "Shatta (Hot Sauce)",
+    description: "Spicy hot sauce",
+    price: "17 EGP",
+    category: "extras"
+  },
+  {
+    id: 22,
+    title: "Salsa",
+    description: "Fresh tomato salsa",
+    price: "22 EGP",
+    category: "extras"
+  },
+  {
+    id: 23,
+    title: "Boiled Fried Egg",
+    description: "Boiled and fried egg",
+    price: "30 EGP",
+    category: "extras"
+  },
+  {
+    id: 24,
+    title: "Mixed Cheese",
+    description: "Assorted cheese mix",
+    price: "35 EGP",
+    category: "extras"
+  },
+  {
+    id: 25,
+    title: "Alexandrian Liver",
+    description: "Alexandrian-style liver",
+    price: "45 EGP",
+    category: "extras"
+  },
+  {
+    id: 26,
+    title: "Bolognese Sauce",
+    description: "Rich meat sauce",
+    price: "14 EGP",
+    category: "extras"
+  },
+  
+  // Salads & Pickles
+  {
+    id: 27,
+    title: "Marinated Tomatoes",
+    description: "Fresh tomatoes marinated in herbs",
+    price: "15 EGP",
+    category: "extras"
+  },
+  {
+    id: 28,
+    title: "Pickled Lemon",
+    description: "Traditional pickled lemon",
+    price: "15 EGP",
+    category: "extras"
+  },
+  
+  // Desserts
+  {
+    id: 29,
+    title: "Ruz Blaban",
+    description: "Traditional rice pudding",
+    price: "40 EGP",
+    category: "desserts"
+  },
+  {
+    id: 30,
+    title: "Ward Special",
+    description: "Creamy marshmallow mousse",
+    price: "45 EGP",
+    category: "desserts"
+  },
+  
+  // Drinks
+  {
+    id: 31,
+    title: "Soft Drink",
+    description: "Assorted soft drinks",
+    price: "20 EGP",
+    category: "drinks"
+  },
+  {
+    id: 32,
+    title: "Lemon with Mint",
+    description: "Refreshing lemon and mint drink",
+    price: "40 EGP",
+    category: "drinks"
+  },
+  {
+    id: 33,
+    title: "Classic Mojito",
+    description: "Traditional mojito with mint and lime",
+    price: "60 EGP",
+    category: "drinks"
+  },
+  {
+    id: 34,
+    title: "Mojito",
+    description: "Green apple, strawberry, rose & peach flavors",
+    price: "70 EGP",
+    category: "drinks"
+  },
+  {
+    id: 35,
+    title: "Rouge Colada",
+    description: "Coconut puree, strawberry puree, milk, strawberry, ice scoop",
+    price: "75 EGP",
+    category: "drinks"
+  },
+  {
+    id: 36,
+    title: "Rose & Peach",
+    description: "Rose syrup, peach syrup, ice scoop",
+    price: "70 EGP",
+    category: "drinks"
+  },
+  {
+    id: 37,
+    title: "Lipton Tea Small",
+    description: "Hot Lipton tea",
+    price: "20 EGP",
+    category: "drinks"
+  },
+  {
+    id: 38,
+    title: "Lipton Tea Large",
+    description: "Large hot Lipton tea",
+    price: "30 EGP",
+    category: "drinks"
+  },
+  {
+    id: 39,
+    title: "Mineral Water Small",
+    description: "Bottled mineral water",
+    price: "10 EGP",
+    category: "drinks"
+  }
+];
 
-        async checkAuth() {
-            try {
-                const { data: { session } } = await this.supabase.auth.getSession();
-                this.currentUser = session?.user || null;
-            } catch (error) {
-                console.error('Auth error:', error);
-                this.currentUser = null;
-            }
-        }
-
-        async loadUserLists() {
-            try {
-                const { data: lists } = await this.supabase
-                    .from('lists').select('*').eq('user_id', this.currentUser.id);
-                this.userLists = lists || [];
-                
-                // Separate custom lists from default lists
-                this.customLists = this.userLists.filter(list => 
-                    !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-                );
-            } catch (error) {
-                console.error('Error loading lists:', error);
-                this.userLists = [];
-                this.customLists = [];
-            }
-        }
-
-        injectListMenu() {
-            // Create the button
-            const btn = document.createElement('button');
-            btn.innerHTML = '⋮';
-            btn.className = 'list-menu-btn';
-            btn.style.cssText = `
-                position: fixed !important; 
-                top: 20px !important; 
-                left: 20px !important; 
-                background: #f59e0b !important; 
-                color: #0b1633 !important; 
-                border: none !important; 
-                width: 50px !important; 
-                height: 50px !important; 
-                border-radius: 50% !important; 
-                font-size: 24px !important; 
-                font-weight: bold !important; 
-                cursor: pointer !important; 
-                z-index: 10000 !important; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            `;
-            
-            // Add dropdown styles
-            const styles = `
-                .list-dropdown {
-                    position: fixed; 
-                    top: 80px; 
-                    left: 20px; 
-                    background: #132347; 
-                    border: 1px solid #f59e0b; 
-                    border-radius: 10px; 
-                    padding: 15px; 
-                    min-width: 280px; 
-                    display: none; 
-                    z-index: 10000;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                    max-height: 400px;
-                    overflow-y: auto;
-                }
-                .list-dropdown.show {
-                    display: block !important;
-                }
-                .list-section {
-                    margin-bottom: 15px;
-                }
-                .list-section-title {
-                    font-size: 12px;
-                    color: #f59e0b;
-                    text-transform: uppercase;
-                    font-weight: 600;
-                    margin-bottom: 8px;
-                    letter-spacing: 0.5px;
-                }
-                .list-item { 
-                    display: flex; 
-                    align-items: center; 
-                    gap: 12px; 
-                    padding: 10px 8px; 
-                    cursor: pointer; 
-                    border-radius: 6px;
-                    transition: all 0.2s ease;
-                }
-                .list-item:hover { 
-                    background: rgba(245, 158, 11, 0.1); 
-                    color: #f59e0b; 
-                }
-                .list-checkbox { 
-                    width: 18px; 
-                    height: 18px; 
-                    border: 2px solid #f59e0b;
-                    border-radius: 4px; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    flex-shrink: 0;
-                }
-                .list-checkbox.checked { 
-                    background: #f59e0b; 
-                }
-                .list-checkbox.checked::after { 
-                    content: "✓"; 
-                    color: #0b1633; 
-                    font-size: 12px; 
-                    font-weight: bold; 
-                }
-                .list-item-text {
-                    flex: 1;
-                    font-size: 14px;
-                }
-                .new-list-section {
-                    border-top: 1px solid rgba(245, 158, 11, 0.3);
-                    padding-top: 15px;
-                    margin-top: 10px;
-                }
-                .new-list-input { 
-                    width: 100%; 
-                    padding: 10px 12px; 
-                    background: #0b1633;
-                    border: 1px solid rgba(245, 158, 11, 0.5); 
-                    border-radius: 6px; 
-                    color: white; 
-                    margin-bottom: 10px;
-                    font-size: 14px;
-                }
-                .new-list-input:focus {
-                    outline: none;
-                    border-color: #f59e0b;
-                }
-                .add-list-btn { 
-                    background: #f59e0b; 
-                    color: #0b1633; 
-                    border: none;
-                    padding: 10px 16px; 
-                    border-radius: 6px; 
-                    cursor: pointer; 
-                    font-weight: bold; 
-                    width: 100%; 
-                    font-size: 14px;
-                    transition: all 0.2s ease;
-                }
-                .add-list-btn:hover {
-                    background: #ffb84d;
-                }
-                .list-divider {
-                    height: 1px;
-                    background: rgba(245, 158, 11, 0.3);
-                    margin: 12px 0;
-                }
-                .empty-custom-lists {
-                    text-align: center;
-                    color: #cbd5e1;
-                    font-size: 12px;
-                    padding: 10px;
-                }
-            `;
-            
-            const styleSheet = document.createElement('style');
-            styleSheet.textContent = styles;
-            document.head.appendChild(styleSheet);
-            
-            // Create dropdown
-            const dropdown = document.createElement('div');
-            dropdown.className = 'list-dropdown';
-            
-            // Button click handler
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-                if (dropdown.classList.contains('show')) {
-                    this.updateDropdown(dropdown);
-                }
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', () => {
-                dropdown.classList.remove('show');
-            });
-            
-            dropdown.addEventListener('click', (e) => e.stopPropagation());
-            
-            // Add to page
-            document.body.appendChild(btn);
-            document.body.appendChild(dropdown);
-            
-            console.log('✅ List Manager Button Added!');
-        }
-
-        async updateDropdown(dropdown) {
-            dropdown.innerHTML = '<div style="font-size:16px;font-weight:600;color:#f59e0b;margin-bottom:15px;text-align:center;">Add to Lists</div>';
-
-            // Quick Actions Section
-            const quickSection = document.createElement('div');
-            quickSection.className = 'list-section';
-            quickSection.innerHTML = '<div class="list-section-title">Quick Actions</div>';
-            
-            const quickLists = [
-                { id: 'favorites', name: '❤️ Favorites', icon: '❤️' },
-                { id: 'wantToGo', name: '📍 Want to Go', icon: '📍' },
-                { id: 'visited', name: '🍽️ Visited', icon: '🍽️' }
-            ];
-
-            for (const list of quickLists) {
-                const isInList = await this.checkIfInList(list.id);
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                    <span class="list-item-text">${list.name}</span>
-                `;
-                item.onclick = () => this.toggleList(list.id);
-                quickSection.appendChild(item);
-            }
-            
-            dropdown.appendChild(quickSection);
-
-            // Custom Lists Section
-            if (this.customLists.length > 0) {
-                const divider = document.createElement('div');
-                divider.className = 'list-divider';
-                dropdown.appendChild(divider);
-
-                const customSection = document.createElement('div');
-                customSection.className = 'list-section';
-                customSection.innerHTML = '<div class="list-section-title">Your Custom Lists</div>';
-
-                for (const list of this.customLists) {
-                    const isInList = await this.checkIfCustomList(list.id);
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    item.innerHTML = `
-                        <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                        <span class="list-item-text">${list.title}</span>
-                    `;
-                    item.onclick = () => this.toggleCustomList(list.id);
-                    customSection.appendChild(item);
-                }
-                
-                dropdown.appendChild(customSection);
-            }
-
-            // Create New List Section
-            const newDiv = document.createElement('div');
-            newDiv.className = 'new-list-section';
-            newDiv.innerHTML = `
-                <div class="list-section-title">Create New List</div>
-                <input type="text" class="new-list-input" placeholder="Enter custom list name..." id="newListName">
-                <button class="add-list-btn">➕ Create Custom List</button>
-            `;
-            
-            const input = newDiv.querySelector('input');
-            const button = newDiv.querySelector('button');
-            
-            button.onclick = () => this.createNewList();
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.createNewList();
-                }
-            });
-            
-            dropdown.appendChild(newDiv);
-        }
-
-        async checkIfInList(listType) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            const { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-            if (!list) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async checkIfCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async toggleList(listType) {
-            if (!this.currentUser || !this.restaurantId) {
-                alert('Please log in to use lists');
-                return;
-            }
-            
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            let { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-                
-            if (!list) {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
-                list = newList;
-            }
-            
-            const isInList = await this.checkIfInList(listType);
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: list.id, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${title}`);
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: list.id, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${title}`);
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async toggleCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) {
-                alert('Please log in to use lists');
-                return;
-            }
-            
-            const list = this.customLists.find(l => l.id === listId);
-            const isInList = await this.checkIfCustomList(listId);
-            
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: listId, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${list.title}`);
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: listId, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${list.title}`);
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async createNewList() {
-            const input = document.getElementById('newListName');
-            const name = input.value.trim();
-            
-            if (!name) {
-                alert('Please enter a list name');
-                return;
-            }
-
-            if (!this.currentUser) {
-                alert('Please log in to create lists');
-                return;
-            }
-
-            try {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
-                
-                if (newList) {
-                    this.customLists.push(newList);
-                    input.value = '';
-                    this.showNotification(`Custom list "${name}" created!`);
-                    this.updateDropdown(document.querySelector('.list-dropdown'));
-                }
-            } catch (error) {
-                alert('Error creating list: ' + error.message);
-            }
-        }
-
-        showNotification(message) {
-            // Simple notification
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #10b981;
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                z-index: 10001;
-                font-weight: 500;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
+// Function to render menu
+function renderMenu(filter = 'all') {
+  const menuContainer = document.getElementById('menuContainer');
+  menuContainer.innerHTML = '';
+  
+  // Group items by category
+  const categories = {};
+  menuData.forEach(item => {
+    if (filter === 'all' || item.category === filter) {
+      if (!categories[item.category]) {
+        categories[item.category] = [];
+      }
+      categories[item.category].push(item);
     }
-
-    // Initialize the list manager
-    setTimeout(() => {
-        new RestaurantListManager();
-    }, 1000);
+  });
+  
+  // Render categories
+  Object.keys(categories).forEach(category => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'menu-category';
     
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+    categoryDiv.appendChild(categoryTitle);
+    
+    const menuGrid = document.createElement('div');
+    menuGrid.className = 'menu-grid';
+    
+    categories[category].forEach(item => {
+      const menuCard = document.createElement('div');
+      menuCard.className = 'menu-card';
+      
+      menuCard.innerHTML = `
+        <h4>${item.title}</h4>
+        ${item.description ? `<p>${item.description}</p>` : ''}
+        <div class="${item.price.includes('-') ? 'price-range' : 'price'}">${item.price}</div>
+        ${item.special ? `<div class="special">${item.special}</div>` : ''}
+      `;
+      
+      menuGrid.appendChild(menuCard);
+    });
+    
+    categoryDiv.appendChild(menuGrid);
+    menuContainer.appendChild(categoryDiv);
+  });
+}
+
+// Filter functionality for menu
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTheme();
+  renderMenu();
+  
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Remove active class from all buttons
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      this.classList.add('active');
+      // Filter menu
+      const filter = this.getAttribute('data-filter');
+      renderMenu(filter);
+    });
+  });
 });
 </script>
+
 </body>
 </html>
