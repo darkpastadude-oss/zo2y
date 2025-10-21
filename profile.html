@@ -414,7 +414,7 @@
     let restaurants = [];
     let customLists = [];
 
-    // Fetch restaurants from Supabase - SAME AS restaurant.html
+    // Fetch restaurants from Supabase
     async function loadRestaurants() {
       try {
         const { data, error } = await supabase
@@ -480,6 +480,40 @@
       }
     }
 
+    // Function to update all list counts
+    function updateAllListCounts() {
+      // Update default lists
+      if (listManager.currentLists.favorites) {
+        document.getElementById('favoritesCount').textContent = `${listManager.currentLists.favorites.restaurants?.length || 0} restaurants`;
+      }
+      if (listManager.currentLists.visited) {
+        document.getElementById('visitedCount').textContent = `${listManager.currentLists.visited.restaurants?.length || 0} restaurants`;
+      }
+      if (listManager.currentLists.wantToGo) {
+        document.getElementById('wantToGoCount').textContent = `${listManager.currentLists.wantToGo.restaurants?.length || 0} restaurants`;
+      }
+      
+      // Update custom lists
+      updateCustomListCounts();
+    }
+
+    // Function to update custom list counts
+    function updateCustomListCounts() {
+      const customListCards = document.querySelectorAll('.custom-list-card');
+      
+      customListCards.forEach(card => {
+        const listId = parseInt(card.getAttribute('data-list-id'));
+        const list = customLists.find(l => l.id === listId);
+        
+        if (list) {
+          const countElement = card.querySelector('.list-card-count');
+          if (countElement) {
+            countElement.textContent = `${list.restaurants?.length || 0} restaurants`;
+          }
+        }
+      });
+    }
+
     // Custom List Functions
     function showCreateListModal() {
       document.getElementById('createListModal').style.display = 'flex';
@@ -539,6 +573,7 @@
       customLists.forEach(list => {
         const listCard = document.createElement('div');
         listCard.className = 'list-card custom-list-card';
+        listCard.setAttribute('data-list-id', list.id);
         listCard.innerHTML = `
           <div class="list-icon">📋</div>
           <div class="list-card-title">${list.title}</div>
@@ -617,7 +652,31 @@
         `;
         
         tile.appendChild(clickableContent);
+        
+        // Add remove button for custom lists
+        const listActions = document.createElement('div');
+        listActions.className = 'list-actions';
+        listActions.innerHTML = `
+          <button class="list-btn remove" data-id="${r.id}" data-list="${list.id}" title="Remove from list">❌</button>
+        `;
+        tile.appendChild(listActions);
+        
         grid.appendChild(tile);
+      });
+
+      // Add event listeners for remove buttons
+      document.querySelectorAll('.list-btn.remove').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault(); 
+          e.stopPropagation();
+          const restaurantId = parseInt(btn.dataset.id);
+          const listId = parseInt(btn.dataset.list);
+          
+          await listManager.toggleInList(listId, restaurantId);
+          
+          // Refresh the current view
+          showCustomList(listId);
+        });
       });
     }
 
@@ -633,7 +692,8 @@
       async init() { 
         if (!currentUser) return;
         await this.loadUserLists();
-        this.updateListCounts();
+        await this.loadListRestaurants();
+        updateAllListCounts();
         await this.loadCustomLists();
       },
       
@@ -651,7 +711,6 @@
           
           this.userLists = lists || [];
           await this.setupDefaultLists();
-          await this.loadListRestaurants();
           
         } catch (error) {
           console.error('Error loading lists:', error);
@@ -713,21 +772,18 @@
         }
       },
       
-      updateListCounts() {
-        if (this.currentLists.favorites) {
-          document.getElementById('favoritesCount').textContent = `${this.currentLists.favorites.restaurants?.length || 0} restaurants`;
-        }
-        if (this.currentLists.visited) {
-          document.getElementById('visitedCount').textContent = `${this.currentLists.visited.restaurants?.length || 0} restaurants`;
-        }
-        if (this.currentLists.wantToGo) {
-          document.getElementById('wantToGoCount').textContent = `${this.currentLists.wantToGo.restaurants?.length || 0} restaurants`;
-        }
-      },
-      
       async toggleInList(listType, restaurantId) {
-        const list = this.currentLists[listType];
-        if (!list) return false;
+        let list;
+        
+        // Handle custom lists (by ID)
+        if (typeof listType === 'number') {
+          list = customLists.find(l => l.id === listType);
+          if (!list) return false;
+        } else {
+          // Handle default lists (by type)
+          list = this.currentLists[listType];
+          if (!list) return false;
+        }
         
         const isInList = list.restaurants?.includes(restaurantId);
         
@@ -763,7 +819,9 @@
             showNotification(`Added to ${list.title}`, "success");
           }
           
-          this.updateListCounts();
+          // Update all list counts
+          updateAllListCounts();
+          
           return !isInList;
           
         } catch (error) {
@@ -774,7 +832,14 @@
       },
       
       isInList(listType, restaurantId) {
-        const list = this.currentLists[listType];
+        let list;
+        
+        if (typeof listType === 'number') {
+          list = customLists.find(l => l.id === listType);
+        } else {
+          list = this.currentLists[listType];
+        }
+        
         return list?.restaurants?.includes(restaurantId) || false;
       },
 
@@ -791,6 +856,21 @@
           if (error) throw error;
           
           customLists = lists || [];
+          
+          // Load restaurants for each custom list
+          for (const list of customLists) {
+            const { data: listRestaurants, error } = await supabase
+              .from('lists_restraunts')
+              .select('restraunt_id')
+              .eq('list_id', list.id);
+            
+            if (!error && listRestaurants) {
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);
+            } else {
+              list.restaurants = [];
+            }
+          }
+          
           renderCustomLists();
           
         } catch (error) {
@@ -799,7 +879,7 @@
       }
     };
 
-    // Friend System
+    // Friend System (unchanged from your original code)
     const friendSystem = {
       async init() {
         if (!currentUser) return;
@@ -1318,7 +1398,7 @@
 
       currentUser = user;
 
-      // Load restaurants first from Supabase - THIS IS THE KEY FIX
+      // Load restaurants first from Supabase
       await loadRestaurants();
 
       // Determine if we're viewing own profile or another user's profile
