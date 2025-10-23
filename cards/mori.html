@@ -1397,5 +1397,29 @@ window.addEventListener('DOMContentLoaded', function() {
     
 });
 </script>
+<script>
+// Theme toggle functionality
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('restaurant-theme', theme);
+}
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  applyTheme(newTheme);
+}
+function initializeTheme() {
+  const savedTheme = localStorage.getItem('restaurant-theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else {
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+}
+themeToggle.addEventListener('click', toggleTheme);
+initializeTheme();
+</script>
 </body>
 </html>
