@@ -825,8 +825,11 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-        
-        /* Rest of the CSS remains the same for notifications and popups... */
+
+        /* Hidden class for Join Community button */
+        .hidden {
+            display: none !important;
+        }
 
         /* Responsive Design */
         @media (max-width: 1200px) {
@@ -884,6 +887,12 @@
             .footer-content {
                 grid-template-columns: repeat(2, 1fr);
             }
+            .stats {
+                gap: 20px;
+            }
+            .stat-value {
+                font-size: 24px;
+            }
         }
         
         @media (max-width:560px){
@@ -940,6 +949,13 @@
                 grid-template-columns: 1fr;
                 text-align: center;
             }
+            .category-filters {
+                gap: 8px;
+            }
+            .category-filter {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
         }
         
         @media (hover: none) and (pointer: coarse) { 
@@ -955,7 +971,6 @@
     </style>
 </head>
 <body>
-    <!-- The HTML content remains exactly the same -->
     <header class="nav" role="banner">
         <div class="left">
             <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
@@ -984,12 +999,10 @@
                     <h1 id="heroTitle">Discover Hidden Gems & Local Favorites</h1>
                     <p class="lead">Zo2y connects you with authentic dining experiences. From street food stalls to fine dining, find your next favorite meal based on real reviews from people who know food best.</p>
                     <div class="stats">
-                        <div class="stat"><span class="stat-value" id="restaurantCount">34</span><span class="stat-label">Restaurants</span></div>
-                        <div class="stat"><span class="stat-value" id="reviewCount">1.4K+</span><span class="stat-label">Reviews</span></div>
-                        <div class="stat"><span class="stat-value">4.5</span><span class="stat-label">Avg Rating</span></div>
+                        <div class="stat"><span class="stat-value" id="restaurantCount">46</span><span class="stat-label">Restaurants</span></div>
                     </div>
                     <div class="cta-row">
-                        <button class="btn-primary" id="mainCtaBtn"><span>Join the Community</span> →</button>
+                        <button class="btn-primary hidden" id="mainCtaBtn"><span>Join the Community</span> →</button>
                         <button class="btn-outline" onclick="location.href='restraunts.html'">Explore Restaurants</button>
                     </div>
                 </div>
@@ -1044,10 +1057,10 @@
 
     <footer>
         <div class="footer-content">
-            <div class="footer-column"><h3>Explore</h3><a href="restraunts.html">All Restaurants</a><a href="top-rated.html">Top Rated</a><a href="categories.html">By Category</a><a href="neighborhoods.html">By Neighborhood</a></div>
-            <div class="footer-column"><h3>Community</h3><a href="blog.html">Food Blog</a><a href="events.html">Food Events</a><a href="guides.html">Neighborhood Guides</a><a href="stories.html">User Stories</a></div>
-            <div class="footer-column"><h3>Business</h3><a href="add-restaurant.html">Add Your Restaurant</a><a href="advertise.html">Advertise</a><a href="partners.html">Partnerships</a></div>
-            <div class="footer-column"><h3>Support</h3><a href="about.html">About Zo2y</a><a href="contact.html">Contact Us</a><a href="help.html">Help Center</a><a href="terms.html">Terms & Privacy</a></div>
+            <div class="footer-column"><h3>Explore</h3><a href="restraunts.html">All Restaurants</a><a href="categories.html">By Category</a></div>
+            <div class="footer-column"><h3>Community</h3><a href="blog.html">Food Blog</a><a href="guides.html">Neighborhood Guides</a></div>
+            <div class="footer-column"><h3>Business</h3><a href="add-restaurant.html">Add Your Restaurant</a><a href="partners.html">Partnerships</a></div>
+            <div class="footer-column"><h3>Support</h3><a href="about.html">About Zo2y</a><a href="contact.html">Contact Us</a><a href="terms.html">Terms & Privacy</a></div>
         </div>
         <div class="footer-bottom">
             <div style="margin-bottom:8px">© 2025 Zo2y — Built with ❤️ for food lovers</div>
@@ -1061,252 +1074,63 @@
         <span class="notification-message"></span>
     </div>
 
-    <!-- Sign-in Popup -->
-    <div id="signupPopup" class="popup-overlay">
-        <div class="signup-popup">
-            <button class="popup-close" id="popupClose">&times;</button>
-            <div class="popup-header">
-                <div class="popup-avatar">🍽️</div>
-                <h2 class="popup-title">Save Your Favorites</h2>
-                <p class="popup-subtitle">Create an account to save restaurants to your personal lists and get personalized recommendations</p>
-            </div>
-            <div class="popup-features">
-                <div class="popup-feature">
-                    <div class="popup-feature-icon">❤️</div>
-                    <span class="popup-feature-text">Save your favorite restaurants</span>
-                </div>
-                <div class="popup-feature">
-                    <div class="popup-feature-icon">📍</div>
-                    <span class="popup-feature-text">Create wishlists of places to try</span>
-                </div>
-                <div class="popup-feature">
-                    <div class="popup-feature-icon">🍽️</div>
-                    <span class="popup-feature-text">Track restaurants you've visited</span>
-                </div>
-                <div class="popup-feature">
-                    <div class="popup-feature-icon">⭐</div>
-                    <span class="popup-feature-text">Get personalized recommendations</span>
-                </div>
-            </div>
-            <div class="popup-actions">
-                <a href="signup.html" class="popup-btn popup-btn-primary">Sign Up Now</a>
-                <a href="login.html" class="popup-btn popup-btn-secondary">Log In</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript remains exactly the same -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-    // All the JavaScript code remains exactly the same as in your original file
     (function(){
       // ---------- CONFIG ----------
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // ---------- POPUP MANAGEMENT ----------
-      const signupPopup = document.getElementById('signupPopup');
-      const popupClose = document.getElementById('popupClose');
-      
-      function showSignupPopup() {
-        signupPopup.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-      
-      function hideSignupPopup() {
-        signupPopup.classList.remove('active');
-        document.body.style.overflow = '';
-      }
-      
-      popupClose.addEventListener('click', hideSignupPopup);
-      signupPopup.addEventListener('click', function(e) {
-        if (e.target === signupPopup) {
-          hideSignupPopup();
-        }
-      });
-      
-      // Close popup with Escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && signupPopup.classList.contains('active')) {
-          hideSignupPopup();
-        }
-      });
-
-      // ---------- LIST MANAGEMENT ----------
-      const listManager = {
-        userLists: [],
-        currentLists: {
-          favorites: null,
-          visited: null,
-          wantToGo: null
-        },
-        
-        async init() { 
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session) return;
-          
-          await this.loadUserLists();
-        },
-        
-        async loadUserLists() {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: lists, error } = await supabase
-              .from('lists')
-              .select('*')
-              .eq('user_id', user.id);
-            
-            if (error) throw error;
-            
-            this.userLists = lists || [];
-            await this.setupDefaultLists();
-            await this.loadListRestaurants();
-            
-          } catch (error) {
-            console.error('Error loading lists:', error);
-          }
-        },
-        
-        async setupDefaultLists() {
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-          this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-          this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-          
-          if (!this.currentLists.favorites) {
-            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-          }
-          if (!this.currentLists.visited) {
-            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-          }
-          if (!this.currentLists.wantToGo) {
-            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-          }
-        },
-        
-        async createList(title, description) {
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          const { data: newList, error } = await supabase
-            .from('lists')
-            .insert([
-              {
-                user_id: user.id,
-                title: title,
-                description: description
-              }
-            ])
-            .select()
-            .single();
-          
-          if (error) {
-            console.error('Error creating list:', error);
-            return null;
-          }
-          
-          this.userLists.push(newList);
-          return newList;
-        },
-        
-        async loadListRestaurants() {
-          for (const listType in this.currentLists) {
-            const list = this.currentLists[listType];
-            if (list) {
-              const { data: listRestaurants, error } = await supabase
-                .from('lists_restraunts')
-                .select('restraunt_id')
-                .eq('list_id', list.id);
-              
-              if (!error && listRestaurants) {
-                list.restaurants = listRestaurants.map(item => item.restraunt_id);
-              } else {
-                list.restaurants = [];
-              }
-            }
-          }
-        },
-        
-        async toggleInList(listType, restaurantId) {
-          const list = this.currentLists[listType];
-          if (!list) return false;
-          
-          const isInList = list.restaurants?.includes(restaurantId);
-          
-          try {
-            if (isInList) {
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .delete()
-                .match({
-                  list_id: list.id,
-                  restraunt_id: restaurantId
-                });
-              
-              if (error) throw error;
-              
-              list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-              showNotification(`Removed from ${list.title}`, "info");
-              
-            } else {
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .insert([
-                  {
-                    list_id: list.id,
-                    restraunt_id: restaurantId,
-                    added_at: new Date().toISOString()
-                  }
-                ]);
-              
-              if (error) throw error;
-              
-              if (!list.restaurants) list.restaurants = [];
-              list.restaurants.push(restaurantId);
-              showNotification(`Added to ${list.title}`, "success");
-            }
-            
-            return !isInList;
-            
-          } catch (error) {
-            console.error('Error updating list:', error);
-            showNotification('Error saving changes', 'error');
-            return isInList;
-          }
-        },
-        
-        isInList(listType, restaurantId) {
-          const list = this.currentLists[listType];
-          return list?.restaurants?.includes(restaurantId) || false;
-        }
-      };
-
-      // Custom notification function
-      function showNotification(message, type = "info") {
-        const notification = document.getElementById("customNotification");
-        const icon = notification.querySelector(".notification-icon");
-        const messageEl = notification.querySelector(".notification-message");
-        
-        messageEl.textContent = message;
-        notification.className = `custom-notification notification-${type}`;
-        
-        if (type === "success") {
-          icon.className = "notification-icon fas fa-check-circle";
-        } else if (type === "error") {
-          icon.className = "notification-icon fas fa-exclamation-circle";
-        } else {
-          icon.className = "notification-icon fas fa-info-circle";
-        }
-        
-        notification.classList.add("notification-show");
-        
-        setTimeout(() => {
-          notification.classList.remove("notification-show");
-        }, 2500);
-      }
+      // ---------- RESTAURANT DATA - SYNCED WITH RESTRAUNTS.HTML ----------
+      const restaurants = [
+        { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png', link: 'cards/mori.html', tags: ['japanese', 'sushi']},
+        { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', link: 'cards/kilo.html', tags: ['middle-eastern', 'kebab']},
+        { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png', link: 'cards/hameed.html', tags: ['middle-eastern', 'fast-food']},
+        { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg', link: 'cards/bazooka.html', tags: ['burgers', 'fried-chicken']},
+        { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg', link: 'cards/mexican.html', tags: ['mexican', 'street-food']},
+        { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png', link: 'cards/chikin.html', tags: ['chicken']},
+        { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg', link: 'cards/vasko.html', tags: ['cafe', 'coffee']},
+        { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png', link: 'cards/secondcup.html', tags: ['cafe', 'coffee']},
+        { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png', link: 'cards/station.html', tags: ['pizza']},
+        { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg', link: 'cards/brgr.html', tags: ['burgers']},
+        { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg', link: 'cards/country.html', tags: ['fast-food']},
+        { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png', link: 'cards/bayoki.html', tags: ['chicken']},
+        { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg', link: 'cards/maine.html', tags: ['burgers']},
+        { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png', link: 'cards/barbar.html', tags: ['middle-eastern']},
+        { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg', link: 'cards/labash.html', tags: ['chicken']},
+        { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg', link: 'cards/pickl.html', tags: ['burgers']},
+        { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg', link: 'cards/akleh.html', tags: ['middle-eastern']},
+        { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png', link: 'cards/howlin.html', tags: ['chicken']},
+        { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg', link: 'cards/sauce.html', tags: ['burgers']},
+        { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png', link: 'cards/papa.html', tags: ['cafe']},
+        { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png', link: 'cards/qasr.html', tags: ['middle-eastern']},
+        { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg', link: 'cards/heart.html', tags: ['chicken']},
+        { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png', link: 'cards/what.html', tags: ['pizza']},
+        { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg', link: 'cards/buffalo.html', tags: ['burgers']},
+        { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg', link: 'cards/mince.html', tags: ['burgers']},
+        { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg', link: 'cards/88.html', tags: ['pizza']},
+        { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png', link: 'cards/kansas.html', tags: ['chicken']},
+        { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png', link: 'cards/ward.html', tags: ['middle-eastern']},
+        { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png', link: 'cards/willys.html', tags: ['burgers']},
+        { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg', link: 'cards/butchers.html', tags: ['burgers']},
+        { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png', link: 'cards/hashville.html', tags: ['chicken']},
+        { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg', link: 'cards/dawgs.html', tags: ['burgers']},
+        { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg', link: 'cards/holmes.html', tags: ['burgers']},
+        { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg', link: 'cards/ribs.html', tags: ['bbq']},
+        { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', desc:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png', link: 'cards/peking.html', tags: ['asian']},
+        { id: 36, slug:'wok', name:'Wok and Walk', category:'Asian', desc:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png', link: 'cards/wok.html', tags: ['asian']},
+        { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png', link: 'cards/daddy.html', tags: ['burgers']},
+        { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg', link: 'cards/husk.html', tags: ['burgers']},
+        { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg', link: 'cards/crispy.html', tags: ['chicken']},
+        { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png', link: 'cards/lord.html', tags: ['chicken']},
+        { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', desc:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg', link: 'cards/chez.html', tags: ['chicken']},
+        { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', desc:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'mario.jpg', link: 'cards/mario.html', tags: ['burgers']},
+        { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', desc:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg', link: 'cards/crumbs.html', tags: ['breakfast']},
+        { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', desc:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'man.png', link: 'cards/man.html', tags: ['middle-eastern']},
+        { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.png', link: 'cards/pasta.html', tags: ['italian']},
+        { id: 46, slug:'crave', name:'Crave', category:'Seafood', desc:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.png', link: 'cards/crave.html', tags: ['seafood']}
+      ];
 
       // ---------- ACCOUNT BUTTON LOGIC ----------
       const accountBtn = document.getElementById('userAccountBtn');
@@ -1358,9 +1182,6 @@
             // Hide the Join Community button if user is logged in
             mainCtaBtn.classList.add('hidden');
 
-            // Initialize list manager when user is logged in
-            await listManager.init();
-
           } else {
             setAccountText('Account');
             accountBtn.onclick = () => location.href = 'login.html';
@@ -1398,29 +1219,7 @@
         });
       }
 
-      // ---------- RESTAURANT DATA ----------
-      const restaurants = [
-        { id: 1, slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving fresh rolls & nigiri.', rating:4.7, reviews: 142, image: 'mori.png', link: 'cards/mori.html', tags: ['japanese', 'sushi']},
-        { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, reviews: 89, image: 'kilo.png', link: 'cards/kilo.html', tags: ['middle-eastern', 'kebab']},
-        { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, reviews: 67, image: 'hameed.png', link: 'cards/hameed.html', tags: ['middle-eastern', 'fast-food']},
-        { id: 4, slug:'bazooka', name:'Bazooka', category:'Burger & Fried Chicken', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, reviews: 54, image: 'bazooka.jpg', link: 'cards/bazooka.html', tags: ['burgers', 'fried-chicken']},
-        { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, reviews: 43, image: 'mexican.jpg', link: 'cards/mexican.html', tags: ['mexican', 'street-food']},
-        { id: 6, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Middle Eastern cuisine with a modern twist.', rating:4.6, reviews: 78, image: 'akleh.jpg', link: 'cards/akleh.html', tags: ['middle-eastern']},
-        { id: 7, slug:'barbar', name:'Barbar', category:'Lebanese', desc:'Traditional Lebanese dishes in a cozy atmosphere.', rating:4.4, reviews: 65, image: 'barbar.png', link: 'cards/barbar.html', tags: ['middle-eastern', 'lebanese']},
-        { id: 8, slug:'bayoki', name:'Bayoki', category:'Middle Eastern', desc:'Fusion of Middle Eastern flavors with international cuisine.', rating:4.3, reviews: 52, image: 'bayoki.png', link: 'cards/bayoki.html', tags: ['middle-eastern']},
-        { id: 9, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with creative toppings and sides.', rating:4.5, reviews: 91, image: 'brgr.jpg', link: 'cards/brgr.html', tags: ['burgers']},
-        { id: 10, slug:'chikin', name:'Chikin', category:'Fried Chicken', desc:'Crispy fried chicken with a variety of sauces and sides.', rating:4.2, reviews: 48, image: 'chikin.png', link: 'cards/chikin.html', tags: ['fried-chicken']},
-        { id: 11, slug:'country', name:'Country', category:'American', desc:'Classic American comfort food in a rustic setting.', rating:4.1, reviews: 39, image: 'country.jpg', link: 'cards/country.html', tags: ['american']},
-        { id: 12, slug:'howlin', name:'Howlin', category:'Burgers', desc:'Bold flavors and creative burger combinations.', rating:4.4, reviews: 73, image: 'howlin.png', link: 'cards/howlin.html', tags: ['burgers']},
-        { id: 13, slug:'labash', name:'Labash', category:'Middle Eastern', desc:'Traditional Middle Eastern street food with modern flair.', rating:4.3, reviews: 58, image: 'labash.jpg', link: 'cards/labash.html', tags: ['middle-eastern', 'street-food']},
-        { id: 14, slug:'maine', name:'Maine', category:'Seafood', desc:'Fresh seafood dishes inspired by coastal cuisine.', rating:4.6, reviews: 84, image: 'maine.jpg', link: 'cards/maine.html', tags: ['seafood']},
-        { id: 15, slug:'pickl', name:'Pickl', category:'Sandwiches', desc:'Specialty sandwiches with house-made pickles and sauces.', rating:4.2, reviews: 46, image: 'pickl.jpg', link: 'cards/pickl.html', tags: ['sandwiches']},
-        { id: 16, slug:'sauce', name:'Sauce', category:'International', desc:'Global cuisine with signature sauces and flavors.', rating:4.3, reviews: 61, image: 'sauce.jpg', link: 'cards/sauce.html', tags: ['international']},
-        { id: 17, slug:'secondcup', name:'Second Cup', category:'Coffee Shop', desc:'Premium coffee, teas, and light snacks in a cozy setting.', rating:4.4, reviews: 72, image: 'secondcup.png', link: 'cards/secondcup.html', tags: ['cafe', 'coffee']},
-        { id: 18, slug:'vasko', name:'Vasko', category:'Cafe', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.5, reviews: 88, image: 'vasko.jpg', link: 'cards/vasko.html', tags: ['cafe', 'coffee']}
-      ];
-
-      // ---------- CARD CREATION WITH LIST BUTTONS ----------
+      // ---------- CARD CREATION ----------
       const featuredSlider = document.getElementById('featuredSlider');
       const trendingSlider = document.getElementById('trendingSlider');
 
@@ -1429,7 +1228,7 @@
         el.className = 'card'; 
         el.setAttribute('data-categories', r.tags.join(' '));
         
-        // Create clickable content - FIXED: Make entire card clickable
+        // Create clickable content
         const clickableContent = document.createElement('a');
         clickableContent.href = r.link;
         clickableContent.style.textDecoration = 'none';
@@ -1455,20 +1254,10 @@
         
         el.appendChild(clickableContent);
         
-        // Add list buttons - FIXED: Proper positioning and event handling
-        const listActions = document.createElement('div');
-        listActions.className = 'list-actions';
-        listActions.innerHTML = `
-          <button class="list-btn favorite" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
-          <button class="list-btn want-to-go" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
-          <button class="list-btn visited" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
-        `;
-        el.appendChild(listActions);
-        
         return el;
       }
 
-      async function initCards(){
+      function initCards(){
         featuredSlider.innerHTML = ''; 
         trendingSlider.innerHTML = '';
         
@@ -1483,75 +1272,12 @@
             trendingSlider.appendChild(trendingCard); 
           }
         });
-
-        // Add event listeners for list buttons
-        await addListButtonListeners();
-      }
-
-      async function addListButtonListeners() {
-        // Update button states for logged-in users
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          document.querySelectorAll('.list-btn').forEach(btn => {
-            const restaurantId = parseInt(btn.dataset.id);
-            const listType = btn.dataset.list;
-            const isInList = listManager.isInList(listType, restaurantId);
-            btn.classList.toggle('active', isInList);
-          });
-        }
-
-        // Add click handlers for list buttons - FIXED: Show popup instead of redirecting
-        document.querySelectorAll('.list-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.preventDefault(); 
-            e.stopPropagation();
-            
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-              showSignupPopup();
-              return;
-            }
-
-            const restaurantId = parseInt(btn.dataset.id);
-            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-            btn.classList.toggle('active', wasAdded);
-          });
-        });
-
-        // Touch support for mobile
-        document.querySelectorAll('.list-btn').forEach(btn => {
-          btn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          });
-          
-          btn.addEventListener('touchend', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-              showSignupPopup();
-              return;
-            }
-
-            const restaurantId = parseInt(btn.dataset.id);
-            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-            btn.classList.toggle('active', wasAdded);
-          });
-        });
       }
 
       // ---------- OTHER UI FUNCTIONS ----------
       function calculateStats() {
         const restaurantCount = restaurants.length;
-        const totalReviews = restaurants.reduce((sum, r) => sum + r.reviews, 0);
-        const avgRating = (restaurants.reduce((sum, r) => sum + r.rating, 0) / restaurantCount).toFixed(1);
-        
         document.getElementById('restaurantCount').textContent = restaurantCount;
-        document.getElementById('reviewCount').textContent = totalReviews;
-        const statEls = document.querySelectorAll('.stat-value'); 
-        if (statEls.length) statEls[2].textContent = avgRating;
       }
 
       // Category filters
