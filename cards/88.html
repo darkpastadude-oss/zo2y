@@ -659,6 +659,7 @@
 
 
 
+
 <!-- Load Supabase First -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -738,141 +739,344 @@ window.addEventListener('DOMContentLoaded', function() {
         }
 
         injectListMenu() {
-            // Create the button
-            const btn = document.createElement('button');
-            btn.innerHTML = '⋮';
-            btn.className = 'list-menu-btn';
-            btn.style.cssText = `
-                position: fixed !important; 
-                top: 20px !important; 
-                left: 20px !important; 
-                background: #f59e0b !important; 
-                color: #0b1633 !important; 
-                border: none !important; 
-                width: 50px !important; 
-                height: 50px !important; 
-                border-radius: 50% !important; 
-                font-size: 24px !important; 
-                font-weight: bold !important; 
-                cursor: pointer !important; 
-                z-index: 10000 !important; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
+            // Create the floating action button
+            const fab = document.createElement('div');
+            fab.className = 'list-manager-fab';
+            fab.innerHTML = `
+                <div class="fab-main">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </div>
+                <div class="fab-tooltip">Save to Lists</div>
             `;
             
-            // Add dropdown styles
+            // Add FAB styles
             const styles = `
-                .list-dropdown {
-                    position: fixed; 
-                    top: 80px; 
-                    left: 20px; 
-                    background: #132347; 
-                    border: 1px solid #f59e0b; 
-                    border-radius: 10px; 
-                    padding: 15px; 
-                    min-width: 280px; 
-                    display: none; 
-                    z-index: 10000;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                    max-height: 400px;
-                    overflow-y: auto;
+                .list-manager-fab {
+                    position: fixed !important;
+                    bottom: 30px !important;
+                    right: 30px !important;
+                    z-index: 10000 !important;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
                 }
+                
+                .fab-main {
+                    width: 60px !important;
+                    height: 60px !important;
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+                    border-radius: 50% !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    cursor: pointer !important;
+                    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    border: none !important;
+                    color: white !important;
+                    position: relative !important;
+                    overflow: hidden !important;
+                }
+                
+                .fab-main::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                    transition: left 0.5s;
+                }
+                
+                .fab-main:hover::before {
+                    left: 100%;
+                }
+                
+                .fab-main:hover {
+                    transform: scale(1.1) rotate(90deg) !important;
+                    box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
+                }
+                
+                .fab-main:active {
+                    transform: scale(0.95) !important;
+                }
+                
+                .fab-tooltip {
+                    position: absolute !important;
+                    bottom: 70px !important;
+                    right: 0 !important;
+                    background: #1e293b !important;
+                    color: white !important;
+                    padding: 8px 12px !important;
+                    border-radius: 6px !important;
+                    font-size: 12px !important;
+                    font-weight: 500 !important;
+                    white-space: nowrap !important;
+                    opacity: 0 !important;
+                    transform: translateY(10px) !important;
+                    transition: all 0.3s ease !important;
+                    pointer-events: none !important;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+                }
+                
+                .fab-main:hover + .fab-tooltip {
+                    opacity: 1 !important;
+                    transform: translateY(0) !important;
+                }
+                
+                .list-dropdown {
+                    position: fixed;
+                    bottom: 100px;
+                    right: 30px;
+                    background: #0f172a;
+                    border: 1px solid #334155;
+                    border-radius: 16px;
+                    padding: 20px;
+                    min-width: 320px;
+                    max-width: 400px;
+                    display: none;
+                    z-index: 10000;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+                    backdrop-filter: blur(20px);
+                    transform-origin: bottom right;
+                    animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                
+                @keyframes dropdownSlide {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.8) translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+                
                 .list-dropdown.show {
                     display: block !important;
                 }
-                .list-section {
-                    margin-bottom: 15px;
+                
+                .dropdown-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 20px;
+                    padding-bottom: 15px;
+                    border-bottom: 1px solid #334155;
                 }
-                .list-section-title {
-                    font-size: 12px;
+                
+                .dropdown-title {
+                    font-size: 18px;
+                    font-weight: 700;
                     color: #f59e0b;
+                    margin: 0;
+                }
+                
+                .close-btn {
+                    background: none;
+                    border: none;
+                    color: #64748b;
+                    cursor: pointer;
+                    padding: 8px;
+                    border-radius: 8px;
+                    transition: all 0.2s ease;
+                }
+                
+                .close-btn:hover {
+                    background: #1e293b;
+                    color: #f59e0b;
+                }
+                
+                .list-section {
+                    margin-bottom: 20px;
+                }
+                
+                .list-section-title {
+                    font-size: 11px;
+                    color: #94a3b8;
                     text-transform: uppercase;
                     font-weight: 600;
-                    margin-bottom: 8px;
+                    margin-bottom: 12px;
                     letter-spacing: 0.5px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
                 }
+                
+                .list-section-title::after {
+                    content: '';
+                    flex: 1;
+                    height: 1px;
+                    background: #334155;
+                    margin-left: 8px;
+                }
+                
                 .list-item { 
                     display: flex; 
                     align-items: center; 
                     gap: 12px; 
-                    padding: 10px 8px; 
+                    padding: 12px 10px; 
                     cursor: pointer; 
-                    border-radius: 6px;
+                    border-radius: 10px;
                     transition: all 0.2s ease;
+                    margin-bottom: 4px;
                 }
+                
                 .list-item:hover { 
                     background: rgba(245, 158, 11, 0.1); 
-                    color: #f59e0b; 
+                    transform: translateX(4px);
                 }
+                
                 .list-checkbox { 
-                    width: 18px; 
-                    height: 18px; 
-                    border: 2px solid #f59e0b;
-                    border-radius: 4px; 
+                    width: 20px; 
+                    height: 20px; 
+                    border: 2px solid #475569;
+                    border-radius: 6px; 
                     display: flex; 
                     align-items: center; 
                     justify-content: center; 
                     flex-shrink: 0;
+                    transition: all 0.2s ease;
+                    position: relative;
                 }
+                
                 .list-checkbox.checked { 
                     background: #f59e0b; 
+                    border-color: #f59e0b;
+                    animation: checkPop 0.3s ease;
                 }
+                
+                @keyframes checkPop {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.2); }
+                    100% { transform: scale(1); }
+                }
+                
                 .list-checkbox.checked::after { 
                     content: "✓"; 
-                    color: #0b1633; 
+                    color: #0f172a; 
                     font-size: 12px; 
                     font-weight: bold; 
                 }
+                
                 .list-item-text {
                     flex: 1;
                     font-size: 14px;
+                    font-weight: 500;
+                    color: #e2e8f0;
                 }
+                
+                .list-item:hover .list-item-text {
+                    color: #f59e0b;
+                }
+                
                 .new-list-section {
-                    border-top: 1px solid rgba(245, 158, 11, 0.3);
-                    padding-top: 15px;
-                    margin-top: 10px;
+                    border-top: 1px solid #334155;
+                    padding-top: 20px;
+                    margin-top: 15px;
                 }
+                
                 .new-list-input { 
                     width: 100%; 
-                    padding: 10px 12px; 
-                    background: #0b1633;
-                    border: 1px solid rgba(245, 158, 11, 0.5); 
-                    border-radius: 6px; 
+                    padding: 12px 16px; 
+                    background: #1e293b;
+                    border: 1px solid #475569; 
+                    border-radius: 10px; 
                     color: white; 
-                    margin-bottom: 10px;
-                    font-size: 14px;
-                }
-                .new-list-input:focus {
-                    outline: none;
-                    border-color: #f59e0b;
-                }
-                .add-list-btn { 
-                    background: #f59e0b; 
-                    color: #0b1633; 
-                    border: none;
-                    padding: 10px 16px; 
-                    border-radius: 6px; 
-                    cursor: pointer; 
-                    font-weight: bold; 
-                    width: 100%; 
+                    margin-bottom: 12px;
                     font-size: 14px;
                     transition: all 0.2s ease;
                 }
-                .add-list-btn:hover {
-                    background: #ffb84d;
+                
+                .new-list-input:focus {
+                    outline: none;
+                    border-color: #f59e0b;
+                    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
                 }
+                
+                .add-list-btn { 
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+                    color: #0f172a; 
+                    border: none;
+                    padding: 12px 20px; 
+                    border-radius: 10px; 
+                    cursor: pointer; 
+                    font-weight: 600; 
+                    width: 100%; 
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                
+                .add-list-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+                }
+                
+                .add-list-btn:active {
+                    transform: translateY(0);
+                }
+                
                 .list-divider {
                     height: 1px;
-                    background: rgba(245, 158, 11, 0.3);
-                    margin: 12px 0;
+                    background: linear-gradient(90deg, transparent, #334155, transparent);
+                    margin: 16px 0;
                 }
+                
                 .empty-custom-lists {
                     text-align: center;
-                    color: #cbd5e1;
-                    font-size: 12px;
-                    padding: 10px;
+                    color: #64748b;
+                    font-size: 13px;
+                    padding: 20px;
+                    font-style: italic;
+                }
+                
+                .auth-prompt {
+                    text-align: center;
+                    padding: 30px 20px;
+                    color: #94a3b8;
+                }
+                
+                .auth-prompt .icon {
+                    font-size: 48px;
+                    margin-bottom: 12px;
+                    opacity: 0.5;
+                }
+                
+                .auth-prompt .text {
+                    font-size: 14px;
+                    margin-bottom: 16px;
+                }
+                
+                .login-btn {
+                    background: #f59e0b;
+                    color: #0f172a;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .login-btn:hover {
+                    background: #ffb84d;
+                }
+                
+                /* Pulse animation for new lists */
+                @keyframes pulseGlow {
+                    0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+                    70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+                }
+                
+                .pulse {
+                    animation: pulseGlow 2s infinite;
                 }
             `;
             
@@ -884,36 +1088,63 @@ window.addEventListener('DOMContentLoaded', function() {
             const dropdown = document.createElement('div');
             dropdown.className = 'list-dropdown';
             
-            // Button click handler
-            btn.addEventListener('click', (e) => {
+            // FAB click handler
+            fab.addEventListener('click', (e) => {
                 e.stopPropagation();
                 dropdown.classList.toggle('show');
                 if (dropdown.classList.contains('show')) {
                     this.updateDropdown(dropdown);
+                    // Add pulse animation to FAB when dropdown is open
+                    fab.querySelector('.fab-main').classList.add('pulse');
+                } else {
+                    fab.querySelector('.fab-main').classList.remove('pulse');
                 }
             });
             
             // Close dropdown when clicking outside
             document.addEventListener('click', () => {
                 dropdown.classList.remove('show');
+                fab.querySelector('.fab-main').classList.remove('pulse');
             });
             
             dropdown.addEventListener('click', (e) => e.stopPropagation());
             
             // Add to page
-            document.body.appendChild(btn);
+            document.body.appendChild(fab);
             document.body.appendChild(dropdown);
             
-            console.log('✅ List Manager Button Added!');
+            console.log('✅ List Manager FAB Added!');
         }
 
         async updateDropdown(dropdown) {
-            dropdown.innerHTML = '<div style="font-size:16px;font-weight:600;color:#f59e0b;margin-bottom:15px;text-align:center;">Add to Lists</div>';
+            dropdown.innerHTML = `
+                <div class="dropdown-header">
+                    <h3 class="dropdown-title">💫 Save to Lists</h3>
+                    <button class="close-btn" onclick="this.closest('.list-dropdown').classList.remove('show')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            if (!this.currentUser) {
+                dropdown.innerHTML += `
+                    <div class="auth-prompt">
+                        <div class="icon">🔐</div>
+                        <div class="text">Sign in to save restaurants to your lists</div>
+                        <button class="login-btn" onclick="window.location.href='../login.html'">
+                            Sign In
+                        </button>
+                    </div>
+                `;
+                return;
+            }
 
             // Quick Actions Section
             const quickSection = document.createElement('div');
             quickSection.className = 'list-section';
-            quickSection.innerHTML = '<div class="list-section-title">Quick Actions</div>';
+            quickSection.innerHTML = '<div class="list-section-title">🌟 Quick Actions</div>';
             
             const quickLists = [
                 { id: 'favorites', name: '❤️ Favorites', icon: '❤️' },
@@ -943,7 +1174,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
                 const customSection = document.createElement('div');
                 customSection.className = 'list-section';
-                customSection.innerHTML = '<div class="list-section-title">Your Custom Lists</div>';
+                customSection.innerHTML = '<div class="list-section-title">📁 Your Collections</div>';
 
                 for (const list of this.customLists) {
                     const isInList = await this.checkIfCustomList(list.id);
@@ -958,15 +1189,29 @@ window.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 dropdown.appendChild(customSection);
+            } else {
+                const divider = document.createElement('div');
+                divider.className = 'list-divider';
+                dropdown.appendChild(divider);
+                
+                const emptySection = document.createElement('div');
+                emptySection.className = 'empty-custom-lists';
+                emptySection.innerHTML = 'No custom lists yet. Create your first one below! ✨';
+                dropdown.appendChild(emptySection);
             }
 
             // Create New List Section
             const newDiv = document.createElement('div');
             newDiv.className = 'new-list-section';
             newDiv.innerHTML = `
-                <div class="list-section-title">Create New List</div>
-                <input type="text" class="new-list-input" placeholder="Enter custom list name..." id="newListName">
-                <button class="add-list-btn">➕ Create Custom List</button>
+                <div class="list-section-title">🆕 Create New</div>
+                <input type="text" class="new-list-input" placeholder="What should we call your new list?" id="newListName">
+                <button class="add-list-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Create Custom List
+                </button>
             `;
             
             const input = newDiv.querySelector('input');
@@ -1002,7 +1247,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
         async toggleList(listType) {
             if (!this.currentUser || !this.restaurantId) {
-                alert('Please log in to use lists');
+                this.showNotification('Please log in to use lists', 'warning');
                 return;
             }
             
@@ -1020,12 +1265,12 @@ window.addEventListener('DOMContentLoaded', function() {
             if (isInList) {
                 await this.supabase.from('lists_restraunts').delete()
                     .match({ list_id: list.id, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${title}`);
+                this.showNotification(`Removed from ${title}`, 'info');
             } else {
                 await this.supabase.from('lists_restraunts').insert([
                     { list_id: list.id, restraunt_id: this.restaurantId }
                 ]);
-                this.showNotification(`Added to ${title}`);
+                this.showNotification(`Added to ${title} ✅`, 'success');
             }
             
             this.updateDropdown(document.querySelector('.list-dropdown'));
@@ -1033,7 +1278,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
         async toggleCustomList(listId) {
             if (!this.currentUser || !this.restaurantId) {
-                alert('Please log in to use lists');
+                this.showNotification('Please log in to use lists', 'warning');
                 return;
             }
             
@@ -1043,12 +1288,12 @@ window.addEventListener('DOMContentLoaded', function() {
             if (isInList) {
                 await this.supabase.from('lists_restraunts').delete()
                     .match({ list_id: listId, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${list.title}`);
+                this.showNotification(`Removed from ${list.title}`, 'info');
             } else {
                 await this.supabase.from('lists_restraunts').insert([
                     { list_id: listId, restraunt_id: this.restaurantId }
                 ]);
-                this.showNotification(`Added to ${list.title}`);
+                this.showNotification(`Added to ${list.title} ✅`, 'success');
             }
             
             this.updateDropdown(document.querySelector('.list-dropdown'));
@@ -1059,12 +1304,12 @@ window.addEventListener('DOMContentLoaded', function() {
             const name = input.value.trim();
             
             if (!name) {
-                alert('Please enter a list name');
+                this.showNotification('Please enter a list name', 'warning');
                 return;
             }
 
             if (!this.currentUser) {
-                alert('Please log in to create lists');
+                this.showNotification('Please log in to create lists', 'warning');
                 return;
             }
 
@@ -1075,34 +1320,52 @@ window.addEventListener('DOMContentLoaded', function() {
                 if (newList) {
                     this.customLists.push(newList);
                     input.value = '';
-                    this.showNotification(`Custom list "${name}" created!`);
+                    this.showNotification(`✨ "${name}" created!`, 'success');
                     this.updateDropdown(document.querySelector('.list-dropdown'));
                 }
             } catch (error) {
-                alert('Error creating list: ' + error.message);
+                this.showNotification('Error creating list: ' + error.message, 'error');
             }
         }
 
-        showNotification(message) {
-            // Simple notification
+        showNotification(message, type = 'info') {
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#3b82f6'
+            };
+            
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #10b981;
+                top: 30px;
+                right: 30px;
+                background: ${colors[type] || colors.info};
                 color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
+                padding: 16px 24px;
+                border-radius: 12px;
                 z-index: 10001;
-                font-weight: 500;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                font-weight: 600;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                transform: translateX(100%);
+                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                max-width: 300px;
+                word-wrap: break-word;
             `;
             notification.textContent = message;
             document.body.appendChild(notification);
             
+            // Animate in
             setTimeout(() => {
-                notification.remove();
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 400);
             }, 3000);
         }
     }
@@ -1113,30 +1376,6 @@ window.addEventListener('DOMContentLoaded', function() {
     }, 1000);
     
 });
-</script>
-<script>
-// Theme toggle functionality
-const themeToggle = document.getElementById('themeToggle');
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-  localStorage.setItem('restaurant-theme', theme);
-}
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  applyTheme(newTheme);
-}
-function initializeTheme() {
-  const savedTheme = localStorage.getItem('restaurant-theme');
-  if (savedTheme) {
-    applyTheme(savedTheme);
-  } else {
-    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  }
-}
-themeToggle.addEventListener('click', toggleTheme);
-initializeTheme();
 </script>
 </body>
 </html>
