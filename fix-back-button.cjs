@@ -24,7 +24,7 @@ fs.readdirSync(folderPath).forEach((file) => {
         if (content.includes("window.location.href='../index.html'")) {
             content = content.replace(
                 /window\.location\.href='\.\.\/index\.html'/g,
-                "window.location.href='../restaurant.html'"
+                "window.location.href='../restraunts.html'"
             );
             changesMade = true;
             console.log(`   ✅ Fixed window.location in ${file}`);
@@ -34,7 +34,7 @@ fs.readdirSync(folderPath).forEach((file) => {
         if (content.includes("onclick=\"window.location.href='../index.html'\"")) {
             content = content.replace(
                 /onclick="window\.location\.href='\.\.\/index\.html'"/g,
-                'onclick="window.location.href=\'../restaurant.html\'"'
+                'onclick="window.location.href=\'../restraunts.html\'"'
             );
             changesMade = true;
             console.log(`   ✅ Fixed onclick window.location in ${file}`);
@@ -44,7 +44,7 @@ fs.readdirSync(folderPath).forEach((file) => {
         if (content.includes("onclick=\"location.href='../index.html'\"")) {
             content = content.replace(
                 /onclick="location\.href='\.\.\/index\.html'"/g,
-                'onclick="location.href=\'../restaurant.html\'"'
+                'onclick="location.href=\'../restraunts.html\'"'
             );
             changesMade = true;
             console.log(`   ✅ Fixed onclick location.href in ${file}`);
@@ -54,7 +54,7 @@ fs.readdirSync(folderPath).forEach((file) => {
         if (content.includes("onclick='../index.html'")) {
             content = content.replace(
                 /onclick='\.\.\/index\.html'/g,
-                "onclick='../restaurant.html'"
+                "onclick='../restraunts.html'"
             );
             changesMade = true;
             console.log(`   ✅ Fixed simple onclick in ${file}`);
@@ -64,7 +64,7 @@ fs.readdirSync(folderPath).forEach((file) => {
         if (content.includes('href="../index.html"')) {
             content = content.replace(
                 /href="\.\.\/index\.html"/g,
-                'href="../restaurant.html"'
+                'href="../restraunts.html"'
             );
             changesMade = true;
             console.log(`   ✅ Fixed href attribute in ${file}`);
@@ -80,11 +80,11 @@ fs.readdirSync(folderPath).forEach((file) => {
 });
 
 console.log('\n🎉 BACK BUTTON FIX COMPLETE!');
-console.log('✅ All "Back to Restaurants" buttons now point to restaurant.html');
+console.log('✅ All "Back to Restaurants" buttons now point to restraunts.html');
 console.log('💾 Original files backed up as .backup files');
 console.log('\n📝 Summary of fixes:');
-console.log('   • window.location.href="../index.html" → window.location.href="../restaurant.html"');
-console.log('   • onclick="window.location.href=\'../index.html\'" → onclick="window.location.href=\'../restaurant.html\'"');
-console.log('   • onclick="location.href=\'../index.html\'" → onclick="location.href=\'../restaurant.html\'"');
-console.log('   • onclick=\'../index.html\' → onclick=\'../restaurant.html\'');
-console.log('   • href="../index.html" → href="../restaurant.html"');
+console.log('   • window.location.href="../index.html" → window.location.href="../restraunts.html"');
+console.log('   • onclick="window.location.href=\'../index.html\'" → onclick="window.location.href=\'../restraunts.html\'"');
+console.log('   • onclick="location.href=\'../index.html\'" → onclick="location.href=\'../restraunts.html\'"');
+console.log('   • onclick=\'../index.html\' → onclick=\'../restraunts.html\'');
+console.log('   • href="../index.html" → href="../restraunts.html"');
