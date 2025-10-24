@@ -15,48 +15,46 @@
     }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
     body {
-      background: var(--bg-color); min-height: 100vh; display: flex; 
-      justify-content: center; align-items: center; padding: 20px;
+      background: var(--bg-color); min-height: 100vh; padding: 20px;
       transition: var(--transition); color: var(--text-primary);
+      display: flex; flex-direction: column;
     }
-    .container {
-      display: flex; max-width: 1100px; width: 100%; border-radius: 20px; 
-      overflow: hidden; box-shadow: var(--shadow); background: var(--card-color);
-      transition: var(--transition);
+    
+    /* Header */
+    .header {
+      display: flex; justify-content: space-between; align-items: center; 
+      padding: 15px 0; margin-bottom: 20px; position: sticky; top: 0;
+      background: var(--bg-color); z-index: 100;
     }
-    .illustration {
-      flex: 1; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      padding: 40px; color: white; text-align: center; position: relative;
-    }
-    .logo-small { position: absolute; top: 20px; left: 20px; display: flex; align-items: center; }
-    .logo-small img { width: 35px; height: 35px; }
-    .logo-small span { color: white; font-weight: 600; font-size: 1.2rem; margin-left: 8px; }
-    .illustration h2 { font-size: 2rem; margin-bottom: 15px; font-weight: 600; }
-    .illustration p { font-size: 1rem; opacity: 0.9; max-width: 350px; margin-bottom: 30px; }
-    .feature-list { text-align: left; max-width: 350px; margin-top: 20px; }
-    .feature { display: flex; align-items: center; margin-bottom: 15px; }
-    .feature i { color: white; margin-right: 10px; font-size: 1.2rem; }
-    .form-container { flex: 1; padding: 50px 40px; display: flex; flex-direction: column; justify-content: center; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .logo { display: flex; align-items: center; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
-    .logo img { width: 40px; margin-right: 10px; }
+    .logo { display: flex; align-items: center; font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
+    .logo img { width: 35px; margin-right: 10px; }
     .theme-toggle {
-      background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 20px;
+      background: var(--card-color); border: 1px solid var(--border-color); border-radius: 20px;
       padding: 8px 15px; cursor: pointer; display: flex; align-items: center;
-      color: var(--text-primary); transition: var(--transition);
+      color: var(--text-primary); transition: var(--transition); font-size: 0.9rem;
     }
     .theme-toggle:hover { background: var(--primary-color); color: #0b1633; }
     .theme-toggle i { margin-right: 8px; }
-    .form-container h2 { font-size: 2rem; margin-bottom: 10px; color: var(--text-primary); font-weight: 600; }
-    .subtitle { color: var(--text-secondary); margin-bottom: 30px; font-size: 0.95rem; }
+    
+    /* Main Content */
+    .main-content {
+      max-width: 500px; width: 100%; margin: 0 auto; flex: 1;
+    }
+    .welcome-section { text-align: center; margin-bottom: 40px; }
+    .welcome-section h1 { font-size: 2.2rem; margin-bottom: 10px; font-weight: 700; }
+    .welcome-section p { color: var(--text-secondary); font-size: 1.1rem; }
+    
+    /* Form */
+    .form-container { background: var(--card-color); padding: 30px; border-radius: 20px; box-shadow: var(--shadow); }
+    .form-container h2 { font-size: 1.8rem; margin-bottom: 25px; text-align: center; }
+    
     .input-group { position: relative; margin-bottom: 20px; }
     .input-group i { 
       position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
       color: var(--text-secondary); transition: var(--transition); 
     }
     .form-container input {
-      width: 100%; padding: 14px 15px 14px 45px; border: 1px solid var(--border-color);
+      width: 100%; padding: 16px 15px 16px 45px; border: 1px solid var(--border-color);
       border-radius: 12px; font-size: 1rem; outline: none; transition: var(--transition);
       background-color: var(--bg-color); color: var(--text-primary);
     }
@@ -64,17 +62,19 @@
       border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); 
     }
     .form-container input:focus + i { color: var(--primary-color); }
+    
     .remember-forgot { 
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px; font-size: 0.9rem; 
+      margin-bottom: 25px; font-size: 0.9rem; 
     }
     .remember { display: flex; align-items: center; color: var(--text-secondary); }
     .remember input { margin-right: 8px; width: auto; }
     .forgot { color: var(--primary-color); text-decoration: none; transition: var(--transition); }
     .forgot:hover { text-decoration: underline; }
+    
     .form-container button {
-      width: 100%; padding: 14px; margin-top: 10px; background: var(--primary-color);
-      border: none; border-radius: 30px; color: #0b1633; font-size: 1rem; font-weight: 600;
+      width: 100%; padding: 16px; background: var(--primary-color);
+      border: none; border-radius: 12px; color: #0b1633; font-size: 1rem; font-weight: 600;
       cursor: pointer; transition: var(--transition); display: flex; justify-content: center; align-items: center;
     }
     .form-container button:hover { 
@@ -82,6 +82,7 @@
       box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3); 
     }
     .form-container button i { margin-left: 8px; }
+    
     .divider { 
       display: flex; align-items: center; margin: 25px 0; color: var(--text-secondary); 
     }
@@ -89,28 +90,75 @@
       content: ""; flex: 1; border-bottom: 1px solid var(--border-color); 
     }
     .divider span { padding: 0 15px; font-size: 0.9rem; }
+    
     .social-login { display: flex; gap: 15px; margin-bottom: 25px; }
     .social-btn {
-      flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px;
+      flex: 1; padding: 14px; border: 1px solid var(--border-color); border-radius: 12px;
       background: var(--bg-color); color: var(--text-primary); display: flex;
       justify-content: center; align-items: center; cursor: pointer; transition: var(--transition);
+      font-size: 0.9rem;
     }
     .social-btn:hover { 
       background: var(--primary-color); color: #0b1633; border-color: var(--primary-color); 
     }
-    .social-btn i { font-size: 1.2rem; margin-right: 8px; }
+    .social-btn i { font-size: 1.1rem; margin-right: 8px; }
+    
     .link { 
       text-align: center; color: var(--primary-color); text-decoration: none;
-      font-size: 0.95rem; transition: var(--transition); display: block; margin-top: 10px;
+      font-size: 0.95rem; transition: var(--transition); display: block; margin-top: 20px;
     }
     .link:hover { text-decoration: underline; }
+    
+    /* Features */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 30px;
+    }
+    .feature-card {
+      background: var(--card-color); padding: 20px; border-radius: 12px; 
+      text-align: center; transition: var(--transition); border: 1px solid var(--border-color);
+    }
+    .feature-card:hover {
+      transform: translateY(-5px); border-color: var(--primary-color);
+    }
+    .feature-icon {
+      width: 50px; height: 50px; background: var(--primary-color); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;
+    }
+    .feature-icon i { color: #0b1633; font-size: 1.2rem; }
+    .feature-card h3 { font-size: 0.95rem; margin-bottom: 5px; }
+    .feature-card p { font-size: 0.8rem; color: var(--text-secondary); }
+    
+    /* Notifications */
+    .custom-notification {
+      position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); z-index: 1000; display: flex;
+      align-items: center; max-width: 400px; transform: translateX(120%);
+      transition: transform 0.4s ease;
+    }
+    .notification-success { background: #10b981; color: white; }
+    .notification-error { background: #ef4444; color: white; }
+    .notification-show { transform: translateX(0); }
+    .notification-icon { margin-right: 10px; font-size: 1.2rem; }
+    
+    /* Mobile Responsive */
     @media (max-width: 768px) {
-      .container { flex-direction: column; }
-      .illustration, .form-container { padding: 30px 25px; }
-      .illustration h2 { font-size: 1.5rem; }
-      .logo-small { top: 15px; left: 15px; }
-      .logo-small img { width: 30px; height: 30px; }
-      .logo-small span { font-size: 1rem; }
+      body { padding: 15px; }
+      .header { margin-bottom: 15px; }
+      .welcome-section h1 { font-size: 1.8rem; }
+      .welcome-section p { font-size: 1rem; }
+      .form-container { padding: 25px 20px; }
+      .features-grid { grid-template-columns: 1fr; gap: 10px; }
+      .feature-card { padding: 15px; }
+      .social-login { flex-direction: column; }
+      .remember-forgot { flex-direction: column; gap: 10px; align-items: flex-start; }
+    }
+    
+    @media (max-width: 480px) {
+      .logo { font-size: 1.3rem; }
+      .logo img { width: 30px; }
+      .theme-toggle { padding: 6px 12px; font-size: 0.8rem; }
+      .welcome-section h1 { font-size: 1.6rem; }
+      .form-container h2 { font-size: 1.5rem; }
     }
   </style>
   
@@ -118,49 +166,27 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="illustration">
-      <div class="logo-small">
-        <img src="images/logo.png" alt="Zo2y Logo" />
-        <span>Zo2y</span>
-      </div>
-      <h2>Welcome Back Foodie!</h2>
-      <p>We're excited to see you again. Login to access your account and continue your culinary journey with us.</p>
-      
-      <div class="feature-list">
-        <div class="feature">
-          <i class="fas fa-utensils"></i>
-          <span>Discover new restaurants</span>
-        </div>
-        <div class="feature">
-          <i class="fas fa-heart"></i>
-          <span>Save your favorites</span>
-        </div>
-        <div class="feature">
-          <i class="fas fa-star"></i>
-          <span>Rate and review places</span>
-        </div>
-        <div class="feature">
-          <i class="fas fa-users"></i>
-          <span>Connect with food lovers</span>
-        </div>
-      </div>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <img src="images/logo.png" alt="Zo2y Logo" />
+      <span>Zo2y</span>
+    </div>
+    <div class="theme-toggle" id="themeToggle">
+      <i class="fas fa-sun"></i>
+      <span>Light Mode</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="welcome-section">
+      <h1>Welcome Back! 👋</h1>
+      <p>Sign in to continue your food journey</p>
     </div>
 
     <div class="form-container">
-      <div class="header">
-        <div class="logo">
-          <img src="images/logo.png" alt="Zo2y Logo" />
-          <span>Zo2y</span>
-        </div>
-        <div class="theme-toggle" id="themeToggle">
-          <i class="fas fa-moon"></i>
-          <span>Dark Mode</span>
-        </div>
-      </div>
-
-      <h2>Login to Your Account</h2>
-      <p class="subtitle">Welcome back! Please enter your details</p>
+      <h2>Login</h2>
 
       <form id="loginForm">
         <div class="input-group">
@@ -193,7 +219,7 @@
           <i class="fab fa-google"></i>
           <span>Google</span>
         </div>
-        <div class="social-btn">
+        <div class="social-btn" id="facebookLogin">
           <i class="fab fa-facebook-f"></i>
           <span>Facebook</span>
         </div>
@@ -201,6 +227,44 @@
 
       <a href="sign-up.html" class="link">Don't have an account? Sign Up</a>
     </div>
+
+    <!-- Features Grid -->
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-utensils"></i>
+        </div>
+        <h3>Discover</h3>
+        <p>Find amazing restaurants</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-heart"></i>
+        </div>
+        <h3>Save</h3>
+        <p>Bookmark favorites</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <h3>Review</h3>
+        <p>Share experiences</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h3>Connect</h3>
+        <p>Meet food lovers</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  <div id="customNotification" class="custom-notification">
+    <i class="notification-icon"></i>
+    <span class="notification-message"></span>
   </div>
 
   <script type="module">
@@ -212,19 +276,18 @@
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     document.addEventListener("DOMContentLoaded", async () => {
-      // auto redirect if logged in
+      // Auto redirect if already logged in
       const { data: session } = await supabase.auth.getSession();
       if (session.session) {
         window.location.href = "index.html";
         return;
       }
 
-      // theme toggle
+      // Theme toggle
       const themeToggle = document.getElementById("themeToggle");
       const themeIcon = themeToggle.querySelector("i");
       const themeText = themeToggle.querySelector("span");
       
-      // Set initial theme to dark (matching your app)
       document.body.classList.add("dark-theme");
       themeIcon.className = "fas fa-sun";
       themeText.textContent = "Light Mode";
@@ -242,42 +305,82 @@
         }
       });
 
-      // login form
+      // Login form
       document.getElementById("loginForm").addEventListener("submit", async (e) => {
         e.preventDefault();
+        
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
+        
         const button = e.target.querySelector("button");
         const original = button.innerHTML;
 
         if (!email || !password) {
-          alert("Please enter both email and password");
+          showNotification("Please enter both email and password", "error");
           return;
         }
 
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
         button.disabled = true;
 
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          alert("❌ " + error.message);
-        } else {
-          alert("✅ Logged in successfully!");
-          window.location.href = "index.html";
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          
+          if (error) {
+            showNotification("❌ " + error.message, "error");
+          } else {
+            showNotification("✅ Logged in successfully!", "success");
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 1000);
+          }
+        } catch (error) {
+          showNotification("❌ An unexpected error occurred", "error");
         }
 
         button.innerHTML = original;
         button.disabled = false;
       });
 
-      // google login
+      // Social login
       document.getElementById("googleLogin").addEventListener("click", async () => {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: { redirectTo: window.location.origin + "/index.html" },
         });
-        if (error) alert("Google login failed: " + error.message);
+        if (error) showNotification("Google login failed: " + error.message, "error");
       });
+
+      document.getElementById("facebookLogin").addEventListener("click", async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "facebook",
+          options: { redirectTo: window.location.origin + "/index.html" },
+        });
+        if (error) showNotification("Facebook login failed: " + error.message, "error");
+      });
+
+      // Notification function
+      function showNotification(message, type) {
+        const notification = document.getElementById("customNotification");
+        const icon = notification.querySelector(".notification-icon");
+        const messageEl = notification.querySelector(".notification-message");
+        
+        notification.className = "custom-notification";
+        notification.classList.add(`notification-${type}`);
+        
+        if (type === "success") {
+          icon.className = "notification-icon fas fa-check-circle";
+        } else {
+          icon.className = "notification-icon fas fa-exclamation-circle";
+        }
+        
+        messageEl.textContent = message;
+        notification.classList.add("notification-show");
+        
+        setTimeout(() => {
+          notification.classList.remove("notification-show");
+        }, 5000);
+      }
     });
   </script>
 </body>
