@@ -328,6 +328,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 
 
+
 <!-- Load Supabase First -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1044,30 +1045,6 @@ window.addEventListener('DOMContentLoaded', function() {
     }, 1000);
     
 });
-</script>
-<script>
-// Theme toggle functionality
-const themeToggle = document.getElementById('themeToggle');
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-  localStorage.setItem('restaurant-theme', theme);
-}
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  applyTheme(newTheme);
-}
-function initializeTheme() {
-  const savedTheme = localStorage.getItem('restaurant-theme');
-  if (savedTheme) {
-    applyTheme(savedTheme);
-  } else {
-    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  }
-}
-themeToggle.addEventListener('click', toggleTheme);
-initializeTheme();
 </script>
 </body>
 </html>
