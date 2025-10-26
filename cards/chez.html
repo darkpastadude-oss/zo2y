@@ -1,80 +1,648 @@
-<link rel="icon" type="image/png" href="images/logo.png">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chez Koukou - Gourmet Chicken & Sandwiches</title>
+    
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root {
+  --bg: #fff;
+  --text: #333;
+  --text2: #666;
+  --nav-bg: #f8f9fa;
+  --nav-shadow: rgba(0,0,0,0.1);
+  --btn-bg: #FF6F00;
+  --btn-text: #fff;
+  --card: #f8f9fa;
+  --input-bg: #fff;
+  --input-text: #333;
+  --accent: #FF9800;
+  --egyptian-blue: #0033A0;
+  --egyptian-red: #CE1126;
+}
+[data-theme="dark"] {
+  --bg: #1e2a4a;
+  --text: #fff;
+  --text2: #cbd5e1;
+  --nav-bg: #2d3748;
+  --nav-shadow: rgba(255,255,255,0.1);
+  --btn-bg: #ff944d;
+  --btn-text: #111;
+  --card: #2d3748;
+  --input-bg: #2d3748;
+  --input-text: #fff;
+  --accent: #ff944d;
+  --egyptian-blue: #4a6bff;
+  --egyptian-red: #ff6b6b;
+}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
+.back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
+.back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
+.back-btn{display:flex;align-items:center;gap:6px}
+.back-btn:hover{transform:translateX(-3px)}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
+.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(45deg, rgba(255,152,0,0.05) 0%, transparent 50%);pointer-events:none}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
+.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
+.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
+h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
+.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
+.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
+.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
+.branch-card h3{margin-bottom:10px;font-size:1.2rem}
+.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
+.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-card a:hover{text-decoration:underline}
+.menu-categories{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.menu-category-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
+.menu-category-btn.active,.menu-category-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
+.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
+.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
+.menu-item span{color:var(--text2)}
+.menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
+.review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
+.review p{margin-bottom:5px;color:var(--text2)}
+.review p:first-child{font-weight:600;color:var(--text)}
+.review-form{margin-top:30px;display:flex;flex-direction:column;gap:15px}
+.review-form input,.review-form textarea{padding:12px;font-size:1rem;width:100%;border:1px solid var(--nav-shadow);border-radius:8px;background-color:var(--input-bg);color:var(--input-text);transition:all 0.3s ease}
+.review-form input:focus,.review-form textarea:focus{outline:none;border-color:#FF9800;box-shadow:0 0 0 2px rgba(255,152,0,0.2)}
+.review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
+.review-form button:hover{transform:scale(1.05)}
+footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
+.branch-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.branch-filter-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease}
+.branch-filter-btn.active,.branch-filter-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
+.hidden{display:none}
+.popular-badge{background:#FF9800;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
+@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+</style></head>
+<body>
 
+<div class="top-stripe">
+    <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+    <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
 
+<section class="hero">
+    <img src="../images/chez.jpg" alt="Chez Koukou Logo" class="logo" onclick="window.location.href='../index.html'">
+    <h1>Chez Koukou</h1>
+    <p>Specializing in gourmet chicken sandwiches, crispy strips, and delicious meals with unique sauces and flavors.</p>
+    <div class="rating">⭐ 4.5/5 (1,200+ reviews)</div>
 
-<!-- List Manager - CLEAN VERSION -->
+    <a href="tel:16737" class="btn">Call Hotline: 16737</a>
+    <a href="https://www.instagram.com/chezkoukou_/?hl=en" target="_blank" class="btn secondary">View Instagram</a>
+</section>
 
+<section class="section">
+    <h2>Contact & Branches</h2>
+    <div class="hotline">
+        <strong>Hotline:</strong> <a href="tel:16737">16737</a>
+        <strong>Instagram:</strong> <a href="https://www.instagram.com/chezkoukou_/?hl=en" target="_blank">@chezkoukou_</a>
+    </div>
 
-<!-- List Manager - CLEAN VERSION -->
-<script>
-(function() {
-    console.log('🚀 Loading clean list manager...');
-
-    // create button (no async/await)
-    const btn = document.createElement('button');
-    btn.innerHTML = '⋮';
-    btn.style.cssText = `
-        position: fixed !important; 
-        top: 20px !important; 
-        left: 20px !important; 
-        background: #f59e0b !important; 
-        color: #0b1633 !important; 
-        border: none !important; 
-        width: 50px !important; 
-        height: 50px !important; 
-        border-radius: 50% !important; 
-        font-size: 24px !important; 
-        font-weight: bold !important; 
-        cursor: pointer !important; 
-        z-index: 10000 !important; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-    `;
-
-    // dropdown
-    const dropdown = document.createElement('div');
-    dropdown.style.cssText = `
-        position: fixed; 
-        top: 80px; 
-        left: 20px; 
-        background: #132347; 
-        border: 1px solid #f59e0b; 
-        border-radius: 10px; 
-        padding: 15px; 
-        min-width: 250px; 
-        display: none; 
-        z-index: 10000;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-    `;
-
-    dropdown.innerHTML = `
-        <div style="color:#f59e0b; font-weight:bold; margin-bottom:10px;">Add to Lists</div>
-        <div style="padding:8px 0; cursor:pointer;">❤️ Favorites</div>
-        <div style="padding:8px 0; cursor:pointer;">📍 Want to Go</div>
-        <div style="padding:8px 0; cursor:pointer;">🍽️ Visited</div>
-        <div style="border-top:1px solid #f59e0b; margin:10px 0; padding-top:10px;">
-            <div style="padding:8px 0; cursor:pointer;">➕ Create Custom List</div>
+    <div class="branches">
+        <div class="branch-card">
+            <h3>6th of October</h3>
+            <p>88 Street, Palm Hills<br>Open: 9:00 AM - 10:00 PM</p>
+            <a href="https://maps.google.com/search?q=Chez+Koukou+6th+of+October" target="_blank">📍 Get Directions</a>
         </div>
-    `;
+        
+        <div class="branch-card">
+            <h3>Nasr City</h3>
+            <p>20 Saudi Buildings, National Bank Street, behind City Stars<br>Open: 9:00 AM - 11:00 PM</p>
+            <a href="https://maps.google.com/search?q=Chez+Koukou+Nasr+City" target="_blank">📍 Get Directions</a>
+        </div>
+        
+        <div class="branch-card">
+            <h3>Mohandessin</h3>
+            <p>21 Nablus Street, intersection of Riyad Street and Shehab Street, In front of Marocains Cafe<br>Open: 9:00 AM - 10:45 PM</p>
+            <a href="https://maps.google.com/search?q=Chez+Koukou+Mohandessin" target="_blank">📍 Get Directions</a>
+        </div>
+        
+        <div class="branch-card">
+            <h3>New Cairo</h3>
+            <p>New Cairo (Delivery Only)<br>Open: 9:00 AM - 10:30 PM</p>
+            <a href="https://maps.google.com/search?q=Chez+Koukou+New+Cairo" target="_blank">📍 Get Directions</a>
+        </div>
+        
+        <div class="branch-card">
+            <h3>Maadi</h3>
+            <p>The Field, Victoria Square<br>Open: 9:00 AM - 11:00 PM</p>
+            <a href="https://maps.google.com/search?q=Chez+Koukou+Maadi" target="_blank">📍 Get Directions</a>
+        </div>
+    </div>
+</section>
 
-    // events
-    btn.addEventListener('click', e => {
-        e.stopPropagation();
-        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+<section class="section menu">
+    <h2>Our Menu</h2>
+    
+    <div class="menu-categories" id="menuCategories">
+        <button class="menu-category-btn active" data-category="all">All Items</button>
+        <button class="menu-category-btn" data-category="sandwiches">Fried Sandwiches</button>
+        <button class="menu-category-btn" data-category="grilled">Grilled Sandwiches</button>
+        <button class="menu-category-btn" data-category="meals">Shared Meals</button>
+        <button class="menu-category-btn" data-category="sides">Side Items</button>
+        <button class="menu-category-btn" data-category="sauces">Sauces</button>
+        <button class="menu-category-btn" data-category="drinks">Beverages</button>
+    </div>
+
+    <div class="menu-items-container">
+        <!-- Fried Sandwiches -->
+        <div class="menu-category-section" data-category="sandwiches">
+            <h3>Fried Sandwiches</h3>
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Ranchy Sandwich <span class="popular-badge">Popular</span></span>
+                    <div class="menu-item-description">A piece of crunchy chicken fillet, embraced by two toasted crisp brioche, doused with our special ranch sauce, topped with smoked turkey & cheese slice, with lettuce & tomato laying under</div>
+                </div>
+                <span>EGP 164.99 - 241.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Juicy Lucy Toast Sandwich</span>
+                    <div class="menu-item-description">2 pieces of crunchy chicken strips between 2 grilled buttered toasts loaded with cheese slices, lettuce & your choice of sauce fiery or ranch in a brioche toast</div>
+                </div>
+                <span>EGP 208.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Smokey Sandwich</span>
+                    <div class="menu-item-description">A piece of crunchy chicken fillet laying on a bed of lettuce, tomatoes, cheese sauce, our smoked sauce in a toasted brioche</div>
+                </div>
+                <span>EGP 164.99 - 241.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Fiery Sandwich</span>
+                    <div class="menu-item-description">A piece of crispy chicken fillet, lettuce, tomatoes, cheese, our spicy secret sauce in a toasted brioche</div>
+                </div>
+                <span>EGP 164.99 - 241.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Hustard Sandwich</span>
+                    <div class="menu-item-description">A piece of spicy crispy chicken fillet laying between two toasted brioche, drenched in Chez Koukou special honey mustard sauce, topped with rucola, tomato and cheese slice</div>
+                </div>
+                <span>EGP 164.99 - 241.99</span>
+            </div>
+        </div>
+
+        <!-- Grilled Sandwiches -->
+        <div class="menu-category-section" data-category="grilled">
+            <h3>Grilled Sandwiches</h3>
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Ranchy Grilled Sandwich</span>
+                    <div class="menu-item-description">A piece of tantalizing grilled chicken fillet marinated in a special turmeric marinade topped with smoked turkey and cheese embraced by a toasted crisp brioche droused with our special ranch, lettuce & tomato laying under</div>
+                </div>
+                <span>EGP 164.99 - 241.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Beast Sausage Sandwich</span>
+                    <div class="menu-item-description">Rolls of Italian sausage drenched with Texas sauce on top of crunchy lettuce all in between two brioche buns</div>
+                </div>
+                <span>EGP 230.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Hustard Grilled Sandwich</span>
+                    <div class="menu-item-description">A piece of tantalizing grilled chicken fillet marinated in a special turmeric marinade laying in a toasted brioche, drenched in Chez Koukous special honey mustard sauce, topped with rucola, tomato and cheese sauce</div>
+                </div>
+                <span class="price-note">Currently Unavailable</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Smokey Grilled Sandwich</span>
+                    <div class="menu-item-description">A piece of tantalizing grilled chicken fillet marinated in a special turmeric marinade on a bed of lettuce, tomatoes, cheese sauce, our smoked sauce in a toasted brioche</div>
+                </div>
+                <span class="price-note">Currently Unavailable</span>
+            </div>
+        </div>
+
+        <!-- Shared Meals -->
+        <div class="menu-category-section" data-category="meals">
+            <h3>Shared Meals</h3>
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Meal for 1 Person</span>
+                    <div class="menu-item-description">1 drumstick, 2 pcs of crispy strips of your choice with our signature coleslaw, 1 serving of sticky rozroz and soft brioche</div>
+                </div>
+                <span>EGP 241.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Meal for 2 Persons</span>
+                    <div class="menu-item-description">2 drumsticks, 4 pcs of crispy strips of your choice with 2 of our signature coleslaw, 2 serving of sticky rozroz and 2 fresh brioche</div>
+                </div>
+                <span>EGP 478.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>The Trio Bundle Meal</span>
+                    <div class="menu-item-description">3 pcs of crispy chicken with 1 fresh brioche, 1 pack of French fries, our signature coleslaw</div>
+                </div>
+                <span>EGP 340.99 - 406.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Chez Koukou Fiesta Meal</span>
+                    <div class="menu-item-description">4 pcs of our crunchy strips, i small rozroz, 1 pack of our French fries and our signature coleslaw</div>
+                </div>
+                <span>EGP 271.99 - 293.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Chez Koukou Family Meal</span>
+                    <div class="menu-item-description">9 pcs of crispy smoked spicy chicken with 3 fresh brioche, 2 packs of our French fries and our signature 2 coleslaw & 3 pepsi</div>
+                </div>
+                <span>EGP 962.99 - 1050.99</span>
+            </div>
+        </div>
+
+        <!-- Side Items -->
+        <div class="menu-category-section" data-category="sides">
+            <h3>Side Items</h3>
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>French Fries</span>
+                </div>
+                <span>EGP 71.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Pinky Coleslaw</span>
+                </div>
+                <span>EGP 43.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Smoked Rozroz</span>
+                    <div class="menu-item-description">Sticky spiced aromatic with chicken pieces</div>
+                </div>
+                <span>EGP 93.99 - 164.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Original Rozroz</span>
+                    <div class="menu-item-description">Sticky spiced aromatic with chicken pieces</div>
+                </div>
+                <span>EGP 76.99 - 137.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Cheezy Fries</span>
+                </div>
+                <span>EGP 87.99</span>
+            </div>
+        </div>
+
+        <!-- Sauces -->
+        <div class="menu-category-section" data-category="sauces">
+            <h3>Sauces</h3>
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Garlic Dip Sauce</span>
+                </div>
+                <span>EGP 26.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Special Honey Mustard Sauce</span>
+                </div>
+                <span>EGP 26.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Ranch Sauce</span>
+                </div>
+                <span>EGP 26.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Fiery Sauce</span>
+                </div>
+                <span>EGP 26.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Koukou White Secret Sauce</span>
+                </div>
+                <span>EGP 26.99</span>
+            </div>
+        </div>
+
+        <!-- Beverages -->
+        <div class="menu-category-section" data-category="drinks">
+            <h3>Beverages</h3>
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Pepsi</span>
+                </div>
+                <span>EGP 27.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>7 Up</span>
+                </div>
+                <span>EGP 27.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Mirinda Orange</span>
+                </div>
+                <span>EGP 27.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Mirinda Apple</span>
+                </div>
+                <span>EGP 27.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Water</span>
+                </div>
+                <span>EGP 16.99</span>
+            </div>
+            
+            <div class="menu-item">
+                <div style="flex: 1;">
+                    <span>Red Bull Energy Drink</span>
+                </div>
+                <span>EGP 64.99</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section reviews">
+    <h2>Customer Reviews</h2>
+    <div id="reviews-list">
+        <div class="review">
+            <p><strong>Ahmed S.</strong></p>
+            <p>The Ranchy Sandwich is absolutely delicious! Perfectly crispy chicken with amazing ranch sauce. Definitely my favorite!</p>
+        </div>
+        <div class="review">
+            <p><strong>Mona K.</strong></p>
+            <p>Their chicken strips are always perfectly cooked and the sauces are amazing. The honey mustard is my favorite!</p>
+        </div>
+        <div class="review">
+            <p><strong>Omar T.</strong></p>
+            <p>Great value for money with their meal deals. The family meal is perfect for our weekend gatherings.</p>
+        </div>
+        <div class="review">
+            <p><strong>Lina M.</strong></p>
+            <p>The Fiery Sandwich has the perfect amount of spice! Love the combination of flavors in their sandwiches.</p>
+        </div>
+        <div class="review">
+            <p><strong>Karim R.</strong></p>
+            <p>Their rozroz is unique and delicious! Perfect side to complement their amazing chicken sandwiches.</p>
+        </div>
+    </div>
+    
+    <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+    <form class="review-form" id="review-form">
+        <input type="text" placeholder="Your Name" id="reviewer" required>
+        <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+        <button type="submit">Submit Review</button>
+    </form>
+</section>
+
+<footer>
+    <p>© 2025 Zo2y. All rights reserved.</p>
+    <p style="margin-top: 10px; font-size: 0.8rem;">Chez Koukou - Gourmet Chicken & Sandwiches</p>
+    <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Follow us: @chezkoukou_ on Instagram</p>
+</footer>
+
+<script>
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    localStorage.setItem('chez-koukou-theme', theme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+}
+
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('chez-koukou-theme');
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+reviewForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const reviewer = document.getElementById('reviewer').value.trim();
+    const reviewText = document.getElementById('review-text').value.trim();
+    
+    if (reviewer && reviewText) {
+        const reviewElement = document.createElement('div');
+        reviewElement.className = 'review';
+        reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+        reviewsList.appendChild(reviewElement);
+        reviewForm.reset();
+        
+        const thankYouMessage = document.createElement('p');
+        thankYouMessage.textContent = 'Thank you for your review!';
+        thankYouMessage.style.color = '#FF9800';
+        thankYouMessage.style.fontWeight = '600';
+        thankYouMessage.style.marginTop = '10px';
+        reviewForm.appendChild(thankYouMessage);
+        
+        setTimeout(() => {
+            thankYouMessage.remove();
+        }, 3000);
+    }
+});
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+menuCategoryBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        const category = this.getAttribute('data-category');
+        
+        // Update active button
+        menuCategoryBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filter menu items
+        menuCategorySections.forEach(section => {
+            if (category === 'all' || section.getAttribute('data-category') === category) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
     });
+});
 
-    document.addEventListener('click', () => {
-        dropdown.style.display = 'none';
-    });
-
-    dropdown.addEventListener('click', e => {
-        e.stopPropagation();
-        alert('List functionality will work when logged in!');
-    });
-
-    // add to page
-    document.body.appendChild(btn);
-    document.body.appendChild(dropdown);
-
-    console.log('✅ CLEAN BUTTON ADDED!');
-})();
+// Initialize the page
+initializeTheme();
 </script>
+
+<script>
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    localStorage.setItem('restaurant-theme', theme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+}
+
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('restaurant-theme');
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+if (reviewForm && reviewsList) {
+    reviewForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reviewer = document.getElementById('reviewer').value.trim();
+        const reviewText = document.getElementById('review-text').value.trim();
+        
+        if (reviewer && reviewText) {
+            const reviewElement = document.createElement('div');
+            reviewElement.className = 'review';
+            reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+            reviewsList.appendChild(reviewElement);
+            reviewForm.reset();
+            
+            const thankYouMessage = document.createElement('p');
+            thankYouMessage.textContent = 'Thank you for your review!';
+            thankYouMessage.style.color = '#FF9800';
+            thankYouMessage.style.fontWeight = '600';
+            thankYouMessage.style.marginTop = '10px';
+            reviewForm.appendChild(thankYouMessage);
+            
+            setTimeout(() => {
+                thankYouMessage.remove();
+            }, 3000);
+        }
+    });
+}
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+if (menuCategoryBtns.length > 0) {
+    menuCategoryBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            
+            // Update active button
+            menuCategoryBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter menu items
+            menuCategorySections.forEach(section => {
+                if (category === 'all' || section.getAttribute('data-category') === category) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        });
+    });
+}
+
+// Branch Filter Functionality
+const branchFilterBtns = document.querySelectorAll('.branch-filter-btn');
+const branchCards = document.querySelectorAll('.branch-card');
+
+if (branchFilterBtns.length > 0) {
+    branchFilterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const location = this.getAttribute('data-location');
+            
+            // Update active button
+            branchFilterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter branches
+            branchCards.forEach(card => {
+                if (location === 'all' || card.getAttribute('data-location') === location) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+}
+
+// Initialize the page
+initializeTheme();
+</script></body>
+</html>
