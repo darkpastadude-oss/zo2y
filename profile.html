@@ -1033,6 +1033,119 @@
       opacity: 0.7;
     }
 
+    /* My Ratings Section */
+    .my-ratings-section {
+      background-color: #1e2f5c;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .ratings-filter {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .rating-filter-btn {
+      background: #0b1633;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #cbd5e1;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .rating-filter-btn.active {
+      background: #f59e0b;
+      color: #0b1633;
+      border-color: #f59e0b;
+    }
+
+    .rating-filter-btn:hover:not(.active) {
+      border-color: #f59e0b;
+      color: #f59e0b;
+    }
+
+    .rating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .rating-badge.like {
+      background: rgba(46, 213, 115, 0.2);
+      color: #2ed573;
+      border: 1px solid #2ed573;
+    }
+
+    .rating-badge.dislike {
+      background: rgba(255, 71, 87, 0.2);
+      color: #ff4757;
+      border: 1px solid #ff4757;
+    }
+
+    .rating-badge.neutral {
+      background: rgba(116, 125, 140, 0.2);
+      color: #747d8c;
+      border: 1px solid #747d8c;
+    }
+
+    /* Friends Ratings Section */
+    .friends-ratings-section {
+      background-color: #1e2f5c;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .friend-rating-card {
+      background: #0b1633;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .friend-rating-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .friend-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f59e0b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #0b1633;
+      font-size: 14px;
+    }
+
+    .friend-name {
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .friend-rating-restaurant {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 5px;
+    }
+
     /* Animation for swipe actions */
     @keyframes swipeRight {
       0% { transform: translateX(0) rotate(0); }
@@ -1124,6 +1237,8 @@
       <button class="profile-tab active" data-tab="profile">Profile</button>
       <button class="profile-tab" data-tab="social">Social</button>
       <button class="profile-tab" data-tab="taste-tracker">Taste Tracker</button>
+      <button class="profile-tab" data-tab="my-ratings">My Ratings</button>
+      <button class="profile-tab" data-tab="friends-taste">Friends' Taste</button>
     </div>
 
     <!-- Profile Tab Content -->
@@ -1273,6 +1388,37 @@
           <button class="taste-tracker-action-btn taste-tracker-like-btn" id="likeBtn">
             <i class="fas fa-heart"></i> Like
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Ratings Tab Content -->
+    <div class="tab-content" id="my-ratings-tab">
+      <div class="my-ratings-section">
+        <h3>My Restaurant Ratings</h3>
+        <p>See all the restaurants you've rated and filter by your preferences.</p>
+        
+        <div class="ratings-filter">
+          <button class="rating-filter-btn active" data-filter="all">All Ratings</button>
+          <button class="rating-filter-btn" data-filter="like">Likes</button>
+          <button class="rating-filter-btn" data-filter="dislike">Dislikes</button>
+          <button class="rating-filter-btn" data-filter="neutral">Haven't Visited</button>
+        </div>
+        
+        <div id="myRatingsGrid" class="restaurants-grid">
+          <!-- Rated restaurants will appear here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Friends' Taste Tab Content -->
+    <div class="tab-content" id="friends-taste-tab">
+      <div class="friends-ratings-section">
+        <h3>Friends' Restaurant Ratings</h3>
+        <p>See what your friends are liking and discover new restaurants.</p>
+        
+        <div id="friendsRatingsList">
+          <!-- Friends' ratings will appear here -->
         </div>
       </div>
     </div>
@@ -1647,9 +1793,11 @@
         }
         
         tasteTrackerRatings[restaurantId] = rating;
+        showNotification(`Rated as ${rating}`, "success");
         
       } catch (error) {
         console.error('Error saving taste tracker rating:', error);
+        showNotification('Error saving rating', 'error');
       }
     }
 
@@ -1678,6 +1826,232 @@
       }
       
       return stars;
+    }
+
+    // My Ratings Functions
+    async function loadMyRatings() {
+      if (!currentUser) return;
+      
+      try {
+        const { data: ratings, error } = await supabase
+          .from('taste_tracker_ratings')
+          .select('*')
+          .eq('user_id', currentUser.id);
+        
+        if (error) throw error;
+        
+        displayMyRatings(ratings || []);
+        
+      } catch (error) {
+        console.error('Error loading my ratings:', error);
+      }
+    }
+
+    function displayMyRatings(ratings) {
+      const grid = document.getElementById('myRatingsGrid');
+      
+      if (ratings.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div>🍽️</div>
+            <p>No ratings yet</p>
+            <p class="text-light">Start rating restaurants in the Taste Tracker tab!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      grid.innerHTML = '';
+      
+      // Create a map of restaurant IDs to ratings for quick lookup
+      const ratingMap = {};
+      ratings.forEach(rating => {
+        ratingMap[rating.restaurant_id] = rating.rating;
+      });
+      
+      // Filter restaurants to only those that have been rated
+      const ratedRestaurants = restaurants.filter(restaurant => 
+        ratingMap.hasOwnProperty(restaurant.id)
+      );
+      
+      ratedRestaurants.forEach(restaurant => {
+        const rating = ratingMap[restaurant.id];
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.setAttribute('data-rating', rating);
+        
+        const ratingBadgeClass = rating === 'like' ? 'like' : rating === 'dislike' ? 'dislike' : 'neutral';
+        const ratingEmoji = rating === 'like' ? '❤️' : rating === 'dislike' ? '👎' : '❓';
+        
+        tile.innerHTML = `
+          <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit; display: block; height: 100%;">
+            <div class="media"><img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy"></div>
+            <div class="inner">
+              <h3>${restaurant.name} <span class="rating-badge ${ratingBadgeClass}">${ratingEmoji} ${rating}</span></h3>
+              <div class="category"><span class="rating">⭐ ${restaurant.rating}</span> • ${restaurant.category}</div>
+              <p class="desc">${restaurant.desc}</p>
+            </div>
+          </a>
+        `;
+        
+        grid.appendChild(tile);
+      });
+      
+      // Add filter functionality
+      setupRatingFilters();
+    }
+
+    function setupRatingFilters() {
+      const filterButtons = document.querySelectorAll('.rating-filter-btn');
+      
+      filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Remove active class from all buttons
+          filterButtons.forEach(btn => btn.classList.remove('active'));
+          // Add active class to clicked button
+          button.classList.add('active');
+          
+          const filter = button.getAttribute('data-filter');
+          filterRatings(filter);
+        });
+      });
+    }
+
+    function filterRatings(filter) {
+      const tiles = document.querySelectorAll('#myRatingsGrid .tile');
+      
+      tiles.forEach(tile => {
+        if (filter === 'all') {
+          tile.style.display = 'block';
+        } else {
+          const rating = tile.getAttribute('data-rating');
+          if (rating === filter) {
+            tile.style.display = 'block';
+          } else {
+            tile.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Friends' Taste Functions
+    async function loadFriendsRatings() {
+      if (!currentUser) return;
+      
+      try {
+        // Get users that current user follows
+        const { data: following, error: followingError } = await supabase
+          .from('follows')
+          .select('followed_id')
+          .eq('follower_id', currentUser.id);
+        
+        if (followingError) throw followingError;
+        
+        if (!following || following.length === 0) {
+          document.getElementById('friendsRatingsList').innerHTML = `
+            <div class="empty-state">
+              <div>👥</div>
+              <p>Not following anyone yet</p>
+              <p class="text-light">Follow other users to see their restaurant ratings!</p>
+            </div>
+          `;
+          return;
+        }
+        
+        const followingIds = following.map(f => f.followed_id);
+        
+        // Get ratings from followed users
+        const { data: friendsRatings, error: ratingsError } = await supabase
+          .from('taste_tracker_ratings')
+          .select(`
+            *,
+            user_profiles!taste_tracker_ratings_user_id_fkey (
+              username,
+              full_name
+            )
+          `)
+          .in('user_id', followingIds)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        if (ratingsError) throw ratingsError;
+        
+        displayFriendsRatings(friendsRatings || []);
+        
+      } catch (error) {
+        console.error('Error loading friends ratings:', error);
+        document.getElementById('friendsRatingsList').innerHTML = `
+          <div class="empty-state">
+            <div>❌</div>
+            <p>Error loading friends' ratings</p>
+          </div>
+        `;
+      }
+    }
+
+    function displayFriendsRatings(ratings) {
+      const container = document.getElementById('friendsRatingsList');
+      
+      if (ratings.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div>🍽️</div>
+            <p>No ratings from friends yet</p>
+            <p class="text-light">Your friends haven't rated any restaurants yet.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      // Group ratings by user for better display
+      const ratingsByUser = {};
+      
+      ratings.forEach(rating => {
+        const userId = rating.user_id;
+        if (!ratingsByUser[userId]) {
+          ratingsByUser[userId] = {
+            user: rating.user_profiles,
+            ratings: []
+          };
+        }
+        ratingsByUser[userId].ratings.push(rating);
+      });
+      
+      // Display ratings
+      Object.values(ratingsByUser).forEach(userData => {
+        const user = userData.user;
+        const userRatings = userData.ratings.slice(0, 5); // Show max 5 ratings per user
+        
+        userRatings.forEach(rating => {
+          const restaurant = restaurants.find(r => r.id === rating.restaurant_id);
+          if (!restaurant) return;
+          
+          const ratingEmoji = rating.rating === 'like' ? '❤️' : rating.rating === 'dislike' ? '👎' : '❓';
+          const ratingText = rating.rating === 'like' ? 'liked' : rating.rating === 'dislike' ? 'disliked' : 'hasn\'t visited';
+          
+          const card = document.createElement('div');
+          card.className = 'friend-rating-card';
+          card.innerHTML = `
+            <div class="friend-rating-header">
+              <div class="friend-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
+              <div class="friend-name">${user.username || user.full_name || 'Unknown User'}</div>
+              <span class="rating-badge ${rating.rating}">${ratingEmoji} ${rating.rating}</span>
+            </div>
+            <div class="friend-rating-restaurant">
+              <strong>${restaurant.name}</strong> • ${restaurant.category}
+            </div>
+            <div class="friend-rating-desc">${restaurant.desc}</div>
+          `;
+          
+          card.addEventListener('click', () => {
+            window.location.href = `cards/${restaurant.slug}.html`;
+          });
+          
+          container.appendChild(card);
+        });
+      });
     }
 
     // Custom notification function
@@ -1765,6 +2139,8 @@
       document.getElementById('profile-tab').classList.add('active');
       document.getElementById('social-tab').style.display = 'none';
       document.getElementById('taste-tracker-tab').style.display = 'none';
+      document.getElementById('my-ratings-tab').style.display = 'none';
+      document.getElementById('friends-taste-tab').style.display = 'none';
 
       const { data: profile, error } = await supabase
         .from('user_profiles')
@@ -3010,6 +3386,10 @@
               renderTasteTracker();
               updateProgressBar();
             }, 100);
+          } else if (tabId === 'my-ratings') {
+            loadMyRatings();
+          } else if (tabId === 'friends-taste') {
+            loadFriendsRatings();
           }
         });
       });
