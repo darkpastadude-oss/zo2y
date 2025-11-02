@@ -843,7 +843,7 @@
     
     .restaurant-card img {
       width: 100%;
-      height: 200px;
+      height: 180px;
       object-fit: cover;
       border-radius: 12px;
       margin-bottom: 15px;
@@ -852,6 +852,7 @@
     .restaurant-card h2 {
       margin: 10px 0 5px;
       color: #fefefe;
+      font-size: 1.4rem;
     }
     
     .restaurant-card p {
@@ -862,8 +863,8 @@
     
     .swipe-buttons {
       display: flex;
-      justify-content: space-evenly;
-      gap: 20px;
+      justify-content: space-between;
+      gap: 25px;
       margin-top: 25px;
       width: 100%;
       max-width: 420px;
@@ -878,6 +879,9 @@
       border: none;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .swipe-btn.like {
@@ -904,6 +908,7 @@
       font-size: 0.9rem;
       cursor: pointer;
       text-decoration: underline;
+      padding: 8px 16px;
     }
     
     .skip-btn:hover {
@@ -1286,15 +1291,48 @@
       if (!r || !currentUser) return;
 
       try {
-        // Save rating to Supabase
-        const { error } = await supabase.from("taste_tracker_ratings").insert({
-          user_id: currentUser.id,
-          restaurant_id: r.id,
-          rating: rating,
-          created_at: new Date().toISOString()
-        });
+        // First check if rating already exists
+        const { data: existingRating, error: checkError } = await supabase
+          .from('taste_tracker_ratings')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .eq('restaurant_id', r.id)
+          .single();
 
-        if (error) throw error;
+        let result;
+        
+        if (existingRating) {
+          // Update existing rating
+          result = await supabase
+            .from('taste_tracker_ratings')
+            .update({ 
+              rating: rating,
+              created_at: new Date().toISOString()
+            })
+            .eq('id', existingRating.id);
+        } else {
+          // Insert new rating
+          result = await supabase
+            .from('taste_tracker_ratings')
+            .insert({
+              user_id: currentUser.id,
+              restaurant_id: r.id,
+              rating: rating,
+              created_at: new Date().toISOString()
+            });
+        }
+
+        if (result.error) {
+          console.error('Swipe error details:', result.error);
+          
+          // If it's a foreign key constraint error, the restaurant might not exist
+          if (result.error.code === '23503') {
+            showNotification("Restaurant not found in database", "error");
+            return;
+          }
+          
+          throw result.error;
+        }
 
         // Add to favorites if liked
         if (rating === "like") {
@@ -1302,6 +1340,8 @@
           showNotification(`Added ${r.name} to favorites!`, "success");
         } else if (rating === "dislike") {
           showNotification(`Noted you don't like ${r.name}`, "info");
+        } else if (rating === "skip") {
+          showNotification(`Skipped ${r.name}`, "info");
         }
 
         discoverIndex++;
@@ -1309,7 +1349,13 @@
         
       } catch (error) {
         console.error("Swipe error:", error);
-        showNotification("Error saving your choice", "error");
+        
+        // Handle specific error cases
+        if (error.message?.includes('does not exist')) {
+          showNotification("Rating system not available yet", "error");
+        } else {
+          showNotification("Error saving your choice", "error");
+        }
       }
     }
 
@@ -2727,15 +2773,35 @@
       const grid = document.getElementById('activeListGrid');
       grid.innerHTML = '';
       
-      console.log(`Rendering ${restaurantIds.length} restaurants for ${listType}`, restaurantIds);
+      console.log(`Rendering ${restaurantIds?.length || 0} restaurants for ${listType}`, restaurantIds);
+      
+      // Handle case where restaurantIds is null/undefined
+      if (!restaurantIds || restaurantIds.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-list" style="text-align: center; padding: 40px; color: #cbd5e1;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🍽️</div>
+            <h3>No restaurants yet</h3>
+            <p>Start adding restaurants to your ${listType} list!</p>
+          </div>
+        `;
+        return;
+      }
       
       // Convert to numbers and filter - handle both string and number IDs
       const numericIds = restaurantIds.map(id => {
+        if (id === null || id === undefined) return null;
         const numId = typeof id === 'string' ? parseInt(id) : id;
         return isNaN(numId) ? id : numId;
-      });
+      }).filter(id => id !== null);
       
-      const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
+      console.log('Looking for restaurants with IDs:', numericIds);
+      console.log('Available restaurants:', restaurants);
+      
+      const listRestaurants = restaurants.filter(r => {
+        const found = numericIds.includes(r.id);
+        if (found) console.log(`Found restaurant: ${r.name} (ID: ${r.id})`);
+        return found;
+      });
       
       console.log(`Found ${listRestaurants.length} matching restaurants from ${restaurants.length} total`);
       
@@ -2743,8 +2809,9 @@
         grid.innerHTML = `
           <div class="empty-list" style="text-align: center; padding: 40px; color: #cbd5e1;">
             <div style="font-size: 3rem; margin-bottom: 10px;">🍽️</div>
-            <h3>No restaurants yet</h3>
-            <p>Start adding restaurants to your ${listType} list!</p>
+            <h3>No restaurants found</h3>
+            <p>The restaurants in your list don't match the database.</p>
+            <p style="font-size: 0.8rem; margin-top: 10px;">List IDs: ${numericIds.join(', ')}</p>
           </div>
         `;
         return;
