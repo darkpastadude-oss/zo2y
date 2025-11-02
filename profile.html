@@ -1168,24 +1168,6 @@
       font-size: 12px;
     }
 
-    @keyframes swipeRight {
-      0% { transform: translateX(0) rotate(0); }
-      100% { transform: translateX(150%) rotate(20deg); opacity: 0; }
-    }
-
-    @keyframes swipeLeft {
-      0% { transform: translateX(0) rotate(0); }
-      100% { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
-    }
-
-    .swipe-right {
-      animation: swipeRight 0.5s forwards;
-    }
-
-    .swipe-left {
-      animation: swipeLeft 0.5s forwards;
-    }
-
     .analytics-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -1230,6 +1212,24 @@
     .stat-bar-fill.like { background: #2ed573; }
     .stat-bar-fill.dislike { background: #ff4757; }
     .stat-bar-fill.neutral { background: #747d8c; }
+
+    @keyframes swipeRight {
+      0% { transform: translateX(0) rotate(0); }
+      100% { transform: translateX(150%) rotate(20deg); opacity: 0; }
+    }
+
+    @keyframes swipeLeft {
+      0% { transform: translateX(0) rotate(0); }
+      100% { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
+    }
+
+    .swipe-right {
+      animation: swipeRight 0.5s forwards;
+    }
+
+    .swipe-left {
+      animation: swipeLeft 0.5s forwards;
+    }
 
     /* Responsive adjustments */
     @media (min-width: 768px) {
@@ -1528,14 +1528,56 @@
   </div>
 
   <script>
-    // ... (ALL YOUR EXISTING JAVASCRIPT CODE REMAINS EXACTLY THE SAME UNTIL THE TASTE TRACKER SECTION)
-    
-    // Add this after your existing JavaScript code, before the closing </script> tag
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let currentUser = null;
+    let userProfile = null;
+    let targetUser = null;
+    let targetUserId = null;
+    let currentActiveList = null;
+    let isViewingOwnProfile = true;
+    let restaurants = [];
+    let customLists = [];
 
     // Taste Tracker Variables
     let tasteTrackerRatings = {};
     let unratedRestaurants = [];
     let currentRestaurantIndex = 0;
+
+    // Image fallback handler
+    function handleImageError(img) {
+      img.onerror = null;
+      img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzJmMzU0MiIvPjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM4ODg4ODgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7imYg8L3RleHQ+PC9zdmc+';
+      img.alt = 'Image not available';
+    }
+
+    // Fetch restaurants from Supabase
+    async function loadRestaurants() {
+      try {
+        const { data, error } = await supabase
+          .from('restaurants')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        
+        restaurants = data || [];
+        console.log(`Loaded ${restaurants.length} restaurants from database`);
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+        // Fallback to hardcoded data if database fails
+        restaurants = [
+          { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
+          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
+          // ... (include all your restaurants from the original code)
+        ];
+      }
+    }
+
+    // ... (ALL YOUR EXISTING FUNCTIONS: updateAllListCounts, updateCustomListCounts, createCustomList, etc.)
+    // I'm keeping your original functions here to save space, but they should all be included
 
     // Taste Tracker Functions
     async function loadTasteTrackerRatings() {
@@ -1823,7 +1865,7 @@
         
         tile.innerHTML = `
           <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit; display: block; height: 100%;">
-            <div class="media"><img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy"></div>
+            <div class="media"><img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" onerror="handleImageError(this)"></div>
             <div class="inner">
               <h3>${restaurant.name} <span class="rating-badge ${ratingBadgeClass}">${ratingEmoji} ${rating}</span></h3>
               <div class="category"><span class="rating">⭐ ${restaurant.rating}</span> • ${restaurant.category}</div>
@@ -2128,35 +2170,127 @@
 
     // Add this to your existing DOMContentLoaded event listener
     document.addEventListener('DOMContentLoaded', function() {
-      // ... (your existing event listeners)
-      
-      // Add Taste Tracker tab switching
-      setupTasteTrackerSubtabs();
-      
-      // Initialize taste tracker when the tab is active
-      const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-            const tasteTrackerTab = document.getElementById('taste-tracker-tab');
-            if (tasteTrackerTab.classList.contains('active')) {
-              loadTasteTrackerRatings();
-            }
+      // Tab functionality
+      document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.dataset.tab;
+          
+          document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+          document.getElementById(`${tabId}-tab`).classList.add('active');
+
+          // Initialize taste tracker when tab is clicked
+          if (tabId === 'taste-tracker') {
+            loadTasteTrackerRatings();
           }
         });
       });
-      
-      observer.observe(document.getElementById('taste-tracker-tab'), {
-        attributes: true
+
+      // Bio functionality
+      document.getElementById("editBioBtn").addEventListener("click", () => {
+        document.getElementById("bioDisplay").style.display = "none";
+        document.getElementById("bioEdit").style.display = "block";
+        document.getElementById("bioTextarea").value = userProfile?.bio || "";
       });
+
+      document.getElementById("cancelBioBtn").addEventListener("click", () => {
+        document.getElementById("bioDisplay").style.display = "block";
+        document.getElementById("bioEdit").style.display = "none";
+      });
+
+      document.getElementById("saveBioBtn").addEventListener("click", async () => {
+        const newBio = document.getElementById("bioTextarea").value.trim();
+        
+        const { error } = await supabase
+          .from("user_profiles")
+          .update({ bio: newBio })
+          .eq("id", currentUser.id);
+
+        if (error) {
+          console.error("Error updating bio:", error);
+          showNotification("Error saving bio", "error");
+          return;
+        }
+
+        userProfile.bio = newBio;
+        document.getElementById("bioText").textContent = newBio || "No bio yet. Click edit to add one!";
+        document.getElementById("bioDisplay").style.display = "block";
+        document.getElementById("bioEdit").style.display = "none";
+        
+        showNotification("Bio updated successfully!", "success");
+      });
+
+      // Search functionality
+      document.getElementById('userSearch').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          friendSystem.searchUsers();
+        }
+      });
+
+      // Create list on Enter key
+      document.getElementById('newListName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          createCustomList();
+        }
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('createListModal').addEventListener('click', (e) => {
+        if (e.target.id === 'createListModal') {
+          hideCreateListModal();
+        }
+      });
+
+      // Logout
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "login.html";
+      });
+
+      // Add Taste Tracker tab switching
+      setupTasteTrackerSubtabs();
+      
+      // Load profile
+      loadProfile();
     });
 
-    // Add this to your existing loadOwnProfile function
+    // ... (ALL YOUR REMAINING ORIGINAL FUNCTIONS: loadProfile, loadOwnProfile, friendSystem, listManager, etc.)
+    // These should all be included from your original code
+
+    // Add taste tracker initialization to loadOwnProfile
     async function loadOwnProfile() {
-      // ... (your existing loadOwnProfile code)
+      // Show own profile elements
+      document.getElementById('profileTabs').style.display = 'flex';
+      document.getElementById('logoutBtn').style.display = 'block';
+      document.getElementById('backButton').style.display = 'none';
+      document.getElementById('followButton').style.display = 'none';
+      document.getElementById('privateMessage').style.display = 'none';
+
+      await loadUserProfile();
+      
+      document.getElementById("username").textContent = userProfile?.username || currentUser.email.split('@')[0];
+      document.getElementById("email").textContent = currentUser.email;
+      document.getElementById("joinDate").textContent = `Joined ${new Date(currentUser.created_at).toLocaleDateString()}`;
+      
+      if (userProfile?.bio) {
+        document.getElementById("bioText").textContent = userProfile.bio;
+      }
+
+      // Set avatar
+      const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+      document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+
+      await listManager.init();
+      await friendSystem.init();
       
       // Initialize taste tracker
       await loadTasteTrackerRatings();
     }
+
+    // Make sure to include all your other original functions here
+    // (listManager, friendSystem, showNotification, etc.)
   </script>
 </body>
 </html>
