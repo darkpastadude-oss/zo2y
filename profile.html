@@ -819,6 +819,169 @@
       font-size: 1.2rem;
     }
     
+    /* Taste Tracker Styles */
+    .taste-tracker-section {
+      background-color: #1e2f5c;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    
+    .taste-tracker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .taste-tracker-card {
+      background: #0b1633;
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.2s;
+    }
+    
+    .taste-tracker-card:hover {
+      transform: translateY(-3px);
+      border-color: #f59e0b;
+    }
+    
+    .taste-tracker-restaurant-name {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 1rem;
+    }
+    
+    .taste-tracker-category {
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      margin-bottom: 10px;
+    }
+    
+    .taste-tracker-rating {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .taste-tracker-rating-stars {
+      color: #ffc107;
+      margin-right: 10px;
+    }
+    
+    .taste-tracker-rating-value {
+      font-weight: 600;
+      color: #f59e0b;
+    }
+    
+    .taste-tracker-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    
+    .taste-tracker-btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      flex: 1;
+      margin: 0 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .taste-tracker-like-btn {
+      background-color: rgba(46, 213, 115, 0.1);
+      color: #2ed573;
+    }
+    
+    .taste-tracker-like-btn:hover, .taste-tracker-like-btn.active {
+      background-color: #2ed573;
+      color: white;
+    }
+    
+    .taste-tracker-dislike-btn {
+      background-color: rgba(255, 71, 87, 0.1);
+      color: #ff4757;
+    }
+    
+    .taste-tracker-dislike-btn:hover, .taste-tracker-dislike-btn.active {
+      background-color: #ff4757;
+      color: white;
+    }
+    
+    .taste-tracker-neutral-btn {
+      background-color: rgba(116, 125, 140, 0.1);
+      color: #747d8c;
+    }
+    
+    .taste-tracker-neutral-btn:hover, .taste-tracker-neutral-btn.active {
+      background-color: #747d8c;
+      color: white;
+    }
+    
+    .taste-tracker-stats-container {
+      background: #1e2f5c;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    
+    .taste-tracker-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .taste-tracker-stat-card {
+      background: #0b1633;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .taste-tracker-stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .taste-tracker-stat-label {
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+    
+    .taste-tracker-progress-bar {
+      height: 8px;
+      background-color: #2f3542;
+      border-radius: 4px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    
+    .taste-tracker-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    
+    .taste-tracker-progress-likes {
+      background-color: #2ed573;
+    }
+    
+    .taste-tracker-progress-dislikes {
+      background-color: #ff4757;
+    }
+    
+    .taste-tracker-progress-neutral {
+      background-color: #747d8c;
+    }
+    
     /* Responsive adjustments */
     @media (min-width: 768px) {
       .profile-container {
@@ -837,6 +1000,10 @@
       
       .list-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+      
+      .taste-tracker-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       }
     }
   </style>
@@ -865,6 +1032,7 @@
     <div class="profile-tabs" id="profileTabs">
       <button class="profile-tab active" data-tab="profile">Profile</button>
       <button class="profile-tab" data-tab="social">Social</button>
+      <button class="profile-tab" data-tab="taste-tracker">Taste Tracker</button>
     </div>
 
     <!-- Profile Tab Content -->
@@ -983,6 +1151,49 @@
         <div id="requestsList" class="user-grid" style="display: none;"></div>
       </div>
     </div>
+
+    <!-- Taste Tracker Tab Content -->
+    <div class="tab-content" id="taste-tracker-tab">
+      <div class="taste-tracker-section">
+        <h3>Taste Tracker</h3>
+        <p>Rate restaurants you've visited to track your preferences and discover new favorites!</p>
+        
+        <div class="taste-tracker-stats-container">
+          <h4>My Taste Profile</h4>
+          <div class="taste-tracker-stats-grid">
+            <div class="taste-tracker-stat-card">
+              <div class="taste-tracker-stat-value" id="liked-count">0</div>
+              <div class="taste-tracker-stat-label">Liked Places</div>
+              <div class="taste-tracker-progress-bar">
+                <div class="taste-tracker-progress-fill taste-tracker-progress-likes" id="liked-progress"></div>
+              </div>
+            </div>
+            <div class="taste-tracker-stat-card">
+              <div class="taste-tracker-stat-value" id="disliked-count">0</div>
+              <div class="taste-tracker-stat-label">Disliked Places</div>
+              <div class="taste-tracker-progress-bar">
+                <div class="taste-tracker-progress-fill taste-tracker-progress-dislikes" id="disliked-progress"></div>
+              </div>
+            </div>
+            <div class="taste-tracker-stat-card">
+              <div class="taste-tracker-stat-value" id="neutral-count">0</div>
+              <div class="taste-tracker-stat-label">Haven't Visited</div>
+              <div class="taste-tracker-progress-bar">
+                <div class="taste-tracker-progress-fill taste-tracker-progress-neutral" id="neutral-progress"></div>
+              </div>
+            </div>
+            <div class="taste-tracker-stat-card">
+              <div class="taste-tracker-stat-value" id="total-count">0</div>
+              <div class="taste-tracker-stat-label">Total Rated</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="taste-tracker-grid" id="taste-tracker-container">
+          <!-- Restaurant cards will be generated here -->
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Create List Modal -->
@@ -1016,6 +1227,61 @@
     let isViewingOwnProfile = true;
     let restaurants = [];
     let customLists = [];
+    let tasteTrackerRatings = {};
+
+    // Restaurant data
+    const restaurantData = [
+      { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
+      { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
+      { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
+      { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
+      { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
+      { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
+      { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
+      { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
+      { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
+      { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
+      { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
+      { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
+      { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
+      { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
+      { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
+      { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
+      { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
+      { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
+      { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
+      { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
+      { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
+      { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
+      { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
+      { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
+      { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
+      { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
+      { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
+      { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
+      { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
+      { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
+      { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
+      { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
+      { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
+      { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
+      { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', desc:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png' },
+      { id: 36, slug:'wok', name:'Wok and Walk', category:'Asian', desc:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png' },
+      { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png' },
+      { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
+      { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
+      { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' },
+      { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', desc:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg' },
+      { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', desc:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'mario.jpg' },
+      { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', desc:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg' },
+      { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', desc:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'man.png' },
+      { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.png' },
+      { id: 46, slug:'crave', name:'Crave', category:'Seafood', desc:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.png' },
+      { id: 47, slug:'caizo', name:'Caizo', category:'Middle Eastern', desc:'Authentic Egyptian shawarma with premium ingredients and traditional recipes.', rating:4.5, image: 'caizo.jpg' },
+      { id: 48, slug:'tabali', name:'Tabali', category:'Breakfast', desc:'Authentic Egyptian breakfast with traditional foul, ta3meya, and homemade specialties.', rating:4.7, image: 'tabali.jpg' },
+      { id: 49, slug:'panda', name:'Panda Express', category:'Asian', desc:'Authentic Chinese cuisine with fresh ingredients and traditional flavors.', rating:4.4, image: 'panda.png' },
+      { id: 50, slug:'pablo', name:'Pablo & Abdo', category:'Burgers', desc:'Modern diner experience with fusion cuisine, burgers, and international favorites.', rating:4.6, image: 'pablo.png' }
+    ];
 
     // Fetch restaurants from Supabase
     async function loadRestaurants() {
@@ -1027,61 +1293,763 @@
         
         if (error) throw error;
         
-        restaurants = data || [];
+        restaurants = data || restaurantData;
         console.log(`Loaded ${restaurants.length} restaurants from database`);
       } catch (error) {
         console.error('Error loading restaurants:', error);
         // Fallback to hardcoded data if database fails
-        restaurants = [
-          { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-          { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-          { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-          { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
-          { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
-          { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
-          { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
-          { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
-          { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
-          { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
-          { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
-          { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
-          { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
-          { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
-          { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
-          { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
-          { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
-          { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
-          { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
-          { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
-          { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
-          { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
-          { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
-          { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
-          { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
-          { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
-          { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
-          { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
-          { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
-          { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
-          { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
-          { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
-          { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
-          { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', desc:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png' },
-          { id: 36, slug:'wok', name:'Wok and Walk', category:'Asian', desc:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png' },
-          { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png' },
-          { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
-          { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
-          { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' },
-          { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', desc:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg' },
-          { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', desc:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'mario.jpg' },
-          { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', desc:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg' },
-          { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', desc:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'man.png' },
-          { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.jpg' },
-          { id: 46, slug:'crave', name:'Crave', category:'Seafood', desc:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.png' }
-        ];
+        restaurants = restaurantData;
       }
     }
+
+    // Taste Tracker Functions
+    async function loadTasteTrackerRatings() {
+      if (!currentUser) return;
+      
+      try {
+        const { data: ratings, error } = await supabase
+          .from('taste_tracker_ratings')
+          .select('*')
+          .eq('user_id', currentUser.id);
+        
+        if (error) throw error;
+        
+        // Convert array to object for easier access
+        tasteTrackerRatings = {};
+        if (ratings) {
+          ratings.forEach(rating => {
+            tasteTrackerRatings[rating.restaurant_id] = rating.rating;
+          });
+        }
+        
+        renderTasteTracker();
+        updateTasteTrackerStats();
+        
+      } catch (error) {
+        console.error('Error loading taste tracker ratings:', error);
+      }
+    }
+
+    async function saveTasteTrackerRating(restaurantId, rating) {
+      if (!currentUser) return;
+      
+      try {
+        // Check if rating already exists
+        const { data: existingRating, error: checkError } = await supabase
+          .from('taste_tracker_ratings')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .eq('restaurant_id', restaurantId)
+          .single();
+        
+        if (checkError && checkError.code !== 'PGRST116') throw checkError;
+        
+        if (existingRating) {
+          // Update existing rating
+          const { error } = await supabase
+            .from('taste_tracker_ratings')
+            .update({ rating: rating })
+            .eq('id', existingRating.id);
+          
+          if (error) throw error;
+        } else {
+          // Insert new rating
+          const { error } = await supabase
+            .from('taste_tracker_ratings')
+            .insert({
+              user_id: currentUser.id,
+              restaurant_id: restaurantId,
+              rating: rating
+            });
+          
+          if (error) throw error;
+        }
+        
+        // Update local state
+        tasteTrackerRatings[restaurantId] = rating;
+        updateTasteTrackerStats();
+        showNotification('Rating saved!', 'success');
+        
+      } catch (error) {
+        console.error('Error saving taste tracker rating:', error);
+        showNotification('Error saving rating', 'error');
+      }
+    }
+
+    function renderTasteTracker() {
+      const container = document.getElementById('taste-tracker-container');
+      container.innerHTML = '';
+      
+      restaurants.forEach(restaurant => {
+        const rating = tasteTrackerRatings[restaurant.id] || 'neutral';
+        
+        const card = document.createElement('div');
+        card.className = 'taste-tracker-card';
+        card.innerHTML = `
+          <div class="taste-tracker-restaurant-name">${restaurant.name}</div>
+          <div class="taste-tracker-category">${restaurant.category}</div>
+          <div class="taste-tracker-rating">
+            <div class="taste-tracker-rating-stars">${generateStars(restaurant.rating)}</div>
+            <div class="taste-tracker-rating-value">${restaurant.rating}</div>
+          </div>
+          <div class="taste-tracker-actions">
+            <button class="taste-tracker-btn taste-tracker-like-btn ${rating === 'like' ? 'active' : ''}" data-id="${restaurant.id}" data-rating="like">
+              <span>❤️</span> Like
+            </button>
+            <button class="taste-tracker-btn taste-tracker-neutral-btn ${rating === 'neutral' ? 'active' : ''}" data-id="${restaurant.id}" data-rating="neutral">
+              <span>🤔</span> Haven't Visited
+            </button>
+            <button class="taste-tracker-btn taste-tracker-dislike-btn ${rating === 'dislike' ? 'active' : ''}" data-id="${restaurant.id}" data-rating="dislike">
+              <span>❌</span> Dislike
+            </button>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+      
+      // Add event listeners to rating buttons
+      document.querySelectorAll('.taste-tracker-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const restaurantId = parseInt(this.getAttribute('data-id'));
+          const rating = this.getAttribute('data-rating');
+          
+          // Update rating
+          saveTasteTrackerRating(restaurantId, rating);
+          
+          // Update UI
+          updateButtonStates(restaurantId, rating);
+        });
+      });
+    }
+
+    function updateButtonStates(restaurantId, rating) {
+      const buttons = document.querySelectorAll(`[data-id="${restaurantId}"]`);
+      
+      buttons.forEach(button => {
+        if (button.getAttribute('data-rating') === rating) {
+          button.classList.add('active');
+        } else {
+          button.classList.remove('active');
+        }
+      });
+    }
+
+    function generateStars(rating) {
+      const fullStars = Math.floor(rating);
+      const halfStar = rating % 1 >= 0.5;
+      const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+      
+      let stars = '';
+      
+      for (let i = 0; i < fullStars; i++) {
+        stars += '★';
+      }
+      
+      if (halfStar) {
+        stars += '½';
+      }
+      
+      for (let i = 0; i < emptyStars; i++) {
+        stars += '☆';
+      }
+      
+      return stars;
+    }
+
+    function updateTasteTrackerStats() {
+      const likedCount = Object.values(tasteTrackerRatings).filter(r => r === 'like').length;
+      const dislikedCount = Object.values(tasteTrackerRatings).filter(r => r === 'dislike').length;
+      const neutralCount = Object.values(tasteTrackerRatings).filter(r => r === 'neutral').length;
+      const totalRated = likedCount + dislikedCount + neutralCount;
+      
+      // Update counts
+      document.getElementById('liked-count').textContent = likedCount;
+      document.getElementById('disliked-count').textContent = dislikedCount;
+      document.getElementById('neutral-count').textContent = neutralCount;
+      document.getElementById('total-count').textContent = totalRated;
+      
+      // Update progress bars
+      const total = restaurants.length;
+      document.getElementById('liked-progress').style.width = `${(likedCount / total) * 100}%`;
+      document.getElementById('disliked-progress').style.width = `${(dislikedCount / total) * 100}%`;
+      document.getElementById('neutral-progress').style.width = `${(neutralCount / total) * 100}%`;
+    }
+
+    // Custom notification function
+    function showNotification(message, type = "info") {
+      const notification = document.getElementById("customNotification");
+      const icon = notification.querySelector(".notification-icon");
+      const messageEl = notification.querySelector(".notification-message");
+      
+      messageEl.textContent = message;
+      notification.className = `custom-notification notification-${type}`;
+      
+      if (type === "success") {
+        icon.className = "notification-icon fas fa-check-circle";
+      } else if (type === "error") {
+        icon.className = "notification-icon fas fa-exclamation-circle";
+      } else {
+        icon.className = "notification-icon fas fa-info-circle";
+      }
+      
+      notification.classList.add("notification-show");
+      setTimeout(() => {
+        notification.classList.remove("notification-show");
+      }, 2500);
+    }
+
+    // Get user ID from URL parameters
+    function getUserIdFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id');
+    }
+
+    async function loadProfile() {
+      targetUserId = getUserIdFromUrl();
+      
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) { 
+        window.location.href = "login.html"; 
+        return; 
+      }
+
+      currentUser = user;
+
+      // Load restaurants first from Supabase
+      await loadRestaurants();
+
+      // Determine if we're viewing own profile or another user's profile
+      if (targetUserId && targetUserId !== user.id) {
+        isViewingOwnProfile = false;
+        await loadOtherUserProfile();
+      } else {
+        isViewingOwnProfile = true;
+        await loadOwnProfile();
+      }
+    }
+
+    async function loadOwnProfile() {
+      // Show own profile elements
+      document.getElementById('profileTabs').style.display = 'flex';
+      document.getElementById('logoutBtn').style.display = 'block';
+      document.getElementById('backButton').style.display = 'none';
+      document.getElementById('followButton').style.display = 'none';
+      document.getElementById('privateMessage').style.display = 'none';
+
+      await loadUserProfile();
+      
+      document.getElementById("username").textContent = userProfile?.username || currentUser.email.split('@')[0];
+      document.getElementById("email").textContent = currentUser.email;
+      document.getElementById("joinDate").textContent = `Joined ${new Date(currentUser.created_at).toLocaleDateString()}`;
+      
+      if (userProfile?.bio) {
+        document.getElementById("bioText").textContent = userProfile.bio;
+      }
+
+      // Set avatar
+      const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+      document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+
+      // Load taste tracker ratings
+      await loadTasteTrackerRatings();
+      
+      // Load other components
+      await listManager.init();
+      await friendSystem.init();
+    }
+
+    async function loadOtherUserProfile() {
+      // Hide elements for other users' profiles
+      document.getElementById('profileTabs').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('backButton').style.display = 'block';
+      document.getElementById('editBioBtn').style.display = 'none';
+      
+      // Show only the profile tab
+      document.getElementById('profile-tab').classList.add('active');
+      document.getElementById('social-tab').style.display = 'none';
+      document.getElementById('taste-tracker-tab').style.display = 'none';
+
+      // Load target user profile
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', targetUserId)
+        .single();
+
+      if (error || !profile) {
+        alert('User not found');
+        window.location.href = 'profile.html';
+        return;
+      }
+
+      targetUser = profile;
+
+      // Display user info
+      document.getElementById("username").textContent = profile.username || 'User';
+      document.getElementById("email").textContent = profile.email || '';
+      document.getElementById("joinDate").textContent = `Joined ${new Date(profile.created_at).toLocaleDateString()}`;
+      
+      if (profile.bio) {
+        document.getElementById("bioText").textContent = profile.bio;
+      }
+
+      // Set avatar
+      const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+      document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+
+      // Load follow status and lists
+      await loadFollowStatus();
+      await loadUserLists();
+    }
+
+    async function loadFollowStatus() {
+      if (isViewingOwnProfile) return;
+
+      const followButton = document.getElementById('followButton');
+      followButton.style.display = 'block';
+
+      try {
+        // Check if already following
+        const { data: follow } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('followed_id', targetUserId)
+          .single();
+
+        // Check if request pending
+        const { data: request } = await supabase
+          .from('follow_requests')
+          .select('id')
+          .eq('sender_id', currentUser.id)
+          .eq('receiver_id', targetUserId)
+          .eq('status', 'pending')
+          .single();
+
+        if (follow) {
+          followButton.textContent = 'Following';
+          followButton.className = 'follow-btn following';
+          followButton.onclick = () => toggleFollow();
+        } else if (request) {
+          followButton.textContent = 'Requested';
+          followButton.className = 'follow-btn requested';
+          followButton.onclick = () => sendFollowRequest();
+        } else if (targetUser.is_private) {
+          followButton.textContent = 'Request to Follow';
+          followButton.className = 'follow-btn';
+          followButton.onclick = () => sendFollowRequest();
+        } else {
+          followButton.textContent = 'Follow';
+          followButton.className = 'follow-btn';
+          followButton.onclick = () => toggleFollow();
+        }
+      } catch (error) {
+        console.error('Error loading follow status:', error);
+      }
+    }
+
+    async function toggleFollow() {
+      try {
+        const isFollowing = await checkIfFollowing();
+        
+        if (isFollowing) {
+          // Unfollow
+          const { error } = await supabase
+            .from('follows')
+            .delete()
+            .eq('follower_id', currentUser.id)
+            .eq('followed_id', targetUserId);
+
+          if (error) throw error;
+          
+          document.getElementById('followButton').textContent = 'Follow';
+          document.getElementById('followButton').className = 'follow-btn';
+          
+        } else {
+          // Follow
+          const { error } = await supabase
+            .from('follows')
+            .insert({
+              follower_id: currentUser.id,
+              followed_id: targetUserId,
+              created_at: new Date().toISOString()
+            });
+
+          if (error) throw error;
+          
+          document.getElementById('followButton').textContent = 'Following';
+          document.getElementById('followButton').className = 'follow-btn following';
+        }
+
+        // Reload lists if privacy status changed
+        await loadUserLists();
+
+      } catch (error) {
+        console.error('Error toggling follow:', error);
+      }
+    }
+
+    async function sendFollowRequest() {
+      try {
+        const { error } = await supabase
+          .from('follow_requests')
+          .insert({
+            sender_id: currentUser.id,
+            receiver_id: targetUserId,
+            status: 'pending',
+            created_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+        
+        document.getElementById('followButton').textContent = 'Requested';
+        document.getElementById('followButton').className = 'follow-btn requested';
+
+      } catch (error) {
+        console.error('Error sending follow request:', error);
+      }
+    }
+
+    async function checkIfFollowing() {
+      try {
+        const { data } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('followed_id', targetUserId)
+          .single();
+
+        return !!data;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    async function loadUserLists() {
+      if (isViewingOwnProfile) {
+        await listManager.init();
+        return;
+      }
+
+      const canViewLists = await canViewUserContent();
+      
+      if (!canViewLists) {
+        document.querySelector('.custom-lists').style.display = 'none';
+        document.getElementById('privateMessage').style.display = 'block';
+        return;
+      }
+
+      document.querySelector('.custom-lists').style.display = 'block';
+      document.getElementById('privateMessage').style.display = 'none';
+
+      try {
+        // Load user's lists
+        const { data: lists, error } = await supabase
+          .from('lists')
+          .select('*')
+          .eq('user_id', targetUserId);
+
+        if (error) throw error;
+
+        const userLists = lists || [];
+        
+        // Find default lists
+        const favoritesList = userLists.find(list => list.title === 'Favorites');
+        const visitedList = userLists.find(list => list.title === 'Visited');
+        const wantToGoList = userLists.find(list => list.title === 'Want to Go');
+
+        // Load restaurant counts for each list
+        await loadListCounts(favoritesList, 'favoritesCount');
+        await loadListCounts(visitedList, 'visitedCount');
+        await loadListCounts(wantToGoList, 'wantToGoCount');
+
+        // Store lists for viewing
+        window.userLists = {
+          favorites: favoritesList,
+          visited: visitedList,
+          wantToGo: wantToGoList
+        };
+
+      } catch (error) {
+        console.error('Error loading user lists:', error);
+      }
+    }
+
+    async function loadListCounts(list, countElementId) {
+      if (!list) return;
+
+      try {
+        const { data: listRestaurants, error } = await supabase
+          .from('lists_restraunts')
+          .select('restraunt_id')
+          .eq('list_id', list.id);
+
+        if (!error && listRestaurants) {
+          document.getElementById(countElementId).textContent = `${listRestaurants.length} restaurants`;
+          list.restaurants = listRestaurants.map(item => item.restraunt_id);
+        } else {
+          document.getElementById(countElementId).textContent = '0 restaurants';
+          list.restaurants = [];
+        }
+      } catch (error) {
+        console.error('Error loading list counts:', error);
+      }
+    }
+
+    async function canViewUserContent() {
+      // Users can always view their own content
+      if (currentUser && currentUser.id === targetUserId) return true;
+      
+      // Public accounts can be viewed by anyone
+      if (!targetUser.is_private) return true;
+      
+      // For private accounts, check if current user is following
+      if (!currentUser) return false;
+      
+      try {
+        const { data } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('followed_id', targetUserId)
+          .single();
+
+        return !!data;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    async function loadUserProfile() {
+      const { data: profile, error } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error loading profile:", error);
+      }
+
+      userProfile = profile || {};
+      
+      if (!profile) {
+        const { error: insertError } = await supabase
+          .from("user_profiles")
+          .insert({
+            id: currentUser.id,
+            username: currentUser.email.split('@')[0],
+            bio: "",
+            is_private: false,
+            created_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+        }
+      }
+    }
+
+    // List Management
+    const listManager = {
+      userLists: [],
+      currentLists: {
+        favorites: null,
+        visited: null,
+        wantToGo: null
+      },
+      
+      async init() { 
+        if (!currentUser) return;
+        await this.loadUserLists();
+        await this.loadListRestaurants();
+        updateAllListCounts();
+        await this.loadCustomLists();
+      },
+      
+      async loadUserLists() {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          const { data: lists, error } = await supabase
+            .from('lists')
+            .select('*')
+            .eq('user_id', user.id);
+          
+          if (error) throw error;
+          
+          this.userLists = lists || [];
+          await this.setupDefaultLists();
+          
+        } catch (error) {
+          console.error('Error loading lists:', error);
+        }
+      },
+      
+      async setupDefaultLists() {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+        this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+        
+        if (!this.currentLists.favorites) {
+          this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+        }
+        if (!this.currentLists.visited) {
+          this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+        }
+        if (!this.currentLists.wantToGo) {
+          this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+        }
+      },
+      
+      async createList(title, description) {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const { data: newList, error } = await supabase
+          .from('lists')
+          .insert([{ user_id: user.id, title: title, description: description }])
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error creating list:', error);
+          return null;
+        }
+        
+        this.userLists.push(newList);
+        return newList;
+      },
+      
+      async loadListRestaurants() {
+        for (const listType in this.currentLists) {
+          const list = this.currentLists[listType];
+          if (list) {
+            const { data: listRestaurants, error } = await supabase
+              .from('lists_restraunts')
+              .select('restraunt_id')
+              .eq('list_id', list.id);
+            
+            if (!error && listRestaurants) {
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);
+              console.log(`Loaded ${list.restaurants.length} restaurants for ${list.title}`);
+            } else {
+              list.restaurants = [];
+            }
+          }
+        }
+      },
+      
+      async toggleInList(listType, restaurantId) {
+        let list;
+        
+        // Handle custom lists (by ID)
+        if (typeof listType === 'number') {
+          list = customLists.find(l => l.id === listType);
+          if (!list) return false;
+        } else {
+          // Handle default lists (by type)
+          list = this.currentLists[listType];
+          if (!list) return false;
+        }
+        
+        const isInList = list.restaurants?.includes(restaurantId);
+        
+        try {
+          if (isInList) {
+            const { error } = await supabase
+              .from('lists_restraunts')
+              .delete()
+              .match({ 
+                list_id: list.id, 
+                restraunt_id: restaurantId
+              });
+            
+            if (error) throw error;
+            
+            list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+            showNotification(`Removed from ${list.title}`, "info");
+            
+          } else {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { error } = await supabase
+              .from('lists_restraunts')
+              .insert([{ 
+                list_id: list.id, 
+                restraunt_id: restaurantId,
+                added_at: new Date().toISOString()
+              }]);
+            
+            if (error) throw error;
+            
+            if (!list.restaurants) list.restaurants = [];
+            list.restaurants.push(restaurantId);
+            showNotification(`Added to ${list.title}`, "success");
+          }
+          
+          // Update all list counts
+          updateAllListCounts();
+          
+          return !isInList;
+          
+        } catch (error) {
+          console.error('Error updating list:', error);
+          showNotification('Error saving changes', 'error');
+          return isInList;
+        }
+      },
+      
+      isInList(listType, restaurantId) {
+        let list;
+        
+        if (typeof listType === 'number') {
+          list = customLists.find(l => l.id === listType);
+        } else {
+          list = this.currentLists[listType];
+        }
+        
+        return list?.restaurants?.includes(restaurantId) || false;
+      },
+
+      async loadCustomLists() {
+        if (!currentUser) return;
+        
+        try {
+          const { data: lists, error } = await supabase
+            .from('lists')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .not('title', 'in', '("Favorites","Visited","Want to Go")');
+          
+          if (error) throw error;
+          
+          customLists = lists || [];
+          
+          // Load restaurants for each custom list
+          for (const list of customLists) {
+            const { data: listRestaurants, error } = await supabase
+              .from('lists_restraunts')
+              .select('restraunt_id')
+              .eq('list_id', list.id);
+            
+            if (!error && listRestaurants) {
+              list.restaurants = listRestaurants.map(item => item.restraunt_id);
+            } else {
+              list.restaurants = [];
+            }
+          }
+          
+          renderCustomLists();
+          
+        } catch (error) {
+          console.error('Error loading custom lists:', error);
+        }
+      }
+    };
 
     // Function to update all list counts
     function updateAllListCounts() {
@@ -1283,204 +2251,117 @@
       });
     }
 
-    // List Management
-    const listManager = {
-      userLists: [],
-      currentLists: {
-        favorites: null,
-        visited: null,
-        wantToGo: null
-      },
+    function showList(listType) {
+      let list;
       
-      async init() { 
-        if (!currentUser) return;
-        await this.loadUserLists();
-        await this.loadListRestaurants();
-        updateAllListCounts();
-        await this.loadCustomLists();
-      },
-      
-      async loadUserLists() {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) return;
-
-          const { data: lists, error } = await supabase
-            .from('lists')
-            .select('*')
-            .eq('user_id', user.id);
-          
-          if (error) throw error;
-          
-          this.userLists = lists || [];
-          await this.setupDefaultLists();
-          
-        } catch (error) {
-          console.error('Error loading lists:', error);
-        }
-      },
-      
-      async setupDefaultLists() {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-        this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-        
-        if (!this.currentLists.favorites) {
-          this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-        }
-        if (!this.currentLists.visited) {
-          this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-        }
-        if (!this.currentLists.wantToGo) {
-          this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-        }
-      },
-      
-      async createList(title, description) {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        const { data: newList, error } = await supabase
-          .from('lists')
-          .insert([{ user_id: user.id, title: title, description: description }])
-          .select()
-          .single();
-        
-        if (error) {
-          console.error('Error creating list:', error);
-          return null;
-        }
-        
-        this.userLists.push(newList);
-        return newList;
-      },
-      
-      async loadListRestaurants() {
-        for (const listType in this.currentLists) {
-          const list = this.currentLists[listType];
-          if (list) {
-            const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')
-              .select('restraunt_id')
-              .eq('list_id', list.id);
-            
-            if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraunt_id);
-              console.log(`Loaded ${list.restaurants.length} restaurants for ${list.title}`);
-            } else {
-              list.restaurants = [];
-            }
-          }
-        }
-      },
-      
-      async toggleInList(listType, restaurantId) {
-        let list;
-        
-        // Handle custom lists (by ID)
-        if (typeof listType === 'number') {
-          list = customLists.find(l => l.id === listType);
-          if (!list) return false;
-        } else {
-          // Handle default lists (by type)
-          list = this.currentLists[listType];
-          if (!list) return false;
-        }
-        
-        const isInList = list.restaurants?.includes(restaurantId);
-        
-        try {
-          if (isInList) {
-            const { error } = await supabase
-              .from('lists_restraunts')
-              .delete()
-              .match({ 
-                list_id: list.id, 
-                restraunt_id: restaurantId
-              });
-            
-            if (error) throw error;
-            
-            list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-            showNotification(`Removed from ${list.title}`, "info");
-            
-          } else {
-            const { data: { user } } = await supabase.auth.getUser();
-            const { error } = await supabase
-              .from('lists_restraunts')
-              .insert([{ 
-                list_id: list.id, 
-                restraunt_id: restaurantId,
-                added_at: new Date().toISOString()
-              }]);
-            
-            if (error) throw error;
-            
-            if (!list.restaurants) list.restaurants = [];
-            list.restaurants.push(restaurantId);
-            showNotification(`Added to ${list.title}`, "success");
-          }
-          
-          // Update all list counts
-          updateAllListCounts();
-          
-          return !isInList;
-          
-        } catch (error) {
-          console.error('Error updating list:', error);
-          showNotification('Error saving changes', 'error');
-          return isInList;
-        }
-      },
-      
-      isInList(listType, restaurantId) {
-        let list;
-        
-        if (typeof listType === 'number') {
-          list = customLists.find(l => l.id === listType);
-        } else {
-          list = this.currentLists[listType];
-        }
-        
-        return list?.restaurants?.includes(restaurantId) || false;
-      },
-
-      async loadCustomLists() {
-        if (!currentUser) return;
-        
-        try {
-          const { data: lists, error } = await supabase
-            .from('lists')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .not('title', 'in', '("Favorites","Visited","Want to Go")');
-          
-          if (error) throw error;
-          
-          customLists = lists || [];
-          
-          // Load restaurants for each custom list
-          for (const list of customLists) {
-            const { data: listRestaurants, error } = await supabase
-              .from('lists_restraunts')
-              .select('restraunt_id')
-              .eq('list_id', list.id);
-            
-            if (!error && listRestaurants) {
-              list.restaurants = listRestaurants.map(item => item.restraunt_id);
-            } else {
-              list.restaurants = [];
-            }
-          }
-          
-          renderCustomLists();
-          
-        } catch (error) {
-          console.error('Error loading custom lists:', error);
-        }
+      if (isViewingOwnProfile) {
+        list = listManager.currentLists[listType];
+      } else {
+        list = window.userLists[listType];
       }
-    };
+      
+      if (!list) return;
+      
+      currentActiveList = listType;
+      document.getElementById('activeListTitle').textContent = list.title;
+      document.querySelector('.custom-lists').style.display = 'none';
+      document.querySelector('.bio').style.display = 'none';
+      document.getElementById('privateMessage').style.display = 'none';
+      document.getElementById('activeListSection').style.display = 'block';
+      
+      renderListRestaurants(list.restaurants || [], listType);
+    }
+
+    function hideActiveList() {
+      document.getElementById('activeListSection').style.display = 'none';
+      document.querySelector('.custom-lists').style.display = 'block';
+      document.querySelector('.bio').style.display = 'block';
+      
+      // Show private message if applicable
+      if (!isViewingOwnProfile && document.getElementById('privateMessage').style.display !== 'none') {
+        document.getElementById('privateMessage').style.display = 'block';
+      }
+      
+      currentActiveList = null;
+    }
+
+    function renderListRestaurants(restaurantIds, listType) {
+      const grid = document.getElementById('activeListGrid');
+      grid.innerHTML = '';
+      
+      console.log(`Rendering ${restaurantIds.length} restaurants for ${listType}`);
+      
+      // Convert to numbers and filter
+      const numericIds = restaurantIds.map(id => Number(id));
+      const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
+      
+      console.log(`Found ${listRestaurants.length} matching restaurants`);
+      
+      if (listRestaurants.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-list">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🍽️</div>
+            <h3>No restaurants yet</h3>
+            <p>Start adding restaurants to your ${listType} list!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      listRestaurants.forEach(r => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        
+        const clickableContent = document.createElement('a');
+        clickableContent.href = `cards/${r.slug}.html`;
+        clickableContent.style.textDecoration = 'none';
+        clickableContent.style.color = 'inherit';
+        clickableContent.style.display = 'block';
+        clickableContent.style.height = '100%';
+        
+        clickableContent.innerHTML = `
+          <div class="media"><img src="images/${r.image}" alt="${r.name}" loading="lazy"></div>
+          <div class="inner">
+            <h3>${r.name}</h3>
+            <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
+            <p class="desc">${r.desc}</p>
+          </div>
+        `;
+        
+        tile.appendChild(clickableContent);
+        
+        // Only show list buttons when viewing own profile
+        if (isViewingOwnProfile) {
+          const listActions = document.createElement('div');
+          listActions.className = 'list-actions';
+          listActions.innerHTML = `
+            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
+            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+          `;
+          tile.appendChild(listActions);
+        }
+        
+        grid.appendChild(tile);
+      });
+
+      // Add event listeners for list buttons (only for own profile)
+      if (isViewingOwnProfile) {
+        document.querySelectorAll('.list-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault(); 
+            e.stopPropagation();
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
+            btn.classList.toggle('active', wasAdded);
+            
+            if (currentActiveList === btn.dataset.list) {
+              showList(currentActiveList);
+            }
+          });
+        });
+      }
+    }
 
     // Friend System
     const friendSystem = {
@@ -1961,489 +2842,6 @@
       }
     };
 
-    // Custom notification function
-    function showNotification(message, type = "info") {
-      const notification = document.getElementById("customNotification");
-      const icon = notification.querySelector(".notification-icon");
-      const messageEl = notification.querySelector(".notification-message");
-      
-      messageEl.textContent = message;
-      notification.className = `custom-notification notification-${type}`;
-      
-      if (type === "success") {
-        icon.className = "notification-icon fas fa-check-circle";
-      } else if (type === "error") {
-        icon.className = "notification-icon fas fa-exclamation-circle";
-      } else {
-        icon.className = "notification-icon fas fa-info-circle";
-      }
-      
-      notification.classList.add("notification-show");
-      setTimeout(() => {
-        notification.classList.remove("notification-show");
-      }, 2500);
-    }
-
-    // Get user ID from URL parameters
-    function getUserIdFromUrl() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('id');
-    }
-
-    async function loadProfile() {
-      targetUserId = getUserIdFromUrl();
-      
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) { 
-        window.location.href = "login.html"; 
-        return; 
-      }
-
-      currentUser = user;
-
-      // Load restaurants first from Supabase
-      await loadRestaurants();
-
-      // Determine if we're viewing own profile or another user's profile
-      if (targetUserId && targetUserId !== user.id) {
-        isViewingOwnProfile = false;
-        await loadOtherUserProfile();
-      } else {
-        isViewingOwnProfile = true;
-        await loadOwnProfile();
-      }
-    }
-
-    async function loadOwnProfile() {
-      // Show own profile elements
-      document.getElementById('profileTabs').style.display = 'flex';
-      document.getElementById('logoutBtn').style.display = 'block';
-      document.getElementById('backButton').style.display = 'none';
-      document.getElementById('followButton').style.display = 'none';
-      document.getElementById('privateMessage').style.display = 'none';
-
-      await loadUserProfile();
-      
-      document.getElementById("username").textContent = userProfile?.username || currentUser.email.split('@')[0];
-      document.getElementById("email").textContent = currentUser.email;
-      document.getElementById("joinDate").textContent = `Joined ${new Date(currentUser.created_at).toLocaleDateString()}`;
-      
-      if (userProfile?.bio) {
-        document.getElementById("bioText").textContent = userProfile.bio;
-      }
-
-      // Set avatar
-      const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-      document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
-
-      await listManager.init();
-      await friendSystem.init();
-    }
-
-    async function loadOtherUserProfile() {
-      // Hide elements for other users' profiles
-      document.getElementById('profileTabs').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'none';
-      document.getElementById('backButton').style.display = 'block';
-      document.getElementById('editBioBtn').style.display = 'none';
-      
-      // Show only the profile tab
-      document.getElementById('profile-tab').classList.add('active');
-      document.getElementById('social-tab').style.display = 'none';
-
-      // Load target user profile
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', targetUserId)
-        .single();
-
-      if (error || !profile) {
-        alert('User not found');
-        window.location.href = 'profile.html';
-        return;
-      }
-
-      targetUser = profile;
-
-      // Display user info
-      document.getElementById("username").textContent = profile.username || 'User';
-      document.getElementById("email").textContent = profile.email || '';
-      document.getElementById("joinDate").textContent = `Joined ${new Date(profile.created_at).toLocaleDateString()}`;
-      
-      if (profile.bio) {
-        document.getElementById("bioText").textContent = profile.bio;
-      }
-
-      // Set avatar
-      const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-      document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
-
-      // Load follow status and lists
-      await loadFollowStatus();
-      await loadUserLists();
-    }
-
-    async function loadFollowStatus() {
-      if (isViewingOwnProfile) return;
-
-      const followButton = document.getElementById('followButton');
-      followButton.style.display = 'block';
-
-      try {
-        // Check if already following
-        const { data: follow } = await supabase
-          .from('follows')
-          .select('id')
-          .eq('follower_id', currentUser.id)
-          .eq('followed_id', targetUserId)
-          .single();
-
-        // Check if request pending
-        const { data: request } = await supabase
-          .from('follow_requests')
-          .select('id')
-          .eq('sender_id', currentUser.id)
-          .eq('receiver_id', targetUserId)
-          .eq('status', 'pending')
-          .single();
-
-        if (follow) {
-          followButton.textContent = 'Following';
-          followButton.className = 'follow-btn following';
-          followButton.onclick = () => toggleFollow();
-        } else if (request) {
-          followButton.textContent = 'Requested';
-          followButton.className = 'follow-btn requested';
-          followButton.onclick = () => sendFollowRequest();
-        } else if (targetUser.is_private) {
-          followButton.textContent = 'Request to Follow';
-          followButton.className = 'follow-btn';
-          followButton.onclick = () => sendFollowRequest();
-        } else {
-          followButton.textContent = 'Follow';
-          followButton.className = 'follow-btn';
-          followButton.onclick = () => toggleFollow();
-        }
-      } catch (error) {
-        console.error('Error loading follow status:', error);
-      }
-    }
-
-    async function toggleFollow() {
-      try {
-        const isFollowing = await checkIfFollowing();
-        
-        if (isFollowing) {
-          // Unfollow
-          const { error } = await supabase
-            .from('follows')
-            .delete()
-            .eq('follower_id', currentUser.id)
-            .eq('followed_id', targetUserId);
-
-          if (error) throw error;
-          
-          document.getElementById('followButton').textContent = 'Follow';
-          document.getElementById('followButton').className = 'follow-btn';
-          
-        } else {
-          // Follow
-          const { error } = await supabase
-            .from('follows')
-            .insert({
-              follower_id: currentUser.id,
-              followed_id: targetUserId,
-              created_at: new Date().toISOString()
-            });
-
-          if (error) throw error;
-          
-          document.getElementById('followButton').textContent = 'Following';
-          document.getElementById('followButton').className = 'follow-btn following';
-        }
-
-        // Reload lists if privacy status changed
-        await loadUserLists();
-
-      } catch (error) {
-        console.error('Error toggling follow:', error);
-      }
-    }
-
-    async function sendFollowRequest() {
-      try {
-        const { error } = await supabase
-          .from('follow_requests')
-          .insert({
-            sender_id: currentUser.id,
-            receiver_id: targetUserId,
-            status: 'pending',
-            created_at: new Date().toISOString()
-          });
-
-        if (error) throw error;
-        
-        document.getElementById('followButton').textContent = 'Requested';
-        document.getElementById('followButton').className = 'follow-btn requested';
-
-      } catch (error) {
-        console.error('Error sending follow request:', error);
-      }
-    }
-
-    async function checkIfFollowing() {
-      try {
-        const { data } = await supabase
-          .from('follows')
-          .select('id')
-          .eq('follower_id', currentUser.id)
-          .eq('followed_id', targetUserId)
-          .single();
-
-        return !!data;
-      } catch (error) {
-        return false;
-      }
-    }
-
-    async function loadUserLists() {
-      if (isViewingOwnProfile) {
-        await listManager.init();
-        return;
-      }
-
-      const canViewLists = await canViewUserContent();
-      
-      if (!canViewLists) {
-        document.querySelector('.custom-lists').style.display = 'none';
-        document.getElementById('privateMessage').style.display = 'block';
-        return;
-      }
-
-      document.querySelector('.custom-lists').style.display = 'block';
-      document.getElementById('privateMessage').style.display = 'none';
-
-      try {
-        // Load user's lists
-        const { data: lists, error } = await supabase
-          .from('lists')
-          .select('*')
-          .eq('user_id', targetUserId);
-
-        if (error) throw error;
-
-        const userLists = lists || [];
-        
-        // Find default lists
-        const favoritesList = userLists.find(list => list.title === 'Favorites');
-        const visitedList = userLists.find(list => list.title === 'Visited');
-        const wantToGoList = userLists.find(list => list.title === 'Want to Go');
-
-        // Load restaurant counts for each list
-        await loadListCounts(favoritesList, 'favoritesCount');
-        await loadListCounts(visitedList, 'visitedCount');
-        await loadListCounts(wantToGoList, 'wantToGoCount');
-
-        // Store lists for viewing
-        window.userLists = {
-          favorites: favoritesList,
-          visited: visitedList,
-          wantToGo: wantToGoList
-        };
-
-      } catch (error) {
-        console.error('Error loading user lists:', error);
-      }
-    }
-
-    async function loadListCounts(list, countElementId) {
-      if (!list) return;
-
-      try {
-        const { data: listRestaurants, error } = await supabase
-          .from('lists_restraunts')
-          .select('restraunt_id')
-          .eq('list_id', list.id);
-
-        if (!error && listRestaurants) {
-          document.getElementById(countElementId).textContent = `${listRestaurants.length} restaurants`;
-          list.restaurants = listRestaurants.map(item => item.restraunt_id);
-        } else {
-          document.getElementById(countElementId).textContent = '0 restaurants';
-          list.restaurants = [];
-        }
-      } catch (error) {
-        console.error('Error loading list counts:', error);
-      }
-    }
-
-    async function canViewUserContent() {
-      // Users can always view their own content
-      if (currentUser && currentUser.id === targetUserId) return true;
-      
-      // Public accounts can be viewed by anyone
-      if (!targetUser.is_private) return true;
-      
-      // For private accounts, check if current user is following
-      if (!currentUser) return false;
-      
-      try {
-        const { data } = await supabase
-          .from('follows')
-          .select('id')
-          .eq('follower_id', currentUser.id)
-          .eq('followed_id', targetUserId)
-          .single();
-
-        return !!data;
-      } catch (error) {
-        return false;
-      }
-    }
-
-    async function loadUserProfile() {
-      const { data: profile, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", currentUser.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error loading profile:", error);
-      }
-
-      userProfile = profile || {};
-      
-      if (!profile) {
-        const { error: insertError } = await supabase
-          .from("user_profiles")
-          .insert({
-            id: currentUser.id,
-            username: currentUser.email.split('@')[0],
-            bio: "",
-            is_private: false,
-            created_at: new Date().toISOString()
-          });
-
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
-        }
-      }
-    }
-
-    function showList(listType) {
-      let list;
-      
-      if (isViewingOwnProfile) {
-        list = listManager.currentLists[listType];
-      } else {
-        list = window.userLists[listType];
-      }
-      
-      if (!list) return;
-      
-      currentActiveList = listType;
-      document.getElementById('activeListTitle').textContent = list.title;
-      document.querySelector('.custom-lists').style.display = 'none';
-      document.querySelector('.bio').style.display = 'none';
-      document.getElementById('privateMessage').style.display = 'none';
-      document.getElementById('activeListSection').style.display = 'block';
-      
-      renderListRestaurants(list.restaurants || [], listType);
-    }
-
-    function hideActiveList() {
-      document.getElementById('activeListSection').style.display = 'none';
-      document.querySelector('.custom-lists').style.display = 'block';
-      document.querySelector('.bio').style.display = 'block';
-      
-      // Show private message if applicable
-      if (!isViewingOwnProfile && document.getElementById('privateMessage').style.display !== 'none') {
-        document.getElementById('privateMessage').style.display = 'block';
-      }
-      
-      currentActiveList = null;
-    }
-
-    function renderListRestaurants(restaurantIds, listType) {
-      const grid = document.getElementById('activeListGrid');
-      grid.innerHTML = '';
-      
-      console.log(`Rendering ${restaurantIds.length} restaurants for ${listType}`);
-      
-      // Convert to numbers and filter
-      const numericIds = restaurantIds.map(id => Number(id));
-      const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
-      
-      console.log(`Found ${listRestaurants.length} matching restaurants`);
-      
-      if (listRestaurants.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-list">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🍽️</div>
-            <h3>No restaurants yet</h3>
-            <p>Start adding restaurants to your ${listType} list!</p>
-          </div>
-        `;
-        return;
-      }
-      
-      listRestaurants.forEach(r => {
-        const tile = document.createElement('div');
-        tile.className = 'tile';
-        
-        const clickableContent = document.createElement('a');
-        clickableContent.href = `cards/${r.slug}.html`;
-        clickableContent.style.textDecoration = 'none';
-        clickableContent.style.color = 'inherit';
-        clickableContent.style.display = 'block';
-        clickableContent.style.height = '100%';
-        
-        clickableContent.innerHTML = `
-          <div class="media"><img src="images/${r.image}" alt="${r.name}" loading="lazy"></div>
-          <div class="inner">
-            <h3>${r.name}</h3>
-            <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
-            <p class="desc">${r.desc}</p>
-          </div>
-        `;
-        
-        tile.appendChild(clickableContent);
-        
-        // Only show list buttons when viewing own profile
-        if (isViewingOwnProfile) {
-          const listActions = document.createElement('div');
-          listActions.className = 'list-actions';
-          listActions.innerHTML = `
-            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
-            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
-            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
-          `;
-          tile.appendChild(listActions);
-        }
-        
-        grid.appendChild(tile);
-      });
-
-      // Add event listeners for list buttons (only for own profile)
-      if (isViewingOwnProfile) {
-        document.querySelectorAll('.list-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.preventDefault(); 
-            e.stopPropagation();
-            const restaurantId = parseInt(btn.dataset.id);
-            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-            btn.classList.toggle('active', wasAdded);
-            
-            if (currentActiveList === btn.dataset.list) {
-              showList(currentActiveList);
-            }
-          });
-        });
-      }
-    }
-
     function viewUserProfile(userId) {
       window.location.href = `profile.html?id=${userId}`;
     }
@@ -2464,6 +2862,12 @@
           
           document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
           document.getElementById(`${tabId}-tab`).classList.add('active');
+          
+          // If switching to taste tracker tab, ensure it's rendered
+          if (tabId === 'taste-tracker') {
+            renderTasteTracker();
+            updateTasteTrackerStats();
+          }
         });
       });
 
