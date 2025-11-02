@@ -819,169 +819,239 @@
       font-size: 1.2rem;
     }
     
-    /* Taste Tracker Styles */
+    /* Taste Tracker Styles - Tinder Style */
     .taste-tracker-section {
       background-color: #1e2f5c;
       border-radius: 12px;
       padding: 15px;
       margin-top: 15px;
-    }
-    
-    .taste-tracker-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 15px;
-      margin-top: 15px;
-    }
-    
-    .taste-tracker-card {
-      background: #0b1633;
-      border-radius: 12px;
-      padding: 15px;
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: transform 0.2s;
-    }
-    
-    .taste-tracker-card:hover {
-      transform: translateY(-3px);
-      border-color: #f59e0b;
-    }
-    
-    .taste-tracker-restaurant-name {
-      font-weight: 600;
-      margin-bottom: 5px;
-      font-size: 1rem;
-    }
-    
-    .taste-tracker-category {
-      color: #cbd5e1;
-      font-size: 0.8rem;
-      margin-bottom: 10px;
-    }
-    
-    .taste-tracker-rating {
+      position: relative;
+      min-height: 600px;
       display: flex;
-      align-items: center;
-      margin-bottom: 10px;
+      flex-direction: column;
     }
-    
-    .taste-tracker-rating-stars {
-      color: #ffc107;
-      margin-right: 10px;
+
+    .taste-tracker-header {
+      text-align: center;
+      margin-bottom: 20px;
     }
-    
-    .taste-tracker-rating-value {
-      font-weight: 600;
-      color: #f59e0b;
+
+    .taste-tracker-progress {
+      height: 6px;
+      background-color: #2f3542;
+      border-radius: 3px;
+      margin: 10px 0 20px;
+      overflow: hidden;
     }
-    
-    .taste-tracker-actions {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
+
+    .taste-tracker-progress-fill {
+      height: 100%;
+      background-color: #f59e0b;
+      transition: width 0.3s ease;
     }
-    
-    .taste-tracker-btn {
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
+
+    .taste-tracker-card-container {
       flex: 1;
-      margin: 0 5px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+    }
+
+    .taste-tracker-card {
+      position: absolute;
+      width: 100%;
+      max-width: 350px;
+      height: 450px;
+      background: #0b1633;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .taste-tracker-card-image {
+      height: 250px;
+      background-size: cover;
+      background-position: center;
+      background-color: #2f3542;
       display: flex;
       align-items: center;
       justify-content: center;
+      color: #cbd5e1;
+      font-size: 3rem;
     }
-    
-    .taste-tracker-like-btn {
-      background-color: rgba(46, 213, 115, 0.1);
-      color: #2ed573;
+
+    .taste-tracker-card-content {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
-    
-    .taste-tracker-like-btn:hover, .taste-tracker-like-btn.active {
-      background-color: #2ed573;
-      color: white;
-    }
-    
-    .taste-tracker-dislike-btn {
-      background-color: rgba(255, 71, 87, 0.1);
-      color: #ff4757;
-    }
-    
-    .taste-tracker-dislike-btn:hover, .taste-tracker-dislike-btn.active {
-      background-color: #ff4757;
-      color: white;
-    }
-    
-    .taste-tracker-neutral-btn {
-      background-color: rgba(116, 125, 140, 0.1);
-      color: #747d8c;
-    }
-    
-    .taste-tracker-neutral-btn:hover, .taste-tracker-neutral-btn.active {
-      background-color: #747d8c;
-      color: white;
-    }
-    
-    .taste-tracker-stats-container {
-      background: #1e2f5c;
-      border-radius: 12px;
-      padding: 15px;
-      margin-top: 15px;
-    }
-    
-    .taste-tracker-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 15px;
-    }
-    
-    .taste-tracker-stat-card {
-      background: #0b1633;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-    }
-    
-    .taste-tracker-stat-value {
-      font-size: 1.8rem;
+
+    .taste-tracker-card-name {
+      font-size: 1.5rem;
       font-weight: 700;
       margin-bottom: 5px;
     }
-    
-    .taste-tracker-stat-label {
+
+    .taste-tracker-card-category {
+      color: #f59e0b;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .taste-tracker-card-rating {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .taste-tracker-card-stars {
+      color: #ffc107;
+      margin-right: 10px;
+    }
+
+    .taste-tracker-card-desc {
       color: #cbd5e1;
       font-size: 0.9rem;
+      line-height: 1.4;
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 15px;
     }
-    
-    .taste-tracker-progress-bar {
-      height: 8px;
-      background-color: #2f3542;
-      border-radius: 4px;
-      margin-top: 10px;
-      overflow: hidden;
+
+    .taste-tracker-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
     }
-    
-    .taste-tracker-progress-fill {
-      height: 100%;
-      border-radius: 4px;
+
+    .taste-tracker-action-btn {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
-    
-    .taste-tracker-progress-likes {
-      background-color: #2ed573;
+
+    .taste-tracker-dislike-btn {
+      background-color: #0b1633;
+      color: #ff4757;
+      border: 2px solid #ff4757;
     }
-    
-    .taste-tracker-progress-dislikes {
+
+    .taste-tracker-dislike-btn:hover {
       background-color: #ff4757;
+      color: white;
+      transform: scale(1.05);
     }
-    
-    .taste-tracker-progress-neutral {
+
+    .taste-tracker-neutral-btn {
+      background-color: #0b1633;
+      color: #747d8c;
+      border: 2px solid #747d8c;
+    }
+
+    .taste-tracker-neutral-btn:hover {
       background-color: #747d8c;
+      color: white;
+      transform: scale(1.05);
     }
-    
+
+    .taste-tracker-like-btn {
+      background-color: #0b1633;
+      color: #2ed573;
+      border: 2px solid #2ed573;
+    }
+
+    .taste-tracker-like-btn:hover {
+      background-color: #2ed573;
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .taste-tracker-completed {
+      text-align: center;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .taste-tracker-completed-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      color: #f59e0b;
+    }
+
+    .taste-tracker-completed h3 {
+      color: #f59e0b;
+      margin-bottom: 10px;
+    }
+
+    .taste-tracker-completed p {
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+
+    .taste-tracker-restart-btn {
+      background-color: #f59e0b;
+      color: #0b1633;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .taste-tracker-restart-btn:hover {
+      background-color: #ffb84d;
+    }
+
+    .taste-tracker-swipe-hint {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    /* Animation for swipe actions */
+    @keyframes swipeRight {
+      0% { transform: translateX(0) rotate(0); }
+      100% { transform: translateX(150%) rotate(20deg); opacity: 0; }
+    }
+
+    @keyframes swipeLeft {
+      0% { transform: translateX(0) rotate(0); }
+      100% { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
+    }
+
+    .swipe-right {
+      animation: swipeRight 0.5s forwards;
+    }
+
+    .swipe-left {
+      animation: swipeLeft 0.5s forwards;
+    }
+
     /* Responsive adjustments */
     @media (min-width: 768px) {
       .profile-container {
@@ -1001,9 +1071,30 @@
       .list-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       }
+    }
+
+    @media (max-width: 768px) {
+      .taste-tracker-card {
+        height: 500px;
+      }
       
-      .taste-tracker-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      .taste-tracker-card-image {
+        height: 280px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .taste-tracker-card {
+        height: 450px;
+      }
+      
+      .taste-tracker-card-image {
+        height: 220px;
+      }
+      
+      .taste-tracker-actions {
+        flex-direction: column;
+        gap: 10px;
       }
     }
   </style>
@@ -1155,42 +1246,33 @@
     <!-- Taste Tracker Tab Content -->
     <div class="tab-content" id="taste-tracker-tab">
       <div class="taste-tracker-section">
-        <h3>Taste Tracker</h3>
-        <p>Rate restaurants you've visited to track your preferences and discover new favorites!</p>
-        
-        <div class="taste-tracker-stats-container">
-          <h4>My Taste Profile</h4>
-          <div class="taste-tracker-stats-grid">
-            <div class="taste-tracker-stat-card">
-              <div class="taste-tracker-stat-value" id="liked-count">0</div>
-              <div class="taste-tracker-stat-label">Liked Places</div>
-              <div class="taste-tracker-progress-bar">
-                <div class="taste-tracker-progress-fill taste-tracker-progress-likes" id="liked-progress"></div>
-              </div>
-            </div>
-            <div class="taste-tracker-stat-card">
-              <div class="taste-tracker-stat-value" id="disliked-count">0</div>
-              <div class="taste-tracker-stat-label">Disliked Places</div>
-              <div class="taste-tracker-progress-bar">
-                <div class="taste-tracker-progress-fill taste-tracker-progress-dislikes" id="disliked-progress"></div>
-              </div>
-            </div>
-            <div class="taste-tracker-stat-card">
-              <div class="taste-tracker-stat-value" id="neutral-count">0</div>
-              <div class="taste-tracker-stat-label">Haven't Visited</div>
-              <div class="taste-tracker-progress-bar">
-                <div class="taste-tracker-progress-fill taste-tracker-progress-neutral" id="neutral-progress"></div>
-              </div>
-            </div>
-            <div class="taste-tracker-stat-card">
-              <div class="taste-tracker-stat-value" id="total-count">0</div>
-              <div class="taste-tracker-stat-label">Total Rated</div>
-            </div>
-          </div>
+        <div class="taste-tracker-header">
+          <h3>Taste Tracker</h3>
+          <p>Swipe through restaurants and rate them based on your experience</p>
         </div>
 
-        <div class="taste-tracker-grid" id="taste-tracker-container">
+        <div class="taste-tracker-progress">
+          <div class="taste-tracker-progress-fill" id="tasteTrackerProgress"></div>
+        </div>
+
+        <div class="taste-tracker-swipe-hint" id="swipeHint">
+          Swipe or use buttons to rate restaurants
+        </div>
+
+        <div class="taste-tracker-card-container" id="tasteTrackerContainer">
           <!-- Restaurant cards will be generated here -->
+        </div>
+
+        <div class="taste-tracker-actions" id="tasteTrackerActions">
+          <button class="taste-tracker-action-btn taste-tracker-dislike-btn" id="dislikeBtn">
+            <i class="fas fa-times"></i> Dislike
+          </button>
+          <button class="taste-tracker-action-btn taste-tracker-neutral-btn" id="neutralBtn">
+            <i class="fas fa-question"></i> Haven't Visited
+          </button>
+          <button class="taste-tracker-action-btn taste-tracker-like-btn" id="likeBtn">
+            <i class="fas fa-heart"></i> Like
+          </button>
         </div>
       </div>
     </div>
@@ -1227,7 +1309,14 @@
     let isViewingOwnProfile = true;
     let restaurants = [];
     let customLists = [];
+    
+    // Taste Tracker Variables
     let tasteTrackerRatings = {};
+    let unratedRestaurants = [];
+    let currentRestaurantIndex = 0;
+    let isSwiping = false;
+    let startX = 0;
+    let currentX = 0;
 
     // Restaurant data
     const restaurantData = [
@@ -1297,7 +1386,6 @@
         console.log(`Loaded ${restaurants.length} restaurants from database`);
       } catch (error) {
         console.error('Error loading restaurants:', error);
-        // Fallback to hardcoded data if database fails
         restaurants = restaurantData;
       }
     }
@@ -1314,7 +1402,6 @@
         
         if (error) throw error;
         
-        // Convert array to object for easier access
         tasteTrackerRatings = {};
         if (ratings) {
           ratings.forEach(rating => {
@@ -1322,19 +1409,215 @@
           });
         }
         
+        initializeUnratedRestaurants();
         renderTasteTracker();
-        updateTasteTrackerStats();
         
       } catch (error) {
         console.error('Error loading taste tracker ratings:', error);
       }
     }
 
+    function initializeUnratedRestaurants() {
+      unratedRestaurants = restaurants.filter(restaurant => 
+        !tasteTrackerRatings.hasOwnProperty(restaurant.id)
+      );
+      
+      shuffleArray(unratedRestaurants);
+      currentRestaurantIndex = 0;
+      updateProgressBar();
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function renderTasteTracker() {
+      const container = document.getElementById('tasteTrackerContainer');
+      container.innerHTML = '';
+      
+      if (unratedRestaurants.length === 0) {
+        container.innerHTML = `
+          <div class="taste-tracker-completed">
+            <div class="taste-tracker-completed-icon">🎉</div>
+            <h3>All Done!</h3>
+            <p>You've rated all available restaurants. Check back later for new additions!</p>
+            <button class="taste-tracker-restart-btn" onclick="resetTasteTracker()">Rate Again</button>
+          </div>
+        `;
+        document.getElementById('tasteTrackerActions').style.display = 'none';
+        document.getElementById('swipeHint').style.display = 'none';
+        return;
+      }
+      
+      const restaurant = unratedRestaurants[currentRestaurantIndex];
+      const card = document.createElement('div');
+      card.className = 'taste-tracker-card';
+      card.id = 'currentCard';
+      
+      const restaurantEmojis = {
+        'Asian': '🍜',
+        'Middle Eastern': '🥙',
+        'Fast Food': '🍔',
+        'Burgers': '🍔',
+        'Mexican': '🌮',
+        'Chicken': '🍗',
+        'Cafe & Bakery': '☕',
+        'Pizza': '🍕',
+        'BBQ & Ribs': '🍖',
+        'Italian': '🍝',
+        'Seafood': '🦞',
+        'Breakfast': '🥞'
+      };
+      
+      const emoji = restaurantEmojis[restaurant.category] || '🍽️';
+      
+      card.innerHTML = `
+        <div class="taste-tracker-card-image" style="background-image: url('images/${restaurant.image}')">
+          ${!restaurant.image || restaurant.image === '' ? emoji : ''}
+        </div>
+        <div class="taste-tracker-card-content">
+          <div class="taste-tracker-card-name">${restaurant.name}</div>
+          <div class="taste-tracker-card-category">${restaurant.category}</div>
+          <div class="taste-tracker-card-rating">
+            <div class="taste-tracker-card-stars">${generateStars(restaurant.rating)}</div>
+            <div class="taste-tracker-rating-value">${restaurant.rating}</div>
+          </div>
+          <div class="taste-tracker-card-desc">${restaurant.desc}</div>
+        </div>
+      `;
+      
+      container.appendChild(card);
+      setupSwipeEvents(card);
+      document.getElementById('tasteTrackerActions').style.display = 'flex';
+      document.getElementById('swipeHint').style.display = 'block';
+    }
+
+    function setupSwipeEvents(card) {
+      card.addEventListener('touchstart', handleTouchStart, { passive: false });
+      card.addEventListener('touchmove', handleTouchMove, { passive: false });
+      card.addEventListener('touchend', handleTouchEnd);
+      
+      card.addEventListener('mousedown', handleMouseDown);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    function handleTouchStart(e) {
+      if (isSwiping) return;
+      isSwiping = true;
+      startX = e.touches[0].clientX;
+      currentX = startX;
+    }
+
+    function handleTouchMove(e) {
+      if (!isSwiping) return;
+      e.preventDefault();
+      currentX = e.touches[0].clientX;
+      updateCardPosition();
+    }
+
+    function handleTouchEnd() {
+      if (!isSwiping) return;
+      isSwiping = false;
+      handleSwipeEnd();
+    }
+
+    function handleMouseDown(e) {
+      if (isSwiping) return;
+      isSwiping = true;
+      startX = e.clientX;
+      currentX = startX;
+    }
+
+    function handleMouseMove(e) {
+      if (!isSwiping) return;
+      currentX = e.clientX;
+      updateCardPosition();
+    }
+
+    function handleMouseUp() {
+      if (!isSwiping) return;
+      isSwiping = false;
+      handleSwipeEnd();
+    }
+
+    function updateCardPosition() {
+      const card = document.getElementById('currentCard');
+      if (!card) return;
+      
+      const deltaX = currentX - startX;
+      const rotation = deltaX * 0.1;
+      
+      card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+      
+      if (deltaX > 50) {
+        card.style.backgroundColor = 'rgba(46, 213, 115, 0.1)';
+      } else if (deltaX < -50) {
+        card.style.backgroundColor = 'rgba(255, 71, 87, 0.1)';
+      } else {
+        card.style.backgroundColor = '#0b1633';
+      }
+    }
+
+    function handleSwipeEnd() {
+      const card = document.getElementById('currentCard');
+      if (!card) return;
+      
+      const deltaX = currentX - startX;
+      const threshold = 100;
+      
+      if (deltaX > threshold) {
+        card.classList.add('swipe-right');
+        setTimeout(() => {
+          rateCurrentRestaurant('like');
+        }, 300);
+      } else if (deltaX < -threshold) {
+        card.classList.add('swipe-left');
+        setTimeout(() => {
+          rateCurrentRestaurant('dislike');
+        }, 300);
+      } else {
+        card.style.transform = 'translateX(0) rotate(0)';
+        card.style.backgroundColor = '#0b1633';
+      }
+    }
+
+    function rateCurrentRestaurant(rating) {
+      if (unratedRestaurants.length === 0) return;
+      
+      const restaurant = unratedRestaurants[currentRestaurantIndex];
+      saveTasteTrackerRating(restaurant.id, rating);
+      
+      currentRestaurantIndex++;
+      
+      if (currentRestaurantIndex >= unratedRestaurants.length) {
+        renderTasteTracker();
+      } else {
+        setTimeout(() => {
+          renderTasteTracker();
+        }, 300);
+      }
+      
+      updateProgressBar();
+    }
+
+    function updateProgressBar() {
+      const progressBar = document.getElementById('tasteTrackerProgress');
+      const totalRestaurants = restaurants.length;
+      const ratedCount = Object.keys(tasteTrackerRatings).length;
+      const progress = (ratedCount / totalRestaurants) * 100;
+      
+      progressBar.style.width = `${progress}%`;
+    }
+
     async function saveTasteTrackerRating(restaurantId, rating) {
       if (!currentUser) return;
       
       try {
-        // Check if rating already exists
         const { data: existingRating, error: checkError } = await supabase
           .from('taste_tracker_ratings')
           .select('id')
@@ -1345,7 +1628,6 @@
         if (checkError && checkError.code !== 'PGRST116') throw checkError;
         
         if (existingRating) {
-          // Update existing rating
           const { error } = await supabase
             .from('taste_tracker_ratings')
             .update({ rating: rating })
@@ -1353,7 +1635,6 @@
           
           if (error) throw error;
         } else {
-          // Insert new rating
           const { error } = await supabase
             .from('taste_tracker_ratings')
             .insert({
@@ -1365,74 +1646,16 @@
           if (error) throw error;
         }
         
-        // Update local state
         tasteTrackerRatings[restaurantId] = rating;
-        updateTasteTrackerStats();
-        showNotification('Rating saved!', 'success');
         
       } catch (error) {
         console.error('Error saving taste tracker rating:', error);
-        showNotification('Error saving rating', 'error');
       }
     }
 
-    function renderTasteTracker() {
-      const container = document.getElementById('taste-tracker-container');
-      container.innerHTML = '';
-      
-      restaurants.forEach(restaurant => {
-        const rating = tasteTrackerRatings[restaurant.id] || 'neutral';
-        
-        const card = document.createElement('div');
-        card.className = 'taste-tracker-card';
-        card.innerHTML = `
-          <div class="taste-tracker-restaurant-name">${restaurant.name}</div>
-          <div class="taste-tracker-category">${restaurant.category}</div>
-          <div class="taste-tracker-rating">
-            <div class="taste-tracker-rating-stars">${generateStars(restaurant.rating)}</div>
-            <div class="taste-tracker-rating-value">${restaurant.rating}</div>
-          </div>
-          <div class="taste-tracker-actions">
-            <button class="taste-tracker-btn taste-tracker-like-btn ${rating === 'like' ? 'active' : ''}" data-id="${restaurant.id}" data-rating="like">
-              <span>❤️</span> Like
-            </button>
-            <button class="taste-tracker-btn taste-tracker-neutral-btn ${rating === 'neutral' ? 'active' : ''}" data-id="${restaurant.id}" data-rating="neutral">
-              <span>🤔</span> Haven't Visited
-            </button>
-            <button class="taste-tracker-btn taste-tracker-dislike-btn ${rating === 'dislike' ? 'active' : ''}" data-id="${restaurant.id}" data-rating="dislike">
-              <span>❌</span> Dislike
-            </button>
-          </div>
-        `;
-        
-        container.appendChild(card);
-      });
-      
-      // Add event listeners to rating buttons
-      document.querySelectorAll('.taste-tracker-btn').forEach(button => {
-        button.addEventListener('click', function() {
-          const restaurantId = parseInt(this.getAttribute('data-id'));
-          const rating = this.getAttribute('data-rating');
-          
-          // Update rating
-          saveTasteTrackerRating(restaurantId, rating);
-          
-          // Update UI
-          updateButtonStates(restaurantId, rating);
-        });
-      });
-    }
-
-    function updateButtonStates(restaurantId, rating) {
-      const buttons = document.querySelectorAll(`[data-id="${restaurantId}"]`);
-      
-      buttons.forEach(button => {
-        if (button.getAttribute('data-rating') === rating) {
-          button.classList.add('active');
-        } else {
-          button.classList.remove('active');
-        }
-      });
+    function resetTasteTracker() {
+      initializeUnratedRestaurants();
+      renderTasteTracker();
     }
 
     function generateStars(rating) {
@@ -1455,25 +1678,6 @@
       }
       
       return stars;
-    }
-
-    function updateTasteTrackerStats() {
-      const likedCount = Object.values(tasteTrackerRatings).filter(r => r === 'like').length;
-      const dislikedCount = Object.values(tasteTrackerRatings).filter(r => r === 'dislike').length;
-      const neutralCount = Object.values(tasteTrackerRatings).filter(r => r === 'neutral').length;
-      const totalRated = likedCount + dislikedCount + neutralCount;
-      
-      // Update counts
-      document.getElementById('liked-count').textContent = likedCount;
-      document.getElementById('disliked-count').textContent = dislikedCount;
-      document.getElementById('neutral-count').textContent = neutralCount;
-      document.getElementById('total-count').textContent = totalRated;
-      
-      // Update progress bars
-      const total = restaurants.length;
-      document.getElementById('liked-progress').style.width = `${(likedCount / total) * 100}%`;
-      document.getElementById('disliked-progress').style.width = `${(dislikedCount / total) * 100}%`;
-      document.getElementById('neutral-progress').style.width = `${(neutralCount / total) * 100}%`;
     }
 
     // Custom notification function
@@ -1516,10 +1720,8 @@
 
       currentUser = user;
 
-      // Load restaurants first from Supabase
       await loadRestaurants();
 
-      // Determine if we're viewing own profile or another user's profile
       if (targetUserId && targetUserId !== user.id) {
         isViewingOwnProfile = false;
         await loadOtherUserProfile();
@@ -1530,7 +1732,6 @@
     }
 
     async function loadOwnProfile() {
-      // Show own profile elements
       document.getElementById('profileTabs').style.display = 'flex';
       document.getElementById('logoutBtn').style.display = 'block';
       document.getElementById('backButton').style.display = 'none';
@@ -1547,31 +1748,24 @@
         document.getElementById("bioText").textContent = userProfile.bio;
       }
 
-      // Set avatar
       const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
       document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
 
-      // Load taste tracker ratings
       await loadTasteTrackerRatings();
-      
-      // Load other components
       await listManager.init();
       await friendSystem.init();
     }
 
     async function loadOtherUserProfile() {
-      // Hide elements for other users' profiles
       document.getElementById('profileTabs').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
       document.getElementById('backButton').style.display = 'block';
       document.getElementById('editBioBtn').style.display = 'none';
       
-      // Show only the profile tab
       document.getElementById('profile-tab').classList.add('active');
       document.getElementById('social-tab').style.display = 'none';
       document.getElementById('taste-tracker-tab').style.display = 'none';
 
-      // Load target user profile
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -1586,7 +1780,6 @@
 
       targetUser = profile;
 
-      // Display user info
       document.getElementById("username").textContent = profile.username || 'User';
       document.getElementById("email").textContent = profile.email || '';
       document.getElementById("joinDate").textContent = `Joined ${new Date(profile.created_at).toLocaleDateString()}`;
@@ -1595,11 +1788,9 @@
         document.getElementById("bioText").textContent = profile.bio;
       }
 
-      // Set avatar
       const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
       document.getElementById("avatar").textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
 
-      // Load follow status and lists
       await loadFollowStatus();
       await loadUserLists();
     }
@@ -1611,7 +1802,6 @@
       followButton.style.display = 'block';
 
       try {
-        // Check if already following
         const { data: follow } = await supabase
           .from('follows')
           .select('id')
@@ -1619,7 +1809,6 @@
           .eq('followed_id', targetUserId)
           .single();
 
-        // Check if request pending
         const { data: request } = await supabase
           .from('follow_requests')
           .select('id')
@@ -1655,7 +1844,6 @@
         const isFollowing = await checkIfFollowing();
         
         if (isFollowing) {
-          // Unfollow
           const { error } = await supabase
             .from('follows')
             .delete()
@@ -1668,7 +1856,6 @@
           document.getElementById('followButton').className = 'follow-btn';
           
         } else {
-          // Follow
           const { error } = await supabase
             .from('follows')
             .insert({
@@ -1683,7 +1870,6 @@
           document.getElementById('followButton').className = 'follow-btn following';
         }
 
-        // Reload lists if privacy status changed
         await loadUserLists();
 
       } catch (error) {
@@ -1745,7 +1931,6 @@
       document.getElementById('privateMessage').style.display = 'none';
 
       try {
-        // Load user's lists
         const { data: lists, error } = await supabase
           .from('lists')
           .select('*')
@@ -1755,17 +1940,14 @@
 
         const userLists = lists || [];
         
-        // Find default lists
         const favoritesList = userLists.find(list => list.title === 'Favorites');
         const visitedList = userLists.find(list => list.title === 'Visited');
         const wantToGoList = userLists.find(list => list.title === 'Want to Go');
 
-        // Load restaurant counts for each list
         await loadListCounts(favoritesList, 'favoritesCount');
         await loadListCounts(visitedList, 'visitedCount');
         await loadListCounts(wantToGoList, 'wantToGoCount');
 
-        // Store lists for viewing
         window.userLists = {
           favorites: favoritesList,
           visited: visitedList,
@@ -1799,13 +1981,8 @@
     }
 
     async function canViewUserContent() {
-      // Users can always view their own content
       if (currentUser && currentUser.id === targetUserId) return true;
-      
-      // Public accounts can be viewed by anyone
       if (!targetUser.is_private) return true;
-      
-      // For private accounts, check if current user is following
       if (!currentUser) return false;
       
       try {
@@ -1947,12 +2124,10 @@
       async toggleInList(listType, restaurantId) {
         let list;
         
-        // Handle custom lists (by ID)
         if (typeof listType === 'number') {
           list = customLists.find(l => l.id === listType);
           if (!list) return false;
         } else {
-          // Handle default lists (by type)
           list = this.currentLists[listType];
           if (!list) return false;
         }
@@ -1991,7 +2166,6 @@
             showNotification(`Added to ${list.title}`, "success");
           }
           
-          // Update all list counts
           updateAllListCounts();
           
           return !isInList;
@@ -2029,7 +2203,6 @@
           
           customLists = lists || [];
           
-          // Load restaurants for each custom list
           for (const list of customLists) {
             const { data: listRestaurants, error } = await supabase
               .from('lists_restraunts')
@@ -2051,9 +2224,7 @@
       }
     };
 
-    // Function to update all list counts
     function updateAllListCounts() {
-      // Update default lists
       if (listManager.currentLists.favorites) {
         document.getElementById('favoritesCount').textContent = `${listManager.currentLists.favorites.restaurants?.length || 0} restaurants`;
       }
@@ -2064,11 +2235,9 @@
         document.getElementById('wantToGoCount').textContent = `${listManager.currentLists.wantToGo.restaurants?.length || 0} restaurants`;
       }
       
-      // Update custom lists
       updateCustomListCounts();
     }
 
-    // Function to update custom list counts
     function updateCustomListCounts() {
       const customListCards = document.querySelectorAll('.custom-list-card');
       
@@ -2085,7 +2254,6 @@
       });
     }
 
-    // Custom List Functions
     function showCreateListModal() {
       document.getElementById('createListModal').style.display = 'flex';
       document.getElementById('newListName').value = '';
@@ -2118,11 +2286,9 @@
         
         if (error) throw error;
         
-        // Add to custom lists array
         newList.restaurants = [];
         customLists.push(newList);
         
-        // Update UI
         renderCustomLists();
         hideCreateListModal();
         showNotification(`List "${listName}" created!`, 'success');
@@ -2136,11 +2302,9 @@
     function renderCustomLists() {
       const listGrid = document.querySelector('.list-grid');
       
-      // Remove any existing custom list cards (except the create button)
       const existingCustomLists = listGrid.querySelectorAll('.custom-list-card');
       existingCustomLists.forEach(card => card.remove());
       
-      // Add custom lists to the grid
       customLists.forEach(list => {
         const listCard = document.createElement('div');
         listCard.className = 'list-card custom-list-card';
@@ -2152,7 +2316,6 @@
         `;
         listCard.onclick = () => showCustomList(list.id);
         
-        // Insert before the create list card
         const createCard = listGrid.querySelector('.create-list-card');
         listGrid.insertBefore(listCard, createCard);
       });
@@ -2162,7 +2325,6 @@
       const list = customLists.find(l => l.id === listId);
       if (!list) return;
       
-      // Load restaurants for this list
       const { data: listRestaurants, error } = await supabase
         .from('lists_restraunts')
         .select('restraunt_id')
@@ -2224,7 +2386,6 @@
         
         tile.appendChild(clickableContent);
         
-        // Add remove button for custom lists
         const listActions = document.createElement('div');
         listActions.className = 'list-actions';
         listActions.innerHTML = `
@@ -2235,7 +2396,6 @@
         grid.appendChild(tile);
       });
 
-      // Add event listeners for remove buttons
       document.querySelectorAll('.list-btn.remove').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.preventDefault(); 
@@ -2244,8 +2404,6 @@
           const listId = parseInt(btn.dataset.list);
           
           await listManager.toggleInList(listId, restaurantId);
-          
-          // Refresh the current view
           showCustomList(listId);
         });
       });
@@ -2277,7 +2435,6 @@
       document.querySelector('.custom-lists').style.display = 'block';
       document.querySelector('.bio').style.display = 'block';
       
-      // Show private message if applicable
       if (!isViewingOwnProfile && document.getElementById('privateMessage').style.display !== 'none') {
         document.getElementById('privateMessage').style.display = 'block';
       }
@@ -2291,7 +2448,6 @@
       
       console.log(`Rendering ${restaurantIds.length} restaurants for ${listType}`);
       
-      // Convert to numbers and filter
       const numericIds = restaurantIds.map(id => Number(id));
       const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
       
@@ -2330,7 +2486,6 @@
         
         tile.appendChild(clickableContent);
         
-        // Only show list buttons when viewing own profile
         if (isViewingOwnProfile) {
           const listActions = document.createElement('div');
           listActions.className = 'list-actions';
@@ -2345,7 +2500,6 @@
         grid.appendChild(tile);
       });
 
-      // Add event listeners for list buttons (only for own profile)
       if (isViewingOwnProfile) {
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
@@ -2371,7 +2525,6 @@
         await this.loadPrivacySetting();
         await this.loadPendingRequests();
         
-        // Add event listener for privacy toggle
         document.getElementById('privacyToggle').addEventListener('change', () => {
           this.togglePrivacy();
         });
@@ -2379,7 +2532,6 @@
 
       async loadFollowStats() {
         try {
-          // Get followers count (people who follow current user)
           const { data: followers, error: followersError } = await supabase
             .from('follows')
             .select('follower_id')
@@ -2389,7 +2541,6 @@
             document.getElementById('followersCount').textContent = followers?.length || 0;
           }
 
-          // Get following count (people current user follows)
           const { data: following, error: followingError } = await supabase
             .from('follows')
             .select('followed_id')
@@ -2584,13 +2735,11 @@
       },
 
       showSection(sectionId) {
-        // Hide all sections
         document.getElementById('searchResults').style.display = 'none';
         document.getElementById('followersList').style.display = 'none';
         document.getElementById('followingList').style.display = 'none';
         document.getElementById('requestsList').style.display = 'none';
         
-        // Show the requested section
         document.getElementById(sectionId).style.display = 'grid';
       },
 
@@ -2665,7 +2814,6 @@
 
       async getFollowStatus(targetUserId) {
         try {
-          // Check if already following
           const { data: follow } = await supabase
             .from('follows')
             .select('id')
@@ -2673,7 +2821,6 @@
             .eq('followed_id', targetUserId)
             .single();
 
-          // Check if request pending
           const { data: request } = await supabase
             .from('follow_requests')
             .select('id')
@@ -2718,7 +2865,6 @@
           const isFollowing = await this.checkIfFollowing(targetUserId);
           
           if (isFollowing) {
-            // Unfollow
             const { error } = await supabase
               .from('follows')
               .delete()
@@ -2729,7 +2875,6 @@
             
             showNotification('Unfollowed user', 'info');
           } else {
-            // Follow
             const { error } = await supabase
               .from('follows')
               .insert({
@@ -2762,7 +2907,6 @@
 
           if (requestError) throw requestError;
 
-          // Create follow relationship
           const { error: followError } = await supabase
             .from('follows')
             .insert({
@@ -2773,7 +2917,6 @@
 
           if (followError) throw followError;
 
-          // Update request status
           const { error: updateError } = await supabase
             .from('follow_requests')
             .update({ status: 'accepted' })
@@ -2852,7 +2995,6 @@
 
     // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
-      // Tab functionality
       document.querySelectorAll('.profile-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           const tabId = tab.dataset.tab;
@@ -2863,15 +3005,15 @@
           document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
           document.getElementById(`${tabId}-tab`).classList.add('active');
           
-          // If switching to taste tracker tab, ensure it's rendered
           if (tabId === 'taste-tracker') {
-            renderTasteTracker();
-            updateTasteTrackerStats();
+            setTimeout(() => {
+              renderTasteTracker();
+              updateProgressBar();
+            }, 100);
           }
         });
       });
 
-      // Bio functionality
       document.getElementById("editBioBtn").addEventListener("click", () => {
         document.getElementById("bioDisplay").style.display = "none";
         document.getElementById("bioEdit").style.display = "block";
@@ -2905,34 +3047,41 @@
         showNotification("Bio updated successfully!", "success");
       });
 
-      // Search functionality
       document.getElementById('userSearch').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           friendSystem.searchUsers();
         }
       });
 
-      // Create list on Enter key
       document.getElementById('newListName').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           createCustomList();
         }
       });
 
-      // Close modal when clicking outside
       document.getElementById('createListModal').addEventListener('click', (e) => {
         if (e.target.id === 'createListModal') {
           hideCreateListModal();
         }
       });
 
-      // Logout
       document.getElementById("logoutBtn").addEventListener("click", async () => {
         await supabase.auth.signOut();
         window.location.href = "login.html";
       });
 
-      // Load profile
+      document.getElementById('likeBtn').addEventListener('click', () => {
+        rateCurrentRestaurant('like');
+      });
+      
+      document.getElementById('dislikeBtn').addEventListener('click', () => {
+        rateCurrentRestaurant('dislike');
+      });
+      
+      document.getElementById('neutralBtn').addEventListener('click', () => {
+        rateCurrentRestaurant('neutral');
+      });
+
       loadProfile();
     });
   </script>
