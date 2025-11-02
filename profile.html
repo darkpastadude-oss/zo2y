@@ -1706,24 +1706,29 @@ async function initDiscover() {
         return newList;
       },
       
-      async loadListRestaurants() {
+     async loadListRestaurants() {
   for (const listType in this.currentLists) {
     const list = this.currentLists[listType];
     if (list) {
-      const { data: listRestaurants, error } = await supabase
-        .from('lists_restraunts')
-        .select('restraunt_id')
-        .eq('list_id', list.id);
-      
-      if (!error && listRestaurants) {
-        // Convert all IDs to numbers to ensure consistency
-        list.restaurants = listRestaurants.map(item => {
-          const id = typeof item.restraunt_id === 'string' ? 
-            parseInt(item.restraunt_id) : item.restraunt_id;
-          return isNaN(id) ? item.restraunt_id : id;
-        });
-        console.log(`Loaded ${list.restaurants.length} restaurants for ${list.title}`);
-      } else {
+      try {
+        const { data: listRestaurants, error } = await supabase
+          .from('lists_restraunts')
+          .select('restraunt_id')
+          .eq('list_id', list.id);
+        
+        if (!error && listRestaurants) {
+          // Convert all IDs to numbers to ensure consistency
+          list.restaurants = listRestaurants.map(item => {
+            const id = typeof item.restraunt_id === 'string' ? 
+              parseInt(item.restraunt_id) : item.restraunt_id;
+            return isNaN(id) ? item.restraunt_id : id;
+          });
+          console.log(`Loaded ${list.restaurants.length} restaurants for ${list.title}`);
+        } else {
+          list.restaurants = [];
+        }
+      } catch (error) {
+        console.error(`Error loading restaurants for ${list.title}:`, error);
         list.restaurants = [];
       }
     }
