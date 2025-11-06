@@ -1017,11 +1017,11 @@
     let restaurants = [];
     let customLists = [];
 
-    // Fetch restaurants from Supabase
+    // Fetch restaurants from Supabase - CORRECTED TABLE NAME
     async function loadRestaurants() {
       try {
         const { data, error } = await supabase
-          .from('restaurants')
+          .from('restraunts')  // ✅ CORRECT: 'restraunts' not 'restaurants'
           .select('*')
           .order('name');
         
@@ -1033,52 +1033,56 @@
         console.error('Error loading restaurants:', error);
         // Fallback to hardcoded data if database fails
         restaurants = [
-          { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-          { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-          { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-          { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
-          { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
-          { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
-          { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
-          { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
-          { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
-          { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
-          { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
-          { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
-          { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
-          { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
-          { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
-          { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
-          { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
-          { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
-          { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
-          { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
-          { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
-          { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
-          { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
-          { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
-          { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
-          { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
-          { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
-          { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
-          { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
-          { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
-          { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
-          { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
-          { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
-          { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', desc:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png' },
-          { id: 36, slug:'wok', name:'Wok and Walk', category:'Asian', desc:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png' },
-          { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png' },
-          { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
-          { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
-          { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' },
-          { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', desc:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg' },
-          { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', desc:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'mario.jpg' },
-          { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', desc:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg' },
-          { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', desc:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'man.png' },
-          { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.jpg' },
-          { id: 46, slug:'crave', name:'Crave', category:'Seafood', desc:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.png' }
+          { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', description:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
+          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
+          { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', description:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
+          { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', description:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
+          { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
+          { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', description:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
+          { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', description:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
+          { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', description:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
+          { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', description:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
+          { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', description:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
+          { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', description:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
+          { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', description:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
+          { id: 13, slug:'maine', name:'Maine', category:'Burgers', description:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
+          { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', description:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
+          { id: 15, slug:'labash', name:'Labash', category:'Chicken', description:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
+          { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', description:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
+          { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', description:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
+          { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', description:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
+          { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', description:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
+          { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', description:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
+          { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', description:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
+          { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', description:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
+          { id: 23, slug:'what', name:'What The Crust', category:'Pizza', description:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
+          { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', description:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
+          { id: 25, slug:'mince', name:'Mince', category:'Burgers', description:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
+          { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', description:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
+          { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', description:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
+          { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', description:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
+          { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', description:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
+          { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', description:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
+          { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', description:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
+          { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', description:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
+          { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', description:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
+          { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', description:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
+          { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', description:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png' },
+          { id: 36, slug:'wok', name:'Wok and Walk', category:'Asian', description:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png' },
+          { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', description:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png' },
+          { id: 38, slug:'husk', name:'Husk', category:'Burgers', description:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
+          { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', description:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
+          { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', description:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' },
+          { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', description:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg' },
+          { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', description:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'mario.jpg' },
+          { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', description:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg' },
+          { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', description:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'man.png' },
+          { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', description:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.jpg' },
+          { id: 46, slug:'crave', name:'Crave', category:'Seafood', description:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.png' },
+          { id: 47, slug:'caizo', name:'Caizo', category:'Middle Eastern', description:'Authentic Egyptian shawarma with premium ingredients and traditional recipes.', rating:4.5, image: 'caizo.jpg' },
+          { id: 48, slug:'tabali', name:'Tabali', category:'Breakfast', description:'Authentic Egyptian breakfast with traditional foul, ta3meya, and homemade specialties.', rating:4.7, image: 'tabali.jpg' },
+          { id: 49, slug:'panda', name:'Panda Express', category:'Asian', description:'Authentic Chinese cuisine with fresh ingredients and traditional flavors.', rating:4.4, image: 'panda.png' },
+          { id: 50, slug:'pablo', name:'Pablo & Abdo', category:'Burgers', description:'Modern diner experience with fusion cuisine, burgers, and international favorites.', rating:4.6, image: 'pablo.png' }
         ];
       }
     }
@@ -1250,7 +1254,7 @@
           <div class="inner">
             <h3>${r.name}</h3>
             <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
-            <p class="desc">${r.desc}</p>
+            <p class="desc">${r.description}</p>
           </div>
         `;
         
@@ -2405,7 +2409,7 @@
           <div class="inner">
             <h3>${r.name}</h3>
             <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
-            <p class="desc">${r.desc}</p>
+            <p class="desc">${r.description}</p>
           </div>
         `;
         
