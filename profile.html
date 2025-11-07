@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Base Styles */
     * {
       box-sizing: border-box;
     }
@@ -96,7 +95,6 @@
       margin-top: 5px; 
     }
     
-    /* Profile Tabs */
     .profile-tabs { 
       display: flex; 
       gap: 5px; 
@@ -137,7 +135,6 @@
       display: block; 
     }
     
-    /* Bio Section */
     .bio, .lists { 
       background-color: #1e2f5c; 
       border-radius: 12px; 
@@ -216,7 +213,6 @@
       background: #f59e0b22; 
     }
     
-    /* Lists Section */
     .custom-lists { 
       background-color: #1e2f5c; 
       border-radius: 12px; 
@@ -262,7 +258,6 @@
       font-size: 0.8rem; 
     }
     
-    /* Create List Card */
     .create-list-card {
       background: #0b1633; 
       padding: 15px; 
@@ -283,7 +278,6 @@
       background: rgba(245, 158, 11, 0.1);
     }
     
-    /* Social Tab */
     .social-section { 
       background-color: #1e2f5c; 
       border-radius: 12px; 
@@ -544,7 +538,6 @@
       opacity: 0.5; 
     }
     
-    /* Active List Display */
     .active-list-section { 
       background-color: #1e2f5c; 
       border-radius: 12px; 
@@ -687,7 +680,6 @@
       border-color: #f59e0b; 
     }
     
-    /* Modals */
     .create-list-modal {
       position: fixed;
       top: 0;
@@ -734,14 +726,12 @@
       justify-content: flex-end;
     }
     
-    /* View-only mode */
     .view-only .edit-btn { display: none; }
     .view-only .profile-tabs { display: none; }
     .view-only .privacy-toggle { display: none; }
     .view-only .search-bar { display: none; }
     .view-only #logoutBtn { display: none; }
     
-    /* Back button */
     .back-to-home {
       background: none;
       border: 1px solid #f59e0b;
@@ -758,7 +748,6 @@
       color: #0b1633;
     }
     
-    /* Private Profile Message */
     .private-message { 
       text-align: center; 
       padding: 30px; 
@@ -771,7 +760,6 @@
       opacity: 0.5; 
     }
     
-    /* Follow Button for Other Profiles */
     .profile-follow-btn {
       display: block;
       margin: 15px auto;
@@ -779,7 +767,6 @@
       max-width: 200px;
     }
     
-    /* Notifications */
     .custom-notification {
       position: fixed;
       top: 20px;
@@ -818,8 +805,290 @@
       margin-right: 10px;
       font-size: 1.2rem;
     }
-    
-    /* Responsive adjustments */
+
+    /* Journal Tab Styles */
+    .journal-section {
+      background-color: #1e2f5c;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 15px;
+    }
+
+    .journal-stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .journal-stats .stat {
+      text-align: center;
+      flex: 1;
+    }
+
+    .journal-stats .stat-number {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #f59e0b;
+    }
+
+    .journal-stats .stat-label {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+
+    .swipe-container {
+      position: relative;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .swipe-card {
+      background: #0b1633;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .swipe-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .restaurant-image {
+      position: relative;
+      height: 250px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .restaurant-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .restaurant-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      padding: 20px;
+      color: white;
+    }
+
+    .restaurant-overlay h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .restaurant-meta {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .restaurant-info {
+      padding: 20px;
+    }
+
+    .restaurant-info p {
+      margin: 0 0 20px 0;
+      line-height: 1.5;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+
+    .swipe-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .swipe-btn {
+      flex: 1;
+      background: #0b1633;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 15px 10px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .swipe-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .swipe-btn.skip:hover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .swipe-btn.want-to-go:hover {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .swipe-btn.visited:hover {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .swipe-btn span {
+      font-size: 1.5rem;
+    }
+
+    .swipe-btn small {
+      font-size: 0.7rem;
+      opacity: 0.8;
+    }
+
+    .swipe-instructions {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(245, 158, 11, 0.1);
+      border-radius: 12px;
+      border: 1px solid #f59e0b;
+    }
+
+    .instruction-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .instruction {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    .instruction span {
+      font-size: 1.2rem;
+    }
+
+    .journal-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .journal-modal-content {
+      background: #132347;
+      padding: 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 400px;
+      border: 2px solid #f59e0b;
+    }
+
+    .journal-form {
+      margin-top: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #f59e0b;
+      font-weight: 600;
+    }
+
+    .journal-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: #0b1633;
+      color: white;
+      font-family: inherit;
+    }
+
+    .journal-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: #0b1633;
+      color: white;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .rating-stars {
+      display: flex;
+      gap: 5px;
+    }
+
+    .rating-stars span {
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      opacity: 0.3;
+    }
+
+    .rating-stars span:hover {
+      transform: scale(1.2);
+    }
+
+    .journal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 25px;
+    }
+
+    .empty-journal {
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .action-btn {
+      background: #f59e0b;
+      color: #0b1633;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: 0.2s;
+    }
+
+    .action-btn:hover {
+      background: #ffb84d;
+      transform: translateY(-2px);
+    }
+
     @media (min-width: 768px) {
       .profile-container {
         max-width: 700px;
@@ -837,6 +1106,21 @@
       
       .list-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .swipe-actions {
+        flex-direction: column;
+      }
+      
+      .journal-stats {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .swipe-card {
+        margin: 0 10px;
       }
     }
   </style>
@@ -858,18 +1142,15 @@
     <div class="email" id="email"></div>
     <div class="join-date" id="joinDate"></div>
 
-    <!-- Follow Button (only shown when viewing other users) -->
     <button class="follow-btn profile-follow-btn" id="followButton" style="display: none;"></button>
 
-    <!-- Profile Tabs (only shown when viewing own profile) -->
     <div class="profile-tabs" id="profileTabs">
       <button class="profile-tab active" data-tab="profile">Profile</button>
+      <button class="profile-tab" data-tab="journal">Food Journal</button>
       <button class="profile-tab" data-tab="social">Social</button>
     </div>
 
-    <!-- Profile Tab Content -->
     <div class="tab-content active" id="profile-tab">
-      <!-- Bio Section -->
       <div class="bio">
         <h3>
           About Me
@@ -887,7 +1168,6 @@
         </div>
       </div>
 
-      <!-- My Lists Section -->
       <div class="custom-lists">
         <h3>My Lists</h3>
         <div class="list-grid">
@@ -907,7 +1187,6 @@
             <div class="list-card-count" id="wantToGoCount">0 restaurants</div>
           </div>
           
-          <!-- Custom List Creation Card -->
           <div class="create-list-card" onclick="showCreateListModal()">
             <div class="list-icon">🔌</div>
             <div class="list-card-title">Create Custom List</div>
@@ -916,14 +1195,12 @@
         </div>
       </div>
 
-      <!-- Private Profile Message (for other users' private accounts) -->
       <div class="private-message" id="privateMessage" style="display: none;">
         <div>🔒</div>
         <h3>Private Account</h3>
         <p>This account is private. Send a follow request to see their lists.</p>
       </div>
 
-      <!-- Active List Display -->
       <div id="activeListSection" class="active-list-section" style="display: none;">
         <button class="back-btn" onclick="hideActiveList()">← Back to Profile</button>
         <h3 id="activeListTitle">My List</h3>
@@ -931,7 +1208,110 @@
       </div>
     </div>
 
-    <!-- Social Tab Content (only shown when viewing own profile) -->
+    <div class="tab-content" id="journal-tab">
+      <div class="journal-section">
+        <div class="journal-stats">
+          <div class="stat">
+            <span class="stat-number" id="visitedCountJournal">0</span>
+            <span class="stat-label">Restaurants Visited</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" id="wantToGoCountJournal">0</span>
+            <span class="stat-label">Want to Try</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" id="streakCount">0</span>
+            <span class="stat-label">Day Streak</span>
+          </div>
+        </div>
+
+        <div class="swipe-container" id="swipeContainer">
+          <div class="swipe-card" id="swipeCard">
+            <div class="restaurant-image">
+              <img id="swipeImage" src="" alt="Restaurant">
+              <div class="restaurant-overlay">
+                <h3 id="swipeName"></h3>
+                <div class="restaurant-meta">
+                  <span class="rating">⭐ <span id="swipeRating"></span></span>
+                  • 
+                  <span class="category" id="swipeCategory"></span>
+                </div>
+              </div>
+            </div>
+            <div class="restaurant-info">
+              <p id="swipeDescription"></p>
+              <div class="swipe-actions">
+                <button class="swipe-btn skip" onclick="handleSwipe('skip')">
+                  <span>❌</span>
+                  <small>Skip</small>
+                </button>
+                <button class="swipe-btn want-to-go" onclick="handleSwipe('wantToGo')">
+                  <span>📍</span>
+                  <small>Want to Go</small>
+                </button>
+                <button class="swipe-btn visited" onclick="handleSwipe('visited')">
+                  <span>✅</span>
+                  <small>I've Been!</small>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="swipe-instructions">
+            <p>💡 <strong>How it works:</strong> Tell us about your restaurant experiences!</p>
+            <div class="instruction-items">
+              <div class="instruction">
+                <span>✅</span> "I've Been!" - Add to visited with details
+              </div>
+              <div class="instruction">
+                <span>📍</span> "Want to Go" - Save for later
+              </div>
+              <div class="instruction">
+                <span>❌</span> "Skip" - See another restaurant
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="journal-modal" id="journalModal">
+          <div class="journal-modal-content">
+            <h3>📝 Add to Your Food Journal</h3>
+            <div class="journal-form">
+              <div class="form-group">
+                <label>When did you visit?</label>
+                <input type="date" id="visitDate" class="journal-input">
+              </div>
+              <div class="form-group">
+                <label>Your Rating</label>
+                <div class="rating-stars" id="ratingStars">
+                  <span onclick="setRating(1)">⭐</span>
+                  <span onclick="setRating(2)">⭐</span>
+                  <span onclick="setRating(3)">⭐</span>
+                  <span onclick="setRating(4)">⭐</span>
+                  <span onclick="setRating(5)">⭐</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Notes about your visit</label>
+                <textarea id="visitNotes" class="journal-textarea" placeholder="What did you order? How was the experience?"></textarea>
+              </div>
+              <div class="journal-actions">
+                <button class="cancel-btn" onclick="closeJournalModal()">Cancel</button>
+                <button class="save-btn" onclick="saveJournalEntry()">Save to Journal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-journal" id="emptyJournal" style="display: none;">
+          <div class="empty-icon">🍽️</div>
+          <h3>Your Food Journal is Empty</h3>
+          <p>Start swiping to document your restaurant experiences!</p>
+          <button class="action-btn" onclick="loadRandomRestaurant()">Start Journaling</button>
+        </div>
+      </div>
+    </div>
+
     <div class="tab-content" id="social-tab">
       <div class="social-section">
         <div class="social-stats">
@@ -949,7 +1329,6 @@
           </div>
         </div>
 
-        <!-- Privacy Settings -->
         <div class="privacy-toggle">
           <label class="toggle-switch">
             <input type="checkbox" id="privacyToggle">
@@ -958,13 +1337,11 @@
           <span class="privacy-label" id="privacyLabel">Public Account</span>
         </div>
 
-        <!-- Search Users -->
         <div class="search-bar">
           <input type="text" class="search-input" id="userSearch" placeholder="Search for users...">
           <button class="follow-btn" onclick="friendSystem.searchUsers()">Search</button>
         </div>
 
-        <!-- Search Results -->
         <div id="searchResults">
           <div class="empty-state">
             <div>🔍</div>
@@ -973,19 +1350,15 @@
           </div>
         </div>
 
-        <!-- Followers List -->
         <div id="followersList" class="user-grid" style="display: none;"></div>
 
-        <!-- Following List -->
         <div id="followingList" class="user-grid" style="display: none;"></div>
 
-        <!-- Requests List -->
         <div id="requestsList" class="user-grid" style="display: none;"></div>
       </div>
     </div>
   </div>
 
-  <!-- Create List Modal -->
   <div class="create-list-modal" id="createListModal">
     <div class="create-list-modal-content">
       <h3 style="color: #f59e0b; margin-bottom: 20px;">Create New List</h3>
@@ -997,7 +1370,6 @@
     </div>
   </div>
 
-  <!-- Custom Notification -->
   <div id="customNotification" class="custom-notification">
     <i class="notification-icon"></i>
     <span class="notification-message"></span>
@@ -1017,11 +1389,251 @@
     let restaurants = [];
     let customLists = [];
 
-    // Fetch restaurants from Supabase - CORRECTED TABLE NAME
+    // Food Journal System
+    const foodJournal = {
+      currentRestaurant: null,
+      swipedRestaurants: new Set(),
+      
+      async init() {
+        await this.loadJournalStats();
+        this.loadRandomRestaurant();
+        this.initSwipeGestures();
+      },
+      
+      async loadJournalStats() {
+        const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
+        const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
+        
+        document.getElementById('visitedCountJournal').textContent = visitedCount;
+        document.getElementById('wantToGoCountJournal').textContent = wantToGoCount;
+        
+        const streak = await this.calculateStreak();
+        document.getElementById('streakCount').textContent = streak;
+      },
+      
+      async calculateStreak() {
+        try {
+          const { data: entries, error } = await supabase
+            .from('journal_entries')
+            .select('visit_date')
+            .eq('user_id', currentUser.id)
+            .order('visit_date', { ascending: false });
+          
+          if (error || !entries || entries.length === 0) return 0;
+          
+          let streak = 1;
+          const today = new Date();
+          let currentDate = new Date(today);
+          
+          for (let i = 0; i < entries.length; i++) {
+            const entryDate = new Date(entries[i].visit_date);
+            const diffTime = currentDate - entryDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+              continue;
+            } else if (diffDays === 1) {
+              streak++;
+              currentDate = entryDate;
+            } else {
+              break;
+            }
+          }
+          
+          return streak;
+        } catch (error) {
+          console.error('Error calculating streak:', error);
+          return 0;
+        }
+      },
+      
+      async loadRandomRestaurant() {
+        const unseenRestaurants = restaurants.filter(r => 
+          !this.swipedRestaurants.has(r.id) && 
+          !listManager.isInList('visited', r.id) &&
+          !listManager.isInList('wantToGo', r.id)
+        );
+        
+        if (unseenRestaurants.length === 0) {
+          this.showEmptyState();
+          return;
+        }
+        
+        const randomIndex = Math.floor(Math.random() * unseenRestaurants.length);
+        this.currentRestaurant = unseenRestaurants[randomIndex];
+        this.displayRestaurantCard();
+        
+        document.getElementById('emptyJournal').style.display = 'none';
+        document.getElementById('swipeContainer').style.display = 'block';
+      },
+      
+      displayRestaurantCard() {
+        if (!this.currentRestaurant) return;
+        
+        const r = this.currentRestaurant;
+        document.getElementById('swipeName').textContent = r.name;
+        document.getElementById('swipeRating').textContent = r.rating;
+        document.getElementById('swipeCategory').textContent = r.category;
+        document.getElementById('swipeDescription').textContent = r.description;
+        
+        const img = document.getElementById('swipeImage');
+        img.src = `images/${r.image}`;
+        img.onerror = () => {
+          img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250"><rect width="400" height="250" fill="%230b1633"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="20" fill="%23f59e0b">🍽️ ' + r.name + '</text></svg>';
+        };
+      },
+      
+      async handleSwipe(action) {
+        if (!this.currentRestaurant) return;
+        
+        const restaurantId = this.currentRestaurant.id;
+        this.swipedRestaurants.add(restaurantId);
+        
+        switch(action) {
+          case 'visited':
+            this.showJournalModal();
+            break;
+            
+          case 'wantToGo':
+            await listManager.toggleInList('wantToGo', restaurantId);
+            showNotification(`Added ${this.currentRestaurant.name} to Want to Go!`, 'success');
+            this.loadNextRestaurant();
+            break;
+            
+          case 'skip':
+            this.loadNextRestaurant();
+            break;
+        }
+        
+        await this.loadJournalStats();
+      },
+      
+      showJournalModal() {
+        document.getElementById('journalModal').style.display = 'flex';
+        document.getElementById('visitDate').valueAsDate = new Date();
+        this.setRating(0);
+        document.getElementById('visitNotes').value = '';
+      },
+      
+      closeJournalModal() {
+        document.getElementById('journalModal').style.display = 'none';
+        this.loadNextRestaurant();
+      },
+      
+      async saveJournalEntry() {
+        const visitDate = document.getElementById('visitDate').value;
+        const rating = document.getElementById('ratingStars').getAttribute('data-rating') || 0;
+        const notes = document.getElementById('visitNotes').value;
+        
+        if (!visitDate) {
+          showNotification('Please select a visit date', 'error');
+          return;
+        }
+        
+        try {
+          await listManager.toggleInList('visited', this.currentRestaurant.id);
+          
+          const { error } = await supabase
+            .from('journal_entries')
+            .insert({
+              user_id: currentUser.id,
+              restaurant_id: this.currentRestaurant.id,
+              visit_date: visitDate,
+              rating: parseInt(rating),
+              notes: notes,
+              created_at: new Date().toISOString()
+            });
+          
+          if (error) throw error;
+          
+          showNotification(`Added ${this.currentRestaurant.name} to your journal! ✨`, 'success');
+          this.closeJournalModal();
+          
+        } catch (error) {
+          console.error('Error saving journal entry:', error);
+          showNotification('Error saving journal entry', 'error');
+        }
+      },
+      
+      setRating(stars) {
+        const starsElements = document.querySelectorAll('#ratingStars span');
+        starsElements.forEach((star, index) => {
+          star.style.opacity = index < stars ? '1' : '0.3';
+        });
+        document.getElementById('ratingStars').setAttribute('data-rating', stars);
+      },
+      
+      showEmptyState() {
+        document.getElementById('emptyJournal').style.display = 'block';
+        document.getElementById('swipeContainer').style.display = 'none';
+      },
+      
+      loadNextRestaurant() {
+        setTimeout(() => {
+          this.loadRandomRestaurant();
+        }, 500);
+      },
+      
+      initSwipeGestures() {
+        const card = document.getElementById('swipeCard');
+        if (!card) return;
+        
+        let startX, startY;
+        
+        card.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        });
+        
+        card.addEventListener('touchend', (e) => {
+          if (!startX || !startY) return;
+          
+          const endX = e.changedTouches[0].clientX;
+          const endY = e.changedTouches[0].clientY;
+          
+          const diffX = endX - startX;
+          const diffY = endY - startY;
+          
+          if (Math.abs(diffX) > Math.abs(diffY)) {
+            if (diffX > 50) {
+              this.handleSwipe('visited');
+            } else if (diffX < -50) {
+              this.handleSwipe('skip');
+            }
+          } else {
+            if (diffY < -50) {
+              this.handleSwipe('wantToGo');
+            }
+          }
+        });
+      }
+    };
+
+    // Global functions for HTML onclick
+    function handleSwipe(action) {
+      foodJournal.handleSwipe(action);
+    }
+
+    function setRating(stars) {
+      foodJournal.setRating(stars);
+    }
+
+    function closeJournalModal() {
+      foodJournal.closeJournalModal();
+    }
+
+    function saveJournalEntry() {
+      foodJournal.saveJournalEntry();
+    }
+
+    function loadRandomRestaurant() {
+      foodJournal.loadRandomRestaurant();
+    }
+
     async function loadRestaurants() {
       try {
         const { data, error } = await supabase
-          .from('restraunts')  // ✅ CORRECT: 'restraunts' not 'restaurants'
+          .from('restraunts')
           .select('*')
           .order('name');
         
@@ -1031,7 +1643,6 @@
         console.log(`Loaded ${restaurants.length} restaurants from database`);
       } catch (error) {
         console.error('Error loading restaurants:', error);
-        // Fallback to hardcoded data if database fails
         restaurants = [
           { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', description:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
           { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
@@ -1087,9 +1698,7 @@
       }
     }
 
-    // Function to update all list counts
     function updateAllListCounts() {
-      // Update default lists
       if (listManager.currentLists.favorites) {
         document.getElementById('favoritesCount').textContent = `${listManager.currentLists.favorites.restaurants?.length || 0} restaurants`;
       }
@@ -1100,11 +1709,9 @@
         document.getElementById('wantToGoCount').textContent = `${listManager.currentLists.wantToGo.restaurants?.length || 0} restaurants`;
       }
       
-      // Update custom lists
       updateCustomListCounts();
     }
 
-    // Function to update custom list counts
     function updateCustomListCounts() {
       const customListCards = document.querySelectorAll('.custom-list-card');
       
@@ -1121,7 +1728,6 @@
       });
     }
 
-    // Custom List Functions
     function showCreateListModal() {
       document.getElementById('createListModal').style.display = 'flex';
       document.getElementById('newListName').value = '';
@@ -1141,7 +1747,7 @@
       }
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
         const { data: newList, error } = await supabase
           .from('lists')
           .insert([{ 
@@ -2042,6 +2648,11 @@
 
       await listManager.init();
       await friendSystem.init();
+      
+      // Initialize food journal if on own profile
+      if (isViewingOwnProfile) {
+        await foodJournal.init();
+      }
     }
 
     async function loadOtherUserProfile() {
@@ -2054,6 +2665,7 @@
       // Show only the profile tab
       document.getElementById('profile-tab').classList.add('active');
       document.getElementById('social-tab').style.display = 'none';
+      document.getElementById('journal-tab').style.display = 'none';
 
       // Load target user profile
       const { data: profile, error } = await supabase
@@ -2523,6 +3135,13 @@
       document.getElementById('createListModal').addEventListener('click', (e) => {
         if (e.target.id === 'createListModal') {
           hideCreateListModal();
+        }
+      });
+
+      // Close journal modal when clicking outside
+      document.getElementById('journalModal').addEventListener('click', (e) => {
+        if (e.target.id === 'journalModal') {
+          closeJournalModal();
         }
       });
 
