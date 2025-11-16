@@ -1129,6 +1129,122 @@
             margin-bottom: var(--space-md);
         }
 
+        /* ===== LIST DETAIL VIEW ===== */
+        .list-detail-view {
+            display: none;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .list-detail-view.active {
+            display: block;
+        }
+
+        .list-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-md);
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .list-detail-title {
+            font-size: 2rem;
+            font-weight: var(--font-weight-bold);
+            color: var(--accent);
+            margin: 0;
+        }
+
+        .list-detail-description {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            margin: var(--space-sm) 0 0 0;
+        }
+
+        .list-restaurants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-lg);
+            margin-top: var(--space-xl);
+        }
+
+        .restaurant-tile {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            border: 1px solid var(--border-primary);
+            position: relative;
+        }
+
+        .restaurant-tile:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent);
+        }
+
+        .restaurant-tile-image {
+            height: 160px;
+            overflow: hidden;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .restaurant-tile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-tile-content {
+            padding: var(--space-lg);
+        }
+
+        .restaurant-tile-name {
+            font-weight: var(--font-weight-semibold);
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-sm);
+        }
+
+        .restaurant-tile-category {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        .restaurant-tile-rating {
+            color: var(--accent);
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-sm);
+        }
+
+        .restaurant-tile-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin-bottom: var(--space-md);
+        }
+
+        .restaurant-tile-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .empty-list-state {
+            text-align: center;
+            padding: var(--space-3xl);
+            color: var(--text-secondary);
+        }
+
+        .empty-list-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-lg);
+            opacity: 0.5;
+        }
+
         /* ===== MAP TAB ===== */
         .map-container {
             background: var(--bg-card);
@@ -2203,7 +2319,7 @@
                         </div>
                     </div>
                     <div class="list-actions">
-                        <button class="btn btn-secondary btn-sm">
+                        <button class="btn btn-secondary btn-sm" onclick="showList('favorites')">
                             <i class="fas fa-eye"></i> View
                         </button>
                     </div>
@@ -2229,7 +2345,7 @@
                         </div>
                     </div>
                     <div class="list-actions">
-                        <button class="btn btn-secondary btn-sm">
+                        <button class="btn btn-secondary btn-sm" onclick="showList('wantToGo')">
                             <i class="fas fa-eye"></i> View
                         </button>
                     </div>
@@ -2255,7 +2371,7 @@
                         </div>
                     </div>
                     <div class="list-actions">
-                        <button class="btn btn-secondary btn-sm">
+                        <button class="btn btn-secondary btn-sm" onclick="showList('visited')">
                             <i class="fas fa-eye"></i> View
                         </button>
                     </div>
@@ -2271,6 +2387,25 @@
                 <div class="create-list-icon">+</div>
                 <div class="list-title">Create New List</div>
                 <div class="list-description">Organize restaurants your way</div>
+            </div>
+        </div>
+        
+        <!-- List Detail View -->
+        <div class="list-detail-view" id="list-detail-view">
+            <div class="list-detail-header">
+                <div>
+                    <h2 class="list-detail-title" id="listDetailTitle">List Name</h2>
+                    <p class="list-detail-description" id="listDetailDescription">List description</p>
+                </div>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="hideListDetail()">
+                        <i class="fas fa-arrow-left"></i> Back to Lists
+                    </button>
+                </div>
+            </div>
+            
+            <div class="list-restaurants-grid" id="listRestaurantsGrid">
+                <!-- List restaurants will be populated here -->
             </div>
         </div>
         
@@ -2549,6 +2684,7 @@
         let customLists = [];
         let currentTab = 'journal';
         let journalFilter = 'all';
+        let currentActiveList = null;
 
         // Toast system
         function showToast(message, type = 'info', duration = 5000) {
@@ -2757,7 +2893,7 @@
                     });
 
                 if (insertError) {
-                    console.error("Error creating profile:", insertError);
+                    console.error('Error creating profile:', insertError);
                 } else {
                     // Reload profile after creation
                     const { data: newProfile } = await supabase
@@ -2999,7 +3135,12 @@
                     { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
                     { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', description:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
                     { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', description:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-                    { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' }
+                    { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
+                    { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', description:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
+                    { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', description:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
+                    { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', description:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
+                    { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', description:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
+                    { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', description:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' }
                 ];
             }
         }
@@ -3296,6 +3437,141 @@
             });
         }
 
+        // Show list detail view
+        async function showList(listType) {
+            let list;
+            
+            if (isViewingOwnProfile) {
+                if (listType === 'favorites') {
+                    list = listManager.currentLists.favorites;
+                } else if (listType === 'visited') {
+                    list = listManager.currentLists.visited;
+                } else if (listType === 'wantToGo') {
+                    list = listManager.currentLists.wantToGo;
+                } else {
+                    // Handle custom list by ID
+                    list = customLists.find(l => l.id === listType);
+                }
+            } else {
+                // For other users, we'd need to load their lists
+                // For now, just show a message
+                showToast('Cannot view other users\' lists in this demo', 'info');
+                return;
+            }
+            
+            if (!list) {
+                showToast('List not found', 'error');
+                return;
+            }
+            
+            currentActiveList = list;
+            
+            // Hide the lists tab and show the list detail view
+            const listsTab = getElement('lists-tab');
+            const listDetailView = getElement('list-detail-view');
+            
+            if (listsTab) listsTab.style.display = 'none';
+            if (listDetailView) {
+                listDetailView.style.display = 'block';
+                listDetailView.classList.add('active');
+            }
+            
+            // Set list title and description
+            setTextContent('listDetailTitle', list.title);
+            setTextContent('listDetailDescription', list.description || '');
+            
+            // Load and display restaurants in this list
+            await renderListRestaurants(list.restaurants || [], list);
+        }
+
+        // View custom list
+        async function viewList(listId) {
+            await showList(listId);
+        }
+
+        // Hide list detail view
+        function hideListDetail() {
+            const listsTab = getElement('lists-tab');
+            const listDetailView = getElement('list-detail-view');
+            
+            if (listsTab) listsTab.style.display = 'block';
+            if (listDetailView) {
+                listDetailView.style.display = 'none';
+                listDetailView.classList.remove('active');
+            }
+            
+            currentActiveList = null;
+        }
+
+        // Render restaurants in a list
+        async function renderListRestaurants(restaurantIds, list) {
+            const grid = getElement('listRestaurantsGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            const numericIds = restaurantIds.map(id => Number(id));
+            const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
+            
+            if (listRestaurants.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-list-state">
+                        <div class="empty-list-icon">🍽️</div>
+                        <h3 class="empty-title">No Restaurants Yet</h3>
+                        <p class="empty-description">Start adding restaurants to your "${list.title}" list!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listRestaurants.forEach(restaurant => {
+                const tile = document.createElement('div');
+                tile.className = 'restaurant-tile';
+                
+                const clickableContent = document.createElement('a');
+                clickableContent.href = `cards/${restaurant.slug}.html`;
+                clickableContent.style.textDecoration = 'none';
+                clickableContent.style.color = 'inherit';
+                clickableContent.style.display = 'block';
+                clickableContent.style.height = '100%';
+                
+                clickableContent.innerHTML = `
+                    <div class="restaurant-tile-image">
+                        <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">
+                    </div>
+                    <div class="restaurant-tile-content">
+                        <h3 class="restaurant-tile-name">${restaurant.name}</h3>
+                        <div class="restaurant-tile-category">${restaurant.category}</div>
+                        <div class="restaurant-tile-rating">⭐ ${restaurant.rating}</div>
+                        <p class="restaurant-tile-description">${restaurant.description}</p>
+                    </div>
+                `;
+                
+                tile.appendChild(clickableContent);
+                
+                // Add remove button for own profile
+                if (isViewingOwnProfile) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'btn btn-secondary btn-sm';
+                    removeBtn.style.position = 'absolute';
+                    removeBtn.style.top = '10px';
+                    removeBtn.style.right = '10px';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.onclick = async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await listManager.toggleInList(list.id, restaurant.id);
+                        // Refresh the list view
+                        await renderListRestaurants(list.restaurants || [], list);
+                    };
+                    tile.style.position = 'relative';
+                    tile.appendChild(removeBtn);
+                }
+                
+                grid.appendChild(tile);
+            });
+        }
+
         // Food Journal System
         const foodJournal = {
             currentRestaurant: null,
@@ -3309,8 +3585,6 @@
             async loadJournalStats() {
                 const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
                 const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
-                
-                // Removed references to non-existent elements
                 
                 const streak = await this.calculateStreak();
                 setTextContent('streakCount', streak);
@@ -4112,16 +4386,6 @@
             window.location.href = `profile.html?id=${userId}`;
         }
 
-        function showList(listType) {
-            // This would show the list detail view
-            showToast(`Opening ${listType} list`, 'info');
-        }
-
-        function viewList(listId) {
-            // This would show the custom list detail view
-            showToast(`Opening list ${listId}`, 'info');
-        }
-
         function editList(listId) {
             // This would open the list edit modal
             showToast(`Editing list ${listId}`, 'info');
@@ -4364,6 +4628,7 @@
         window.viewUserProfile = viewUserProfile;
         window.showList = showList;
         window.viewList = viewList;
+        window.hideListDetail = hideListDetail;
         window.editList = editList;
         window.editJournalEntry = editJournalEntry;
         window.deleteJournalEntry = deleteJournalEntry;
