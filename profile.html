@@ -3310,8 +3310,7 @@
                 const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
                 const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
                 
-                setTextContent('visitedCountJournal', visitedCount);
-                setTextContent('wantToGoCountJournal', wantToGoCount);
+                // Removed references to non-existent elements
                 
                 const streak = await this.calculateStreak();
                 setTextContent('streakCount', streak);
@@ -3564,7 +3563,7 @@
                         .eq('followed_id', currentUser.id);
 
                     if (!followersError) {
-                        setTextContent('followersCount', followers?.length || 0);
+                        // Removed reference to non-existent element
                     }
 
                     // Get following count (people current user follows)
@@ -3574,7 +3573,7 @@
                         .eq('follower_id', currentUser.id);
 
                     if (!followingError) {
-                        setTextContent('followingCount', following?.length || 0);
+                        // Removed reference to non-existent element
                     }
 
                     // Update badge
