@@ -2175,7 +2175,7 @@
                     <p class="section-subtitle">Organize restaurants by occasion, cuisine, or mood</p>
                 </div>
                 <div class="section-actions">
-                    <button class="btn btn-secondary">
+                    <button class="btn btn-secondary" id="sortListsBtn">
                         <i class="fas fa-sort"></i> Sort
                     </button>
                 </div>
@@ -3132,7 +3132,7 @@
                         if (error) throw error;
                         
                         list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                        showNotification(`Removed from ${list.title}`, "info");
+                        showToast(`Removed from ${list.title}`, "info");
                         
                     } else {
                         const { error } = await supabase
@@ -3147,7 +3147,7 @@
                         
                         if (!list.restaurants) list.restaurants = [];
                         list.restaurants.push(restaurantId);
-                        showNotification(`Added to ${list.title}`, "success");
+                        showToast(`Added to ${list.title}`, "success");
                     }
                     
                     // Update all list counts
@@ -3157,7 +3157,7 @@
                     
                 } catch (error) {
                     console.error('Error updating list:', error);
-                    showNotification('Error saving changes', 'error');
+                    showToast('Error saving changes', 'error');
                     return isInList;
                 }
             },
@@ -3304,8 +3304,6 @@
             async init() {
                 await this.loadJournalStats();
                 await this.loadJournalEntries();
-                this.loadRandomRestaurant();
-                this.initSwipeGestures();
             },
             
             async loadJournalStats() {
@@ -3485,137 +3483,6 @@
                 }
             },
             
-            loadRandomRestaurant() {
-                const unseenRestaurants = restaurants.filter(r => 
-                    !this.swipedRestaurants.has(r.id) && 
-                    !listManager.isInList('visited', r.id) &&
-                    !listManager.isInList('wantToGo', r.id)
-                );
-                
-                if (unseenRestaurants.length === 0) {
-                    this.showEmptyState();
-                    return;
-                }
-                
-                const randomIndex = Math.floor(Math.random() * unseenRestaurants.length);
-                this.currentRestaurant = unseenRestaurants[randomIndex];
-                this.displayRestaurantCard();
-                
-                const emptyJournal = getElement('emptyJournal');
-                const swipeContainer = getElement('swipeContainer');
-                
-                if (emptyJournal) emptyJournal.style.display = 'none';
-                if (swipeContainer) swipeContainer.style.display = 'block';
-            },
-            
-            displayRestaurantCard() {
-                if (!this.currentRestaurant) return;
-                
-                const r = this.currentRestaurant;
-                setTextContent('swipeName', r.name);
-                setTextContent('swipeRating', r.rating);
-                setTextContent('swipeCategory', r.category);
-                setTextContent('swipeDescription', r.description);
-                
-                const img = getElement('swipeImage');
-                if (img) {
-                    if (r.image) {
-                        img.src = `images/${r.image}`;
-                        img.onerror = () => {
-                            img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250"><rect width="400" height="250" fill="%230b1633"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="20" fill="%23f59e0b">🍽️ ' + r.name + '</text></svg>';
-                        };
-                    } else {
-                        img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250"><rect width="400" height="250" fill="%230b1633"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="20" fill="%23f59e0b">🍽️ ' + r.name + '</text></svg>';
-                    }
-                }
-            },
-            
-            async handleSwipe(action) {
-                if (!this.currentRestaurant) return;
-                
-                const restaurantId = this.currentRestaurant.id;
-                this.swipedRestaurants.add(restaurantId);
-                
-                switch(action) {
-                    case 'visited':
-                        this.showJournalModal();
-                        break;
-                        
-                    case 'wantToGo':
-                        await listManager.toggleInList('wantToGo', restaurantId);
-                        showToast(`Added ${this.currentRestaurant.name} to Want to Go!`, 'success');
-                        this.loadNextRestaurant();
-                        break;
-                        
-                    case 'skip':
-                        this.loadNextRestaurant();
-                        break;
-                }
-                
-                await this.loadJournalStats();
-            },
-            
-            showJournalModal() {
-                const modal = getElement('journalModal');
-                if (modal) modal.style.display = 'flex';
-                
-                const visitDate = getElement('visitDate');
-                if (visitDate) visitDate.valueAsDate = new Date();
-                
-                this.setRating(0);
-                
-                const visitNotes = getElement('visitNotes');
-                if (visitNotes) visitNotes.value = '';
-            },
-            
-            closeJournalModal() {
-                const modal = getElement('journalModal');
-                if (modal) modal.style.display = 'none';
-                this.loadNextRestaurant();
-            },
-            
-            async saveJournalEntry() {
-                const visitDate = getElement('visitDate')?.value;
-                const rating = parseInt(getElement('selectedRating')?.value || '0');
-                const notes = getElement('visitNotes')?.value || '';
-                const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
-                
-                if (!visitDate || rating === 0) {
-                    showToast('Please fill in all required fields', 'error');
-                    return;
-                }
-                
-                try {
-                    // Add to visited list
-                    await listManager.toggleInList('visited', this.currentRestaurant.id);
-                    
-                    // Save journal entry
-                    const { error } = await supabase
-                        .from('journal_entries')
-                        .insert({
-                            user_id: currentUser.id,
-                            restaurant_id: this.currentRestaurant.id,
-                            visit_date: visitDate,
-                            rating: rating,
-                            notes: notes,
-                            tags: tags.join(','),
-                            created_at: new Date().toISOString()
-                        });
-                    
-                    if (error) throw error;
-                    
-                    showToast(`Added ${this.currentRestaurant.name} to your journal! ✨`, 'success');
-                    this.closeJournalModal();
-                    
-                    // Reload journal entries
-                    await this.loadJournalEntries();
-                    
-                } catch (error) {
-                    console.error('Error saving journal entry:', error);
-                    showToast('Error saving journal entry', 'error');
-                }
-            },
-            
             setRating(stars) {
                 const starsElements = document.querySelectorAll('#ratingStars span');
                 starsElements.forEach((star, index) => {
@@ -3626,23 +3493,48 @@
                 if (selectedRating) selectedRating.value = stars;
             },
             
-            showEmptyState() {
-                const emptyJournal = getElement('emptyJournal');
-                const swipeContainer = getElement('swipeContainer');
+            async saveJournalEntry() {
+                const restaurantId = parseInt(getElement('restaurantSelect')?.value);
+                const visitDate = getElement('visitDate')?.value;
+                const rating = parseInt(getElement('selectedRating')?.value || '0');
+                const notes = getElement('visitNotes')?.value || '';
+                const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
                 
-                if (emptyJournal) emptyJournal.style.display = 'block';
-                if (swipeContainer) swipeContainer.style.display = 'none';
-            },
-            
-            loadNextRestaurant() {
-                setTimeout(() => {
-                    this.loadRandomRestaurant();
-                }, 500);
-            },
-            
-            initSwipeGestures() {
-                // This would be implemented for mobile swipe functionality
-                // For now, we're using buttons
+                if (!restaurantId || !visitDate || rating === 0) {
+                    showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+                
+                try {
+                    // Add to visited list
+                    await listManager.toggleInList('visited', restaurantId);
+                    
+                    // Save journal entry
+                    const { error } = await supabase
+                        .from('journal_entries')
+                        .insert({
+                            user_id: currentUser.id,
+                            restaurant_id: restaurantId,
+                            visit_date: visitDate,
+                            rating: rating,
+                            notes: notes,
+                            tags: tags.join(','),
+                            created_at: new Date().toISOString()
+                        });
+                    
+                    if (error) throw error;
+                    
+                    const restaurant = restaurants.find(r => r.id === restaurantId);
+                    showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
+                    closeModal('addEntryModal');
+                    
+                    // Reload journal entries
+                    await this.loadJournalEntries();
+                    
+                } catch (error) {
+                    console.error('Error saving journal entry:', error);
+                    showToast('Error saving journal entry', 'error');
+                }
             }
         };
 
@@ -3721,7 +3613,7 @@
                 const searchTerm = userSearch.value.trim();
                 
                 if (!searchTerm) {
-                    showNotification('Please enter a search term', 'error');
+                    showToast('Please enter a search term', 'error');
                     return;
                 }
 
@@ -3735,11 +3627,11 @@
 
                     if (error) throw error;
 
-                    this.displayUsers(users, 'friendsList');
+                    this.displayUsers(users, 'searchResults');
                     
                 } catch (error) {
                     console.error('Error searching users:', error);
-                    showNotification('Error searching users', 'error');
+                    showToast('Error searching users', 'error');
                 }
             },
 
@@ -4383,6 +4275,14 @@
                 });
             });
             
+            // Sort lists button
+            const sortListsBtn = getElement('sortListsBtn');
+            if (sortListsBtn) {
+                sortListsBtn.addEventListener('click', () => {
+                    showToast('Sort functionality would be implemented here', 'info');
+                });
+            }
+            
             // Close modals when clicking outside
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('click', (e) => {
@@ -4470,11 +4370,8 @@
         window.deleteJournalEntry = deleteJournalEntry;
         window.addToFavorites = addToFavorites;
         window.duplicateEntry = duplicateEntry;
-        window.handleSwipe = (action) => foodJournal.handleSwipe(action);
         window.setRating = (stars) => foodJournal.setRating(stars);
-        window.closeJournalModal = () => foodJournal.closeJournalModal();
         window.saveJournalEntry = () => foodJournal.saveJournalEntry();
-        window.loadRandomRestaurant = () => foodJournal.loadRandomRestaurant();
     </script>
 </body>
 </html>
