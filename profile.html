@@ -2903,6 +2903,7 @@
 
             if (error && error.code !== 'PGRST116') {
                 console.error("Error loading profile:", error);
+                showToast('Error loading profile data', 'error');
             }
 
             userProfile = profile || {};
@@ -2923,6 +2924,7 @@
 
                 if (insertError) {
                     console.error('Error creating profile:', insertError);
+                    showToast('Error creating user profile', 'error');
                 } else {
                     // Reload profile after creation
                     const { data: newProfile } = await supabase
@@ -3232,12 +3234,18 @@
             async createList(title, description) {
                 const { data: newList, error } = await supabase
                     .from('lists')
-                    .insert([{ user_id: currentUser.id, title: title, description: description }])
+                    .insert([{ 
+                        user_id: currentUser.id, 
+                        title: title, 
+                        description: description,
+                        created_at: new Date().toISOString()
+                    }])
                     .select()
                     .single();
                 
                 if (error) {
                     console.error('Error creating list:', error);
+                    showToast(`Error creating list: ${error.message}`, 'error');
                     return null;
                 }
                 
@@ -3656,7 +3664,10 @@
                         .eq('user_id', currentUser.id)
                         .order('visit_date', { ascending: false });
                     
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Error loading journal entries:', error);
+                        throw error;
+                    }
                     
                     if (!entries || entries.length === 0) {
                         journalEntries.innerHTML = `
@@ -3804,18 +3815,25 @@
                             created_at: new Date().toISOString()
                         });
                     
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Error saving journal entry:', error);
+                        throw error;
+                    }
                     
                     const restaurant = restaurants.find(r => r.id === restaurantId);
                     showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
                     closeModal('addEntryModal');
+                    
+                    // Reset form
+                    document.getElementById('journalEntryForm').reset();
+                    this.setRating(0);
                     
                     // Reload journal entries
                     await this.loadJournalEntries();
                     
                 } catch (error) {
                     console.error('Error saving journal entry:', error);
-                    showToast('Error saving journal entry', 'error');
+                    showToast('Error saving journal entry: ' + (error.message || 'Unknown error'), 'error');
                 }
             }
         };
@@ -4366,12 +4384,17 @@
                         user_id: currentUser.id, 
                         title: listName,
                         description: listDescription,
-                        icon: listIcon
+                        icon: listIcon,
+                        created_at: new Date().toISOString()
                     }])
                     .select()
                     .single();
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error creating custom list:', error);
+                    showToast(`Error creating list: ${error.message}`, 'error');
+                    return;
+                }
                 
                 // Add to custom lists array
                 newList.restaurants = [];
@@ -4686,7 +4709,10 @@
                         }));
                 }
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error updating profile:', error);
+                    throw error;
+                }
                 
                 // Update local state and UI
                 await loadUserProfile();
@@ -4702,7 +4728,7 @@
                 
             } catch (error) {
                 console.error('Error updating profile:', error);
-                showToast('Error updating profile', 'error');
+                showToast('Error updating profile: ' + (error.message || 'Unknown error'), 'error');
             }
         }
 
