@@ -280,7 +280,6 @@
             transition: all var(--transition-normal);
             position: relative;
             overflow: hidden;
-            cursor: pointer;
         }
 
         .profile-avatar:hover {
@@ -2152,37 +2151,6 @@
             flex-direction: column;
             gap: var(--space-md);
         }
-        
-        /* ===== AVATAR ICON GRID ===== */
-        .avatar-icon-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: var(--space-md);
-            margin-top: var(--space-md);
-        }
-        
-        .avatar-icon-option {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            font-size: 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .avatar-icon-option:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.1);
-        }
-        
-        .avatar-icon-option.selected {
-            background: rgba(245, 158, 11, 0.2);
-            border: 2px solid var(--accent);
-        }
     </style>
 </head>
 <body>
@@ -2238,9 +2206,9 @@
                 <span>+0 this week</span>
             </div>
         </div>
-        <div class="stat-item" onclick="showTab('friends')">
-            <span class="stat-number" id="friendsCount">0</span>
-            <span class="stat-label">Friends</span>
+        <div class="stat-item" onclick="showTab('lists')">
+            <span class="stat-number" id="favoritesCount">0</span>
+            <span class="stat-label">Favorites</span>
             <div class="stat-trend trend-up">
                 <i class="fas fa-arrow-up"></i>
                 <span>+0 this week</span>
@@ -2650,28 +2618,6 @@
         </div>
     </div>
 
-    <!-- Avatar Selection Modal -->
-    <div class="modal" id="avatarModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Choose Your Avatar</h3>
-                <button class="modal-close" onclick="closeModal('avatarModal')">&times;</button>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Select a food icon</label>
-                <div class="avatar-icon-grid" id="avatarIconGrid">
-                    <!-- Avatar icons will be populated here -->
-                </div>
-            </div>
-            
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('avatarModal')">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveAvatar()">Save Avatar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Friend Search Modal -->
     <div class="modal" id="friendSearchModal">
         <div class="modal-content">
@@ -2711,10 +2657,6 @@
         let currentTab = 'journal';
         let journalFilter = 'all';
         let currentActiveList = null;
-        let selectedAvatarIcon = null;
-
-        // Food icons for avatar selection
-        const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
 
         // Toast system
         function showToast(message, type = 'info', duration = 5000) {
@@ -2840,7 +2782,8 @@
             // Set avatar
             const avatar = getElement('profileAvatar');
             if (avatar) {
-                avatar.textContent = userProfile?.avatar_icon || "🍔";
+                const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+                avatar.textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
             }
 
             // Update stats
@@ -2884,7 +2827,8 @@
             // Set avatar
             const avatar = getElement('profileAvatar');
             if (avatar) {
-                avatar.textContent = profile.avatar_icon || "🍔";
+                const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
+                avatar.textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
             }
 
             // Load follow status and update UI accordingly
@@ -2916,7 +2860,6 @@
                         full_name: currentUser.email.split('@')[0],
                         bio: "",
                         location: "",
-                        avatar_icon: "🍔",
                         is_private: false,
                         created_at: new Date().toISOString()
                     });
@@ -3099,13 +3042,23 @@
                     visitedCount = visitedRestaurants ? visitedRestaurants.length : 0;
                 }
                 
-                // Get friends count
-                const { data: friends } = await supabase
-                    .from('follows')
+                // Get favorites count
+                const { data: favoritesList } = await supabase
+                    .from('lists')
                     .select('id')
-                    .eq('follower_id', targetId);
+                    .eq('user_id', targetId)
+                    .eq('title', 'Favorites')
+                    .single();
                     
-                const friendsCount = friends ? friends.length : 0;
+                let favoritesCount = 0;
+                if (favoritesList) {
+                    const { data: favoritesRestaurants } = await supabase
+                        .from('lists_restraunts')
+                        .select('id')
+                        .eq('list_id', favoritesList.id);
+                        
+                    favoritesCount = favoritesRestaurants ? favoritesRestaurants.length : 0;
+                }
                 
                 // Get lists count
                 const { data: userLists } = await supabase
@@ -3120,7 +3073,7 @@
                 
                 // Update UI
                 setTextContent('visitedCount', visitedCount);
-                setTextContent('friendsCount', friendsCount);
+                setTextContent('favoritesCount', favoritesCount);
                 setTextContent('listsCount', listsCount);
                 setTextContent('streakCount', streakCount);
                 setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
@@ -3941,7 +3894,7 @@
                     userCard.className = 'friend-card';
                     userCard.innerHTML = `
                         <div class="friend-header">
-                            <div class="friend-avatar">${user.avatar_icon || user.username?.charAt(0).toUpperCase() || 'U'}</div>
+                            <div class="friend-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
                             <div class="friend-info">
                                 <div class="friend-name">${user.full_name || user.username || 'Unknown User'}</div>
                                 <div class="friend-username">@${user.username || 'user'}</div>
@@ -4420,60 +4373,6 @@
             showToast('Entry duplicated', 'info');
         }
 
-        // Avatar selection functions
-        function showAvatarModal() {
-            const avatarIconGrid = getElement('avatarIconGrid');
-            if (!avatarIconGrid) return;
-            
-            avatarIconGrid.innerHTML = '';
-            
-            foodIcons.forEach(icon => {
-                const iconOption = document.createElement('div');
-                iconOption.className = `avatar-icon-option ${userProfile?.avatar_icon === icon ? 'selected' : ''}`;
-                iconOption.textContent = icon;
-                iconOption.onclick = () => {
-                    // Remove selected class from all options
-                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    // Add selected class to clicked option
-                    iconOption.classList.add('selected');
-                    selectedAvatarIcon = icon;
-                };
-                avatarIconGrid.appendChild(iconOption);
-            });
-            
-            showModal('avatarModal');
-        }
-
-        async function saveAvatar() {
-            if (!selectedAvatarIcon) {
-                showToast('Please select an avatar', 'error');
-                return;
-            }
-
-            try {
-                const { error } = await supabase
-                    .from('user_profiles')
-                    .update({ avatar_icon: selectedAvatarIcon })
-                    .eq('id', currentUser.id);
-
-                if (error) throw error;
-
-                // Update local state and UI
-                userProfile.avatar_icon = selectedAvatarIcon;
-                const avatar = getElement('profileAvatar');
-                if (avatar) avatar.textContent = selectedAvatarIcon;
-
-                closeModal('avatarModal');
-                showToast('Avatar updated successfully!', 'success');
-
-            } catch (error) {
-                console.error('Error updating avatar:', error);
-                showToast('Error updating avatar', 'error');
-            }
-        }
-
         // Set up event listeners
         function setupEventListeners() {
             // Tab buttons
@@ -4519,12 +4418,6 @@
                     
                     showModal('editProfileModal');
                 });
-            }
-            
-            // Avatar click
-            const profileAvatar = getElement('profileAvatar');
-            if (profileAvatar) {
-                profileAvatar.addEventListener('click', showAvatarModal);
             }
             
             // Settings button
@@ -4680,7 +4573,6 @@
                             username: newUsername,
                             bio: newBio,
                             location: newLocation,
-                            avatar_icon: "🍔",
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         }));
@@ -4727,8 +4619,6 @@
         window.duplicateEntry = duplicateEntry;
         window.setRating = (stars) => foodJournal.setRating(stars);
         window.saveJournalEntry = () => foodJournal.saveJournalEntry();
-        window.showAvatarModal = showAvatarModal;
-        window.saveAvatar = saveAvatar;
     </script>
 </body>
 </html>
