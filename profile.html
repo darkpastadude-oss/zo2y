@@ -3,770 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile | Zo2y</title>
+    <title>Zo2y - Food Journey</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== CSS VARIABLES ===== */
+        /* === DARK THEME VARIABLES === */
         :root {
-            /* Colors */
-            --primary-dark: #0a1128;
-            --primary: #0b1633;
-            --primary-light: #132347;
-            --secondary: #1e2f5c;
-            --secondary-light: #2a3d75;
-            --accent: #f59e0b;
-            --accent-light: #ffb84d;
-            --accent-dark: #d97706;
-            --text-primary: #fefefe;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --text-disabled: #64748b;
-            --success: #10b981;
-            --success-light: #34d399;
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --error-light: #f87171;
-            --info: #3b82f6;
-            --info-light: #60a5fa;
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #2d2d2d;
+            --bg-hover: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #888888;
+            --accent: #ff6b35;
+            --accent-hover: #e55a2b;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --border: #404040;
+            --border-light: #333333;
             
-            /* Backgrounds */
-            --bg-primary: var(--primary);
-            --bg-secondary: var(--primary-light);
-            --bg-card: var(--secondary);
-            --bg-card-hover: var(--secondary-light);
-            --bg-overlay: rgba(11, 22, 51, 0.9);
-            --bg-modal: var(--primary-light);
-            --bg-input: var(--primary);
-            
-            /* Borders */
-            --border-primary: rgba(255, 255, 255, 0.1);
-            --border-secondary: rgba(255, 255, 255, 0.05);
-            --border-accent: var(--accent);
-            --border-radius-sm: 6px;
-            --border-radius: 12px;
-            --border-radius-lg: 16px;
-            --border-radius-xl: 20px;
-            --border-radius-2xl: 24px;
-            
-            /* Shadows */
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.2);
-            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.3);
-            --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.4);
-            --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            
-            /* Typography */
-            --font-family: 'Poppins', sans-serif;
-            --font-weight-light: 300;
-            --font-weight-normal: 400;
-            --font-weight-medium: 500;
-            --font-weight-semibold: 600;
-            --font-weight-bold: 700;
-            --font-weight-extrabold: 800;
-            --font-weight-black: 900;
-            
-            /* Spacing */
-            --space-xs: 4px;
-            --space-sm: 8px;
-            --space-md: 16px;
-            --space-lg: 24px;
-            --space-xl: 32px;
-            --space-2xl: 48px;
-            --space-3xl: 64px;
-            --space-4xl: 80px;
-            
-            /* Transitions */
-            --transition-fast: 0.15s ease;
-            --transition-normal: 0.3s ease;
-            --transition-slow: 0.5s ease;
-            --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            
-            /* Z-index */
-            --z-dropdown: 100;
-            --z-sticky: 200;
-            --z-fixed: 300;
-            --z-modal: 400;
-            --z-popover: 500;
-            --z-tooltip: 600;
-            --z-toast: 700;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s ease;
         }
 
-        /* ===== RESET & BASE STYLES ===== */
-        *, *::before, *::after {
-            box-sizing: border-box;
+        /* === BASE STYLES === */
+        * {
             margin: 0;
             padding: 0;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            font-size: 16px;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: var(--font-family);
-            background-color: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ===== TYPOGRAPHY ===== */
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: var(--font-weight-semibold);
-            line-height: 1.2;
-            margin-bottom: var(--space-md);
-            color: var(--text-primary);
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: var(--font-weight-bold);
-        }
-
-        h2 {
-            font-size: 2rem;
-            font-weight: var(--font-weight-semibold);
-        }
-
-        h3 {
-            font-size: 1.5rem;
-            font-weight: var(--font-weight-medium);
-        }
-
-        h4 {
-            font-size: 1.25rem;
-        }
-
-        h5 {
-            font-size: 1.125rem;
-        }
-
-        h6 {
-            font-size: 1rem;
-        }
-
-        p {
-            margin-bottom: var(--space-md);
-            color: var(--text-secondary);
-        }
-
-        .text-sm {
-            font-size: 0.875rem;
-        }
-
-        .text-xs {
-            font-size: 0.75rem;
-        }
-
-        .text-lg {
-            font-size: 1.125rem;
-        }
-
-        .text-xl {
-            font-size: 1.25rem;
-        }
-
-        .text-2xl {
-            font-size: 1.5rem;
-        }
-
-        .text-3xl {
-            font-size: 1.875rem;
-        }
-
-        .text-4xl {
-            font-size: 2.25rem;
-        }
-
-        .font-light { font-weight: var(--font-weight-light); }
-        .font-normal { font-weight: var(--font-weight-normal); }
-        .font-medium { font-weight: var(--font-weight-medium); }
-        .font-semibold { font-weight: var(--font-weight-semibold); }
-        .font-bold { font-weight: var(--font-weight-bold); }
-        .font-extrabold { font-weight: var(--font-weight-extrabold); }
-
-        .text-primary { color: var(--text-primary); }
-        .text-secondary { color: var(--text-secondary); }
-        .text-muted { color: var(--text-muted); }
-        .text-accent { color: var(--accent); }
-        .text-success { color: var(--success); }
-        .text-warning { color: var(--warning); }
-        .text-error { color: var(--error); }
-        .text-info { color: var(--info); }
-
-        /* ===== LAYOUT & CONTAINERS ===== */
         .container {
-            width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 var(--space-md);
+            padding: 0 20px;
         }
 
-        .container-fluid {
-            width: 100%;
-            padding: 0 var(--space-md);
-        }
+        /* === UTILITY CLASSES === */
+        .d-flex { display: flex; }
+        .d-grid { display: grid; }
+        .d-none { display: none; }
+        .d-block { display: block; }
+        .flex-column { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-wrap { flex-wrap: wrap; }
+        .align-center { align-items: center; }
+        .align-start { align-items: flex-start; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-start { justify-content: flex-start; }
+        .gap-xs { gap: 8px; }
+        .gap-sm { gap: 12px; }
+        .gap-md { gap: 16px; }
+        .gap-lg { gap: 24px; }
+        .gap-xl { gap: 32px; }
+        .w-100 { width: 100%; }
+        .h-100 { height: 100%; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .font-light { font-weight: 300; }
+        .font-normal { font-weight: 400; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .text-muted { color: var(--text-muted); }
+        .text-light { color: var(--text-secondary); }
+        .text-primary { color: var(--accent); }
+        .text-success { color: var(--success); }
+        .text-error { color: var(--error); }
+        .mt-xs { margin-top: 8px; }
+        .mt-sm { margin-top: 12px; }
+        .mt-md { margin-top: 16px; }
+        .mt-lg { margin-top: 24px; }
+        .mt-xl { margin-top: 32px; }
+        .mb-xs { margin-bottom: 8px; }
+        .mb-sm { margin-bottom: 12px; }
+        .mb-md { margin-bottom: 16px; }
+        .mb-lg { margin-bottom: 24px; }
+        .mb-xl { margin-bottom: 32px; }
+        .p-xs { padding: 8px; }
+        .p-sm { padding: 12px; }
+        .p-md { padding: 16px; }
+        .p-lg { padding: 24px; }
+        .p-xl { padding: 32px; }
 
-        .section {
-            padding: var(--space-2xl) 0;
-        }
-
-        .section-sm {
-            padding: var(--space-xl) 0;
-        }
-
-        .section-lg {
-            padding: var(--space-3xl) 0;
-        }
-
-        /* ===== HEADER SECTION ===== */
+        /* === PROFILE HEADER === */
         .profile-header {
-            position: relative;
-            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
-            padding: var(--space-3xl) var(--space-md) var(--space-2xl);
-            border-radius: 0 0 var(--border-radius-2xl) var(--border-radius-2xl);
-            overflow: hidden;
-            margin-bottom: var(--space-xl);
-            box-shadow: var(--shadow-lg);
+            background: var(--bg-secondary);
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
         }
 
-        .cover-photo {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                linear-gradient(rgba(11, 22, 51, 0.85), rgba(11, 22, 51, 0.95)),
-                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200"><defs><pattern id="foodPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="8" fill="%23f59e0b" opacity="0.1"/></pattern></defs><rect width="400" height="200" fill="url(%23foodPattern)"/></svg>');
-            background-size: cover;
-            background-position: center;
-            z-index: 0;
-        }
-
-        .header-content {
-            position: relative;
-            z-index: 1;
+        .profile-top {
             display: flex;
             align-items: flex-start;
-            gap: var(--space-xl);
-            max-width: 1200px;
-            margin: 0 auto;
+            gap: 24px;
+            margin-bottom: 24px;
         }
 
-        .profile-avatar-container {
+        .avatar-container {
             position: relative;
-            flex-shrink: 0;
         }
 
         .profile-avatar {
-            width: 120px;
-            height: 120px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            background: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
-            color: var(--primary);
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            box-shadow: var(--shadow-xl);
-            transition: all var(--transition-normal);
-            position: relative;
-            overflow: hidden;
+            font-size: 32px;
+            border: 3px solid var(--accent);
+            cursor: pointer;
+            transition: var(--transition);
         }
 
         .profile-avatar:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.3), var(--shadow-xl);
-        }
-
-        .avatar-edit-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity var(--transition-normal);
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .profile-avatar-container:hover .avatar-edit-overlay {
-            opacity: 1;
+            border-color: var(--accent-hover);
         }
 
         .profile-info {
             flex: 1;
-            min-width: 0;
         }
 
         .profile-name {
-            font-size: 2.25rem;
-            font-weight: var(--font-weight-bold);
-            margin-bottom: var(--space-xs);
-            color: var(--text-primary);
-            line-height: 1.1;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
         }
 
         .profile-username {
+            font-size: 16px;
             color: var(--text-secondary);
-            font-size: 1.125rem;
-            margin-bottom: var(--space-md);
-            font-weight: var(--font-weight-normal);
+            margin-bottom: 12px;
         }
 
         .profile-bio {
+            font-size: 16px;
             color: var(--text-secondary);
-            font-size: 1rem;
-            margin-bottom: var(--space-lg);
-            max-width: 600px;
-            line-height: 1.6;
+            margin-bottom: 16px;
+            max-width: 500px;
         }
 
         .profile-meta {
             display: flex;
-            gap: var(--space-lg);
-            margin-bottom: var(--space-lg);
-            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
         }
 
         .meta-item {
             display: flex;
             align-items: center;
-            gap: var(--space-xs);
-            color: var(--text-muted);
-            font-size: 0.875rem;
+            gap: 6px;
         }
 
-        .meta-item i {
-            color: var(--accent);
-        }
-
-        .header-actions {
+        .profile-actions {
             display: flex;
-            gap: var(--space-md);
-            margin-top: var(--space-lg);
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
+        /* === BUTTONS === */
         .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: var(--space-sm);
-            padding: var(--space-md) var(--space-lg);
-            border: none;
-            border-radius: var(--border-radius);
-            font-family: inherit;
-            font-size: 0.875rem;
-            font-weight: var(--font-weight-semibold);
+            gap: 8px;
             text-decoration: none;
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left var(--transition-slow);
-        }
-
-        .btn:hover::before {
-            left: 100%;
+            font-size: 14px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-            color: var(--primary);
-            box-shadow: var(--shadow);
+            background: var(--accent);
+            color: white;
         }
 
         .btn-primary:hover {
+            background: var(--accent-hover);
             transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--bg-card);
             color: var(--text-primary);
-            border: 1px solid var(--border-primary);
-            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--bg-hover);
             transform: translateY(-2px);
-            box-shadow: var(--shadow);
         }
 
-        .btn-icon {
-            width: 44px;
-            height: 44px;
-            padding: 0;
-            border-radius: 50%;
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
         }
 
         .btn-sm {
-            padding: var(--space-sm) var(--space-md);
-            font-size: 0.75rem;
+            padding: 8px 16px;
+            font-size: 13px;
         }
 
         .btn-lg {
-            padding: var(--space-lg) var(--space-xl);
-            font-size: 1rem;
+            padding: 14px 28px;
+            font-size: 16px;
         }
 
-        /* ===== STATS BAR ===== */
-        .stats-bar {
+        .btn-icon {
+            padding: 8px;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+
+        /* === STATS GRID === */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--space-md);
-            padding: var(--space-lg);
-            background: var(--bg-secondary);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow);
-            max-width: 1200px;
-            margin: 0 auto var(--space-xl);
-            border: 1px solid var(--border-primary);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
         }
 
-        .stat-item {
+        .stat-card {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: var(--radius);
             text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            padding: var(--space-md);
-            border-radius: var(--border-radius);
-            position: relative;
-            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: var(--transition);
         }
 
-        .stat-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity var(--transition-normal);
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
         }
 
-        .stat-item:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-item:hover::before {
-            opacity: 1;
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--accent);
         }
 
         .stat-number {
-            display: block;
-            font-size: 2rem;
-            font-weight: var(--font-weight-bold);
+            font-size: 36px;
+            font-weight: 700;
             color: var(--accent);
-            margin-bottom: var(--space-xs);
-            line-height: 1;
+            margin-bottom: 4px;
         }
 
         .stat-label {
-            font-size: 0.875rem;
+            font-size: 14px;
             color: var(--text-secondary);
-            font-weight: var(--font-weight-medium);
+            font-weight: 500;
         }
 
-        .stat-trend {
+        /* === STREAK CARD === */
+        .streak-card {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            color: white;
+            padding: 24px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: var(--space-xs);
-            font-size: 0.75rem;
-            margin-top: var(--space-xs);
+            gap: 20px;
         }
 
-        .trend-up {
-            color: var(--success);
+        .streak-icon {
+            font-size: 40px;
         }
 
-        .trend-down {
-            color: var(--error);
+        .streak-content {
+            flex: 1;
         }
 
-        /* ===== QUICK ACTIONS ===== */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--space-md);
-            padding: var(--space-lg);
-            background: var(--bg-secondary);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow);
-            max-width: 1200px;
-            margin: 0 auto var(--space-xl);
-            border: 1px solid var(--border-primary);
+        .streak-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
-        .action-btn {
+        .streak-description {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .streak-actions {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: var(--space-sm);
-            background: none;
-            border: none;
-            color: var(--text-secondary);
+            gap: 12px;
+        }
+
+        /* === NAVIGATION TABS === */
+        .nav-tabs {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
             cursor: pointer;
-            transition: all var(--transition-normal);
-            padding: var(--space-lg) var(--space-md);
-            border-radius: var(--border-radius);
-            position: relative;
-            overflow: hidden;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity var(--transition-normal);
+        .nav-tab:hover {
+            background: var(--bg-hover);
         }
 
-        .action-btn:hover, .action-btn.active {
-            color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .action-btn:hover::before, .action-btn.active::before {
-            opacity: 1;
-        }
-
-        .action-btn.active {
-            background: rgba(245, 158, 11, 0.05);
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-
-        .action-icon {
-            font-size: 1.75rem;
-            transition: transform var(--transition-normal);
-        }
-
-        .action-btn:hover .action-icon {
-            transform: scale(1.1);
-        }
-
-        .action-label {
-            font-size: 0.75rem;
-            font-weight: var(--font-weight-medium);
-            text-align: center;
-        }
-
-        .action-badge {
-            position: absolute;
-            top: var(--space-sm);
-            right: var(--space-sm);
+        .nav-tab.active {
             background: var(--accent);
-            color: var(--primary);
-            font-size: 0.625rem;
-            font-weight: var(--font-weight-bold);
-            padding: 2px 6px;
+            color: white;
+        }
+
+        .nav-tab-badge {
+            background: var(--error);
+            color: white;
             border-radius: 10px;
-            min-width: 18px;
-            text-align: center;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
         }
 
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 var(--space-md) var(--space-3xl);
-        }
-
-        /* ===== TAB CONTENT ===== */
-        .tab-content {
-            display: none;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* === CONTENT SECTIONS === */
+        .section {
+            margin-bottom: 40px;
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--space-xl);
-            padding-bottom: var(--space-md);
-            border-bottom: 1px solid var(--border-primary);
+            margin-bottom: 24px;
         }
 
         .section-title {
-            font-size: 1.75rem;
-            font-weight: var(--font-weight-semibold);
-            color: var(--accent);
-            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .section-subtitle {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            margin: 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: -8px;
         }
 
         .section-actions {
             display: flex;
-            gap: var(--space-md);
+            gap: 12px;
         }
 
-        /* ===== JOURNAL TAB ===== */
-        .journal-filters {
-            display: flex;
-            gap: var(--space-md);
-            margin-bottom: var(--space-xl);
-            flex-wrap: wrap;
+        /* === CARDS GRID === */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .filter-group {
-            display: flex;
-            gap: var(--space-sm);
-        }
-
-        .filter-btn {
+        .card {
             background: var(--bg-card);
-            border: 1px solid var(--border-primary);
-            color: var(--text-secondary);
-            padding: var(--space-sm) var(--space-md);
-            border-radius: var(--border-radius);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all var(--transition-normal);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
         }
 
-        .filter-btn:hover, .filter-btn.active {
-            background: var(--accent);
-            color: var(--primary);
+        .card:hover {
+            transform: translateY(-4px);
             border-color: var(--accent);
         }
 
-        .search-box {
-            position: relative;
-            flex: 1;
-            max-width: 300px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: var(--space-md) var(--space-md) var(--space-md) var(--space-2xl);
-            background: var(--bg-input);
-            border: 1px solid var(--border-primary);
-            border-radius: var(--border-radius);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.875rem;
-            transition: all var(--transition-normal);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: var(--space-md);
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .journal-entries {
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
             display: flex;
-            flex-direction: column;
-            gap: var(--space-lg);
-            margin-bottom: var(--space-2xl);
+            justify-content: space-between;
+            align-items: center;
         }
 
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        /* === JOURNAL ENTRIES === */
         .journal-entry {
             background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            padding: var(--space-xl);
-            display: flex;
-            gap: var(--space-lg);
-            transition: all var(--transition-normal);
-            border-left: 4px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .journal-entry::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity var(--transition-normal);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
         }
 
         .journal-entry:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-            border-left-color: var(--accent);
+            transform: translateY(-2px);
+            border-color: var(--accent);
         }
 
-        .journal-entry:hover::before {
-            opacity: 1;
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .restaurant-image {
-            width: 100px;
-            height: 100px;
-            border-radius: var(--border-radius);
-            background: var(--bg-primary);
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-secondary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            flex-shrink: 0;
+            font-size: 24px;
             overflow: hidden;
-            position: relative;
-            box-shadow: var(--shadow);
         }
 
         .restaurant-image img {
@@ -775,705 +500,85 @@
             object-fit: cover;
         }
 
-        .image-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity var(--transition-normal);
-            border-radius: var(--border-radius);
+        .restaurant-details h3 {
+            margin-bottom: 4px;
+            font-size: 18px;
         }
 
-        .restaurant-image:hover .image-overlay {
-            opacity: 1;
-        }
-
-        .entry-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .entry-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: var(--space-sm);
-        }
-
-        .restaurant-name {
-            font-weight: var(--font-weight-semibold);
-            font-size: 1.25rem;
-            color: var(--text-primary);
-            margin: 0;
+        .restaurant-category {
+            color: var(--text-muted);
+            font-size: 14px;
         }
 
         .entry-rating {
             display: flex;
             align-items: center;
-            gap: var(--space-xs);
-            color: var(--accent);
-            font-weight: var(--font-weight-semibold);
+            gap: 8px;
+            font-weight: 600;
         }
 
         .entry-meta {
             display: flex;
-            gap: var(--space-lg);
-            margin-bottom: var(--space-md);
+            gap: 12px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
         }
 
         .meta-badge {
+            background: var(--bg-secondary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
             display: flex;
             align-items: center;
-            gap: var(--space-xs);
-            background: rgba(255, 255, 255, 0.05);
-            padding: var(--space-xs) var(--space-sm);
-            border-radius: var(--border-radius-sm);
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .entry-date {
-            color: var(--text-muted);
-            font-size: 0.875rem;
+            gap: 4px;
         }
 
         .entry-notes {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+            margin-bottom: 16px;
             line-height: 1.6;
-            margin-bottom: var(--space-md);
         }
 
         .entry-tags {
             display: flex;
-            gap: var(--space-xs);
+            gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: var(--space-md);
+            margin-bottom: 16px;
         }
 
         .tag {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--accent);
+            background: var(--accent);
+            color: white;
             padding: 4px 8px;
-            border-radius: var(--border-radius-sm);
-            font-size: 0.75rem;
-            font-weight: var(--font-weight-medium);
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .entry-actions {
             display: flex;
-            gap: var(--space-sm);
+            gap: 8px;
+            justify-content: flex-end;
         }
 
-        .action-menu {
-            position: relative;
-        }
-
-        .menu-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-primary);
-            color: var(--text-secondary);
-            padding: var(--space-sm) var(--space-md);
-            border-radius: var(--border-radius);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            display: flex;
-            align-items: center;
-            gap: var(--space-xs);
-        }
-
-        .menu-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-        }
-
-        .menu-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border-primary);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-lg);
-            padding: var(--space-sm);
-            min-width: 150px;
-            z-index: var(--z-dropdown);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all var(--transition-normal);
-        }
-
-        .action-menu:hover .menu-dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: var(--space-sm);
-            padding: var(--space-sm) var(--space-md);
-            border-radius: var(--border-radius-sm);
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.875rem;
-            transition: all var(--transition-fast);
-            cursor: pointer;
-        }
-
-        .menu-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-        }
-
-        .menu-item.danger {
-            color: var(--error);
-        }
-
-        .menu-item.danger:hover {
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        .add-entry-btn {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-            color: var(--primary);
-            border: none;
-            padding: var(--space-lg) var(--space-xl);
-            border-radius: var(--border-radius);
-            font-weight: var(--font-weight-semibold);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: var(--space-md);
-            margin: var(--space-2xl) auto;
-            transition: all var(--transition-normal);
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .add-entry-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left var(--transition-slow);
-        }
-
-        .add-entry-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .add-entry-btn:hover::before {
-            left: 100%;
-        }
-
-        /* ===== LISTS TAB ===== */
-        .lists-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--space-lg);
-            margin-bottom: var(--space-2xl);
-        }
-
-        .list-card {
-            background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            padding: var(--space-xl);
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            border: 1px solid transparent;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .list-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity var(--transition-normal);
-        }
-
-        .list-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--accent);
-        }
-
-        .list-card:hover::before {
-            opacity: 1;
-        }
-
-        .list-header {
-            display: flex;
-            align-items: center;
-            gap: var(--space-md);
-            margin-bottom: var(--space-md);
-        }
-
-        .list-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: var(--border-radius);
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--primary);
-            flex-shrink: 0;
-        }
-
-        .list-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .list-title {
-            font-weight: var(--font-weight-semibold);
-            font-size: 1.125rem;
-            color: var(--text-primary);
-            margin: 0 0 var(--space-xs);
-        }
-
-        .list-count {
-            color: var(--accent);
-            font-size: 0.875rem;
-            font-weight: var(--font-weight-medium);
-        }
-
-        .list-description {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            line-height: 1.5;
-            margin-bottom: var(--space-lg);
-        }
-
-        .list-actions {
-            display: flex;
-            gap: var(--space-sm);
-        }
-
-        .create-list-card {
-            background: var(--bg-card);
-            border: 2px dashed var(--accent);
-            border-radius: var(--border-radius-lg);
-            padding: var(--space-xl);
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-            text-align: center;
-        }
-
-        .create-list-card:hover {
-            background: rgba(245, 158, 11, 0.05);
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .create-list-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(245, 158, 11, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--accent);
-            margin-bottom: var(--space-md);
-        }
-
-        /* ===== LIST DETAIL VIEW ===== */
-        .list-detail-view {
-            display: none;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        .list-detail-view.active {
-            display: block;
-        }
-
-        .list-detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--space-xl);
-            padding-bottom: var(--space-md);
-            border-bottom: 1px solid var(--border-primary);
-        }
-
-        .list-detail-title {
-            font-size: 2rem;
-            font-weight: var(--font-weight-bold);
-            color: var(--accent);
-            margin: 0;
-        }
-
-        .list-detail-description {
-            color: var(--text-secondary);
-            font-size: 1.125rem;
-            margin: var(--space-sm) 0 0 0;
-        }
-
-        .list-restaurants-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--space-lg);
-            margin-top: var(--space-xl);
-        }
-
-        .restaurant-tile {
-            background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            overflow: hidden;
-            transition: all var(--transition-normal);
-            border: 1px solid var(--border-primary);
-            position: relative;
-        }
-
-        .restaurant-tile:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--accent);
-        }
-
-        .restaurant-tile-image {
-            height: 160px;
-            overflow: hidden;
-            background: var(--bg-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .restaurant-tile-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background-color: var(--bg-primary);
-        }
-
-        .restaurant-tile-content {
-            padding: var(--space-lg);
-        }
-
-        .restaurant-tile-name {
-            font-weight: var(--font-weight-semibold);
-            font-size: 1.125rem;
-            color: var(--text-primary);
-            margin: 0 0 var(--space-sm);
-        }
-
-        .restaurant-tile-category {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            margin-bottom: var(--space-sm);
-        }
-
-        .restaurant-tile-rating {
-            color: var(--accent);
-            font-weight: var(--font-weight-semibold);
-            margin-bottom: var(--space-sm);
-        }
-
-        .restaurant-tile-description {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            line-height: 1.5;
-            margin-bottom: var(--space-md);
-        }
-
-        .restaurant-tile-actions {
-            display: flex;
-            gap: var(--space-sm);
-        }
-
-        .empty-list-state {
-            text-align: center;
-            padding: var(--space-3xl);
-            color: var(--text-secondary);
-        }
-
-        .empty-list-icon {
-            font-size: 4rem;
-            margin-bottom: var(--space-lg);
-            opacity: 0.5;
-        }
-
-        /* ===== MAP TAB ===== */
-        .map-container {
-            background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            height: 600px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            margin-bottom: var(--space-2xl);
-        }
-
-        .map-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--text-secondary);
-            text-align: center;
-            padding: var(--space-2xl);
-        }
-
-        .map-icon {
-            font-size: 4rem;
-            margin-bottom: var(--space-lg);
-            opacity: 0.5;
-        }
-
-        .map-controls {
-            position: absolute;
-            top: var(--space-lg);
-            right: var(--space-lg);
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-sm);
-            z-index: var(--z-sticky);
-        }
-
-        .map-control-btn {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-primary);
-            color: var(--text-primary);
-            width: 40px;
-            height: 40px;
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            box-shadow: var(--shadow);
-        }
-
-        .map-control-btn:hover {
-            background: var(--accent);
-            color: var(--primary);
-            transform: scale(1.1);
-        }
-
-        .map-legend {
-            position: absolute;
-            bottom: var(--space-lg);
-            left: var(--space-lg);
-            background: var(--bg-overlay);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: var(--space-lg);
-            display: flex;
-            gap: var(--space-lg);
-            z-index: var(--z-sticky);
-            box-shadow: var(--shadow);
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: var(--space-sm);
-            font-size: 0.875rem;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .legend-visited {
-            background: var(--success);
-        }
-
-        .legend-favorite {
-            background: var(--accent);
-        }
-
-        .legend-want-to-go {
-            background: var(--info);
-        }
-
-        /* ===== FRIENDS TAB ===== */
-        .friends-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--space-lg);
-        }
-
-        .friend-card {
-            background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            padding: var(--space-xl);
-            transition: all var(--transition-normal);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .friend-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity var(--transition-normal);
-        }
-
-        .friend-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .friend-card:hover::before {
-            opacity: 1;
-        }
-
-        .friend-header {
-            display: flex;
-            align-items: center;
-            gap: var(--space-md);
-            margin-bottom: var(--space-lg);
-        }
-
-        .friend-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-weight: var(--font-weight-bold);
-            font-size: 1.25rem;
-            flex-shrink: 0;
-            box-shadow: var(--shadow);
-        }
-
-        .friend-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .friend-name {
-            font-weight: var(--font-weight-semibold);
-            font-size: 1.125rem;
-            color: var(--text-primary);
-            margin: 0 0 var(--space-xs);
-        }
-
-        .friend-username {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin: 0;
-        }
-
-        .friend-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-md);
-            margin-bottom: var(--space-lg);
-            padding: var(--space-md);
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: var(--border-radius);
-        }
-
-        .friend-stat {
-            text-align: center;
-        }
-
-        .friend-stat-number {
-            display: block;
-            font-size: 1.25rem;
-            font-weight: var(--font-weight-bold);
-            color: var(--accent);
-            line-height: 1;
-        }
-
-        .friend-stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: var(--space-xs);
-        }
-
-        .friend-actions {
-            display: flex;
-            gap: var(--space-sm);
-        }
-
-        /* ===== ACHIEVEMENTS SECTION ===== */
-        .achievements-section {
-            margin-top: var(--space-3xl);
-            padding-top: var(--space-2xl);
-            border-top: 1px solid var(--border-primary);
-        }
-
+        /* === ACHIEVEMENTS === */
         .achievements-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: var(--space-lg);
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
         .achievement-card {
             background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            padding: var(--space-xl);
-            text-align: center;
-            transition: all var(--transition-normal);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .achievement-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity var(--transition-normal);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
         }
 
         .achievement-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow);
-        }
-
-        .achievement-card:hover::before {
-            opacity: 1;
+            transform: translateY(-4px);
+            border-color: var(--accent);
         }
 
         .achievement-card.locked {
@@ -1481,1009 +586,889 @@
         }
 
         .achievement-icon {
-            font-size: 3rem;
-            margin-bottom: var(--space-md);
+            font-size: 32px;
+            margin-bottom: 12px;
             position: relative;
         }
 
         .achievement-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--accent);
-            color: var(--primary);
-            font-size: 0.75rem;
-            font-weight: var(--font-weight-bold);
-            padding: 2px 6px;
-            border-radius: 10px;
+            top: -8px;
+            right: -8px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
         }
 
         .achievement-title {
-            font-weight: var(--font-weight-semibold);
-            margin-bottom: var(--space-sm);
-            font-size: 1rem;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
 
         .achievement-desc {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            line-height: 1.4;
-            margin-bottom: var(--space-md);
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
         }
 
         .achievement-progress {
+            background: var(--bg-secondary);
+            border-radius: 20px;
             height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            margin-top: var(--space-md);
             overflow: hidden;
+            margin-bottom: 8px;
         }
 
         .achievement-progress-bar {
+            background: var(--accent);
             height: 100%;
-            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
-            border-radius: 3px;
-            transition: width var(--transition-slow);
+            transition: width 0.5s ease;
         }
 
-        /* ===== EMPTY STATES ===== */
-        .empty-state {
-            text-align: center;
-            padding: var(--space-3xl) var(--space-lg);
-            color: var(--text-secondary);
-        }
-
-        .empty-icon {
-            font-size: 4rem;
-            margin-bottom: var(--space-lg);
-            opacity: 0.5;
-        }
-
-        .empty-title {
-            font-size: 1.5rem;
-            margin-bottom: var(--space-md);
-            color: var(--accent);
-        }
-
-        .empty-description {
-            margin-bottom: var(--space-xl);
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-        }
-
-        /* ===== FOOTER ===== */
-        .profile-footer {
-            padding: var(--space-2xl) var(--space-md);
-            text-align: center;
-            border-top: 1px solid var(--border-primary);
-            margin-top: var(--space-3xl);
-            background: var(--bg-secondary);
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-xl);
-            margin-bottom: var(--space-lg);
-            flex-wrap: wrap;
-        }
-
-        .footer-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.875rem;
-            transition: all var(--transition-normal);
-        }
-
-        .footer-link:hover {
-            color: var(--accent);
-        }
-
-        .copyright {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-
-        /* ===== MODALS ===== */
+        /* === MODALS === */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-overlay);
+            background: rgba(0, 0, 0, 0.8);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: var(--z-modal);
-            padding: var(--space-md);
-            backdrop-filter: blur(5px);
+            z-index: 1000;
+            padding: 20px;
         }
 
         .modal.active {
             display: flex;
-            animation: fadeIn var(--transition-normal);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .modal-content {
-            background: var(--bg-modal);
-            border-radius: var(--border-radius-xl);
-            padding: var(--space-2xl);
+            background: var(--bg-card);
+            border-radius: var(--radius);
             width: 100%;
             max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border-primary);
-            animation: slideInUp var(--transition-normal);
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            border: 1px solid var(--border);
         }
 
         .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--space-xl);
         }
 
         .modal-title {
-            font-size: 1.5rem;
-            font-weight: var(--font-weight-semibold);
-            color: var(--accent);
-            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
         }
 
         .modal-close {
             background: none;
             border: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
+            font-size: 24px;
             cursor: pointer;
-            transition: all var(--transition-normal);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: var(--text-muted);
         }
 
         .modal-close:hover {
-            background: rgba(255, 255, 255, 0.1);
             color: var(--text-primary);
         }
 
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* === FORMS === */
         .form-group {
-            margin-bottom: var(--space-xl);
+            margin-bottom: 20px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: var(--space-sm);
-            font-weight: var(--font-weight-medium);
+            margin-bottom: 8px;
+            font-weight: 500;
             color: var(--text-primary);
         }
 
-        .form-input, .form-textarea, .form-select {
+        .form-input, .form-select, .form-textarea {
             width: 100%;
-            padding: var(--space-md) var(--space-lg);
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border-primary);
-            background: var(--bg-input);
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.9rem;
-            transition: all var(--transition-normal);
+            font-size: 14px;
         }
 
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
         }
 
         .form-textarea {
-            min-height: 120px;
             resize: vertical;
+            min-height: 100px;
         }
 
         .rating-stars {
             display: flex;
-            gap: var(--space-sm);
-            justify-content: center;
+            gap: 4px;
         }
 
         .rating-star {
-            font-size: 2rem;
+            font-size: 24px;
             cursor: pointer;
-            transition: all var(--transition-normal);
+            transition: var(--transition);
             opacity: 0.3;
         }
 
-        .rating-star.active {
+        .rating-star.active, .rating-star:hover {
             opacity: 1;
-            color: var(--accent);
             transform: scale(1.1);
-        }
-
-        .rating-star:hover {
-            transform: scale(1.2);
         }
 
         .form-actions {
             display: flex;
-            gap: var(--space-md);
+            gap: 12px;
             justify-content: flex-end;
-            margin-top: var(--space-2xl);
+            margin-top: 24px;
         }
 
-        /* ===== RESPONSIVE DESIGN ===== */
-        @media (max-width: 1024px) {
-            .header-content {
-                gap: var(--space-lg);
-            }
-            
-            .profile-avatar {
-                width: 100px;
-                height: 100px;
-                font-size: 2.5rem;
-            }
-            
-            .profile-name {
-                font-size: 2rem;
-            }
-            
-            .stats-bar, .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .lists-container, .friends-container {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
+        /* === FOOTER === */
+        .profile-footer {
+            background: var(--bg-secondary);
+            padding: 40px 0;
+            margin-top: 60px;
+            border-top: 1px solid var(--border);
         }
 
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--text-primary);
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* === RESPONSIVE DESIGN === */
         @media (max-width: 768px) {
-            .header-content {
+            .profile-top {
                 flex-direction: column;
                 text-align: center;
-                align-items: center;
             }
-            
-            .profile-avatar {
-                width: 80px;
-                height: 80px;
-                font-size: 2rem;
-            }
-            
-            .profile-name {
-                font-size: 1.75rem;
-            }
-            
-            .profile-meta {
+
+            .profile-actions {
                 justify-content: center;
             }
-            
-            .header-actions {
-                justify-content: center;
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
-            
-            .stats-bar, .quick-actions {
-                grid-template-columns: 1fr;
-                gap: var(--space-sm);
-            }
-            
-            .stat-item, .action-btn {
-                padding: var(--space-md);
-            }
-            
-            .journal-entry {
+
+            .streak-card {
                 flex-direction: column;
+                text-align: center;
             }
-            
-            .restaurant-image {
-                width: 100%;
-                height: 120px;
-            }
-            
-            .lists-container, .friends-container, .achievements-grid {
+
+            .cards-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .map-container {
-                height: 400px;
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
             }
-            
-            .map-legend {
-                flex-direction: column;
-                gap: var(--space-sm);
-                bottom: var(--space-md);
-                left: var(--space-md);
-            }
-            
+
             .section-header {
                 flex-direction: column;
-                gap: var(--space-md);
-                align-items: flex-start;
+                gap: 16px;
             }
-            
+
             .section-actions {
                 width: 100%;
-                justify-content: flex-end;
+                justify-content: flex-start;
             }
-        }
 
-        @media (max-width: 480px) {
-            .profile-header {
-                padding: var(--space-xl) var(--space-md) var(--space-lg);
-            }
-            
-            .main-content {
-                padding: 0 var(--space-sm) var(--space-2xl);
-            }
-            
-            .stats-bar, .quick-actions {
-                border-radius: var(--border-radius);
-            }
-            
-            .journal-entry {
-                padding: var(--space-lg);
-            }
-            
-            .modal-content {
-                padding: var(--space-xl);
-            }
-            
-            .form-actions {
+            .footer-content {
                 flex-direction: column;
+                gap: 20px;
+                text-align: center;
             }
-            
+
             .footer-links {
-                gap: var(--space-lg);
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
 
-        /* ===== CUSTOM SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--secondary);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-
-        /* ===== UTILITY CLASSES ===== */
-        .text-center { text-align: center; }
-        .text-left { text-align: left; }
-        .text-right { text-align: right; }
-
-        .d-flex { display: flex; }
-        .d-inline-flex { display: inline-flex; }
-        .d-block { display: block; }
-        .d-inline-block { display: inline-block; }
-        .d-none { display: none; }
-
-        .flex-column { flex-direction: column; }
-        .flex-row { flex-direction: row; }
-        .flex-wrap { flex-wrap: wrap; }
-        .flex-nowrap { flex-wrap: nowrap; }
-
-        .justify-start { justify-content: flex-start; }
-        .justify-end { justify-content: flex-end; }
-        .justify-center { justify-content: center; }
-        .justify-between { justify-content: space-between; }
-        .justify-around { justify-content: space-around; }
-
-        .align-start { align-items: flex-start; }
-        .align-end { align-items: flex-end; }
-        .align-center { align-items: center; }
-        .align-stretch { align-items: stretch; }
-
-        .w-100 { width: 100%; }
-        .h-100 { height: 100%; }
-
-        .m-0 { margin: 0; }
-        .mt-0 { margin-top: 0; }
-        .mr-0 { margin-right: 0; }
-        .mb-0 { margin-bottom: 0; }
-        .ml-0 { margin-left: 0; }
-
-        .p-0 { padding: 0; }
-        .pt-0 { padding-top: 0; }
-        .pr-0 { padding-right: 0; }
-        .pb-0 { padding-bottom: 0; }
-        .pl-0 { padding-left: 0; }
-
-        .rounded { border-radius: var(--border-radius); }
-        .rounded-lg { border-radius: var(--border-radius-lg); }
-        .rounded-xl { border-radius: var(--border-radius-xl); }
-
-        .shadow { box-shadow: var(--shadow); }
-        .shadow-lg { box-shadow: var(--shadow-lg); }
-        .shadow-xl { box-shadow: var(--shadow-xl); }
-
-        .transition { transition: all var(--transition-normal); }
-        .transition-fast { transition: all var(--transition-fast); }
-        .transition-slow { transition: all var(--transition-slow); }
-
-        .opacity-0 { opacity: 0; }
-        .opacity-50 { opacity: 0.5; }
-        .opacity-100 { opacity: 1; }
-
-        .pointer { cursor: pointer; }
-        .not-allowed { cursor: not-allowed; }
-
-        .overflow-hidden { overflow: hidden; }
-        .overflow-auto { overflow: auto; }
-        .overflow-visible { overflow: visible; }
-
-        .position-relative { position: relative; }
-        .position-absolute { position: absolute; }
-        .position-fixed { position: fixed; }
-        .position-sticky { position: sticky; }
-
-        .z-0 { z-index: 0; }
-        .z-10 { z-index: 10; }
-        .z-20 { z-index: 20; }
-        .z-30 { z-index: 30; }
-        .z-40 { z-index: 40; }
-        .z-50 { z-index: 50; }
-
-        /* ===== LOADING STATES ===== */
-        .loading {
-            position: relative;
-            pointer-events: none;
-        }
-
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            margin: -10px 0 0 -10px;
-            border: 2px solid transparent;
-            border-top: 2px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, var(--bg-card) 25%, var(--secondary) 50%, var(--bg-card) 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: var(--border-radius);
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* ===== TOAST NOTIFICATIONS ===== */
+        /* === TOAST NOTIFICATIONS === */
         .toast-container {
             position: fixed;
-            top: var(--space-lg);
-            right: var(--space-lg);
-            z-index: var(--z-toast);
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-sm);
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
         }
 
         .toast {
             background: var(--bg-card);
-            border: 1px solid var(--border-primary);
-            border-radius: var(--border-radius);
-            padding: var(--space-md) var(--space-lg);
-            box-shadow: var(--shadow-lg);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            border-left: 4px solid var(--accent);
             display: flex;
             align-items: center;
-            gap: var(--space-md);
-            max-width: 350px;
-            animation: slideInRight var(--transition-normal);
+            gap: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
         }
 
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .toast.success {
-            border-left: 4px solid var(--success);
-        }
-
-        .toast.error {
-            border-left: 4px solid var(--error);
-        }
-
-        .toast.warning {
-            border-left: 4px solid var(--warning);
-        }
-
-        .toast.info {
-            border-left: 4px solid var(--info);
-        }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--error); }
+        .toast.warning { border-left-color: var(--warning); }
 
         .toast-icon {
-            font-size: 1.25rem;
+            font-size: 20px;
         }
 
-        .toast.success .toast-icon {
-            color: var(--success);
-        }
-
-        .toast.error .toast-icon {
-            color: var(--error);
-        }
-
-        .toast.warning .toast-icon {
-            color: var(--warning);
-        }
-
-        .toast.info .toast-icon {
-            color: var(--info);
-        }
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--error); }
+        .toast.warning .toast-icon { color: var(--warning); }
 
         .toast-content {
             flex: 1;
         }
 
         .toast-title {
-            font-weight: var(--font-weight-semibold);
-            font-size: 0.875rem;
-            margin-bottom: var(--space-xs);
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
         .toast-message {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
+            font-size: 14px;
+            color: var(--text-muted);
         }
 
         .toast-close {
             background: none;
             border: none;
-            color: var(--text-muted);
+            font-size: 18px;
             cursor: pointer;
-            padding: var(--space-xs);
-            border-radius: var(--border-radius-sm);
-            transition: all var(--transition-fast);
+            color: var(--text-muted);
         }
 
         .toast-close:hover {
-            background: rgba(255, 255, 255, 0.1);
             color: var(--text-primary);
         }
-        
-        /* ===== FOLLOW BUTTON STYLES ===== */
-        .follow-btn {
-            background: #f59e0b;
-            color: #0b1633;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+
+        /* === EMPTY STATES === */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
             font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
         }
-        
-        .follow-btn:hover {
-            background: #ffb84d;
+
+        .empty-description {
+            font-size: 16px;
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        
-        .follow-btn.following {
-            background: transparent;
-            color: #f59e0b;
-            border: 1px solid #f59e0b;
-        }
-        
-        .follow-btn.following:hover {
-            background: #f59e0b22;
-        }
-        
-        .follow-btn.requested {
-            background: transparent;
-            color: #f59e0b;
-            border: 1px solid #f59e0b;
-        }
-        
-        .follow-btn.requested:hover {
-            background: #f59e0b22;
-        }
-        
-        /* ===== LIST ICON OPTIONS ===== */
+
+        /* === LIST ICONS === */
         .list-icon-option {
             width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: var(--border-radius);
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all var(--transition-normal);
-            font-size: 1.25rem;
+            transition: var(--transition);
+            font-size: 20px;
         }
-        
+
         .list-icon-option:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--bg-hover);
         }
-        
-        .user-grid {
+
+        .avatar-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 12px;
+        }
+
+        .avatar-icon-option {
+            width: 50px;
+            height: 50px;
             display: flex;
-            flex-direction: column;
-            gap: var(--space-md);
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 24px;
+        }
+
+        .avatar-icon-option:hover {
+            background: var(--bg-hover);
+        }
+
+        .avatar-icon-option.selected {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* === SEARCH BOX === */
+        .search-box {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* === FRIEND CARDS === */
+        .friend-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .friend-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .friend-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .friend-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .friend-username {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .friend-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .friend-stat {
+            text-align: center;
+        }
+
+        .friend-stat-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .friend-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* === RESTAURANT TILES === */
+        .restaurant-tile {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .restaurant-tile:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .restaurant-tile-image {
+            width: 100%;
+            height: 200px;
+            background: var(--bg-secondary);
+            overflow: hidden;
+        }
+
+        .restaurant-tile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-tile-content {
+            padding: 16px;
+        }
+
+        .restaurant-tile-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .restaurant-tile-category {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .restaurant-tile-rating {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .restaurant-tile-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
-    <!-- Header Section -->
+    <!-- Profile Header -->
     <div class="profile-header">
-        <div class="cover-photo"></div>
-        <div class="header-content">
-            <div class="profile-avatar-container">
-                <div class="profile-avatar" id="profileAvatar">🍔</div>
-                <div class="avatar-edit-overlay">
-                    <i class="fas fa-camera text-white"></i>
-                </div>
-            </div>
-            <div class="profile-info">
-                <h1 class="profile-name" id="profileName">Loading...</h1>
-                <div class="profile-username" id="profileUsername">@username</div>
-                <p class="profile-bio" id="profileBio">No bio yet. Click edit to add one!</p>
-                <div class="profile-meta">
-                    <div class="meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span id="profileLocation">Location not set</span>
-                    </div>
-                    <div class="meta-item">
-                        <i class="fas fa-utensils"></i>
-                        <span id="visitedCountMeta">0 restaurants visited</span>
-                    </div>
-                    <div class="meta-item">
-                        <i class="fas fa-star"></i>
-                        <span id="memberSince">Member since 2023</span>
+        <div class="container">
+            <div class="profile-top">
+                <div class="avatar-container">
+                    <div class="profile-avatar" onclick="showAvatarModal()" id="profileAvatar">
+                        🍔
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button class="btn btn-primary" id="editProfileBtn">
-                        <i class="fas fa-edit"></i>
-                        Edit Profile
+                
+                <div class="profile-info">
+                    <div class="profile-name" id="profileName">
+                        Loading...
+                    </div>
+                    <div class="profile-username" id="profileUsername">@username</div>
+                    <div class="profile-bio" id="profileBio">
+                        No bio yet. Click edit to add one!
+                    </div>
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="profileLocation">Location not set</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span id="memberSince">Member since 2023</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-utensils"></i>
+                            <span id="visitedCountMeta">0 restaurants visited</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="btn btn-outline" onclick="showModal('editProfileModal')" id="editProfileBtn">
+                        <i class="fas fa-edit"></i> Edit Profile
                     </button>
-                    <button class="btn btn-secondary btn-icon" id="settingsBtn">
-                        <i class="fas fa-cog"></i>
+                    <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addEntryBtn">
+                        <i class="fas fa-plus"></i> Add Journal
                     </button>
-                    <button class="follow-btn" id="followButton" style="display: none;"></button>
+                    <button class="btn btn-secondary" id="settingsBtn">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                    <button class="btn btn-secondary d-none" id="followButton">
+                        Follow
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-        <div class="stat-item" onclick="showTab('journal')">
-            <span class="stat-number" id="visitedCount">0</span>
-            <span class="stat-label">Visited</span>
-            <div class="stat-trend trend-up">
-                <i class="fas fa-arrow-up"></i>
-                <span>+0 this week</span>
+
+    <div class="container">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🍽️</div>
+                <div class="stat-number" id="visitedCount">0</div>
+                <div class="stat-label">Restaurants Visited</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" id="friendsCount">0</div>
+                <div class="stat-label">Followers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-number" id="listsCount">0</div>
+                <div class="stat-label">Lists Created</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-number" id="streakCount">0</div>
+                <div class="stat-label">Day Streak</div>
             </div>
         </div>
-        <div class="stat-item" onclick="showTab('lists')">
-            <span class="stat-number" id="favoritesCount">0</span>
-            <span class="stat-label">Favorites</span>
-            <div class="stat-trend trend-up">
-                <i class="fas fa-arrow-up"></i>
-                <span>+0 this week</span>
+
+        <!-- Streak Card -->
+        <div class="streak-card">
+            <div class="streak-icon">🔥</div>
+            <div class="streak-content">
+                <div class="streak-title" id="streakTitle">Start Your Food Journey!</div>
+                <div class="streak-description" id="streakDescription">Add your first restaurant visit to start building your streak</div>
+            </div>
+            <div class="streak-actions">
+                <button class="btn btn-outline" style="border-color: white; color: white;">
+                    View Progress
+                </button>
             </div>
         </div>
-        <div class="stat-item" onclick="showTab('lists')">
-            <span class="stat-number" id="listsCount">0</span>
-            <span class="stat-label">Lists</span>
-            <div class="stat-trend trend-up">
-                <i class="fas fa-plus"></i>
-                <span>+0 this month</span>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')">
+                <i class="fas fa-book"></i> Food Journal
+            </div>
+            <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
+                <i class="fas fa-list"></i> My Lists
+            </div>
+            <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
+                <i class="fas fa-trophy"></i> Achievements
+            </div>
+            <div class="nav-tab" data-tab="friends" onclick="showTab('friends')">
+                <i class="fas fa-users"></i> Friends
+                <span class="nav-tab-badge d-none" id="friendsBadge">0</span>
             </div>
         </div>
-        <div class="stat-item">
-            <span class="stat-number" id="streakCount">0</span>
-            <span class="stat-label">Day Streak</span>
-            <div class="stat-trend trend-up">
-                <i class="fas fa-fire"></i>
-                <span>Keep going!</span>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Action Buttons -->
-    <div class="quick-actions">
-        <button class="action-btn active" data-tab="journal">
-            <div class="action-icon">📝</div>
-            <div class="action-label">Journal</div>
-            <div class="action-badge" id="journalBadge" style="display: none;">0</div>
-        </button>
-        <button class="action-btn" data-tab="lists">
-            <div class="action-icon">📋</div>
-            <div class="action-label">Lists</div>
-        </button>
-        <button class="action-btn" data-tab="map">
-            <div class="action-icon">🗺️</div>
-            <div class="action-label">Map</div>
-        </button>
-        <button class="action-btn" data-tab="friends">
-            <div class="action-icon">👥</div>
-            <div class="action-label">Friends</div>
-            <div class="action-badge" id="friendsBadge" style="display: none;">0</div>
-        </button>
-    </div>
-    
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Journal Tab -->
+
+        <!-- Journal Tab Content -->
         <div class="tab-content active" id="journal-tab">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Food Journal</h2>
-                    <p class="section-subtitle">Your restaurant experiences and reviews</p>
-                </div>
-                <div class="section-actions">
-                    <div class="search-box">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="search-input" placeholder="Search journal entries...">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Food Journal</h2>
+                        <p class="section-subtitle">Your culinary adventures and experiences</p>
                     </div>
-                    <div class="filter-group">
-                        <button class="filter-btn active">All</button>
-                        <button class="filter-btn">Recent</button>
-                        <button class="filter-btn">Favorites</button>
+                    <div class="section-actions">
+                        <div class="d-flex gap-sm">
+                            <button class="btn btn-secondary btn-sm active filter-btn" data-filter="all">All</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> New Entry
+                        </button>
+                    </div>
+                </div>
+
+                <div id="journalEntries">
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3 class="empty-title">No Journal Entries Yet</h3>
+                        <p class="empty-description">Start documenting your restaurant experiences to build your food journey! Track where you've been, what you loved, and discover new places to try.</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add Your First Entry
+                        </button>
                     </div>
                 </div>
             </div>
-            
-            <div class="journal-entries" id="journalEntries">
-                <!-- Journal entries will be populated here -->
-            </div>
-            
-            <button class="add-entry-btn" id="addEntryBtn">
-                <i class="fas fa-plus"></i> Add New Journal Entry
-            </button>
         </div>
-        
-        <!-- Lists Tab -->
+
+        <!-- Lists Tab Content -->
         <div class="tab-content" id="lists-tab">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">My Lists</h2>
-                    <p class="section-subtitle">Organize restaurants by occasion, cuisine, or mood</p>
-                </div>
-                <div class="section-actions">
-                    <button class="btn btn-secondary" id="sortListsBtn">
-                        <i class="fas fa-sort"></i> Sort
-                    </button>
-                </div>
-            </div>
-            
-            <h3 class="text-accent font-semibold mb-lg">Default Lists</h3>
-            <div class="lists-container">
-                <div class="list-card" onclick="showList('favorites')">
-                    <div class="list-header">
-                        <div class="list-icon">❤️</div>
-                        <div class="list-info">
-                            <div class="list-title">Favorites</div>
-                            <div class="list-count" id="favoritesListCount">0 restaurants</div>
-                        </div>
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">My Lists</h2>
+                        <p class="section-subtitle">Organize your favorite restaurants</p>
                     </div>
-                    <div class="list-description">Your go-to spots that never disappoint</div>
-                    <div class="list-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="showList('favorites')">
-                            <i class="fas fa-eye"></i> View
+                    <div class="section-actions">
+                        <button class="btn btn-secondary btn-sm" id="sortListsBtn">
+                            <i class="fas fa-sort"></i> Sort
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateListModal()">
+                            <i class="fas fa-plus"></i> New List
                         </button>
                     </div>
                 </div>
-                
-                <div class="list-card" onclick="showList('wantToGo')">
-                    <div class="list-header">
-                        <div class="list-icon">📍</div>
-                        <div class="list-info">
-                            <div class="list-title">Want to Go</div>
-                            <div class="list-count" id="wantToGoListCount">0 restaurants</div>
+
+                <div class="cards-grid">
+                    <!-- Default Lists -->
+                    <div class="card" onclick="showList('favorites')">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-heart" style="color: var(--error);"></i> Favorites
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                        <div class="card-body">
+                            <p>My all-time favorite spots that never disappoint.</p>
+                            <div class="text-muted mt-sm" id="favoritesListCount">0 restaurants</div>
                         </div>
                     </div>
-                    <div class="list-description">Restaurants you're excited to try soon</div>
-                    <div class="list-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="showList('wantToGo')">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="list-card" onclick="showList('visited')">
-                    <div class="list-header">
-                        <div class="list-icon">🍽️</div>
-                        <div class="list-info">
-                            <div class="list-title">Visited</div>
-                            <div class="list-count" id="visitedListCount">0 restaurants</div>
+
+                    <div class="card" onclick="showList('visited')">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i> Visited
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                        <div class="card-body">
+                            <p>Restaurants I have visited and reviewed.</p>
+                            <div class="text-muted mt-sm" id="visitedListCount">0 restaurants</div>
                         </div>
                     </div>
-                    <div class="list-description">All the restaurants you've experienced</div>
-                    <div class="list-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="showList('visited')">
-                            <i class="fas fa-eye"></i> View
-                        </button>
+
+                    <div class="card" onclick="showList('wantToGo')">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-bookmark" style="color: var(--accent);"></i> Want to Go
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                        <div class="card-body">
+                            <p>Restaurants I want to try in the future.</p>
+                            <div class="text-muted mt-sm" id="wantToGoListCount">0 restaurants</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <h3 class="text-accent font-semibold mt-xl mb-lg">Custom Lists</h3>
-            <div class="lists-container" id="customLists">
-                <!-- Custom lists will be populated here -->
-            </div>
-            
-            <div class="create-list-card" onclick="showCreateListModal()">
-                <div class="create-list-icon">+</div>
-                <div class="list-title">Create New List</div>
-                <div class="list-description">Organize restaurants your way</div>
+
+                <!-- Custom Lists Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3 class="section-title">Custom Lists</h3>
+                    </div>
+                    <div class="cards-grid" id="customLists">
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <h3 class="empty-title">No Custom Lists Yet</h3>
+                            <p class="empty-description">Create your first custom list to organize restaurants by occasion, cuisine, or mood!</p>
+                            <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
+                                <i class="fas fa-plus"></i> Create Your First List
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
+
         <!-- List Detail View -->
-        <div class="list-detail-view" id="list-detail-view">
-            <div class="list-detail-header">
-                <div>
-                    <h2 class="list-detail-title" id="listDetailTitle">List Name</h2>
-                    <p class="list-detail-description" id="listDetailDescription">List description</p>
-                </div>
-                <div class="section-actions">
-                    <button class="btn btn-secondary" onclick="hideListDetail()">
-                        <i class="fas fa-arrow-left"></i> Back to Lists
-                    </button>
-                </div>
-            </div>
-            
-            <div class="list-restaurants-grid" id="listRestaurantsGrid">
-                <!-- List restaurants will be populated here -->
-            </div>
-        </div>
-        
-        <!-- Map Tab -->
-        <div class="tab-content" id="map-tab">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Restaurant Map</h2>
-                    <p class="section-subtitle">Explore your food journey geographically</p>
-                </div>
-                <div class="section-actions">
-                    <button class="btn btn-secondary">
-                        <i class="fas fa-filter"></i> Filter
-                    </button>
-                    <button class="btn btn-secondary">
-                        <i class="fas fa-download"></i> Export
-                    </button>
-                </div>
-            </div>
-            
-            <div class="map-container">
-                <div class="map-placeholder">
-                    <div class="map-icon">🗺️</div>
-                    <h3 class="text-accent mb-md">Interactive Restaurant Map</h3>
-                    <p>Your visited restaurants and favorites will appear here with color-coded pins</p>
-                    <p class="text-sm mt-sm">Map integration coming in the next update!</p>
-                </div>
-                
-                <div class="map-controls">
-                    <button class="map-control-btn">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button class="map-control-btn">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button class="map-control-btn">
-                        <i class="fas fa-crosshairs"></i>
-                    </button>
-                </div>
-                
-                <div class="map-legend">
-                    <div class="legend-item">
-                        <div class="legend-color legend-visited"></div>
-                        <span>Visited</span>
+        <div class="tab-content" id="list-detail-view">
+            <div class="section">
+                <div class="section-header">
+                    <div class="d-flex align-center gap-md">
+                        <button class="btn btn-secondary btn-sm" onclick="hideListDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <div>
+                            <h2 class="section-title" id="listDetailTitle">List Title</h2>
+                            <p class="section-subtitle" id="listDetailDescription">List description</p>
+                        </div>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color legend-favorite"></div>
-                        <span>Favorites</span>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add Restaurant
+                        </button>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color legend-want-to-go"></div>
-                        <span>Want to Go</span>
+                </div>
+
+                <div class="cards-grid" id="listRestaurantsGrid">
+                    <div class="empty-state">
+                        <div class="empty-icon">🍽️</div>
+                        <h3 class="empty-title">No Restaurants Yet</h3>
+                        <p class="empty-description">Start adding restaurants to this list!</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add Your First Restaurant
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Friends Tab -->
+
+        <!-- Achievements Tab Content -->
+        <div class="tab-content" id="achievements-tab">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Achievements</h2>
+                        <p class="section-subtitle">Track your food journey progress</p>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-trophy"></i> View All
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="achievements-grid" id="achievementsList">
+                    <div class="achievement-card">
+                        <div class="achievement-icon">
+                            🗺️
+                            <div class="achievement-badge">✓</div>
+                        </div>
+                        <div class="achievement-title">Food Explorer</div>
+                        <div class="achievement-desc">Visit 10 different restaurants</div>
+                        <div class="achievement-progress">
+                            <div class="achievement-progress-bar" style="width: 30%"></div>
+                        </div>
+                        <div class="text-xs text-muted mt-sm">3/10 • 50 pts</div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">
+                            🌍
+                        </div>
+                        <div class="achievement-title">Cuisine Connoisseur</div>
+                        <div class="achievement-desc">Try 5 different cuisines</div>
+                        <div class="achievement-progress">
+                            <div class="achievement-progress-bar" style="width: 60%"></div>
+                        </div>
+                        <div class="text-xs text-muted mt-sm">3/5 • 75 pts</div>
+                    </div>
+                    <div class="achievement-card locked">
+                        <div class="achievement-icon">
+                            📝
+                        </div>
+                        <div class="achievement-title">Review Master</div>
+                        <div class="achievement-desc">Write 15 reviews</div>
+                        <div class="achievement-progress">
+                            <div class="achievement-progress-bar" style="width: 20%"></div>
+                        </div>
+                        <div class="text-xs text-muted mt-sm">3/15 • 100 pts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Friends Tab Content -->
         <div class="tab-content" id="friends-tab">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Friends</h2>
-                    <p class="section-subtitle">Connect with other food lovers</p>
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Friends</h2>
+                        <p class="section-subtitle">Connect with other food lovers</p>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showModal('friendSearchModal')" id="addFriendsBtn">
+                            <i class="fas fa-user-plus"></i> Add Friends
+                        </button>
+                    </div>
                 </div>
-                <div class="section-actions">
-                    <button class="btn btn-primary" id="addFriendsBtn">
-                        <i class="fas fa-user-plus"></i> Add Friends
-                    </button>
+
+                <div id="friendsList">
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <h3 class="empty-title">Not following anyone yet</h3>
+                        <p class="empty-description">Search for users to find friends and see their food adventures!</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('friendSearchModal')">
+                            <i class="fas fa-user-plus"></i> Find Friends
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="friends-container" id="friendsList">
-                <!-- Friends will be populated here -->
-            </div>
-        </div>
-        
-        <!-- Achievements Section -->
-        <div class="achievements-section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Achievements</h2>
-                    <p class="section-subtitle">Track your food journey progress</p>
-                </div>
-                <div class="section-actions">
-                    <button class="btn btn-secondary">
-                        <i class="fas fa-trophy"></i> View All
-                    </button>
-                </div>
-            </div>
-            
-            <div class="achievements-grid" id="achievementsList">
-                <!-- Achievements will be populated here -->
             </div>
         </div>
     </div>
     
     <!-- Footer -->
     <div class="profile-footer">
-        <div class="footer-links">
-            <a href="#" class="footer-link">Settings</a>
-            <a href="#" class="footer-link">Privacy</a>
-            <a href="#" class="footer-link">Support</a>
-            <a href="#" class="footer-link">About</a>
-            <a href="#" class="footer-link" id="logoutBtn">Logout</a>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Settings</a>
+                    <a href="#" class="footer-link">Privacy</a>
+                    <a href="#" class="footer-link">Support</a>
+                    <a href="#" class="footer-link">About</a>
+                    <a href="#" class="footer-link" id="logoutBtn">Logout</a>
+                </div>
+                <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
+            </div>
         </div>
-        <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
     </div>
 
     <!-- Toast Container -->
@@ -2498,44 +1483,46 @@
             </div>
             
             <form id="journalEntryForm">
-                <div class="form-group">
-                    <label class="form-label">Restaurant</label>
-                    <select class="form-select" id="restaurantSelect" required>
-                        <option value="">Select a restaurant</option>
-                        <!-- Options will be populated dynamically -->
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Visit Date</label>
-                    <input type="date" class="form-input" id="visitDate" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Rating</label>
-                    <div class="rating-stars" id="ratingStars">
-                        <span class="rating-star" data-rating="1">⭐</span>
-                        <span class="rating-star" data-rating="2">⭐</span>
-                        <span class="rating-star" data-rating="3">⭐</span>
-                        <span class="rating-star" data-rating="4">⭐</span>
-                        <span class="rating-star" data-rating="5">⭐</span>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Restaurant</label>
+                        <select class="form-select" id="restaurantSelect" required>
+                            <option value="">Select a restaurant</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
                     </div>
-                    <input type="hidden" id="selectedRating" value="0">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Notes</label>
-                    <textarea class="form-textarea" id="visitNotes" placeholder="What did you order? How was the experience?"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Tags</label>
-                    <input type="text" class="form-input" id="visitTags" placeholder="Add tags (e.g., date night, business, casual)">
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('addEntryModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Entry</button>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Visit Date</label>
+                        <input type="date" class="form-input" id="visitDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars" id="ratingStars">
+                            <span class="rating-star" data-rating="1" onclick="setRating(1)">⭐</span>
+                            <span class="rating-star" data-rating="2" onclick="setRating(2)">⭐</span>
+                            <span class="rating-star" data-rating="3" onclick="setRating(3)">⭐</span>
+                            <span class="rating-star" data-rating="4" onclick="setRating(4)">⭐</span>
+                            <span class="rating-star" data-rating="5" onclick="setRating(5)">⭐</span>
+                        </div>
+                        <input type="hidden" id="selectedRating" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" id="visitNotes" placeholder="What did you order? How was the experience?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-input" id="visitTags" placeholder="Add tags (e.g., date night, business, casual)">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addEntryModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Entry</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -2550,32 +1537,34 @@
             </div>
             
             <form id="createListForm">
-                <div class="form-group">
-                    <label class="form-label">List Name</label>
-                    <input type="text" class="form-input" id="listName" placeholder="e.g., Date Night Spots" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-textarea" id="listDescription" placeholder="What kind of restaurants go in this list?"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Icon</label>
-                    <div class="d-flex gap-md flex-wrap">
-                        <div class="list-icon-option" data-icon="💑">💑</div>
-                        <div class="list-icon-option" data-icon="🥪">🥪</div>
-                        <div class="list-icon-option" data-icon="🍳">🍳</div>
-                        <div class="list-icon-option" data-icon="💼">💼</div>
-                        <div class="list-icon-option" data-icon="🌮">🌮</div>
-                        <div class="list-icon-option" data-icon="🍕">🍕</div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="listName" placeholder="e.g., Date Night Spots" required>
                     </div>
-                    <input type="hidden" id="selectedIcon" value="📋">
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('createListModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create List</button>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="listDescription" placeholder="What kind of restaurants go in this list?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div class="d-flex gap-md flex-wrap">
+                            <div class="list-icon-option" data-icon="💑">💑</div>
+                            <div class="list-icon-option" data-icon="🥪">🥪</div>
+                            <div class="list-icon-option" data-icon="🍳">🍳</div>
+                            <div class="list-icon-option" data-icon="💼">💼</div>
+                            <div class="list-icon-option" data-icon="🌮">🌮</div>
+                            <div class="list-icon-option" data-icon="🍕">🍕</div>
+                        </div>
+                        <input type="hidden" id="selectedIcon" value="📋">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -2590,31 +1579,57 @@
             </div>
             
             <form id="editProfileForm">
-                <div class="form-group">
-                    <label class="form-label">Display Name</label>
-                    <input type="text" class="form-input" id="editDisplayName" required>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" id="editDisplayName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" id="editUsername" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" placeholder="Tell others about your food journey"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
                 </div>
-                
+            </form>
+        </div>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Your Avatar</h3>
+                <button class="modal-close" onclick="closeModal('avatarModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" class="form-input" id="editUsername" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Bio</label>
-                    <textarea class="form-textarea" id="editBio" placeholder="Tell others about your food journey"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Location</label>
-                    <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
+                    <label class="form-label">Select a food icon</label>
+                    <div class="avatar-icon-grid" id="avatarIconGrid">
+                        <!-- Avatar icons will be populated here -->
+                    </div>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAvatar()">Save Avatar</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -2626,21 +1641,24 @@
                 <button class="modal-close" onclick="closeModal('friendSearchModal')">&times;</button>
             </div>
             
-            <div class="form-group">
-                <label class="form-label">Search for users</label>
-                <div class="search-box">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" id="userSearch" placeholder="Search by username or name...">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Search for users</label>
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="userSearch" placeholder="Search by username or name...">
+                    </div>
                 </div>
-            </div>
-            
-            <div id="searchResults" class="user-grid" style="margin-top: 20px;">
-                <!-- Search results will be populated here -->
+                
+                <div id="searchResults" class="user-grid" style="margin-top: 20px;">
+                    <!-- Search results will be populated here -->
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // === YOUR COMPLETE ORIGINAL JAVASCRIPT CODE ===
         // Supabase configuration
         const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
@@ -2657,6 +1675,10 @@
         let currentTab = 'journal';
         let journalFilter = 'all';
         let currentActiveList = null;
+        let selectedAvatarIcon = null;
+
+        // Food icons for avatar selection
+        const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
 
         // Toast system
         function showToast(message, type = 'info', duration = 5000) {
@@ -2690,15 +1712,13 @@
             // Auto remove after duration
             setTimeout(() => {
                 if (toast.parentNode) {
-                    toast.style.animation = 'slideInRight 0.3s ease reverse';
-                    setTimeout(() => toast.remove(), 300);
+                    toast.remove();
                 }
             }, duration);
             
             // Manual close
             toast.querySelector('.toast-close').addEventListener('click', () => {
-                toast.style.animation = 'slideInRight 0.3s ease reverse';
-                setTimeout(() => toast.remove(), 300);
+                toast.remove();
             });
         }
 
@@ -2782,8 +1802,7 @@
             // Set avatar
             const avatar = getElement('profileAvatar');
             if (avatar) {
-                const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-                avatar.textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+                avatar.textContent = userProfile?.avatar_icon || "🍔";
             }
 
             // Update stats
@@ -2827,8 +1846,7 @@
             // Set avatar
             const avatar = getElement('profileAvatar');
             if (avatar) {
-                const avatarEmojis = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤"];
-                avatar.textContent = avatarEmojis[Math.floor(Math.random() * avatarEmojis.length)];
+                avatar.textContent = profile.avatar_icon || "🍔";
             }
 
             // Load follow status and update UI accordingly
@@ -2860,6 +1878,7 @@
                         full_name: currentUser.email.split('@')[0],
                         bio: "",
                         location: "",
+                        avatar_icon: "🍔",
                         is_private: false,
                         created_at: new Date().toISOString()
                     });
@@ -2907,19 +1926,19 @@
 
                 if (follow) {
                     followButton.textContent = 'Following';
-                    followButton.className = 'follow-btn following';
+                    followButton.className = 'btn btn-success';
                     followButton.onclick = () => toggleFollow();
                 } else if (request) {
                     followButton.textContent = 'Requested';
-                    followButton.className = 'follow-btn requested';
+                    followButton.className = 'btn btn-secondary';
                     followButton.onclick = () => sendFollowRequest();
                 } else if (targetUser.is_private) {
                     followButton.textContent = 'Request to Follow';
-                    followButton.className = 'follow-btn';
+                    followButton.className = 'btn btn-primary';
                     followButton.onclick = () => sendFollowRequest();
                 } else {
                     followButton.textContent = 'Follow';
-                    followButton.className = 'follow-btn';
+                    followButton.className = 'btn btn-primary';
                     followButton.onclick = () => toggleFollow();
                 }
             } catch (error) {
@@ -2944,8 +1963,9 @@
                     const followButton = getElement('followButton');
                     if (followButton) {
                         followButton.textContent = 'Follow';
-                        followButton.className = 'follow-btn';
+                        followButton.className = 'btn btn-primary';
                     }
+                    showToast(`Unfollowed ${targetUser.username}`, 'info');
                     
                 } else {
                     // Follow
@@ -2962,9 +1982,12 @@
                     const followButton = getElement('followButton');
                     if (followButton) {
                         followButton.textContent = 'Following';
-                        followButton.className = 'follow-btn following';
+                        followButton.className = 'btn btn-success';
                     }
+                    showToast(`Started following ${targetUser.username}`, 'success');
                 }
+
+                await updateStats();
 
             } catch (error) {
                 console.error('Error toggling follow:', error);
@@ -2988,7 +2011,7 @@
                 const followButton = getElement('followButton');
                 if (followButton) {
                     followButton.textContent = 'Requested';
-                    followButton.className = 'follow-btn requested';
+                    followButton.className = 'btn btn-secondary';
                 }
                 showToast('Follow request sent!', 'success');
 
@@ -3042,23 +2065,13 @@
                     visitedCount = visitedRestaurants ? visitedRestaurants.length : 0;
                 }
                 
-                // Get favorites count
-                const { data: favoritesList } = await supabase
-                    .from('lists')
+                // Get friends count
+                const { data: friends } = await supabase
+                    .from('follows')
                     .select('id')
-                    .eq('user_id', targetId)
-                    .eq('title', 'Favorites')
-                    .single();
+                    .eq('follower_id', targetId);
                     
-                let favoritesCount = 0;
-                if (favoritesList) {
-                    const { data: favoritesRestaurants } = await supabase
-                        .from('lists_restraunts')
-                        .select('id')
-                        .eq('list_id', favoritesList.id);
-                        
-                    favoritesCount = favoritesRestaurants ? favoritesRestaurants.length : 0;
-                }
+                const friendsCount = friends ? friends.length : 0;
                 
                 // Get lists count
                 const { data: userLists } = await supabase
@@ -3073,10 +2086,22 @@
                 
                 // Update UI
                 setTextContent('visitedCount', visitedCount);
-                setTextContent('favoritesCount', favoritesCount);
+                setTextContent('friendsCount', friendsCount);
                 setTextContent('listsCount', listsCount);
                 setTextContent('streakCount', streakCount);
                 setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
+                
+                // Update streak card
+                const streakTitle = getElement('streakTitle');
+                const streakDescription = getElement('streakDescription');
+                
+                if (streakCount > 0) {
+                    if (streakTitle) streakTitle.textContent = `${streakCount}-Day Journaling Streak!`;
+                    if (streakDescription) streakDescription.textContent = `You're on fire! Keep documenting your food adventures to maintain your streak.`;
+                } else {
+                    if (streakTitle) streakTitle.textContent = 'Start Your Food Journey!';
+                    if (streakDescription) streakDescription.textContent = 'Document your first restaurant visit to start building your streak and unlock achievements.';
+                }
                 
             } catch (error) {
                 console.error('Error updating stats:', error);
@@ -3368,6 +2393,9 @@
                         <div class="empty-icon">📋</div>
                         <h3 class="empty-title">No Custom Lists Yet</h3>
                         <p class="empty-description">Create your first custom list to organize restaurants by occasion, cuisine, or mood!</p>
+                        <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
+                            <i class="fas fa-plus"></i> Create Your First List
+                        </button>
                     </div>
                 `;
                 return;
@@ -3375,24 +2403,19 @@
             
             customLists.forEach(list => {
                 const listElement = document.createElement('div');
-                listElement.className = 'list-card custom-list-card';
+                listElement.className = 'card custom-list-card';
                 listElement.setAttribute('data-list-id', list.id);
+                listElement.onclick = () => viewList(list.id);
                 listElement.innerHTML = `
-                    <div class="list-header">
-                        <div class="list-icon">${list.icon || '📋'}</div>
-                        <div class="list-info">
-                            <div class="list-title">${list.title}</div>
-                            <div class="list-count">${list.restaurants?.length || 0} restaurants</div>
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-utensils"></i> ${list.title}
                         </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
                     </div>
-                    <div class="list-description">${list.description || 'No description'}</div>
-                    <div class="list-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="viewList(${list.id})">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="editList(${list.id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+                    <div class="card-body">
+                        <p>${list.description || 'No description'}</p>
+                        <div class="text-muted mt-sm">${list.restaurants?.length || 0} restaurants</div>
                     </div>
                 `;
                 customListsContainer.appendChild(listElement);
@@ -3477,18 +2500,21 @@
             
             if (listRestaurants.length === 0) {
                 grid.innerHTML = `
-                    <div class="empty-list-state">
-                        <div class="empty-list-icon">🍽️</div>
+                    <div class="empty-state w-100">
+                        <div class="empty-icon">🍽️</div>
                         <h3 class="empty-title">No Restaurants Yet</h3>
                         <p class="empty-description">Start adding restaurants to your "${list.title}" list!</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add Your First Restaurant
+                        </button>
                     </div>
                 `;
                 return;
             }
             
             listRestaurants.forEach(restaurant => {
-                const tile = document.createElement('div');
-                tile.className = 'restaurant-tile';
+                const card = document.createElement('div');
+                card.className = 'card';
                 
                 const clickableContent = document.createElement('a');
                 clickableContent.href = `cards/${restaurant.slug}.html`;
@@ -3498,18 +2524,21 @@
                 clickableContent.style.height = '100%';
                 
                 clickableContent.innerHTML = `
-                    <div class="restaurant-tile-image">
-                        <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">
-                    </div>
-                    <div class="restaurant-tile-content">
-                        <h3 class="restaurant-tile-name">${restaurant.name}</h3>
-                        <div class="restaurant-tile-category">${restaurant.category}</div>
-                        <div class="restaurant-tile-rating">⭐ ${restaurant.rating}</div>
-                        <p class="restaurant-tile-description">${restaurant.description}</p>
+                    <div class="card-body">
+                        <div class="d-flex align-center gap-md">
+                            <div class="restaurant-image" style="width: 60px; height: 60px;">
+                                <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
+                                <div class="text-sm text-muted">${restaurant.category}</div>
+                                <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating}</div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
-                tile.appendChild(clickableContent);
+                card.appendChild(clickableContent);
                 
                 // Add remove button for own profile
                 if (isViewingOwnProfile) {
@@ -3526,11 +2555,11 @@
                         // Refresh the list view
                         await renderListRestaurants(list.restaurants || [], list);
                     };
-                    tile.style.position = 'relative';
-                    tile.appendChild(removeBtn);
+                    card.style.position = 'relative';
+                    card.appendChild(removeBtn);
                 }
                 
-                grid.appendChild(tile);
+                grid.appendChild(card);
             });
         }
 
@@ -3617,7 +2646,7 @@
                                 <div class="empty-icon">📝</div>
                                 <h3 class="empty-title">No Journal Entries Yet</h3>
                                 <p class="empty-description">Start documenting your restaurant experiences to build your food journey! Track where you've been, what you loved, and discover new places to try.</p>
-                                <button class="add-entry-btn" onclick="showModal('addEntryModal')">
+                                <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
                                     <i class="fas fa-plus"></i> Add Your First Entry
                                 </button>
                             </div>
@@ -3642,65 +2671,49 @@
                         const entryElement = document.createElement('div');
                         entryElement.className = 'journal-entry';
                         entryElement.innerHTML = `
-                            <div class="restaurant-image">
-                                ${restaurant.image ? `<img src="images/${restaurant.image}" alt="${restaurant.name}">` : restaurant.name.charAt(0)}
-                                <div class="image-overlay">
-                                    <i class="fas fa-expand text-white"></i>
+                            <div class="entry-header">
+                                <div class="restaurant-info">
+                                    <div class="restaurant-image">
+                                        ${restaurant.image ? `<img src="images/${restaurant.image}" alt="${restaurant.name}">` : restaurant.name.charAt(0)}
+                                    </div>
+                                    <div class="restaurant-details">
+                                        <h3>${restaurant.name}</h3>
+                                        <div class="restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="entry-rating">
+                                    ${'⭐'.repeat(Math.floor(entry.rating))}
+                                    <span>${entry.rating}</span>
                                 </div>
                             </div>
-                            <div class="entry-content">
-                                <div class="entry-header">
-                                    <div class="restaurant-name">${restaurant.name}</div>
-                                    <div class="entry-rating">
-                                        ${'⭐'.repeat(Math.floor(entry.rating))}
-                                        <span>${entry.rating}</span>
-                                    </div>
+                            <div class="entry-meta">
+                                <div class="meta-badge">
+                                    <i class="fas fa-calendar"></i>
+                                    ${formatDate(entry.visit_date)}
                                 </div>
-                                <div class="entry-meta">
-                                    <div class="entry-date">
-                                        <i class="fas fa-calendar"></i>
-                                        ${formatDate(entry.visit_date)}
-                                    </div>
-                                    <div class="meta-badge">
-                                        <i class="fas fa-utensils"></i>
-                                        ${restaurant.category}
-                                    </div>
-                                    <div class="meta-badge">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        ${restaurant.location || 'Unknown'}
-                                    </div>
+                                <div class="meta-badge">
+                                    <i class="fas fa-utensils"></i>
+                                    ${restaurant.category}
                                 </div>
-                                <div class="entry-notes">${entry.notes || 'No notes provided'}</div>
-                                <div class="entry-tags">
-                                    ${entry.tags ? entry.tags.split(',').map(tag => `<span class="tag">#${tag.trim()}</span>`).join('') : ''}
+                                <div class="meta-badge">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    $${entry.price_range || 'N/A'}
                                 </div>
-                                <div class="entry-actions">
-                                    <button class="btn btn-secondary btn-sm" onclick="editJournalEntry(${entry.id})">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-share"></i> Share
-                                    </button>
-                                    <div class="action-menu">
-                                        <button class="menu-btn">
-                                            <i class="fas fa-ellipsis-h"></i>
-                                        </button>
-                                        <div class="menu-dropdown">
-                                            <div class="menu-item" onclick="addToFavorites(${entry.restaurant_id})">
-                                                <i class="fas fa-heart"></i>
-                                                Add to Favorites
-                                            </div>
-                                            <div class="menu-item" onclick="duplicateEntry(${entry.id})">
-                                                <i class="fas fa-copy"></i>
-                                                Duplicate
-                                            </div>
-                                            <div class="menu-item danger" onclick="deleteJournalEntry(${entry.id})">
-                                                <i class="fas fa-trash"></i>
-                                                Delete
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
+                            <div class="entry-notes">${entry.notes || 'No notes provided'}</div>
+                            <div class="entry-tags">
+                                ${entry.tags ? entry.tags.split(',').map(tag => `<span class="tag">#${tag.trim()}</span>`).join('') : ''}
+                            </div>
+                            <div class="entry-actions">
+                                <button class="btn btn-secondary btn-sm" onclick="editJournalEntry(${entry.id})">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-share"></i> Share
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${entry.restaurant_id})">
+                                    <i class="fas fa-heart"></i> Favorite
+                                </button>
                             </div>
                         `;
                         journalEntries.appendChild(entryElement);
@@ -3721,7 +2734,11 @@
             setRating(stars) {
                 const starsElements = document.querySelectorAll('#ratingStars span');
                 starsElements.forEach((star, index) => {
-                    star.style.opacity = index < stars ? '1' : '0.3';
+                    if (index < stars) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
                 });
                 
                 const selectedRating = getElement('selectedRating');
@@ -3763,8 +2780,14 @@
                     showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
                     closeModal('addEntryModal');
                     
+                    // Reset form
+                    const form = getElement('journalEntryForm');
+                    if (form) form.reset();
+                    this.setRating(0);
+                    
                     // Reload journal entries
                     await this.loadJournalEntries();
+                    await updateStats();
                     
                 } catch (error) {
                     console.error('Error saving journal entry:', error);
@@ -3798,27 +2821,21 @@
                         .select('follower_id')
                         .eq('followed_id', currentUser.id);
 
-                    if (!followersError) {
-                        // Removed reference to non-existent element
-                    }
-
                     // Get following count (people current user follows)
                     const { data: following, error: followingError } = await supabase
                         .from('follows')
                         .select('followed_id')
                         .eq('follower_id', currentUser.id);
 
-                    if (!followingError) {
-                        // Removed reference to non-existent element
-                    }
-
                     // Update badge
                     const pendingRequests = await this.getPendingRequestsCount();
-                    if (pendingRequests > 0) {
-                        const friendsBadge = getElement('friendsBadge');
-                        if (friendsBadge) {
+                    const friendsBadge = getElement('friendsBadge');
+                    if (friendsBadge) {
+                        if (pendingRequests > 0) {
                             friendsBadge.textContent = pendingRequests;
-                            friendsBadge.style.display = 'block';
+                            friendsBadge.style.display = 'inline-flex';
+                        } else {
+                            friendsBadge.style.display = 'none';
                         }
                     }
 
@@ -3877,8 +2894,9 @@
                 if (!users || users.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
-                            <div>🔍</div>
-                            <p>No users found</p>
+                            <div class="empty-icon">🔍</div>
+                            <h3 class="empty-title">No users found</h3>
+                            <p class="empty-description">Try searching with a different name or username</p>
                         </div>
                     `;
                     return;
@@ -3894,7 +2912,7 @@
                     userCard.className = 'friend-card';
                     userCard.innerHTML = `
                         <div class="friend-header">
-                            <div class="friend-avatar">${user.username?.charAt(0).toUpperCase() || 'U'}</div>
+                            <div class="friend-avatar">${user.avatar_icon || '👤'}</div>
                             <div class="friend-info">
                                 <div class="friend-name">${user.full_name || user.username || 'Unknown User'}</div>
                                 <div class="friend-username">@${user.username || 'user'}</div>
@@ -3919,12 +2937,12 @@
                                 <i class="fas fa-eye"></i> View Profile
                             </button>
                             ${isPrivate && !followStatus.isFollowing ? `
-                                <button class="follow-btn ${followStatus.hasRequested ? 'requested' : ''}" 
+                                <button class="btn ${followStatus.hasRequested ? 'btn-secondary' : 'btn-primary'} btn-sm" 
                                         onclick="friendSystem.sendFollowRequest('${user.id}')">
                                     ${followStatus.hasRequested ? 'Requested' : 'Request to Follow'}
                                 </button>
                             ` : `
-                                <button class="follow-btn ${followStatus.isFollowing ? 'following' : ''}" 
+                                <button class="btn ${followStatus.isFollowing ? 'btn-success' : 'btn-primary'} btn-sm" 
                                         onclick="friendSystem.toggleFollow('${user.id}')">
                                     ${followStatus.isFollowing ? 'Following' : 'Follow'}
                                 </button>
@@ -4066,9 +3084,12 @@
                     if (!follows || follows.length === 0) {
                         friendsList.innerHTML = `
                             <div class="empty-state">
-                                <div>👥</div>
-                                <p>Not following anyone yet</p>
-                                <p class="text-light">Search for users to find friends!</p>
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">Not following anyone yet</h3>
+                                <p class="empty-description">Search for users to find friends and see their food adventures!</p>
+                                <button class="btn btn-primary mt-md" onclick="showModal('friendSearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Friends
+                                </button>
                             </div>
                         `;
                         return;
@@ -4259,11 +3280,11 @@
             if (tabElement) tabElement.classList.add('active');
             
             // Update active button
-            document.querySelectorAll('.action-btn').forEach(btn => {
+            document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('active');
             });
             
-            const activeButton = document.querySelector(`.action-btn[data-tab="${tabName}"]`);
+            const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
             if (activeButton) activeButton.classList.add('active');
             
             // Update current tab
@@ -4274,12 +3295,23 @@
                 friendSystem.loadFriends();
             } else if (tabName === 'journal') {
                 foodJournal.loadJournalEntries();
+            } else if (tabName === 'achievements') {
+                achievementsSystem.loadAchievements();
             }
         }
 
         function showModal(modalId) {
             const modal = getElement(modalId);
             if (modal) modal.classList.add('active');
+            
+            // Set current date as default for journal entry
+            if (modalId === 'addEntryModal') {
+                const visitDate = getElement('visitDate');
+                if (visitDate) {
+                    const today = new Date().toISOString().split('T')[0];
+                    visitDate.value = today;
+                }
+            }
         }
 
         function closeModal(modalId) {
@@ -4349,18 +3381,15 @@
         }
 
         function editList(listId) {
-            // This would open the list edit modal
             showToast(`Editing list ${listId}`, 'info');
         }
 
         function editJournalEntry(entryId) {
-            // This would open the journal entry edit modal
             showToast(`Editing journal entry ${entryId}`, 'info');
         }
 
         function deleteJournalEntry(entryId) {
             if (confirm('Are you sure you want to delete this journal entry? This action cannot be undone.')) {
-                // This would delete the journal entry
                 showToast('Journal entry deleted', 'success');
             }
         }
@@ -4373,12 +3402,66 @@
             showToast('Entry duplicated', 'info');
         }
 
+        // Avatar selection functions
+        function showAvatarModal() {
+            const avatarIconGrid = getElement('avatarIconGrid');
+            if (!avatarIconGrid) return;
+            
+            avatarIconGrid.innerHTML = '';
+            
+            foodIcons.forEach(icon => {
+                const iconOption = document.createElement('div');
+                iconOption.className = `avatar-icon-option ${userProfile?.avatar_icon === icon ? 'selected' : ''}`;
+                iconOption.textContent = icon;
+                iconOption.onclick = () => {
+                    // Remove selected class from all options
+                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    // Add selected class to clicked option
+                    iconOption.classList.add('selected');
+                    selectedAvatarIcon = icon;
+                };
+                avatarIconGrid.appendChild(iconOption);
+            });
+            
+            showModal('avatarModal');
+        }
+
+        async function saveAvatar() {
+            if (!selectedAvatarIcon) {
+                showToast('Please select an avatar', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update({ avatar_icon: selectedAvatarIcon })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+
+                // Update local state and UI
+                userProfile.avatar_icon = selectedAvatarIcon;
+                const avatar = getElement('profileAvatar');
+                if (avatar) avatar.textContent = selectedAvatarIcon;
+
+                closeModal('avatarModal');
+                showToast('Avatar updated successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error updating avatar:', error);
+                showToast('Error updating avatar', 'error');
+            }
+        }
+
         // Set up event listeners
         function setupEventListeners() {
             // Tab buttons
-            document.querySelectorAll('.action-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tabName = btn.getAttribute('data-tab');
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
                     showTab(tabName);
                 });
             });
@@ -4388,7 +3471,7 @@
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    journalFilter = this.textContent.toLowerCase();
+                    journalFilter = this.getAttribute('data-filter');
                     foodJournal.loadJournalEntries();
                 });
             });
@@ -4418,6 +3501,12 @@
                     
                     showModal('editProfileModal');
                 });
+            }
+            
+            // Avatar click
+            const profileAvatar = getElement('profileAvatar');
+            if (profileAvatar) {
+                profileAvatar.addEventListener('click', showAvatarModal);
             }
             
             // Settings button
@@ -4480,8 +3569,8 @@
             
             // Rating stars
             document.querySelectorAll('.rating-star').forEach(star => {
-                star.addEventListener('click', () => {
-                    const rating = parseInt(star.getAttribute('data-rating'));
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
                     foodJournal.setRating(rating);
                 });
             });
@@ -4493,7 +3582,7 @@
                         i.style.background = 'transparent';
                         i.style.border = '1px solid transparent';
                     });
-                    this.style.background = 'rgba(245, 158, 11, 0.1)';
+                    this.style.background = 'rgba(255, 107, 53, 0.1)';
                     this.style.border = '1px solid var(--accent)';
                     const selectedIcon = getElement('selectedIcon');
                     if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
@@ -4573,6 +3662,7 @@
                             username: newUsername,
                             bio: newBio,
                             location: newLocation,
+                            avatar_icon: "🍔",
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         }));
@@ -4619,6 +3709,8 @@
         window.duplicateEntry = duplicateEntry;
         window.setRating = (stars) => foodJournal.setRating(stars);
         window.saveJournalEntry = () => foodJournal.saveJournalEntry();
+        window.showAvatarModal = showAvatarModal;
+        window.saveAvatar = saveAvatar;
     </script>
 </body>
 </html>
