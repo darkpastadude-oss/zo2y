@@ -1068,28 +1068,6 @@
             margin-bottom: var(--space-lg);
         }
 
-        .list-stats {
-            display: flex;
-            gap: var(--space-lg);
-            margin-bottom: var(--space-md);
-        }
-
-        .list-stat {
-            text-align: center;
-        }
-
-        .list-stat-number {
-            display: block;
-            font-size: 1.25rem;
-            font-weight: var(--font-weight-bold);
-            color: var(--accent);
-        }
-
-        .list-stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
         .list-actions {
             display: flex;
             gap: var(--space-sm);
@@ -1195,7 +1173,8 @@
         .restaurant-tile-image img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            background-color: var(--bg-primary);
         }
 
         .restaurant-tile-content {
@@ -2149,6 +2128,29 @@
         .follow-btn.requested:hover {
             background: #f59e0b22;
         }
+        
+        /* ===== LIST ICON OPTIONS ===== */
+        .list-icon-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            font-size: 1.25rem;
+        }
+        
+        .list-icon-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-grid {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
     </style>
 </head>
 <body>
@@ -2308,16 +2310,6 @@
                         </div>
                     </div>
                     <div class="list-description">Your go-to spots that never disappoint</div>
-                    <div class="list-stats">
-                        <div class="list-stat">
-                            <span class="list-stat-number" id="favoritesAvgRating">0.0</span>
-                            <span class="list-stat-label">Avg Rating</span>
-                        </div>
-                        <div class="list-stat">
-                            <span class="list-stat-number" id="favoritesVisited">0</span>
-                            <span class="list-stat-label">Visited</span>
-                        </div>
-                    </div>
                     <div class="list-actions">
                         <button class="btn btn-secondary btn-sm" onclick="showList('favorites')">
                             <i class="fas fa-eye"></i> View
@@ -2334,16 +2326,6 @@
                         </div>
                     </div>
                     <div class="list-description">Restaurants you're excited to try soon</div>
-                    <div class="list-stats">
-                        <div class="list-stat">
-                            <span class="list-stat-number" id="wantToGoAvgRating">0.0</span>
-                            <span class="list-stat-label">Avg Rating</span>
-                        </div>
-                        <div class="list-stat">
-                            <span class="list-stat-number" id="wantToGoNearby">0</span>
-                            <span class="list-stat-label">Nearby</span>
-                        </div>
-                    </div>
                     <div class="list-actions">
                         <button class="btn btn-secondary btn-sm" onclick="showList('wantToGo')">
                             <i class="fas fa-eye"></i> View
@@ -2360,16 +2342,6 @@
                         </div>
                     </div>
                     <div class="list-description">All the restaurants you've experienced</div>
-                    <div class="list-stats">
-                        <div class="list-stat">
-                            <span class="list-stat-number" id="visitedAvgRating">0.0</span>
-                            <span class="list-stat-label">Avg Rating</span>
-                        </div>
-                        <div class="list-stat">
-                            <span class="list-stat-number" id="visitedReviewed">0</span>
-                            <span class="list-stat-label">Reviewed</span>
-                        </div>
-                    </div>
                     <div class="list-actions">
                         <button class="btn btn-secondary btn-sm" onclick="showList('visited')">
                             <i class="fas fa-eye"></i> View
@@ -3375,7 +3347,7 @@
                 const list = customLists.find(l => l.id === listId);
                 
                 if (list) {
-                    const countElement = card.querySelector('.list-card-count');
+                    const countElement = card.querySelector('.list-count');
                     if (countElement) {
                         countElement.textContent = `${list.restaurants?.length || 0} restaurants`;
                     }
@@ -3414,16 +3386,6 @@
                         </div>
                     </div>
                     <div class="list-description">${list.description || 'No description'}</div>
-                    <div class="list-stats">
-                        <div class="list-stat">
-                            <span class="list-stat-number">0.0</span>
-                            <span class="list-stat-label">Avg Rating</span>
-                        </div>
-                        <div class="list-stat">
-                            <span class="list-stat-number">0</span>
-                            <span class="list-stat-label">Visited</span>
-                        </div>
-                    </div>
                     <div class="list-actions">
                         <button class="btn btn-secondary btn-sm" onclick="viewList(${list.id})">
                             <i class="fas fa-eye"></i> View
@@ -4581,25 +4543,46 @@
             }
             
             try {
-                const { error } = await supabase
+                // First check if profile exists
+                const { data: existingProfile, error: checkError } = await supabase
                     .from('user_profiles')
-                    .update({
-                        full_name: newName,
-                        username: newUsername,
-                        bio: newBio,
-                        location: newLocation
-                    })
-                    .eq('id', currentUser.id);
+                    .select('id')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                let error;
+                if (existingProfile) {
+                    // Update existing profile
+                    ({ error } = await supabase
+                        .from('user_profiles')
+                        .update({
+                            full_name: newName,
+                            username: newUsername,
+                            bio: newBio,
+                            location: newLocation,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id));
+                } else {
+                    // Create new profile
+                    ({ error } = await supabase
+                        .from('user_profiles')
+                        .insert({
+                            id: currentUser.id,
+                            full_name: newName,
+                            username: newUsername,
+                            bio: newBio,
+                            location: newLocation,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        }));
+                }
                 
                 if (error) throw error;
                 
-                // Update user data
-                userProfile.full_name = newName;
-                userProfile.username = newUsername;
-                userProfile.bio = newBio;
-                userProfile.location = newLocation;
+                // Update local state and UI
+                await loadUserProfile();
                 
-                // Update UI
                 setTextContent('profileName', newName);
                 setTextContent('profileUsername', `@${newUsername}`);
                 setTextContent('profileBio', newBio || "No bio yet. Click edit to add one!");
