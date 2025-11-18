@@ -345,6 +345,7 @@
             margin-bottom: 30px;
             border: 1px solid var(--border);
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .nav-tab {
@@ -357,6 +358,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .nav-tab:hover {
@@ -778,56 +780,6 @@
             font-size: 14px;
         }
 
-        /* === RESPONSIVE DESIGN === */
-        @media (max-width: 768px) {
-            .profile-top {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .profile-actions {
-                justify-content: center;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .streak-card {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .achievements-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .section-header {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .section-actions {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-
-            .footer-links {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        }
-
         /* === TOAST NOTIFICATIONS === */
         .toast-container {
             position: fixed;
@@ -1136,6 +1088,414 @@
         .home-button:hover {
             transform: scale(1.1);
             background: #e69500;
+        }
+
+        /* === MOBILE-SPECIFIC STYLES === */
+        @media (max-width: 768px) {
+            /* Container adjustments */
+            .container {
+                padding: 0 16px;
+            }
+
+            /* Profile header mobile optimization */
+            .profile-header {
+                padding: 24px 0;
+                margin-bottom: 20px;
+            }
+
+            .profile-top {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+                margin: 0 auto;
+            }
+
+            .profile-info {
+                width: 100%;
+            }
+
+            .profile-name {
+                font-size: 24px;
+            }
+
+            .profile-username {
+                font-size: 16px;
+            }
+
+            .profile-bio {
+                font-size: 15px;
+                margin-bottom: 20px;
+            }
+
+            .profile-meta {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .profile-actions {
+                justify-content: center;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .profile-actions .btn {
+                flex: 1;
+                justify-content: center;
+                min-width: 120px;
+                padding: 12px 16px;
+            }
+
+            /* Stats grid mobile optimization */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-icon {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            .stat-number {
+                font-size: 28px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            /* Streak card mobile optimization */
+            .streak-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+                gap: 16px;
+            }
+
+            .streak-icon {
+                font-size: 36px;
+            }
+
+            .streak-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .streak-actions .btn {
+                flex: 1;
+                max-width: 200px;
+            }
+
+            /* Navigation tabs mobile optimization */
+            .nav-tabs {
+                padding: 6px;
+                margin-bottom: 20px;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            /* Section headers mobile optimization */
+            .section-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+                margin-bottom: 20px;
+            }
+
+            .section-actions {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            /* Cards grid mobile optimization */
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .card {
+                margin-bottom: 0;
+            }
+
+            /* Journal entries mobile optimization */
+            .journal-entry {
+                padding: 20px;
+            }
+
+            .entry-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .restaurant-info {
+                width: 100%;
+            }
+
+            .entry-rating {
+                align-self: flex-start;
+            }
+
+            .entry-meta {
+                gap: 8px;
+            }
+
+            .meta-badge {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+
+            .entry-actions {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .entry-actions .btn {
+                flex: 1;
+                min-width: 100px;
+                justify-content: center;
+            }
+
+            /* Achievements grid mobile optimization */
+            .achievements-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            /* Friend cards mobile optimization */
+            .friend-card {
+                padding: 16px;
+            }
+
+            .friend-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+
+            .friend-stats {
+                justify-content: space-around;
+            }
+
+            .friend-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .friend-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Modals mobile optimization */
+            .modal {
+                padding: 10px;
+                align-items: flex-end;
+            }
+
+            .modal-content {
+                max-height: 85vh;
+                border-radius: var(--radius) var(--radius) 0 0;
+            }
+
+            .modal-header {
+                padding: 16px;
+            }
+
+            .modal-body {
+                padding: 16px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Avatar selection grid mobile optimization */
+            .avatar-icon-grid {
+                grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+                gap: 10px;
+            }
+
+            .avatar-icon-option {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            /* List icon options mobile optimization */
+            .list-icon-option {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+
+            /* Footer mobile optimization */
+            .profile-footer {
+                padding: 30px 0;
+                margin-top: 40px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 16px;
+            }
+
+            /* Toast notifications mobile optimization */
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                padding: 12px;
+            }
+
+            /* Home button mobile optimization */
+            .home-button {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+                top: 10px;
+                left: 10px;
+            }
+
+            /* Touch-friendly improvements */
+            .btn, .nav-tab, .rating-star, .list-icon-option, .avatar-icon-option {
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .btn, .nav-tab {
+                min-height: 44px;
+            }
+
+            .rating-star, .list-icon-option, .avatar-icon-option {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* Improved scrolling */
+            .nav-tabs, .modal-content {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Additional mobile optimizations for very small screens */
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+            }
+
+            .profile-actions .btn {
+                width: 100%;
+            }
+
+            .section-actions {
+                flex-direction: column;
+            }
+
+            .section-actions .btn {
+                width: 100%;
+            }
+
+            .entry-actions {
+                flex-direction: column;
+            }
+
+            .entry-actions .btn {
+                width: 100%;
+            }
+
+            .friend-actions {
+                flex-direction: column;
+            }
+
+            .friend-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* === RESPONSIVE DESIGN (Original) === */
+        @media (max-width: 768px) {
+            .profile-top {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-actions {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .streak-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .section-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         }
     </style>
 </head>
