@@ -33,14 +33,19 @@ function updateAllFiles() {
     const filePath = path.join(CARDS_FOLDER, file);
     let html = fs.readFileSync(filePath, 'utf8');
 
-    // Remove old review sections
-    html = html.replace(/<section class="section reviews">[\s\S]*?<\/section>/, '');
+    // Remove ANY existing review sections (clean up duplicates)
+    html = html.replace(/<section class="section reviews"[\s\S]*?<\/section>/gi, '');
+    html = html.replace(/<!-- REVIEW SYSTEM -->[\s\S]*?<\/script>/gi, '');
+    html = html.replace(/<script>[\s\S]*?Review System[\s\S]*?<\/script>/gi, '');
 
-    // Insert new reviews section at the end of <body>
+    // Create the new reviews section
     const reviewsSection = `
+<!-- REVIEW SYSTEM -->
 <section class="section reviews" id="reviews-section">
   <h2>Customer Reviews</h2>
-  <div id="reviews-list">Loading reviews...</div>
+  <div id="reviews-list">
+    <div class="reviews-loading">Loading reviews...</div>
+  </div>
   
   <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
   <form id="review-form" style="display:none;">
@@ -152,18 +157,41 @@ function updateAllFiles() {
   color: var(--text2); 
   font-style: italic; 
 }
+
+@media (max-width: 768px) {
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .reviewer-name {
+    padding-right: 0;
+  }
+  .review-rating {
+    position: static;
+  }
+  .review-actions {
+    position: static;
+    align-self: flex-end;
+  }
+}
 </style>
 
 <script>
 // Review System with Profile-style Authentication
+console.log('🔄 Loading review system for restaurant: ${restaurantId}');
+
 document.addEventListener('DOMContentLoaded', function() {
     const restaurantId = ${restaurantId};
     let currentUser = null;
     let currentRating = 0;
 
+    console.log('🎯 Review system initialized for restaurant:', restaurantId);
+
     // Check authentication (same as profile page)
     async function checkAuth() {
         try {
+            console.log('🔐 Checking authentication...');
             const { data: { user }, error } = await supabase.auth.getUser();
             if (error) {
                 console.error('Auth error:', error);
@@ -172,8 +200,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (user) {
                 currentUser = user;
+                console.log('✅ User authenticated:', user.email);
                 document.getElementById('review-form').style.display = 'block';
                 document.getElementById('auth-prompt').style.display = 'none';
+            } else {
+                console.log('⚠️ User not authenticated');
+                document.getElementById('review-form').style.display = 'none';
+                document.getElementById('auth-prompt').style.display = 'block';
             }
         } catch (error) {
             console.error('Error checking auth:', error);
@@ -183,7 +216,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load reviews
     async function loadReviews() {
         const container = document.getElementById('reviews-list');
+        if (!container) {
+            console.error('❌ Reviews container not found!');
+            return;
+        }
+
         try {
+            console.log('📥 Loading reviews...');
             const { data: reviews, error } = await supabase
                 .from('reviews')
                 .select('*')
@@ -194,8 +233,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!reviews || reviews.length === 0) {
                 container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
+                console.log('📝 No reviews found');
                 return;
             }
+
+            console.log(`📊 Found ${reviews.length} reviews`);
 
             // Get user profiles for proper names
             const userIds = [...new Set(reviews.map(r => r.user_id))];
@@ -354,13 +396,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('review-form').addEventListener('submit', submitReview);
+    const reviewForm = document.getElementById('review-form');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', submitReview);
+    }
 
     // Character count
-    document.getElementById('review-comment').addEventListener('input', function(e) {
-        const count = e.target.value.length;
-        document.querySelector('.char-count').textContent = \`\${count}/500\`;
-    });
+    const commentTextarea = document.getElementById('review-comment');
+    if (commentTextarea) {
+        commentTextarea.addEventListener('input', function(e) {
+            const count = e.target.value.length;
+            const charCount = document.querySelector('.char-count');
+            if (charCount) charCount.textContent = \`\${count}/500\`;
+        });
+    }
 
     // Make deleteReview global
     window.deleteReview = deleteReview;
@@ -372,10 +421,20 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 `;
 
-    html = html.replace('</body>', reviewsSection + '\n</body>');
+    // ALWAYS add the review section before closing body tag
+    if (html.includes('</body>')) {
+        html = html.replace('</body>', reviewsSection + '\n</body>');
+    } else {
+        // If no body tag, just append to the end
+        html += reviewsSection;
+    }
+    
     fs.writeFileSync(filePath, html);
-    console.log(`✅ Updated ${file}`);
+    console.log(`✅ ADDED REVIEW SYSTEM TO: ${file}`);
   });
+
+  console.log('\n🎉 ALL FILES UPDATED!');
+  console.log('📍 Now open any restaurant page and scroll to the bottom to see the review section!');
 }
 
 updateAllFiles();
