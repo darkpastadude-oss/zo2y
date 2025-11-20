@@ -407,38 +407,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <a href="https://www.talabat.com/egypt/mexican-corn" target="_blank" class="btn secondary" style="margin-top: 20px;">Order Online</a>
 </section>
 
-<section class="section reviews">
-  <h2>Customer Reviews</h2>
-  <div id="reviews-list">
-    <div class="review">
-      <p><strong>Ahmed R.</strong></p>
-      <p>The Mexican corn bar is absolutely amazing! So many creative variations. The Mexican Corn Special Mix Cheese is my favorite - so cheesy and flavorful!</p>
-    </div>
-    <div class="review">
-      <p><strong>Nour K.</strong></p>
-      <p>Best authentic Mexican food in Cairo! The beef picanha steak is perfectly cooked and the loaded chili con carne wedges are incredible. Highly recommend!</p>
-    </div>
-    <div class="review">
-      <p><strong>Mohamed S.</strong></p>
-      <p>The shrimp burrito is massive and delicious! Generous portions with authentic Mexican spices. The crazy corn with spicy lemon cheese chips is a must-try!</p>
-    </div>
-    <div class="review">
-      <p><strong>Sarah M.</strong></p>
-      <p>Authentic Mexican street food experience! The variety of corn options is incredible - from sweet corn butter to the spicy jalapeno corn. Perfect spot!</p>
-    </div>
-    <div class="review">
-      <p><strong>Layla A.</strong></p>
-      <p>The guacamole dip is the freshest I've had in Egypt! Perfectly seasoned and the tortilla chips are always crispy. Will definitely be coming back!</p>
-    </div>
-  </div>
-  
-  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
-  <form class="review-form" id="review-form">
-    <input type="text" placeholder="Your Name" id="reviewer" required>
-    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
-    <button type="submit">Submit Review</button>
-  </form>
-</section>
+<!-- Reviews section will be replaced dynamically -->
 
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
@@ -458,719 +427,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- List Manager Button -->
-<script>
-// Wait for page to load
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Page loaded, initializing list manager...');
-    
-    // Initialize Supabase
-    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-    
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    window.supabase = supabase;
-    
-    console.log('✅ Supabase initialized');
-    
-    // List Manager Class
-    class RestaurantListManager {
-        constructor() {
-            this.supabase = supabase;
-            this.restaurantId = this.getRestaurantIdFromSlug();
-            this.userLists = [];
-            this.customLists = [];
-            this.init();
-        }
 
-        getRestaurantIdFromSlug() {
-            const path = window.location.pathname;
-            const slug = path.split('/').pop().replace('.html', '');
-            const slugToId = {
-                'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
-                'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
-                'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
-                'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
-                'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
-                'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
-                'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
-            };
-            return slugToId[slug] || null;
-        }
-
-        async init() {
-            await this.checkAuth();
-            if (this.currentUser) {
-                await this.loadUserLists();
-            }
-            this.injectListMenu();
-        }
-
-        async checkAuth() {
-            try {
-                const { data: { session } } = await this.supabase.auth.getSession();
-                this.currentUser = session?.user || null;
-            } catch (error) {
-                console.error('Auth error:', error);
-                this.currentUser = null;
-            }
-        }
-
-        async loadUserLists() {
-            try {
-                const { data: lists } = await this.supabase
-                    .from('lists').select('*').eq('user_id', this.currentUser.id);
-                this.userLists = lists || [];
-                
-                // Separate custom lists from default lists
-                this.customLists = this.userLists.filter(list => 
-                    !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-                );
-            } catch (error) {
-                console.error('Error loading lists:', error);
-                this.userLists = [];
-                this.customLists = [];
-            }
-        }
-
-        injectListMenu() {
-            // Create the floating action button
-            const fab = document.createElement('div');
-            fab.className = 'list-manager-fab';
-            fab.innerHTML = `
-                <div class="fab-main">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                </div>
-                <div class="fab-tooltip">Save to Lists</div>
-            `;
-            
-            // Add FAB styles
-            const styles = `
-                .list-manager-fab {
-                    position: fixed !important;
-                    bottom: 30px !important;
-                    right: 30px !important;
-                    z-index: 10000 !important;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-                }
-                
-                .fab-main {
-                    width: 60px !important;
-                    height: 60px !important;
-                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-                    border-radius: 50% !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    cursor: pointer !important;
-                    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                    border: none !important;
-                    color: white !important;
-                    position: relative !important;
-                    overflow: hidden !important;
-                }
-                
-                .fab-main::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                    transition: left 0.5s;
-                }
-                
-                .fab-main:hover::before {
-                    left: 100%;
-                }
-                
-                .fab-main:hover {
-                    transform: scale(1.1) rotate(90deg) !important;
-                    box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
-                }
-                
-                .fab-main:active {
-                    transform: scale(0.95) !important;
-                }
-                
-                .fab-tooltip {
-                    position: absolute !important;
-                    bottom: 70px !important;
-                    right: 0 !important;
-                    background: #1e293b !important;
-                    color: white !important;
-                    padding: 8px 12px !important;
-                    border-radius: 6px !important;
-                    font-size: 12px !important;
-                    font-weight: 500 !important;
-                    white-space: nowrap !important;
-                    opacity: 0 !important;
-                    transform: translateY(10px) !important;
-                    transition: all 0.3s ease !important;
-                    pointer-events: none !important;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-                }
-                
-                .fab-main:hover + .fab-tooltip {
-                    opacity: 1 !important;
-                    transform: translateY(0) !important;
-                }
-                
-                .list-dropdown {
-                    position: fixed;
-                    bottom: 100px;
-                    right: 30px;
-                    background: #0f172a;
-                    border: 1px solid #334155;
-                    border-radius: 16px;
-                    padding: 20px;
-                    min-width: 320px;
-                    max-width: 400px;
-                    display: none;
-                    z-index: 10000;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-                    backdrop-filter: blur(20px);
-                    transform-origin: bottom right;
-                    animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                
-                @keyframes dropdownSlide {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.8) translateY(20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1) translateY(0);
-                    }
-                }
-                
-                .list-dropdown.show {
-                    display: block !important;
-                }
-                
-                .dropdown-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                    padding-bottom: 15px;
-                    border-bottom: 1px solid #334155;
-                }
-                
-                .dropdown-title {
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: #f59e0b;
-                    margin: 0;
-                }
-                
-                .close-btn {
-                    background: none;
-                    border: none;
-                    color: #64748b;
-                    cursor: pointer;
-                    padding: 8px;
-                    border-radius: 8px;
-                    transition: all 0.2s ease;
-                }
-                
-                .close-btn:hover {
-                    background: #1e293b;
-                    color: #f59e0b;
-                }
-                
-                .list-section {
-                    margin-bottom: 20px;
-                }
-                
-                .list-section-title {
-                    font-size: 11px;
-                    color: #94a3b8;
-                    text-transform: uppercase;
-                    font-weight: 600;
-                    margin-bottom: 12px;
-                    letter-spacing: 0.5px;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                
-                .list-section-title::after {
-                    content: '';
-                    flex: 1;
-                    height: 1px;
-                    background: #334155;
-                    margin-left: 8px;
-                }
-                
-                .list-item { 
-                    display: flex; 
-                    align-items: center; 
-                    gap: 12px; 
-                    padding: 12px 10px; 
-                    cursor: pointer; 
-                    border-radius: 10px;
-                    transition: all 0.2s ease;
-                    margin-bottom: 4px;
-                }
-                
-                .list-item:hover { 
-                    background: rgba(245, 158, 11, 0.1); 
-                    transform: translateX(4px);
-                }
-                
-                .list-checkbox { 
-                    width: 20px; 
-                    height: 20px; 
-                    border: 2px solid #475569;
-                    border-radius: 6px; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    flex-shrink: 0;
-                    transition: all 0.2s ease;
-                    position: relative;
-                }
-                
-                .list-checkbox.checked { 
-                    background: #f59e0b; 
-                    border-color: #f59e0b;
-                    animation: checkPop 0.3s ease;
-                }
-                
-                @keyframes checkPop {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.2); }
-                    100% { transform: scale(1); }
-                }
-                
-                .list-checkbox.checked::after { 
-                    content: "✓"; 
-                    color: #0f172a; 
-                    font-size: 12px; 
-                    font-weight: bold; 
-                }
-                
-                .list-item-text {
-                    flex: 1;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #e2e8f0;
-                }
-                
-                .list-item:hover .list-item-text {
-                    color: #f59e0b;
-                }
-                
-                .new-list-section {
-                    border-top: 1px solid #334155;
-                    padding-top: 20px;
-                    margin-top: 15px;
-                }
-                
-                .new-list-input { 
-                    width: 100%; 
-                    padding: 12px 16px; 
-                    background: #1e293b;
-                    border: 1px solid #475569; 
-                    border-radius: 10px; 
-                    color: white; 
-                    margin-bottom: 12px;
-                    font-size: 14px;
-                    transition: all 0.2s ease;
-                }
-                
-                .new-list-input:focus {
-                    outline: none;
-                    border-color: #f59e0b;
-                    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-                }
-                
-                .add-list-btn { 
-                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
-                    color: #0f172a; 
-                    border: none;
-                    padding: 12px 20px; 
-                    border-radius: 10px; 
-                    cursor: pointer; 
-                    font-weight: 600; 
-                    width: 100%; 
-                    font-size: 14px;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                }
-                
-                .add-list-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-                }
-                
-                .add-list-btn:active {
-                    transform: translateY(0);
-                }
-                
-                .list-divider {
-                    height: 1px;
-                    background: linear-gradient(90deg, transparent, #334155, transparent);
-                    margin: 16px 0;
-                }
-                
-                .empty-custom-lists {
-                    text-align: center;
-                    color: #64748b;
-                    font-size: 13px;
-                    padding: 20px;
-                    font-style: italic;
-                }
-                
-                .auth-prompt {
-                    text-align: center;
-                    padding: 30px 20px;
-                    color: #94a3b8;
-                }
-                
-                .auth-prompt .icon {
-                    font-size: 48px;
-                    margin-bottom: 12px;
-                    opacity: 0.5;
-                }
-                
-                .auth-prompt .text {
-                    font-size: 14px;
-                    margin-bottom: 16px;
-                }
-                
-                .login-btn {
-                    background: #f59e0b;
-                    color: #0f172a;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .login-btn:hover {
-                    background: #ffb84d;
-                }
-                
-                /* Pulse animation for new lists */
-                @keyframes pulseGlow {
-                    0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-                    70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-                }
-                
-                .pulse {
-                    animation: pulseGlow 2s infinite;
-                }
-            `;
-            
-            const styleSheet = document.createElement('style');
-            styleSheet.textContent = styles;
-            document.head.appendChild(styleSheet);
-            
-            // Create dropdown
-            const dropdown = document.createElement('div');
-            dropdown.className = 'list-dropdown';
-            
-            // FAB click handler
-            fab.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-                if (dropdown.classList.contains('show')) {
-                    this.updateDropdown(dropdown);
-                    // Add pulse animation to FAB when dropdown is open
-                    fab.querySelector('.fab-main').classList.add('pulse');
-                } else {
-                    fab.querySelector('.fab-main').classList.remove('pulse');
-                }
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', () => {
-                dropdown.classList.remove('show');
-                fab.querySelector('.fab-main').classList.remove('pulse');
-            });
-            
-            dropdown.addEventListener('click', (e) => e.stopPropagation());
-            
-            // Add to page
-            document.body.appendChild(fab);
-            document.body.appendChild(dropdown);
-            
-            console.log('✅ List Manager FAB Added!');
-        }
-
-        async updateDropdown(dropdown) {
-            dropdown.innerHTML = `
-                <div class="dropdown-header">
-                    <h3 class="dropdown-title">💫 Save to Lists</h3>
-                    <button class="close-btn" onclick="this.closest('.list-dropdown').classList.remove('show')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            `;
-
-            if (!this.currentUser) {
-                dropdown.innerHTML += `
-                    <div class="auth-prompt">
-                        <div class="icon">🔐</div>
-                        <div class="text">Sign in to save restaurants to your lists</div>
-                        <button class="login-btn" onclick="window.location.href='../login.html'">
-                            Sign In
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            // Quick Actions Section
-            const quickSection = document.createElement('div');
-            quickSection.className = 'list-section';
-            quickSection.innerHTML = '<div class="list-section-title">🌟 Quick Actions</div>';
-            
-            const quickLists = [
-                { id: 'favorites', name: '❤️ Favorites', icon: '❤️' },
-                { id: 'wantToGo', name: '📍 Want to Go', icon: '📍' },
-                { id: 'visited', name: '🍽️ Visited', icon: '🍽️' }
-            ];
-
-            for (const list of quickLists) {
-                const isInList = await this.checkIfInList(list.id);
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                    <span class="list-item-text">${list.name}</span>
-                `;
-                item.onclick = () => this.toggleList(list.id);
-                quickSection.appendChild(item);
-            }
-            
-            dropdown.appendChild(quickSection);
-
-            // Custom Lists Section
-            if (this.customLists.length > 0) {
-                const divider = document.createElement('div');
-                divider.className = 'list-divider';
-                dropdown.appendChild(divider);
-
-                const customSection = document.createElement('div');
-                customSection.className = 'list-section';
-                customSection.innerHTML = '<div class="list-section-title">📁 Your Collections</div>';
-
-                for (const list of this.customLists) {
-                    const isInList = await this.checkIfCustomList(list.id);
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    item.innerHTML = `
-                        <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                        <span class="list-item-text">${list.title}</span>
-                    `;
-                    item.onclick = () => this.toggleCustomList(list.id);
-                    customSection.appendChild(item);
-                }
-                
-                dropdown.appendChild(customSection);
-            } else {
-                const divider = document.createElement('div');
-                divider.className = 'list-divider';
-                dropdown.appendChild(divider);
-                
-                const emptySection = document.createElement('div');
-                emptySection.className = 'empty-custom-lists';
-                emptySection.innerHTML = 'No custom lists yet. Create your first one below! ✨';
-                dropdown.appendChild(emptySection);
-            }
-
-            // Create New List Section
-            const newDiv = document.createElement('div');
-            newDiv.className = 'new-list-section';
-            newDiv.innerHTML = `
-                <div class="list-section-title">🆕 Create New</div>
-                <input type="text" class="new-list-input" placeholder="What should we call your new list?" id="newListName">
-                <button class="add-list-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    Create Custom List
-                </button>
-            `;
-            
-            const input = newDiv.querySelector('input');
-            const button = newDiv.querySelector('button');
-            
-            button.onclick = () => this.createNewList();
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.createNewList();
-                }
-            });
-            
-            dropdown.appendChild(newDiv);
-        }
-
-        async checkIfInList(listType) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            const { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-            if (!list) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async checkIfCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async toggleList(listType) {
-            if (!this.currentUser || !this.restaurantId) {
-                this.showNotification('Please log in to use lists', 'warning');
-                return;
-            }
-            
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            let { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-                
-            if (!list) {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
-                list = newList;
-            }
-            
-            const isInList = await this.checkIfInList(listType);
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: list.id, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${title}`, 'info');
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: list.id, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${title} ✅`, 'success');
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async toggleCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) {
-                this.showNotification('Please log in to use lists', 'warning');
-                return;
-            }
-            
-            const list = this.customLists.find(l => l.id === listId);
-            const isInList = await this.checkIfCustomList(listId);
-            
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: listId, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${list.title}`, 'info');
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: listId, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${list.title} ✅`, 'success');
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async createNewList() {
-            const input = document.getElementById('newListName');
-            const name = input.value.trim();
-            
-            if (!name) {
-                this.showNotification('Please enter a list name', 'warning');
-                return;
-            }
-
-            if (!this.currentUser) {
-                this.showNotification('Please log in to create lists', 'warning');
-                return;
-            }
-
-            try {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
-                
-                if (newList) {
-                    this.customLists.push(newList);
-                    input.value = '';
-                    this.showNotification(`✨ "${name}" created!`, 'success');
-                    this.updateDropdown(document.querySelector('.list-dropdown'));
-                }
-            } catch (error) {
-                this.showNotification('Error creating list: ' + error.message, 'error');
-            }
-        }
-
-        showNotification(message, type = 'info') {
-            const colors = {
-                success: '#10b981',
-                error: '#ef4444',
-                warning: '#f59e0b',
-                info: '#3b82f6'
-            };
-            
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 30px;
-                right: 30px;
-                background: ${colors[type] || colors.info};
-                color: white;
-                padding: 16px 24px;
-                border-radius: 12px;
-                z-index: 10001;
-                font-weight: 600;
-                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                transform: translateX(100%);
-                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                max-width: 300px;
-                word-wrap: break-word;
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 10);
-            
-            setTimeout(() => {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    notification.remove();
-                }, 400);
-            }, 3000);
-        }
-    }
-
-    // Initialize the list manager
-    setTimeout(() => {
-        new RestaurantListManager();
-    }, 1000);
-    
-});
-</script>
 <script>
 // Theme Toggle Functionality
 const themeToggle = document.getElementById('themeToggle');
@@ -1281,5 +538,585 @@ if (branchFilterBtns.length > 0) {
 
 // Initialize the page
 initializeTheme();
-</script></body>
+</script><script>
+// Theme Toggle Functionality
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    localStorage.setItem('restaurant-theme', theme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+}
+
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('restaurant-theme');
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Review Form Functionality
+const reviewForm = document.getElementById('review-form');
+const reviewsList = document.getElementById('reviews-list');
+
+if (reviewForm && reviewsList) {
+    reviewForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reviewer = document.getElementById('reviewer').value.trim();
+        const reviewText = document.getElementById('review-text').value.trim();
+        
+        if (reviewer && reviewText) {
+            const reviewElement = document.createElement('div');
+            reviewElement.className = 'review';
+            reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
+            reviewsList.appendChild(reviewElement);
+            reviewForm.reset();
+            
+            const thankYouMessage = document.createElement('p');
+            thankYouMessage.textContent = 'Thank you for your review!';
+            thankYouMessage.style.color = '#FF9800';
+            thankYouMessage.style.fontWeight = '600';
+            thankYouMessage.style.marginTop = '10px';
+            reviewForm.appendChild(thankYouMessage);
+            
+            setTimeout(() => {
+                thankYouMessage.remove();
+            }, 3000);
+        }
+    });
+}
+
+// Menu Category Filter Functionality
+const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
+const menuCategorySections = document.querySelectorAll('.menu-category-section');
+
+if (menuCategoryBtns.length > 0) {
+    menuCategoryBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            
+            // Update active button
+            menuCategoryBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter menu items
+            menuCategorySections.forEach(section => {
+                if (category === 'all' || section.getAttribute('data-category') === category) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        });
+    });
+}
+
+// Branch Filter Functionality
+const branchFilterBtns = document.querySelectorAll('.branch-filter-btn');
+const branchCards = document.querySelectorAll('.branch-card');
+
+if (branchFilterBtns.length > 0) {
+    branchFilterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const location = this.getAttribute('data-location');
+            
+            // Update active button
+            branchFilterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter branches
+            branchCards.forEach(card => {
+                if (location === 'all' || card.getAttribute('data-location') === location) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+}
+
+// Initialize the page
+initializeTheme();
+</script>
+<!-- Real Reviews System -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Reviews System
+const reviewsSystem = {
+    supabaseUrl: "https://gfkhjbztayjyojsgdpgk.supabase.co",
+    supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s",
+    supabase: null,
+    currentUser: null,
+    restaurantId: null,
+    reviews: [],
+
+    async init() {
+        this.supabase = window.supabase.createClient(this.supabaseUrl, this.supabaseKey);
+        await this.getCurrentUser();
+        this.restaurantId = this.getRestaurantId();
+        if (this.restaurantId) {
+            await this.loadReviews();
+            this.replaceStaticReviews();
+            this.setupEventListeners();
+        }
+    },
+
+    async getCurrentUser() {
+        const { data: { user } } = await this.supabase.auth.getUser();
+        this.currentUser = user;
+    },
+
+    getRestaurantId() {
+        const path = window.location.pathname;
+        const slug = path.split('/').pop().replace('.html', '');
+        const slugToIdMap = {
+    "howlin-birds": 1,
+    "mori": 2,
+    "kilo": 3,
+    "hameed": 4,
+    "bazooka": 5,
+    "mexican-corn": 6,
+    "chikin-worx": 7,
+    "vasko": 8,
+    "second-cup": 9,
+    "pizza-station": 10,
+    "brgr": 11
+};
+        return slugToIdMap[slug] || Object.values(slugToIdMap)[0];
+    },
+
+    async loadReviews() {
+        if (!this.restaurantId) return;
+        try {
+            const { data, error } = await this.supabase
+                .from('reviews')
+                .select('*')
+                .eq('restaurant_id', this.restaurantId)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            this.reviews = data || [];
+        } catch (error) {
+            console.error('Error loading reviews:', error);
+            this.reviews = [];
+        }
+    },
+
+    replaceStaticReviews() {
+        const oldSection = document.querySelector('.reviews');
+        if (!oldSection) return;
+        
+        oldSection.outerHTML = this.createReviewsSystem();
+        this.renderReviews();
+        this.calculateRatings();
+    },
+
+    createReviewsSystem() {
+        return `
+            <section class="reviews">
+                <h2>Customer Reviews</h2>
+                
+                <div class="review-stats" id="reviewStats">
+                    <div class="overall-rating">
+                        <div class="rating-large" id="overallRating">0.0</div>
+                        <div class="rating-stars-large" id="overallStars">⭐⭐⭐⭐⭐</div>
+                        <div class="rating-count" id="reviewCount">0 reviews</div>
+                    </div>
+                    <div class="rating-breakdown" id="ratingBreakdown"></div>
+                </div>
+
+                <div id="reviewsList">
+                    <div class="empty-reviews">
+                        <div class="empty-icon">💬</div>
+                        <h3>No Reviews Yet</h3>
+                        <p>Be the first to share your experience!</p>
+                    </div>
+                </div>
+
+                ${this.currentUser ? this.createReviewForm() : this.createLoginPrompt()}
+            </section>
+        `;
+    },
+
+    createReviewForm() {
+        return `
+            <div class="add-review-section">
+                <h3>Write a Review</h3>
+                <form class="review-form" id="reviewForm">
+                    <div class="rating-input">
+                        <label>Your Rating:</label>
+                        <div class="star-rating" id="starRating">
+                            <span class="star" data-rating="1">☆</span>
+                            <span class="star" data-rating="2">☆</span>
+                            <span class="star" data-rating="3">☆</span>
+                            <span class="star" data-rating="4">☆</span>
+                            <span class="star" data-rating="5">☆</span>
+                        </div>
+                        <input type="hidden" id="selectedRating" name="rating" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewComment">Your Review:</label>
+                        <textarea 
+                            id="reviewComment" 
+                            name="comment" 
+                            placeholder="Share your experience..." 
+                            rows="4"
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Review
+                    </button>
+                </form>
+            </div>
+        `;
+    },
+
+    createLoginPrompt() {
+        return `
+            <div class="login-prompt">
+                <h3>Want to share your experience?</h3>
+                <p>Please log in to write a review!</p>
+                <button onclick="window.location.href='../login.html'" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Log In to Review
+                </button>
+            </div>
+        `;
+    },
+
+    renderReviews() {
+        const container = document.getElementById('reviewsList');
+        if (!container) return;
+
+        if (this.reviews.length === 0) {
+            container.innerHTML = `
+                <div class="empty-reviews">
+                    <div class="empty-icon">💬</div>
+                    <h3>No Reviews Yet</h3>
+                    <p>Be the first to share your experience!</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.reviews.map(review => `
+            <div class="review-item">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">
+                            ${review.user_name ? review.user_name.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div class="reviewer-details">
+                            <div class="reviewer-name">${review.user_name || 'Anonymous User'}</div>
+                            <div class="review-date">${this.formatDate(review.created_at)}</div>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        ${'⭐'.repeat(review.rating)}
+                    </div>
+                </div>
+                <div class="review-content">
+                    <p>${review.comment || 'No comment provided.'}</p>
+                </div>
+                ${this.canEditReview(review) ? `
+                    <div class="review-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.editReview(${review.id})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.deleteReview(${review.id})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    },
+
+    canEditReview(review) {
+        return this.currentUser && review.user_id === this.currentUser.id;
+    },
+
+    calculateRatings() {
+        if (this.reviews.length === 0) {
+            this.updateRatingDisplay(0, 0);
+            return;
+        }
+
+        const totalRating = this.reviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = totalRating / this.reviews.length;
+        
+        const distribution = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
+        this.reviews.forEach(review => distribution[review.rating]++);
+
+        this.updateRatingDisplay(averageRating, this.reviews.length);
+        this.updateRatingBars(distribution);
+    },
+
+    updateRatingDisplay(averageRating, totalReviews) {
+        const overallRating = document.getElementById('overallRating');
+        const overallStars = document.getElementById('overallStars');
+        const reviewCount = document.getElementById('reviewCount');
+
+        if (overallRating) overallRating.textContent = averageRating.toFixed(1);
+        if (overallStars) overallStars.innerHTML = '⭐'.repeat(Math.round(averageRating));
+        if (reviewCount) reviewCount.textContent = `${totalReviews} review${totalReviews !== 1 ? 's' : ''}`;
+    },
+
+    updateRatingBars(distribution) {
+        const container = document.getElementById('ratingBreakdown');
+        if (!container) return;
+
+        const totalReviews = this.reviews.length;
+        
+        container.innerHTML = [5, 4, 3, 2, 1].map(rating => {
+            const count = distribution[rating] || 0;
+            const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+            
+            return `
+                <div class="rating-bar">
+                    <span class="rating-bar-label">${rating} stars</span>
+                    <div class="rating-bar-track">
+                        <div class="rating-bar-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    <span class="rating-bar-count">${count}</span>
+                </div>
+            `;
+        }).join('');
+    },
+
+    setupEventListeners() {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.addEventListener('click', () => this.setRating(parseInt(star.dataset.rating)));
+            star.addEventListener('mouseover', () => this.previewRating(parseInt(star.dataset.rating)));
+        });
+
+        const form = document.getElementById('reviewForm');
+        if (form) form.addEventListener('submit', (e) => this.submitReview(e));
+
+        const starContainer = document.getElementById('starRating');
+        if (starContainer) starContainer.addEventListener('mouseleave', () => this.resetStarPreview());
+    },
+
+    setRating(rating) {
+        this.selectedRating = rating;
+        const input = document.getElementById('selectedRating');
+        if (input) input.value = rating;
+        this.updateStarDisplay(rating);
+    },
+
+    previewRating(rating) {
+        this.updateStarDisplay(rating);
+    },
+
+    resetStarPreview() {
+        if (this.selectedRating) {
+            this.updateStarDisplay(this.selectedRating);
+        } else {
+            this.updateStarDisplay(0);
+        }
+    },
+
+    updateStarDisplay(rating) {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.textContent = '⭐';
+                star.style.color = '#FF9800';
+            } else {
+                star.textContent = '☆';
+                star.style.color = 'var(--text2)';
+            }
+        });
+    },
+
+    async submitReview(event) {
+        event.preventDefault();
+        
+        if (!this.currentUser) {
+            this.showNotification('Please log in to write a review', 'error');
+            return;
+        }
+
+        const rating = parseInt(document.getElementById('selectedRating')?.value);
+        const comment = document.getElementById('reviewComment')?.value.trim();
+
+        if (!rating || !comment) {
+            this.showNotification('Please provide both rating and comment', 'error');
+            return;
+        }
+
+        try {
+            const { data: profile } = await this.supabase
+                .from('user_profiles')
+                .select('full_name, username')
+                .eq('id', this.currentUser.id)
+                .single();
+
+            const userName = profile?.full_name || profile?.username || this.currentUser.email.split('@')[0];
+
+            const { data, error } = await this.supabase
+                .from('reviews')
+                .insert({
+                    restaurant_id: this.restaurantId,
+                    user_id: this.currentUser.id,
+                    user_name: userName,
+                    rating: rating,
+                    comment: comment,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                });
+
+            if (error) throw error;
+
+            await this.loadReviews();
+            this.renderReviews();
+            this.calculateRatings();
+            document.getElementById('reviewForm').reset();
+            this.selectedRating = null;
+            this.updateStarDisplay(0);
+            this.showNotification('Review submitted successfully!', 'success');
+
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            this.showNotification('Error submitting review', 'error');
+        }
+    },
+
+    async editReview(reviewId) {
+        const review = this.reviews.find(r => r.id === reviewId);
+        if (!review) return;
+
+        const newComment = prompt('Edit your review:', review.comment);
+        if (newComment === null) return;
+
+        try {
+            const { error } = await this.supabase
+                .from('reviews')
+                .update({ comment: newComment, updated_at: new Date().toISOString() })
+                .eq('id', reviewId);
+
+            if (error) throw error;
+
+            await this.loadReviews();
+            this.renderReviews();
+            this.showNotification('Review updated!', 'success');
+
+        } catch (error) {
+            this.showNotification('Error updating review', 'error');
+        }
+    },
+
+    async deleteReview(reviewId) {
+        if (!confirm('Delete this review?')) return;
+
+        try {
+            const { error } = await this.supabase
+                .from('reviews')
+                .delete()
+                .eq('id', reviewId);
+
+            if (error) throw error;
+
+            await this.loadReviews();
+            this.renderReviews();
+            this.calculateRatings();
+            this.showNotification('Review deleted!', 'success');
+
+        } catch (error) {
+            this.showNotification('Error deleting review', 'error');
+        }
+    },
+
+    formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'long', day: 'numeric' 
+        });
+    },
+
+    showNotification(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `review-toast review-toast-${type}`;
+        toast.innerHTML = `
+            <div class="review-toast-content">
+                <span class="review-toast-message">${message}</span>
+                <button class="review-toast-close">&times;</button>
+            </div>
+        `;
+
+        const container = document.getElementById('reviewToasts') || this.createToastContainer();
+        container.appendChild(toast);
+
+        setTimeout(() => toast.remove(), 5000);
+        toast.querySelector('.review-toast-close').addEventListener('click', () => toast.remove());
+    },
+
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'reviewToasts';
+        container.className = 'review-toast-container';
+        document.body.appendChild(container);
+        return container;
+    }
+};
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => reviewsSystem.init());
+</script>
+
+<style>
+.review-stats { display: flex; align-items: center; gap: 30px; margin-bottom: 30px; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--nav-shadow); }
+.overall-rating { text-align: center; }
+.rating-large { font-size: 3rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.rating-stars-large { color: #FF9800; font-size: 1.5rem; margin: 10px 0; }
+.rating-count { color: var(--text2); font-size: 0.9rem; }
+.rating-breakdown { flex: 1; }
+.rating-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.rating-bar-label { width: 60px; font-size: 0.9rem; color: var(--text2); }
+.rating-bar-track { flex: 1; height: 8px; background: var(--nav-shadow); border-radius: 4px; overflow: hidden; }
+.rating-bar-fill { height: 100%; background: #FF9800; border-radius: 4px; transition: width 0.3s ease; }
+.rating-bar-count { width: 30px; font-size: 0.8rem; color: var(--text2); text-align: right; }
+.review-item { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--nav-shadow); transition: all 0.3s ease; }
+.review-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.reviewer-info { display: flex; align-items: center; gap: 12px; }
+.reviewer-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 600; color: #0b1633; font-size: 0.9rem; }
+.reviewer-details { display: flex; flex-direction: column; }
+.reviewer-name { font-weight: 600; margin-bottom: 2px; }
+.review-date { font-size: 0.8rem; color: var(--text2); }
+.review-rating { color: #FF9800; font-size: 1.1rem; }
+.review-content { margin-bottom: 12px; line-height: 1.6; }
+.review-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.add-review-section { background: var(--card); border-radius: 12px; padding: 24px; margin-top: 30px; border: 1px solid var(--nav-shadow); }
+.rating-input { margin-bottom: 20px; }
+.rating-input label { display: block; margin-bottom: 8px; font-weight: 600; }
+.star-rating { display: flex; gap: 4px; }
+.star { font-size: 2rem; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+.star:hover { transform: scale(1.1); }
+.login-prompt { text-align: center; padding: 40px 20px; background: var(--card); border-radius: 12px; margin-top: 30px; }
+.empty-reviews { text-align: center; padding: 40px 20px; color: var(--text2); }
+.empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
+.review-toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; }
+.review-toast { background: var(--card); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; border-left: 4px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: slideInRight 0.3s ease; }
+.review-toast-success { border-left-color: #10b981; }
+.review-toast-error { border-left-color: #ef4444; }
+.review-toast-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.review-toast-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text2); }
+.review-toast-close:hover { color: var(--text); }
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@media (max-width: 768px) { .review-stats { flex-direction: column; gap: 20px; } .rating-breakdown { width: 100%; } .review-header { flex-direction: column; gap: 12px; } .star { font-size: 1.5rem; } }
+</style>
+\n</body>
 </html>
