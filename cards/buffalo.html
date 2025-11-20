@@ -4,10 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buffalo Burger - American Style Burgers</title>
-
-  
-  
-  <link rel="icon" type="image/png" href="images/logo.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 :root {
@@ -41,18 +37,17 @@
   --egyptian-red: #ff6b6b;
 }
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
 .back-btn,.theme-toggle{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease}
 .back-btn:hover,.theme-toggle:hover{background:rgba(255,255,255,0.3)}
 .back-btn{display:flex;align-items:center;gap:6px}
 .back-btn:hover{transform:translateX(-3px)}
-.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
-.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(45deg, rgba(255,152,0,0.05) 0%, transparent 50%);pointer-events:none}
-.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
-.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
-.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
-.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%)}
+.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white}
+.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700}
+.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto}
+.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem}
 .btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
 .btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
 .section{max-width:900px;margin:0 auto;padding:40px 20px}
@@ -68,14 +63,11 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
-.menu-categories{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
-.menu-category-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
-.menu-category-btn.active,.menu-category-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
 .menu-item span:last-child{font-weight:600;color:var(--text)}
-.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
+.menu-description{font-size:0.85rem;color:var(--text2);margin-top:5px;font-style:italic}
 .review{border-bottom:1px solid var(--nav-shadow);padding:15px 0}
 .review p{margin-bottom:5px;color:var(--text2)}
 .review p:first-child{font-weight:600;color:var(--text)}
@@ -85,905 +77,245 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .review-form button{background:var(--btn-bg);color:var(--btn-text);padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;align-self:flex-start}
 .review-form button:hover{transform:scale(1.05)}
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
-.branch-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-.branch-filter-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease}
-.branch-filter-btn.active,.branch-filter-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
-.hidden{display:none}
-.popular-badge{background:#FF9800;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
-</style></head>
+</style>
+</head>
 <body>
 
 <div class="top-stripe">
-  <button class="back-btn" onclick="window.location.href='../restraunts.html'">← Back to Restaurants</button>
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
   <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
 </div>
 
+<section class="hero">
+  <img src="../images/buffalo.jpg" alt="Buffalo Burger American Style" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Buffalo Burger</h1>
+  <p>Authentic American-style burgers with premium beef, classic flavors, and generous portions since 2017</p>
+  <div class="rating">⭐ 4.5/5 (1,920+ reviews)</div>
 
+  <a href="tel:19994" class="btn">Call Hotline: 19994</a>
+  <a href="https://buffaloburger.com/branches/all/home" target="_blank" class="btn secondary">Order Online</a>
+</section>
 
-<section class="section reviews" id="reviews-section">
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:19994">19994</a>
+    <strong>Delivery:</strong> <a href="tel:19994">19994</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>Al Rehab City</h3>
+      <p>Food Court, Avenue Mall<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Al+Rehab+City" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>El Obour</h3>
+      <p>Golf City Mall, Ismailia Road<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Golf+City+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Maadi</h3>
+      <p>27 El Nasr Street, Beside Cleopatra Ceramics<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Maadi+El+Nasr+Street" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Mokkatam</h3>
+      <p>Street 9, Andalusia Garden<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Mokkatam" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Almaza Mall</h3>
+      <p>Almaza Mall, Heliopolis<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Almaza+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Madinaty</h3>
+      <p>Open Air Mall Food Court<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>City Stars</h3>
+      <p>Food Court, 8th Floor<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+City+Stars" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Mall of Egypt</h3>
+      <p>Mall of Egypt, Sheikh Zayed<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Mall+of+Egypt" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Zamalek</h3>
+      <p>Yamama Center, Taha Hussein Street<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Zamalek" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>Drive Thru</h3>
+      <p>Green Park Mall, West SUMED<br>Open: 11:00 AM - 1:00 AM</p>
+      <a href="https://maps.google.com/search?q=Buffalo+Burger+Drive+Thru" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Signature Burgers</h2>
+    
+    <div class="menu-item">
+      <div>
+        <span>Shiitake Mushroom</span>
+        <div class="menu-description">Sautéed mushroom, cheddar cheese, and creamy mayonnaise spread on top of our pure beef burger</div>
+      </div>
+      <span>EGP 302</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Bacon Mushroom Jack</span>
+        <div class="menu-description">Beef bacon with fresh sautéed mushroom, cheddar cheese, and creamy mayonnaise</div>
+      </div>
+      <span>EGP 216</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Old School</span>
+        <div class="menu-description">Pure beef burger patty, topped with our signature Buffalo sauce and cheddar cheese</div>
+      </div>
+      <span>EGP 171</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Blue Cheese</span>
+        <div class="menu-description">Crumbles of creamy French blue cheese top our famous burger patty with our signature mayonnaise</div>
+      </div>
+      <span>EGP 176</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>The Rastafari</span>
+        <div class="menu-description">Crispy cheddar jalapeño bites, on a grilled burger patty with creamy Buffalo sauce</div>
+      </div>
+      <span>EGP 191</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>The Muscular</span>
+        <div class="menu-description">Pure beef burger, topped with crispy cheese and creamy Buffalo sauce. Only for the serious</div>
+      </div>
+      <span>EGP 197</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Appetizers & Sides</h2>
+  
+    <div class="menu-item">
+      <div>
+        <span>Large French Fries</span>
+        <div class="menu-description">Classic crispy french fries</div>
+      </div>
+      <span>EGP 48</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Blanco Fries</span>
+        <div class="menu-description">French Fries with Ketchup, Mayonnaise and fresh onion</div>
+      </div>
+      <span>EGP 75</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Coleslaw</span>
+        <div class="menu-description">Fresh coleslaw salad</div>
+      </div>
+      <span>EGP 40</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Caesar Salad</span>
+        <div class="menu-description">Fresh lettuce with pieces of grilled chicken topped with croutons bread and parmesan cheese</div>
+      </div>
+      <span>EGP 177</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Fried Buffalo Wings</span>
+        <div class="menu-description">Fried Buffalo Wings served with Ranch Sauce or Wings Sauce</div>
+      </div>
+      <span>EGP 99</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Cheddar Jalapeño Bites</span>
+        <div class="menu-description">Spicy cheddar jalapeño bites served with Ranch sauce</div>
+      </div>
+      <span>EGP 102</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Mozzarella Bites</span>
+        <div class="menu-description">Cheesy mozzarella bites served with Ranch sauce</div>
+      </div>
+      <span>EGP 97</span>
+    </div>
+    
+    <div class="menu-item">
+      <div>
+        <span>Bacon Fries</span>
+        <div class="menu-description">French fries topped with crispy bacon</div>
+      </div>
+      <span>EGP 129</span>
+    </div>
+  
+  <a href="https://buffaloburger.com/branches/all/home" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<section class="section reviews">
   <h2>Customer Reviews</h2>
-  <div id="reviews-list" class="reviews-container">
-    <div class="reviews-loading">Loading reviews...</div>
+  <div id="reviews-list">
+    <div class="review">
+      <p><strong>Ahmed K.</strong></p>
+      <p>The Shiitake Mushroom burger is absolutely incredible! Premium ingredients and perfectly cooked. Worth every pound!</p>
+    </div>
+    <div class="review">
+      <p><strong>Sarah M.</strong></p>
+      <p>Authentic American taste with generous portions. The Bacon Mushroom Jack is my go-to order. Cheddar Jalapeño Bites are addictive!</p>
+    </div>
+    <div class="review">
+      <p><strong>Omar R.</strong></p>
+      <p>Great variety of burgers and the quality is always consistent. The Blanco Fries are a must-try - perfect combination of flavors!</p>
+    </div>
+    <div class="review">
+      <p><strong>Layla F.</strong></p>
+      <p>Perfect spot for burger lovers. The Blue Cheese burger is unique and delicious. Buffalo Wings are crispy and flavorful!</p>
+    </div>
   </div>
   
   <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
   <form class="review-form" id="review-form">
-    <div class="rating-input">
-      <span>Rating:</span>
-      <div class="stars">
-        <span class="star" data-rating="1">★</span>
-        <span class="star" data-rating="2">★</span>
-        <span class="star" data-rating="3">★</span>
-        <span class="star" data-rating="4">★</span>
-        <span class="star" data-rating="5">★</span>
-      </div>
-      <span class="rating-text">Select rating</span>
-    </div>
-    <textarea placeholder="Share your experience..." id="review-comment" rows="4" required maxlength="500"></textarea>
-    <div class="review-form-actions">
-      <button type="submit" class="btn">Submit Review</button>
-      <span class="char-count">0/500</span>
-    </div>
+    <input type="text" placeholder="Your Name" id="reviewer" required>
+    <textarea placeholder="Write your review..." id="review-text" rows="4" required></textarea>
+    <button type="submit">Submit Review</button>
   </form>
-  
-  <div class="auth-prompt-review" id="auth-prompt" style="display: none;">
-    <p>Please <a href="../login.html" style="color: #FF9800; text-decoration: underline;">sign in</a> to submit a review.</p>
-  </div>
 </section>
 
-<style>
-.reviews-container {
-  max-height: 500px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-.review {
-  border-bottom: 1px solid var(--nav-shadow);
-  padding: 20px 0;
-  position: relative;
-}
-
-.review:last-child {
-  border-bottom: none;
-}
-
-.review-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-  position: relative;
-}
-
-.reviewer-name {
-  font-weight: 600;
-  color: var(--text);
-  margin: 0;
-  flex: 1;
-  padding-right: 100px;
-}
-
-.review-rating {
-  color: #FF9800;
-  font-size: 0.9rem;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-
-.review-comment {
-  margin: 0;
-  color: var(--text2);
-  line-height: 1.5;
-  padding-right: 0;
-}
-
-.review-date {
-  font-size: 0.8rem;
-  color: var(--text2);
-  margin-top: 5px;
-}
-
-.review-actions {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.delete-review {
-  background: none;
-  border: none;
-  color: #ff4444;
-  cursor: pointer;
-  padding: 5px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  transition: all 0.3s ease;
-  margin-left: 10px;
-}
-
-.delete-review:hover {
-  background: rgba(255, 68, 68, 0.1);
-  transform: scale(1.1);
-}
-
-.rating-input {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.stars {
-  display: flex;
-  gap: 2px;
-}
-
-.star {
-  font-size: 1.5rem;
-  color: #ddd;
-  cursor: pointer;
-  transition: color 0.2s ease;
-  user-select: none;
-}
-
-.star:hover,
-.star.active {
-  color: #FF9800;
-}
-
-.rating-text {
-  font-size: 0.9rem;
-  color: var(--text2);
-  min-width: 100px;
-}
-
-.review-form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.char-count {
-  font-size: 0.8rem;
-  color: var(--text2);
-}
-
-.reviews-loading, .reviews-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--text2);
-  font-style: italic;
-}
-
-.auth-prompt-review {
-  text-align: center;
-  padding: 20px;
-  background: var(--card);
-  border-radius: 8px;
-  margin-top: 20px;
-  border: 1px solid var(--nav-shadow);
-}
-
-/* Custom Toast Notifications */
-.zo2y-toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--card);
-  border: 1px solid var(--nav-shadow);
-  border-left: 4px solid #FF9800;
-  border-radius: 8px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  z-index: 10000;
-  transform: translateX(400px);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  max-width: 350px;
-  backdrop-filter: blur(10px);
-}
-
-.zo2y-toast.show {
-  transform: translateX(0);
-}
-
-.zo2y-toast.success {
-  border-left-color: #10b981;
-}
-
-.zo2y-toast.error {
-  border-left-color: #ef4444;
-}
-
-.zo2y-toast.warning {
-  border-left-color: #f59e0b;
-}
-
-.zo2y-toast.info {
-  border-left-color: #3b82f6;
-}
-
-.toast-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-}
-
-.zo2y-toast.success .toast-icon { color: #10b981; }
-.zo2y-toast.error .toast-icon { color: #ef4444; }
-.zo2y-toast.warning .toast-icon { color: #f59e0b; }
-.zo2y-toast.info .toast-icon { color: #3b82f6; }
-
-.toast-content {
-  flex: 1;
-}
-
-.toast-title {
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: var(--text);
-}
-
-.toast-message {
-  font-size: 14px;
-  color: var(--text2);
-  line-height: 1.4;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.toast-close:hover {
-  background: rgba(255,255,255,0.1);
-  color: var(--text);
-}
-
-/* Scrollbar styling */
-.reviews-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.reviews-container::-webkit-scrollbar-track {
-  background: var(--nav-bg);
-  border-radius: 3px;
-}
-
-.reviews-container::-webkit-scrollbar-thumb {
-  background: #FF9800;
-  border-radius: 3px;
-}
-
-.reviews-container::-webkit-scrollbar-thumb:hover {
-  background: #F57C00;
-}
-
-@media (max-width: 768px) {
-  .review-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .reviewer-name {
-    padding-right: 0;
-    margin-bottom: 8px;
-  }
-  
-  .review-rating {
-    position: static;
-    margin-bottom: 8px;
-  }
-  
-  .review-actions {
-    position: static;
-    align-self: flex-end;
-  }
-  
-  .rating-input {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .zo2y-toast {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    max-width: none;
-  }
-}
-</style>
-
-
-<style>
-.reviews-container { 
-  max-height: 500px; 
-  overflow-y: auto; 
-  padding-right: 10px; 
-  margin-bottom: 20px;
-}
-
-.review { 
-  border-bottom: 1px solid var(--nav-shadow); 
-  padding: 20px 0; 
-  position: relative; 
-}
-
-.review:last-child { 
-  border-bottom: none; 
-}
-
-.review-header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: flex-start; 
-  margin-bottom: 12px; 
-  position: relative; 
-}
-
-.reviewer-name { 
-  font-weight: 600; 
-  color: var(--text); 
-  margin: 0; 
-  flex: 1; 
-  padding-right: 100px; 
-}
-
-.review-rating { 
-  color: #FF9800; 
-  font-size: 1rem; 
-  font-weight: 600;
-}
-
-.review-comment { 
-  margin: 0; 
-  color: var(--text2); 
-  line-height: 1.6; 
-  margin-bottom: 8px;
-}
-
-.review-date { 
-  font-size: 0.8rem; 
-  color: var(--text2); 
-  margin-top: 5px; 
-}
-
-.review-actions { 
-  position: absolute; 
-  top: 0; 
-  right: 0; 
-}
-
-.delete-review { 
-  background: none; 
-  border: none; 
-  color: #ff4444; 
-  cursor: pointer; 
-  padding: 6px 10px; 
-  border-radius: 6px; 
-  font-size: 0.8rem; 
-  transition: all 0.3s ease; 
-  margin-left: 10px; 
-  border: 1px solid transparent;
-}
-
-.delete-review:hover { 
-  background: rgba(255, 68, 68, 0.1); 
-  transform: scale(1.05); 
-  border-color: #ff4444;
-}
-
-.review-input-group { 
-  display: flex; 
-  gap: 15px; 
-  margin-bottom: 20px; 
-  flex-wrap: wrap; 
-  justify-content: space-between; 
-}
-
-.rating-input { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  flex: 1; 
-}
-
-.stars { 
-  display: flex; 
-  gap: 4px; 
-}
-
-.star { 
-  font-size: 1.8rem; 
-  color: #ddd; 
-  cursor: pointer; 
-  transition: all 0.2s ease; 
-  user-select: none; 
-}
-
-.star:hover, 
-.star.active { 
-  color: #FF9800; 
-  transform: scale(1.2); 
-}
-
-.rating-text { 
-  font-size: 0.9rem; 
-  color: var(--text2); 
-  min-width: 120px; 
-  font-weight: 500;
-}
-
-.review-form-actions { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  margin-top: 20px; 
-}
-
-.char-count { 
-  font-size: 0.8rem; 
-  color: var(--text2); 
-}
-
-.reviews-loading, .reviews-empty { 
-  text-align: center; 
-  padding: 40px 20px; 
-  color: var(--text2); 
-  font-style: italic; 
-}
-
-.auth-prompt-review { 
-  text-align: center; 
-  padding: 30px; 
-  background: var(--card); 
-  border-radius: 12px; 
-  margin-top: 20px; 
-  border: 1px solid var(--nav-shadow); 
-}
-
-/* Custom Toast Notifications */
-.zo2y-toast {
-  position: fixed;
-  top: 30px;
-  right: 30px;
-  background: var(--card);
-  border: 1px solid var(--nav-shadow);
-  border-left: 4px solid #FF9800;
-  border-radius: 12px;
-  padding: 18px 22px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 12px 35px rgba(0,0,0,0.4);
-  z-index: 10000;
-  transform: translateX(400px);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  max-width: 380px;
-  backdrop-filter: blur(15px);
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.zo2y-toast.show {
-  transform: translateX(0);
-}
-
-.zo2y-toast.success {
-  border-left-color: #10b981;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(16, 185, 129, 0.05) 100%);
-}
-
-.zo2y-toast.error {
-  border-left-color: #ef4444;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(239, 68, 68, 0.05) 100%);
-}
-
-.zo2y-toast.warning {
-  border-left-color: #f59e0b;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(245, 158, 11, 0.05) 100%);
-}
-
-.zo2y-toast.info {
-  border-left-color: #3b82f6;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(59, 130, 246, 0.05) 100%);
-}
-
-.toast-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-  width: 24px;
-  text-align: center;
-}
-
-.zo2y-toast.success .toast-icon { 
-  color: #10b981; 
-}
-
-.zo2y-toast.error .toast-icon { 
-  color: #ef4444; 
-}
-
-.zo2y-toast.warning .toast-icon { 
-  color: #f59e0b; 
-}
-
-.zo2y-toast.info .toast-icon { 
-  color: #3b82f6; 
-}
-
-.toast-content {
-  flex: 1;
-}
-
-.toast-title {
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: var(--text);
-  font-size: 1rem;
-}
-
-.toast-message {
-  font-size: 14px;
-  color: var(--text2);
-  line-height: 1.5;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  font-size: 16px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.toast-close:hover {
-  background: rgba(255,255,255,0.1);
-  color: var(--text);
-}
-
-/* Scrollbar styling */
-.reviews-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.reviews-container::-webkit-scrollbar-track {
-  background: var(--nav-bg);
-  border-radius: 3px;
-}
-
-.reviews-container::-webkit-scrollbar-thumb {
-  background: #FF9800;
-  border-radius: 3px;
-}
-
-.reviews-container::-webkit-scrollbar-thumb:hover {
-  background: #F57C00;
-}
-
-@media (max-width: 768px) {
-  .review-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .reviewer-name {
-    padding-right: 0;
-    margin-bottom: 8px;
-  }
-  
-  .review-rating {
-    position: static;
-    margin-bottom: 8px;
-  }
-  
-  .review-actions {
-    position: static;
-    align-self: flex-end;
-    margin-top: 10px;
-  }
-  
-  .review-input-group {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .rating-input {
-    justify-content: space-between;
-  }
-  
-  .zo2y-toast {
-    top: 20px;
-    right: 20px;
-    left: 20px;
-    max-width: none;
-  }
-}
-</style>
-
-
-<style>
-.reviews-container { max-height: 500px; overflow-y: auto; padding-right: 10px; }
-.review { border-bottom: 1px solid var(--nav-shadow); padding: 15px 0; position: relative; }
-.review:last-child { border-bottom: none; }
-.review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; position: relative; }
-.reviewer-name { font-weight: 600; color: var(--text); margin: 0; flex: 1; padding-right: 80px; }
-.review-rating { color: #FF9800; font-size: 0.9rem; position: absolute; right: 0; top: 0; }
-.review-comment { margin: 0; color: var(--text2); line-height: 1.5; padding-right: 0; }
-.review-date { font-size: 0.8rem; color: var(--text2); margin-top: 5px; }
-.review-actions { position: absolute; top: 0; right: 0; }
-.delete-review { background: none; border: none; color: #ff4444; cursor: pointer; padding: 5px 8px; border-radius: 4px; font-size: 0.8rem; transition: all 0.3s ease; margin-left: 10px; }
-.delete-review:hover { background: rgba(255, 68, 68, 0.1); transform: scale(1.1); }
-.review-input-group { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; justify-content: space-between; }
-.rating-input { display: flex; align-items: center; gap: 10px; flex: 1; }
-.stars { display: flex; gap: 2px; }
-.star { font-size: 1.5rem; color: #ddd; cursor: pointer; transition: color 0.2s ease; user-select: none; }
-.star:hover, .star.active { color: #FF9800; transform: scale(1.1); }
-.rating-text { font-size: 0.9rem; color: var(--text2); min-width: 100px; }
-.review-form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
-.char-count { font-size: 0.8rem; color: var(--text2); }
-.reviews-loading, .reviews-empty { text-align: center; padding: 40px 20px; color: var(--text2); font-style: italic; }
-.auth-prompt-review { text-align: center; padding: 20px; background: var(--card); border-radius: 8px; margin-top: 20px; border: 1px solid var(--nav-shadow); }
-.custom-toast { position: fixed; top: 20px; right: 20px; background: var(--card); border: 1px solid var(--nav-shadow); border-left: 4px solid #FF9800; border-radius: 8px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 10000; transform: translateX(400px); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-width: 350px; backdrop-filter: blur(10px); }
-.custom-toast.show { transform: translateX(0); }
-.custom-toast.success { border-left-color: #10b981; }
-.custom-toast.error { border-left-color: #ef4444; }
-.custom-toast.warning { border-left-color: #f59e0b; }
-.custom-toast.info { border-left-color: #3b82f6; }
-.toast-icon { font-size: 20px; flex-shrink: 0; }
-.toast-success .toast-icon { color: #10b981; }
-.toast-error .toast-icon { color: #ef4444; }
-.toast-warning .toast-icon { color: #f59e0b; }
-.toast-info .toast-icon { color: #3b82f6; }
-.toast-content { flex: 1; }
-.toast-title { font-weight: 600; margin-bottom: 4px; color: var(--text); }
-.toast-message { font-size: 14px; color: var(--text2); line-height: 1.4; }
-.toast-close { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s ease; flex-shrink: 0; }
-.toast-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-.reviews-container::-webkit-scrollbar { width: 6px; }
-.reviews-container::-webkit-scrollbar-track { background: var(--nav-bg); border-radius: 3px; }
-.reviews-container::-webkit-scrollbar-thumb { background: #FF9800; border-radius: 3px; }
-.reviews-container::-webkit-scrollbar-thumb:hover { background: #F57C00; }
-@media (max-width: 768px) {
-  .review-header { flex-direction: column; align-items: flex-start; }
-  .reviewer-name { padding-right: 0; margin-bottom: 8px; }
-  .review-rating { position: static; margin-bottom: 8px; }
-  .review-actions { position: static; align-self: flex-end; }
-  .review-input-group { flex-direction: column; gap: 10px; }
-  .rating-input { justify-content: space-between; }
-  .custom-toast { top: 10px; right: 10px; left: 10px; max-width: none; }
-}
-</style>
-
-
-<style>
-.reviews-container {
-  max-height: 500px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-
-.review {
-  border-bottom: 1px solid var(--nav-shadow);
-  padding: 15px 0;
-  position: relative;
-}
-
-.review:last-child {
-  border-bottom: none;
-}
-
-.review-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.reviewer-name {
-  font-weight: 600;
-  color: var(--text);
-  margin: 0;
-}
-
-.review-rating {
-  color: #FF9800;
-  font-size: 0.9rem;
-}
-
-.review-comment {
-  margin: 0;
-  color: var(--text2);
-  line-height: 1.5;
-}
-
-.review-date {
-  font-size: 0.8rem;
-  color: var(--text2);
-  margin-top: 5px;
-}
-
-.review-input-group {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.review-input-group input {
-  flex: 1;
-  min-width: 200px;
-}
-
-.rating-input {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.stars {
-  display: flex;
-  gap: 2px;
-}
-
-.star {
-  font-size: 1.5rem;
-  color: #ddd;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.star:hover,
-.star.active {
-  color: #FF9800;
-}
-
-.rating-text {
-  font-size: 0.9rem;
-  color: var(--text2);
-  min-width: 100px;
-}
-
-.review-form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.char-count {
-  font-size: 0.8rem;
-  color: var(--text2);
-}
-
-.reviews-loading, .reviews-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--text2);
-  font-style: italic;
-}
-
-.review-actions {
-  position: absolute;
-  top: 15px;
-  right: 0;
-}
-
-.delete-review {
-  background: none;
-  border: none;
-  color: #ff4444;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.delete-review:hover {
-  background: rgba(255, 68, 68, 0.1);
-}
-
-.auth-prompt-review {
-  text-align: center;
-  padding: 20px;
-  background: var(--card);
-  border-radius: 8px;
-  margin-top: 20px;
-}
-
-/* Scrollbar styling */
-.reviews-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.reviews-container::-webkit-scrollbar-track {
-  background: var(--nav-bg);
-  border-radius: 3px;
-}
-
-.reviews-container::-webkit-scrollbar-thumb {
-  background: #FF9800;
-  border-radius: 3px;
-}
-
-.reviews-container::-webkit-scrollbar-thumb:hover {
-  background: #F57C00;
-}
-</style>
-
-
-
-
-
-<style>
-.reviews-container { max-height: 500px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px; }
-.review { border-bottom: 1px solid var(--nav-shadow); padding: 20px 0; position: relative; }
-.review:last-child { border-bottom: none; }
-.review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; position: relative; }
-.reviewer-name { font-weight: 600; color: var(--text); margin: 0; flex: 1; padding-right: 100px; }
-.review-rating { color: #FF9800; font-size: 0.9rem; position: absolute; right: 0; top: 0; }
-.review-comment { margin: 0; color: var(--text2); line-height: 1.5; padding-right: 0; }
-.review-date { font-size: 0.8rem; color: var(--text2); margin-top: 5px; }
-.review-actions { position: absolute; top: 0; right: 0; }
-.delete-review { background: none; border: none; color: #ff4444; cursor: pointer; padding: 5px 8px; border-radius: 4px; font-size: 0.8rem; transition: all 0.3s ease; margin-left: 10px; }
-.delete-review:hover { background: rgba(255, 68, 68, 0.1); transform: scale(1.1); }
-.rating-input { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-.stars { display: flex; gap: 2px; }
-.star { font-size: 1.5rem; color: #ddd; cursor: pointer; transition: color 0.2s ease; user-select: none; }
-.star:hover, .star.active { color: #FF9800; transform: scale(1.1); }
-.rating-text { font-size: 0.9rem; color: var(--text2); min-width: 100px; font-weight: 500; }
-.review-form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
-.char-count { font-size: 0.8rem; color: var(--text2); }
-.reviews-loading, .reviews-empty { text-align: center; padding: 40px 20px; color: var(--text2); font-style: italic; }
-.auth-prompt-review { text-align: center; padding: 20px; background: var(--card); border-radius: 8px; margin-top: 20px; border: 1px solid var(--nav-shadow); }
-.zo2y-toast { position: fixed; top: 20px; right: 20px; background: var(--card); border: 1px solid var(--nav-shadow); border-left: 4px solid #FF9800; border-radius: 8px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); z-index: 10000; transform: translateX(400px); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-width: 350px; backdrop-filter: blur(10px); }
-.zo2y-toast.show { transform: translateX(0); }
-.zo2y-toast.success { border-left-color: #10b981; }
-.zo2y-toast.error { border-left-color: #ef4444; }
-.zo2y-toast.warning { border-left-color: #f59e0b; }
-.zo2y-toast.info { border-left-color: #3b82f6; }
-.toast-icon { font-size: 20px; flex-shrink: 0; }
-.zo2y-toast.success .toast-icon { color: #10b981; }
-.zo2y-toast.error .toast-icon { color: #ef4444; }
-.zo2y-toast.warning .toast-icon { color: #f59e0b; }
-.zo2y-toast.info .toast-icon { color: #3b82f6; }
-.toast-content { flex: 1; }
-.toast-title { font-weight: 600; margin-bottom: 4px; color: var(--text); }
-.toast-message { font-size: 14px; color: var(--text2); line-height: 1.4; }
-.toast-close { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s ease; flex-shrink: 0; }
-.toast-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-.reviews-container::-webkit-scrollbar { width: 6px; }
-.reviews-container::-webkit-scrollbar-track { background: var(--nav-bg); border-radius: 3px; }
-.reviews-container::-webkit-scrollbar-thumb { background: #FF9800; border-radius: 3px; }
-.reviews-container::-webkit-scrollbar-thumb:hover { background: #F57C00; }
-@media (max-width: 768px) {
-  .review-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .reviewer-name { padding-right: 0; margin-bottom: 0; }
-  .review-rating { position: static; }
-  .review-actions { position: static; align-self: flex-end; }
-  .rating-input { flex-direction: column; gap: 10px; }
-  .zo2y-toast { top: 10px; right: 10px; left: 10px; max-width: none; }
-}
-</style>
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
   <p style="margin-top: 10px; font-size: 0.8rem;">Buffalo Burger - American Style Since 2017</p>
@@ -993,9 +325,6 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 
 <!-- List Manager - CLEAN VERSION -->
-
-
-
 
 
 
@@ -1718,1286 +1047,5 @@ window.addEventListener('DOMContentLoaded', function() {
     
 });
 </script>
-<script>
-// Theme Toggle Functionality
-const themeToggle = document.getElementById('themeToggle');
-
-function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    themeToggle.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-    localStorage.setItem('restaurant-theme', theme);
-}
-
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    applyTheme(newTheme);
-}
-
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('restaurant-theme');
-    if (savedTheme) {
-        applyTheme(savedTheme);
-    } else {
-        applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    }
-}
-
-themeToggle.addEventListener('click', toggleTheme);
-
-// Review Form Functionality
-const reviewForm = document.getElementById('review-form');
-const reviewsList = document.getElementById('reviews-list');
-
-if (reviewForm && reviewsList) {
-    reviewForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const reviewer = document.getElementById('reviewer').value.trim();
-        const reviewText = document.getElementById('review-text').value.trim();
-        
-        if (reviewer && reviewText) {
-            const reviewElement = document.createElement('div');
-            reviewElement.className = 'review';
-            reviewElement.innerHTML = `<p><strong>${reviewer}</strong></p><p>${reviewText}</p>`;
-            reviewsList.appendChild(reviewElement);
-            reviewForm.reset();
-            
-            const thankYouMessage = document.createElement('p');
-            thankYouMessage.textContent = 'Thank you for your review!';
-            thankYouMessage.style.color = '#FF9800';
-            thankYouMessage.style.fontWeight = '600';
-            thankYouMessage.style.marginTop = '10px';
-            reviewForm.appendChild(thankYouMessage);
-            
-            setTimeout(() => {
-                thankYouMessage.remove();
-            }, 3000);
-        }
-    });
-}
-
-// Menu Category Filter Functionality
-const menuCategoryBtns = document.querySelectorAll('.menu-category-btn');
-const menuCategorySections = document.querySelectorAll('.menu-category-section');
-
-if (menuCategoryBtns.length > 0) {
-    menuCategoryBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const category = this.getAttribute('data-category');
-            
-            // Update active button
-            menuCategoryBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Filter menu items
-            menuCategorySections.forEach(section => {
-                if (category === 'all' || section.getAttribute('data-category') === category) {
-                    section.style.display = 'block';
-                } else {
-                    section.style.display = 'none';
-                }
-            });
-        });
-    });
-}
-
-// Branch Filter Functionality
-const branchFilterBtns = document.querySelectorAll('.branch-filter-btn');
-const branchCards = document.querySelectorAll('.branch-card');
-
-if (branchFilterBtns.length > 0) {
-    branchFilterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const location = this.getAttribute('data-location');
-            
-            // Update active button
-            branchFilterBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Filter branches
-            branchCards.forEach(card => {
-                if (location === 'all' || card.getAttribute('data-location') === location) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    });
-}
-
-// Initialize the page
-initializeTheme();
-</script>
-<script>
-// Reviews System
-class RestaurantReviews {
-  constructor() {
-    this.supabase = window.supabase;
-    this.restaurantId = 24;
-    this.currentRating = 0;
-    this.init();
-  }
-
-  async init() {
-    await this.checkAuth();
-    this.setupEventListeners();
-    this.loadReviews();
-  }
-
-  async checkAuth() {
-    try {
-      const { data: { session } } = await this.supabase.auth.getSession();
-      this.currentUser = session?.user || null;
-      this.toggleAuthUI();
-    } catch (error) {
-      console.error('Auth check error:', error);
-      this.currentUser = null;
-    }
-  }
-
-  toggleAuthUI() {
-    const authPrompt = document.getElementById('auth-prompt');
-    const reviewForm = document.getElementById('review-form');
-    
-    if (this.currentUser) {
-      if (authPrompt) authPrompt.style.display = 'none';
-      if (reviewForm) reviewForm.style.display = 'block';
-    } else {
-      if (authPrompt) authPrompt.style.display = 'block';
-      if (reviewForm) reviewForm.style.display = 'none';
-    }
-  }
-
-  setupEventListeners() {
-    // Star rating
-    document.querySelectorAll('.star').forEach(star => {
-      star.addEventListener('click', (e) => {
-        this.currentRating = parseInt(e.target.dataset.rating);
-        this.updateStars();
-      });
-    });
-
-    // Character count
-    const commentTextarea = document.getElementById('review-comment');
-    if (commentTextarea) {
-      commentTextarea.addEventListener('input', (e) => {
-        const count = e.target.value.length;
-        document.querySelector('.char-count').textContent = `${count}/500`;
-      });
-    }
-
-    // Review form submission
-    const reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-      reviewForm.addEventListener('submit', (e) => this.submitReview(e));
-    }
-  }
-
-  updateStars() {
-    document.querySelectorAll('.star').forEach(star => {
-      const rating = parseInt(star.dataset.rating);
-      star.classList.toggle('active', rating <= this.currentRating);
-    });
-    
-    const ratingTexts = ['Select rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-    document.querySelector('.rating-text').textContent = ratingTexts[this.currentRating] || 'Select rating';
-  }
-
-  async loadReviews() {
-    const reviewsContainer = document.getElementById('reviews-list');
-    if (!reviewsContainer) return;
-
-    try {
-      const { data: reviews, error } = await this.supabase
-        .from('reviews')
-        .select('*')
-        .eq('restaurant_id', this.restaurantId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      this.displayReviews(reviews || []);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-      reviewsContainer.innerHTML = '<div class="reviews-empty">Error loading reviews</div>';
-    }
-  }
-
-  displayReviews(reviews) {
-    const reviewsContainer = document.getElementById('reviews-list');
-    
-    if (reviews.length === 0) {
-      reviewsContainer.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
-      return;
-    }
-
-    reviewsContainer.innerHTML = reviews.map(review => `
-      <div class="review" data-review-id="${review.id}">
-        <div class="review-header">
-          <h4 class="reviewer-name">${this.escapeHtml(review.user_name)}</h4>
-          <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
-        </div>
-        <p class="review-comment">${this.escapeHtml(review.comment)}</p>
-        <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        })}</div>
-        ${this.currentUser && review.user_id === this.currentUser.id ? `
-          <div class="review-actions">
-            <button class="delete-review" onclick="reviewsSystem.deleteReview(${review.id})">Delete</button>
-          </div>
-        ` : ''}
-      </div>
-    `).join('');
-  }
-
-  async submitReview(e) {
-    e.preventDefault();
-    
-    if (!this.currentUser) {
-      alert('Please sign in to submit a review');
-      return;
-    }
-
-    const userName = document.getElementById('reviewer-name').value.trim();
-    const comment = document.getElementById('review-comment').value.trim();
-
-    if (!userName || !comment || this.currentRating === 0) {
-      alert('Please fill in all fields and select a rating');
-      return;
-    }
-
-    try {
-      const { data, error } = await this.supabase
-        .from('reviews')
-        .insert([{
-          restaurant_id: this.restaurantId,
-          user_id: this.currentUser.id,
-          user_name: userName,
-          rating: this.currentRating,
-          comment: comment
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Reset form
-      document.getElementById('review-form').reset();
-      this.currentRating = 0;
-      this.updateStars();
-      document.querySelector('.char-count').textContent = '0/500';
-
-      // Reload reviews
-      this.loadReviews();
-
-      // Show success message
-      this.showNotification('Review submitted successfully!', 'success');
-
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      this.showNotification('Error submitting review: ' + error.message, 'error');
-    }
-  }
-
-  async deleteReview(reviewId) {
-    if (!confirm('Are you sure you want to delete this review?')) return;
-
-    try {
-      const { error } = await this.supabase
-        .from('reviews')
-        .delete()
-        .eq('id', reviewId)
-        .eq('user_id', this.currentUser.id);
-
-      if (error) throw error;
-
-      this.loadReviews();
-      this.showNotification('Review deleted successfully', 'info');
-
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      this.showNotification('Error deleting review', 'error');
-    }
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  showNotification(message, type = 'info') {
-    // Use the existing notification system from your list manager
-    if (window.RestaurantListManager) {
-      new RestaurantListManager().showNotification(message, type);
-    } else {
-      alert(message);
-    }
-  }
-}
-
-// Initialize reviews system when Supabase is ready
-window.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    window.reviewsSystem = new RestaurantReviews();
-  }, 1000);
-});
-</script>
-
-
-<script>
-// Reviews System
-class RestaurantReviews {
-  constructor() {
-    this.supabase = window.supabase;
-    this.restaurantId = 24;
-    this.currentRating = 0;
-    this.init();
-  }
-
-  async init() {
-    await this.checkAuth();
-    this.setupEventListeners();
-    this.loadReviews();
-  }
-
-  async checkAuth() {
-    try {
-      const { data: { session } } = await this.supabase.auth.getSession();
-      this.currentUser = session?.user || null;
-      this.toggleAuthUI();
-    } catch (error) {
-      console.error('Auth check error:', error);
-      this.currentUser = null;
-    }
-  }
-
-  toggleAuthUI() {
-    const authPrompt = document.getElementById('auth-prompt');
-    const reviewForm = document.getElementById('review-form');
-    
-    if (this.currentUser) {
-      if (authPrompt) authPrompt.style.display = 'none';
-      if (reviewForm) reviewForm.style.display = 'block';
-    } else {
-      if (authPrompt) authPrompt.style.display = 'block';
-      if (reviewForm) reviewForm.style.display = 'none';
-    }
-  }
-
-  setupEventListeners() {
-    // Star rating
-    document.querySelectorAll('.star').forEach(star => {
-      star.addEventListener('click', (e) => {
-        this.currentRating = parseInt(e.target.dataset.rating);
-        this.updateStars();
-      });
-    });
-
-    // Character count
-    const commentTextarea = document.getElementById('review-comment');
-    if (commentTextarea) {
-      commentTextarea.addEventListener('input', (e) => {
-        const count = e.target.value.length;
-        document.querySelector('.char-count').textContent = `${count}/500`;
-      });
-    }
-
-    // Review form submission
-    const reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-      reviewForm.addEventListener('submit', (e) => this.submitReview(e));
-    }
-  }
-
-  updateStars() {
-    document.querySelectorAll('.star').forEach(star => {
-      const rating = parseInt(star.dataset.rating);
-      star.classList.toggle('active', rating <= this.currentRating);
-    });
-    
-    const ratingTexts = ['Select rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-    document.querySelector('.rating-text').textContent = ratingTexts[this.currentRating] || 'Select rating';
-  }
-
-  async loadReviews() {
-    const reviewsContainer = document.getElementById('reviews-list');
-    if (!reviewsContainer) return;
-
-    try {
-      reviewsContainer.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
-
-      const { data: reviews, error } = await this.supabase
-        .from('reviews')
-        .select('*')
-        .eq('restaurant_id', this.restaurantId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      this.displayReviews(reviews || []);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-      reviewsContainer.innerHTML = '<div class="reviews-empty">Error loading reviews</div>';
-    }
-  }
-
-  async displayReviews(reviews) {
-    const reviewsContainer = document.getElementById('reviews-list');
-    
-    if (reviews.length === 0) {
-      reviewsContainer.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
-      return;
-    }
-
-    // Get user profiles for all reviews
-    const userIds = [...new Set(reviews.map(review => review.user_id))];
-    const { data: userProfiles, error: profileError } = await this.supabase
-      .from('user_profiles')
-      .select('id, username, full_name')
-      .in('id', userIds);
-
-    const userProfileMap = {};
-    if (userProfiles) {
-      userProfiles.forEach(profile => {
-        userProfileMap[profile.id] = profile;
-      });
-    }
-
-    reviewsContainer.innerHTML = reviews.map(review => {
-      const userProfile = userProfileMap[review.user_id];
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
-      
-      return `
-        <div class="review" data-review-id="${review.id}">
-          <div class="review-header">
-            <h4 class="reviewer-name">${this.escapeHtml(displayName)}</h4>
-            <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
-            ${this.currentUser && review.user_id === this.currentUser.id ? `
-              <div class="review-actions">
-                <button class="delete-review" onclick="reviewsSystem.deleteReview(${review.id})">
-                  <i class="fas fa-trash"></i> Delete
-                </button>
-              </div>
-            ` : ''}
-          </div>
-          <p class="review-comment">${this.escapeHtml(review.comment)}</p>
-          <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  async submitReview(e) {
-    e.preventDefault();
-    
-    if (!this.currentUser) {
-      this.showNotification('Please sign in to submit a review', 'warning');
-      return;
-    }
-
-    const comment = document.getElementById('review-comment').value.trim();
-
-    if (!comment || this.currentRating === 0) {
-      this.showNotification('Please fill in all fields and select a rating', 'warning');
-      return;
-    }
-
-    try {
-      // Get user profile for the display name
-      const { data: userProfile, error: profileError } = await this.supabase
-        .from('user_profiles')
-        .select('username, full_name')
-        .eq('id', this.currentUser.id)
-        .single();
-
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
-
-      const { data, error } = await this.supabase
-        .from('reviews')
-        .insert([{
-          restaurant_id: this.restaurantId,
-          user_id: this.currentUser.id,
-          user_name: displayName,
-          rating: this.currentRating,
-          comment: comment
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Reset form
-      document.getElementById('review-form').reset();
-      this.currentRating = 0;
-      this.updateStars();
-      document.querySelector('.char-count').textContent = '0/500';
-
-      // Reload reviews
-      this.loadReviews();
-
-      // Show success message
-      this.showNotification('Review submitted successfully!', 'success');
-
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      this.showNotification('Error submitting review: ' + error.message, 'error');
-    }
-  }
-
-  async deleteReview(reviewId) {
-    if (!confirm('Are you sure you want to delete this review?')) return;
-
-    try {
-      const { error } = await this.supabase
-        .from('reviews')
-        .delete()
-        .eq('id', reviewId)
-        .eq('user_id', this.currentUser.id);
-
-      if (error) throw error;
-
-      this.loadReviews();
-      this.showNotification('Review deleted successfully', 'info');
-
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      this.showNotification('Error deleting review', 'error');
-    }
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  showNotification(message, type = 'info') {
-    // Remove any existing toasts
-    const existingToasts = document.querySelectorAll('.custom-toast');
-    existingToasts.forEach(toast => toast.remove());
-
-    const toast = document.createElement('div');
-    toast.className = `custom-toast ${type}`;
-    
-    const icons = {
-      success: 'fas fa-check-circle',
-      error: 'fas fa-exclamation-circle',
-      warning: 'fas fa-exclamation-triangle',
-      info: 'fas fa-info-circle'
-    };
-    
-    const titles = {
-      success: 'Success!',
-      error: 'Error!',
-      warning: 'Warning!',
-      info: 'Info'
-    };
-    
-    toast.innerHTML = `
-      <i class="${icons[type]} toast-icon"></i>
-      <div class="toast-content">
-        <div class="toast-title">${titles[type]}</div>
-        <div class="toast-message">${message}</div>
-      </div>
-      <button class="toast-close">&times;</button>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Animate in
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 10);
-    
-    // Manual close
-    toast.querySelector('.toast-close').addEventListener('click', () => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, 300);
-    });
-    
-    // Auto remove after duration
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.classList.remove('show');
-        setTimeout(() => {
-          if (toast.parentNode) {
-            toast.remove();
-          }
-        }, 300);
-      }
-    }, 5000);
-  }
-}
-
-// Initialize reviews system when Supabase is ready
-window.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    if (window.supabase) {
-      window.reviewsSystem = new RestaurantReviews();
-    } else {
-      console.error('Supabase not loaded');
-    }
-  }, 1000);
-});
-</script>
-
-
-<script>
-// Reviews System
-class RestaurantReviews {
-  constructor() {
-    this.supabase = window.supabase;
-    this.restaurantId = 24;
-    this.currentRating = 0;
-    this.init();
-  }
-
-  async init() {
-    await this.checkAuth();
-    this.setupEventListeners();
-    this.loadReviews();
-  }
-
-  async checkAuth() {
-    try {
-      const { data: { session } } = await this.supabase.auth.getSession();
-      this.currentUser = session?.user || null;
-      this.toggleAuthUI();
-    } catch (error) {
-      console.error('Auth check error:', error);
-      this.currentUser = null;
-    }
-  }
-
-  toggleAuthUI() {
-    const authPrompt = document.getElementById('auth-prompt');
-    const reviewForm = document.getElementById('review-form');
-    
-    if (this.currentUser) {
-      if (authPrompt) authPrompt.style.display = 'none';
-      if (reviewForm) reviewForm.style.display = 'block';
-    } else {
-      if (authPrompt) authPrompt.style.display = 'block';
-      if (reviewForm) reviewForm.style.display = 'none';
-    }
-  }
-
-  setupEventListeners() {
-    // Star rating
-    document.querySelectorAll('.star').forEach(star => {
-      star.addEventListener('click', (e) => {
-        this.currentRating = parseInt(e.target.dataset.rating);
-        this.updateStars();
-      });
-    });
-
-    // Character count
-    const commentTextarea = document.getElementById('review-comment');
-    if (commentTextarea) {
-      commentTextarea.addEventListener('input', (e) => {
-        const count = e.target.value.length;
-        const charCount = document.querySelector('.char-count');
-        if (charCount) charCount.textContent = `${count}/500`;
-      });
-    }
-
-    // Review form submission
-    const reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-      reviewForm.addEventListener('submit', (e) => this.submitReview(e));
-    }
-  }
-
-  updateStars() {
-    document.querySelectorAll('.star').forEach(star => {
-      const rating = parseInt(star.dataset.rating);
-      star.classList.toggle('active', rating <= this.currentRating);
-    });
-    
-    const ratingTexts = ['Select rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-    const ratingTextElement = document.querySelector('.rating-text');
-    if (ratingTextElement) {
-      ratingTextElement.textContent = ratingTexts[this.currentRating] || 'Select rating';
-    }
-  }
-
-  async loadReviews() {
-    const reviewsContainer = document.getElementById('reviews-list');
-    if (!reviewsContainer) return;
-
-    try {
-      reviewsContainer.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
-
-      const { data: reviews, error } = await this.supabase
-        .from('reviews')
-        .select('*')
-        .eq('restaurant_id', this.restaurantId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      this.displayReviews(reviews || []);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-      reviewsContainer.innerHTML = '<div class="reviews-empty">Error loading reviews</div>';
-    }
-  }
-
-  async displayReviews(reviews) {
-    const reviewsContainer = document.getElementById('reviews-list');
-    if (!reviewsContainer) return;
-    
-    if (reviews.length === 0) {
-      reviewsContainer.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
-      return;
-    }
-
-    // Get user profiles for all reviews
-    const userIds = [...new Set(reviews.map(review => review.user_id))];
-    const { data: userProfiles, error: profileError } = await this.supabase
-      .from('user_profiles')
-      .select('id, username, full_name')
-      .in('id', userIds);
-
-    const userProfileMap = {};
-    if (userProfiles) {
-      userProfiles.forEach(profile => {
-        userProfileMap[profile.id] = profile;
-      });
-    }
-
-    reviewsContainer.innerHTML = reviews.map(review => {
-      const userProfile = userProfileMap[review.user_id];
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
-      
-      return `
-        <div class="review" data-review-id="${review.id}">
-          <div class="review-header">
-            <h4 class="reviewer-name">${this.escapeHtml(displayName)}</h4>
-            <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
-            ${this.currentUser && review.user_id === this.currentUser.id ? `
-              <div class="review-actions">
-                <button class="delete-review" onclick="reviewsSystem.deleteReview(${review.id})">
-                  <i class="fas fa-trash"></i> Delete
-                </button>
-              </div>
-            ` : ''}
-          </div>
-          <p class="review-comment">${this.escapeHtml(review.comment)}</p>
-          <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  async submitReview(e) {
-    e.preventDefault();
-    
-    if (!this.currentUser) {
-      this.showNotification('Please sign in to submit a review', 'warning');
-      return;
-    }
-
-    const commentElement = document.getElementById('review-comment');
-    if (!commentElement) {
-      this.showNotification('Review form not found', 'error');
-      return;
-    }
-
-    const comment = commentElement.value.trim();
-
-    if (!comment) {
-      this.showNotification('Please write a review comment', 'warning');
-      return;
-    }
-
-    if (this.currentRating === 0) {
-      this.showNotification('Please select a rating', 'warning');
-      return;
-    }
-
-    try {
-      // Get user profile for the display name
-      const { data: userProfile, error: profileError } = await this.supabase
-        .from('user_profiles')
-        .select('username, full_name')
-        .eq('id', this.currentUser.id)
-        .single();
-
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
-
-      const { data, error } = await this.supabase
-        .from('reviews')
-        .insert([{
-          restaurant_id: this.restaurantId,
-          user_id: this.currentUser.id,
-          user_name: displayName,
-          rating: this.currentRating,
-          comment: comment
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Reset form
-      const reviewForm = document.getElementById('review-form');
-      if (reviewForm) reviewForm.reset();
-      
-      this.currentRating = 0;
-      this.updateStars();
-      
-      const charCount = document.querySelector('.char-count');
-      if (charCount) charCount.textContent = '0/500';
-
-      // Reload reviews
-      this.loadReviews();
-
-      // Show success message
-      this.showNotification('Review submitted successfully! 🎉', 'success');
-
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      this.showNotification('Error submitting review. Please try again.', 'error');
-    }
-  }
-
-  async deleteReview(reviewId) {
-    if (!confirm('Are you sure you want to delete this review?')) return;
-
-    try {
-      const { error } = await this.supabase
-        .from('reviews')
-        .delete()
-        .eq('id', reviewId)
-        .eq('user_id', this.currentUser.id);
-
-      if (error) throw error;
-
-      this.loadReviews();
-      this.showNotification('Review deleted successfully', 'info');
-
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      this.showNotification('Error deleting review', 'error');
-    }
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  showNotification(message, type = 'info') {
-    // Remove any existing toasts
-    const existingToasts = document.querySelectorAll('.zo2y-toast');
-    existingToasts.forEach(toast => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, 300);
-    });
-
-    const toast = document.createElement('div');
-    toast.className = `zo2y-toast ${type}`;
-    
-    const icons = {
-      success: '✓',
-      error: '⚠',
-      warning: '⚠', 
-      info: 'ℹ'
-    };
-    
-    const titles = {
-      success: 'Success!',
-      error: 'Error!',
-      warning: 'Warning!',
-      info: 'Notice'
-    };
-    
-    toast.innerHTML = `
-      <div class="toast-icon">${icons[type]}</div>
-      <div class="toast-content">
-        <div class="toast-title">${titles[type]}</div>
-        <div class="toast-message">${message}</div>
-      </div>
-      <button class="toast-close">×</button>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Animate in
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 10);
-    
-    // Manual close
-    toast.querySelector('.toast-close').addEventListener('click', () => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, 300);
-    });
-    
-    // Auto remove after duration
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.classList.remove('show');
-        setTimeout(() => {
-          if (toast.parentNode) {
-            toast.remove();
-          }
-        }, 300);
-      }
-    }, 5000);
-  }
-}
-
-// Initialize reviews system when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  // Wait for Supabase to be available
-  const initReviews = () => {
-    if (window.supabase) {
-      window.reviewsSystem = new RestaurantReviews();
-    } else {
-      setTimeout(initReviews, 100);
-    }
-  };
-  
-  setTimeout(initReviews, 1000);
-});
-</script>
-
-
-<script>
-// Reviews System
-class RestaurantReviews {
-  constructor() {
-    this.supabase = window.supabase;
-    this.restaurantId = 24;
-    this.currentRating = 0;
-    this.init();
-  }
-
-  async init() {
-    await this.checkAuth();
-    this.setupEventListeners();
-    this.loadReviews();
-  }
-
-  async checkAuth() {
-    try {
-      const { data: { session } } = await this.supabase.auth.getSession();
-      this.currentUser = session?.user || null;
-      this.toggleAuthUI();
-    } catch (error) {
-      console.error('Auth check error:', error);
-      this.currentUser = null;
-    }
-  }
-
-  toggleAuthUI() {
-    const authPrompt = document.getElementById('auth-prompt');
-    const reviewForm = document.getElementById('review-form');
-    
-    if (this.currentUser) {
-      if (authPrompt) authPrompt.style.display = 'none';
-      if (reviewForm) reviewForm.style.display = 'block';
-    } else {
-      if (authPrompt) authPrompt.style.display = 'block';
-      if (reviewForm) reviewForm.style.display = 'none';
-    }
-  }
-
-  setupEventListeners() {
-    // Star rating
-    document.querySelectorAll('.star').forEach(star => {
-      star.addEventListener('click', (e) => {
-        this.currentRating = parseInt(e.target.dataset.rating);
-        this.updateStars();
-      });
-    });
-
-    // Character count
-    const commentTextarea = document.getElementById('review-comment');
-    if (commentTextarea) {
-      commentTextarea.addEventListener('input', (e) => {
-        const count = e.target.value.length;
-        document.querySelector('.char-count').textContent = `${count}/500`;
-      });
-    }
-
-    // Review form submission
-    const reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-      reviewForm.addEventListener('submit', (e) => this.submitReview(e));
-    }
-  }
-
-  updateStars() {
-    document.querySelectorAll('.star').forEach(star => {
-      const rating = parseInt(star.dataset.rating);
-      star.classList.toggle('active', rating <= this.currentRating);
-    });
-    
-    const ratingTexts = ['Select rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-    document.querySelector('.rating-text').textContent = ratingTexts[this.currentRating] || 'Select rating';
-  }
-
-  async loadReviews() {
-    const reviewsContainer = document.getElementById('reviews-list');
-    if (!reviewsContainer) return;
-
-    try {
-      const { data: reviews, error } = await this.supabase
-        .from('reviews')
-        .select('*')
-        .eq('restaurant_id', this.restaurantId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      this.displayReviews(reviews || []);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-      reviewsContainer.innerHTML = '<div class="reviews-empty">Error loading reviews</div>';
-    }
-  }
-
-  async displayReviews(reviews) {
-    const reviewsContainer = document.getElementById('reviews-list');
-    
-    if (reviews.length === 0) {
-      reviewsContainer.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
-      return;
-    }
-
-    // Get user profiles for all reviews to get proper usernames
-    const userIds = [...new Set(reviews.map(review => review.user_id))];
-    const { data: userProfiles, error: profileError } = await this.supabase
-      .from('user_profiles')
-      .select('id, username, full_name')
-      .in('id', userIds);
-
-    const userProfileMap = {};
-    if (userProfiles) {
-      userProfiles.forEach(profile => {
-        userProfileMap[profile.id] = profile;
-      });
-    }
-
-    reviewsContainer.innerHTML = reviews.map(review => {
-      const userProfile = userProfileMap[review.user_id];
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : review.user_name;
-      
-      return `
-        <div class="review" data-review-id="${review.id}">
-          <div class="review-header">
-            <h4 class="reviewer-name">${this.escapeHtml(displayName)}</h4>
-            <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
-            ${this.currentUser && review.user_id === this.currentUser.id ? `
-              <div class="review-actions">
-                <button class="delete-review" onclick="reviewsSystem.deleteReview(${review.id})">
-                  <i class="fas fa-trash"></i> Delete
-                </button>
-              </div>
-            ` : ''}
-          </div>
-          <p class="review-comment">${this.escapeHtml(review.comment)}</p>
-          <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  async submitReview(e) {
-    e.preventDefault();
-    
-    if (!this.currentUser) {
-      this.showNotification('Please sign in to submit a review', 'warning');
-      return;
-    }
-
-    const comment = document.getElementById('review-comment').value.trim();
-
-    if (!comment || this.currentRating === 0) {
-      this.showNotification('Please fill in all fields and select a rating', 'warning');
-      return;
-    }
-
-    try {
-      // Get user profile for proper username
-      const { data: userProfile, error: profileError } = await this.supabase
-        .from('user_profiles')
-        .select('username, full_name')
-        .eq('id', this.currentUser.id)
-        .single();
-
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'User';
-
-      const { data, error } = await this.supabase
-        .from('reviews')
-        .insert([{
-          restaurant_id: this.restaurantId,
-          user_id: this.currentUser.id,
-          user_name: displayName,
-          rating: this.currentRating,
-          comment: comment
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Reset form
-      document.getElementById('review-form').reset();
-      this.currentRating = 0;
-      this.updateStars();
-      document.querySelector('.char-count').textContent = '0/500';
-
-      // Reload reviews
-      this.loadReviews();
-
-      // Show success message
-      this.showNotification('Review submitted successfully!', 'success');
-
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      this.showNotification('Error submitting review: ' + error.message, 'error');
-    }
-  }
-
-  async deleteReview(reviewId) {
-    if (!confirm('Are you sure you want to delete this review?')) return;
-
-    try {
-      const { error } = await this.supabase
-        .from('reviews')
-        .delete()
-        .eq('id', reviewId)
-        .eq('user_id', this.currentUser.id);
-
-      if (error) throw error;
-
-      this.loadReviews();
-      this.showNotification('Review deleted successfully', 'info');
-
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      this.showNotification('Error deleting review', 'error');
-    }
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  showNotification(message, type = 'info') {
-    // Remove any existing toasts
-    const existingToasts = document.querySelectorAll('.zo2y-toast');
-    existingToasts.forEach(toast => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, 300);
-    });
-
-    const toast = document.createElement('div');
-    toast.className = `zo2y-toast ${type}`;
-    
-    const icons = {
-      success: 'fas fa-check-circle',
-      error: 'fas fa-exclamation-circle',
-      warning: 'fas fa-exclamation-triangle',
-      info: 'fas fa-info-circle'
-    };
-    
-    const titles = {
-      success: 'Success!',
-      error: 'Error!',
-      warning: 'Warning!',
-      info: 'Info'
-    };
-    
-    toast.innerHTML = `
-      <i class="${icons[type]} toast-icon"></i>
-      <div class="toast-content">
-        <div class="toast-title">${titles[type]}</div>
-        <div class="toast-message">${message}</div>
-      </div>
-      <button class="toast-close">&times;</button>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Animate in
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 10);
-    
-    // Manual close
-    toast.querySelector('.toast-close').addEventListener('click', () => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, 300);
-    });
-    
-    // Auto remove after duration
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.classList.remove('show');
-        setTimeout(() => {
-          if (toast.parentNode) {
-            toast.remove();
-          }
-        }, 300);
-      }
-    }, 5000);
-  }
-}
-
-// Initialize reviews system when Supabase is ready
-window.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    window.reviewsSystem = new RestaurantReviews();
-  }, 1000);
-});
-</script>
-
-
-
-
 </body>
 </html>

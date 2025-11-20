@@ -1,61 +1,51 @@
-// remove-reviews-with-backup.js
+// restore-all.js
 const fs = require('fs');
 const path = require('path');
 
-function safeRemoveReviewsFromFile(filePath) {
-    try {
-        // Create backup first
-        const backupPath = filePath + '.backup';
-        if (!fs.existsSync(backupPath)) {
-            fs.copyFileSync(filePath, backupPath);
-            console.log(`📦 Created backup: ${backupPath}`);
-        }
-        
-        let content = fs.readFileSync(filePath, 'utf8');
-        const originalLength = content.length;
-        
-        // Remove reviews section
-        content = content.replace(/<!-- DYNAMIC REVIEWS SYSTEM -->[\s\S]*?<\/section>/g, '');
-        
-        // Remove reviews script
-        content = content.replace(/<!-- REVIEWS SYSTEM SCRIPT -->[\s\S]*?<\/script>/g, '');
-        
-        if (content.length < originalLength) {
-            fs.writeFileSync(filePath, content, 'utf8');
-            console.log(`✅ Cleaned: ${filePath} (removed ${originalLength - content.length} chars)`);
-            return true;
-        } else {
-            console.log(`ℹ️  No changes needed: ${filePath}`);
-            return false;
-        }
-        
-    } catch (error) {
-        console.error(`❌ Error processing ${filePath}:`, error);
-        return false;
-    }
-}
-
-// Use the same processing function as above
-function removeFromAllFiles() {
-    const cardsFolder = './cards';
-    if (!fs.existsSync(cardsFolder)) {
-        console.log(`❌ Cards folder not found: ${cardsFolder}`);
-        return;
-    }
+function restoreAllFiles() {
+    console.log('🔍 Searching for backup files...');
     
-    const files = fs.readdirSync(cardsFolder);
-    let processedCount = 0;
-
-    files.forEach(file => {
-        if (file.endsWith('.html')) {
-            const filePath = path.join(cardsFolder, file);
-            if (safeRemoveReviewsFromFile(filePath)) {
-                processedCount++;
+    // Look for backups in current directory and subdirectories
+    const backupFiles = [];
+    
+    function searchBackups(dir) {
+        const items = fs.readdirSync(dir);
+        
+        for (const item of items) {
+            const fullPath = path.join(dir, item);
+            const stat = fs.statSync(fullPath);
+            
+            if (stat.isDirectory()) {
+                searchBackups(fullPath);
+            } else if (item.endsWith('.backup')) {
+                backupFiles.push(fullPath);
             }
         }
+    }
+    
+    searchBackups('.');
+    
+    console.log(`📦 Found ${backupFiles.length} backup files`);
+    
+    let restoredCount = 0;
+    
+    backupFiles.forEach(backupPath => {
+        try {
+            // Remove .backup extension to get original filename
+            const originalPath = backupPath.slice(0, -7); // remove '.backup'
+            
+            // Copy backup over original file
+            fs.copyFileSync(backupPath, originalPath);
+            console.log(`✅ Restored: ${path.basename(originalPath)}`);
+            restoredCount++;
+            
+        } catch (error) {
+            console.log(`❌ Failed to restore: ${backupPath}`);
+        }
     });
-
-    console.log(`\n🎉 Cleanup complete! Processed ${processedCount} files`);
+    
+    console.log(`\n🎉 SUCCESS! Restored ${restoredCount} files from backups`);
+    console.log('✨ Your files are now back to their original state!');
 }
 
-removeFromAllFiles();
+restoreAllFiles();
