@@ -177,8 +177,10 @@ function updateAllFiles() {
 </style>
 
 <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.26.0/dist/supabase.min.js";
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
   const supabase = createClient("${SUPABASE_URL}", "${SUPABASE_KEY}");
+  
+  console.log('Supabase client loaded:', supabase);
   
   const restaurantId = ${restaurantId};
   let currentUser = null;
