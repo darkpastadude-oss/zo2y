@@ -556,28 +556,191 @@ class ReviewsSystem {
 
     createReviewsSystem() {
         return `
-        <section class="section reviews">
-            <h2>Customer Reviews</h2>
-            
-            <div class="review-stats" id="reviewStats">
-                <div class="overall-rating">
-                    <div class="rating-large" id="overallRating">0.0</div>
-                    <div class="rating-stars-large" id="overallStars">⭐⭐⭐⭐⭐</div>
-                    <div class="rating-count" id="reviewCount">0 reviews</div>
-                </div>
-                <div class="rating-breakdown" id="ratingBreakdown"></div>
-            </div>
+        
+<section class="section reviews" id="reviews-section">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list" class="reviews-container">
+    <div class="reviews-loading">Loading reviews...</div>
+  </div>
+  
+  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
+  <form class="review-form" id="review-form">
+    <div class="review-input-group">
+      <input type="text" placeholder="Your Name" id="reviewer-name" required maxlength="50">
+      <div class="rating-input">
+        <span>Rating:</span>
+        <div class="stars">
+          <span class="star" data-rating="1">★</span><span class="star" data-rating="2">★</span><span class="star" data-rating="3">★</span><span class="star" data-rating="4">★</span><span class="star" data-rating="5">★</span>
+        </div>
+        <span class="rating-text">Select rating</span>
+      </div>
+    </div>
+    <textarea placeholder="Share your experience..." id="review-comment" rows="4" required maxlength="500"></textarea>
+    <div class="review-form-actions">
+      <button type="submit" class="btn">Submit Review</button>
+      <span class="char-count">0/500</span>
+    </div>
+  </form>
+  
+  <div class="auth-prompt-review" id="auth-prompt" style="display: none;">
+    <p>Please <a href="../login.html" style="color: #FF9800; text-decoration: underline;">sign in</a> to submit a review.</p>
+  </div>
+</section>
 
-            <div id="reviewsList">
-                <div class="empty-reviews">
-                    <div class="empty-icon">💬</div>
-                    <h3>No Reviews Yet</h3>
-                    <p>Be the first to share your experience!</p>
-                </div>
-            </div>
+<style>
+.reviews-container {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
 
-            ${this.currentUser ? this.createReviewForm() : this.createLoginPrompt()}
-        </section>
+.review {
+  border-bottom: 1px solid var(--nav-shadow);
+  padding: 15px 0;
+  position: relative;
+}
+
+.review:last-child {
+  border-bottom: none;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.reviewer-name {
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.review-rating {
+  color: #FF9800;
+  font-size: 0.9rem;
+}
+
+.review-comment {
+  margin: 0;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.review-date {
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-top: 5px;
+}
+
+.review-input-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.review-input-group input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.rating-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 1.5rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.star:hover,
+.star.active {
+  color: #FF9800;
+}
+
+.rating-text {
+  font-size: 0.9rem;
+  color: var(--text2);
+  min-width: 100px;
+}
+
+.review-form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-count {
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+.reviews-loading, .reviews-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text2);
+  font-style: italic;
+}
+
+.review-actions {
+  position: absolute;
+  top: 15px;
+  right: 0;
+}
+
+.delete-review {
+  background: none;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.delete-review:hover {
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.auth-prompt-review {
+  text-align: center;
+  padding: 20px;
+  background: var(--card);
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+/* Scrollbar styling */
+.reviews-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reviews-container::-webkit-scrollbar-track {
+  background: var(--nav-bg);
+  border-radius: 3px;
+}
+
+.reviews-container::-webkit-scrollbar-thumb {
+  background: #FF9800;
+  border-radius: 3px;
+}
+
+.reviews-container::-webkit-scrollbar-thumb:hover {
+  background: #F57C00;
+}
+</style>
+
         `;
     }
 
