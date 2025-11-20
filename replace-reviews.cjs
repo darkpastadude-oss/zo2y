@@ -1,10 +1,10 @@
-// fix-reviews-complete.js - FIXED VERSION
+// fix-reviews-complete.js - PROPER AUTH VERSION
 const fs = require('fs');
 const path = require('path');
 
 const CARDS_FOLDER = path.join(__dirname, 'cards');
 
-// Supabase config
+// Supabase config (same as profile)
 const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
@@ -25,14 +25,11 @@ function cleanupFile(filePath) {
         
         console.log(`\n🔧 Cleaning up: ${path.basename(filePath)}`);
         
-        // Remove ALL review-related scripts and sections FIRST
+        // Remove ALL review-related scripts and sections
         const patternsToRemove = [
-            // Remove any existing clean review systems
             /<!-- CLEAN_REVIEW_SYSTEM_V1 -->[\s\S]*?<\/script>\s*<\/body>/gi,
             /<!-- CLEAN_REVIEW_SYSTEM_V2 -->[\s\S]*?<\/script>\s*<\/body>/gi,
-            // Remove duplicate review sections
             /<section class="section reviews"[\s\S]*?<\/section>/gi,
-            // Remove any review scripts
             /<script>[\s\S]*?RestaurantReviews[\s\S]*?<\/script>/gi,
             /<script>[\s\S]*?reviewsSystem[\s\S]*?<\/script>/gi,
             /<script>[\s\S]*?class RestaurantReviews[\s\S]*?<\/script>/gi,
@@ -86,13 +83,13 @@ function addCleanReviewSystem(filePath) {
         }
 
         // Check if a clean review system already exists
-        if (content.includes('CLEAN_REVIEW_SYSTEM_V2')) {
+        if (content.includes('PROFILE_STYLE_AUTH_SYSTEM')) {
             console.log(`⏩ Clean system already exists in: ${path.basename(filePath)}`);
             return false;
         }
 
         const cleanReviewSystem = `
-<!-- CLEAN_REVIEW_SYSTEM_V2 -->
+<!-- PROFILE_STYLE_AUTH_SYSTEM -->
 <section class="section reviews" id="reviews-section">
   <h2>Customer Reviews</h2>
   <div id="reviews-list">
@@ -230,77 +227,123 @@ function addCleanReviewSystem(filePath) {
 </style>
 
 <script>
-// SINGLE CLEAN REVIEW SYSTEM V2 - FIXED AUTH ISSUES
-if (!window.cleanReviewSystemV2Loaded) {
-  window.cleanReviewSystemV2Loaded = true;
+// PROFILE-STYLE AUTHENTICATION SYSTEM FOR REVIEWS
+if (!window.profileStyleReviewSystemLoaded) {
+  window.profileStyleReviewSystemLoaded = true;
   
-  class CleanRestaurantReviews {
-    constructor(restaurantId) {
-      this.restaurantId = restaurantId;
+  // Global state (same pattern as profile page)
+  let currentUser = null;
+  let restaurantId = ${restaurantId};
+  
+  // Toast system (same as profile)
+  function showToast(message, type = 'info', duration = 5000) {
+      const toastContainer = document.getElementById('toastContainer');
+      if (!toastContainer) {
+          // Create toast container if it doesn't exist
+          const container = document.createElement('div');
+          container.className = 'toast-container';
+          container.id = 'toastContainer';
+          container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000;';
+          document.body.appendChild(container);
+      }
+      
+      const toast = document.createElement('div');
+      toast.className = \`toast \${type}\`;
+      toast.style.cssText = 'background: var(--card, #132347); padding: 16px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #f59e0b; display: flex; align-items: center; gap: 12px;';
+      
+      if (type === 'success') toast.style.borderLeftColor = '#10b981';
+      if (type === 'error') toast.style.borderLeftColor = '#ef4444';
+      
+      const icons = {
+          success: 'fas fa-check-circle',
+          error: 'fas fa-exclamation-circle',
+          warning: 'fas fa-exclamation-triangle',
+          info: 'fas fa-info-circle'
+      };
+      
+      toast.innerHTML = \`
+          <i class="\${icons[type]}" style="color: \${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b'}"></i>
+          <div>
+              <div style="font-weight: 600; margin-bottom: 4px;">\${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+              <div style="font-size: 14px; opacity: 0.9;">\${message}</div>
+          </div>
+          <button class="toast-close" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #cbd5e1;">&times;</button>
+      \`;
+      
+      document.getElementById('toastContainer').appendChild(toast);
+      
+      // Auto remove after duration
+      setTimeout(() => {
+          if (toast.parentNode) {
+              toast.remove();
+          }
+      }, duration);
+      
+      // Manual close
+      toast.querySelector('.toast-close').addEventListener('click', () => {
+          toast.remove();
+      });
+  }
+
+  class ProfileStyleReviewSystem {
+    constructor() {
       this.currentRating = 0;
-      this.currentUser = null;
-      this.supabase = null;
-      console.log('🔄 Initializing clean review system for restaurant:', this.restaurantId);
+      console.log('🔄 Initializing profile-style review system for restaurant:', restaurantId);
       this.init();
     }
 
     async init() {
-      // Wait for Supabase to be available
-      await this.waitForSupabase();
-      await this.checkAuth();
-      this.setupEventListeners();
-      await this.loadReviews();
-    }
-
-    async waitForSupabase() {
-      return new Promise((resolve) => {
-        const checkSupabase = () => {
-          if (window.supabase) {
-            this.supabase = window.supabase;
-            console.log('✅ Supabase loaded');
-            resolve();
-          } else {
-            console.log('⏳ Waiting for Supabase...');
-            setTimeout(checkSupabase, 100);
-          }
-        };
-        checkSupabase();
-      });
-    }
-
-    async checkAuth() {
       try {
-        if (!this.supabase) {
-          console.error('Supabase not available');
-          return;
-        }
+        // Use the same auth pattern as profile page
+        await this.checkAuthentication();
+        this.setupEventListeners();
+        await this.loadReviews();
+      } catch (error) {
+        console.error('Error initializing review system:', error);
+        showToast('Error loading reviews', 'error');
+      }
+    }
 
-        const { data: { session }, error } = await this.supabase.auth.getSession();
+    // Same authentication pattern as profile page
+    async checkAuthentication() {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
         
         if (error) {
           console.error('Auth error:', error);
+          this.handleNotAuthenticated();
           return;
         }
 
-        this.currentUser = session?.user || null;
-        
-        const reviewForm = document.getElementById('review-form');
-        const authPrompt = document.getElementById('auth-prompt');
-        
-        if (reviewForm && authPrompt) {
-          if (this.currentUser) {
-            reviewForm.style.display = 'block';
-            authPrompt.style.display = 'none';
-            console.log('✅ User is authenticated');
-          } else {
-            reviewForm.style.display = 'none';
-            authPrompt.style.display = 'block';
-            console.log('⚠️ User not authenticated');
-          }
+        if (!user) {
+          this.handleNotAuthenticated();
+          return;
         }
+
+        currentUser = user;
+        this.handleAuthenticated();
+        console.log('✅ User authenticated:', user.email);
+        
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error('Error checking authentication:', error);
+        this.handleNotAuthenticated();
       }
+    }
+
+    handleAuthenticated() {
+      const reviewForm = document.getElementById('review-form');
+      const authPrompt = document.getElementById('auth-prompt');
+      
+      if (reviewForm) reviewForm.style.display = 'block';
+      if (authPrompt) authPrompt.style.display = 'none';
+    }
+
+    handleNotAuthenticated() {
+      const reviewForm = document.getElementById('review-form');
+      const authPrompt = document.getElementById('auth-prompt');
+      
+      if (reviewForm) reviewForm.style.display = 'none';
+      if (authPrompt) authPrompt.style.display = 'block';
     }
 
     setupEventListeners() {
@@ -349,15 +392,12 @@ if (!window.cleanReviewSystemV2Loaded) {
       if (!container) return;
 
       try {
-        if (!this.supabase) {
-          container.innerHTML = '<div class="reviews-empty">Error: Authentication system not ready</div>';
-          return;
-        }
+        container.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
 
-        const { data: reviews, error } = await this.supabase
+        const { data: reviews, error } = await supabase
           .from('reviews')
           .select('*')
-          .eq('restaurant_id', this.restaurantId)
+          .eq('restaurant_id', restaurantId)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -371,9 +411,9 @@ if (!window.cleanReviewSystemV2Loaded) {
           return;
         }
 
-        // Get user profiles for proper names
+        // Get user profiles for proper names (same as profile page pattern)
         const userIds = [...new Set(reviews.map(r => r.user_id))];
-        const { data: userProfiles } = await this.supabase
+        const { data: userProfiles } = await supabase
           .from('user_profiles')
           .select('id, username, full_name')
           .in('id', userIds);
@@ -388,7 +428,7 @@ if (!window.cleanReviewSystemV2Loaded) {
         container.innerHTML = reviews.map(review => {
           const user = userMap[review.user_id];
           const displayName = user ? (user.full_name || user.username) : 'Anonymous User';
-          const canDelete = this.currentUser && this.currentUser.id === review.user_id;
+          const canDelete = currentUser && currentUser.id === review.user_id;
           
           return \`
             <div class="review">
@@ -422,8 +462,8 @@ if (!window.cleanReviewSystemV2Loaded) {
     async submitReview(e) {
       e.preventDefault();
       
-      if (!this.currentUser) {
-        alert('Please sign in to submit a review');
+      if (!currentUser) {
+        showToast('Please sign in to submit a review', 'error');
         window.location.href = '../login.html';
         return;
       }
@@ -432,30 +472,30 @@ if (!window.cleanReviewSystemV2Loaded) {
       const comment = commentEl ? commentEl.value.trim() : '';
 
       if (!comment) {
-        alert('Please write a review comment');
+        showToast('Please write a review comment', 'error');
         return;
       }
 
       if (this.currentRating === 0) {
-        alert('Please select a rating');
+        showToast('Please select a rating', 'error');
         return;
       }
 
       try {
-        // Get user profile for proper name
-        const { data: userProfile } = await this.supabase
+        // Get user profile for proper name (same pattern as profile page)
+        const { data: userProfile } = await supabase
           .from('user_profiles')
           .select('username, full_name')
-          .eq('id', this.currentUser.id)
+          .eq('id', currentUser.id)
           .single();
 
         const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'User';
 
-        const { error } = await this.supabase
+        const { error } = await supabase
           .from('reviews')
           .insert({
-            restaurant_id: this.restaurantId,
-            user_id: this.currentUser.id,
+            restaurant_id: restaurantId,
+            user_id: currentUser.id,
             user_name: displayName,
             rating: this.currentRating,
             comment: comment
@@ -476,34 +516,34 @@ if (!window.cleanReviewSystemV2Loaded) {
         // Reload reviews
         await this.loadReviews();
 
-        alert('Review submitted successfully! 🎉');
+        showToast('Review submitted successfully! 🎉', 'success');
 
       } catch (error) {
         console.error('Error submitting review:', error);
-        alert('Error submitting review. Please try again.');
+        showToast('Error submitting review. Please try again.', 'error');
       }
     }
 
     async deleteReview(reviewId) {
-      if (!this.currentUser || !confirm('Are you sure you want to delete this review?')) {
+      if (!currentUser || !confirm('Are you sure you want to delete this review?')) {
         return;
       }
 
       try {
-        const { error } = await this.supabase
+        const { error } = await supabase
           .from('reviews')
           .delete()
           .eq('id', reviewId)
-          .eq('user_id', this.currentUser.id);
+          .eq('user_id', currentUser.id);
 
         if (error) throw error;
 
         await this.loadReviews();
-        alert('Review deleted successfully');
+        showToast('Review deleted successfully', 'success');
 
       } catch (error) {
         console.error('Error deleting review:', error);
-        alert('Error deleting review');
+        showToast('Error deleting review', 'error');
       }
     }
 
@@ -514,25 +554,22 @@ if (!window.cleanReviewSystemV2Loaded) {
     }
   }
 
-  // Initialize when page is ready
-  document.addEventListener('DOMContentLoaded', () => {
-    // Find the restaurant ID from the script
-    const reviewScript = document.querySelector('script');
-    const scriptContent = reviewScript?.textContent || '';
-    const restaurantIdMatch = scriptContent.match(/this\\.restaurantId = (\\d+)/);
-    
-    if (restaurantIdMatch) {
-      const restaurantId = parseInt(restaurantIdMatch[1]);
-      console.log('🎯 Found restaurant ID:', restaurantId);
-      
-      // Wait a bit for Supabase to load
-      setTimeout(() => {
-        window.reviewSystem = new CleanRestaurantReviews(restaurantId);
-      }, 500);
+  // Initialize when DOM is ready and Supabase is available
+  function initializeReviewSystem() {
+    if (window.supabase) {
+      window.reviewSystem = new ProfileStyleReviewSystem();
     } else {
-      console.error('❌ Could not find restaurant ID in script');
+      // Wait for Supabase to be available (same pattern as profile page)
+      setTimeout(initializeReviewSystem, 100);
     }
-  });
+  }
+
+  // Start initialization
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeReviewSystem);
+  } else {
+    initializeReviewSystem();
+  }
 }
 </script>
 `;
@@ -541,7 +578,7 @@ if (!window.cleanReviewSystemV2Loaded) {
         if (content.includes('</body>')) {
             content = content.replace('</body>', cleanReviewSystem + '\n</body>');
             fs.writeFileSync(filePath, content, 'utf8');
-            console.log(`✅ Added clean review system to: ${path.basename(filePath)}`);
+            console.log(`✅ Added profile-style review system to: ${path.basename(filePath)}`);
             return true;
         }
         
@@ -570,7 +607,7 @@ function processAllFiles() {
 
     console.log(`\n🧹 Cleaned ${cleanedCount} files`);
 
-    console.log('\n🚀 STEP 2: Adding clean review systems...');
+    console.log('\n🚀 STEP 2: Adding profile-style review systems...');
     let addedCount = 0;
     files.forEach(file => {
         const filePath = path.join(CARDS_FOLDER, file);
@@ -579,8 +616,8 @@ function processAllFiles() {
         }
     });
 
-    console.log(`\n✅ Added clean systems to ${addedCount} files`);
-    console.log('\n🎉 All done! Your review systems are now clean and working.');
+    console.log(`\n✅ Added profile-style systems to ${addedCount} files`);
+    console.log('\n🎉 All done! Your review systems now use the same auth pattern as the profile page.');
 }
 
 // Run the complete process
