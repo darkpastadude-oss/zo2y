@@ -937,8 +937,8 @@
             border-color: var(--accent);
         }
 
-        /* === FRIEND CARDS === */
-        .friend-card {
+        /* === FOLLOWER CARDS === */
+        .follower-card {
             background: var(--card);
             border-radius: var(--radius);
             padding: 20px;
@@ -946,19 +946,19 @@
             transition: var(--transition);
         }
 
-        .friend-card:hover {
+        .follower-card:hover {
             transform: translateY(-2px);
             border-color: var(--accent);
         }
 
-        .friend-header {
+        .follower-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 16px;
         }
 
-        .friend-avatar {
+        .follower-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -970,42 +970,42 @@
             color: #0b1633;
         }
 
-        .friend-info {
+        .follower-info {
             flex: 1;
         }
 
-        .friend-name {
+        .follower-name {
             font-weight: 600;
             margin-bottom: 4px;
         }
 
-        .friend-username {
+        .follower-username {
             color: var(--muted);
             font-size: 14px;
         }
 
-        .friend-stats {
+        .follower-stats {
             display: flex;
             gap: 16px;
             margin-bottom: 16px;
         }
 
-        .friend-stat {
+        .follower-stat {
             text-align: center;
         }
 
-        .friend-stat-number {
+        .follower-stat-number {
             font-size: 18px;
             font-weight: 600;
             color: var(--accent);
         }
 
-        .friend-stat-label {
+        .follower-stat-label {
             font-size: 12px;
             color: var(--muted);
         }
 
-        .friend-actions {
+        .follower-actions {
             display: flex;
             gap: 8px;
         }
@@ -1279,27 +1279,27 @@
                 gap: 16px;
             }
 
-            /* Friend cards mobile optimization */
-            .friend-card {
+            /* Follower cards mobile optimization */
+            .follower-card {
                 padding: 16px;
             }
 
-            .friend-header {
+            .follower-header {
                 flex-direction: column;
                 text-align: center;
                 gap: 12px;
             }
 
-            .friend-stats {
+            .follower-stats {
                 justify-content: space-around;
             }
 
-            .friend-actions {
+            .follower-actions {
                 flex-direction: column;
                 gap: 8px;
             }
 
-            .friend-actions .btn {
+            .follower-actions .btn {
                 width: 100%;
                 justify-content: center;
             }
@@ -1439,11 +1439,11 @@
                 width: 100%;
             }
 
-            .friend-actions {
+            .follower-actions {
                 flex-direction: column;
             }
 
-            .friend-actions .btn {
+            .follower-actions .btn {
                 width: 100%;
             }
         }
@@ -1567,7 +1567,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
-                <div class="stat-number" id="friendsCount">0</div>
+                <div class="stat-number" id="followersCount">0</div>
                 <div class="stat-label">Followers</div>
             </div>
             <div class="stat-card">
@@ -1607,9 +1607,9 @@
             <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
                 <i class="fas fa-trophy"></i> Achievements
             </div>
-            <div class="nav-tab" data-tab="friends" onclick="showTab('friends')">
-                <i class="fas fa-users"></i> Friends
-                <span class="nav-tab-badge d-none" id="friendsBadge">0</span>
+            <div class="nav-tab" data-tab="followers" onclick="showTab('followers')">
+                <i class="fas fa-users"></i> Followers
+                <span class="nav-tab-badge d-none" id="followersBadge">0</span>
             </div>
         </div>
 
@@ -1815,28 +1815,28 @@
             </div>
         </div>
 
-        <!-- Friends Tab Content -->
-        <div class="tab-content" id="friends-tab">
+        <!-- Followers Tab Content -->
+        <div class="tab-content" id="followers-tab">
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Friends</h2>
+                        <h2 class="section-title">Followers</h2>
                         <p class="section-subtitle">Connect with other food lovers</p>
                     </div>
                     <div class="section-actions">
-                        <button class="btn btn-primary" onclick="showModal('friendSearchModal')" id="addFriendsBtn">
-                            <i class="fas fa-user-plus"></i> Add Friends
+                        <button class="btn btn-primary" onclick="showModal('followerSearchModal')" id="addFollowersBtn">
+                            <i class="fas fa-user-plus"></i> Find Users
                         </button>
                     </div>
                 </div>
 
-                <div id="friendsList">
+                <div id="followersList">
                     <div class="empty-state">
                         <div class="empty-icon">👥</div>
-                        <h3 class="empty-title">Not following anyone yet</h3>
-                        <p class="empty-description">Search for users to find friends and see their food adventures!</p>
-                        <button class="btn btn-primary mt-md" onclick="showModal('friendSearchModal')">
-                            <i class="fas fa-user-plus"></i> Find Friends
+                        <h3 class="empty-title">No followers yet</h3>
+                        <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
+                            <i class="fas fa-user-plus"></i> Find Users
                         </button>
                     </div>
                 </div>
@@ -2022,12 +2022,12 @@
         </div>
     </div>
 
-    <!-- Friend Search Modal -->
-    <div class="modal" id="friendSearchModal">
+    <!-- Follower Search Modal -->
+    <div class="modal" id="followerSearchModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Find Friends</h3>
-                <button class="modal-close" onclick="closeModal('friendSearchModal')">&times;</button>
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="closeModal('followerSearchModal')">&times;</button>
             </div>
             
             <div class="modal-body">
@@ -2134,7 +2134,7 @@
                 await loadProfile();
                 await loadRestaurants();
                 await listManager.init();
-                await friendSystem.init();
+                await followerSystem.init();
                 await foodJournal.init();
                 await achievementsSystem.init();
                 
@@ -2454,13 +2454,13 @@
                     visitedCount = visitedRestaurants ? visitedRestaurants.length : 0;
                 }
                 
-                // Get friends count
-                const { data: friends } = await supabase
+                // Get followers count
+                const { data: followers } = await supabase
                     .from('follows')
                     .select('id')
-                    .eq('follower_id', targetId);
+                    .eq('followed_id', targetId);
                     
-                const friendsCount = friends ? friends.length : 0;
+                const followersCount = followers ? followers.length : 0;
                 
                 // Get lists count
                 const { data: userLists } = await supabase
@@ -2475,7 +2475,7 @@
                 
                 // Update UI
                 setTextContent('visitedCount', visitedCount);
-                setTextContent('friendsCount', friendsCount);
+                setTextContent('followersCount', followersCount);
                 setTextContent('listsCount', listsCount);
                 setTextContent('streakCount', streakCount);
                 setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
@@ -3185,8 +3185,8 @@
             }
         };
 
-        // Friend System
-        const friendSystem = {
+        // Follower System
+        const followerSystem = {
             async init() {
                 if (!currentUser) return;
                 await this.loadFollowStats();
@@ -3218,13 +3218,13 @@
 
                     // Update badge
                     const pendingRequests = await this.getPendingRequestsCount();
-                    const friendsBadge = getElement('friendsBadge');
-                    if (friendsBadge) {
+                    const followersBadge = getElement('followersBadge');
+                    if (followersBadge) {
                         if (pendingRequests > 0) {
-                            friendsBadge.textContent = pendingRequests;
-                            friendsBadge.style.display = 'inline-flex';
+                            followersBadge.textContent = pendingRequests;
+                            followersBadge.style.display = 'inline-flex';
                         } else {
-                            friendsBadge.style.display = 'none';
+                            followersBadge.style.display = 'none';
                         }
                     }
 
@@ -3309,41 +3309,41 @@
                     const isPrivate = user.is_private === true;
                     
                     const userCard = document.createElement('div');
-                    userCard.className = 'friend-card';
+                    userCard.className = 'follower-card';
                     userCard.innerHTML = `
-                        <div class="friend-header">
-                            <div class="friend-avatar">${user.avatar_icon || '👤'}</div>
-                            <div class="friend-info">
-                                <div class="friend-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                <div class="friend-username">@${user.username || 'user'}</div>
+                        <div class="follower-header">
+                            <div class="follower-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="follower-info">
+                                <div class="follower-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                <div class="follower-username">@${user.username || 'user'}</div>
                             </div>
                         </div>
-                        <div class="friend-stats">
-                            <div class="friend-stat">
-                                <span class="friend-stat-number">${user.visited_count || 0}</span>
-                                <span class="friend-stat-label">Visited</span>
+                        <div class="follower-stats">
+                            <div class="follower-stat">
+                                <span class="follower-stat-number">${user.visited_count || 0}</span>
+                                <span class="follower-stat-label">Visited</span>
                             </div>
-                            <div class="friend-stat">
-                                <span class="friend-stat-number">${user.favorites_count || 0}</span>
-                                <span class="friend-stat-label">Favorites</span>
+                            <div class="follower-stat">
+                                <span class="follower-stat-number">${user.favorites_count || 0}</span>
+                                <span class="follower-stat-label">Favorites</span>
                             </div>
-                            <div class="friend-stat">
-                                <span class="friend-stat-number">${user.followers_count || 0}</span>
-                                <span class="friend-stat-label">Followers</span>
+                            <div class="follower-stat">
+                                <span class="follower-stat-number">${user.followers_count || 0}</span>
+                                <span class="follower-stat-label">Followers</span>
                             </div>
                         </div>
-                        <div class="friend-actions">
+                        <div class="follower-actions">
                             <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
                                 <i class="fas fa-eye"></i> View Profile
                             </button>
                             ${isPrivate && !followStatus.isFollowing ? `
                                 <button class="btn ${followStatus.hasRequested ? 'btn-secondary' : 'btn-primary'} btn-sm" 
-                                        onclick="friendSystem.sendFollowRequest('${user.id}')">
+                                        onclick="followerSystem.sendFollowRequest('${user.id}')">
                                     ${followStatus.hasRequested ? 'Requested' : 'Request to Follow'}
                                 </button>
                             ` : `
                                 <button class="btn ${followStatus.isFollowing ? 'btn-success' : 'btn-primary'} btn-sm" 
-                                        onclick="friendSystem.toggleFollow('${user.id}')">
+                                        onclick="followerSystem.toggleFollow('${user.id}')">
                                     ${followStatus.isFollowing ? 'Following' : 'Follow'}
                                 </button>
                             `}
@@ -3463,12 +3463,12 @@
                 if (userSearch && userSearch.value) {
                     this.searchUsers();
                 } else {
-                    // Load default friends view
-                    this.loadFriends();
+                    // Load default followers view
+                    this.loadFollowers();
                 }
             },
 
-            async loadFriends() {
+            async loadFollowers() {
                 try {
                     // Get users that current user is following
                     const { data: follows, error } = await supabase
@@ -3478,17 +3478,17 @@
 
                     if (error) throw error;
 
-                    const friendsList = getElement('friendsList');
-                    if (!friendsList) return;
+                    const followersList = getElement('followersList');
+                    if (!followersList) return;
 
                     if (!follows || follows.length === 0) {
-                        friendsList.innerHTML = `
+                        followersList.innerHTML = `
                             <div class="empty-state">
                                 <div class="empty-icon">👥</div>
-                                <h3 class="empty-title">Not following anyone yet</h3>
-                                <p class="empty-description">Search for users to find friends and see their food adventures!</p>
-                                <button class="btn btn-primary mt-md" onclick="showModal('friendSearchModal')">
-                                    <i class="fas fa-user-plus"></i> Find Friends
+                                <h3 class="empty-title">No followers yet</h3>
+                                <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
+                                <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
                                 </button>
                             </div>
                         `;
@@ -3502,10 +3502,10 @@
                         .in('id', followingIds);
 
                     if (!usersError) {
-                        this.displayUsers(users, 'friendsList');
+                        this.displayUsers(users, 'followersList');
                     }
                 } catch (error) {
-                    console.error('Error loading friends:', error);
+                    console.error('Error loading followers:', error);
                 }
             }
         };
@@ -3608,7 +3608,7 @@
                     { 
                         id: 4, 
                         name: "Social Butterfly", 
-                        description: "Follow 10 friends", 
+                        description: "Follow 10 users", 
                         icon: "👥", 
                         goal: 10,
                         points: 25
@@ -3695,8 +3695,8 @@
             currentTab = tabName;
             
             // Load tab-specific content
-            if (tabName === 'friends') {
-                friendSystem.loadFriends();
+            if (tabName === 'followers') {
+                followerSystem.loadFollowers();
             } else if (tabName === 'journal') {
                 foodJournal.loadJournalEntries();
             } else if (tabName === 'achievements') {
@@ -3943,11 +3943,11 @@
                 });
             }
             
-            // Add friends button
-            const addFriendsBtn = getElement('addFriendsBtn');
-            if (addFriendsBtn) {
-                addFriendsBtn.addEventListener('click', () => {
-                    showModal('friendSearchModal');
+            // Add followers button
+            const addFollowersBtn = getElement('addFollowersBtn');
+            if (addFollowersBtn) {
+                addFollowersBtn.addEventListener('click', () => {
+                    showModal('followerSearchModal');
                 });
             }
             
