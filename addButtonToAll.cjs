@@ -724,30 +724,75 @@ window.addEventListener('DOMContentLoaded', function() {
 
 console.log('🚀 Adding premium list manager to all restaurant pages...');
 
-fs.readdirSync(folderPath).forEach((file) => {
-    if (file.endsWith(".html")) {
-        const filePath = path.join(folderPath, file);
-        let content = fs.readFileSync(filePath, "utf8");
-
-        // Remove any existing list manager scripts
-        const scriptRegex = /<!-- (Load Supabase First|List Manager Button)[\s\S]*?<\/script>\s*<\/body>/;
-        if (scriptRegex.test(content)) {
-            content = content.replace(scriptRegex, '</body>');
-        }
-        
-        // Add the new premium script
-        content = content.replace("</body>", `${scriptCode}</body>`);
-        fs.writeFileSync(filePath, content, "utf8");
-        console.log(`✅ Added premium FAB to ${file}`);
+try {
+    // Check if folder exists
+    if (!fs.existsSync(folderPath)) {
+        console.error('❌ Folder does not exist:', folderPath);
+        process.exit(1);
     }
-});
 
-console.log('🎉 PREMIUM UPGRADE COMPLETE! New features:');
-console.log('💫 Floating Action Button (bottom-right corner)');
-console.log('✨ Smooth animations and hover effects');
-console.log('🎨 Modern glass-morphism design');
-console.log('🔔 Enhanced notifications with animations');
-console.log('🌟 Better organization with sections');
-console.log('🛡️ Auth handling with beautiful prompts');
-console.log('📱 Perfect positioning that avoids UI conflicts');
-console.log('⚡ All original functionality preserved and enhanced!');
+    const files = fs.readdirSync(folderPath).filter(file => file.endsWith(".html"));
+    
+    if (files.length === 0) {
+        console.log('❌ No HTML files found in', folderPath);
+        process.exit(1);
+    }
+
+    console.log(`📁 Found ${files.length} HTML files to process`);
+
+    let processedCount = 0;
+    let errorCount = 0;
+
+    files.forEach((file) => {
+        try {
+            const filePath = path.join(folderPath, file);
+            console.log(`\n📄 Processing: ${file}`);
+            
+            let content = fs.readFileSync(filePath, "utf8");
+
+            // Check if script already exists (more flexible matching)
+            const existingScriptRegex = /<!-- (Load Supabase First|List Manager Button)[\s\S]*?<\/script>/i;
+            const hasExistingScript = existingScriptRegex.test(content);
+            
+            if (hasExistingScript) {
+                console.log(`   ⚠️  Removing existing list manager from ${file}`);
+                content = content.replace(existingScriptRegex, '');
+            }
+
+            // Add the new script before closing body tag
+            if (content.includes('</body>')) {
+                content = content.replace('</body>', `${scriptCode}</body>`);
+                console.log(`   ✅ Added premium FAB to ${file}`);
+                processedCount++;
+            } else {
+                console.log(`   ❌ No </body> tag found in ${file}, skipping`);
+                errorCount++;
+            }
+            
+            fs.writeFileSync(filePath, content, "utf8");
+            
+        } catch (error) {
+            console.error(`   ❌ Error processing ${file}:`, error.message);
+            errorCount++;
+        }
+    });
+
+    console.log('\n🎉 PROCESSING COMPLETE!');
+    console.log(`✅ Successfully processed: ${processedCount} files`);
+    console.log(`❌ Errors: ${errorCount} files`);
+    
+    if (processedCount > 0) {
+        console.log('\n✨ PREMIUM UPGRADE FEATURES:');
+        console.log('💫 Floating Action Button (bottom-right corner)');
+        console.log('✨ Smooth animations and hover effects');
+        console.log('🎨 Modern glass-morphism design');
+        console.log('🔔 Enhanced notifications with animations');
+        console.log('🌟 Better organization with sections');
+        console.log('🛡️ Auth handling with beautiful prompts');
+        console.log('📱 Perfect positioning that avoids UI conflicts');
+        console.log('⚡ All original functionality preserved and enhanced!');
+    }
+
+} catch (error) {
+    console.error('❌ Fatal error:', error);
+}
