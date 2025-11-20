@@ -1226,55 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </style>
 
 <!-- REAL REVIEWS SYSTEM -->
-<section class="section reviews">
-    <h2>Customer Reviews</h2>
-    
-    <div class="review-stats">
-        <div class="overall-rating">
-            <div class="rating-large">0.0</div>
-            <div class="rating-stars-large">⭐⭐⭐⭐⭐</div>
-            <div class="rating-count">0 reviews</div>
-        </div>
-    </div>
 
-    <div id="reviewsList">
-        <div class="empty-reviews">
-            <p>No reviews yet. Be the first to share your experience!</p>
-        </div>
-    </div>
-
-    <div class="add-review-section">
-        <h3>Write a Review</h3>
-        <form class="review-form" id="reviewForm">
-            <div class="rating-input">
-                <label>Your Rating:</label>
-                <div class="star-rating" id="starRating">
-                    <span class="star" data-rating="1">☆</span>
-                    <span class="star" data-rating="2">☆</span>
-                    <span class="star" data-rating="3">☆</span>
-                    <span class="star" data-rating="4">☆</span>
-                    <span class="star" data-rating="5">☆</span>
-                </div>
-                <input type="hidden" id="selectedRating" name="rating" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="reviewComment">Your Review:</label>
-                <textarea 
-                    id="reviewComment" 
-                    name="comment" 
-                    placeholder="Share your experience with this restaurant..." 
-                    rows="4"
-                    required
-                ></textarea>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">
-                Submit Review
-            </button>
-        </form>
-    </div>
-</section>
 
 <script>
 // Simple Reviews System
