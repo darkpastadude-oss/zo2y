@@ -5,7 +5,6 @@ class ReviewsAdder {
     constructor() {
         this.cardsDir = path.join(__dirname, 'cards');
         
-        // Update these with your actual restaurant database IDs
         this.restaurantIds = {
             'howlin-birds': 1,
             'mori': 2,
@@ -61,20 +60,22 @@ class ReviewsAdder {
                 return true;
             }
 
-            // Create the new reviews system
-            const newReviewsSystem = this.createReviewsSystem();
+            // Create the new reviews section
+            const newReviewsSection = this.createReviewsSection();
 
-            // Find where to insert the reviews section - typically before the footer
-            // Look for the footer or closing body tag
+            // Find the best place to insert - before the footer
             if (content.includes('</footer>')) {
                 // Insert before footer
-                content = content.replace('</footer>', newReviewsSystem + '\\n</footer>');
-            } else if (content.includes('</body>')) {
-                // Insert before closing body tag
-                content = content.replace('</body>', newReviewsSystem + '\\n</body>');
+                content = content.replace('</footer>', newReviewsSection + '\\n</footer>');
+            } else if (content.includes('<!-- Reviews section will be replaced dynamically -->')) {
+                // Replace the placeholder
+                content = content.replace(
+                    '<!-- Reviews section will be replaced dynamically -->',
+                    newReviewsSection
+                );
             } else {
-                // Last resort: insert at the end
-                content += newReviewsSystem;
+                // Insert before the closing body tag as last resort
+                content = content.replace('</body>', newReviewsSection + '\\n</body>');
             }
 
             // Write updated content back to file
@@ -87,7 +88,9 @@ class ReviewsAdder {
         }
     }
 
-    createReviewsSystem() {
+    createReviewsSection() {
+        const restaurantIdMap = JSON.stringify(this.restaurantIds, null, 4);
+        
         return `
 <!-- ==================== -->
 <!-- REAL REVIEWS SYSTEM -->
@@ -147,8 +150,8 @@ class ReviewsAdder {
 </section>
 
 <script>
-// Reviews System
-class ReviewsSystem {
+// Simple Reviews System
+class SimpleReviewsSystem {
     constructor() {
         this.supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         this.supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
@@ -182,7 +185,7 @@ class ReviewsSystem {
     getRestaurantId() {
         const path = window.location.pathname;
         const slug = path.split('/').pop().replace('.html', '');
-        const restaurantIds = ${JSON.stringify(this.restaurantIds, null, 4)};
+        const restaurantIds = ${restaurantIdMap};
         return restaurantIds[slug] || 1;
     }
 
@@ -238,10 +241,10 @@ class ReviewsSystem {
                 </div>
                 \${this.canEditReview(review) ? \`
                     <div class="review-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.editReview(\${review.id})">
+                        <button class="btn btn-sm btn-secondary" onclick="simpleReviewsSystem.editReview(\${review.id})">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.deleteReview(\${review.id})">
+                        <button class="btn btn-sm btn-secondary" onclick="simpleReviewsSystem.deleteReview(\${review.id})">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
@@ -458,8 +461,8 @@ class ReviewsSystem {
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    window.reviewsSystem = new ReviewsSystem();
-    window.reviewsSystem.init();
+    window.simpleReviewsSystem = new SimpleReviewsSystem();
+    window.simpleReviewsSystem.init();
 });
 </script>
 
