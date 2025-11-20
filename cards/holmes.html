@@ -525,7 +525,6 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <a href="https://www.holmesburgers.com/menu/-136662" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
 </section>
 
-<!-- Reviews section will be replaced dynamically -->
 
 <footer>
   <p>© 2025 Zo2y. All rights reserved.</p>
@@ -771,7 +770,6 @@ initializeTheme();
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // Reviews System
-const reviewsSystem = {
     supabaseUrl: "https://gfkhjbztayjyojsgdpgk.supabase.co",
     supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s",
     supabase: null,
@@ -834,35 +832,11 @@ const reviewsSystem = {
         const oldSection = document.querySelector('.reviews');
         if (!oldSection) return;
         
-        oldSection.outerHTML = this.createReviewsSystem();
         this.renderReviews();
         this.calculateRatings();
     },
 
-    createReviewsSystem() {
         return `
-            <section class="reviews">
-                <h2>Customer Reviews</h2>
-                
-                <div class="review-stats" id="reviewStats">
-                    <div class="overall-rating">
-                        <div class="rating-large" id="overallRating">0.0</div>
-                        <div class="rating-stars-large" id="overallStars">⭐⭐⭐⭐⭐</div>
-                        <div class="rating-count" id="reviewCount">0 reviews</div>
-                    </div>
-                    <div class="rating-breakdown" id="ratingBreakdown"></div>
-                </div>
-
-                <div id="reviewsList">
-                    <div class="empty-reviews">
-                        <div class="empty-icon">💬</div>
-                        <h3>No Reviews Yet</h3>
-                        <p>Be the first to share your experience!</p>
-                    </div>
-                </div>
-
-                ${this.currentUser ? this.createReviewForm() : this.createLoginPrompt()}
-            </section>
         `;
     },
 
@@ -950,10 +924,8 @@ const reviewsSystem = {
                 </div>
                 ${this.canEditReview(review) ? `
                     <div class="review-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.editReview(${review.id})">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.deleteReview(${review.id})">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
@@ -1191,11 +1163,9 @@ const reviewsSystem = {
 };
 
 // Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => reviewsSystem.init());
 </script>
 
 <style>
-.review-stats { display: flex; align-items: center; gap: 30px; margin-bottom: 30px; padding: 20px; background: var(--card); border-radius: 12px; border: 1px solid var(--nav-shadow); }
 .overall-rating { text-align: center; }
 .rating-large { font-size: 3rem; font-weight: 700; color: var(--accent); line-height: 1; }
 .rating-stars-large { color: #FF9800; font-size: 1.5rem; margin: 10px 0; }
@@ -1234,120 +1204,9 @@ document.addEventListener('DOMContentLoaded', () => reviewsSystem.init());
 .review-toast-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text2); }
 .review-toast-close:hover { color: var(--text); }
 @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@media (max-width: 768px) { .review-stats { flex-direction: column; gap: 20px; } .rating-breakdown { width: 100%; } .review-header { flex-direction: column; gap: 12px; } .star { font-size: 1.5rem; } }
 </style>
 \n
 <!-- ==================== -->
-<!-- REAL REVIEWS SYSTEM -->
-<!-- ==================== -->
-
-<script>
-class ReviewsSystem {
-    constructor() {
-        this.supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-        this.supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-        this.supabase = window.supabase.createClient(this.supabaseUrl, this.supabaseKey);
-        this.currentUser = null;
-        this.restaurantId = null;
-        this.reviews = [];
-    }
-
-    async init() {
-        await this.getCurrentUser();
-        this.restaurantId = this.getRestaurantId();
-        if (this.restaurantId) {
-            await this.loadReviews();
-            this.replaceStaticReviews();
-            this.setupEventListeners();
-        }
-    }
-
-    async getCurrentUser() {
-        try {
-            const { data: { user } } = await this.supabase.auth.getUser();
-            this.currentUser = user;
-        } catch (error) {
-            console.log('No user logged in');
-        }
-    }
-
-    getRestaurantId() {
-        const path = window.location.pathname;
-        const slug = path.split('/').pop().replace('.html', '');
-        const restaurantIds = {
-    "howlin-birds": 1,
-    "mori": 2,
-    "kilo": 3,
-    "hameed": 4,
-    "bazooka": 5,
-    "mexican-corn": 6,
-    "chikin-worx": 7,
-    "vasko": 8,
-    "second-cup": 9,
-    "pizza-station": 10,
-    "brgr": 11
-};
-        return restaurantIds[slug] || null;
-    }
-
-    async loadReviews() {
-        if (!this.restaurantId) return;
-        try {
-            const { data, error } = await this.supabase
-                .from('reviews')
-                .select('*')
-                .eq('restaurant_id', this.restaurantId)
-                .order('created_at', { ascending: false });
-            if (error) throw error;
-            this.reviews = data || [];
-        } catch (error) {
-            console.error('Error loading reviews:', error);
-            this.reviews = [];
-        }
-    }
-
-    replaceStaticReviews() {
-        // Find the old reviews section and replace it
-        const oldSection = document.querySelector('.reviews');
-        if (oldSection) {
-            oldSection.outerHTML = this.createReviewsSystem();
-            this.renderReviews();
-            this.calculateRatings();
-        }
-    }
-
-    createReviewsSystem() {
-        return `
-        
-<section class="section reviews" id="reviews-section">
-  <h2>Customer Reviews</h2>
-  <div id="reviews-list" class="reviews-container">
-    <div class="reviews-loading">Loading reviews...</div>
-  </div>
-  
-  <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
-  <form class="review-form" id="review-form">
-    <div class="review-input-group">
-      <input type="text" placeholder="Your Name" id="reviewer-name" required maxlength="50">
-      <div class="rating-input">
-        <span>Rating:</span>
-        <div class="stars">
-          <span class="star" data-rating="1">★</span><span class="star" data-rating="2">★</span><span class="star" data-rating="3">★</span><span class="star" data-rating="4">★</span><span class="star" data-rating="5">★</span>
-        </div>
-        <span class="rating-text">Select rating</span>
-      </div>
-    </div>
-    <textarea placeholder="Share your experience..." id="review-comment" rows="4" required maxlength="500"></textarea>
-    <div class="review-form-actions">
-      <button type="submit" class="btn">Submit Review</button>
-      <span class="char-count">0/500</span>
-    </div>
-  </form>
-  
-  <div class="auth-prompt-review" id="auth-prompt" style="display: none;">
-    <p>Please <a href="../login.html" style="color: #FF9800; text-decoration: underline;">sign in</a> to submit a review.</p>
-  </div>
-</section>
 
 <style>
 .reviews-container {
@@ -1590,10 +1449,8 @@ class ReviewsSystem {
                 </div>
                 ${this.canEditReview(review) ? `
                     <div class="review-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.editReview(${review.id})">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn btn-sm btn-secondary" onclick="reviewsSystem.deleteReview(${review.id})">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
@@ -1858,14 +1715,11 @@ class ReviewsSystem {
 
 // Initialize the system when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    window.reviewsSystem = new ReviewsSystem();
-    window.reviewsSystem.init();
 });
 </script>
 
 <style>
 /* Review System Styles */
-.review-stats {
     display: flex;
     align-items: center;
     gap: 30px;
@@ -2118,7 +1972,6 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 @media (max-width: 768px) {
-    .review-stats {
         flex-direction: column;
         text-align: center;
         gap: 20px;
@@ -2256,7 +2109,6 @@ class RestaurantReviews {
         })}</div>
         ${this.currentUser && review.user_id === this.currentUser.id ? `
           <div class="review-actions">
-            <button class="delete-review" onclick="reviewsSystem.deleteReview(${review.id})">Delete</button>
           </div>
         ` : ''}
       </div>
@@ -2352,10 +2204,168 @@ class RestaurantReviews {
 // Initialize reviews system when Supabase is ready
 window.addEventListener('DOMContentLoaded', function() {
   setTimeout(() => {
-    window.reviewsSystem = new RestaurantReviews();
   }, 1000);
 });
 </script>
 
+
+<!-- REAL REVIEWS SYSTEM -->
+<section class="section reviews">
+    <h2>Customer Reviews</h2>
+    
+    <div class="review-stats">
+        <div class="overall-rating">
+            <div class="rating-large">0.0</div>
+            <div class="rating-stars-large">⭐⭐⭐⭐⭐</div>
+            <div class="rating-count">0 reviews</div>
+        </div>
+    </div>
+
+    <div id="reviewsList">
+        <div class="empty-reviews">
+            <p>No reviews yet. Be the first to share your experience!</p>
+        </div>
+    </div>
+
+    <div class="add-review-section">
+        <h3>Write a Review</h3>
+        <form class="review-form" id="reviewForm">
+            <div class="rating-input">
+                <label>Your Rating:</label>
+                <div class="star-rating" id="starRating">
+                    <span class="star" data-rating="1">☆</span>
+                    <span class="star" data-rating="2">☆</span>
+                    <span class="star" data-rating="3">☆</span>
+                    <span class="star" data-rating="4">☆</span>
+                    <span class="star" data-rating="5">☆</span>
+                </div>
+                <input type="hidden" id="selectedRating" name="rating" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="reviewComment">Your Review:</label>
+                <textarea 
+                    id="reviewComment" 
+                    name="comment" 
+                    placeholder="Share your experience..." 
+                    rows="4"
+                    required
+                ></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Submit Review</button>
+        </form>
+    </div>
+</section>
+
+<script>
+// Simple Reviews System
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewForm = document.getElementById('reviewForm');
+    const stars = document.querySelectorAll('.star');
+    let selectedRating = 0;
+    
+    // Star rating
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.dataset.rating);
+            stars.forEach((s, index) => {
+                s.textContent = index < selectedRating ? '⭐' : '☆';
+                s.style.color = index < selectedRating ? '#FF9800' : 'var(--text2)';
+            });
+            document.getElementById('selectedRating').value = selectedRating;
+        });
+    });
+    
+    // Form submission
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            alert('Review system is ready! Connect to Supabase to enable real reviews.');
+        });
+    }
+});
+</script>
+
+<style>
+.review-stats { 
+    display: flex; 
+    align-items: center; 
+    gap: 30px; 
+    margin-bottom: 30px; 
+    padding: 20px; 
+    background: var(--card); 
+    border-radius: 12px; 
+    border: 1px solid var(--nav-shadow); 
+}
+.overall-rating { 
+    text-align: center; 
+}
+.rating-large { 
+    font-size: 3rem; 
+    font-weight: 700; 
+    color: var(--accent); 
+    line-height: 1; 
+}
+.rating-stars-large { 
+    color: #FF9800; 
+    font-size: 1.5rem; 
+    margin: 10px 0; 
+}
+.rating-count { 
+    color: var(--text2); 
+    font-size: 0.9rem; 
+}
+.review-item { 
+    background: var(--card); 
+    border-radius: 12px; 
+    padding: 20px; 
+    margin-bottom: 16px; 
+    border: 1px solid var(--nav-shadow); 
+}
+.add-review-section { 
+    background: var(--card); 
+    border-radius: 12px; 
+    padding: 24px; 
+    margin-top: 30px; 
+    border: 1px solid var(--nav-shadow); 
+}
+.rating-input { 
+    margin-bottom: 20px; 
+}
+.rating-input label { 
+    display: block; 
+    margin-bottom: 8px; 
+    font-weight: 600; 
+}
+.star-rating { 
+    display: flex; 
+    gap: 4px; 
+}
+.star { 
+    font-size: 2rem; 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+    user-select: none; 
+}
+.star:hover { 
+    transform: scale(1.1); 
+}
+.empty-reviews { 
+    text-align: center; 
+    padding: 40px 20px; 
+    color: var(--text2); 
+}
+
+@media (max-width: 768px) {
+    .review-stats { 
+        flex-direction: column; 
+        gap: 20px; 
+    }
+    .star { 
+        font-size: 1.5rem; 
+    }
+}
+</style>
 </body>
 </html>
