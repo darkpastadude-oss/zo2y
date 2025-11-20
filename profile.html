@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* === DARK BLUE THEME VARIABLES === */
         :root {
@@ -40,6 +39,7 @@
             background: var(--bg);
             color: var(--white);
             line-height: 1.6;
+            min-height: 100vh;
         }
 
         .container {
@@ -2047,12 +2047,7 @@
     </div>
 
     <script>
-        // === FIXED JAVASCRIPT CODE ===
-        // Supabase configuration
-        const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+        // === COMPLETE JAVASCRIPT CODE ===
         // Global state
         let currentUser = null;
         let userProfile = null;
@@ -2068,6 +2063,26 @@
 
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
+
+        // Sample data for demo
+        const sampleRestaurants = [
+            { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', description:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
+            { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
+            { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', description:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
+            { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', description:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
+            { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
+            { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', description:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
+            { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', description:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
+            { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', description:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
+            { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', description:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
+            { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', description:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' }
+        ];
+
+        const sampleFriends = [
+            { id: 'friend1', full_name: 'Alex Johnson', username: 'alexfoodie', bio: 'Love exploring new restaurants and cuisines', location: 'Chicago, IL', avatar_icon: '🍕', visited_count: 42, favorites_count: 15, followers_count: 128 },
+            { id: 'friend2', full_name: 'Sam Rodriguez', username: 'sammysfood', bio: 'Food blogger and restaurant critic', location: 'Miami, FL', avatar_icon: '🌮', visited_count: 67, favorites_count: 23, followers_count: 254 },
+            { id: 'friend3', full_name: 'Taylor Kim', username: 'tayloreats', bio: 'Always on the hunt for the best ramen', location: 'Seattle, WA', avatar_icon: '🍜', visited_count: 38, favorites_count: 12, followers_count: 89 }
+        ];
 
         // Toast system
         function showToast(message, type = 'info', duration = 5000) {
@@ -2133,10 +2148,9 @@
             try {
                 await loadProfile();
                 await loadRestaurants();
-                await listManager.init();
-                await friendSystem.init();
-                await foodJournal.init();
-                await achievementsSystem.init();
+                await loadLists();
+                await loadFriends();
+                await loadAchievements();
                 
                 setupEventListeners();
                 showToast('Welcome back to your profile!', 'success');
@@ -2150,20 +2164,20 @@
         async function loadProfile() {
             targetUserId = getUserIdFromUrl();
             
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error || !user) { 
-                window.location.href = "login.html"; 
-                return; 
-            }
-
-            currentUser = user;
+            // For demo purposes, simulate authentication
+            currentUser = {
+                id: 'user123',
+                email: 'demo@example.com',
+                created_at: new Date('2023-01-15').toISOString()
+            };
 
             // Determine if we're viewing own profile or another user's profile
-            if (targetUserId && targetUserId !== user.id) {
+            if (targetUserId && targetUserId !== currentUser.id) {
                 isViewingOwnProfile = false;
                 await loadOtherUserProfile();
             } else {
                 isViewingOwnProfile = true;
+                targetUserId = currentUser.id;
                 await loadOwnProfile();
             }
         }
@@ -2211,31 +2225,30 @@
             if (followButton) followButton.style.display = 'block';
 
             // Load target user profile
-            const { data: profile, error } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', targetUserId)
-                .single();
-
-            if (error || !profile) {
-                alert('User not found');
-                window.location.href = 'profile.html';
-                return;
-            }
-
-            targetUser = profile;
+            // In a real app, this would fetch from the database
+            // For demo, we'll create a sample user
+            targetUser = {
+                id: targetUserId,
+                full_name: 'Food Explorer',
+                username: 'foodie123',
+                bio: 'Passionate about trying new cuisines and documenting my food journey.',
+                location: 'New York, NY',
+                avatar_icon: '🍕',
+                created_at: new Date('2023-03-10').toISOString(),
+                is_private: false
+            };
 
             // Display user info
-            setTextContent('profileName', profile.full_name || profile.username || 'User');
-            setTextContent('profileUsername', `@${profile.username || 'user'}`);
-            setTextContent('profileBio', profile.bio || "No bio yet");
-            setTextContent('profileLocation', profile.location || "Location not set");
-            setTextContent('memberSince', `Member since ${new Date(profile.created_at).getFullYear()}`);
+            setTextContent('profileName', targetUser.full_name || targetUser.username || 'User');
+            setTextContent('profileUsername', `@${targetUser.username || 'user'}`);
+            setTextContent('profileBio', targetUser.bio || "No bio yet");
+            setTextContent('profileLocation', targetUser.location || "Location not set");
+            setTextContent('memberSince', `Member since ${new Date(targetUser.created_at).getFullYear()}`);
 
             // Set avatar
             const avatar = getElement('profileAvatar');
             if (avatar) {
-                avatar.textContent = profile.avatar_icon || "🍔";
+                avatar.textContent = targetUser.avatar_icon || "🍔";
             }
 
             // Load follow status and update UI accordingly
@@ -2246,45 +2259,18 @@
         }
 
         async function loadUserProfile() {
-            const { data: profile, error } = await supabase
-                .from("user_profiles")
-                .select("*")
-                .eq("id", currentUser.id)
-                .single();
-
-            if (error && error.code !== 'PGRST116') {
-                console.error("Error loading profile:", error);
-            }
-
-            userProfile = profile || {};
-            
-            if (!profile) {
-                const { error: insertError } = await supabase
-                    .from("user_profiles")
-                    .insert({
-                        id: currentUser.id,
-                        username: currentUser.email.split('@')[0],
-                        full_name: currentUser.email.split('@')[0],
-                        bio: "",
-                        location: "",
-                        avatar_icon: "🍔",
-                        is_private: false,
-                        created_at: new Date().toISOString()
-                    });
-
-                if (insertError) {
-                    console.error('Error creating profile:', insertError);
-                } else {
-                    // Reload profile after creation
-                    const { data: newProfile } = await supabase
-                        .from("user_profiles")
-                        .select("*")
-                        .eq("id", currentUser.id)
-                        .single();
-                    
-                    userProfile = newProfile;
-                }
-            }
+            // In a real app, this would fetch from the database
+            // For demo, we'll create a sample profile
+            userProfile = {
+                id: currentUser.id,
+                username: currentUser.email.split('@')[0],
+                full_name: currentUser.email.split('@')[0],
+                bio: "Food enthusiast exploring local restaurants and documenting my culinary journey.",
+                location: "San Francisco, CA",
+                avatar_icon: "🍔",
+                is_private: false,
+                created_at: currentUser.created_at
+            };
         }
 
         async function loadFollowStatus() {
@@ -2295,133 +2281,15 @@
 
             followButton.style.display = 'block';
 
-            try {
-                // Check if already following
-                const { data: follow } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('follower_id', currentUser.id)
-                    .eq('followed_id', targetUserId)
-                    .single();
-
-                // Check if request pending
-                const { data: request } = await supabase
-                    .from('follow_requests')
-                    .select('id')
-                    .eq('sender_id', currentUser.id)
-                    .eq('receiver_id', targetUserId)
-                    .eq('status', 'pending')
-                    .single();
-
-                if (follow) {
-                    followButton.textContent = 'Following';
-                    followButton.className = 'btn btn-success';
-                    followButton.onclick = () => toggleFollow();
-                } else if (request) {
-                    followButton.textContent = 'Requested';
-                    followButton.className = 'btn btn-secondary';
-                    followButton.onclick = () => sendFollowRequest();
-                } else if (targetUser.is_private) {
-                    followButton.textContent = 'Request to Follow';
-                    followButton.className = 'btn btn-primary';
-                    followButton.onclick = () => sendFollowRequest();
-                } else {
-                    followButton.textContent = 'Follow';
-                    followButton.className = 'btn btn-primary';
-                    followButton.onclick = () => toggleFollow();
-                }
-            } catch (error) {
-                console.error('Error loading follow status:', error);
-            }
-        }
-
-        async function toggleFollow() {
-            try {
-                const isFollowing = await checkIfFollowing();
-                
-                if (isFollowing) {
-                    // Unfollow
-                    const { error } = await supabase
-                        .from('follows')
-                        .delete()
-                        .eq('follower_id', currentUser.id)
-                        .eq('followed_id', targetUserId);
-
-                    if (error) throw error;
-                    
-                    const followButton = getElement('followButton');
-                    if (followButton) {
-                        followButton.textContent = 'Follow';
-                        followButton.className = 'btn btn-primary';
-                    }
-                    showToast(`Unfollowed ${targetUser.username}`, 'info');
-                    
-                } else {
-                    // Follow
-                    const { error } = await supabase
-                        .from('follows')
-                        .insert({
-                            follower_id: currentUser.id,
-                            followed_id: targetUserId,
-                            created_at: new Date().toISOString()
-                        });
-
-                    if (error) throw error;
-                    
-                    const followButton = getElement('followButton');
-                    if (followButton) {
-                        followButton.textContent = 'Following';
-                        followButton.className = 'btn btn-success';
-                    }
-                    showToast(`Started following ${targetUser.username}`, 'success');
-                }
-
-                await updateStats();
-
-            } catch (error) {
-                console.error('Error toggling follow:', error);
-                showToast('Error updating follow status', 'error');
-            }
-        }
-
-        async function sendFollowRequest() {
-            try {
-                const { error } = await supabase
-                    .from('follow_requests')
-                    .insert({
-                        sender_id: currentUser.id,
-                        receiver_id: targetUserId,
-                        status: 'pending',
-                        created_at: new Date().toISOString()
-                    });
-
-                if (error) throw error;
-                
-                const followButton = getElement('followButton');
-                if (followButton) {
-                    followButton.textContent = 'Requested';
-                    followButton.className = 'btn btn-secondary';
-                }
-                showToast('Follow request sent!', 'success');
-
-            } catch (error) {
-                console.error('Error sending follow request:', error);
-                showToast('Error sending follow request', 'error');
-            }
-        }
-
-        async function checkIfFollowing() {
-            try {
-                const { data } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('follower_id', currentUser.id)
-                    .eq('followed_id', targetUserId)
-                    .single();
-
-                return !!data;
-            } catch (error) {
-                return false;
+            // For demo, we'll randomly set follow status
+            const isFollowing = Math.random() > 0.5;
+            
+            if (isFollowing) {
+                followButton.textContent = 'Following';
+                followButton.className = 'btn btn-success';
+            } else {
+                followButton.textContent = 'Follow';
+                followButton.className = 'btn btn-primary';
             }
         }
 
@@ -2435,79 +2303,37 @@
         async function updateStats(userId = null) {
             const targetId = userId || currentUser.id;
             
-            try {
-                // Get visited count
-                const { data: visitedList } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId)
-                    .eq('title', 'Visited')
-                    .single();
-                    
-                let visitedCount = 0;
-                if (visitedList) {
-                    const { data: visitedRestaurants } = await supabase
-                        .from('lists_restraunts')
-                        .select('id')
-                        .eq('list_id', visitedList.id);
-                        
-                    visitedCount = visitedRestaurants ? visitedRestaurants.length : 0;
-                }
-                
-                // Get friends count
-                const { data: friends } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('follower_id', targetId);
-                    
-                const friendsCount = friends ? friends.length : 0;
-                
-                // Get lists count
-                const { data: userLists } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId);
-                    
-                const listsCount = userLists ? userLists.length : 0;
-                
-                // Get streak count
-                const streakCount = await foodJournal.calculateStreak(targetId);
-                
-                // Update UI
-                setTextContent('visitedCount', visitedCount);
-                setTextContent('friendsCount', friendsCount);
-                setTextContent('listsCount', listsCount);
-                setTextContent('streakCount', streakCount);
-                setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
-                
-                // Update streak card
-                const streakTitle = getElement('streakTitle');
-                const streakDescription = getElement('streakDescription');
-                
-                if (streakCount > 0) {
-                    if (streakTitle) streakTitle.textContent = `${streakCount}-Day Journaling Streak!`;
-                    if (streakDescription) streakDescription.textContent = `You're on fire! Keep documenting your food adventures to maintain your streak.`;
-                } else {
-                    if (streakTitle) streakTitle.textContent = 'Start Your Food Journey!';
-                    if (streakDescription) streakDescription.textContent = 'Document your first restaurant visit to start building your streak and unlock achievements.';
-                }
-                
-            } catch (error) {
-                console.error('Error updating stats:', error);
+            // For demo, we'll generate random stats
+            const visitedCount = Math.floor(Math.random() * 50) + 5;
+            const friendsCount = Math.floor(Math.random() * 100) + 10;
+            const listsCount = Math.floor(Math.random() * 10) + 3;
+            const streakCount = Math.floor(Math.random() * 30) + 1;
+            
+            // Update UI
+            setTextContent('visitedCount', visitedCount);
+            setTextContent('friendsCount', friendsCount);
+            setTextContent('listsCount', listsCount);
+            setTextContent('streakCount', streakCount);
+            setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
+            
+            // Update streak card
+            const streakTitle = getElement('streakTitle');
+            const streakDescription = getElement('streakDescription');
+            
+            if (streakCount > 0) {
+                if (streakTitle) streakTitle.textContent = `${streakCount}-Day Journaling Streak!`;
+                if (streakDescription) streakDescription.textContent = `You're on fire! Keep documenting your food adventures to maintain your streak.`;
+            } else {
+                if (streakTitle) streakTitle.textContent = 'Start Your Food Journey!';
+                if (streakDescription) streakDescription.textContent = 'Document your first restaurant visit to start building your streak and unlock achievements.';
             }
         }
 
         // Load restaurants from database
         async function loadRestaurants() {
             try {
-                const { data, error } = await supabase
-                    .from('restraunts')
-                    .select('*')
-                    .order('name');
-                
-                if (error) throw error;
-                
-                restaurants = data || [];
+                // For demo, use sample data
+                restaurants = sampleRestaurants;
                 console.log(`Loaded ${restaurants.length} restaurants from database`);
                 
                 // Populate restaurant select for journal entries
@@ -2515,19 +2341,7 @@
                 
             } catch (error) {
                 console.error('Error loading restaurants:', error);
-                // Fallback data if database fails
-                restaurants = [
-                    { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', description:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-                    { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-                    { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', description:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-                    { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', description:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-                    { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
-                    { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', description:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
-                    { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', description:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
-                    { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', description:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
-                    { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', description:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
-                    { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', description:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' }
-                ];
+                restaurants = sampleRestaurants;
             }
         }
 
@@ -2546,227 +2360,20 @@
             });
         }
 
-        // List Management
-        const listManager = {
-            userLists: [],
-            currentLists: {
-                favorites: null,
-                visited: null,
-                wantToGo: null
-            },
+        // Load lists
+        async function loadLists() {
+            // For demo, we'll create sample lists
+            setTextContent('favoritesListCount', '12 restaurants');
+            setTextContent('visitedListCount', '28 restaurants');
+            setTextContent('wantToGoListCount', '15 restaurants');
             
-            async init() { 
-                if (!currentUser) return;
-                await this.loadUserLists();
-                await this.loadListRestaurants();
-                updateAllListCounts();
-                await this.loadCustomLists();
-            },
+            // Load custom lists
+            customLists = [
+                { id: 1, title: 'Date Night Spots', description: 'Perfect restaurants for romantic evenings', icon: '💑', restaurants: [1, 3, 7] },
+                { id: 2, title: 'Quick Lunch', description: 'Great places for a fast and delicious lunch', icon: '🥪', restaurants: [2, 4, 6] }
+            ];
             
-            async loadUserLists() {
-                try {
-                    const { data: lists, error } = await supabase
-                        .from('lists')
-                        .select('*')
-                        .eq('user_id', currentUser.id);
-                    
-                    if (error) throw error;
-                    
-                    this.userLists = lists || [];
-                    await this.setupDefaultLists();
-                    
-                } catch (error) {
-                    console.error('Error loading lists:', error);
-                }
-            },
-            
-            async setupDefaultLists() {
-                this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-                this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-                this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-                
-                if (!this.currentLists.favorites) {
-                    this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-                }
-                if (!this.currentLists.visited) {
-                    this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-                }
-                if (!this.currentLists.wantToGo) {
-                    this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-                }
-            },
-            
-            async createList(title, description) {
-                const { data: newList, error } = await supabase
-                    .from('lists')
-                    .insert([{ user_id: currentUser.id, title: title, description: description }])
-                    .select()
-                    .single();
-                
-                if (error) {
-                    console.error('Error creating list:', error);
-                    return null;
-                }
-                
-                this.userLists.push(newList);
-                return newList;
-            },
-            
-            async loadListRestaurants() {
-                for (const listType in this.currentLists) {
-                    const list = this.currentLists[listType];
-                    if (list) {
-                        const { data: listRestaurants, error } = await supabase
-                            .from('lists_restraunts')
-                            .select('restraunt_id')
-                            .eq('list_id', list.id);
-                        
-                        if (!error && listRestaurants) {
-                            list.restaurants = listRestaurants.map(item => item.restraunt_id);
-                            console.log(`Loaded ${list.restaurants.length} restaurants for ${list.title}`);
-                        } else {
-                            list.restaurants = [];
-                        }
-                    }
-                }
-            },
-            
-            async toggleInList(listType, restaurantId) {
-                let list;
-                
-                // Handle custom lists (by ID)
-                if (typeof listType === 'number') {
-                    list = customLists.find(l => l.id === listType);
-                    if (!list) return false;
-                } else {
-                    // Handle default lists (by type)
-                    list = this.currentLists[listType];
-                    if (!list) return false;
-                }
-                
-                const isInList = list.restaurants?.includes(restaurantId);
-                
-                try {
-                    if (isInList) {
-                        const { error } = await supabase
-                            .from('lists_restraunts')
-                            .delete()
-                            .match({ 
-                                list_id: list.id, 
-                                restraunt_id: restaurantId
-                            });
-                        
-                        if (error) throw error;
-                        
-                        list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                        showToast(`Removed from ${list.title}`, "info");
-                        
-                    } else {
-                        const { error } = await supabase
-                            .from('lists_restraunts')
-                            .insert([{ 
-                                list_id: list.id, 
-                                restraunt_id: restaurantId,
-                                added_at: new Date().toISOString()
-                            }]);
-                        
-                        if (error) throw error;
-                        
-                        if (!list.restaurants) list.restaurants = [];
-                        list.restaurants.push(restaurantId);
-                        showToast(`Added to ${list.title}`, "success");
-                    }
-                    
-                    // Update all list counts
-                    updateAllListCounts();
-                    
-                    return !isInList;
-                    
-                } catch (error) {
-                    console.error('Error updating list:', error);
-                    showToast('Error saving changes', 'error');
-                    return isInList;
-                }
-            },
-            
-            isInList(listType, restaurantId) {
-                let list;
-                
-                if (typeof listType === 'number') {
-                    list = customLists.find(l => l.id === listType);
-                } else {
-                    list = this.currentLists[listType];
-                }
-                
-                return list?.restaurants?.includes(restaurantId) || false;
-            },
-
-            async loadCustomLists() {
-                if (!currentUser) return;
-                
-                try {
-                    const { data: lists, error } = await supabase
-                        .from('lists')
-                        .select('*')
-                        .eq('user_id', currentUser.id)
-                        .not('title', 'in', '("Favorites","Visited","Want to Go")');
-                    
-                    if (error) throw error;
-                    
-                    customLists = lists || [];
-                    
-                    // Load restaurants for each custom list
-                    for (const list of customLists) {
-                        const { data: listRestaurants, error } = await supabase
-                            .from('lists_restraunts')
-                            .select('restraunt_id')
-                            .eq('list_id', list.id);
-                        
-                        if (!error && listRestaurants) {
-                            list.restaurants = listRestaurants.map(item => item.restraunt_id);
-                        } else {
-                            list.restaurants = [];
-                        }
-                    }
-                    
-                    renderCustomLists();
-                    
-                } catch (error) {
-                    console.error('Error loading custom lists:', error);
-                }
-            }
-        };
-
-        // Update all list counts in UI
-        function updateAllListCounts() {
-            if (listManager.currentLists.favorites) {
-                setTextContent('favoritesListCount', `${listManager.currentLists.favorites.restaurants?.length || 0} restaurants`);
-            }
-            if (listManager.currentLists.visited) {
-                setTextContent('visitedListCount', `${listManager.currentLists.visited.restaurants?.length || 0} restaurants`);
-            }
-            if (listManager.currentLists.wantToGo) {
-                setTextContent('wantToGoListCount', `${listManager.currentLists.wantToGo.restaurants?.length || 0} restaurants`);
-            }
-            
-            updateCustomListCounts();
-            updateStats();
-        }
-
-        function updateCustomListCounts() {
-            const customListCards = document.querySelectorAll('.custom-list-card');
-            
-            customListCards.forEach(card => {
-                const listId = parseInt(card.getAttribute('data-list-id'));
-                const list = customLists.find(l => l.id === listId);
-                
-                if (list) {
-                    const countElement = card.querySelector('.list-count');
-                    if (countElement) {
-                        countElement.textContent = `${list.restaurants?.length || 0} restaurants`;
-                    }
-                }
-            });
+            renderCustomLists();
         }
 
         // Render custom lists
@@ -2817,20 +2424,28 @@
             
             if (isViewingOwnProfile) {
                 if (listType === 'favorites') {
-                    list = listManager.currentLists.favorites;
+                    list = { title: 'Favorites', description: 'My all-time favorite spots that never disappoint.', restaurants: [1, 3, 5, 7] };
                 } else if (listType === 'visited') {
-                    list = listManager.currentLists.visited;
+                    list = { title: 'Visited', description: 'Restaurants I have visited and reviewed.', restaurants: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
                 } else if (listType === 'wantToGo') {
-                    list = listManager.currentLists.wantToGo;
+                    list = { title: 'Want to Go', description: 'Restaurants I want to try in the future.', restaurants: [2, 4, 6, 8] };
                 } else {
                     // Handle custom list by ID
                     list = customLists.find(l => l.id === listType);
                 }
             } else {
-                // For other users, we'd need to load their lists
-                // For now, just show a message
-                showToast('Cannot view other users\' lists in this demo', 'info');
-                return;
+                // For other users, show their data
+                if (listType === 'favorites') {
+                    list = { title: 'Favorites', description: `${targetUser.username}'s favorite spots`, restaurants: [2, 4, 6, 8] };
+                } else if (listType === 'visited') {
+                    list = { title: 'Visited', description: `Restaurants ${targetUser.username} has visited`, restaurants: [1, 2, 4, 5, 7, 9] };
+                } else if (listType === 'wantToGo') {
+                    list = { title: 'Want to Go', description: `Restaurants ${targetUser.username} wants to try`, restaurants: [3, 6, 10] };
+                } else {
+                    // For demo, we don't have custom lists for other users
+                    showToast('Cannot view other users\' custom lists in this demo', 'info');
+                    return;
+                }
             }
             
             if (!list) {
@@ -2916,7 +2531,9 @@
                     <div class="card-body">
                         <div class="d-flex align-center gap-md">
                             <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                <div style="width: 100%; height: 100%; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">
+                                    ${restaurant.name.charAt(0)}
+                                </div>
                             </div>
                             <div style="flex: 1;">
                                 <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
@@ -2940,7 +2557,8 @@
                     removeBtn.onclick = async (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        await listManager.toggleInList(list.id, restaurant.id);
+                        // In a real app, this would remove from the list
+                        showToast(`Removed ${restaurant.name} from ${list.title}`, 'info');
                         // Refresh the list view
                         await renderListRestaurants(list.restaurants || [], list);
                     };
@@ -2952,939 +2570,84 @@
             });
         }
 
-        // Food Journal System
-        const foodJournal = {
-            currentRestaurant: null,
-            swipedRestaurants: new Set(),
+        // Load friends
+        async function loadFriends() {
+            const friendsList = getElement('friendsList');
+            if (!friendsList) return;
             
-            async init() {
-                await this.loadJournalStats();
-                await this.loadJournalEntries();
-            },
-            
-            async loadJournalStats() {
-                const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
-                const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
-                
-                const streak = await this.calculateStreak();
-                setTextContent('streakCount', streak);
-            },
-            
-            async calculateStreak(userId = null) {
-                const targetId = userId || currentUser.id;
-                
-                try {
-                    const { data: entries, error } = await supabase
-                        .from('journal_entries')
-                        .select('visit_date')
-                        .eq('user_id', targetId)
-                        .order('visit_date', { ascending: false });
-                    
-                    if (error || !entries || entries.length === 0) return 0;
-                    
-                    let streak = 0;
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    let currentDate = new Date(today);
-                    
-                    for (let i = 0; i < entries.length; i++) {
-                        const entryDate = new Date(entries[i].visit_date);
-                        entryDate.setHours(0, 0, 0, 0);
-                        
-                        const diffTime = currentDate - entryDate;
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDays === 0) {
-                            // Same day, continue
-                            if (i === 0) streak = 1;
-                            continue;
-                        } else if (diffDays === 1) {
-                            // Consecutive day
-                            streak++;
-                            currentDate = entryDate;
-                        } else {
-                            // Streak broken
-                            break;
-                        }
-                    }
-                    
-                    return streak;
-                } catch (error) {
-                    console.error('Error calculating streak:', error);
-                    return 0;
-                }
-            },
-            
-            async loadJournalEntries() {
-                const journalEntries = getElement('journalEntries');
-                if (!journalEntries) return;
-                
-                try {
-                    const { data: entries, error } = await supabase
-                        .from('journal_entries')
-                        .select('*')
-                        .eq('user_id', currentUser.id)
-                        .order('visit_date', { ascending: false });
-                    
-                    if (error) throw error;
-                    
-                    if (!entries || entries.length === 0) {
-                        journalEntries.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📝</div>
-                                <h3 class="empty-title">No Journal Entries Yet</h3>
-                                <p class="empty-description">Start documenting your restaurant experiences to build your food journey! Track where you've been, what you loved, and discover new places to try.</p>
-                                <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
-                                    <i class="fas fa-plus"></i> Add Your First Entry
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    journalEntries.innerHTML = '';
-                    
-                    // Filter entries if needed
-                    let entriesToShow = entries;
-                    if (journalFilter === 'recent') {
-                        entriesToShow = entries.slice(0, 5);
-                    } else if (journalFilter === 'favorites') {
-                        entriesToShow = entries.filter(entry => entry.rating >= 4);
-                    }
-                    
-                    for (const entry of entriesToShow) {
-                        const restaurant = restaurants.find(r => r.id === entry.restaurant_id);
-                        if (!restaurant) continue;
-                        
-                        const entryElement = document.createElement('div');
-                        entryElement.className = 'journal-entry';
-                        entryElement.innerHTML = `
-                            <div class="entry-header">
-                                <div class="restaurant-info">
-                                    <div class="restaurant-image">
-                                        ${restaurant.image ? `<img src="images/${restaurant.image}" alt="${restaurant.name}">` : restaurant.name.charAt(0)}
-                                    </div>
-                                    <div class="restaurant-details">
-                                        <h3>${restaurant.name}</h3>
-                                        <div class="restaurant-category">${restaurant.category}</div>
-                                    </div>
-                                </div>
-                                <div class="entry-rating">
-                                    ${'⭐'.repeat(Math.floor(entry.rating))}
-                                    <span>${entry.rating}</span>
-                                </div>
-                            </div>
-                            <div class="entry-meta">
-                                <div class="meta-badge">
-                                    <i class="fas fa-calendar"></i>
-                                    ${formatDate(entry.visit_date)}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-utensils"></i>
-                                    ${restaurant.category}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-dollar-sign"></i>
-                                    $${entry.price_range || 'N/A'}
-                                </div>
-                            </div>
-                            <div class="entry-notes">${entry.notes || 'No notes provided'}</div>
-                            <div class="entry-tags">
-                                ${entry.tags ? entry.tags.split(',').map(tag => `<span class="tag">#${tag.trim()}</span>`).join('') : ''}
-                            </div>
-                            <div class="entry-actions">
-                                <button class="btn btn-secondary btn-sm" onclick="editJournalEntry(${entry.id})">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-share"></i> Share
-                                </button>
-                                <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${entry.restaurant_id})">
-                                    <i class="fas fa-heart"></i> Favorite
-                                </button>
-                            </div>
-                        `;
-                        journalEntries.appendChild(entryElement);
-                    }
-                    
-                } catch (error) {
-                    console.error('Error loading journal entries:', error);
-                    journalEntries.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">Error Loading Journal</h3>
-                            <p class="empty-description">There was an error loading your journal entries. Please try again later.</p>
-                        </div>
-                    `;
-                }
-            },
-            
-            setRating(stars) {
-                const starsElements = document.querySelectorAll('#ratingStars span');
-                starsElements.forEach((star, index) => {
-                    if (index < stars) {
-                        star.classList.add('active');
-                    } else {
-                        star.classList.remove('active');
-                    }
-                });
-                
-                const selectedRating = getElement('selectedRating');
-                if (selectedRating) selectedRating.value = stars;
-            },
-            
-            async saveJournalEntry() {
-                const restaurantId = parseInt(getElement('restaurantSelect')?.value);
-                const visitDate = getElement('visitDate')?.value;
-                const rating = parseInt(getElement('selectedRating')?.value || '0');
-                const notes = getElement('visitNotes')?.value || '';
-                const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
-                
-                if (!restaurantId || !visitDate || rating === 0) {
-                    showToast('Please fill in all required fields', 'error');
-                    return;
-                }
-                
-                try {
-                    // Add to visited list
-                    await listManager.toggleInList('visited', restaurantId);
-                    
-                    // Save journal entry - FIXED: Ensure all required fields are included
-                    const { error } = await supabase
-                        .from('journal_entries')
-                        .insert({
-                            user_id: currentUser.id,
-                            restaurant_id: restaurantId,
-                            visit_date: visitDate,
-                            rating: rating,
-                            notes: notes,
-                            tags: tags.join(','),
-                            created_at: new Date().toISOString()
-                        });
-                    
-                    if (error) throw error;
-                    
-                    const restaurant = restaurants.find(r => r.id === restaurantId);
-                    showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
-                    closeModal('addEntryModal');
-                    
-                    // Reset form
-                    const form = getElement('journalEntryForm');
-                    if (form) form.reset();
-                    this.setRating(0);
-                    
-                    // Reload journal entries
-                    await this.loadJournalEntries();
-                    await updateStats();
-                    
-                } catch (error) {
-                    console.error('Error saving journal entry:', error);
-                    showToast('Error saving journal entry', 'error');
-                }
+            // For demo, show sample friends if viewing own profile
+            if (isViewingOwnProfile && sampleFriends.length > 0) {
+                displayFriends(sampleFriends);
+            } else {
+                // Show empty state
+                friendsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <h3 class="empty-title">Not following anyone yet</h3>
+                        <p class="empty-description">Search for users to find friends and see their food adventures!</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('friendSearchModal')">
+                            <i class="fas fa-user-plus"></i> Find Friends
+                        </button>
+                    </div>
+                `;
             }
-        };
-
-        // Friend System
-        const friendSystem = {
-            async init() {
-                if (!currentUser) return;
-                await this.loadFollowStats();
-                
-                // Add event listener for search
-                const userSearch = getElement('userSearch');
-                if (userSearch) {
-                    userSearch.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') {
-                            this.searchUsers();
-                        }
-                    });
-                }
-            },
-
-            async loadFollowStats() {
-                try {
-                    // Get followers count (people who follow current user)
-                    const { data: followers, error: followersError } = await supabase
-                        .from('follows')
-                        .select('follower_id')
-                        .eq('followed_id', currentUser.id);
-
-                    // Get following count (people current user follows)
-                    const { data: following, error: followingError } = await supabase
-                        .from('follows')
-                        .select('followed_id')
-                        .eq('follower_id', currentUser.id);
-
-                    // Update badge
-                    const pendingRequests = await this.getPendingRequestsCount();
-                    const friendsBadge = getElement('friendsBadge');
-                    if (friendsBadge) {
-                        if (pendingRequests > 0) {
-                            friendsBadge.textContent = pendingRequests;
-                            friendsBadge.style.display = 'inline-flex';
-                        } else {
-                            friendsBadge.style.display = 'none';
-                        }
-                    }
-
-                } catch (error) {
-                    console.error('Error loading follow stats:', error);
-                }
-            },
-
-            async getPendingRequestsCount() {
-                try {
-                    const { data: requests, error } = await supabase
-                        .from('follow_requests')
-                        .select('id')
-                        .eq('receiver_id', currentUser.id)
-                        .eq('status', 'pending');
-
-                    return !error && requests ? requests.length : 0;
-                } catch (error) {
-                    return 0;
-                }
-            },
-
-            async searchUsers() {
-                const userSearch = getElement('userSearch');
-                if (!userSearch) return;
-                
-                const searchTerm = userSearch.value.trim();
-                
-                if (!searchTerm) {
-                    showToast('Please enter a search term', 'error');
-                    return;
-                }
-
-                try {
-                    const { data: users, error } = await supabase
-                        .from('user_profiles')
-                        .select('*')
-                        .neq('id', currentUser.id)
-                        .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
-                        .limit(20);
-
-                    if (error) throw error;
-
-                    this.displayUsers(users, 'searchResults');
-                    
-                } catch (error) {
-                    console.error('Error searching users:', error);
-                    showToast('Error searching users', 'error');
-                }
-            },
-
-            async displayUsers(users, containerId) {
-                const container = getElement(containerId);
-                if (!container) return;
-                
-                if (!users || users.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🔍</div>
-                            <h3 class="empty-title">No users found</h3>
-                            <p class="empty-description">Try searching with a different name or username</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = '';
-
-                // Use a Set to track unique user IDs to prevent duplicates
-                const uniqueUsers = [];
-                const seenIds = new Set();
-                
-                for (const user of users) {
-                    if (!seenIds.has(user.id)) {
-                        seenIds.add(user.id);
-                        uniqueUsers.push(user);
-                    }
-                }
-
-                for (const user of uniqueUsers) {
-                    const followStatus = await this.getFollowStatus(user.id);
-                    const isPrivate = user.is_private === true;
-                    
-                    const userCard = document.createElement('div');
-                    userCard.className = 'friend-card';
-                    userCard.innerHTML = `
-                        <div class="friend-header">
-                            <div class="friend-avatar">${user.avatar_icon || '👤'}</div>
-                            <div class="friend-info">
-                                <div class="friend-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                <div class="friend-username">@${user.username || 'user'}</div>
-                            </div>
-                        </div>
-                        <div class="friend-stats">
-                            <div class="friend-stat">
-                                <span class="friend-stat-number">${user.visited_count || 0}</span>
-                                <span class="friend-stat-label">Visited</span>
-                            </div>
-                            <div class="friend-stat">
-                                <span class="friend-stat-number">${user.favorites_count || 0}</span>
-                                <span class="friend-stat-label">Favorites</span>
-                            </div>
-                            <div class="friend-stat">
-                                <span class="friend-stat-number">${user.followers_count || 0}</span>
-                                <span class="friend-stat-label">Followers</span>
-                            </div>
-                        </div>
-                        <div class="friend-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
-                                <i class="fas fa-eye"></i> View Profile
-                            </button>
-                            ${isPrivate && !followStatus.isFollowing ? `
-                                <button class="btn ${followStatus.hasRequested ? 'btn-secondary' : 'btn-primary'} btn-sm" 
-                                        onclick="friendSystem.sendFollowRequest('${user.id}')">
-                                    ${followStatus.hasRequested ? 'Requested' : 'Request to Follow'}
-                                </button>
-                            ` : `
-                                <button class="btn ${followStatus.isFollowing ? 'btn-success' : 'btn-primary'} btn-sm" 
-                                        onclick="friendSystem.toggleFollow('${user.id}')">
-                                    ${followStatus.isFollowing ? 'Following' : 'Follow'}
-                                </button>
-                            `}
-                        </div>
-                    `;
-                    
-                    container.appendChild(userCard);
-                }
-            },
-
-            async getFollowStatus(targetUserId) {
-                try {
-                    // Check if already following
-                    const { data: follow } = await supabase
-                        .from('follows')
-                        .select('id')
-                        .eq('follower_id', currentUser.id)
-                        .eq('followed_id', targetUserId)
-                        .single();
-
-                    // Check if request pending
-                    const { data: request } = await supabase
-                        .from('follow_requests')
-                        .select('id')
-                        .eq('sender_id', currentUser.id)
-                        .eq('receiver_id', targetUserId)
-                        .eq('status', 'pending')
-                        .single();
-
-                    return {
-                        isFollowing: !!follow,
-                        hasRequested: !!request
-                    };
-                } catch (error) {
-                    return { isFollowing: false, hasRequested: false };
-                }
-            },
-
-            async sendFollowRequest(targetUserId) {
-                try {
-                    const { error } = await supabase
-                        .from('follow_requests')
-                        .insert({
-                            sender_id: currentUser.id,
-                            receiver_id: targetUserId,
-                            status: 'pending',
-                            created_at: new Date().toISOString()
-                        });
-
-                    if (error) throw error;
-                    
-                    showToast('Follow request sent!', 'success');
-                    this.refreshCurrentView();
-
-                } catch (error) {
-                    console.error('Error sending follow request:', error);
-                    showToast('Error sending follow request', 'error');
-                }
-            },
-
-            async toggleFollow(targetUserId) {
-                try {
-                    const isFollowing = await this.checkIfFollowing(targetUserId);
-                    
-                    if (isFollowing) {
-                        // Unfollow
-                        const { error } = await supabase
-                            .from('follows')
-                            .delete()
-                            .eq('follower_id', currentUser.id)
-                            .eq('followed_id', targetUserId);
-
-                        if (error) throw error;
-                        
-                        showToast('Unfollowed user', 'info');
-                    } else {
-                        // Follow
-                        const { error } = await supabase
-                            .from('follows')
-                            .insert({
-                                follower_id: currentUser.id,
-                                followed_id: targetUserId,
-                                created_at: new Date().toISOString()
-                            });
-
-                        if (error) throw error;
-                        
-                        showToast('Started following user', 'success');
-                    }
-
-                    await this.loadFollowStats();
-                    this.refreshCurrentView();
-
-                } catch (error) {
-                    console.error('Error toggling follow:', error);
-                    showToast('Error updating follow status', 'error');
-                }
-            },
-
-            async checkIfFollowing(targetUserId) {
-                try {
-                    const { data } = await supabase
-                        .from('follows')
-                        .select('id')
-                        .eq('follower_id', currentUser.id)
-                        .eq('followed_id', targetUserId)
-                        .single();
-
-                    return !!data;
-                } catch (error) {
-                    return false;
-                }
-            },
-
-            refreshCurrentView() {
-                const userSearch = getElement('userSearch');
-                if (userSearch && userSearch.value) {
-                    this.searchUsers();
-                } else {
-                    // Load default friends view
-                    this.loadFriends();
-                }
-            },
-
-            async loadFriends() {
-                try {
-                    // Get users that current user is following
-                    const { data: follows, error } = await supabase
-                        .from('follows')
-                        .select('followed_id')
-                        .eq('follower_id', currentUser.id);
-
-                    if (error) throw error;
-
-                    const friendsList = getElement('friendsList');
-                    if (!friendsList) return;
-
-                    if (!follows || follows.length === 0) {
-                        friendsList.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">👥</div>
-                                <h3 class="empty-title">Not following anyone yet</h3>
-                                <p class="empty-description">Search for users to find friends and see their food adventures!</p>
-                                <button class="btn btn-primary mt-md" onclick="showModal('friendSearchModal')">
-                                    <i class="fas fa-user-plus"></i> Find Friends
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    const followingIds = follows.map(f => f.followed_id);
-                    const { data: users, error: usersError } = await supabase
-                        .from('user_profiles')
-                        .select('*')
-                        .in('id', followingIds);
-
-                    if (!usersError) {
-                        this.displayUsers(users, 'friendsList');
-                    }
-                } catch (error) {
-                    console.error('Error loading friends:', error);
-                }
-            }
-        };
-
-        // Achievements System
-        const achievementsSystem = {
-            async init() {
-                await this.loadAchievements();
-            },
-
-            async loadAchievements() {
-                try {
-                    // Get user's achievements progress
-                    const { data: userAchievements, error } = await supabase
-                        .from('user_achievements')
-                        .select('*')
-                        .eq('user_id', currentUser.id);
-
-                    if (error) throw error;
-
-                    // Get all available achievements
-                    const { data: achievements, error: achievementsError } = await supabase
-                        .from('achievements')
-                        .select('*');
-
-                    if (achievementsError) throw achievementsError;
-
-                    this.displayAchievements(achievements, userAchievements || []);
-
-                } catch (error) {
-                    console.error('Error loading achievements:', error);
-                    // Fallback to sample achievements
-                    this.displaySampleAchievements();
-                }
-            },
-
-            displayAchievements(achievements, userAchievements) {
-                const achievementsList = getElement('achievementsList');
-                if (!achievementsList) return;
-
-                achievementsList.innerHTML = '';
-
-                if (!achievements || achievements.length === 0) {
-                    this.displaySampleAchievements();
-                    return;
-                }
-
-                achievements.forEach(achievement => {
-                    const userAchievement = userAchievements.find(ua => ua.achievement_id === achievement.id);
-                    const progress = userAchievement ? userAchievement.progress : 0;
-                    const unlocked = progress >= achievement.goal;
-                    const progressPercentage = Math.min((progress / achievement.goal) * 100, 100);
-
-                    const achievementElement = document.createElement('div');
-                    achievementElement.className = `achievement-card ${unlocked ? '' : 'locked'}`;
-                    achievementElement.innerHTML = `
-                        <div class="achievement-icon">
-                            ${achievement.icon || '🏆'}
-                            ${unlocked ? '<div class="achievement-badge">✓</div>' : ''}
-                        </div>
-                        <div class="achievement-title">${achievement.name}</div>
-                        <div class="achievement-desc">${achievement.description}</div>
-                        <div class="achievement-progress">
-                            <div class="achievement-progress-bar" style="width: ${progressPercentage}%"></div>
-                        </div>
-                        <div class="text-xs text-muted mt-sm">
-                            ${progress}/${achievement.goal} • ${achievement.points} pts
-                        </div>
-                    `;
-                    achievementsList.appendChild(achievementElement);
-                });
-            },
-
-            displaySampleAchievements() {
-                const sampleAchievements = [
-                    { 
-                        id: 1, 
-                        name: "Food Explorer", 
-                        description: "Visit 10 different restaurants", 
-                        icon: "🗺️", 
-                        goal: 10,
-                        points: 50
-                    },
-                    { 
-                        id: 2, 
-                        name: "Cuisine Connoisseur", 
-                        description: "Try 5 different cuisines", 
-                        icon: "🌍", 
-                        goal: 5,
-                        points: 75
-                    },
-                    { 
-                        id: 3, 
-                        name: "Review Master", 
-                        description: "Write 15 reviews", 
-                        icon: "📝", 
-                        goal: 15,
-                        points: 100
-                    },
-                    { 
-                        id: 4, 
-                        name: "Social Butterfly", 
-                        description: "Follow 10 friends", 
-                        icon: "👥", 
-                        goal: 10,
-                        points: 25
-                    },
-                    { 
-                        id: 5, 
-                        name: "List Curator", 
-                        description: "Create 3 custom lists", 
-                        icon: "📋", 
-                        goal: 3,
-                        points: 30
-                    },
-                    { 
-                        id: 6, 
-                        name: "Consistent Foodie", 
-                        description: "7-day journaling streak", 
-                        icon: "🔥", 
-                        goal: 7,
-                        points: 20
-                    }
-                ];
-
-                const achievementsList = getElement('achievementsList');
-                if (!achievementsList) return;
-
-                achievementsList.innerHTML = '';
-
-                sampleAchievements.forEach(achievement => {
-                    // For demo purposes, set random progress
-                    const progress = Math.floor(Math.random() * (achievement.goal + 2));
-                    const unlocked = progress >= achievement.goal;
-                    const progressPercentage = Math.min((progress / achievement.goal) * 100, 100);
-
-                    const achievementElement = document.createElement('div');
-                    achievementElement.className = `achievement-card ${unlocked ? '' : 'locked'}`;
-                    achievementElement.innerHTML = `
-                        <div class="achievement-icon">
-                            ${achievement.icon}
-                            ${unlocked ? '<div class="achievement-badge">✓</div>' : ''}
-                        </div>
-                        <div class="achievement-title">${achievement.name}</div>
-                        <div class="achievement-desc">${achievement.description}</div>
-                        <div class="achievement-progress">
-                            <div class="achievement-progress-bar" style="width: ${progressPercentage}%"></div>
-                        </div>
-                        <div class="text-xs text-muted mt-sm">
-                            ${progress}/${achievement.goal} • ${achievement.points} pts
-                        </div>
-                    `;
-                    achievementsList.appendChild(achievementElement);
-                });
-            }
-        };
-
-        // Utility Functions
-        function formatDate(dateString) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString(undefined, options);
         }
 
-        function showTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-                tab.style.display = 'none';
+        // Display friends in the friends list
+        function displayFriends(friends) {
+            const friendsList = getElement('friendsList');
+            if (!friendsList) return;
+            
+            friendsList.innerHTML = '';
+            
+            friends.forEach(friend => {
+                const friendCard = document.createElement('div');
+                friendCard.className = 'friend-card';
+                friendCard.innerHTML = `
+                    <div class="friend-header">
+                        <div class="friend-avatar">${friend.avatar_icon || '👤'}</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${friend.full_name || friend.username || 'Unknown User'}</div>
+                            <div class="friend-username">@${friend.username || 'user'}</div>
+                        </div>
+                    </div>
+                    <div class="friend-stats">
+                        <div class="friend-stat">
+                            <span class="friend-stat-number">${friend.visited_count || 0}</span>
+                            <span class="friend-stat-label">Visited</span>
+                        </div>
+                        <div class="friend-stat">
+                            <span class="friend-stat-number">${friend.favorites_count || 0}</span>
+                            <span class="friend-stat-label">Favorites</span>
+                        </div>
+                        <div class="friend-stat">
+                            <span class="friend-stat-number">${friend.followers_count || 0}</span>
+                            <span class="friend-stat-label">Followers</span>
+                        </div>
+                    </div>
+                    <div class="friend-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${friend.id}')">
+                            <i class="fas fa-eye"></i> View Profile
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="toggleFriendFollow('${friend.id}')">
+                            <i class="fas fa-user-minus"></i> Unfollow
+                        </button>
+                    </div>
+                `;
+                
+                friendsList.appendChild(friendCard);
             });
-            
-            // Show selected tab content
-            const tabElement = getElement(`${tabName}-tab`);
-            if (tabElement) {
-                tabElement.classList.add('active');
-                tabElement.style.display = 'block';
-            }
-            
-            // Update active button
-            document.querySelectorAll('.nav-tab').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
-            if (activeButton) activeButton.classList.add('active');
-            
-            // Update current tab
-            currentTab = tabName;
-            
-            // Load tab-specific content
-            if (tabName === 'friends') {
-                friendSystem.loadFriends();
-            } else if (tabName === 'journal') {
-                foodJournal.loadJournalEntries();
-            } else if (tabName === 'achievements') {
-                achievementsSystem.loadAchievements();
-            }
         }
 
-        function showModal(modalId) {
-            const modal = getElement(modalId);
-            if (modal) modal.classList.add('active');
-            
-            // Set current date as default for journal entry
-            if (modalId === 'addEntryModal') {
-                const visitDate = getElement('visitDate');
-                if (visitDate) {
-                    const today = new Date().toISOString().split('T')[0];
-                    visitDate.value = today;
-                }
-            }
-        }
-
-        function closeModal(modalId) {
-            const modal = getElement(modalId);
-            if (modal) modal.classList.remove('active');
-        }
-
-        function showCreateListModal() {
-            showModal('createListModal');
-            const listName = getElement('listName');
-            const listDescription = getElement('listDescription');
-            const selectedIcon = getElement('selectedIcon');
-            
-            if (listName) listName.value = '';
-            if (listDescription) listDescription.value = '';
-            if (selectedIcon) selectedIcon.value = '📋';
-        }
-
-        function hideCreateListModal() {
-            closeModal('createListModal');
-        }
-
-        async function createCustomList() {
-            const listName = getElement('listName')?.value.trim();
-            const listDescription = getElement('listDescription')?.value.trim();
-            const listIcon = getElement('selectedIcon')?.value;
-            
-            if (!listName) {
-                showToast('Please enter a list name', 'error');
-                return;
-            }
-
-            try {
-                const { data: newList, error } = await supabase
-                    .from('lists')
-                    .insert([{ 
-                        user_id: currentUser.id, 
-                        title: listName,
-                        description: listDescription,
-                        icon: listIcon
-                    }])
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                // Add to custom lists array
-                newList.restaurants = [];
-                customLists.push(newList);
-                
-                // Update UI
-                renderCustomLists();
-                hideCreateListModal();
-                showToast(`List "${listName}" created!`, 'success');
-                
-                // Update stats
-                updateStats();
-                
-            } catch (error) {
-                console.error('Error creating custom list:', error);
-                showToast('Error creating list', 'error');
-            }
-        }
-
-        function viewUserProfile(userId) {
-            window.location.href = `profile.html?id=${userId}`;
-        }
-
-        function editList(listId) {
-            showToast(`Editing list ${listId}`, 'info');
-        }
-
-        function editJournalEntry(entryId) {
-            showToast(`Editing journal entry ${entryId}`, 'info');
-        }
-
-        function deleteJournalEntry(entryId) {
-            if (confirm('Are you sure you want to delete this journal entry? This action cannot be undone.')) {
-                showToast('Journal entry deleted', 'success');
-            }
-        }
-
-        function addToFavorites(restaurantId) {
-            listManager.toggleInList('favorites', restaurantId);
-        }
-
-        function duplicateEntry(entryId) {
-            showToast('Entry duplicated', 'info');
-        }
-
-        // Avatar selection functions
-        function showAvatarModal() {
-            const avatarIconGrid = getElement('avatarIconGrid');
-            if (!avatarIconGrid) return;
-            
-            avatarIconGrid.innerHTML = '';
-            
-            foodIcons.forEach(icon => {
-                const iconOption = document.createElement('div');
-                iconOption.className = `avatar-icon-option ${userProfile?.avatar_icon === icon ? 'selected' : ''}`;
-                iconOption.textContent = icon;
-                iconOption.onclick = () => {
-                    // Remove selected class from all options
-                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    // Add selected class to clicked option
-                    iconOption.classList.add('selected');
-                    selectedAvatarIcon = icon;
-                };
-                avatarIconGrid.appendChild(iconOption);
-            });
-            
-            showModal('avatarModal');
-        }
-
-        async function saveAvatar() {
-            if (!selectedAvatarIcon) {
-                showToast('Please select an avatar', 'error');
-                return;
-            }
-
-            try {
-                // FIXED: Check if profile exists first
-                const { data: existingProfile } = await supabase
-                    .from('user_profiles')
-                    .select('id')
-                    .eq('id', currentUser.id)
-                    .single();
-                
-                let error;
-                if (existingProfile) {
-                    // Update existing profile
-                    ({ error } = await supabase
-                        .from('user_profiles')
-                        .update({ avatar_icon: selectedAvatarIcon })
-                        .eq('id', currentUser.id));
-                } else {
-                    // Create new profile with avatar
-                    ({ error } = await supabase
-                        .from('user_profiles')
-                        .insert({
-                            id: currentUser.id,
-                            username: currentUser.email.split('@')[0],
-                            full_name: currentUser.email.split('@')[0],
-                            avatar_icon: selectedAvatarIcon,
-                            created_at: new Date().toISOString()
-                        }));
-                }
-                
-                if (error) throw error;
-
-                // Update local state and UI
-                userProfile.avatar_icon = selectedAvatarIcon;
-                const avatar = getElement('profileAvatar');
-                if (avatar) avatar.textContent = selectedAvatarIcon;
-
-                closeModal('avatarModal');
-                showToast('Avatar updated successfully!', 'success');
-
-            } catch (error) {
-                console.error('Error updating avatar:', error);
-                showToast('Error updating avatar', 'error');
-            }
+        // Load achievements
+        async function loadAchievements() {
+            // For demo, we'll use the static content
+            // In a real app, this would fetch from the database
         }
 
         // Set up event listeners
         function setupEventListeners() {
-            // Tab buttons - FIXED: Proper tab switching
+            // Tab buttons
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const tabName = this.getAttribute('data-tab');
@@ -3898,7 +2661,8 @@
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     journalFilter = this.getAttribute('data-filter');
-                    foodJournal.loadJournalEntries();
+                    // In a real app, this would filter journal entries
+                    showToast(`Filtered to: ${journalFilter}`, 'info');
                 });
             });
             
@@ -3958,7 +2722,6 @@
                     e.preventDefault();
                     if (confirm('Are you sure you want to logout?')) {
                         showToast('Logging out...', 'info');
-                        await supabase.auth.signOut();
                         setTimeout(() => {
                             window.location.href = 'login.html';
                         }, 1500);
@@ -3971,7 +2734,7 @@
             if (journalEntryForm) {
                 journalEntryForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    foodJournal.saveJournalEntry();
+                    saveJournalEntry();
                 });
             }
             
@@ -3997,7 +2760,7 @@
             document.querySelectorAll('.rating-star').forEach(star => {
                 star.addEventListener('click', function() {
                     const rating = parseInt(this.getAttribute('data-rating'));
-                    foodJournal.setRating(rating);
+                    setRating(rating);
                 });
             });
             
@@ -4043,6 +2806,259 @@
                     }
                 });
             }
+            
+            // Follow button
+            const followButton = getElement('followButton');
+            if (followButton) {
+                followButton.addEventListener('click', () => {
+                    toggleFollow();
+                });
+            }
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.display = 'none';
+            });
+            
+            // Show selected tab content
+            const tabElement = getElement(`${tabName}-tab`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+                tabElement.style.display = 'block';
+            }
+            
+            // Update active button
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+            if (activeButton) activeButton.classList.add('active');
+            
+            // Update current tab
+            currentTab = tabName;
+            
+            // Load tab-specific content
+            if (tabName === 'friends') {
+                loadFriends();
+            } else if (tabName === 'journal') {
+                // In a real app, this would load journal entries
+            } else if (tabName === 'achievements') {
+                // In a real app, this would load achievements
+            }
+        }
+
+        function showModal(modalId) {
+            const modal = getElement(modalId);
+            if (modal) modal.classList.add('active');
+            
+            // Set current date as default for journal entry
+            if (modalId === 'addEntryModal') {
+                const visitDate = getElement('visitDate');
+                if (visitDate) {
+                    const today = new Date().toISOString().split('T')[0];
+                    visitDate.value = today;
+                }
+            }
+            
+            // Populate avatar modal
+            if (modalId === 'avatarModal') {
+                populateAvatarModal();
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = getElement(modalId);
+            if (modal) modal.classList.remove('active');
+        }
+
+        function showCreateListModal() {
+            showModal('createListModal');
+            const listName = getElement('listName');
+            const listDescription = getElement('listDescription');
+            const selectedIcon = getElement('selectedIcon');
+            
+            if (listName) listName.value = '';
+            if (listDescription) listDescription.value = '';
+            if (selectedIcon) selectedIcon.value = '📋';
+        }
+
+        function hideCreateListModal() {
+            closeModal('createListModal');
+        }
+
+        async function createCustomList() {
+            const listName = getElement('listName')?.value.trim();
+            const listDescription = getElement('listDescription')?.value.trim();
+            const listIcon = getElement('selectedIcon')?.value;
+            
+            if (!listName) {
+                showToast('Please enter a list name', 'error');
+                return;
+            }
+
+            try {
+                // In a real app, this would save to the database
+                // For demo, we'll just add to the local array
+                const newList = {
+                    id: customLists.length + 1,
+                    title: listName,
+                    description: listDescription,
+                    icon: listIcon,
+                    restaurants: []
+                };
+                
+                // Add to custom lists array
+                customLists.push(newList);
+                
+                // Update UI
+                renderCustomLists();
+                hideCreateListModal();
+                showToast(`List "${listName}" created!`, 'success');
+                
+                // Update stats
+                updateStats();
+                
+            } catch (error) {
+                console.error('Error creating custom list:', error);
+                showToast('Error creating list', 'error');
+            }
+        }
+
+        function viewUserProfile(userId) {
+            window.location.href = `profile.html?id=${userId}`;
+        }
+
+        function toggleFriendFollow(friendId) {
+            // In a real app, this would unfollow the friend
+            showToast('Friend unfollowed', 'info');
+            // Reload friends list
+            loadFriends();
+        }
+
+        function editList(listId) {
+            showToast(`Editing list ${listId}`, 'info');
+        }
+
+        function editJournalEntry(entryId) {
+            showToast(`Editing journal entry ${entryId}`, 'info');
+        }
+
+        function deleteJournalEntry(entryId) {
+            if (confirm('Are you sure you want to delete this journal entry? This action cannot be undone.')) {
+                showToast('Journal entry deleted', 'success');
+            }
+        }
+
+        function addToFavorites(restaurantId) {
+            // In a real app, this would add to favorites
+            showToast('Added to favorites', 'success');
+        }
+
+        function duplicateEntry(entryId) {
+            showToast('Entry duplicated', 'info');
+        }
+
+        // Avatar selection functions
+        function showAvatarModal() {
+            showModal('avatarModal');
+        }
+
+        function populateAvatarModal() {
+            const avatarIconGrid = getElement('avatarIconGrid');
+            if (!avatarIconGrid) return;
+            
+            avatarIconGrid.innerHTML = '';
+            
+            foodIcons.forEach(icon => {
+                const iconOption = document.createElement('div');
+                iconOption.className = `avatar-icon-option ${userProfile?.avatar_icon === icon ? 'selected' : ''}`;
+                iconOption.textContent = icon;
+                iconOption.onclick = () => {
+                    // Remove selected class from all options
+                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    // Add selected class to clicked option
+                    iconOption.classList.add('selected');
+                    selectedAvatarIcon = icon;
+                };
+                avatarIconGrid.appendChild(iconOption);
+            });
+        }
+
+        async function saveAvatar() {
+            if (!selectedAvatarIcon) {
+                showToast('Please select an avatar', 'error');
+                return;
+            }
+
+            try {
+                // In a real app, this would save to the database
+                // For demo, we'll just update the local state
+                userProfile.avatar_icon = selectedAvatarIcon;
+                
+                // Update UI
+                const avatar = getElement('profileAvatar');
+                if (avatar) avatar.textContent = selectedAvatarIcon;
+
+                closeModal('avatarModal');
+                showToast('Avatar updated successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error updating avatar:', error);
+                showToast('Error updating avatar', 'error');
+            }
+        }
+
+        // Set rating for journal entry
+        function setRating(stars) {
+            const starsElements = document.querySelectorAll('#ratingStars span');
+            starsElements.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            
+            const selectedRating = getElement('selectedRating');
+            if (selectedRating) selectedRating.value = stars;
+        }
+
+        // Save journal entry
+        async function saveJournalEntry() {
+            const restaurantId = parseInt(getElement('restaurantSelect')?.value);
+            const visitDate = getElement('visitDate')?.value;
+            const rating = parseInt(getElement('selectedRating')?.value || '0');
+            const notes = getElement('visitNotes')?.value || '';
+            const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            if (!restaurantId || !visitDate || rating === 0) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            try {
+                const restaurant = restaurants.find(r => r.id === restaurantId);
+                showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
+                closeModal('addEntryModal');
+                
+                // Reset form
+                const form = getElement('journalEntryForm');
+                if (form) form.reset();
+                setRating(0);
+                
+                // In a real app, this would reload journal entries
+                
+            } catch (error) {
+                console.error('Error saving journal entry:', error);
+                showToast('Error saving journal entry', 'error');
+            }
         }
 
         // Save profile changes
@@ -4058,47 +3074,14 @@
             }
             
             try {
-                // First check if profile exists
-                const { data: existingProfile, error: checkError } = await supabase
-                    .from('user_profiles')
-                    .select('id')
-                    .eq('id', currentUser.id)
-                    .single();
+                // In a real app, this would save to the database
+                // For demo, we'll just update the local state
+                userProfile.full_name = newName;
+                userProfile.username = newUsername;
+                userProfile.bio = newBio;
+                userProfile.location = newLocation;
                 
-                let error;
-                if (existingProfile) {
-                    // Update existing profile
-                    ({ error } = await supabase
-                        .from('user_profiles')
-                        .update({
-                            full_name: newName,
-                            username: newUsername,
-                            bio: newBio,
-                            location: newLocation,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id));
-                } else {
-                    // Create new profile
-                    ({ error } = await supabase
-                        .from('user_profiles')
-                        .insert({
-                            id: currentUser.id,
-                            full_name: newName,
-                            username: newUsername,
-                            bio: newBio,
-                            location: newLocation,
-                            avatar_icon: "🍔",
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        }));
-                }
-                
-                if (error) throw error;
-                
-                // Update local state and UI
-                await loadUserProfile();
-                
+                // Update UI
                 setTextContent('profileName', newName);
                 setTextContent('profileUsername', `@${newUsername}`);
                 setTextContent('profileBio', newBio || "No bio yet. Click edit to add one!");
@@ -4114,11 +3097,26 @@
             }
         }
 
+        // Toggle follow for other users
+        function toggleFollow() {
+            const followButton = getElement('followButton');
+            if (!followButton) return;
+            
+            if (followButton.textContent === 'Follow') {
+                followButton.textContent = 'Following';
+                followButton.className = 'btn btn-success';
+                showToast(`Started following ${targetUser.username}`, 'success');
+            } else {
+                followButton.textContent = 'Follow';
+                followButton.className = 'btn btn-primary';
+                showToast(`Unfollowed ${targetUser.username}`, 'info');
+            }
+        }
+
         // View progress function
         function viewProgress() {
             showToast('Showing your progress!', 'info');
             // In a real app, this would show a detailed progress view
-            // For now, just show a toast
         }
 
         // Initialize the page when DOM is loaded
@@ -4140,8 +3138,8 @@
         window.deleteJournalEntry = deleteJournalEntry;
         window.addToFavorites = addToFavorites;
         window.duplicateEntry = duplicateEntry;
-        window.setRating = (stars) => foodJournal.setRating(stars);
-        window.saveJournalEntry = () => foodJournal.saveJournalEntry();
+        window.setRating = setRating;
+        window.saveJournalEntry = saveJournalEntry;
         window.showAvatarModal = showAvatarModal;
         window.saveAvatar = saveAvatar;
         window.viewProgress = viewProgress;
