@@ -1,4 +1,4 @@
-// fix-reviews-complete.js
+// fix-reviews-complete.js - FIXED VERSION
 const fs = require('fs');
 const path = require('path');
 
@@ -25,8 +25,14 @@ function cleanupFile(filePath) {
         
         console.log(`\n🔧 Cleaning up: ${path.basename(filePath)}`);
         
-        // Remove ALL review-related scripts
-        const reviewScriptPatterns = [
+        // Remove ALL review-related scripts and sections FIRST
+        const patternsToRemove = [
+            // Remove any existing clean review systems
+            /<!-- CLEAN_REVIEW_SYSTEM_V1 -->[\s\S]*?<\/script>\s*<\/body>/gi,
+            /<!-- CLEAN_REVIEW_SYSTEM_V2 -->[\s\S]*?<\/script>\s*<\/body>/gi,
+            // Remove duplicate review sections
+            /<section class="section reviews"[\s\S]*?<\/section>/gi,
+            // Remove any review scripts
             /<script>[\s\S]*?RestaurantReviews[\s\S]*?<\/script>/gi,
             /<script>[\s\S]*?reviewsSystem[\s\S]*?<\/script>/gi,
             /<script>[\s\S]*?class RestaurantReviews[\s\S]*?<\/script>/gi,
@@ -36,32 +42,14 @@ function cleanupFile(filePath) {
             /<script>[\s\S]*?\/\/ SINGLE REVIEW SYSTEM[\s\S]*?<\/script>/gi
         ];
         
-        let scriptsRemoved = 0;
-        reviewScriptPatterns.forEach(pattern => {
+        let removedCount = 0;
+        patternsToRemove.forEach(pattern => {
             const matches = content.match(pattern);
             if (matches) {
-                scriptsRemoved += matches.length;
+                removedCount += matches.length;
                 content = content.replace(pattern, '');
             }
         });
-        
-        // Remove duplicate review sections (keep only one)
-        const reviewSectionPattern = /<section class="section reviews"[\s\S]*?<\/section>/gi;
-        const sectionMatches = content.match(reviewSectionPattern);
-        
-        let sectionsRemoved = 0;
-        if (sectionMatches && sectionMatches.length > 1) {
-            // Keep only the first occurrence
-            sectionsRemoved = sectionMatches.length - 1;
-            let firstMatch = true;
-            content = content.replace(reviewSectionPattern, (match) => {
-                if (firstMatch) {
-                    firstMatch = false;
-                    return match;
-                }
-                return '';
-            });
-        }
         
         // Clean up extra whitespace
         content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
@@ -69,8 +57,8 @@ function cleanupFile(filePath) {
         
         const newLength = content.length;
         
-        if (scriptsRemoved > 0 || sectionsRemoved > 0) {
-            console.log(`✅ Removed: ${scriptsRemoved} scripts, ${sectionsRemoved} sections`);
+        if (removedCount > 0) {
+            console.log(`✅ Removed: ${removedCount} review components`);
             console.log(`📉 Reduced by: ${originalLength - newLength} bytes`);
             
             fs.writeFileSync(filePath, content, 'utf8');
@@ -98,16 +86,13 @@ function addCleanReviewSystem(filePath) {
         }
 
         // Check if a clean review system already exists
-        if (content.includes('CLEAN_REVIEW_SYSTEM_V1')) {
+        if (content.includes('CLEAN_REVIEW_SYSTEM_V2')) {
             console.log(`⏩ Clean system already exists in: ${path.basename(filePath)}`);
             return false;
         }
 
-        // Remove any remaining review sections before adding new one
-        content = content.replace(/<section class="section reviews"[\s\S]*?<\/section>/gi, '');
-
         const cleanReviewSystem = `
-<!-- CLEAN_REVIEW_SYSTEM_V1 -->
+<!-- CLEAN_REVIEW_SYSTEM_V2 -->
 <section class="section reviews" id="reviews-section">
   <h2>Customer Reviews</h2>
   <div id="reviews-list">
@@ -245,35 +230,76 @@ function addCleanReviewSystem(filePath) {
 </style>
 
 <script>
-// SINGLE CLEAN REVIEW SYSTEM - DO NOT DUPLICATE
-if (!window.cleanReviewSystemLoaded) {
-  window.cleanReviewSystemLoaded = true;
+// SINGLE CLEAN REVIEW SYSTEM V2 - FIXED AUTH ISSUES
+if (!window.cleanReviewSystemV2Loaded) {
+  window.cleanReviewSystemV2Loaded = true;
   
   class CleanRestaurantReviews {
-    constructor() {
-      this.supabase = window.supabase;
-      this.restaurantId = ${restaurantId};
+    constructor(restaurantId) {
+      this.restaurantId = restaurantId;
       this.currentRating = 0;
-      console.log('🔄 Loading clean review system for restaurant:', this.restaurantId);
+      this.currentUser = null;
+      this.supabase = null;
+      console.log('🔄 Initializing clean review system for restaurant:', this.restaurantId);
       this.init();
     }
 
     async init() {
+      // Wait for Supabase to be available
+      await this.waitForSupabase();
       await this.checkAuth();
       this.setupEventListeners();
       await this.loadReviews();
     }
 
+    async waitForSupabase() {
+      return new Promise((resolve) => {
+        const checkSupabase = () => {
+          if (window.supabase) {
+            this.supabase = window.supabase;
+            console.log('✅ Supabase loaded');
+            resolve();
+          } else {
+            console.log('⏳ Waiting for Supabase...');
+            setTimeout(checkSupabase, 100);
+          }
+        };
+        checkSupabase();
+      });
+    }
+
     async checkAuth() {
-      const { data: { session } } = await this.supabase.auth.getSession();
-      this.currentUser = session?.user || null;
-      
-      const reviewForm = document.getElementById('review-form');
-      const authPrompt = document.getElementById('auth-prompt');
-      
-      if (reviewForm && authPrompt) {
-        reviewForm.style.display = this.currentUser ? 'block' : 'none';
-        authPrompt.style.display = this.currentUser ? 'none' : 'block';
+      try {
+        if (!this.supabase) {
+          console.error('Supabase not available');
+          return;
+        }
+
+        const { data: { session }, error } = await this.supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Auth error:', error);
+          return;
+        }
+
+        this.currentUser = session?.user || null;
+        
+        const reviewForm = document.getElementById('review-form');
+        const authPrompt = document.getElementById('auth-prompt');
+        
+        if (reviewForm && authPrompt) {
+          if (this.currentUser) {
+            reviewForm.style.display = 'block';
+            authPrompt.style.display = 'none';
+            console.log('✅ User is authenticated');
+          } else {
+            reviewForm.style.display = 'none';
+            authPrompt.style.display = 'block';
+            console.log('⚠️ User not authenticated');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
       }
     }
 
@@ -323,13 +349,22 @@ if (!window.cleanReviewSystemLoaded) {
       if (!container) return;
 
       try {
+        if (!this.supabase) {
+          container.innerHTML = '<div class="reviews-empty">Error: Authentication system not ready</div>';
+          return;
+        }
+
         const { data: reviews, error } = await this.supabase
           .from('reviews')
           .select('*')
           .eq('restaurant_id', this.restaurantId)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error loading reviews:', error);
+          container.innerHTML = '<div class="reviews-empty">Error loading reviews</div>';
+          return;
+        }
 
         if (!reviews || reviews.length === 0) {
           container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
@@ -352,7 +387,7 @@ if (!window.cleanReviewSystemLoaded) {
 
         container.innerHTML = reviews.map(review => {
           const user = userMap[review.user_id];
-          const displayName = user ? (user.full_name || user.username) : review.user_name;
+          const displayName = user ? (user.full_name || user.username) : 'Anonymous User';
           const canDelete = this.currentUser && this.currentUser.id === review.user_id;
           
           return \`
@@ -362,7 +397,7 @@ if (!window.cleanReviewSystemLoaded) {
                 <div class="review-rating">\${'★'.repeat(review.rating)}\${'☆'.repeat(5 - review.rating)}</div>
                 \${canDelete ? \`
                   <div class="review-actions">
-                    <button class="delete-review" onclick="window.cleanReviews.deleteReview('\${review.id}')">
+                    <button class="delete-review" onclick="window.reviewSystem.deleteReview('\${review.id}')">
                       <i class="fas fa-trash"></i> Delete
                     </button>
                   </div>
@@ -389,6 +424,7 @@ if (!window.cleanReviewSystemLoaded) {
       
       if (!this.currentUser) {
         alert('Please sign in to submit a review');
+        window.location.href = '../login.html';
         return;
       }
 
@@ -479,21 +515,24 @@ if (!window.cleanReviewSystemLoaded) {
   }
 
   // Initialize when page is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
+    // Find the restaurant ID from the script
+    const reviewScript = document.querySelector('script');
+    const scriptContent = reviewScript?.textContent || '';
+    const restaurantIdMatch = scriptContent.match(/this\\.restaurantId = (\\d+)/);
+    
+    if (restaurantIdMatch) {
+      const restaurantId = parseInt(restaurantIdMatch[1]);
+      console.log('🎯 Found restaurant ID:', restaurantId);
+      
+      // Wait a bit for Supabase to load
       setTimeout(() => {
-        if (window.supabase) {
-          window.cleanReviews = new CleanRestaurantReviews();
-        }
-      }, 1000);
-    });
-  } else {
-    setTimeout(() => {
-      if (window.supabase) {
-        window.cleanReviews = new CleanRestaurantReviews();
-      }
-    }, 1000);
-  }
+        window.reviewSystem = new CleanRestaurantReviews(restaurantId);
+      }, 500);
+    } else {
+      console.error('❌ Could not find restaurant ID in script');
+    }
+  });
 }
 </script>
 `;
