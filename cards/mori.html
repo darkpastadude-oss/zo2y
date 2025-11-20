@@ -2247,55 +2247,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 
 <!-- REAL REVIEWS SYSTEM -->
-<section class="section reviews">
-    <h2>Customer Reviews</h2>
-    
-    <div class="review-stats">
-        <div class="overall-rating">
-            <div class="rating-large">0.0</div>
-            <div class="rating-stars-large">⭐⭐⭐⭐⭐</div>
-            <div class="rating-count">0 reviews</div>
-        </div>
-    </div>
 
-    <div id="reviewsList">
-        <div class="empty-reviews">
-            <p>No reviews yet. Be the first to share your experience!</p>
-        </div>
-    </div>
-
-    <div class="add-review-section">
-        <h3>Write a Review</h3>
-        <form class="review-form" id="reviewForm">
-            <div class="rating-input">
-                <label>Your Rating:</label>
-                <div class="star-rating" id="starRating">
-                    <span class="star" data-rating="1">☆</span>
-                    <span class="star" data-rating="2">☆</span>
-                    <span class="star" data-rating="3">☆</span>
-                    <span class="star" data-rating="4">☆</span>
-                    <span class="star" data-rating="5">☆</span>
-                </div>
-                <input type="hidden" id="selectedRating" name="rating" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="reviewComment">Your Review:</label>
-                <textarea 
-                    id="reviewComment" 
-                    name="comment" 
-                    placeholder="Share your experience with this restaurant..." 
-                    rows="4"
-                    required
-                ></textarea>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">
-                Submit Review
-            </button>
-        </form>
-    </div>
-</section>
 
 <script>
 // Simple Reviews System
@@ -2421,5 +2373,101 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 </style>
+
+<section class="section reviews">
+  <div id="reviews"></div>
+</section>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const supabase = createClient("https://qtgxffeeukdiaovynmdo.supabase.co", "PUT-YOUR-KEY-HERE");
+  const restaurantId = 1;
+
+  const reviewsBox = document.getElementById("reviews");
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+  }
+
+  async function loadReviews() {
+    reviewsBox.innerHTML = "Loading reviews...";
+
+    const session = await supabase.auth.getSession();
+    const user = session.data.session?.user;
+
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("id, rating, comment, user_id, created_at")
+      .eq("restaurant_id", restaurantId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      reviewsBox.innerHTML = "Failed to load reviews.";
+      return;
+    }
+
+    let html = "<h2>Reviews</h2>";
+
+    if (user) {
+      html += `
+      <div class="review-form">
+        <select id="rating">
+          <option value="1">1 Star</option>
+          <option value="2">2 Stars</option>
+          <option value="3">3 Stars</option>
+          <option value="4">4 Stars</option>
+          <option value="5">5 Stars</option>
+        </select>
+        <textarea id="comment"></textarea>
+        <button id="submitReview">Submit</button>
+      </div>`;
+    } else {
+      html += "<p><a href='/login.html'>Log in to leave a review</a></p>";
+    }
+
+    data.forEach(r => {
+      const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+      html += `
+        <div class="review">
+          <p><strong>${r.user_id}</strong></p>
+          <p>${stars}</p>
+          <p>${escapeHTML(r.comment)}</p>
+        </div>`;
+    });
+
+    reviewsBox.innerHTML = html;
+
+    if (user) {
+      document.getElementById("submitReview").onclick = submitReview;
+    }
+  }
+
+  async function submitReview() {
+    const rating = Number(document.getElementById("rating").value);
+    const comment = document.getElementById("comment").value;
+
+    const session = await supabase.auth.getSession();
+    const user = session.data.session.user;
+
+    await supabase.from("reviews").insert({
+      restaurant_id: restaurantId,
+      user_id: user.id,
+      rating,
+      comment
+    });
+
+    loadReviews();
+  }
+
+  loadReviews();
+</script>
+
 </body>
 </html>
