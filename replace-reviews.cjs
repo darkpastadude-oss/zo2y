@@ -1,7 +1,8 @@
-// final-working-reviews.js
+// replace-reviews.js
 const fs = require('fs');
 const path = require('path');
 
+// Function to replace the reviews section in a single file
 function replaceReviewsInFile(filePath) {
     try {
         let content = fs.readFileSync(filePath, 'utf8');
@@ -24,8 +25,8 @@ function replaceReviewsInFile(filePath) {
         };
         
         const restaurantId = restaurantIdMap[restaurantName] || 1;
-
-        // The new reviews section
+        
+        // The new reviews section with dynamic functionality
         const newReviewsSection = `
 <section class="section reviews" id="reviews-section">
   <h2>Customer Reviews</h2>
@@ -35,18 +36,16 @@ function replaceReviewsInFile(filePath) {
   
   <h3 style="margin-top: 30px; font-size: 1.2rem;">Add Your Review</h3>
   <form class="review-form" id="review-form">
-    <div class="review-input-group">
-      <div class="rating-input">
-        <span>Rating:</span>
-        <div class="stars">
-          <span class="star" data-rating="1">★</span>
-          <span class="star" data-rating="2">★</span>
-          <span class="star" data-rating="3">★</span>
-          <span class="star" data-rating="4">★</span>
-          <span class="star" data-rating="5">★</span>
-        </div>
-        <span class="rating-text">Select rating</span>
+    <div class="rating-input">
+      <span>Rating:</span>
+      <div class="stars">
+        <span class="star" data-rating="1">★</span>
+        <span class="star" data-rating="2">★</span>
+        <span class="star" data-rating="3">★</span>
+        <span class="star" data-rating="4">★</span>
+        <span class="star" data-rating="5">★</span>
       </div>
+      <span class="rating-text">Select rating</span>
     </div>
     <textarea placeholder="Share your experience..." id="review-comment" rows="4" required maxlength="500"></textarea>
     <div class="review-form-actions">
@@ -61,172 +60,160 @@ function replaceReviewsInFile(filePath) {
 </section>
 
 <style>
-.reviews-container { 
-  max-height: 500px; 
-  overflow-y: auto; 
-  padding-right: 10px; 
-  margin-bottom: 20px;
+.reviews-container {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
 }
 
-.review { 
-  border-bottom: 1px solid var(--nav-shadow); 
-  padding: 20px 0; 
-  position: relative; 
+.review {
+  border-bottom: 1px solid var(--nav-shadow);
+  padding: 20px 0;
+  position: relative;
 }
 
-.review:last-child { 
-  border-bottom: none; 
+.review:last-child {
+  border-bottom: none;
 }
 
-.review-header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: flex-start; 
-  margin-bottom: 12px; 
-  position: relative; 
-}
-
-.reviewer-name { 
-  font-weight: 600; 
-  color: var(--text); 
-  margin: 0; 
-  flex: 1; 
-  padding-right: 100px; 
-}
-
-.review-rating { 
-  color: #FF9800; 
-  font-size: 1rem; 
-  font-weight: 600;
-}
-
-.review-comment { 
-  margin: 0; 
-  color: var(--text2); 
-  line-height: 1.6; 
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 8px;
+  position: relative;
 }
 
-.review-date { 
-  font-size: 0.8rem; 
-  color: var(--text2); 
-  margin-top: 5px; 
+.reviewer-name {
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  flex: 1;
+  padding-right: 100px;
 }
 
-.review-actions { 
-  position: absolute; 
-  top: 0; 
-  right: 0; 
+.review-rating {
+  color: #FF9800;
+  font-size: 0.9rem;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
-.delete-review { 
-  background: none; 
-  border: none; 
-  color: #ff4444; 
-  cursor: pointer; 
-  padding: 6px 10px; 
-  border-radius: 6px; 
-  font-size: 0.8rem; 
-  transition: all 0.3s ease; 
-  margin-left: 10px; 
-  border: 1px solid transparent;
+.review-comment {
+  margin: 0;
+  color: var(--text2);
+  line-height: 1.5;
+  padding-right: 0;
 }
 
-.delete-review:hover { 
-  background: rgba(255, 68, 68, 0.1); 
-  transform: scale(1.05); 
-  border-color: #ff4444;
+.review-date {
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-top: 5px;
 }
 
-.review-input-group { 
-  display: flex; 
-  gap: 15px; 
-  margin-bottom: 20px; 
-  flex-wrap: wrap; 
-  justify-content: space-between; 
+.review-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
-.rating-input { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  flex: 1; 
+.delete-review {
+  background: none;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  margin-left: 10px;
 }
 
-.stars { 
-  display: flex; 
-  gap: 4px; 
+.delete-review:hover {
+  background: rgba(255, 68, 68, 0.1);
+  transform: scale(1.1);
 }
 
-.star { 
-  font-size: 1.8rem; 
-  color: #ddd; 
-  cursor: pointer; 
-  transition: all 0.2s ease; 
-  user-select: none; 
+.rating-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
 }
 
-.star:hover, 
-.star.active { 
-  color: #FF9800; 
-  transform: scale(1.2); 
+.stars {
+  display: flex;
+  gap: 2px;
 }
 
-.rating-text { 
-  font-size: 0.9rem; 
-  color: var(--text2); 
-  min-width: 120px; 
-  font-weight: 500;
+.star {
+  font-size: 1.5rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  user-select: none;
 }
 
-.review-form-actions { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  margin-top: 20px; 
+.star:hover,
+.star.active {
+  color: #FF9800;
 }
 
-.char-count { 
-  font-size: 0.8rem; 
-  color: var(--text2); 
+.rating-text {
+  font-size: 0.9rem;
+  color: var(--text2);
+  min-width: 100px;
 }
 
-.reviews-loading, .reviews-empty { 
-  text-align: center; 
-  padding: 40px 20px; 
-  color: var(--text2); 
-  font-style: italic; 
+.review-form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.auth-prompt-review { 
-  text-align: center; 
-  padding: 30px; 
-  background: var(--card); 
-  border-radius: 12px; 
-  margin-top: 20px; 
-  border: 1px solid var(--nav-shadow); 
+.char-count {
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+.reviews-loading, .reviews-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text2);
+  font-style: italic;
+}
+
+.auth-prompt-review {
+  text-align: center;
+  padding: 20px;
+  background: var(--card);
+  border-radius: 8px;
+  margin-top: 20px;
+  border: 1px solid var(--nav-shadow);
 }
 
 /* Custom Toast Notifications */
 .zo2y-toast {
   position: fixed;
-  top: 30px;
-  right: 30px;
+  top: 20px;
+  right: 20px;
   background: var(--card);
   border: 1px solid var(--nav-shadow);
   border-left: 4px solid #FF9800;
-  border-radius: 12px;
-  padding: 18px 22px;
+  border-radius: 8px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+  gap: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
   z-index: 10000;
   transform: translateX(400px);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  max-width: 380px;
-  backdrop-filter: blur(15px);
-  font-family: 'Segoe UI', sans-serif;
+  max-width: 350px;
+  backdrop-filter: blur(10px);
 }
 
 .zo2y-toast.show {
@@ -235,62 +222,44 @@ function replaceReviewsInFile(filePath) {
 
 .zo2y-toast.success {
   border-left-color: #10b981;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(16, 185, 129, 0.05) 100%);
 }
 
 .zo2y-toast.error {
   border-left-color: #ef4444;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(239, 68, 68, 0.05) 100%);
 }
 
 .zo2y-toast.warning {
   border-left-color: #f59e0b;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(245, 158, 11, 0.05) 100%);
 }
 
 .zo2y-toast.info {
   border-left-color: #3b82f6;
-  background: linear-gradient(135deg, var(--card) 0%, rgba(59, 130, 246, 0.05) 100%);
 }
 
 .toast-icon {
-  font-size: 22px;
+  font-size: 20px;
   flex-shrink: 0;
-  width: 24px;
-  text-align: center;
 }
 
-.zo2y-toast.success .toast-icon { 
-  color: #10b981; 
-}
-
-.zo2y-toast.error .toast-icon { 
-  color: #ef4444; 
-}
-
-.zo2y-toast.warning .toast-icon { 
-  color: #f59e0b; 
-}
-
-.zo2y-toast.info .toast-icon { 
-  color: #3b82f6; 
-}
+.zo2y-toast.success .toast-icon { color: #10b981; }
+.zo2y-toast.error .toast-icon { color: #ef4444; }
+.zo2y-toast.warning .toast-icon { color: #f59e0b; }
+.zo2y-toast.info .toast-icon { color: #3b82f6; }
 
 .toast-content {
   flex: 1;
 }
 
 .toast-title {
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-weight: 600;
+  margin-bottom: 4px;
   color: var(--text);
-  font-size: 1rem;
 }
 
 .toast-message {
   font-size: 14px;
   color: var(--text2);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .toast-close {
@@ -298,16 +267,10 @@ function replaceReviewsInFile(filePath) {
   border: none;
   color: var(--text2);
   cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 4px;
+  border-radius: 4px;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  font-size: 16px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .toast-close:hover {
@@ -338,7 +301,6 @@ function replaceReviewsInFile(filePath) {
   .review-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
   }
   
   .reviewer-name {
@@ -354,22 +316,17 @@ function replaceReviewsInFile(filePath) {
   .review-actions {
     position: static;
     align-self: flex-end;
-    margin-top: 10px;
-  }
-  
-  .review-input-group {
-    flex-direction: column;
-    gap: 15px;
   }
   
   .rating-input {
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 10px;
   }
   
   .zo2y-toast {
-    top: 20px;
-    right: 20px;
-    left: 20px;
+    top: 10px;
+    right: 10px;
+    left: 10px;
     max-width: none;
   }
 }
@@ -432,8 +389,7 @@ class RestaurantReviews {
     if (commentTextarea) {
       commentTextarea.addEventListener('input', (e) => {
         const count = e.target.value.length;
-        const charCount = document.querySelector('.char-count');
-        if (charCount) charCount.textContent = \`\${count}/500\`;
+        document.querySelector('.char-count').textContent = \`\${count}/500\`;
       });
     }
 
@@ -451,10 +407,7 @@ class RestaurantReviews {
     });
     
     const ratingTexts = ['Select rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-    const ratingTextElement = document.querySelector('.rating-text');
-    if (ratingTextElement) {
-      ratingTextElement.textContent = ratingTexts[this.currentRating] || 'Select rating';
-    }
+    document.querySelector('.rating-text').textContent = ratingTexts[this.currentRating] || 'Select rating';
   }
 
   async loadReviews() {
@@ -462,8 +415,6 @@ class RestaurantReviews {
     if (!reviewsContainer) return;
 
     try {
-      reviewsContainer.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
-
       const { data: reviews, error } = await this.supabase
         .from('reviews')
         .select('*')
@@ -481,14 +432,13 @@ class RestaurantReviews {
 
   async displayReviews(reviews) {
     const reviewsContainer = document.getElementById('reviews-list');
-    if (!reviewsContainer) return;
     
     if (reviews.length === 0) {
       reviewsContainer.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
       return;
     }
 
-    // Get user profiles for all reviews
+    // Get user profiles for all reviews to get proper usernames
     const userIds = [...new Set(reviews.map(review => review.user_id))];
     const { data: userProfiles, error: profileError } = await this.supabase
       .from('user_profiles')
@@ -504,7 +454,7 @@ class RestaurantReviews {
 
     reviewsContainer.innerHTML = reviews.map(review => {
       const userProfile = userProfileMap[review.user_id];
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
+      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : review.user_name;
       
       return \`
         <div class="review" data-review-id="\${review.id}">
@@ -538,33 +488,22 @@ class RestaurantReviews {
       return;
     }
 
-    const commentElement = document.getElementById('review-comment');
-    if (!commentElement) {
-      this.showNotification('Review form not found', 'error');
-      return;
-    }
+    const comment = document.getElementById('review-comment').value.trim();
 
-    const comment = commentElement.value.trim();
-
-    if (!comment) {
-      this.showNotification('Please write a review comment', 'warning');
-      return;
-    }
-
-    if (this.currentRating === 0) {
-      this.showNotification('Please select a rating', 'warning');
+    if (!comment || this.currentRating === 0) {
+      this.showNotification('Please fill in all fields and select a rating', 'warning');
       return;
     }
 
     try {
-      // Get user profile for the display name
+      // Get user profile for proper username
       const { data: userProfile, error: profileError } = await this.supabase
         .from('user_profiles')
         .select('username, full_name')
         .eq('id', this.currentUser.id)
         .single();
 
-      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
+      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'User';
 
       const { data, error } = await this.supabase
         .from('reviews')
@@ -581,24 +520,20 @@ class RestaurantReviews {
       if (error) throw error;
 
       // Reset form
-      const reviewForm = document.getElementById('review-form');
-      if (reviewForm) reviewForm.reset();
-      
+      document.getElementById('review-form').reset();
       this.currentRating = 0;
       this.updateStars();
-      
-      const charCount = document.querySelector('.char-count');
-      if (charCount) charCount.textContent = '0/500';
+      document.querySelector('.char-count').textContent = '0/500';
 
       // Reload reviews
       this.loadReviews();
 
       // Show success message
-      this.showNotification('Review submitted successfully! 🎉', 'success');
+      this.showNotification('Review submitted successfully!', 'success');
 
     } catch (error) {
       console.error('Error submitting review:', error);
-      this.showNotification('Error submitting review. Please try again.', 'error');
+      this.showNotification('Error submitting review: ' + error.message, 'error');
     }
   }
 
@@ -645,26 +580,26 @@ class RestaurantReviews {
     toast.className = \`zo2y-toast \${type}\`;
     
     const icons = {
-      success: '✓',
-      error: '⚠',
-      warning: '⚠', 
-      info: 'ℹ'
+      success: 'fas fa-check-circle',
+      error: 'fas fa-exclamation-circle',
+      warning: 'fas fa-exclamation-triangle',
+      info: 'fas fa-info-circle'
     };
     
     const titles = {
       success: 'Success!',
       error: 'Error!',
       warning: 'Warning!',
-      info: 'Notice'
+      info: 'Info'
     };
     
     toast.innerHTML = \`
-      <div class="toast-icon">\${icons[type]}</div>
+      <i class="\${icons[type]} toast-icon"></i>
       <div class="toast-content">
         <div class="toast-title">\${titles[type]}</div>
         <div class="toast-message">\${message}</div>
       </div>
-      <button class="toast-close">×</button>
+      <button class="toast-close">&times;</button>
     \`;
     
     document.body.appendChild(toast);
@@ -698,54 +633,54 @@ class RestaurantReviews {
   }
 }
 
-// Initialize reviews system when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  // Wait for Supabase to be available
-  const initReviews = () => {
-    if (window.supabase) {
-      window.reviewsSystem = new RestaurantReviews();
-    } else {
-      setTimeout(initReviews, 100);
-    }
-  };
-  
-  setTimeout(initReviews, 1000);
+// Initialize reviews system when Supabase is ready
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    window.reviewsSystem = new RestaurantReviews();
+  }, 1000);
 });
 </script>
 `;
 
-        // Find and replace any existing reviews section
-        let found = false;
-        
-        // Try multiple patterns to find reviews section
+        // Try multiple patterns to find the reviews section
         const patterns = [
             /<section class="section reviews">[\s\S]*?<\/section>/,
             /<section class="reviews">[\s\S]*?<\/section>/,
             /<section[^>]*>[\s\S]*?Customer Reviews[\s\S]*?<\/section>/,
-            /<h2>Customer Reviews<\/h2>[\s\S]*?<\/section>/
+            /<h2>Customer Reviews<\/h2>[\s\S]*?<\/section>/,
+            /<section[^>]*>[\s\S]*?Add Your Review[\s\S]*?<\/section>/
         ];
 
+        let found = false;
         for (const pattern of patterns) {
             if (content.match(pattern)) {
                 content = content.replace(pattern, newReviewsSection);
                 found = true;
+                console.log(`✅ Found and replaced review section in: ${filePath}`);
                 break;
             }
         }
 
-        // If no pattern matched, look for the section by content
+        // If no pattern matched, try to find by content
         if (!found) {
             const reviewsIndex = content.indexOf('Customer Reviews');
             if (reviewsIndex !== -1) {
-                // Find section boundaries
-                let sectionStart = content.lastIndexOf('<section', reviewsIndex);
-                let sectionEnd = content.indexOf('</section>', reviewsIndex);
+                console.log(`📍 Found "Customer Reviews" text in ${filePath}, attempting replacement`);
                 
-                if (sectionStart !== -1 && sectionEnd !== -1) {
-                    sectionEnd += 10; // Include </section>
-                    const oldSection = content.substring(sectionStart, sectionEnd);
+                // Find the start of the section
+                let sectionStart = content.lastIndexOf('<section', reviewsIndex);
+                if (sectionStart === -1) sectionStart = content.lastIndexOf('<div', reviewsIndex);
+                
+                // Find the end of the section
+                let sectionEnd = content.indexOf('</section>', reviewsIndex);
+                if (sectionEnd === -1) sectionEnd = content.indexOf('</div>', reviewsIndex);
+                if (sectionEnd === -1) sectionEnd = content.indexOf('<footer', reviewsIndex);
+                
+                if (sectionStart !== -1 && sectionEnd !== -1 && sectionEnd > sectionStart) {
+                    const oldSection = content.substring(sectionStart, sectionEnd + 10);
                     content = content.replace(oldSection, newReviewsSection);
                     found = true;
+                    console.log(`✅ Replaced review section by content in: ${filePath}`);
                 }
             }
         }
@@ -757,20 +692,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             fs.writeFileSync(filePath, content, 'utf8');
-            console.log(`✅ Updated reviews in: ${filePath}`);
             return true;
         } else {
             console.log(`❌ No reviews section found in: ${filePath}`);
             return false;
         }
-        
     } catch (error) {
         console.error(`Error processing ${filePath}:`, error);
         return false;
     }
 }
 
-// Process all files
+// Function to process all HTML files in the cards folder
 function processAllRestaurantFiles() {
     const cardsFolder = './cards';
     if (!fs.existsSync(cardsFolder)) {
@@ -781,7 +714,7 @@ function processAllRestaurantFiles() {
     const files = fs.readdirSync(cardsFolder);
     let processedCount = 0;
 
-    console.log(`Processing ${files.length} files...`);
+    console.log(`Found ${files.length} files in cards folder`);
 
     files.forEach(file => {
         if (file.endsWith('.html')) {
