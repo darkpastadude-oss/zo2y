@@ -1214,6 +1214,59 @@ window.editReview = editReview;
 window.deleteReview = deleteReview;
 </script>
 
+
+<script>
+// Theme Toggle
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme',theme);
+  if(themeToggle) themeToggle.textContent = theme==='dark'?'☀️ Light Mode':'🌙 Dark Mode';
+  localStorage.setItem('restaurant-theme',theme);
+}
+function toggleTheme(){
+  const current=document.documentElement.getAttribute('data-theme')||'light';
+  applyTheme(current==='light'?'dark':'light');
+}
+function initializeTheme(){
+  const saved=localStorage.getItem('restaurant-theme');
+  if(saved) applyTheme(saved);
+  else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+}
+if(themeToggle) themeToggle.addEventListener('click',toggleTheme);
+initializeTheme();
+
+// Menu Category Filter
+const menuBtns=document.querySelectorAll('.menu-category-btn');
+const menuSections=document.querySelectorAll('.menu-category-section');
+if(menuBtns.length>0){
+  menuBtns.forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const category=this.getAttribute('data-category');
+      menuBtns.forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      menuSections.forEach(section=>{
+        section.style.display=(category==='all'||section.getAttribute('data-category')===category)?'block':'none';
+      });
+    });
+  });
+}
+
+// Branch Filter
+const branchBtns=document.querySelectorAll('.branch-filter-btn');
+const branchCards=document.querySelectorAll('.branch-card');
+if(branchBtns.length>0){
+  branchBtns.forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const loc=this.getAttribute('data-location');
+      branchBtns.forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      branchCards.forEach(card=>{
+        card.style.display=(loc==='all'||card.getAttribute('data-location')===loc)?'block':'none';
+      });
+    });
+  });
+}
+</script>
 <!-- List Manager Button -->
 <script>
 // Wait for page to load
@@ -1957,57 +2010,5 @@ class RestaurantListManager {
             }, 400);
         }, 3000);
     }
-}
-</script>
-<script>
-// Theme Toggle
-const themeToggle = document.getElementById('themeToggle');
-function applyTheme(theme){
-  document.documentElement.setAttribute('data-theme',theme);
-  if(themeToggle) themeToggle.textContent = theme==='dark'?'☀️ Light Mode':'🌙 Dark Mode';
-  localStorage.setItem('restaurant-theme',theme);
-}
-function toggleTheme(){
-  const current=document.documentElement.getAttribute('data-theme')||'light';
-  applyTheme(current==='light'?'dark':'light');
-}
-function initializeTheme(){
-  const saved=localStorage.getItem('restaurant-theme');
-  if(saved) applyTheme(saved);
-  else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-}
-if(themeToggle) themeToggle.addEventListener('click',toggleTheme);
-initializeTheme();
-
-// Menu Category Filter
-const menuBtns=document.querySelectorAll('.menu-category-btn');
-const menuSections=document.querySelectorAll('.menu-category-section');
-if(menuBtns.length>0){
-  menuBtns.forEach(btn=>{
-    btn.addEventListener('click',function(){
-      const category=this.getAttribute('data-category');
-      menuBtns.forEach(b=>b.classList.remove('active'));
-      this.classList.add('active');
-      menuSections.forEach(section=>{
-        section.style.display=(category==='all'||section.getAttribute('data-category')===category)?'block':'none';
-      });
-    });
-  });
-}
-
-// Branch Filter
-const branchBtns=document.querySelectorAll('.branch-filter-btn');
-const branchCards=document.querySelectorAll('.branch-card');
-if(branchBtns.length>0){
-  branchBtns.forEach(btn=>{
-    btn.addEventListener('click',function(){
-      const loc=this.getAttribute('data-location');
-      branchBtns.forEach(b=>b.classList.remove('active'));
-      this.classList.add('active');
-      branchCards.forEach(card=>{
-        card.style.display=(loc==='all'||card.getAttribute('data-location')===loc)?'block':'none';
-      });
-    });
-  });
 }
 </script>

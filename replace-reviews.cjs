@@ -1,4 +1,4 @@
-// replace-reviews.js
+// force-update-reviews.js
 const fs = require('fs');
 const path = require('path');
 
@@ -477,7 +477,7 @@ const newReviewSystem = `
 
 <script type="module">
 // Enhanced Review System
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.26.0/dist/supabase.min.js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.26.0";
 
 const supabase = createClient("${SUPABASE_URL}", "${SUPABASE_KEY}");
 const restaurantId = REPLACE_RESTAURANT_ID;
@@ -873,34 +873,68 @@ window.deleteReview = deleteReview;
 </script>
 `;
 
-function updateRestaurantFile(filePath, restaurantId) {
+function forceUpdateRestaurantFile(filePath, restaurantId) {
     let html = fs.readFileSync(filePath, 'utf8');
     
-    // Remove any existing review sections
-    const reviewSectionRegex = /<!--\s*REVIEW SYSTEM[\s\S]*?<\/script>\s*<\/section>/gi;
-    html = html.replace(reviewSectionRegex, '');
+    console.log(`🔄 FORCE UPDATING: ${path.basename(filePath)} (ID: ${restaurantId})`);
     
-    // Remove any script tags containing review functionality
-    const reviewScriptRegex = /<script[^>]*>[\s\S]*?reviews?[\s\S]*?<\/script>/gi;
-    html = html.replace(reviewScriptRegex, '');
+    // Remove ANY review system (old or new)
+    const reviewSystemPatterns = [
+        // Old review system patterns
+        /<!-- REVIEW SYSTEM -->[\s\S]*?window\.deleteReview = deleteReview;[\s\S]*?<\/script>/i,
+        /<section class="section reviews" id="reviews-section"[\s\S]*?<script type="module">[\s\S]*?<\/script>/i,
+        /<script type="module">[\s\S]*?import { createClient }[\s\S]*?reviews[\s\S]*?<\/script>/i,
+        // New review system patterns
+        /<!-- ENHANCED REVIEW SYSTEM -->[\s\S]*?window\.deleteReview = deleteReview;[\s\S]*?<\/script>/i,
+        /<script type="module">[\s\S]*?\/\/ Enhanced Review System[\s\S]*?<\/script>/i
+    ];
     
-    // Insert new review system before closing body tag
+    let removedCount = 0;
+    
+    // Remove ALL review systems
+    for (const pattern of reviewSystemPatterns) {
+        const match = html.match(pattern);
+        if (match) {
+            html = html.replace(pattern, '');
+            removedCount++;
+            console.log(`   ✅ Removed review system pattern`);
+        }
+    }
+    
+    if (removedCount === 0) {
+        console.log(`   ℹ️  No review systems found to remove`);
+    }
+    
+    // Insert new review system before the List Manager script
     const newReviewSystemWithId = newReviewSystem.replace('REPLACE_RESTAURANT_ID', restaurantId);
     
-    if (html.includes('</body>')) {
+    // Try to insert before List Manager
+    const listManagerMatch = html.match(/<!-- List Manager Button[\s\S]*?<\/script>/);
+    if (listManagerMatch) {
+        html = html.replace(listManagerMatch[0], newReviewSystemWithId + '\n' + listManagerMatch[0]);
+        console.log(`   ✅ Inserted new review system before List Manager`);
+    } else if (html.includes('</body>')) {
+        // Fallback: insert before closing body tag
         html = html.replace('</body>', newReviewSystemWithId + '\n</body>');
+        console.log(`   ✅ Inserted new review system before </body>`);
     } else {
+        // Last resort: append to the end
         html += newReviewSystemWithId;
+        console.log(`   ✅ Appended new review system to end`);
     }
     
     fs.writeFileSync(filePath, html, 'utf8');
-    console.log(`✅ Updated reviews for restaurant ID ${restaurantId}`);
+    console.log(`   🎉 Successfully force updated review system`);
 }
 
-function updateAllFiles() {
+function forceUpdateAllFiles() {
     const files = fs.readdirSync(CARDS_FOLDER).filter(f => f.endsWith('.html'));
     
     console.log(`📁 Found ${files.length} restaurant files`);
+    console.log(`🚀 FORCE UPDATING ALL REVIEW SYSTEMS...\n`);
+    
+    let updatedCount = 0;
+    let skippedCount = 0;
     
     files.forEach(file => {
         const name = file.replace('.html', '').toLowerCase();
@@ -908,24 +942,40 @@ function updateAllFiles() {
         
         if (!restaurantId) {
             console.log(`❌ Skipping ${file}: no ID mapping found`);
+            skippedCount++;
             return;
         }
         
         const filePath = path.join(CARDS_FOLDER, file);
-        updateRestaurantFile(filePath, restaurantId);
+        
+        // Create backup with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupPath = filePath + `.backup-${timestamp}`;
+        if (!fs.existsSync(backupPath)) {
+            fs.copyFileSync(filePath, backupPath);
+            console.log(`📦 Created backup: ${file}.backup-${timestamp}`);
+        }
+        
+        forceUpdateRestaurantFile(filePath, restaurantId);
+        updatedCount++;
     });
     
-    console.log('\n🎉 ALL FILES UPDATED SUCCESSFULLY!');
-    console.log('📍 The new review system has been added to all restaurant pages.');
-    console.log('🌟 Features include:');
+    console.log('\n🎉 FORCE UPDATE COMPLETED!');
+    console.log(`✅ Successfully updated: ${updatedCount} files`);
+    console.log(`⏭️  Skipped: ${skippedCount} files`);
+    console.log('\n🔧 What was updated:');
+    console.log('   • ✅ Removed ALL old review systems');
+    console.log('   • ✅ Removed ALL new review systems');
+    console.log('   • ✅ Inserted fresh enhanced review system');
+    console.log('   • ✅ Preserved List Manager and other scripts');
+    console.log('\n🌟 New Review System Features:');
+    console.log('   • Working Supabase import from esm.sh');
     console.log('   • Star rating system with visual feedback');
     console.log('   • Review statistics and breakdown');
     console.log('   • Edit/delete your own reviews');
     console.log('   • Beautiful notifications');
-    console.log('   • Fully responsive design');
-    console.log('   • Character counter for comments');
-    console.log('   • Smooth animations and transitions');
+    console.log('\n💾 Backups created with timestamps');
 }
 
-// Run the update
-updateAllFiles();
+// Run the force update
+forceUpdateAllFiles();
