@@ -99,469 +99,6 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
 </div>
 
-<section class="hero">
-  <img src="../images/secondcup.png" alt="Second Cup Coffee Logo" class="logo" onclick="window.location.href='../restraunts.html'">
-  <h1>Second Cup Coffee</h1>
-  <p>Canada's largest specialty coffee retailer offering premium Arabica coffee, espresso beverages, and fresh baked goods in a cozy atmosphere.</p>
-  <div class="rating">⭐ 4.5/5 (2,800+ reviews)</div>
-
-  <a href="tel:19995" class="btn">Call Hotline: 19995</a>
-  <a href="https://www.secondcup.com/" target="_blank" class="btn secondary">Order Online</a>
-</section>
-
-<section class="section">
-  <h2>Contact & Branches</h2>
-  <div class="hotline">
-    <strong>Hotline:</strong> <a href="tel:19995">19995</a>
-    <strong>Delivery:</strong> <a href="tel:19995">19995</a>
-  </div>
-
-  <div class="branch-filter" id="branchFilter">
-    <button class="branch-filter-btn active" data-location="all">All Locations</button>
-    <button class="branch-filter-btn" data-location="cairo">Cairo</button>
-    <button class="branch-filter-btn" data-location="giza">Giza</button>
-    <button class="branch-filter-btn" data-location="tanta">Tanta</button>
-  </div>
-
-  <div class="branches" id="branchesContainer">
-    <div class="branch-card" data-location="cairo">
-      <h3>Heliopolis - Rafale Food Court</h3>
-      <p>22 Ahmed Tayseer St., Intersection of El Shaheed Abdel Wahab El Qady St.<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Rafale+Food+Court+Heliopolis" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="cairo">
-      <h3>Heliopolis - El Korba</h3>
-      <p>8 Baghdad St., in front of Mandarine Koueider Pastry<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+El+Korba+Heliopolis" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="cairo">
-      <h3>Al Rehab City - Avenue Mall</h3>
-      <p>Phase 9, Al Rehab City<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Avenue+Mall+Al+Rehab" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="cairo">
-      <h3>New Cairo - Cairo Festival City Mall</h3>
-      <p>Ring Rd., inside CFC, 3rd floor, Shop 19<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="giza">
-      <h3>6th of October - Mall of Arabia</h3>
-      <p>Juhayna Square inside Mall of Arabia Gate 22<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Mall+of+Arabia" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="cairo">
-      <h3>Maadi - Strip 1 Mall</h3>
-      <p>Strip 1 Mall, Maadi<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Strip+1+Mall+Maadi" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="cairo">
-      <h3>Nasr City - Child Garden</h3>
-      <p>International Park, Nasr City<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Child+Garden+Nasr+City" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="giza">
-      <h3>El Haram - Chillout Gas Station</h3>
-      <p>Gate 4, Chillout gas station<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+El+Haram+Chillout" target="_blank">📍 Get Directions</a>
-    </div>
-    
-    <div class="branch-card" data-location="tanta">
-      <h3>Tanta - Chillout Gas Station</h3>
-      <p>Inside Chillout gas station, El Guish, Tanta<br>Open: 8:00 AM - 12:00 AM</p>
-      <a href="https://maps.google.com/search?q=Second+Cup+Tanta+Chillout" target="_blank">📍 Get Directions</a>
-    </div>
-  </div>
-</section>
-
-<section class="section menu">
-  <h2>Our Premium Canadian Menu</h2>
-  
-  <div class="menu-categories" id="menuCategories">
-    <button class="menu-category-btn active" data-category="all">All Items</button>
-    <button class="menu-category-btn" data-category="hot">Hot Coffee</button>
-    <button class="menu-category-btn" data-category="cold">Cold Coffee</button>
-    <button class="menu-category-btn" data-category="tea">Tea & Chocolate</button>
-    <button class="menu-category-btn" data-category="pastries">Pastries</button>
-    <button class="menu-category-btn" data-category="desserts">Desserts</button>
-    <button class="menu-category-btn" data-category="extras">Extras</button>
-  </div>
-
-  <div class="menu-items-container">
-    <!-- Hot Coffee -->
-    <div class="menu-category-section" data-category="hot">
-      <h3>Hot Coffee</h3>
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Espresso Forte <span class="popular-badge">Popular</span></span>
-          <div class="menu-item-description">A shot of espresso from forte coffee beans</div>
-        </div>
-        <span>EGP 55<span class="price-range"> - 65</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Vanilla Bean Latte</span>
-          <div class="menu-item-description">Vanilla with espresso, milk</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 125</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Hot Spanish Latte</span>
-          <div class="menu-item-description">A rich, creamy espresso, infused with warm spices, topped with steamed milk and cinnamon</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 125</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Hot Toffee Nut Latte</span>
-          <div class="menu-item-description">Toffee nut flavor with espresso, milk</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 125</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Flat White</span>
-          <div class="menu-item-description">Made with a double shot of espresso and steamed milk</div>
-        </div>
-        <span>EGP 90</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Hazelnut Latte</span>
-          <div class="menu-item-description">Espresso with milk, mixed with hazelnut syrup</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 125</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Caffe Latte</span>
-          <div class="menu-item-description">Coffee-based beverage made with espresso shots and steamed milk</div>
-        </div>
-        <span>EGP 85<span class="price-range"> - 105</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>White Mocha</span>
-          <div class="menu-item-description">Made with espresso shots, steamed milk and whipped cream</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 125</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Americano</span>
-          <div class="menu-item-description">Made with freshly brewed espresso and hot water</div>
-        </div>
-        <span>EGP 75</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Cappuccino</span>
-          <div class="menu-item-description">Made with espresso and steamed milk creating rich, velvety taste</div>
-        </div>
-        <span>EGP 85<span class="price-range"> - 105</span></span>
-      </div>
-    </div>
-
-    <!-- Cold Coffee -->
-    <div class="menu-category-section" data-category="cold">
-      <h3>Cold Coffee</h3>
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Iced Salted Caramel Latte</span>
-          <div class="menu-item-description">Cold coffee-based beverage made with espresso, milk, and salted caramel syrup</div>
-        </div>
-        <span>EGP 95<span class="price-range"> - 115</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Ice Spanish Latte <span class="popular-badge">Popular</span></span>
-          <div class="menu-item-description">Shot of espresso with condensed cold milk adds creamy sweetness</div>
-        </div>
-        <span>EGP 110<span class="price-range"> - 130</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Iced Latte</span>
-          <div class="menu-item-description">Cold coffee-based beverage made with espresso and milk</div>
-        </div>
-        <span>EGP 95<span class="price-range"> - 105</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Cold Brew Bottle</span>
-          <div class="menu-item-description">A bottle of cold brew coffee</div>
-        </div>
-        <span>EGP 100</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Iced Coffee</span>
-          <div class="menu-item-description">Made with freshly brewed coffee, ice, sweetened to perfection</div>
-        </div>
-        <span>EGP 75</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Caramel Corretto Chiller</span>
-          <div class="menu-item-description">Caramel corito with crushed ice</div>
-        </div>
-        <span>EGP 110<span class="price-range"> - 130</span></span>
-      </div>
-    </div>
-
-    <!-- Tea & Chocolate -->
-    <div class="menu-category-section" data-category="tea">
-      <h3>Tea & Hot Chocolate</h3>
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Hot Karak Tea <span class="popular-badge">Popular</span></span>
-          <div class="menu-item-description">A strong and flavorful tea brewed with aromatic spices</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 115</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Dark Hot Chocolate</span>
-          <div class="menu-item-description">Hot beverage made with chocolate, cocoa powder with a pinch of sugar</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 125</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Creamy Hot Chocolate</span>
-          <div class="menu-item-description">Hot chocolate with whipped cream</div>
-        </div>
-        <span>EGP 105<span class="price-range"> - 125</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>English Breakfast Tea</span>
-          <div class="menu-item-description">Full-bodied english breakfast tea, a robust blend of premium black teas</div>
-        </div>
-        <span>EGP 65<span class="price-range"> - 75</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Earl Grey Tea</span>
-          <div class="menu-item-description">Harmonious blend of aromatic black tea and delicate bergamot</div>
-        </div>
-        <span>EGP 65<span class="price-range"> - 75</span></span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Green Tea</span>
-          <div class="menu-item-description">Premium green tea, expertly harvested to preserve natural antioxidants</div>
-        </div>
-        <span>EGP 60<span class="price-range"> - 70</span></span>
-      </div>
-    </div>
-
-    <!-- Pastries -->
-    <div class="menu-category-section" data-category="pastries">
-      <h3>Pastries & Croissants</h3>
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Cheese Croissant <span class="popular-badge">Popular</span></span>
-          <div class="menu-item-description">Flaky layers of buttery pastry filled with creamy melted cheese, baked to golden perfection</div>
-        </div>
-        <span>EGP 105</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Smoked Turkey Croissant</span>
-          <div class="menu-item-description">Croissant with smoked turkey slices, cheddar cheese</div>
-        </div>
-        <span>EGP 125</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Plain Croissant</span>
-          <div class="menu-item-description">Made with layers of flaky, buttery pastry dough, perfect for breakfast or snack</div>
-        </div>
-        <span>EGP 75</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Thyme Croissant</span>
-          <div class="menu-item-description">Flaky croissant infused with thyme flavor</div>
-        </div>
-        <span>EGP 85</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Halloumi Cheese Croissant</span>
-          <div class="menu-item-description">Croissant filled with halloumi cheese</div>
-        </div>
-        <span>EGP 105</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Blueberry Muffin</span>
-        </div>
-        <span>EGP 80</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Vanilla Muffin</span>
-          <div class="menu-item-description">Delicate muffin with a vanilla flavor</div>
-        </div>
-        <span>EGP 85</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Chocolate Doughnut</span>
-        </div>
-        <span>EGP 60</span>
-      </div>
-    </div>
-
-    <!-- Desserts -->
-    <div class="menu-category-section" data-category="desserts">
-      <h3>Desserts & Cakes</h3>
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Carrot Cake</span>
-          <div class="menu-item-description">Made with fresh carrots, moist layers infused with spices, topped with cream cheese frosting</div>
-        </div>
-        <span>EGP 130</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>San Sebastian Cheesecake</span>
-          <div class="menu-item-description">Creamy and burnt caramel-flavored cheesecake from San Sebastian, Spain</div>
-        </div>
-        <span>EGP 130</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Lotus Cheesecake</span>
-        </div>
-        <span>EGP 130</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Blueberry Cheesecake</span>
-        </div>
-        <span>EGP 130</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Chubby Dough Lotus Cookies</span>
-        </div>
-        <span>EGP 90</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Oats with Lemon and Raisins Cookies</span>
-        </div>
-        <span>EGP 80</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Vanilla Ice Cream</span>
-          <div class="menu-item-description">Creamy, smooth, sweet flavor of pure vanilla in classic vanilla ice cream</div>
-        </div>
-        <span>EGP 40</span>
-      </div>
-    </div>
-
-    <!-- Extras -->
-    <div class="menu-category-section" data-category="extras">
-      <h3>Extras & Add-ons</h3>
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Extra Hazelnut Flavor</span>
-        </div>
-        <span>EGP 40</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Extra Caramel Flavor</span>
-        </div>
-        <span>EGP 40</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Extra Vanilla Flavor</span>
-        </div>
-        <span>EGP 40</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Extra Espresso Shot</span>
-        </div>
-        <span>EGP 40</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Extra Almond Milk</span>
-        </div>
-        <span>EGP 50</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Extra Oat Milk</span>
-        </div>
-        <span>EGP 50</span>
-      </div>
-      
-      <div class="menu-item">
-        <div style="flex: 1;">
-          <span>Red Bull Energy Drink</span>
-        </div>
-        <span>EGP 80</span>
-      </div>
-    </div>
-  </div>
-  
-  <a href="https://www.secondcup.com/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu & Order Online</a>
-</section>
-
-
 
 <section class="section reviews" id="reviews-section">
   <h2>Customer Reviews</h2>
@@ -595,6 +132,322 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     <p>Please <a href="../login.html" style="color: #FF9800; text-decoration: underline;">sign in</a> to submit a review.</p>
   </div>
 </section>
+
+<style>
+.reviews-container { 
+  max-height: 500px; 
+  overflow-y: auto; 
+  padding-right: 10px; 
+  margin-bottom: 20px;
+}
+
+.review { 
+  border-bottom: 1px solid var(--nav-shadow); 
+  padding: 20px 0; 
+  position: relative; 
+}
+
+.review:last-child { 
+  border-bottom: none; 
+}
+
+.review-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  margin-bottom: 12px; 
+  position: relative; 
+}
+
+.reviewer-name { 
+  font-weight: 600; 
+  color: var(--text); 
+  margin: 0; 
+  flex: 1; 
+  padding-right: 100px; 
+}
+
+.review-rating { 
+  color: #FF9800; 
+  font-size: 1rem; 
+  font-weight: 600;
+}
+
+.review-comment { 
+  margin: 0; 
+  color: var(--text2); 
+  line-height: 1.6; 
+  margin-bottom: 8px;
+}
+
+.review-date { 
+  font-size: 0.8rem; 
+  color: var(--text2); 
+  margin-top: 5px; 
+}
+
+.review-actions { 
+  position: absolute; 
+  top: 0; 
+  right: 0; 
+}
+
+.delete-review { 
+  background: none; 
+  border: none; 
+  color: #ff4444; 
+  cursor: pointer; 
+  padding: 6px 10px; 
+  border-radius: 6px; 
+  font-size: 0.8rem; 
+  transition: all 0.3s ease; 
+  margin-left: 10px; 
+  border: 1px solid transparent;
+}
+
+.delete-review:hover { 
+  background: rgba(255, 68, 68, 0.1); 
+  transform: scale(1.05); 
+  border-color: #ff4444;
+}
+
+.review-input-group { 
+  display: flex; 
+  gap: 15px; 
+  margin-bottom: 20px; 
+  flex-wrap: wrap; 
+  justify-content: space-between; 
+}
+
+.rating-input { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  flex: 1; 
+}
+
+.stars { 
+  display: flex; 
+  gap: 4px; 
+}
+
+.star { 
+  font-size: 1.8rem; 
+  color: #ddd; 
+  cursor: pointer; 
+  transition: all 0.2s ease; 
+  user-select: none; 
+}
+
+.star:hover, 
+.star.active { 
+  color: #FF9800; 
+  transform: scale(1.2); 
+}
+
+.rating-text { 
+  font-size: 0.9rem; 
+  color: var(--text2); 
+  min-width: 120px; 
+  font-weight: 500;
+}
+
+.review-form-actions { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-top: 20px; 
+}
+
+.char-count { 
+  font-size: 0.8rem; 
+  color: var(--text2); 
+}
+
+.reviews-loading, .reviews-empty { 
+  text-align: center; 
+  padding: 40px 20px; 
+  color: var(--text2); 
+  font-style: italic; 
+}
+
+.auth-prompt-review { 
+  text-align: center; 
+  padding: 30px; 
+  background: var(--card); 
+  border-radius: 12px; 
+  margin-top: 20px; 
+  border: 1px solid var(--nav-shadow); 
+}
+
+/* Custom Toast Notifications */
+.zo2y-toast {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  background: var(--card);
+  border: 1px solid var(--nav-shadow);
+  border-left: 4px solid #FF9800;
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+  z-index: 10000;
+  transform: translateX(400px);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 380px;
+  backdrop-filter: blur(15px);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.zo2y-toast.show {
+  transform: translateX(0);
+}
+
+.zo2y-toast.success {
+  border-left-color: #10b981;
+  background: linear-gradient(135deg, var(--card) 0%, rgba(16, 185, 129, 0.05) 100%);
+}
+
+.zo2y-toast.error {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, var(--card) 0%, rgba(239, 68, 68, 0.05) 100%);
+}
+
+.zo2y-toast.warning {
+  border-left-color: #f59e0b;
+  background: linear-gradient(135deg, var(--card) 0%, rgba(245, 158, 11, 0.05) 100%);
+}
+
+.zo2y-toast.info {
+  border-left-color: #3b82f6;
+  background: linear-gradient(135deg, var(--card) 0%, rgba(59, 130, 246, 0.05) 100%);
+}
+
+.toast-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+.zo2y-toast.success .toast-icon { 
+  color: #10b981; 
+}
+
+.zo2y-toast.error .toast-icon { 
+  color: #ef4444; 
+}
+
+.zo2y-toast.warning .toast-icon { 
+  color: #f59e0b; 
+}
+
+.zo2y-toast.info .toast-icon { 
+  color: #3b82f6; 
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.toast-message {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+
+/* Scrollbar styling */
+.reviews-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reviews-container::-webkit-scrollbar-track {
+  background: var(--nav-bg);
+  border-radius: 3px;
+}
+
+.reviews-container::-webkit-scrollbar-thumb {
+  background: #FF9800;
+  border-radius: 3px;
+}
+
+.reviews-container::-webkit-scrollbar-thumb:hover {
+  background: #F57C00;
+}
+
+@media (max-width: 768px) {
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .reviewer-name {
+    padding-right: 0;
+    margin-bottom: 8px;
+  }
+  
+  .review-rating {
+    position: static;
+    margin-bottom: 8px;
+  }
+  
+  .review-actions {
+    position: static;
+    align-self: flex-end;
+    margin-top: 10px;
+  }
+  
+  .review-input-group {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .rating-input {
+    justify-content: space-between;
+  }
+  
+  .zo2y-toast {
+    top: 20px;
+    right: 20px;
+    left: 20px;
+    max-width: none;
+  }
+}
+</style>
+
 
 <style>
 .reviews-container { max-height: 500px; overflow-y: auto; padding-right: 10px; }
@@ -2171,6 +2024,342 @@ window.addEventListener('DOMContentLoaded', function() {
       console.error('Supabase not loaded');
     }
   }, 1000);
+});
+</script>
+
+
+<script>
+// Reviews System
+class RestaurantReviews {
+  constructor() {
+    this.supabase = window.supabase;
+    this.restaurantId = 1;
+    this.currentRating = 0;
+    this.init();
+  }
+
+  async init() {
+    await this.checkAuth();
+    this.setupEventListeners();
+    this.loadReviews();
+  }
+
+  async checkAuth() {
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession();
+      this.currentUser = session?.user || null;
+      this.toggleAuthUI();
+    } catch (error) {
+      console.error('Auth check error:', error);
+      this.currentUser = null;
+    }
+  }
+
+  toggleAuthUI() {
+    const authPrompt = document.getElementById('auth-prompt');
+    const reviewForm = document.getElementById('review-form');
+    
+    if (this.currentUser) {
+      if (authPrompt) authPrompt.style.display = 'none';
+      if (reviewForm) reviewForm.style.display = 'block';
+    } else {
+      if (authPrompt) authPrompt.style.display = 'block';
+      if (reviewForm) reviewForm.style.display = 'none';
+    }
+  }
+
+  setupEventListeners() {
+    // Star rating
+    document.querySelectorAll('.star').forEach(star => {
+      star.addEventListener('click', (e) => {
+        this.currentRating = parseInt(e.target.dataset.rating);
+        this.updateStars();
+      });
+    });
+
+    // Character count
+    const commentTextarea = document.getElementById('review-comment');
+    if (commentTextarea) {
+      commentTextarea.addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        const charCount = document.querySelector('.char-count');
+        if (charCount) charCount.textContent = `${count}/500`;
+      });
+    }
+
+    // Review form submission
+    const reviewForm = document.getElementById('review-form');
+    if (reviewForm) {
+      reviewForm.addEventListener('submit', (e) => this.submitReview(e));
+    }
+  }
+
+  updateStars() {
+    document.querySelectorAll('.star').forEach(star => {
+      const rating = parseInt(star.dataset.rating);
+      star.classList.toggle('active', rating <= this.currentRating);
+    });
+    
+    const ratingTexts = ['Select rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    const ratingTextElement = document.querySelector('.rating-text');
+    if (ratingTextElement) {
+      ratingTextElement.textContent = ratingTexts[this.currentRating] || 'Select rating';
+    }
+  }
+
+  async loadReviews() {
+    const reviewsContainer = document.getElementById('reviews-list');
+    if (!reviewsContainer) return;
+
+    try {
+      reviewsContainer.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
+
+      const { data: reviews, error } = await this.supabase
+        .from('reviews')
+        .select('*')
+        .eq('restaurant_id', this.restaurantId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      this.displayReviews(reviews || []);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+      reviewsContainer.innerHTML = '<div class="reviews-empty">Error loading reviews</div>';
+    }
+  }
+
+  async displayReviews(reviews) {
+    const reviewsContainer = document.getElementById('reviews-list');
+    if (!reviewsContainer) return;
+    
+    if (reviews.length === 0) {
+      reviewsContainer.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience!</div>';
+      return;
+    }
+
+    // Get user profiles for all reviews
+    const userIds = [...new Set(reviews.map(review => review.user_id))];
+    const { data: userProfiles, error: profileError } = await this.supabase
+      .from('user_profiles')
+      .select('id, username, full_name')
+      .in('id', userIds);
+
+    const userProfileMap = {};
+    if (userProfiles) {
+      userProfiles.forEach(profile => {
+        userProfileMap[profile.id] = profile;
+      });
+    }
+
+    reviewsContainer.innerHTML = reviews.map(review => {
+      const userProfile = userProfileMap[review.user_id];
+      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
+      
+      return `
+        <div class="review" data-review-id="${review.id}">
+          <div class="review-header">
+            <h4 class="reviewer-name">${this.escapeHtml(displayName)}</h4>
+            <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+            ${this.currentUser && review.user_id === this.currentUser.id ? `
+              <div class="review-actions">
+                <button class="delete-review" onclick="reviewsSystem.deleteReview(${review.id})">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </div>
+            ` : ''}
+          </div>
+          <p class="review-comment">${this.escapeHtml(review.comment)}</p>
+          <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async submitReview(e) {
+    e.preventDefault();
+    
+    if (!this.currentUser) {
+      this.showNotification('Please sign in to submit a review', 'warning');
+      return;
+    }
+
+    const commentElement = document.getElementById('review-comment');
+    if (!commentElement) {
+      this.showNotification('Review form not found', 'error');
+      return;
+    }
+
+    const comment = commentElement.value.trim();
+
+    if (!comment) {
+      this.showNotification('Please write a review comment', 'warning');
+      return;
+    }
+
+    if (this.currentRating === 0) {
+      this.showNotification('Please select a rating', 'warning');
+      return;
+    }
+
+    try {
+      // Get user profile for the display name
+      const { data: userProfile, error: profileError } = await this.supabase
+        .from('user_profiles')
+        .select('username, full_name')
+        .eq('id', this.currentUser.id)
+        .single();
+
+      const displayName = userProfile ? (userProfile.full_name || userProfile.username) : 'Anonymous User';
+
+      const { data, error } = await this.supabase
+        .from('reviews')
+        .insert([{
+          restaurant_id: this.restaurantId,
+          user_id: this.currentUser.id,
+          user_name: displayName,
+          rating: this.currentRating,
+          comment: comment
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Reset form
+      const reviewForm = document.getElementById('review-form');
+      if (reviewForm) reviewForm.reset();
+      
+      this.currentRating = 0;
+      this.updateStars();
+      
+      const charCount = document.querySelector('.char-count');
+      if (charCount) charCount.textContent = '0/500';
+
+      // Reload reviews
+      this.loadReviews();
+
+      // Show success message
+      this.showNotification('Review submitted successfully! 🎉', 'success');
+
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      this.showNotification('Error submitting review. Please try again.', 'error');
+    }
+  }
+
+  async deleteReview(reviewId) {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+
+    try {
+      const { error } = await this.supabase
+        .from('reviews')
+        .delete()
+        .eq('id', reviewId)
+        .eq('user_id', this.currentUser.id);
+
+      if (error) throw error;
+
+      this.loadReviews();
+      this.showNotification('Review deleted successfully', 'info');
+
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      this.showNotification('Error deleting review', 'error');
+    }
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  showNotification(message, type = 'info') {
+    // Remove any existing toasts
+    const existingToasts = document.querySelectorAll('.zo2y-toast');
+    existingToasts.forEach(toast => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, 300);
+    });
+
+    const toast = document.createElement('div');
+    toast.className = `zo2y-toast ${type}`;
+    
+    const icons = {
+      success: '✓',
+      error: '⚠',
+      warning: '⚠', 
+      info: 'ℹ'
+    };
+    
+    const titles = {
+      success: 'Success!',
+      error: 'Error!',
+      warning: 'Warning!',
+      info: 'Notice'
+    };
+    
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type]}</div>
+      <div class="toast-content">
+        <div class="toast-title">${titles[type]}</div>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close">×</button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 10);
+    
+    // Manual close
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, 300);
+    });
+    
+    // Auto remove after duration
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.remove();
+          }
+        }, 300);
+      }
+    }, 5000);
+  }
+}
+
+// Initialize reviews system when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait for Supabase to be available
+  const initReviews = () => {
+    if (window.supabase) {
+      window.reviewsSystem = new RestaurantReviews();
+    } else {
+      setTimeout(initReviews, 100);
+    }
+  };
+  
+  setTimeout(initReviews, 1000);
 });
 </script>
 
