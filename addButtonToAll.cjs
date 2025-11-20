@@ -3,20 +3,19 @@ const path = require("path");
 
 const folderPath = "./cards";
 const scriptCode = `
-<!-- Load Supabase First -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <!-- List Manager Button -->
-<script>
+<script type="module">
 // Wait for page to load
 window.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Page loaded, initializing list manager...');
     
-    // Initialize Supabase
+    // Import and initialize Supabase
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    
     const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseKey);
     window.supabase = supabase;
     
     console.log('✅ Supabase initialized');
