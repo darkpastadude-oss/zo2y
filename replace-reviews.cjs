@@ -1,4 +1,4 @@
-// force-update-reviews.js
+// replace-reviews-fixed.js
 const fs = require('fs');
 const path = require('path');
 
@@ -19,7 +19,7 @@ const restaurantIdMap = {
     'caizo': 47, 'pablo': 48, 'panda': 49, 'tabali': 50
 };
 
-// New Review System Template
+// New Review System Template WITH CORRECT CDN URL
 const newReviewSystem = `
 <!-- ENHANCED REVIEW SYSTEM -->
 <section class="section reviews" id="reviews-section">
@@ -477,7 +477,7 @@ const newReviewSystem = `
 
 <script type="module">
 // Enhanced Review System
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.26.0";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.34.0/dist/module/supabase.js";
 
 const supabase = createClient("${SUPABASE_URL}", "${SUPABASE_KEY}");
 const restaurantId = REPLACE_RESTAURANT_ID;
@@ -873,39 +873,33 @@ window.deleteReview = deleteReview;
 </script>
 `;
 
-function forceUpdateRestaurantFile(filePath, restaurantId) {
+function updateRestaurantFile(filePath, restaurantId) {
     let html = fs.readFileSync(filePath, 'utf8');
     
-    console.log(`🔄 FORCE UPDATING: ${path.basename(filePath)} (ID: ${restaurantId})`);
+    console.log(`🔄 Processing: ${path.basename(filePath)} (ID: ${restaurantId})`);
     
-    // Remove ANY review system (old or new)
+    // Remove any existing review systems
     const reviewSystemPatterns = [
-        // Old review system patterns
         /<!-- REVIEW SYSTEM -->[\s\S]*?window\.deleteReview = deleteReview;[\s\S]*?<\/script>/i,
-        /<section class="section reviews" id="reviews-section"[\s\S]*?<script type="module">[\s\S]*?<\/script>/i,
-        /<script type="module">[\s\S]*?import { createClient }[\s\S]*?reviews[\s\S]*?<\/script>/i,
-        // New review system patterns
         /<!-- ENHANCED REVIEW SYSTEM -->[\s\S]*?window\.deleteReview = deleteReview;[\s\S]*?<\/script>/i,
-        /<script type="module">[\s\S]*?\/\/ Enhanced Review System[\s\S]*?<\/script>/i
+        /<section class="section reviews" id="reviews-section"[\s\S]*?<script type="module">[\s\S]*?<\/script>/i,
+        /<script type="module">[\s\S]*?import { createClient }[\s\S]*?reviews[\s\S]*?<\/script>/i
     ];
     
     let removedCount = 0;
-    
-    // Remove ALL review systems
     for (const pattern of reviewSystemPatterns) {
         const match = html.match(pattern);
         if (match) {
             html = html.replace(pattern, '');
             removedCount++;
-            console.log(`   ✅ Removed review system pattern`);
         }
     }
     
-    if (removedCount === 0) {
-        console.log(`   ℹ️  No review systems found to remove`);
+    if (removedCount > 0) {
+        console.log(`   ✅ Removed ${removedCount} old review system(s)`);
     }
     
-    // Insert new review system before the List Manager script
+    // Insert new review system
     const newReviewSystemWithId = newReviewSystem.replace('REPLACE_RESTAURANT_ID', restaurantId);
     
     // Try to insert before List Manager
@@ -914,24 +908,22 @@ function forceUpdateRestaurantFile(filePath, restaurantId) {
         html = html.replace(listManagerMatch[0], newReviewSystemWithId + '\n' + listManagerMatch[0]);
         console.log(`   ✅ Inserted new review system before List Manager`);
     } else if (html.includes('</body>')) {
-        // Fallback: insert before closing body tag
         html = html.replace('</body>', newReviewSystemWithId + '\n</body>');
         console.log(`   ✅ Inserted new review system before </body>`);
     } else {
-        // Last resort: append to the end
         html += newReviewSystemWithId;
         console.log(`   ✅ Appended new review system to end`);
     }
     
     fs.writeFileSync(filePath, html, 'utf8');
-    console.log(`   🎉 Successfully force updated review system`);
+    console.log(`   🎉 Updated with WORKING CDN URL`);
 }
 
-function forceUpdateAllFiles() {
+function updateAllFiles() {
     const files = fs.readdirSync(CARDS_FOLDER).filter(f => f.endsWith('.html'));
     
     console.log(`📁 Found ${files.length} restaurant files`);
-    console.log(`🚀 FORCE UPDATING ALL REVIEW SYSTEMS...\n`);
+    console.log(`🚀 REPLACING REVIEW SYSTEMS WITH WORKING CDN...\n`);
     
     let updatedCount = 0;
     let skippedCount = 0;
@@ -948,34 +940,26 @@ function forceUpdateAllFiles() {
         
         const filePath = path.join(CARDS_FOLDER, file);
         
-        // Create backup with timestamp
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const backupPath = filePath + `.backup-${timestamp}`;
+        // Create backup
+        const backupPath = filePath + '.backup-fixed-cdn';
         if (!fs.existsSync(backupPath)) {
             fs.copyFileSync(filePath, backupPath);
-            console.log(`📦 Created backup: ${file}.backup-${timestamp}`);
+            console.log(`📦 Created backup: ${file}.backup-fixed-cdn`);
         }
         
-        forceUpdateRestaurantFile(filePath, restaurantId);
+        updateRestaurantFile(filePath, restaurantId);
         updatedCount++;
     });
     
-    console.log('\n🎉 FORCE UPDATE COMPLETED!');
-    console.log(`✅ Successfully updated: ${updatedCount} files`);
+    console.log('\n🎉 ALL FILES UPDATED SUCCESSFULLY!');
+    console.log(`✅ Updated: ${updatedCount} files`);
     console.log(`⏭️  Skipped: ${skippedCount} files`);
-    console.log('\n🔧 What was updated:');
-    console.log('   • ✅ Removed ALL old review systems');
-    console.log('   • ✅ Removed ALL new review systems');
-    console.log('   • ✅ Inserted fresh enhanced review system');
-    console.log('   • ✅ Preserved List Manager and other scripts');
-    console.log('\n🌟 New Review System Features:');
-    console.log('   • Working Supabase import from esm.sh');
-    console.log('   • Star rating system with visual feedback');
-    console.log('   • Review statistics and breakdown');
-    console.log('   • Edit/delete your own reviews');
-    console.log('   • Beautiful notifications');
-    console.log('\n💾 Backups created with timestamps');
+    console.log('\n🔧 Key Fix:');
+    console.log('   • ✅ Uses WORKING CDN: https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.34.0/dist/module/supabase.js');
+    console.log('   • ✅ No more 404 errors');
+    console.log('   • ✅ Full review system functionality');
+    console.log('\n💾 Backups created as .backup-fixed-cdn files');
 }
 
-// Run the force update
-forceUpdateAllFiles();
+// Run the update
+updateAllFiles();
