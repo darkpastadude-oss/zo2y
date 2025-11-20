@@ -477,7 +477,7 @@ const newReviewSystem = `
 
 <script type="module">
 // Enhanced Review System
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.34.0/dist/module/supabase.js";
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const supabase = createClient("${SUPABASE_URL}", "${SUPABASE_KEY}");
 const restaurantId = REPLACE_RESTAURANT_ID;
