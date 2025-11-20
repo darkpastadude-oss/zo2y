@@ -286,133 +286,7 @@ if(branchBtns.length>0){
   });
 }
 </script>
-<!-- REVIEW SYSTEM -->
-<section class="section reviews" id="reviews-section">
-  <h2>Customer Reviews</h2>
-  <div id="reviews-list"><div class="reviews-loading">Loading reviews...</div></div>
-  <h3>Add Your Review</h3>
-  <form id="review-form" style="display:none;">
-    <div>
-      <span>Rating:</span>
-      <div class="stars">
-        <span class="star" data-rating="1">★</span>
-        <span class="star" data-rating="2">★</span>
-        <span class="star" data-rating="3">★</span>
-        <span class="star" data-rating="4">★</span>
-        <span class="star" data-rating="5">★</span>
-      </div>
-      <span id="rating-text">Select rating</span>
-    </div>
-    <textarea id="review-comment" placeholder="Share your experience..." rows="4" maxlength="500"></textarea>
-    <div>
-      <button type="submit">Submit Review</button>
-      <span class="char-count">0/500</span>
-    </div>
-  </form>
-  <div id="auth-prompt">
-    <p>Please <a href="../login.html">sign in</a> to submit a review.</p>
-  </div>
-</section>
 
-<script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.26.0/dist/supabase.min.js";
-  const supabase = createClient("https://gfkhjbztayjyojsgdpgk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s");
-  const restaurantId = 28;
-
-  let currentUser = null, currentRating = 0;
-
-  async function checkAuth() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user;
-      document.getElementById('review-form').style.display = user ? 'block' : 'none';
-      document.getElementById('auth-prompt').style.display = user ? 'none' : 'block';
-    } catch(e){ console.error(e); }
-  }
-
-  async function loadReviews() {
-    const container = document.getElementById('reviews-list');
-    try {
-      const { data: reviews } = await supabase.from('reviews')
-        .select('*').eq('restaurant_id', restaurantId).order('created_at', { ascending: false });
-
-      if (!reviews?.length) { container.innerHTML='<div class="reviews-empty">No reviews yet.</div>'; return; }
-
-      const userIds = [...new Set(reviews.map(r=>r.user_id))];
-      const { data: users } = await supabase.from('user_profiles').select('id, username, full_name').in('id', userIds);
-      const userMap = {}; users?.forEach(u=>userMap[u.id]=u);
-
-      container.innerHTML = reviews.map(r=>{
-        const u = userMap[r.user_id], name = u?.full_name||u?.username||'Anonymous';
-        const canEditDelete = currentUser && currentUser.id === r.user_id;
-        return `
-          <div class="review">
-            <div class="review-header">
-              <h4 class="reviewer-name">${name}</h4>
-              <div class="review-rating">${'★'.repeat(r.rating)+'☆'.repeat(5-r.rating)}</div>
-              ${canEditDelete ? '<button class="review-edit" onclick="editReview(\''+r.id+'\')">Edit</button> <button class="review-delete" onclick="deleteReview(\''+r.id+'\')">Delete</button>' : ''}
-            </div>
-            <p class="review-comment">${r.comment}</p>
-            <div class="review-date">${new Date(r.created_at).toLocaleDateString()}</div>
-          </div>`;
-      }).join('');
-    } catch(e){ console.error(e); container.innerHTML='<div class="reviews-empty">Error loading reviews</div>'; }
-  }
-
-  async function submitReview(e){
-    e.preventDefault();
-    if(!currentUser) return alert('Sign in first');
-    const comment = document.getElementById('review-comment').value.trim();
-    if(!comment||currentRating===0) return alert('Rating and comment required');
-
-    try{
-      const { data: profile } = await supabase.from('user_profiles').select('username, full_name').eq('id', currentUser.id).single();
-      const displayName = profile?.full_name||profile?.username||'User';
-      const { error } = await supabase.from('reviews').insert({restaurant_id: restaurantId, user_id: currentUser.id, user_name: displayName, rating: currentRating, comment});
-      if(error) throw error;
-      document.getElementById('review-form').reset();
-      currentRating = 0;
-      updateStars();
-      await loadReviews();
-      alert('Review submitted!');
-    } catch(e){ console.error(e); alert('Error submitting review'); }
-  }
-
-  async function deleteReview(id){
-    if(!currentUser||!confirm('Delete review?')) return;
-    try{
-      const { error } = await supabase.from('reviews').delete().eq('id',id).eq('user_id',currentUser.id);
-      if(error) throw error;
-      await loadReviews();
-      alert('Deleted!');
-    } catch(e){ console.error(e); alert('Error deleting review'); }
-  }
-
-  function editReview(id){
-    const reviewDiv = document.querySelector(`button[onclick="editReview('${id}')"]`).closest('.review');
-    const commentP = reviewDiv.querySelector('.review-comment');
-    const oldComment = commentP.textContent;
-    const newComment = prompt('Edit your review:', oldComment);
-    if(newComment && newComment !== oldComment){
-      supabase.from('reviews').update({comment: newComment}).eq('id',id).then(()=> loadReviews());
-    }
-  }
-
-  function updateStars(){
-    document.querySelectorAll('.star').forEach(s=>s.classList.toggle('active',parseInt(s.dataset.rating)<=currentRating));
-    const texts=['Select','Poor','Fair','Good','Very Good','Excellent'];
-    const rt=document.getElementById('rating-text'); if(rt) rt.textContent=texts[currentRating]||'Select rating';
-  }
-
-  document.addEventListener('click', e=>{ if(e.target.classList.contains('star')){currentRating=parseInt(e.target.dataset.rating); updateStars();}});
-  document.getElementById('review-form')?.addEventListener('submit', submitReview);
-  document.getElementById('review-comment')?.addEventListener('input', e=>{ document.querySelector('.char-count').textContent = e.target.value.length+'/500'; });
-
-  window.deleteReview = deleteReview;
-  window.editReview = editReview;
-
-  document.addEventListener('DOMContentLoaded', ()=>{ checkAuth(); loadReviews(); });
-</script>
 
 <!-- List Manager Button -->
 <script>
@@ -1158,4 +1032,132 @@ class RestaurantListManager {
         }, 3000);
     }
 }
+</script>
+
+<!-- REVIEW SYSTEM -->
+<section class="section reviews" id="reviews-section">
+  <h2>Customer Reviews</h2>
+  <div id="reviews-list"><div class="reviews-loading">Loading reviews...</div></div>
+  <h3>Add Your Review</h3>
+  <form id="review-form" style="display:none;">
+    <div>
+      <span>Rating:</span>
+      <div class="stars">
+        <span class="star" data-rating="1">★</span>
+        <span class="star" data-rating="2">★</span>
+        <span class="star" data-rating="3">★</span>
+        <span class="star" data-rating="4">★</span>
+        <span class="star" data-rating="5">★</span>
+      </div>
+      <span id="rating-text">Select rating</span>
+    </div>
+    <textarea id="review-comment" placeholder="Share your experience..." rows="4" maxlength="500"></textarea>
+    <div>
+      <button type="submit">Submit Review</button>
+      <span class="char-count">0/500</span>
+    </div>
+  </form>
+  <div id="auth-prompt">
+    <p>Please <a href="../login.html">sign in</a> to submit a review.</p>
+  </div>
+</section>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.26.0/dist/supabase.min.js";
+  const supabase = createClient("https://gfkhjbztayjyojsgdpgk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s");
+  const restaurantId = 28;
+
+  let currentUser = null, currentRating = 0;
+
+  async function checkAuth() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUser = user;
+      document.getElementById('review-form').style.display = user ? 'block' : 'none';
+      document.getElementById('auth-prompt').style.display = user ? 'none' : 'block';
+    } catch(e){ console.error(e); }
+  }
+
+  async function loadReviews() {
+    const container = document.getElementById('reviews-list');
+    try {
+      const { data: reviews } = await supabase.from('reviews')
+        .select('*').eq('restaurant_id', restaurantId).order('created_at', { ascending: false });
+
+      if (!reviews?.length) { container.innerHTML='<div class="reviews-empty">No reviews yet.</div>'; return; }
+
+      const userIds = [...new Set(reviews.map(r=>r.user_id))];
+      const { data: users } = await supabase.from('user_profiles').select('id, username, full_name').in('id', userIds);
+      const userMap = {}; users?.forEach(u=>userMap[u.id]=u);
+
+      container.innerHTML = reviews.map(r=>{
+        const u = userMap[r.user_id], name = u?.full_name||u?.username||'Anonymous';
+        const canEditDelete = currentUser && currentUser.id === r.user_id;
+        return `
+          <div class="review">
+            <div class="review-header">
+              <h4 class="reviewer-name">${name}</h4>
+              <div class="review-rating">${'★'.repeat(r.rating)+'☆'.repeat(5-r.rating)}</div>
+              ${canEditDelete ? '<button class="review-edit" onclick="editReview(\''+r.id+'\')">Edit</button> <button class="review-delete" onclick="deleteReview(\''+r.id+'\')">Delete</button>' : ''}
+            </div>
+            <p class="review-comment">${r.comment}</p>
+            <div class="review-date">${new Date(r.created_at).toLocaleDateString()}</div>
+          </div>`;
+      }).join('');
+    } catch(e){ console.error(e); container.innerHTML='<div class="reviews-empty">Error loading reviews</div>'; }
+  }
+
+  async function submitReview(e){
+    e.preventDefault();
+    if(!currentUser) return alert('Sign in first');
+    const comment = document.getElementById('review-comment').value.trim();
+    if(!comment||currentRating===0) return alert('Rating and comment required');
+
+    try{
+      const { data: profile } = await supabase.from('user_profiles').select('username, full_name').eq('id', currentUser.id).single();
+      const displayName = profile?.full_name||profile?.username||'User';
+      const { error } = await supabase.from('reviews').insert({restaurant_id: restaurantId, user_id: currentUser.id, user_name: displayName, rating: currentRating, comment});
+      if(error) throw error;
+      document.getElementById('review-form').reset();
+      currentRating = 0;
+      updateStars();
+      await loadReviews();
+      alert('Review submitted!');
+    } catch(e){ console.error(e); alert('Error submitting review'); }
+  }
+
+  async function deleteReview(id){
+    if(!currentUser||!confirm('Delete review?')) return;
+    try{
+      const { error } = await supabase.from('reviews').delete().eq('id',id).eq('user_id',currentUser.id);
+      if(error) throw error;
+      await loadReviews();
+      alert('Deleted!');
+    } catch(e){ console.error(e); alert('Error deleting review'); }
+  }
+
+  function editReview(id){
+    const reviewDiv = document.querySelector(`button[onclick="editReview('${id}')"]`).closest('.review');
+    const commentP = reviewDiv.querySelector('.review-comment');
+    const oldComment = commentP.textContent;
+    const newComment = prompt('Edit your review:', oldComment);
+    if(newComment && newComment !== oldComment){
+      supabase.from('reviews').update({comment: newComment}).eq('id',id).then(()=> loadReviews());
+    }
+  }
+
+  function updateStars(){
+    document.querySelectorAll('.star').forEach(s=>s.classList.toggle('active',parseInt(s.dataset.rating)<=currentRating));
+    const texts=['Select','Poor','Fair','Good','Very Good','Excellent'];
+    const rt=document.getElementById('rating-text'); if(rt) rt.textContent=texts[currentRating]||'Select rating';
+  }
+
+  document.addEventListener('click', e=>{ if(e.target.classList.contains('star')){currentRating=parseInt(e.target.dataset.rating); updateStars();}});
+  document.getElementById('review-form')?.addEventListener('submit', submitReview);
+  document.getElementById('review-comment')?.addEventListener('input', e=>{ document.querySelector('.char-count').textContent = e.target.value.length+'/500'; });
+
+  window.deleteReview = deleteReview;
+  window.editReview = editReview;
+
+  document.addEventListener('DOMContentLoaded', ()=>{ checkAuth(); loadReviews(); });
 </script>
