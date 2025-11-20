@@ -21,24 +21,22 @@ function replaceAllReviews() {
         try {
             let content = fs.readFileSync(filePath, 'utf8');
             
-            // Remove ANY existing review system using simple string operations
-            content = removeReviewSystems(content);
+            // Remove ANY existing review system completely
+            content = removeAllReviewContent(content);
             
-            // Add the new review system before the closing body tag
-            const reviewsSection = createReviewsSection();
+            // Add the new clean review system
+            const reviewsSection = createCleanReviewsSection();
             
-            // Try different insertion points
+            // Insert before closing body tag
             if (content.includes('</body>')) {
-                content = content.replace('</body>', reviewsSection + '</body>');
-                console.log(`   ✅ Added reviews system before </body>`);
-                updatedCount++;
-            } else if (content.includes('<footer>')) {
-                content = content.replace('<footer>', reviewsSection + '<footer>');
-                console.log(`   ✅ Added reviews system before <footer>`);
+                content = content.replace('</body>', reviewsSection + '\n</body>');
+                console.log(`   ✅ Added clean review system`);
                 updatedCount++;
             } else {
-                console.log(`   ❌ Could not find insertion point in ${file}`);
-                return;
+                // If no body tag, add at the end
+                content += reviewsSection;
+                console.log(`   ✅ Added clean review system at end`);
+                updatedCount++;
             }
 
             fs.writeFileSync(filePath, content, 'utf8');
@@ -51,29 +49,38 @@ function replaceAllReviews() {
     console.log(`🎉 Successfully updated ${updatedCount} files`);
 }
 
-function removeReviewSystems(content) {
-    // Simple approach: remove content between known review markers
-    const lines = content.split('\n');
-    let inReviewSection = false;
-    let newLines = [];
+function removeAllReviewContent(content) {
+    // Remove everything between review markers
+    const reviewStartMarkers = [
+        '<!-- REAL REVIEWS SYSTEM -->',
+        '<!-- ==================== -->',
+        '<section class="section reviews">'
+    ];
+    
+    const reviewEndMarkers = [
+        '</section>',
+        '</style>'
+    ];
+    
+    let lines = content.split('\n');
+    let cleanLines = [];
+    let skipMode = false;
     
     for (let line of lines) {
-        // Check if we're entering a review section
-        if (line.includes('<!-- REAL REVIEWS SYSTEM -->') || 
-            line.includes('<section class="section reviews">') ||
-            line.includes('<section class="reviews">')) {
-            inReviewSection = true;
+        // Check if we should start skipping
+        if (reviewStartMarkers.some(marker => line.includes(marker))) {
+            skipMode = true;
             continue;
         }
         
-        // Check if we're exiting a review section
-        if (inReviewSection && (line.includes('</section>') || line.includes('</style>'))) {
-            inReviewSection = false;
+        // Check if we should stop skipping
+        if (skipMode && reviewEndMarkers.some(marker => line.includes(marker))) {
+            skipMode = false;
             continue;
         }
         
-        // Skip lines that are part of review system
-        if (inReviewSection) {
+        // Skip lines in review sections
+        if (skipMode) {
             continue;
         }
         
@@ -81,17 +88,18 @@ function removeReviewSystems(content) {
         if (line.includes('reviewsSystem') || 
             line.includes('ReviewsSystem') ||
             line.includes('review-stats') ||
-            line.includes('<!-- Reviews section will be replaced dynamically -->')) {
+            line.includes('review-toast') ||
+            line.includes('customer-reviews')) {
             continue;
         }
         
-        newLines.push(line);
+        cleanLines.push(line);
     }
     
-    return newLines.join('\n');
+    return cleanLines.join('\n');
 }
 
-function createReviewsSection() {
+function createCleanReviewsSection() {
     return `
 <!-- REAL REVIEWS SYSTEM -->
 <section class="section reviews">
@@ -131,13 +139,15 @@ function createReviewsSection() {
                 <textarea 
                     id="reviewComment" 
                     name="comment" 
-                    placeholder="Share your experience..." 
+                    placeholder="Share your experience with this restaurant..." 
                     rows="4"
                     required
                 ></textarea>
             </div>
             
-            <button type="submit" class="btn btn-primary">Submit Review</button>
+            <button type="submit" class="btn btn-primary">
+                Submit Review
+            </button>
         </form>
     </div>
 </section>
@@ -145,27 +155,49 @@ function createReviewsSection() {
 <script>
 // Simple Reviews System
 document.addEventListener('DOMContentLoaded', function() {
-    const reviewForm = document.getElementById('reviewForm');
+    console.log('Review system loaded');
+    
+    // Basic star rating functionality
     const stars = document.querySelectorAll('.star');
     let selectedRating = 0;
     
-    // Star rating
     stars.forEach(star => {
         star.addEventListener('click', function() {
             selectedRating = parseInt(this.dataset.rating);
-            stars.forEach((s, index) => {
-                s.textContent = index < selectedRating ? '⭐' : '☆';
-                s.style.color = index < selectedRating ? '#FF9800' : 'var(--text2)';
-            });
+            updateStars(selectedRating);
             document.getElementById('selectedRating').value = selectedRating;
         });
     });
     
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.textContent = '⭐';
+                star.style.color = '#FF9800';
+            } else {
+                star.textContent = '☆';
+                star.style.color = 'var(--text2)';
+            }
+        });
+    }
+    
     // Form submission
+    const reviewForm = document.getElementById('reviewForm');
     if (reviewForm) {
-        reviewForm.addEventListener('submit', async function(e) {
+        reviewForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Review system is ready! Connect to Supabase to enable real reviews.');
+            const rating = parseInt(document.getElementById('selectedRating').value);
+            const comment = document.getElementById('reviewComment').value.trim();
+            
+            if (!rating || !comment) {
+                alert('Please provide both a rating and comment');
+                return;
+            }
+            
+            alert('Review functionality ready! Connect to Supabase for real reviews.');
+            // Reset form
+            reviewForm.reset();
+            updateStars(0);
         });
     }
 });
@@ -199,13 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
 .rating-count { 
     color: var(--text2); 
     font-size: 0.9rem; 
-}
-.review-item { 
-    background: var(--card); 
-    border-radius: 12px; 
-    padding: 20px; 
-    margin-bottom: 16px; 
-    border: 1px solid var(--nav-shadow); 
 }
 .add-review-section { 
     background: var(--card); 
@@ -250,10 +275,9 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 1.5rem; 
     }
 }
-</style>
-`;
+</style>`;
 }
 
 // Run the script
-console.log('🚀 Replacing ALL review systems...');
+console.log('🚀 Replacing ALL review systems with clean version...');
 replaceAllReviews();
