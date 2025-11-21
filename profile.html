@@ -2601,72 +2601,86 @@
             window.location.href = 'profile.html';
         }
 
-        // Update stats
-        async function updateStats(userId = null) {
-            const targetId = userId || currentUser.id;
-            
-            try {
-                // Get visited count from visited list
-                const { data: visitedList } = await supabase
-                    .from('lists')
+        // Update stats - RLS compatible
+async function updateStats(userId = null) {
+    const targetId = userId || currentUser.id;
+    
+    try {
+        let visitedCount = 0;
+        let followersCount = 0;
+        let listsCount = 0;
+        
+        // Only try to access data if we have permission
+        if (isViewingOwnProfile || targetId === currentUser.id) {
+            // Get visited count from visited list
+            const { data: visitedList, error: visitedError } = await supabase
+                .from('lists')
+                .select('id')
+                .eq('user_id', targetId)
+                .eq('title', 'Visited')
+                .single();
+                
+            if (!visitedError && visitedList) {
+                const { data: visitedRestaurants } = await supabase
+                    .from('lists_restraunts')
                     .select('id')
-                    .eq('user_id', targetId)
-                    .eq('title', 'Visited')
-                    .single();
+                    .eq('list_id', visitedList.id);
                     
-                let visitedCount = 0;
-                if (visitedList) {
-                    const { data: visitedRestaurants } = await supabase
-                        .from('lists_restraunts')
-                        .select('id')
-                        .eq('list_id', visitedList.id);
-                        
-                    visitedCount = visitedRestaurants ? visitedRestaurants.length : 0;
-                }
-                
-                // Get followers count
-                const { data: followers } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('followed_id', targetId);
-                    
-                const followersCount = followers ? followers.length : 0;
-                
-                // Get lists count
-                const { data: userLists } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId);
-                    
-                const listsCount = userLists ? userLists.length : 0;
-                
-                // Get streak count
-                const streakCount = await foodJournal.calculateStreak(targetId);
-                
-                // Update UI
-                setTextContent('visitedCount', visitedCount);
-                setTextContent('followersCount', followersCount);
-                setTextContent('listsCount', listsCount);
-                setTextContent('streakCount', streakCount);
-                setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
-                
-                // Update streak card
-                const streakTitle = getElement('streakTitle');
-                const streakDescription = getElement('streakDescription');
-                
-                if (streakCount > 0) {
-                    if (streakTitle) streakTitle.textContent = `${streakCount}-Day Journaling Streak!`;
-                    if (streakDescription) streakDescription.textContent = `You're on fire! Keep documenting your food adventures to maintain your streak.`;
-                } else {
-                    if (streakTitle) streakTitle.textContent = 'Start Your Food Journey!';
-                    if (streakDescription) streakDescription.textContent = 'Document your first restaurant visit to start building your streak and unlock achievements.';
-                }
-                
-            } catch (error) {
-                console.error('Error updating stats:', error);
+                visitedCount = visitedRestaurants ? visitedRestaurants.length : 0;
             }
+            
+            // Get followers count
+            const { data: followers, error: followersError } = await supabase
+                .from('follows')
+                .select('id')
+                .eq('followed_id', targetId);
+                
+            if (!followersError) {
+                followersCount = followers ? followers.length : 0;
+            }
+            
+            // Get lists count
+            const { data: userLists, error: listsError } = await supabase
+                .from('lists')
+                .select('id')
+                .eq('user_id', targetId);
+                
+            if (!listsError) {
+                listsCount = userLists ? userLists.length : 0;
+            }
+        } else {
+            // When viewing other users, show basic info or "N/A"
+            visitedCount = 0;
+            followersCount = 0;
+            listsCount = 0;
         }
-
+        
+        // Get streak count (this should work with proper RLS policies)
+        const streakCount = await foodJournal.calculateStreak(targetId);
+        
+        // Update UI
+        setTextContent('visitedCount', isViewingOwnProfile ? visitedCount : 'N/A');
+        setTextContent('followersCount', followersCount);
+        setTextContent('listsCount', isViewingOwnProfile ? listsCount : 'N/A');
+        setTextContent('streakCount', streakCount);
+        setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
+        
+        // Update streak card
+        const streakTitle = getElement('streakTitle');
+        const streakDescription = getElement('streakDescription');
+        
+        if (streakCount > 0) {
+            if (streakTitle) streakTitle.textContent = `${streakCount}-Day Journaling Streak!`;
+            if (streakDescription) streakDescription.textContent = `You're on fire! Keep documenting your food adventures to maintain your streak.`;
+        } else {
+            if (streakTitle) streakTitle.textContent = 'Start Your Food Journey!';
+            if (streakDescription) streakDescription.textContent = 'Document your first restaurant visit to start building your streak and unlock achievements.';
+        }
+        
+    } catch (error) {
+        console.error('Error updating stats:', error);
+    }
+}
         // Load restaurants from database
         async function loadRestaurants() {
             try {
