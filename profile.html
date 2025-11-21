@@ -2260,13 +2260,13 @@
 
             currentUser = user;
 
-            // Determine if we're viewing own profile or another user's profile
-            if (targetUserId && targetUserId !== user.id) {
-                isViewingOwnProfile = false;
-                await loadOtherUserProfile();
-            } else {
-                isViewingOwnProfile = true;
+            // FIXED: Proper profile detection logic
+            isViewingOwnProfile = !targetUserId || targetUserId === user.id;
+
+            if (isViewingOwnProfile) {
                 await loadOwnProfile();
+            } else {
+                await loadOtherUserProfile();
             }
         }
 
@@ -2334,15 +2334,6 @@
             if (createListBtn) createListBtn.style.display = 'none';
             if (addJournalBtn) addJournalBtn.style.display = 'none';
 
-            // Update UI text for other user's profile
-            const targetUserName = targetUser?.full_name || targetUser?.username || 'User';
-            setTextContent('listsTabText', `${targetUserName}'s Lists`);
-            setTextContent('listsTitle', `${targetUserName}'s Lists`);
-            setTextContent('listsSubtitle', `${targetUserName}'s favorite restaurants`);
-            setTextContent('customListsTitle', `${targetUserName}'s Custom Lists`);
-            setTextContent('journalTitle', `${targetUserName}'s Food Journal`);
-            setTextContent('journalSubtitle', `${targetUserName}'s culinary adventures and experiences`);
-
             // Load target user profile
             const { data: profile, error } = await supabase
                 .from('user_profiles')
@@ -2357,6 +2348,15 @@
             }
 
             targetUser = profile;
+
+            // Update UI text for other user's profile
+            const targetUserName = targetUser?.full_name || targetUser?.username || 'User';
+            setTextContent('listsTabText', `${targetUserName}'s Lists`);
+            setTextContent('listsTitle', `${targetUserName}'s Lists`);
+            setTextContent('listsSubtitle', `${targetUserName}'s favorite restaurants`);
+            setTextContent('customListsTitle', `${targetUserName}'s Custom Lists`);
+            setTextContent('journalTitle', `${targetUserName}'s Food Journal`);
+            setTextContent('journalSubtitle', `${targetUserName}'s culinary adventures and experiences`);
 
             // Display user info
             setTextContent('profileName', profile.full_name || profile.username || 'User');
@@ -2757,14 +2757,17 @@
                 this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
                 this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
                 
-                if (!this.currentLists.favorites && isViewingOwnProfile) {
-                    this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId);
-                }
-                if (!this.currentLists.visited && isViewingOwnProfile) {
-                    this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId);
-                }
-                if (!this.currentLists.wantToGo && isViewingOwnProfile) {
-                    this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId);
+                // FIXED: Only create default lists for own profile
+                if (isViewingOwnProfile) {
+                    if (!this.currentLists.favorites) {
+                        this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId);
+                    }
+                    if (!this.currentLists.visited) {
+                        this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId);
+                    }
+                    if (!this.currentLists.wantToGo) {
+                        this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId);
+                    }
                 }
             },
             
@@ -4256,7 +4259,7 @@
             }
 
             try {
-                // FIXED: Check if profile exists first
+                // Check if profile exists first
                 const { data: existingProfile } = await supabase
                     .from('user_profiles')
                     .select('id')
