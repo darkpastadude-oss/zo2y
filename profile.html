@@ -1833,8 +1833,8 @@
                 <div id="followersList">
                     <div class="empty-state">
                         <div class="empty-icon">👥</div>
-                        <h3 class="empty-title">Not following anyone yet</h3>
-                        <p class="empty-description">Search for users to find followers and see their food adventures!</p>
+                        <h3 class="empty-title">No followers yet</h3>
+                        <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
                         <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
                             <i class="fas fa-user-plus"></i> Find Users
                         </button>
@@ -1989,20 +1989,6 @@
                         <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
                     </div>
                     
-                    <div class="form-group">
-                        <label class="form-label">Profile Privacy</label>
-                        <div class="d-flex gap-md">
-                            <label class="d-flex align-center gap-sm">
-                                <input type="radio" name="privacy" value="public" id="privacyPublic">
-                                <span>Public</span>
-                            </label>
-                            <label class="d-flex align-center gap-sm">
-                                <input type="radio" name="privacy" value="private" id="privacyPrivate">
-                                <span>Private</span>
-                            </label>
-                        </div>
-                    </div>
-                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -2055,26 +2041,6 @@
                 
                 <div id="searchResults" class="user-grid" style="margin-top: 20px;">
                     <!-- Search results will be populated here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Follow Requests Modal -->
-    <div class="modal" id="followRequestsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Follow Requests</h3>
-                <button class="modal-close" onclick="closeModal('followRequestsModal')">&times;</button>
-            </div>
-            
-            <div class="modal-body">
-                <div id="followRequestsList">
-                    <div class="empty-state">
-                        <div class="empty-icon">👥</div>
-                        <h3 class="empty-title">No Pending Requests</h3>
-                        <p class="empty-description">You don't have any pending follow requests.</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -3519,8 +3485,8 @@
                         followersList.innerHTML = `
                             <div class="empty-state">
                                 <div class="empty-icon">👥</div>
-                                <h3 class="empty-title">Not following anyone yet</h3>
-                                <p class="empty-description">Search for users to find followers and see their food adventures!</p>
+                                <h3 class="empty-title">No followers yet</h3>
+                                <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
                                 <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
                                     <i class="fas fa-user-plus"></i> Find Users
                                 </button>
@@ -3540,121 +3506,6 @@
                     }
                 } catch (error) {
                     console.error('Error loading followers:', error);
-                }
-            },
-
-            async loadFollowRequests() {
-                try {
-                    const { data: requests, error } = await supabase
-                        .from('follow_requests')
-                        .select(`
-                            id,
-                            sender_id,
-                            status,
-                            created_at,
-                            user_profiles!follow_requests_sender_id_fkey (
-                                id,
-                                username,
-                                full_name,
-                                avatar_icon,
-                                bio
-                            )
-                        `)
-                        .eq('receiver_id', currentUser.id)
-                        .eq('status', 'pending');
-
-                    if (error) throw error;
-
-                    const requestsList = getElement('followRequestsList');
-                    if (!requestsList) return;
-
-                    if (!requests || requests.length === 0) {
-                        requestsList.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">👥</div>
-                                <h3 class="empty-title">No Pending Requests</h3>
-                                <p class="empty-description">You don't have any pending follow requests.</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    requestsList.innerHTML = '';
-
-                    for (const request of requests) {
-                        const user = request.user_profiles;
-                        const requestCard = document.createElement('div');
-                        requestCard.className = 'follower-card';
-                        requestCard.innerHTML = `
-                            <div class="follower-header">
-                                <div class="follower-avatar">${user.avatar_icon || '👤'}</div>
-                                <div class="follower-info">
-                                    <div class="follower-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                    <div class="follower-username">@${user.username || 'user'}</div>
-                                </div>
-                            </div>
-                            <div class="follower-actions">
-                                <button class="btn btn-success btn-sm" onclick="followerSystem.acceptFollowRequest('${request.id}', '${user.id}')">
-                                    <i class="fas fa-check"></i> Accept
-                                </button>
-                                <button class="btn btn-secondary btn-sm" onclick="followerSystem.declineFollowRequest('${request.id}')">
-                                    <i class="fas fa-times"></i> Decline
-                                </button>
-                            </div>
-                        `;
-                        requestsList.appendChild(requestCard);
-                    }
-                } catch (error) {
-                    console.error('Error loading follow requests:', error);
-                }
-            },
-
-            async acceptFollowRequest(requestId, senderId) {
-                try {
-                    // Update the request status
-                    const { error: updateError } = await supabase
-                        .from('follow_requests')
-                        .update({ status: 'accepted' })
-                        .eq('id', requestId);
-
-                    if (updateError) throw updateError;
-
-                    // Create the follow relationship
-                    const { error: followError } = await supabase
-                        .from('follows')
-                        .insert({
-                            follower_id: senderId,
-                            followed_id: currentUser.id,
-                            created_at: new Date().toISOString()
-                        });
-
-                    if (followError) throw followError;
-
-                    showToast('Follow request accepted', 'success');
-                    this.loadFollowRequests();
-                    this.loadFollowStats();
-
-                } catch (error) {
-                    console.error('Error accepting follow request:', error);
-                    showToast('Error accepting follow request', 'error');
-                }
-            },
-
-            async declineFollowRequest(requestId) {
-                try {
-                    const { error } = await supabase
-                        .from('follow_requests')
-                        .update({ status: 'declined' })
-                        .eq('id', requestId);
-
-                    if (error) throw error;
-
-                    showToast('Follow request declined', 'info');
-                    this.loadFollowRequests();
-
-                } catch (error) {
-                    console.error('Error declining follow request:', error);
-                    showToast('Error declining follow request', 'error');
                 }
             }
         };
@@ -3757,7 +3608,7 @@
                     { 
                         id: 4, 
                         name: "Social Butterfly", 
-                        description: "Follow 10 followers", 
+                        description: "Follow 10 users", 
                         icon: "👥", 
                         goal: 10,
                         points: 25
@@ -3864,11 +3715,6 @@
                     const today = new Date().toISOString().split('T')[0];
                     visitDate.value = today;
                 }
-            }
-            
-            // Load follow requests if needed
-            if (modalId === 'followRequestsModal') {
-                followerSystem.loadFollowRequests();
             }
         }
 
@@ -4073,22 +3919,11 @@
                     const editUsername = getElement('editUsername');
                     const editBio = getElement('editBio');
                     const editLocation = getElement('editLocation');
-                    const privacyPublic = getElement('privacyPublic');
-                    const privacyPrivate = getElement('privacyPrivate');
                     
                     if (editDisplayName) editDisplayName.value = userProfile?.full_name || '';
                     if (editUsername) editUsername.value = userProfile?.username || '';
                     if (editBio) editBio.value = userProfile?.bio || '';
                     if (editLocation) editLocation.value = userProfile?.location || '';
-                    
-                    // Set privacy radio buttons
-                    if (privacyPublic && privacyPrivate) {
-                        if (userProfile?.is_private) {
-                            privacyPrivate.checked = true;
-                        } else {
-                            privacyPublic.checked = true;
-                        }
-                    }
                     
                     showModal('editProfileModal');
                 });
@@ -4104,12 +3939,7 @@
             const settingsBtn = getElement('settingsBtn');
             if (settingsBtn) {
                 settingsBtn.addEventListener('click', () => {
-                    // Show follow requests for private profiles
-                    if (userProfile?.is_private) {
-                        showModal('followRequestsModal');
-                    } else {
-                        showToast('Settings panel would open here', 'info');
-                    }
+                    showToast('Settings panel would open here', 'info');
                 });
             }
             
@@ -4221,7 +4051,6 @@
             const newUsername = getElement('editUsername')?.value;
             const newBio = getElement('editBio')?.value;
             const newLocation = getElement('editLocation')?.value;
-            const isPrivate = getElement('privacyPrivate')?.checked || false;
             
             if (!newName || !newUsername) {
                 showToast('Please fill in all required fields', 'error');
@@ -4246,7 +4075,6 @@
                             username: newUsername,
                             bio: newBio,
                             location: newLocation,
-                            is_private: isPrivate,
                             updated_at: new Date().toISOString()
                         })
                         .eq('id', currentUser.id));
@@ -4261,7 +4089,6 @@
                             bio: newBio,
                             location: newLocation,
                             avatar_icon: "🍔",
-                            is_private: isPrivate,
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         }));
