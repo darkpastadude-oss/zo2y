@@ -192,7 +192,7 @@
             padding: 12px 20px;
             border-radius: var(--radius);
             margin-bottom: 20px;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: space-between;
         }
@@ -1541,7 +1541,7 @@
 
     <!-- Viewing Other Profile Indicator -->
     <div class="container">
-        <div class="viewing-other-profile d-none" id="viewingOtherProfile">
+        <div class="viewing-other-profile" id="viewingOtherProfile">
             <div class="viewing-indicator">
                 <i class="fas fa-eye"></i>
                 <span>You are viewing another user's profile</span>
@@ -2180,6 +2180,11 @@
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
 
+        // Go back to own profile
+        function goToMyProfile() {
+            window.location.href = 'profile.html';
+        }
+
         // Toast system
         function showToast(message, type = 'info', duration = 5000) {
             const toastContainer = document.getElementById('toastContainer');
@@ -2249,35 +2254,35 @@
         }
 
         // Load user profile data
-async function loadProfile() {
-    targetUserId = getUserIdFromUrl();
-    
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) { 
-        window.location.href = "login.html"; 
-        return; 
-    }
+        async function loadProfile() {
+            targetUserId = getUserIdFromUrl();
+            
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (error || !user) { 
+                window.location.href = "login.html"; 
+                return; 
+            }
 
-    currentUser = user;
+            currentUser = user;
 
-    // FIXED: Better profile detection logic
-    // Check if targetUserId exists AND is different from current user
-    isViewingOwnProfile = !targetUserId || targetUserId === user.id;
-    
-    console.log('Debug Profile Info:', {
-        targetUserId,
-        currentUserId: user.id,
-        isViewingOwnProfile,
-        hasTargetUserId: !!targetUserId,
-        idsMatch: targetUserId === user.id
-    });
+            // FIXED: Better profile detection logic
+            // Check if targetUserId exists AND is different from current user
+            isViewingOwnProfile = !targetUserId || targetUserId === user.id;
+            
+            console.log('Debug Profile Info:', {
+                targetUserId,
+                currentUserId: user.id,
+                isViewingOwnProfile,
+                hasTargetUserId: !!targetUserId,
+                idsMatch: targetUserId === user.id
+            });
 
-    if (isViewingOwnProfile) {
-        await loadOwnProfile();
-    } else {
-        await loadOtherUserProfile();
-    }
-}
+            if (isViewingOwnProfile) {
+                await loadOwnProfile();
+            } else {
+                await loadOtherUserProfile();
+            }
+        }
 
         async function loadOwnProfile() {
             // Show own profile elements
@@ -2293,7 +2298,12 @@ async function loadProfile() {
             if (settingsBtn) settingsBtn.style.display = 'flex';
             if (followButton) followButton.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'block';
-            if (viewingIndicator) viewingIndicator.classList.add('d-none');
+            
+            // FIXED: Ensure viewing indicator is hidden for own profile
+            if (viewingIndicator) {
+                viewingIndicator.style.display = 'none';
+            }
+            
             if (addEntryBtn) addEntryBtn.style.display = 'flex';
             if (createListBtn) createListBtn.style.display = 'flex';
 
@@ -2338,7 +2348,12 @@ async function loadProfile() {
             if (settingsBtn) settingsBtn.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'none';
             if (followButton) followButton.style.display = 'block';
-            if (viewingIndicator) viewingIndicator.classList.remove('d-none');
+            
+            // FIXED: Ensure viewing indicator is shown for other profiles
+            if (viewingIndicator) {
+                viewingIndicator.style.display = 'flex';
+            }
+            
             if (addEntryBtn) addEntryBtn.style.display = 'none';
             if (createListBtn) createListBtn.style.display = 'none';
             if (addJournalBtn) addJournalBtn.style.display = 'none';
@@ -2599,18 +2614,19 @@ async function loadProfile() {
             }
         }
 
-    // Get user ID from URL parameters - improved version
-function getUserIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    
-    // Clean up the ID - remove any extra characters or validate format
-    if (id && id.trim() !== '') {
-        return id.trim();
-    }
-    
-    return null;
-}
+        // Get user ID from URL parameters - improved version
+        function getUserIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            
+            // Clean up the ID - remove any extra characters or validate format
+            if (id && id.trim() !== '') {
+                return id.trim();
+            }
+            
+            return null;
+        }
+
         // Update stats
         async function updateStats(userId = null) {
             const targetId = userId || currentUser.id;
