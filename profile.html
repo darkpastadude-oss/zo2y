@@ -2249,26 +2249,35 @@
         }
 
         // Load user profile data
-        async function loadProfile() {
-            targetUserId = getUserIdFromUrl();
-            
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error || !user) { 
-                window.location.href = "login.html"; 
-                return; 
-            }
+async function loadProfile() {
+    targetUserId = getUserIdFromUrl();
+    
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) { 
+        window.location.href = "login.html"; 
+        return; 
+    }
 
-            currentUser = user;
+    currentUser = user;
 
-            // FIXED: Proper profile detection logic
-            isViewingOwnProfile = !targetUserId || targetUserId === user.id;
+    // FIXED: Better profile detection logic
+    // Check if targetUserId exists AND is different from current user
+    isViewingOwnProfile = !targetUserId || targetUserId === user.id;
+    
+    console.log('Debug Profile Info:', {
+        targetUserId,
+        currentUserId: user.id,
+        isViewingOwnProfile,
+        hasTargetUserId: !!targetUserId,
+        idsMatch: targetUserId === user.id
+    });
 
-            if (isViewingOwnProfile) {
-                await loadOwnProfile();
-            } else {
-                await loadOtherUserProfile();
-            }
-        }
+    if (isViewingOwnProfile) {
+        await loadOwnProfile();
+    } else {
+        await loadOtherUserProfile();
+    }
+}
 
         async function loadOwnProfile() {
             // Show own profile elements
@@ -2590,17 +2599,18 @@
             }
         }
 
-        // Get user ID from URL parameters
-        function getUserIdFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('id');
-        }
-
-        // Go back to own profile
-        function goToMyProfile() {
-            window.location.href = 'profile.html';
-        }
-
+    // Get user ID from URL parameters - improved version
+function getUserIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    
+    // Clean up the ID - remove any extra characters or validate format
+    if (id && id.trim() !== '') {
+        return id.trim();
+    }
+    
+    return null;
+}
         // Update stats
         async function updateStats(userId = null) {
             const targetId = userId || currentUser.id;
