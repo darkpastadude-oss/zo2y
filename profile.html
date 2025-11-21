@@ -185,6 +185,25 @@
             flex-wrap: wrap;
         }
 
+        /* === VIEWING OTHER PROFILE INDICATOR === */
+        .viewing-other-profile {
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .viewing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
         /* === BUTTONS === */
         .btn {
             padding: 10px 20px;
@@ -1090,6 +1109,21 @@
             background: #e69500;
         }
 
+        /* === FOLLOWERS/FOLOWING SECTIONS === */
+        .followers-section {
+            display: none;
+        }
+
+        .followers-section.active {
+            display: block;
+        }
+
+        .followers-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
         /* === MOBILE-SPECIFIC STYLES === */
         @media (max-width: 768px) {
             /* Container adjustments */
@@ -1505,6 +1539,19 @@
         <i class="fas fa-home"></i>
     </a>
 
+    <!-- Viewing Other Profile Indicator -->
+    <div class="container">
+        <div class="viewing-other-profile d-none" id="viewingOtherProfile">
+            <div class="viewing-indicator">
+                <i class="fas fa-eye"></i>
+                <span>You are viewing another user's profile</span>
+            </div>
+            <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="goToMyProfile()">
+                <i class="fas fa-user"></i> Back to My Profile
+            </button>
+        </div>
+    </div>
+
     <!-- Profile Header -->
     <div class="profile-header">
         <div class="container">
@@ -1820,24 +1867,57 @@
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Followers</h2>
+                        <h2 class="section-title">Followers & Following</h2>
                         <p class="section-subtitle">Connect with other food lovers</p>
                     </div>
                     <div class="section-actions">
+                        <div class="d-flex gap-sm">
+                            <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="showFollowersSection('followers')">
+                                Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="showFollowersSection('following')">
+                                Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
+                            </button>
+                        </div>
                         <button class="btn btn-primary" onclick="showModal('followerSearchModal')" id="addFollowersBtn">
                             <i class="fas fa-user-plus"></i> Find Users
                         </button>
                     </div>
                 </div>
 
-                <div id="followersList">
-                    <div class="empty-state">
-                        <div class="empty-icon">👥</div>
-                        <h3 class="empty-title">No followers yet</h3>
-                        <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
-                        <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
-                            <i class="fas fa-user-plus"></i> Find Users
-                        </button>
+                <!-- Followers Section -->
+                <div class="followers-section active" id="followersSection">
+                    <div class="section-header">
+                        <h3 class="section-title">Your Followers</h3>
+                        <p class="section-subtitle">People who follow your food journey</p>
+                    </div>
+                    <div id="followersList">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">No followers yet</h3>
+                            <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
+                            <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Following Section -->
+                <div class="followers-section" id="followingSection">
+                    <div class="section-header">
+                        <h3 class="section-title">You're Following</h3>
+                        <p class="section-subtitle">People whose food journey you follow</p>
+                    </div>
+                    <div id="followingList">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">Not following anyone yet</h3>
+                            <p class="empty-description">Discover and follow other food lovers to see their restaurant adventures!</p>
+                            <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1988,6 +2068,17 @@
                         <label class="form-label">Location</label>
                         <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Account Privacy</label>
+                        <div class="d-flex gap-md align-center">
+                            <input type="checkbox" id="editIsPrivate" class="form-input" style="width: auto;">
+                            <label for="editIsPrivate" class="form-label" style="margin-bottom: 0;">Private Account</label>
+                        </div>
+                        <div class="text-xs text-muted mt-xs">
+                            Private accounts require approval for follow requests
+                        </div>
+                    </div>
                     
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
@@ -2046,8 +2137,28 @@
         </div>
     </div>
 
+    <!-- Follow Requests Modal -->
+    <div class="modal" id="followRequestsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Follow Requests</h3>
+                <button class="modal-close" onclick="closeModal('followRequestsModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="followRequestsList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📨</div>
+                        <h3 class="empty-title">No pending requests</h3>
+                        <p class="empty-description">You don't have any pending follow requests.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // === FIXED JAVASCRIPT CODE ===
+        // === COMPLETELY REWRITTEN JAVASCRIPT WITH FIXED FOLLOW SYSTEM ===
         // Supabase configuration
         const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
@@ -2174,11 +2285,13 @@
             const settingsBtn = getElement('settingsBtn');
             const followButton = getElement('followButton');
             const logoutBtn = getElement('logoutBtn');
+            const viewingIndicator = getElement('viewingOtherProfile');
             
             if (editProfileBtn) editProfileBtn.style.display = 'flex';
             if (settingsBtn) settingsBtn.style.display = 'flex';
             if (followButton) followButton.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'block';
+            if (viewingIndicator) viewingIndicator.classList.add('d-none');
 
             await loadUserProfile();
             
@@ -2204,11 +2317,15 @@
             const settingsBtn = getElement('settingsBtn');
             const logoutBtn = getElement('logoutBtn');
             const followButton = getElement('followButton');
+            const viewingIndicator = getElement('viewingOtherProfile');
+            const addEntryBtn = getElement('addEntryBtn');
             
             if (editProfileBtn) editProfileBtn.style.display = 'none';
             if (settingsBtn) settingsBtn.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'none';
             if (followButton) followButton.style.display = 'block';
+            if (viewingIndicator) viewingIndicator.classList.remove('d-none');
+            if (addEntryBtn) addEntryBtn.style.display = 'none';
 
             // Load target user profile
             const { data: profile, error } = await supabase
@@ -2320,7 +2437,7 @@
                 } else if (request) {
                     followButton.textContent = 'Requested';
                     followButton.className = 'btn btn-secondary';
-                    followButton.onclick = () => sendFollowRequest();
+                    followButton.onclick = () => cancelFollowRequest();
                 } else if (targetUser.is_private) {
                     followButton.textContent = 'Request to Follow';
                     followButton.className = 'btn btn-primary';
@@ -2401,12 +2518,44 @@
                 if (followButton) {
                     followButton.textContent = 'Requested';
                     followButton.className = 'btn btn-secondary';
+                    followButton.onclick = () => cancelFollowRequest();
                 }
                 showToast('Follow request sent!', 'success');
 
             } catch (error) {
                 console.error('Error sending follow request:', error);
                 showToast('Error sending follow request', 'error');
+            }
+        }
+
+        async function cancelFollowRequest() {
+            try {
+                const { error } = await supabase
+                    .from('follow_requests')
+                    .delete()
+                    .eq('sender_id', currentUser.id)
+                    .eq('receiver_id', targetUserId)
+                    .eq('status', 'pending');
+
+                if (error) throw error;
+                
+                const followButton = getElement('followButton');
+                if (followButton) {
+                    if (targetUser.is_private) {
+                        followButton.textContent = 'Request to Follow';
+                        followButton.className = 'btn btn-primary';
+                        followButton.onclick = () => sendFollowRequest();
+                    } else {
+                        followButton.textContent = 'Follow';
+                        followButton.className = 'btn btn-primary';
+                        followButton.onclick = () => toggleFollow();
+                    }
+                }
+                showToast('Follow request cancelled', 'info');
+
+            } catch (error) {
+                console.error('Error cancelling follow request:', error);
+                showToast('Error cancelling follow request', 'error');
             }
         }
 
@@ -2429,6 +2578,11 @@
         function getUserIdFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('id');
+        }
+
+        // Go back to own profile
+        function goToMyProfile() {
+            window.location.href = 'profile.html';
         }
 
         // Update stats
@@ -2804,7 +2958,7 @@
                     </div>
                     <div class="card-body">
                         <p>${list.description || 'No description'}</p>
-                        <div class="text-muted mt-sm">${list.restaurants?.length || 0} restaurants</div>
+                        <div class="text-muted mt-sm list-count">${list.restaurants?.length || 0} restaurants</div>
                     </div>
                 `;
                 customListsContainer.appendChild(listElement);
@@ -3150,7 +3304,7 @@
                     // Add to visited list
                     await listManager.toggleInList('visited', restaurantId);
                     
-                    // Save journal entry - FIXED: Ensure all required fields are included
+                    // Save journal entry
                     const { error } = await supabase
                         .from('journal_entries')
                         .insert({
@@ -3187,9 +3341,12 @@
 
         // Follower System
         const followerSystem = {
+            currentSection: 'followers',
+            
             async init() {
                 if (!currentUser) return;
                 await this.loadFollowStats();
+                await this.loadFollowers(); // Load followers by default
                 
                 // Add event listener for search
                 const userSearch = getElement('userSearch');
@@ -3226,6 +3383,17 @@
                         } else {
                             followersBadge.style.display = 'none';
                         }
+                    }
+
+                    // Update section badges
+                    const followersCountBadge = getElement('followersCountBadge');
+                    const followingCountBadge = getElement('followingCountBadge');
+                    
+                    if (followersCountBadge) {
+                        followersCountBadge.textContent = followers ? followers.length : 0;
+                    }
+                    if (followingCountBadge) {
+                        followingCountBadge.textContent = following ? following.length : 0;
                     }
 
                 } catch (error) {
@@ -3463,18 +3631,22 @@
                 if (userSearch && userSearch.value) {
                     this.searchUsers();
                 } else {
-                    // Load default followers view
-                    this.loadFollowers();
+                    // Load current section
+                    if (this.currentSection === 'followers') {
+                        this.loadFollowers();
+                    } else {
+                        this.loadFollowing();
+                    }
                 }
             },
 
             async loadFollowers() {
                 try {
-                    // Get users that current user is following
+                    // Get users that follow current user
                     const { data: follows, error } = await supabase
                         .from('follows')
-                        .select('followed_id')
-                        .eq('follower_id', currentUser.id);
+                        .select('follower_id')
+                        .eq('followed_id', currentUser.id);
 
                     if (error) throw error;
 
@@ -3495,6 +3667,47 @@
                         return;
                     }
 
+                    const followerIds = follows.map(f => f.follower_id);
+                    const { data: users, error: usersError } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .in('id', followerIds);
+
+                    if (!usersError) {
+                        this.displayUsers(users, 'followersList');
+                    }
+                } catch (error) {
+                    console.error('Error loading followers:', error);
+                }
+            },
+
+            async loadFollowing() {
+                try {
+                    // Get users that current user is following
+                    const { data: follows, error } = await supabase
+                        .from('follows')
+                        .select('followed_id')
+                        .eq('follower_id', currentUser.id);
+
+                    if (error) throw error;
+
+                    const followingList = getElement('followingList');
+                    if (!followingList) return;
+
+                    if (!follows || follows.length === 0) {
+                        followingList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">Not following anyone yet</h3>
+                                <p class="empty-description">Discover and follow other food lovers to see their restaurant adventures!</p>
+                                <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+
                     const followingIds = follows.map(f => f.followed_id);
                     const { data: users, error: usersError } = await supabase
                         .from('user_profiles')
@@ -3502,10 +3715,131 @@
                         .in('id', followingIds);
 
                     if (!usersError) {
-                        this.displayUsers(users, 'followersList');
+                        this.displayUsers(users, 'followingList');
                     }
                 } catch (error) {
-                    console.error('Error loading followers:', error);
+                    console.error('Error loading following:', error);
+                }
+            },
+
+            async loadFollowRequests() {
+                try {
+                    const { data: requests, error } = await supabase
+                        .from('follow_requests')
+                        .select(`
+                            id,
+                            status,
+                            created_at,
+                            user_profiles!follow_requests_sender_id_fkey (
+                                id,
+                                username,
+                                full_name,
+                                avatar_icon,
+                                bio
+                            )
+                        `)
+                        .eq('receiver_id', currentUser.id)
+                        .eq('status', 'pending');
+
+                    if (error) throw error;
+
+                    const requestsList = getElement('followRequestsList');
+                    if (!requestsList) return;
+
+                    if (!requests || requests.length === 0) {
+                        requestsList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📨</div>
+                                <h3 class="empty-title">No pending requests</h3>
+                                <p class="empty-description">You don't have any pending follow requests.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    requestsList.innerHTML = '';
+
+                    for (const request of requests) {
+                        const user = request.user_profiles;
+                        if (!user) continue;
+
+                        const requestElement = document.createElement('div');
+                        requestElement.className = 'follower-card';
+                        requestElement.innerHTML = `
+                            <div class="follower-header">
+                                <div class="follower-avatar">${user.avatar_icon || '👤'}</div>
+                                <div class="follower-info">
+                                    <div class="follower-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                    <div class="follower-username">@${user.username || 'user'}</div>
+                                </div>
+                            </div>
+                            <div class="follower-actions">
+                                <button class="btn btn-success btn-sm" onclick="followerSystem.acceptFollowRequest('${request.id}', '${user.id}')">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="followerSystem.declineFollowRequest('${request.id}')">
+                                    <i class="fas fa-times"></i> Decline
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> View Profile
+                                </button>
+                            </div>
+                        `;
+                        requestsList.appendChild(requestElement);
+                    }
+
+                } catch (error) {
+                    console.error('Error loading follow requests:', error);
+                }
+            },
+
+            async acceptFollowRequest(requestId, senderId) {
+                try {
+                    // Create follow relationship
+                    const { error: followError } = await supabase
+                        .from('follows')
+                        .insert({
+                            follower_id: senderId,
+                            followed_id: currentUser.id,
+                            created_at: new Date().toISOString()
+                        });
+
+                    if (followError) throw followError;
+
+                    // Update request status
+                    const { error: requestError } = await supabase
+                        .from('follow_requests')
+                        .update({ status: 'accepted' })
+                        .eq('id', requestId);
+
+                    if (requestError) throw requestError;
+
+                    showToast('Follow request accepted', 'success');
+                    this.loadFollowRequests();
+                    this.loadFollowStats();
+
+                } catch (error) {
+                    console.error('Error accepting follow request:', error);
+                    showToast('Error accepting follow request', 'error');
+                }
+            },
+
+            async declineFollowRequest(requestId) {
+                try {
+                    const { error } = await supabase
+                        .from('follow_requests')
+                        .update({ status: 'declined' })
+                        .eq('id', requestId);
+
+                    if (error) throw error;
+
+                    showToast('Follow request declined', 'info');
+                    this.loadFollowRequests();
+                    this.loadFollowStats();
+
+                } catch (error) {
+                    console.error('Error declining follow request:', error);
+                    showToast('Error declining follow request', 'error');
                 }
             }
         };
@@ -3704,6 +4038,38 @@
             }
         }
 
+        function showFollowersSection(section) {
+            // Update active buttons
+            const followersBtn = getElement('showFollowersBtn');
+            const followingBtn = getElement('showFollowingBtn');
+            
+            if (followersBtn) followersBtn.classList.remove('active');
+            if (followingBtn) followingBtn.classList.remove('active');
+            
+            // Hide all sections
+            document.querySelectorAll('.followers-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = getElement(`${section}Section`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update active button
+            const activeBtn = getElement(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            // Load data
+            followerSystem.currentSection = section;
+            if (section === 'followers') {
+                followerSystem.loadFollowers();
+            } else {
+                followerSystem.loadFollowing();
+            }
+        }
+
         function showModal(modalId) {
             const modal = getElement(modalId);
             if (modal) modal.classList.add('active');
@@ -3715,6 +4081,11 @@
                     const today = new Date().toISOString().split('T')[0];
                     visitDate.value = today;
                 }
+            }
+            
+            // Load follow requests if that modal is opened
+            if (modalId === 'followRequestsModal') {
+                followerSystem.loadFollowRequests();
             }
         }
 
@@ -3808,6 +4179,11 @@
 
         // Avatar selection functions
         function showAvatarModal() {
+            if (!isViewingOwnProfile) {
+                showToast('You can only change your own avatar', 'info');
+                return;
+            }
+            
             const avatarIconGrid = getElement('avatarIconGrid');
             if (!avatarIconGrid) return;
             
@@ -3884,7 +4260,7 @@
 
         // Set up event listeners
         function setupEventListeners() {
-            // Tab buttons - FIXED: Proper tab switching
+            // Tab buttons
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const tabName = this.getAttribute('data-tab');
@@ -3919,11 +4295,13 @@
                     const editUsername = getElement('editUsername');
                     const editBio = getElement('editBio');
                     const editLocation = getElement('editLocation');
+                    const editIsPrivate = getElement('editIsPrivate');
                     
                     if (editDisplayName) editDisplayName.value = userProfile?.full_name || '';
                     if (editUsername) editUsername.value = userProfile?.username || '';
                     if (editBio) editBio.value = userProfile?.bio || '';
                     if (editLocation) editLocation.value = userProfile?.location || '';
+                    if (editIsPrivate) editIsPrivate.checked = userProfile?.is_private || false;
                     
                     showModal('editProfileModal');
                 });
@@ -4051,6 +4429,7 @@
             const newUsername = getElement('editUsername')?.value;
             const newBio = getElement('editBio')?.value;
             const newLocation = getElement('editLocation')?.value;
+            const newIsPrivate = getElement('editIsPrivate')?.checked;
             
             if (!newName || !newUsername) {
                 showToast('Please fill in all required fields', 'error');
@@ -4075,6 +4454,7 @@
                             username: newUsername,
                             bio: newBio,
                             location: newLocation,
+                            is_private: newIsPrivate,
                             updated_at: new Date().toISOString()
                         })
                         .eq('id', currentUser.id));
@@ -4088,6 +4468,7 @@
                             username: newUsername,
                             bio: newBio,
                             location: newLocation,
+                            is_private: newIsPrivate,
                             avatar_icon: "🍔",
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
@@ -4118,7 +4499,6 @@
         function viewProgress() {
             showToast('Showing your progress!', 'info');
             // In a real app, this would show a detailed progress view
-            // For now, just show a toast
         }
 
         // Initialize the page when DOM is loaded
@@ -4145,6 +4525,8 @@
         window.showAvatarModal = showAvatarModal;
         window.saveAvatar = saveAvatar;
         window.viewProgress = viewProgress;
+        window.showFollowersSection = showFollowersSection;
+        window.goToMyProfile = goToMyProfile;
     </script>
 </body>
 </html>
