@@ -1649,7 +1649,7 @@
                 <i class="fas fa-book"></i> Food Journal
             </div>
             <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
-                <i class="fas fa-list"></i> My Lists
+                <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
             </div>
             <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
                 <i class="fas fa-trophy"></i> Achievements
@@ -1665,8 +1665,8 @@
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Food Journal</h2>
-                        <p class="section-subtitle">Your culinary adventures and experiences</p>
+                        <h2 class="section-title" id="journalTitle">Food Journal</h2>
+                        <p class="section-subtitle" id="journalSubtitle">Your culinary adventures and experiences</p>
                     </div>
                     <div class="section-actions">
                         <div class="d-flex gap-sm">
@@ -1674,7 +1674,7 @@
                             <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
                             <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
                         </div>
-                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')">
+                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')" id="addJournalBtn">
                             <i class="fas fa-plus"></i> New Entry
                         </button>
                     </div>
@@ -1698,14 +1698,14 @@
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">My Lists</h2>
-                        <p class="section-subtitle">Organize your favorite restaurants</p>
+                        <h2 class="section-title" id="listsTitle">My Lists</h2>
+                        <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
                     </div>
                     <div class="section-actions">
                         <button class="btn btn-secondary btn-sm" id="sortListsBtn">
                             <i class="fas fa-sort"></i> Sort
                         </button>
-                        <button class="btn btn-primary btn-sm" onclick="showCreateListModal()">
+                        <button class="btn btn-primary btn-sm" onclick="showCreateListModal()" id="createListBtn">
                             <i class="fas fa-plus"></i> New List
                         </button>
                     </div>
@@ -1756,7 +1756,7 @@
                 <!-- Custom Lists Section -->
                 <div class="section">
                     <div class="section-header">
-                        <h3 class="section-title">Custom Lists</h3>
+                        <h3 class="section-title" id="customListsTitle">Custom Lists</h3>
                     </div>
                     <div class="cards-grid" id="customLists">
                         <div class="empty-state">
@@ -1786,10 +1786,10 @@
                         </div>
                     </div>
                     <div class="section-actions">
-                        <button class="btn btn-secondary btn-sm">
+                        <button class="btn btn-secondary btn-sm" id="editListBtn">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')">
+                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')" id="addToListBtn">
                             <i class="fas fa-plus"></i> Add Restaurant
                         </button>
                     </div>
@@ -2158,7 +2158,7 @@
     </div>
 
     <script>
-        // === COMPLETELY REWRITTEN JAVASCRIPT WITH FIXED FOLLOW SYSTEM ===
+        // === COMPLETELY FIXED JAVASCRIPT CODE ===
         // Supabase configuration
         const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
@@ -2183,10 +2183,7 @@
         // Toast system
         function showToast(message, type = 'info', duration = 5000) {
             const toastContainer = document.getElementById('toastContainer');
-            if (!toastContainer) {
-                console.error('Toast container not found');
-                return;
-            }
+            if (!toastContainer) return;
             
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -2209,34 +2206,26 @@
             
             toastContainer.appendChild(toast);
             
-            // Auto remove after duration
             setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
+                if (toast.parentNode) toast.remove();
             }, duration);
             
-            // Manual close
             toast.querySelector('.toast-close').addEventListener('click', () => {
                 toast.remove();
             });
         }
 
-        // Safe DOM element getter with null checks
+        // Safe DOM element getter
         function getElement(id) {
             const element = document.getElementById(id);
-            if (!element) {
-                console.warn(`Element with id '${id}' not found`);
-            }
+            if (!element) console.warn(`Element with id '${id}' not found`);
             return element;
         }
 
         // Safe text content setter
         function setTextContent(id, text) {
             const element = getElement(id);
-            if (element) {
-                element.textContent = text;
-            }
+            if (element) element.textContent = text;
         }
 
         // Initialize the profile page
@@ -2250,7 +2239,9 @@
                 await achievementsSystem.init();
                 
                 setupEventListeners();
-                showToast('Welcome back to your profile!', 'success');
+                if (isViewingOwnProfile) {
+                    showToast('Welcome back to your profile!', 'success');
+                }
             } catch (error) {
                 console.error('Error initializing profile page:', error);
                 showToast('Error loading profile', 'error');
@@ -2286,12 +2277,24 @@
             const followButton = getElement('followButton');
             const logoutBtn = getElement('logoutBtn');
             const viewingIndicator = getElement('viewingOtherProfile');
+            const addEntryBtn = getElement('addEntryBtn');
+            const createListBtn = getElement('createListBtn');
             
             if (editProfileBtn) editProfileBtn.style.display = 'flex';
             if (settingsBtn) settingsBtn.style.display = 'flex';
             if (followButton) followButton.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'block';
             if (viewingIndicator) viewingIndicator.classList.add('d-none');
+            if (addEntryBtn) addEntryBtn.style.display = 'flex';
+            if (createListBtn) createListBtn.style.display = 'flex';
+
+            // Update UI text for own profile
+            setTextContent('listsTabText', 'My Lists');
+            setTextContent('listsTitle', 'My Lists');
+            setTextContent('listsSubtitle', 'Organize your favorite restaurants');
+            setTextContent('customListsTitle', 'Custom Lists');
+            setTextContent('journalTitle', 'Food Journal');
+            setTextContent('journalSubtitle', 'Your culinary adventures and experiences');
 
             await loadUserProfile();
             
@@ -2319,6 +2322,8 @@
             const followButton = getElement('followButton');
             const viewingIndicator = getElement('viewingOtherProfile');
             const addEntryBtn = getElement('addEntryBtn');
+            const createListBtn = getElement('createListBtn');
+            const addJournalBtn = getElement('addJournalBtn');
             
             if (editProfileBtn) editProfileBtn.style.display = 'none';
             if (settingsBtn) settingsBtn.style.display = 'none';
@@ -2326,6 +2331,17 @@
             if (followButton) followButton.style.display = 'block';
             if (viewingIndicator) viewingIndicator.classList.remove('d-none');
             if (addEntryBtn) addEntryBtn.style.display = 'none';
+            if (createListBtn) createListBtn.style.display = 'none';
+            if (addJournalBtn) addJournalBtn.style.display = 'none';
+
+            // Update UI text for other user's profile
+            const targetUserName = targetUser?.full_name || targetUser?.username || 'User';
+            setTextContent('listsTabText', `${targetUserName}'s Lists`);
+            setTextContent('listsTitle', `${targetUserName}'s Lists`);
+            setTextContent('listsSubtitle', `${targetUserName}'s favorite restaurants`);
+            setTextContent('customListsTitle', `${targetUserName}'s Custom Lists`);
+            setTextContent('journalTitle', `${targetUserName}'s Food Journal`);
+            setTextContent('journalSubtitle', `${targetUserName}'s culinary adventures and experiences`);
 
             // Load target user profile
             const { data: profile, error } = await supabase
@@ -2590,7 +2606,7 @@
             const targetId = userId || currentUser.id;
             
             try {
-                // Get visited count
+                // Get visited count from visited list
                 const { data: visitedList } = await supabase
                     .from('lists')
                     .select('id')
@@ -2710,50 +2726,52 @@
             },
             
             async init() { 
-                if (!currentUser) return;
-                await this.loadUserLists();
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+                
+                await this.loadUserLists(targetId);
                 await this.loadListRestaurants();
                 updateAllListCounts();
-                await this.loadCustomLists();
+                await this.loadCustomLists(targetId);
             },
             
-            async loadUserLists() {
+            async loadUserLists(userId) {
                 try {
                     const { data: lists, error } = await supabase
                         .from('lists')
                         .select('*')
-                        .eq('user_id', currentUser.id);
+                        .eq('user_id', userId);
                     
                     if (error) throw error;
                     
                     this.userLists = lists || [];
-                    await this.setupDefaultLists();
+                    await this.setupDefaultLists(userId);
                     
                 } catch (error) {
                     console.error('Error loading lists:', error);
                 }
             },
             
-            async setupDefaultLists() {
+            async setupDefaultLists(userId) {
                 this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
                 this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
                 this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
                 
-                if (!this.currentLists.favorites) {
-                    this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+                if (!this.currentLists.favorites && isViewingOwnProfile) {
+                    this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId);
                 }
-                if (!this.currentLists.visited) {
-                    this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+                if (!this.currentLists.visited && isViewingOwnProfile) {
+                    this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId);
                 }
-                if (!this.currentLists.wantToGo) {
-                    this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+                if (!this.currentLists.wantToGo && isViewingOwnProfile) {
+                    this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId);
                 }
             },
             
-            async createList(title, description) {
+            async createList(title, description, userId = currentUser.id) {
                 const { data: newList, error } = await supabase
                     .from('lists')
-                    .insert([{ user_id: currentUser.id, title: title, description: description }])
+                    .insert([{ user_id: userId, title: title, description: description }])
                     .select()
                     .single();
                 
@@ -2855,14 +2873,14 @@
                 return list?.restaurants?.includes(restaurantId) || false;
             },
 
-            async loadCustomLists() {
-                if (!currentUser) return;
+            async loadCustomLists(userId) {
+                if (!userId) return;
                 
                 try {
                     const { data: lists, error } = await supabase
                         .from('lists')
                         .select('*')
-                        .eq('user_id', currentUser.id)
+                        .eq('user_id', userId)
                         .not('title', 'in', '("Favorites","Visited","Want to Go")');
                     
                     if (error) throw error;
@@ -2931,14 +2949,20 @@
             customListsContainer.innerHTML = '';
             
             if (customLists.length === 0) {
+                const emptyStateText = isViewingOwnProfile ? 
+                    'Create your first custom list to organize restaurants by occasion, cuisine, or mood!' :
+                    'This user hasn\'t created any custom lists yet.';
+                
                 customListsContainer.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">📋</div>
                         <h3 class="empty-title">No Custom Lists Yet</h3>
-                        <p class="empty-description">Create your first custom list to organize restaurants by occasion, cuisine, or mood!</p>
-                        <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
-                            <i class="fas fa-plus"></i> Create Your First List
-                        </button>
+                        <p class="empty-description">${emptyStateText}</p>
+                        ${isViewingOwnProfile ? `
+                            <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
+                                <i class="fas fa-plus"></i> Create Your First List
+                            </button>
+                        ` : ''}
                     </div>
                 `;
                 return;
@@ -2969,22 +2993,15 @@
         async function showList(listType) {
             let list;
             
-            if (isViewingOwnProfile) {
-                if (listType === 'favorites') {
-                    list = listManager.currentLists.favorites;
-                } else if (listType === 'visited') {
-                    list = listManager.currentLists.visited;
-                } else if (listType === 'wantToGo') {
-                    list = listManager.currentLists.wantToGo;
-                } else {
-                    // Handle custom list by ID
-                    list = customLists.find(l => l.id === listType);
-                }
+            if (listType === 'favorites') {
+                list = listManager.currentLists.favorites;
+            } else if (listType === 'visited') {
+                list = listManager.currentLists.visited;
+            } else if (listType === 'wantToGo') {
+                list = listManager.currentLists.wantToGo;
             } else {
-                // For other users, we'd need to load their lists
-                // For now, just show a message
-                showToast('Cannot view other users\' lists in this demo', 'info');
-                return;
+                // Handle custom list by ID
+                list = customLists.find(l => l.id === listType);
             }
             
             if (!list) {
@@ -3007,6 +3024,13 @@
             // Set list title and description
             setTextContent('listDetailTitle', list.title);
             setTextContent('listDetailDescription', list.description || '');
+            
+            // Update UI for list actions based on ownership
+            const editListBtn = getElement('editListBtn');
+            const addToListBtn = getElement('addToListBtn');
+            
+            if (editListBtn) editListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
+            if (addToListBtn) addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
             
             // Load and display restaurants in this list
             await renderListRestaurants(list.restaurants || [], list);
@@ -3042,14 +3066,20 @@
             const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
             
             if (listRestaurants.length === 0) {
+                const emptyStateText = isViewingOwnProfile ? 
+                    'Start adding restaurants to your list!' :
+                    'This list is currently empty.';
+                
                 grid.innerHTML = `
                     <div class="empty-state w-100">
                         <div class="empty-icon">🍽️</div>
                         <h3 class="empty-title">No Restaurants Yet</h3>
-                        <p class="empty-description">Start adding restaurants to your "${list.title}" list!</p>
-                        <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
-                            <i class="fas fa-plus"></i> Add Your First Restaurant
-                        </button>
+                        <p class="empty-description">${emptyStateText}</p>
+                        ${isViewingOwnProfile ? `
+                            <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                                <i class="fas fa-plus"></i> Add Your First Restaurant
+                            </button>
+                        ` : ''}
                     </div>
                 `;
                 return;
@@ -3174,24 +3204,33 @@
                 const journalEntries = getElement('journalEntries');
                 if (!journalEntries) return;
                 
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+                
                 try {
                     const { data: entries, error } = await supabase
                         .from('journal_entries')
                         .select('*')
-                        .eq('user_id', currentUser.id)
+                        .eq('user_id', targetId)
                         .order('visit_date', { ascending: false });
                     
                     if (error) throw error;
                     
                     if (!entries || entries.length === 0) {
+                        const emptyStateText = isViewingOwnProfile ? 
+                            'Start documenting your restaurant experiences to build your food journey! Track where you\'ve been, what you loved, and discover new places to try.' :
+                            'This user hasn\'t added any journal entries yet.';
+                        
                         journalEntries.innerHTML = `
                             <div class="empty-state">
                                 <div class="empty-icon">📝</div>
                                 <h3 class="empty-title">No Journal Entries Yet</h3>
-                                <p class="empty-description">Start documenting your restaurant experiences to build your food journey! Track where you've been, what you loved, and discover new places to try.</p>
-                                <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
-                                    <i class="fas fa-plus"></i> Add Your First Entry
-                                </button>
+                                <p class="empty-description">${emptyStateText}</p>
+                                ${isViewingOwnProfile ? `
+                                    <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                                        <i class="fas fa-plus"></i> Add Your First Entry
+                                    </button>
+                                ` : ''}
                             </div>
                         `;
                         return;
@@ -3247,17 +3286,19 @@
                             <div class="entry-tags">
                                 ${entry.tags ? entry.tags.split(',').map(tag => `<span class="tag">#${tag.trim()}</span>`).join('') : ''}
                             </div>
-                            <div class="entry-actions">
-                                <button class="btn btn-secondary btn-sm" onclick="editJournalEntry(${entry.id})">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-share"></i> Share
-                                </button>
-                                <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${entry.restaurant_id})">
-                                    <i class="fas fa-heart"></i> Favorite
-                                </button>
-                            </div>
+                            ${isViewingOwnProfile ? `
+                                <div class="entry-actions">
+                                    <button class="btn btn-secondary btn-sm" onclick="editJournalEntry(${entry.id})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-share"></i> Share
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${entry.restaurant_id})">
+                                        <i class="fas fa-heart"></i> Favorite
+                                    </button>
+                                </div>
+                            ` : ''}
                         `;
                         journalEntries.appendChild(entryElement);
                     }
