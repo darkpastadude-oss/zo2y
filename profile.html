@@ -3154,262 +3154,288 @@
                 grid.appendChild(card);
             });
         }
-
-        // Food Journal System - UPDATED TO SHOW REVIEWS
-        const foodJournal = {
-            currentRestaurant: null,
-            swipedRestaurants: new Set(),
+// Food Journal System - UPDATED TO SHOW REVIEWS
+const foodJournal = {
+    currentRestaurant: null,
+    swipedRestaurants: new Set(),
+    
+    async init() {
+        await this.loadJournalStats();
+        await this.loadJournalEntries();
+    },
+    
+    async loadJournalStats() {
+        const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
+        const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
+        
+        const streak = await this.calculateStreak();
+        setTextContent('streakCount', streak);
+    },
+    
+    async calculateStreak(userId = null) {
+        const targetId = userId || currentUser.id;
+        
+        try {
+            const { data: reviews, error } = await supabase
+                .from('reviews')
+                .select('created_at')
+                .eq('user_id', targetId)
+                .order('created_at', { ascending: false });
             
-            async init() {
-                await this.loadJournalStats();
-                await this.loadJournalEntries();
-            },
+            if (error || !reviews || reviews.length === 0) return 0;
             
-            async loadJournalStats() {
-                const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
-                const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
-                
-                const streak = await this.calculateStreak();
-                setTextContent('streakCount', streak);
-            },
+            let streak = 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             
-            async calculateStreak(userId = null) {
-                const targetId = userId || currentUser.id;
-                
-                try {
-                    const { data: reviews, error } = await supabase
-                        .from('reviews')
-                        .select('created_at')
-                        .eq('user_id', targetId)
-                        .order('created_at', { ascending: false });
-                    
-                    if (error || !reviews || reviews.length === 0) return 0;
-                    
-                    let streak = 0;
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    let currentDate = new Date(today);
-                    
-                    for (let i = 0; i < reviews.length; i++) {
-                        const reviewDate = new Date(reviews[i].created_at);
-                        reviewDate.setHours(0, 0, 0, 0);
-                        
-                        const diffTime = currentDate - reviewDate;
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDays === 0) {
-                            // Same day, continue
-                            if (i === 0) streak = 1;
-                            continue;
-                        } else if (diffDays === 1) {
-                            // Consecutive day
-                            streak++;
-                            currentDate = reviewDate;
-                        } else {
-                            // Streak broken
-                            break;
-                        }
-                    }
-                    
-                    return streak;
-                } catch (error) {
-                    console.error('Error calculating streak:', error);
-                    return 0;
-                }
-            },
+            let currentDate = new Date(today);
             
-            async loadJournalEntries() {
-                const journalEntries = getElement('journalEntries');
-                if (!journalEntries) return;
+            for (let i = 0; i < reviews.length; i++) {
+                const reviewDate = new Date(reviews[i].created_at);
+                reviewDate.setHours(0, 0, 0, 0);
                 
-                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                if (!targetId) return;
+                const diffTime = currentDate - reviewDate;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 
-                try {
-                    // Load reviews instead of journal entries
-                    const { data: reviews, error } = await supabase
-                        .from('reviews')
-                        .select(`
-                            *,
-                            restraunts (
-                                id, name, category, image, slug, rating
-                            )
-                        `)
-                        .eq('user_id', targetId)
-                        .order('created_at', { ascending: false });
-
-                    if (error) throw error;
-                    
-                    if (!reviews || reviews.length === 0) {
-                        const emptyStateText = isViewingOwnProfile ? 
-                            'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
-                            'This user hasn\'t reviewed any restaurants yet.';
-                        
-                        journalEntries.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📝</div>
-                                <h3 class="empty-title">No Reviews Yet</h3>
-                                <p class="empty-description">${emptyStateText}</p>
-                                ${isViewingOwnProfile ? `
-                                    <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                        <i class="fas fa-utensils"></i> Browse Restaurants
-                                    </button>
-                                ` : ''}
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    journalEntries.innerHTML = '';
-                    
-                    // Filter entries if needed
-                    let reviewsToShow = reviews;
-                    if (journalFilter === 'recent') {
-                        reviewsToShow = reviews.slice(0, 5);
-                    } else if (journalFilter === 'favorites') {
-                        reviewsToShow = reviews.filter(review => review.rating >= 4);
-                    }
-                    
-                    for (const review of reviewsToShow) {
-                        const restaurant = review.restraunts;
-                        if (!restaurant) continue;
-                        
-                        const entryElement = document.createElement('div');
-                        entryElement.className = 'journal-entry';
-                        entryElement.innerHTML = `
-                            <div class="entry-header">
-                                <div class="restaurant-info">
-                                    <div class="restaurant-image">
-                                        <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
-                                            ${restaurant.image ? 
-                                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">` : 
-                                                restaurant.name.charAt(0)
-                                            }
-                                        </a>
-                                    </div>
-                                    <div class="restaurant-details">
-                                        <h3>
-                                            <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
-                                                ${restaurant.name}
-                                            </a>
-                                        </h3>
-                                        <div class="restaurant-category">${restaurant.category}</div>
-                                    </div>
-                                </div>
-                                <div class="entry-rating">
-                                    ${'⭐'.repeat(Math.floor(review.rating))}
-                                    <span>${review.rating}/5</span>
-                                </div>
-                            </div>
-                            <div class="entry-meta">
-                                <div class="meta-badge">
-                                    <i class="fas fa-calendar"></i>
-                                    ${formatDate(review.created_at)}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-utensils"></i>
-                                    ${restaurant.category}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-star"></i>
-                                    ${review.rating}/5
-                                </div>
-                            </div>
-                            <div class="entry-notes">${review.comment || 'No review text provided'}</div>
-                            ${isViewingOwnProfile ? `
-                                <div class="entry-actions">
-                                    <button class="btn btn-secondary btn-sm" onclick="editReview(${review.id})">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="shareReview(${review.id})">
-                                        <i class="fas fa-share"></i> Share
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${restaurant.id})">
-                                        <i class="fas fa-heart"></i> Favorite
-                                    </button>
-                                </div>
-                            ` : ''}
-                        `;
-                        journalEntries.appendChild(entryElement);
-                    }
-                    
-                } catch (error) {
-                    console.error('Error loading reviews:', error);
-                    journalEntries.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">Error Loading Reviews</h3>
-                            <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
-                        </div>
-                    `;
-                }
-            },
-            
-            setRating(stars) {
-                const starsElements = document.querySelectorAll('#ratingStars span');
-                starsElements.forEach((star, index) => {
-                    if (index < stars) {
-                        star.classList.add('active');
-                    } else {
-                        star.classList.remove('active');
-                    }
-                });
-                
-                const selectedRating = getElement('selectedRating');
-                if (selectedRating) selectedRating.value = stars;
-            },
-            
-            async saveJournalEntry() {
-                const restaurantId = parseInt(getElement('restaurantSelect')?.value);
-                const visitDate = getElement('visitDate')?.value;
-                const rating = parseInt(getElement('selectedRating')?.value || '0');
-                const notes = getElement('visitNotes')?.value || '';
-                const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
-                
-                if (!restaurantId || !visitDate || rating === 0) {
-                    showToast('Please fill in all required fields', 'error');
-                    return;
-                }
-                
-                try {
-                    // Add to visited list
-                    await listManager.toggleInList('visited', restaurantId);
-                    
-                    // Save journal entry
-                    const { error } = await supabase
-                        .from('journal_entries')
-                        .insert({
-                            user_id: currentUser.id,
-                            restaurant_id: restaurantId,
-                            visit_date: visitDate,
-                            rating: rating,
-                            notes: notes,
-                            tags: tags.join(','),
-                            created_at: new Date().toISOString()
-                        });
-                    
-                    if (error) throw error;
-                    
-                    const restaurant = restaurants.find(r => r.id === restaurantId);
-                    showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
-                    closeModal('addEntryModal');
-                    
-                    // Reset form
-                    const form = getElement('journalEntryForm');
-                    if (form) form.reset();
-                    this.setRating(0);
-                    
-                    // Reload journal entries
-                    await this.loadJournalEntries();
-                    await updateStats();
-                    
-                } catch (error) {
-                    console.error('Error saving journal entry:', error);
-                    showToast('Error saving journal entry', 'error');
+                if (diffDays === 0) {
+                    // Same day, continue
+                    if (i === 0) streak = 1;
+                    continue;
+                } else if (diffDays === 1) {
+                    // Consecutive day
+                    streak++;
+                    currentDate = reviewDate;
+                } else {
+                    // Streak broken
+                    break;
                 }
             }
-        };
+            
+            return streak;
+        } catch (error) {
+            console.error('Error calculating streak:', error);
+            return 0;
+        }
+    },
+    
+    async loadJournalEntries() {
+        const journalEntries = getElement('journalEntries');
+        if (!journalEntries) return;
+        
+        const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+        if (!targetId) return;
+        
+        try {
+            // First, let's check if the reviews table exists and has data
+            console.log('Loading reviews for user:', targetId);
+            
+            // Load reviews with restaurant data - FIXED QUERY
+            const { data: reviews, error } = await supabase
+                .from('reviews')
+                .select(`
+                    id,
+                    user_id,
+                    restaurant_id,
+                    rating,
+                    comment,
+                    created_at,
+                    restraunts (
+                        id, name, category, image, slug
+                    )
+                `)
+                .eq('user_id', targetId)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
+            
+            console.log('Reviews loaded:', reviews);
+            
+            if (!reviews || reviews.length === 0) {
+                const emptyStateText = isViewingOwnProfile ? 
+                    'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
+                    'This user hasn\'t reviewed any restaurants yet.';
+                
+                journalEntries.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3 class="empty-title">No Reviews Yet</h3>
+                        <p class="empty-description">${emptyStateText}</p>
+                        ${isViewingOwnProfile ? `
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                <i class="fas fa-utensils"></i> Browse Restaurants
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                return;
+            }
+            
+            journalEntries.innerHTML = '';
+            
+            // Filter entries if needed
+            let reviewsToShow = reviews;
+            if (journalFilter === 'recent') {
+                reviewsToShow = reviews.slice(0, 5);
+            } else if (journalFilter === 'favorites') {
+                reviewsToShow = reviews.filter(review => review.rating >= 4);
+            }
+            
+            for (const review of reviewsToShow) {
+                const restaurant = review.restraunts;
+                if (!restaurant) {
+                    console.warn('No restaurant data for review:', review.id);
+                    continue;
+                }
+                
+                const entryElement = document.createElement('div');
+                entryElement.className = 'journal-entry';
+                entryElement.innerHTML = `
+                    <div class="entry-header">
+                        <div class="restaurant-info">
+                            <div class="restaurant-image">
+                                <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
+                                    ${restaurant.image ? 
+                                        `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                                        `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`
+                                    }
+                                </a>
+                            </div>
+                            <div class="restaurant-details">
+                                <h3>
+                                    <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
+                                        ${restaurant.name}
+                                    </a>
+                                </h3>
+                                <div class="restaurant-category">${restaurant.category}</div>
+                            </div>
+                        </div>
+                        <div class="entry-rating">
+                            ${'⭐'.repeat(Math.floor(review.rating))}
+                            <span>${review.rating}/5</span>
+                        </div>
+                    </div>
+                    <div class="entry-meta">
+                        <div class="meta-badge">
+                            <i class="fas fa-calendar"></i>
+                            ${formatDate(review.created_at)}
+                        </div>
+                        <div class="meta-badge">
+                            <i class="fas fa-utensils"></i>
+                            ${restaurant.category}
+                        </div>
+                        <div class="meta-badge">
+                            <i class="fas fa-star"></i>
+                            ${review.rating}/5
+                        </div>
+                    </div>
+                    <div class="entry-notes">${review.comment || 'No review text provided'}</div>
+                    ${isViewingOwnProfile ? `
+                        <div class="entry-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editReview(${review.id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="shareReview(${review.id})">
+                                <i class="fas fa-share"></i> Share
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${restaurant.id})">
+                                <i class="fas fa-heart"></i> Favorite
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+                journalEntries.appendChild(entryElement);
+            }
+            
+        } catch (error) {
+            console.error('Error loading reviews:', error);
+            // Show a more helpful error message
+            journalEntries.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <h3 class="empty-title">Unable to Load Reviews</h3>
+                    <p class="empty-description">There was an error loading your reviews. This might be because the reviews system isn't fully set up yet.</p>
+                    ${isViewingOwnProfile ? `
+                        <div class="d-flex gap-sm justify-center mt-md">
+                            <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                                <i class="fas fa-utensils"></i> Browse Restaurants
+                            </button>
+                            <button class="btn btn-secondary" onclick="foodJournal.loadJournalEntries()">
+                                <i class="fas fa-refresh"></i> Try Again
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+    },
+    
+    setRating(stars) {
+        const starsElements = document.querySelectorAll('#ratingStars span');
+        starsElements.forEach((star, index) => {
+            if (index < stars) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+        
+        const selectedRating = getElement('selectedRating');
+        if (selectedRating) selectedRating.value = stars;
+    },
+    
+    async saveJournalEntry() {
+        const restaurantId = parseInt(getElement('restaurantSelect')?.value);
+        const visitDate = getElement('visitDate')?.value;
+        const rating = parseInt(getElement('selectedRating')?.value || '0');
+        const notes = getElement('visitNotes')?.value || '';
+        const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
+        
+        if (!restaurantId || !visitDate || rating === 0) {
+            showToast('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        try {
+            // Add to visited list
+            await listManager.toggleInList('visited', restaurantId);
+            
+            // Save journal entry
+            const { error } = await supabase
+                .from('journal_entries')
+                .insert({
+                    user_id: currentUser.id,
+                    restaurant_id: restaurantId,
+                    visit_date: visitDate,
+                    rating: rating,
+                    notes: notes,
+                    tags: tags.join(','),
+                    created_at: new Date().toISOString()
+                });
+            
+            if (error) throw error;
+            
+            const restaurant = restaurants.find(r => r.id === restaurantId);
+            showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
+            closeModal('addEntryModal');
+            
+            // Reset form
+            const form = getElement('journalEntryForm');
+            if (form) form.reset();
+            this.setRating(0);
+            
+            // Reload journal entries
+            await this.loadJournalEntries();
+            await updateStats();
+            
+        } catch (error) {
+            console.error('Error saving journal entry:', error);
+            showToast('Error saving journal entry', 'error');
+        }
+    }
+};
 
         // Follower System
         const followerSystem = {
