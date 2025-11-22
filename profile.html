@@ -3154,7 +3154,7 @@
                 grid.appendChild(card);
             });
         }
-// Food Journal System - UPDATED TO SHOW REVIEWS
+// Food Journal System - FIXED VERSION (No joins needed)
 const foodJournal = {
     currentRestaurant: null,
     swipedRestaurants: new Set(),
@@ -3226,23 +3226,12 @@ const foodJournal = {
         if (!targetId) return;
         
         try {
-            // First, let's check if the reviews table exists and has data
             console.log('Loading reviews for user:', targetId);
             
-            // Load reviews with restaurant data - FIXED QUERY
+            // Load reviews without the join
             const { data: reviews, error } = await supabase
                 .from('reviews')
-                .select(`
-                    id,
-                    user_id,
-                    restaurant_id,
-                    rating,
-                    comment,
-                    created_at,
-                    restraunts (
-                        id, name, category, image, slug
-                    )
-                `)
+                .select('*')
                 .eq('user_id', targetId)
                 .order('created_at', { ascending: false });
 
@@ -3284,69 +3273,25 @@ const foodJournal = {
             }
             
             for (const review of reviewsToShow) {
-                const restaurant = review.restraunts;
+                // Find restaurant data from our local restaurants array
+                const restaurant = restaurants.find(r => r.id === review.restaurant_id);
+                
                 if (!restaurant) {
-                    console.warn('No restaurant data for review:', review.id);
+                    console.warn('No restaurant data found for review:', review.id, 'restaurant_id:', review.restaurant_id);
+                    // Create a fallback restaurant object
+                    const fallbackRestaurant = {
+                        id: review.restaurant_id,
+                        name: 'Unknown Restaurant',
+                        category: 'Unknown',
+                        slug: 'unknown',
+                        image: null
+                    };
+                    
+                    this.renderReviewEntry(review, fallbackRestaurant);
                     continue;
                 }
                 
-                const entryElement = document.createElement('div');
-                entryElement.className = 'journal-entry';
-                entryElement.innerHTML = `
-                    <div class="entry-header">
-                        <div class="restaurant-info">
-                            <div class="restaurant-image">
-                                <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
-                                    ${restaurant.image ? 
-                                        `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                                        `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`
-                                    }
-                                </a>
-                            </div>
-                            <div class="restaurant-details">
-                                <h3>
-                                    <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
-                                        ${restaurant.name}
-                                    </a>
-                                </h3>
-                                <div class="restaurant-category">${restaurant.category}</div>
-                            </div>
-                        </div>
-                        <div class="entry-rating">
-                            ${'⭐'.repeat(Math.floor(review.rating))}
-                            <span>${review.rating}/5</span>
-                        </div>
-                    </div>
-                    <div class="entry-meta">
-                        <div class="meta-badge">
-                            <i class="fas fa-calendar"></i>
-                            ${formatDate(review.created_at)}
-                        </div>
-                        <div class="meta-badge">
-                            <i class="fas fa-utensils"></i>
-                            ${restaurant.category}
-                        </div>
-                        <div class="meta-badge">
-                            <i class="fas fa-star"></i>
-                            ${review.rating}/5
-                        </div>
-                    </div>
-                    <div class="entry-notes">${review.comment || 'No review text provided'}</div>
-                    ${isViewingOwnProfile ? `
-                        <div class="entry-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="editReview(${review.id})">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="shareReview(${review.id})">
-                                <i class="fas fa-share"></i> Share
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${restaurant.id})">
-                                <i class="fas fa-heart"></i> Favorite
-                            </button>
-                        </div>
-                    ` : ''}
-                `;
-                journalEntries.appendChild(entryElement);
+                this.renderReviewEntry(review, restaurant);
             }
             
         } catch (error) {
@@ -3356,7 +3301,7 @@ const foodJournal = {
                 <div class="empty-state">
                     <div class="empty-icon">⚠️</div>
                     <h3 class="empty-title">Unable to Load Reviews</h3>
-                    <p class="empty-description">There was an error loading your reviews. This might be because the reviews system isn't fully set up yet.</p>
+                    <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
                     ${isViewingOwnProfile ? `
                         <div class="d-flex gap-sm justify-center mt-md">
                             <button class="btn btn-primary" onclick="window.location.href='index.html'">
@@ -3370,6 +3315,74 @@ const foodJournal = {
                 </div>
             `;
         }
+    },
+    
+    renderReviewEntry(review, restaurant) {
+        const journalEntries = getElement('journalEntries');
+        const entryElement = document.createElement('div');
+        entryElement.className = 'journal-entry';
+        
+        // Create restaurant link - if we don't have a slug, don't make it clickable
+        const restaurantLink = restaurant.slug && restaurant.slug !== 'unknown' ? 
+            `cards/${restaurant.slug}.html` : 
+            'javascript:void(0)';
+        
+        const restaurantImage = restaurant.image ? 
+            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+        
+        entryElement.innerHTML = `
+            <div class="entry-header">
+                <div class="restaurant-info">
+                    <div class="restaurant-image">
+                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="return false;"' : ''}>
+                            ${restaurantImage}
+                        </a>
+                    </div>
+                    <div class="restaurant-details">
+                        <h3>
+                            <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="return false;"' : ''}>
+                                ${restaurant.name}
+                            </a>
+                        </h3>
+                        <div class="restaurant-category">${restaurant.category}</div>
+                    </div>
+                </div>
+                <div class="entry-rating">
+                    ${'⭐'.repeat(Math.floor(review.rating))}
+                    <span>${review.rating}/5</span>
+                </div>
+            </div>
+            <div class="entry-meta">
+                <div class="meta-badge">
+                    <i class="fas fa-calendar"></i>
+                    ${formatDate(review.created_at)}
+                </div>
+                <div class="meta-badge">
+                    <i class="fas fa-utensils"></i>
+                    ${restaurant.category}
+                </div>
+                <div class="meta-badge">
+                    <i class="fas fa-star"></i>
+                    ${review.rating}/5
+                </div>
+            </div>
+            <div class="entry-notes">${review.comment || 'No review text provided'}</div>
+            ${isViewingOwnProfile ? `
+                <div class="entry-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="editReview(${review.id})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="shareReview(${review.id})">
+                        <i class="fas fa-share"></i> Share
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${restaurant.id})">
+                        <i class="fas fa-heart"></i> Favorite
+                    </button>
+                </div>
+            ` : ''}
+        `;
+        journalEntries.appendChild(entryElement);
     },
     
     setRating(stars) {
