@@ -12,12 +12,15 @@
       --bg-color: #0b1633; --card-color: #132347; --text-primary: #ffffff; 
       --text-secondary: #cbd5e1; --border-color: rgba(255,255,255,0.1);
       --shadow: 0 10px 30px rgba(0,0,0,0.3); --transition: all 0.3s ease;
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
     body {
       background: var(--bg-color); min-height: 100vh; padding: 20px;
       transition: var(--transition); color: var(--text-primary);
       display: flex; flex-direction: column;
+      background-image: radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 50%),
+                       radial-gradient(ellipse at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
     }
     
     /* Header */
@@ -26,14 +29,44 @@
       padding: 15px 0; margin-bottom: 20px; position: sticky; top: 0;
       background: var(--bg-color); z-index: 100;
     }
-    .logo { display: flex; align-items: center; font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
-    .logo img { width: 35px; margin-right: 10px; }
+    .logo { 
+      display: flex; align-items: center; font-size: 1.5rem; font-weight: 700; 
+      color: var(--primary-color); cursor: pointer;
+      transition: var(--transition);
+    }
+    .logo:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 4px 8px rgba(245,158,11,0.3));
+    }
+    .logo img { width: 35px; margin-right: 10px; transition: var(--transition); }
+    .logo:hover img {
+      transform: rotate(-5deg);
+    }
     .theme-toggle {
       background: var(--card-color); border: 1px solid var(--border-color); border-radius: 20px;
       padding: 8px 15px; cursor: pointer; display: flex; align-items: center;
       color: var(--text-primary); transition: var(--transition); font-size: 0.9rem;
+      position: relative;
+      overflow: hidden;
     }
-    .theme-toggle:hover { background: var(--primary-color); color: #0b1633; }
+    .theme-toggle::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s;
+    }
+    .theme-toggle:hover::before {
+      left: 100%;
+    }
+    .theme-toggle:hover { 
+      background: var(--primary-color); color: #0b1633; 
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245,158,11,0.3);
+    }
     .theme-toggle i { margin-right: 8px; }
     
     /* Main Content */
@@ -41,25 +74,48 @@
       max-width: 500px; width: 100%; margin: 0 auto; flex: 1;
     }
     .welcome-section { text-align: center; margin-bottom: 40px; }
-    .welcome-section h1 { font-size: 2.2rem; margin-bottom: 10px; font-weight: 700; }
+    .welcome-section h1 { 
+      font-size: 2.2rem; margin-bottom: 10px; font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .welcome-section p { color: var(--text-secondary); font-size: 1.1rem; }
     
     /* Form */
-    .form-container { background: var(--card-color); padding: 30px; border-radius: 20px; box-shadow: var(--shadow); }
-    .form-container h2 { font-size: 1.8rem; margin-bottom: 25px; text-align: center; }
+    .form-container { 
+      background: var(--card-color); padding: 30px; border-radius: 20px; 
+      box-shadow: var(--shadow); border: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      transition: var(--transition);
+    }
+    .form-container:hover {
+      box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+      transform: translateY(-5px);
+    }
+    .form-container h2 { 
+      font-size: 1.8rem; margin-bottom: 25px; text-align: center;
+      font-weight: 600;
+    }
     
     .input-group { position: relative; margin-bottom: 20px; }
     .input-group i { 
       position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
       color: var(--text-secondary); transition: var(--transition); 
+      z-index: 2;
     }
     .form-container input {
       width: 100%; padding: 16px 15px 16px 45px; border: 1px solid var(--border-color);
       border-radius: 12px; font-size: 1rem; outline: none; transition: var(--transition);
-      background-color: var(--bg-color); color: var(--text-primary);
+      background-color: rgba(11, 22, 51, 0.7); color: var(--text-primary);
+      position: relative;
+      z-index: 1;
     }
     .form-container input:focus { 
-      border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); 
+      border-color: var(--primary-color); 
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); 
+      transform: translateY(-2px);
     }
     .form-container input:focus + i { color: var(--primary-color); }
     
@@ -69,19 +125,53 @@
     }
     .remember { display: flex; align-items: center; color: var(--text-secondary); }
     .remember input { margin-right: 8px; width: auto; }
-    .forgot { color: var(--primary-color); text-decoration: none; transition: var(--transition); }
-    .forgot:hover { text-decoration: underline; }
+    .forgot { 
+      color: var(--primary-color); text-decoration: none; transition: var(--transition);
+      position: relative;
+    }
+    .forgot::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+    .forgot:hover::after {
+      width: 100%;
+    }
     
     .form-container button {
-      width: 100%; padding: 16px; background: var(--primary-color);
+      width: 100%; padding: 16px; background: var(--gradient);
       border: none; border-radius: 12px; color: #0b1633; font-size: 1rem; font-weight: 600;
       cursor: pointer; transition: var(--transition); display: flex; justify-content: center; align-items: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(245,158,11,0.3);
+    }
+    .form-container button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.6s;
+    }
+    .form-container button:hover::before {
+      left: 100%;
     }
     .form-container button:hover { 
-      background: var(--primary-light); transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3); 
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4); 
     }
-    .form-container button i { margin-left: 8px; }
+    .form-container button i { margin-left: 8px; transition: var(--transition); }
+    .form-container button:hover i {
+      transform: translateX(5px);
+    }
     
     .divider { 
       display: flex; align-items: center; margin: 25px 0; color: var(--text-secondary); 
@@ -94,20 +184,53 @@
     .social-login { display: flex; gap: 15px; margin-bottom: 25px; }
     .social-btn {
       flex: 1; padding: 14px; border: 1px solid var(--border-color); border-radius: 12px;
-      background: var(--bg-color); color: var(--text-primary); display: flex;
+      background: rgba(11, 22, 51, 0.7); color: var(--text-primary); display: flex;
       justify-content: center; align-items: center; cursor: pointer; transition: var(--transition);
-      font-size: 0.9rem;
+      font-size: 0.9rem; position: relative;
+      overflow: hidden;
+    }
+    .social-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s;
+    }
+    .social-btn:hover::before {
+      left: 100%;
     }
     .social-btn:hover { 
       background: var(--primary-color); color: #0b1633; border-color: var(--primary-color); 
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(245,158,11,0.3);
     }
-    .social-btn i { font-size: 1.1rem; margin-right: 8px; }
+    .social-btn i { font-size: 1.1rem; margin-right: 8px; transition: var(--transition); }
+    .social-btn:hover i {
+      transform: scale(1.2);
+    }
     
     .link { 
       text-align: center; color: var(--primary-color); text-decoration: none;
       font-size: 0.95rem; transition: var(--transition); display: block; margin-top: 20px;
+      position: relative;
+      padding: 5px 0;
     }
-    .link:hover { text-decoration: underline; }
+    .link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+    .link:hover::after {
+      width: 100%;
+    }
     
     /* Features */
     .features-grid {
@@ -116,16 +239,38 @@
     .feature-card {
       background: var(--card-color); padding: 20px; border-radius: 12px; 
       text-align: center; transition: var(--transition); border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient);
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+    .feature-card:hover::before {
+      transform: scaleX(1);
     }
     .feature-card:hover {
       transform: translateY(-5px); border-color: var(--primary-color);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
     .feature-icon {
-      width: 50px; height: 50px; background: var(--primary-color); border-radius: 50%;
+      width: 50px; height: 50px; background: var(--gradient); border-radius: 50%;
       display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;
+      transition: var(--transition);
+      box-shadow: 0 5px 15px rgba(245,158,11,0.3);
+    }
+    .feature-card:hover .feature-icon {
+      transform: scale(1.1) rotate(5deg);
     }
     .feature-icon i { color: #0b1633; font-size: 1.2rem; }
-    .feature-card h3 { font-size: 0.95rem; margin-bottom: 5px; }
+    .feature-card h3 { font-size: 0.95rem; margin-bottom: 5px; font-weight: 600; }
     .feature-card p { font-size: 0.8rem; color: var(--text-secondary); }
     
     /* Notifications */
@@ -134,11 +279,44 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); z-index: 1000; display: flex;
       align-items: center; max-width: 400px; transform: translateX(120%);
       transition: transform 0.4s ease;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
     }
-    .notification-success { background: #10b981; color: white; }
-    .notification-error { background: #ef4444; color: white; }
+    .notification-success { background: rgba(16, 185, 129, 0.9); color: white; }
+    .notification-error { background: rgba(239, 68, 68, 0.9); color: white; }
     .notification-show { transform: translateX(0); }
     .notification-icon { margin-right: 10px; font-size: 1.2rem; }
+    
+    /* Floating Elements */
+    .floating-element {
+      position: fixed; border-radius: 50%; background: var(--gradient); 
+      opacity: 0.05; filter: blur(40px); z-index: -1; 
+      animation: float 8s ease-in-out infinite;
+    }
+    .float-1 {
+      width: 200px; height: 200px; top: 10%; right: 5%; 
+      animation-delay: 0s;
+    }
+    .float-2 {
+      width: 150px; height: 150px; bottom: 20%; left: 5%; 
+      animation-delay: 4s;
+    }
+    .float-3 {
+      width: 120px; height: 120px; top: 60%; right: 20%; 
+      animation-delay: 2s;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+      }
+      100% {
+        transform: translateY(0px) rotate(360deg);
+      }
+    }
     
     /* Mobile Responsive */
     @media (max-width: 768px) {
@@ -162,14 +340,18 @@
     }
   </style>
   
-  
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 
 <body>
+  <!-- Floating Elements -->
+  <div class="floating-element float-1"></div>
+  <div class="floating-element float-2"></div>
+  <div class="floating-element float-3"></div>
+
   <!-- Header -->
   <div class="header">
-    <div class="logo">
+    <div class="logo" onclick="location.href='index.html'">
       <img src="images/logo.png" alt="Zo2y Logo" />
       <span>Zo2y</span>
     </div>
@@ -384,219 +566,5 @@
       }
     });
   </script>
-
-<!-- REVIEW SYSTEM -->
-<section class="section reviews" id="reviews-section">
-  <h2>Customer Reviews</h2>
-  <div id="reviews-list"><div class="reviews-loading">Loading reviews...</div></div>
-
-  <h3>Add / Edit Your Review</h3>
-  <form id="review-form" style="display:none;">
-    <div class="rating-wrapper">
-      <span>Rating:</span>
-      <div class="stars">
-        <span class="star" data-rating="1">★</span>
-        <span class="star" data-rating="2">★</span>
-        <span class="star" data-rating="3">★</span>
-        <span class="star" data-rating="4">★</span>
-        <span class="star" data-rating="5">★</span>
-      </div>
-      <span id="rating-text">Select rating</span>
-    </div>
-    <textarea id="review-comment" placeholder="Share your experience..." rows="4" maxlength="500"></textarea>
-    <div>
-      <button type="submit">Submit Review</button>
-      <span class="char-count">0/500</span>
-    </div>
-  </form>
-
-  <div id="auth-prompt">
-    <p>Please <a href="login.html">sign in</a> to submit a review.</p>
-  </div>
-</section>
-
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2.26.0";
-
-  const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  // map filenames to restaurant IDs
-  const restaurantIdMap = {
-    mori: 1, kilo: 2, hameed: 3, bazooka: 4, mexican: 5, chikin: 6, vasko: 7, secondcup: 8,
-    station: 9, brgr: 10, country: 11, bayoki: 12, maine: 13, barbar: 14, labash: 15, pickl: 16,
-    akleh: 17, howlin: 18, sauce: 19, papa: 20, qasr: 21, heart: 22, what: 23, buffalo: 24,
-    mince: 25, '88': 26, kansas: 27, ward: 28, willys: 29, butchers: 30, hashville: 31, dawgs: 32,
-    holmes: 33, ribs: 34, peking: 35, wok: 36, daddy: 37, husk: 38, crispy: 39, lord: 40,
-    chez: 41, mario: 42, crumbs: 43, man: 44, pasta: 45, crave: 46, caizo: 47, pablo: 48,
-    panda: 49, tabali: 50
-  };
-
-  const currentFile = window.location.pathname.split("/").pop().replace(".html","").toLowerCase();
-  const restaurantId = restaurantIdMap[currentFile];
-
-  let currentUser = null;
-  let currentRating = 0;
-  let editingReviewId = null;
-
-  async function checkAuth() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user || null;
-      document.getElementById('review-form').style.display = user ? 'block' : 'none';
-      document.getElementById('auth-prompt').style.display = user ? 'none' : 'block';
-    } catch(err){ console.error(err); }
-  }
-
-  async function loadReviews() {
-    const container = document.getElementById('reviews-list');
-    if(!container) return;
-    try {
-      const { data: reviews } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .order('created_at', { ascending: false });
-
-      if(!reviews || reviews.length===0){
-        container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first!</div>';
-        return;
-      }
-
-      const userIds = [...new Set(reviews.map(r=>r.user_id))];
-      const { data: users } = await supabase
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .in('id', userIds);
-
-      const userMap = {};
-      users?.forEach(u => userMap[u.id] = u);
-
-      container.innerHTML = reviews.map(r => {
-        const u = userMap[r.user_id];
-        const name = u ? (u.full_name || u.username) : 'Anonymous';
-        const canEdit = currentUser && currentUser.id === r.user_id;
-        return `<div class="review" id="review-${r.id}">
-                  <div class="review-header">
-                    <h4 class="reviewer-name">${name}</h4>
-                    <div class="review-rating">${'★'.repeat(r.rating)+'☆'.repeat(5-r.rating)}</div>
-                    ${canEdit?`
-                    <div class="review-actions">
-                      <button onclick="startEditReview('${r.id}','${r.comment.replace(/'/g, "\\'")}',${r.rating})">Edit</button>
-                      <button onclick="deleteReview('${r.id}')">Delete</button>
-                    </div>`:''}
-                  </div>
-                  <p class="review-comment">${r.comment}</p>
-                  <div class="review-date">${new Date(r.created_at).toLocaleDateString()}</div>
-                </div>`;
-      }).join('');
-    } catch(err){ console.error(err); container.innerHTML='<div class="reviews-empty">Error loading reviews</div>'; }
-  }
-
-  function updateStars(){
-    document.querySelectorAll('.star').forEach(s=>{
-      const r=parseInt(s.dataset.rating);
-      s.classList.toggle('active', r <= currentRating);
-    });
-    const texts=['Select rating','Poor','Fair','Good','Very Good','Excellent'];
-    const rt=document.getElementById('rating-text');
-    if(rt) rt.textContent = texts[currentRating] || 'Select rating';
-  }
-
-  async function submitReview(e){
-    e.preventDefault();
-    if(!currentUser) return alert('Sign in first');
-    const comment = document.getElementById('review-comment').value.trim();
-    if(!comment) return alert('Write something');
-    if(currentRating===0) return alert('Select a rating');
-
-    try {
-      const payload = {restaurant_id: restaurantId, user_id: currentUser.id, rating: currentRating, comment};
-      if(editingReviewId){
-        const { error } = await supabase.from('reviews').update(payload).eq('id', editingReviewId);
-        if(error) throw error;
-        editingReviewId = null;
-      } else {
-        const { error } = await supabase.from('reviews').insert(payload);
-        if(error) throw error;
-      }
-      document.getElementById('review-form').reset();
-      currentRating = 0;
-      updateStars();
-      document.querySelector('.char-count').textContent='0/500';
-      await loadReviews();
-    } catch(err){ console.error(err); alert('Error submitting review'); }
-  }
-
-  async function deleteReview(id){
-    if(!currentUser || !confirm('Delete review?')) return;
-    try{
-      const { error } = await supabase.from('reviews').delete().eq('id', id).eq('user_id', currentUser.id);
-      if(error) throw error;
-      await loadReviews();
-    }catch(err){ console.error(err); alert('Error deleting review'); }
-  }
-
-  window.deleteReview = deleteReview;
-
-  window.startEditReview = (id, comment, rating) => {
-    editingReviewId = id;
-    currentRating = rating;
-    document.getElementById('review-comment').value = comment;
-    updateStars();
-    window.scrollTo({top: document.getElementById('review-form').offsetTop - 20, behavior: 'smooth'});
-  }
-
-  document.addEventListener('click', e=>{
-    if(e.target.classList.contains('star')){
-      currentRating = parseInt(e.target.dataset.rating);
-      updateStars();
-    }
-  });
-
-  const form = document.getElementById('review-form');
-  if(form) form.addEventListener('submit', submitReview);
-  const ta = document.getElementById('review-comment');
-  if(ta) ta.addEventListener('input', e => document.querySelector('.char-count').textContent = e.target.value.length+'/500');
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    checkAuth();
-    loadReviews();
-  });
-</script>
-
-<style>
-  .review-actions { display:flex; gap:10px; margin-left:auto; }
-  .review-header { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
-  .stars .star { cursor:pointer; font-size:1.2rem; color:#ccc; }
-  .stars .star.active { color:#FF9800; }
-  .review { border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; margin-bottom: 20px; background-color: #fdfdfd; }
-  .review:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); transform: translateY(-2px); transition: all 0.3s ease; }
-  .reviewer-name { font-weight: 600; color: #2c3e50; font-size: 1.1rem; }
-  .review-rating { color: #FF9800; font-size: 1.1rem; margin: 0 15px; }
-  .review-comment { margin-bottom: 10px; color: #555; line-height: 1.5; }
-  .review-date { font-size: 0.85rem; color: #888; }
-  .reviews-loading, .reviews-empty { text-align: center; padding: 30px; color: #7f8c8d; font-style: italic; }
-  .rating-wrapper { display: flex; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-  .stars { display: flex; gap: 5px; }
-  .star { cursor: pointer; font-size: 1.8rem; color: #ddd; transition: color 0.2s; }
-  .star:hover, .star.active { color: #FF9800; }
-  #rating-text { font-weight: 500; color: #7f8c8d; min-width: 120px; }
-  #review-comment { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; font-size: 1rem; resize: vertical; }
-  #review-comment:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
-  .char-count { font-size: 0.85rem; color: #7f8c8d; float: right; }
-  button[type="submit"] { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; }
-  button[type="submit"]:hover { background-color: #2980b9; }
-  #auth-prompt { text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 8px; margin-top: 20px; }
-  #auth-prompt a { color: #3498db; text-decoration: none; font-weight: 600; }
-  #auth-prompt a:hover { text-decoration: underline; }
-  @media (max-width: 600px) {
-    .review-header { flex-direction: column; align-items: flex-start; }
-    .review-actions { margin-top: 10px; width: 100%; justify-content: flex-end; }
-    .rating-wrapper { flex-direction: column; align-items: flex-start; }
-  }
-</style>
 </body>
 </html>
