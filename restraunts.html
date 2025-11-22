@@ -7,44 +7,257 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root { --bg: #0b1633; --card: #132347; --muted: #cbd5e1; --accent: #f59e0b; --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); }
-    * { box-sizing: border-box; } html, body { height: 100%; margin: 0; font-family: Inter, system-ui; background: var(--bg); color: var(--white); } a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
-    header { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 20px; padding: 12px 20px; backdrop-filter: blur(6px); background: var(--glass); border-bottom: 1px solid var(--border); } .logo { height: 40px; cursor: pointer; } .toolbar { display: flex; gap: 10px; margin-left: auto; align-items: center; flex-wrap: wrap; } .search { width: 280px; position: relative; } .search input { width: 100%; padding: 8px 12px 8px 36px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; } .search input:focus { border-color: var(--accent); } .search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.85; } .btn { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; } .btn:hover { background: var(--accent); color: #0b1633; }
-    .user-auth { display: flex; align-items: center; gap: 10px; } .auth-btn { background: var(--accent); color: #0b1633; border: none; padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 600; } .user-welcome { display: none; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 6px 12px; border-radius: 16px; } .user-welcome:hover { background: var(--accent); color: #0b1633; } .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0b1633; font-size: 14px; }
-    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; } .login-prompt { display: none; background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center; } .list-tabs { display: none; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; } .list-tab { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 12px; border-radius: 16px; cursor: pointer; font-size: 13px; white-space: nowrap; } .list-tab.active { background: var(--accent); color: #0b1633; } .list-tab .count { background: rgba(0,0,0,0.1); padding: 1px 4px; border-radius: 8px; font-size: 11px; margin-left: 4px; }
-    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; } .controls-info { color: var(--muted); font-size: 13px; } .category-filters { margin-left: auto; } .category-dropdown select { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 6px 10px; border-radius: 16px; cursor: pointer; font-size: 13px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; } .tile { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; position: relative; } .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); } .tile .media { height: 140px; overflow: hidden; background: var(--glass); display: flex; align-items: center; justify-content: center; padding: 12px; } .tile img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; } .tile .inner { padding: 14px; } .tile h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; } .tile .category { color: var(--muted); font-size: 12px; margin: 0 0 8px 0; } .tile .rating { color: var(--accent); font-weight: 700; } .tile .desc { color: var(--muted); font-size: 12px; margin: 8px 0 0 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .list-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 8px; opacity: 0; z-index: 10; } .tile:hover .list-actions { opacity: 1; } .list-btn { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 8px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); width: 44px; height: 44px; } .list-btn:hover { transform: scale(1.1); background: var(--accent); color: #0b1633; } .list-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); } .list-btn .btn-text { display: none; }
-    .empty { padding: 40px 16px; text-align: center; color: var(--muted); display: none; } footer { padding: 20px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 30px; }
+    :root { 
+      --bg: #0b1633; --card: #132347; --muted: #cbd5e1; --accent: #f59e0b; 
+      --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      --shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; } 
+    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; } 
+    a { color: inherit; text-decoration: none; } 
+    img { display: block; max-width: 100%; height: auto; }
     
-    /* Custom Notification Styles */
+    /* Enhanced Header */
+    header { 
+      position: sticky; top: 0; z-index: 60; 
+      display: flex; align-items: center; gap: 20px; 
+      padding: 14px 24px; backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(19, 35, 71, 0.8); border-bottom: 1px solid var(--border); 
+    } 
+    .logo { 
+      height: 40px; cursor: pointer; transition: all 0.3s ease;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    }
+    .logo:hover {
+      transform: scale(1.05) rotate(-2deg);
+      filter: drop-shadow(0 6px 12px rgba(245,158,11,0.3));
+    }
+    .toolbar { 
+      display: flex; gap: 12px; margin-left: auto; align-items: center; flex-wrap: wrap; 
+    } 
+    .search { 
+      width: 280px; position: relative; 
+    } 
+    .search input { 
+      width: 100%; padding: 10px 16px 10px 40px; border-radius: 20px; 
+      border: 1px solid var(--border); background: var(--card); color: var(--white); 
+      outline: none; font-size: 14px; transition: all 0.3s ease;
+    } 
+    .search input:focus { 
+      border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); 
+    } 
+    .search .icon { 
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%); 
+      opacity: 0.85; transition: all 0.3s ease;
+    }
+    .search input:focus + .icon {
+      opacity: 1;
+      color: var(--accent);
+    }
+    .btn { 
+      background: var(--card); border: 1px solid var(--border); color: var(--white); 
+      padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 13px; 
+      font-weight: 500; transition: all 0.3s ease;
+    } 
+    .btn:hover { 
+      background: var(--accent); color: #0b1633; transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+    
+    /* Enhanced User Auth */
+    .user-auth { display: flex; align-items: center; gap: 10px; } 
+    .auth-btn { 
+      background: var(--gradient); color: #0b1633; border: none; 
+      padding: 8px 16px; border-radius: 16px; cursor: pointer; 
+      font-size: 13px; font-weight: 600; transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    } 
+    .auth-btn:hover { 
+      transform: translateY(-2px); box-shadow: 0 6px 16px rgba(245,158,11,0.4);
+    }
+    .user-welcome { 
+      display: none; align-items: center; gap: 8px; font-size: 13px; 
+      cursor: pointer; padding: 6px 12px; border-radius: 16px; 
+      transition: all 0.3s ease; font-weight: 500;
+    } 
+    .user-welcome:hover { 
+      background: var(--accent); color: #0b1633; transform: translateY(-2px);
+    } 
+    .user-avatar { 
+      width: 32px; height: 32px; border-radius: 50%; background: var(--gradient); 
+      display: flex; align-items: center; justify-content: center; 
+      font-weight: bold; color: #0b1633; font-size: 14px; 
+      box-shadow: 0 4px 8px rgba(245,158,11,0.3);
+    }
+    
+    /* Enhanced Container */
+    .container { 
+      max-width: 1200px; margin: 24px auto; padding: 0 20px; 
+    } 
+    .login-prompt { 
+      display: none; background: var(--card); border: 1px solid var(--accent); 
+      border-radius: 16px; padding: 20px; margin: 20px 0; text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    .login-prompt h3 {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    
+    /* Enhanced List Tabs */
+    .list-tabs { 
+      display: none; gap: 8px; margin-bottom: 20px; 
+      border-bottom: 1px solid var(--border); padding-bottom: 12px; overflow-x: auto; 
+    } 
+    .list-tab { 
+      background: var(--card); border: 1px solid var(--border); color: var(--white); 
+      padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 13px; 
+      white-space: nowrap; transition: all 0.3s ease; font-weight: 500;
+    } 
+    .list-tab.active { 
+      background: var(--gradient); color: #0b1633; border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    } 
+    .list-tab .count { 
+      background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 8px; 
+      font-size: 11px; margin-left: 6px; font-weight: 600;
+    }
+    
+    /* Enhanced Controls */
+    .controls { 
+      display: flex; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; 
+    } 
+    .controls-info { color: var(--muted); font-size: 14px; font-weight: 500; } 
+    .category-filters { margin-left: auto; } 
+    .category-dropdown select { 
+      background: var(--card); border: 1px solid var(--border); color: var(--white); 
+      padding: 8px 12px; border-radius: 16px; cursor: pointer; font-size: 13px;
+      transition: all 0.3s ease;
+    }
+    .category-dropdown select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+    
+    /* Enhanced Grid */
+    .grid { 
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; 
+    } 
+    .tile { 
+      background: var(--card); border-radius: 16px; overflow: hidden; 
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); 
+      cursor: pointer; position: relative; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    } 
+    .tile:hover { 
+      transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+      border-color: var(--accent);
+    } 
+    .tile .media { 
+      height: 160px; overflow: hidden; background: var(--glass); 
+      display: flex; align-items: center; justify-content: center; padding: 16px; 
+      position: relative;
+    } 
+    .tile img { 
+      width: auto; height: auto; max-width: 100%; max-height: 100%; 
+      object-fit: contain; transition: transform 0.6s ease;
+    }
+    .tile:hover img {
+      transform: scale(1.1);
+    }
+    .tile .inner { padding: 16px; } 
+    .tile h3 { 
+      margin: 0 0 8px 0; font-size: 16px; font-weight: 700; 
+      line-height: 1.3;
+    } 
+    .tile .category { 
+      color: var(--muted); font-size: 12px; margin: 0 0 8px 0; 
+      display: flex; align-items: center; gap: 6px;
+    } 
+    .tile .rating { color: var(--accent); font-weight: 700; } 
+    .tile .desc { 
+      color: var(--muted); font-size: 13px; margin: 8px 0 0 0; 
+      line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; 
+      -webkit-box-orient: vertical; overflow: hidden; 
+    }
+    
+    /* Enhanced List Actions */
+    .list-actions { 
+      position: absolute; top: 12px; right: 12px; display: flex; 
+      flex-direction: column; gap: 8px; opacity: 0; z-index: 10; 
+      transition: all 0.3s ease;
+    } 
+    .tile:hover .list-actions { opacity: 1; } 
+    .list-btn { 
+      background: rgba(11, 22, 51, 0.9); border: 1px solid var(--border); 
+      color: var(--white); padding: 8px; border-radius: 12px; 
+      display: flex; align-items: center; justify-content: center; 
+      cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); 
+      width: 44px; height: 44px; transition: all 0.3s ease;
+    } 
+    .list-btn:hover { 
+      transform: scale(1.15); background: var(--accent); color: #0b1633; 
+      border-color: var(--accent); box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+    } 
+    .list-btn.active { 
+      background: var(--accent); color: #0b1633; border-color: var(--accent);
+      transform: scale(1.1);
+    } 
+    .list-btn .btn-text { display: none; }
+    
+    /* Enhanced Empty State */
+    .empty { 
+      padding: 60px 20px; text-align: center; color: var(--muted); display: none; 
+    }
+    .empty div {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .empty h3 {
+      margin-bottom: 8px;
+      font-size: 20px;
+    }
+    
+    /* Enhanced Footer */
+    footer { 
+      padding: 30px 20px; color: var(--muted); text-align: center; 
+      border-top: 1px solid var(--border); margin-top: 40px; 
+      background: var(--card);
+    }
+    
+    /* Enhanced Custom Notification */
     .custom-notification {
       position: fixed;
       top: 20px;
       right: 20px;
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
       z-index: 1000;
       display: flex;
       align-items: center;
       max-width: 400px;
       transform: translateX(120%);
       transition: transform 0.4s ease;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
     }
     
     .notification-success {
-      background: #10b981;
+      background: rgba(16, 185, 129, 0.9);
       color: white;
     }
     
     .notification-error {
-      background: #ef4444;
+      background: rgba(239, 68, 68, 0.9);
       color: white;
     }
     
     .notification-info {
-      background: #3b82f6;
+      background: rgba(59, 130, 246, 0.9);
       color: white;
     }
     
@@ -53,13 +266,45 @@
     }
     
     .notification-icon {
-      margin-right: 10px;
+      margin-right: 12px;
       font-size: 1.2rem;
     }
 
-    @media (max-width: 768px) { header { padding: 10px 15px; flex-wrap: wrap; gap: 12px; } .toolbar { margin-left: 0; width: 100%; justify-content: space-between; } .search { width: 180px; } .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; } .tile .media { height: 100px; padding: 8px; } .tile .inner { padding: 10px; } .tile h3 { font-size: 14px; } .tile .desc { font-size: 11px; -webkit-line-clamp: 2; } .list-actions { opacity: 1; top: 6px; right: 6px; gap: 6px; } .list-btn { width: 42px; height: 42px; font-size: 16px; background: rgba(11, 22, 51, 0.9); border: 1.5px solid var(--border); } .list-btn.active { background: var(--accent); } .user-welcome { padding: 4px 8px; font-size: 12px; } .user-avatar { width: 28px; height: 28px; font-size: 12px; }
-    @media (max-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); } .search { width: 140px; } .toolbar { gap: 6px; } .list-btn { width: 38px; height: 38px; font-size: 14px; } .user-welcome span { display: none; } .user-welcome { padding: 6px; } }
-    @media (hover: none) and (pointer: coarse) { .list-actions { opacity: 1; } .list-btn:hover { transform: none; } }
+    /* Responsive Design */
+    @media (max-width: 768px) { 
+      header { padding: 12px 16px; flex-wrap: wrap; gap: 12px; } 
+      .toolbar { margin-left: 0; width: 100%; justify-content: space-between; } 
+      .search { width: 200px; } 
+      .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; } 
+      .tile .media { height: 120px; padding: 12px; } 
+      .tile .inner { padding: 12px; } 
+      .tile h3 { font-size: 15px; } 
+      .tile .desc { font-size: 12px; -webkit-line-clamp: 2; } 
+      .list-actions { opacity: 1; top: 8px; right: 8px; gap: 6px; } 
+      .list-btn { 
+        width: 40px; height: 40px; font-size: 16px; 
+        background: rgba(11, 22, 51, 0.95); border: 1.5px solid var(--border); 
+      } 
+      .list-btn.active { background: var(--accent); } 
+      .user-welcome { padding: 6px 10px; font-size: 12px; } 
+      .user-avatar { width: 28px; height: 28px; font-size: 12px; } 
+    }
+    
+    @media (max-width: 480px) { 
+      .grid { grid-template-columns: repeat(2, 1fr); } 
+      .search { width: 160px; } 
+      .toolbar { gap: 8px; } 
+      .list-btn { width: 36px; height: 36px; font-size: 14px; } 
+      .user-welcome span { display: none; } 
+      .user-welcome { padding: 8px; } 
+      .container { padding: 0 16px; }
+    }
+    
+    @media (hover: none) and (pointer: coarse) { 
+      .list-actions { opacity: 1; } 
+      .list-btn:hover { transform: none; } 
+      .tile:hover { transform: none; }
+    }
   </style>
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
@@ -67,7 +312,10 @@
   <header>
     <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
     <div class="toolbar">
-      <div class="search"><span class="icon">🔎</span><input id="q" placeholder="Search restaurants..."></div>
+      <div class="search">
+        <span class="icon">🔎</span>
+        <input id="q" placeholder="Search restaurants...">
+      </div>
       <button class="btn" id="reset">Reset</button>
       <div class="user-auth">
         <div class="user-welcome" id="userWelcome">
@@ -80,13 +328,19 @@
   </header>
 
   <main class="container">
-    <div class="login-prompt" id="loginPrompt"><h3>✨ Get the full experience!</h3><p>Sign in to create favorites lists and save your preferences.</p><button class="auth-btn" onclick="location.href='login.html'">Sign In Now</button></div>
+    <div class="login-prompt" id="loginPrompt">
+      <h3>✨ Get the full experience!</h3>
+      <p>Sign in to create favorites lists and save your preferences.</p>
+      <button class="auth-btn" onclick="location.href='login.html'">Sign In Now</button>
+    </div>
+    
     <div class="list-tabs" id="listTabs">
       <button class="list-tab active" data-list="all">All</button>
       <button class="list-tab" data-list="favorites">Favorites <span class="count" id="favoritesCount">0</span></button>
       <button class="list-tab" data-list="visited">Visited <span class="count" id="visitedCount">0</span></button>
       <button class="list-tab" data-list="want-to-go">Want to Go <span class="count" id="wantToGoCount">0</span></button>
     </div>
+    
     <div class="controls">
       <div class="controls-info">Showing <span id="count">0</span> restaurants</div>
       <div class="category-filters">
@@ -110,11 +364,16 @@
         </div>
       </div>
     </div>
+    
     <div id="grid" class="grid"></div>
-    <div id="empty" class="empty"><div>🍽️</div><h3>No restaurants found</h3><p>Try adjusting your search or filters</p></div>
+    <div id="empty" class="empty">
+      <div>🍽️</div>
+      <h3>No restaurants found</h3>
+      <p>Try adjusting your search or filters</p>
+    </div>
   </main>
 
-  <footer>© 2025 Zo2y — Built with ❤️</footer>
+  <footer>© 2025 Zo2y — Built with ❤️ for food lovers</footer>
 
   <!-- Custom Notification -->
   <div id="customNotification" class="custom-notification">
@@ -423,59 +682,60 @@
         return list?.restaurants?.includes(restaurantId) || false;
       }
     };
-const restaurants = [
-  // Existing restaurants
-  { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-  { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-  { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-  { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-  { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
-  { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
-  { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
-  { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
-  { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
-  { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
-  { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
-  { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
-  { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
-  { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
-  { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
-  { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
-  { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
-  { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
-  { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
-  { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
-  { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
-  { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
-  { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
-  { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
-  { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
-  { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
-  { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
-  { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
-  { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
-  { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
-  { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
-  { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
-  { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
-  { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
-  { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', desc:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png' },
-  { id: 36, slug:'wok', name:'Wok and Walk', category:'Asian', desc:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png' },
-  { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png' },
-  { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
-  { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
-  { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' },
-  { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', desc:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg' },
-  { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', desc:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'mario.jpg' },
-  { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', desc:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg' },
-  { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', desc:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'man.png' },
-  { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.png' },
-  { id: 46, slug:'crave', name:'Crave', category:'Seafood', desc:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.png' },
-  { id: 47, slug:'caizo', name:'Caizo', category:'Middle Eastern', desc:'Authentic Egyptian shawarma with premium ingredients and traditional recipes.', rating:4.5, image: 'caizo.jpg' },
-  { id: 48, slug:'tabali', name:'Tabali', category:'Breakfast', desc:'Authentic Egyptian breakfast with traditional foul, ta3meya, and homemade specialties.', rating:4.7, image: 'tabali.jpg' },
-  { id: 49, slug:'panda', name:'Panda Express', category:'Asian', desc:'Authentic Chinese cuisine with fresh ingredients and traditional flavors.', rating:4.4, image: 'panda.png' },
-  { id: 50, slug:'pablo', name:'Pablo & Abdo', category:'Burgers', desc:'Modern diner experience with fusion cuisine, burgers, and international favorites.', rating:4.6, image: 'pablo.png' }
-];
+
+    const restaurants = [
+      // Your restaurant data array (unchanged)
+      { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
+      { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
+      { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
+      { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
+      { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
+      { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
+      { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
+      { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
+      { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
+      { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' },
+      { id: 11, slug:'country', name:'Country Hills', category:'Fast Food', desc:'Grilled meats, casual dining & family meals.', rating:4.2, image: 'country.jpg' },
+      { id: 12, slug:'bayoki', name:'Bayouki Rotisserie', category:'Chicken', desc:'Authentic grilled chicken & rotisserie meals.', rating:4.3, image: 'bayoki.png' },
+      { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Premium burger joint serving juicy burgers, loaded fries & classic American comfort food.', rating:4.5, image: 'maine.jpg' },
+      { id: 14, slug:'barbar', name:'Barbar Shawarma', category:'Middle Eastern', desc:'Iconic shawarma spot serving beef, chicken & falafel.', rating:4.4, image: 'barbar.png' },
+      { id: 15, slug:'labash', name:'Labash', category:'Chicken', desc:'Known for charcoal-grilled chicken, meat & fast bites.', rating:4.3, image: 'labash.jpg' },
+      { id: 16, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg' },
+      { id: 17, slug:'akleh', name:'Akleh', category:'Middle Eastern', desc:'Authentic Lebanese mezze, grills & traditional dishes.', rating:4.4, image: 'akleh.jpg' },
+      { id: 18, slug:'howlin', name:'Howlin\' Birds', category:'Chicken', desc:'Nashville-style hot chicken sandwiches & tenders.', rating:4.5, image: 'howlin.png' },
+      { id: 19, slug:'sauce', name:'Sauce', category:'Burgers', desc:'Trendy burgers & loaded fries; street food vibes.', rating:4.4, image: 'sauce.jpg' },
+      { id: 20, slug:'papa', name:'Pappa Roti', category:'Cafe & Bakery', desc:'Famous for their signature coffee buns and artisanal baked goods.', rating:4.5, image: 'papa.png' },
+      { id: 21, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Elegant dining experience with authentic Middle Eastern cuisine.', rating:4.8, image: 'qasr.png' },
+      { id: 22, slug:'heart', name:'Heart Attack', category:'Chicken', desc:'Bold, flavorful fried chicken with signature spicy sauces and crispy perfection.', rating:4.3, image: 'heart.jpg' },
+      { id: 23, slug:'what', name:'What The Crust', category:'Pizza', desc:'Creative pizza combinations with unique crust options and gourmet toppings.', rating:4.4, image: 'what.png' },
+      { id: 24, slug:'buffalo', name:'Buffalo Burger', category:'Burgers', desc:'Juicy buffalo burgers with classic American flavors and premium ingredients.', rating:4.5, image: 'buffalo.jpg' },
+      { id: 25, slug:'mince', name:'Mince', category:'Burgers', desc:'Artisanal burgers made with freshly minced beef and creative flavor combinations.', rating:4.6, image: 'mince.jpg' },
+      { id: 26, slug:'88', name:'Pizza 88', category:'Pizza', desc:'Delicious pizzas with fresh ingredients and perfect crust.', rating:4.3, image: '88.jpg' },
+      { id: 27, slug:'kansas', name:'Kansas Chicken', category:'Chicken', desc:'Crispy fried chicken with signature spices and family meal options.', rating:4.4, image: 'kansas.png' },
+      { id: 28, slug:'ward', name:'Koshary Ward', category:'Middle Eastern', desc:'Authentic Egyptian koshary with traditional recipes and generous portions.', rating:4.7, image: 'ward.png' },
+      { id: 29, slug:'willys', name:'Willy\'s', category:'Burgers', desc:'Classic burgers with juicy patties and all your favorite toppings.', rating:4.5, image: 'willys.png' },
+      { id: 30, slug:'butchers', name:'Butcher\'s Burger', category:'Burgers', desc:'Premium gourmet burgers made with the finest ingredients and crafted with passion!', rating:4.6, image: 'butchers.jpg' },
+      { id: 31, slug:'hashville', name:'Hashville', category:'Chicken', desc:'Nashville-style hot chicken, crispy tenders, and authentic Southern flavors.', rating:4.5, image: 'hashville.png' },
+      { id: 32, slug:'dawgs', name:'Dawgs \'n\' Shakes', category:'Burgers', desc:'Gourmet hot dogs, crispy fried chicken sandwiches, and premium milkshakes made with love!', rating:4.5, image: 'dawgs.jpg' },
+      { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg' },
+      { id: 34, slug:'ribs', name:'Chicken N Ribs', category:'BBQ & Ribs', desc:'Finger-licking BBQ ribs and juicy chicken with signature sauces and hearty sides.', rating:4.4, image: 'ribs.jpg' },
+      { id: 35, slug:'peking', name:'Peking Restaurant', category:'Asian', desc:'Authentic Chinese cuisine with traditional flavors and modern presentation.', rating:4.5, image: 'peking.png' },
+      { id: 36, slug:'wok', name:'Wok and Walk', category:'Asian', desc:'Fresh Asian street food with authentic flavors and quick service.', rating:4.4, image: 'wok.png' },
+      { id: 37, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png' },
+      { id: 38, slug:'husk', name:'Husk', category:'Burgers', desc:'Premium burgers, sandwiches, and gourmet comfort food.', rating:4.7, image: 'husk.jpg' },
+      { id: 39, slug:'crispy', name:'Crispy Hen', category:'Chicken', desc:'Authentic Nashville hot chicken with bold flavors and perfect crisp.', rating:4.5, image: 'crispy.jpg' },
+      { id: 40, slug:'lord', name:'Lord of the Wings', category:'Chicken', desc:'Premium chicken wings, gourmet burgers, and amazing comfort food.', rating:4.6, image: 'lord.png' },
+      { id: 41, slug:'chez', name:'Chez Koukou', category:'Chicken', desc:'Premium chicken sandwiches, crispy strips, and delicious meals with signature sauces.', rating:4.5, image: 'chez.jpg' },
+      { id: 42, slug:'mario', name:'Mario\'s', category:'Burgers', desc:'Premium burgers, chicken sandwiches, and seafood specialties crafted with quality ingredients.', rating:4.7, image: 'mario.jpg' },
+      { id: 43, slug:'crumbs', name:'Crumbs', category:'Breakfast', desc:'Delicious breakfast options, creative sandwiches, and comfort food boxes served fresh daily.', rating:4.3, image: 'crumbs.jpg' },
+      { id: 44, slug:'man', name:'Man\'oucheh', category:'Middle Eastern', desc:'Authentic Lebanese manakeesh, pizzas, and traditional breakfast items made with fresh ingredients.', rating:4.5, image: 'man.png' },
+      { id: 45, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Customizable pasta bowls, fresh salads, and delicious sides - create your perfect pasta combination.', rating:4.2, image: 'pasta2go.png' },
+      { id: 46, slug:'crave', name:'Crave', category:'Seafood', desc:'Upscale dining experience offering international cuisine, premium steaks, seafood, and creative cocktails.', rating:4.6, image: 'crave.png' },
+      { id: 47, slug:'caizo', name:'Caizo', category:'Middle Eastern', desc:'Authentic Egyptian shawarma with premium ingredients and traditional recipes.', rating:4.5, image: 'caizo.jpg' },
+      { id: 48, slug:'tabali', name:'Tabali', category:'Breakfast', desc:'Authentic Egyptian breakfast with traditional foul, ta3meya, and homemade specialties.', rating:4.7, image: 'tabali.jpg' },
+      { id: 49, slug:'panda', name:'Panda Express', category:'Asian', desc:'Authentic Chinese cuisine with fresh ingredients and traditional flavors.', rating:4.4, image: 'panda.png' },
+      { id: 50, slug:'pablo', name:'Pablo & Abdo', category:'Burgers', desc:'Modern diner experience with fusion cuisine, burgers, and international favorites.', rating:4.6, image: 'pablo.png' }
+    ];
 
     // Rendering and Filtering
     const grid = document.getElementById('grid');
@@ -616,219 +876,5 @@ const restaurants = [
       filterAndRender();
     });
   </script>
-
-<!-- REVIEW SYSTEM -->
-<section class="section reviews" id="reviews-section">
-  <h2>Customer Reviews</h2>
-  <div id="reviews-list"><div class="reviews-loading">Loading reviews...</div></div>
-
-  <h3>Add / Edit Your Review</h3>
-  <form id="review-form" style="display:none;">
-    <div class="rating-wrapper">
-      <span>Rating:</span>
-      <div class="stars">
-        <span class="star" data-rating="1">★</span>
-        <span class="star" data-rating="2">★</span>
-        <span class="star" data-rating="3">★</span>
-        <span class="star" data-rating="4">★</span>
-        <span class="star" data-rating="5">★</span>
-      </div>
-      <span id="rating-text">Select rating</span>
-    </div>
-    <textarea id="review-comment" placeholder="Share your experience..." rows="4" maxlength="500"></textarea>
-    <div>
-      <button type="submit">Submit Review</button>
-      <span class="char-count">0/500</span>
-    </div>
-  </form>
-
-  <div id="auth-prompt">
-    <p>Please <a href="login.html">sign in</a> to submit a review.</p>
-  </div>
-</section>
-
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2.26.0";
-
-  const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  // map filenames to restaurant IDs
-  const restaurantIdMap = {
-    mori: 1, kilo: 2, hameed: 3, bazooka: 4, mexican: 5, chikin: 6, vasko: 7, secondcup: 8,
-    station: 9, brgr: 10, country: 11, bayoki: 12, maine: 13, barbar: 14, labash: 15, pickl: 16,
-    akleh: 17, howlin: 18, sauce: 19, papa: 20, qasr: 21, heart: 22, what: 23, buffalo: 24,
-    mince: 25, '88': 26, kansas: 27, ward: 28, willys: 29, butchers: 30, hashville: 31, dawgs: 32,
-    holmes: 33, ribs: 34, peking: 35, wok: 36, daddy: 37, husk: 38, crispy: 39, lord: 40,
-    chez: 41, mario: 42, crumbs: 43, man: 44, pasta: 45, crave: 46, caizo: 47, pablo: 48,
-    panda: 49, tabali: 50
-  };
-
-  const currentFile = window.location.pathname.split("/").pop().replace(".html","").toLowerCase();
-  const restaurantId = restaurantIdMap[currentFile];
-
-  let currentUser = null;
-  let currentRating = 0;
-  let editingReviewId = null;
-
-  async function checkAuth() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user || null;
-      document.getElementById('review-form').style.display = user ? 'block' : 'none';
-      document.getElementById('auth-prompt').style.display = user ? 'none' : 'block';
-    } catch(err){ console.error(err); }
-  }
-
-  async function loadReviews() {
-    const container = document.getElementById('reviews-list');
-    if(!container) return;
-    try {
-      const { data: reviews } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .order('created_at', { ascending: false });
-
-      if(!reviews || reviews.length===0){
-        container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first!</div>';
-        return;
-      }
-
-      const userIds = [...new Set(reviews.map(r=>r.user_id))];
-      const { data: users } = await supabase
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .in('id', userIds);
-
-      const userMap = {};
-      users?.forEach(u => userMap[u.id] = u);
-
-      container.innerHTML = reviews.map(r => {
-        const u = userMap[r.user_id];
-        const name = u ? (u.full_name || u.username) : 'Anonymous';
-        const canEdit = currentUser && currentUser.id === r.user_id;
-        return `<div class="review" id="review-${r.id}">
-                  <div class="review-header">
-                    <h4 class="reviewer-name">${name}</h4>
-                    <div class="review-rating">${'★'.repeat(r.rating)+'☆'.repeat(5-r.rating)}</div>
-                    ${canEdit?`
-                    <div class="review-actions">
-                      <button onclick="startEditReview('${r.id}','${r.comment.replace(/'/g, "\\'")}',${r.rating})">Edit</button>
-                      <button onclick="deleteReview('${r.id}')">Delete</button>
-                    </div>`:''}
-                  </div>
-                  <p class="review-comment">${r.comment}</p>
-                  <div class="review-date">${new Date(r.created_at).toLocaleDateString()}</div>
-                </div>`;
-      }).join('');
-    } catch(err){ console.error(err); container.innerHTML='<div class="reviews-empty">Error loading reviews</div>'; }
-  }
-
-  function updateStars(){
-    document.querySelectorAll('.star').forEach(s=>{
-      const r=parseInt(s.dataset.rating);
-      s.classList.toggle('active', r <= currentRating);
-    });
-    const texts=['Select rating','Poor','Fair','Good','Very Good','Excellent'];
-    const rt=document.getElementById('rating-text');
-    if(rt) rt.textContent = texts[currentRating] || 'Select rating';
-  }
-
-  async function submitReview(e){
-    e.preventDefault();
-    if(!currentUser) return alert('Sign in first');
-    const comment = document.getElementById('review-comment').value.trim();
-    if(!comment) return alert('Write something');
-    if(currentRating===0) return alert('Select a rating');
-
-    try {
-      const payload = {restaurant_id: restaurantId, user_id: currentUser.id, rating: currentRating, comment};
-      if(editingReviewId){
-        const { error } = await supabase.from('reviews').update(payload).eq('id', editingReviewId);
-        if(error) throw error;
-        editingReviewId = null;
-      } else {
-        const { error } = await supabase.from('reviews').insert(payload);
-        if(error) throw error;
-      }
-      document.getElementById('review-form').reset();
-      currentRating = 0;
-      updateStars();
-      document.querySelector('.char-count').textContent='0/500';
-      await loadReviews();
-    } catch(err){ console.error(err); alert('Error submitting review'); }
-  }
-
-  async function deleteReview(id){
-    if(!currentUser || !confirm('Delete review?')) return;
-    try{
-      const { error } = await supabase.from('reviews').delete().eq('id', id).eq('user_id', currentUser.id);
-      if(error) throw error;
-      await loadReviews();
-    }catch(err){ console.error(err); alert('Error deleting review'); }
-  }
-
-  window.deleteReview = deleteReview;
-
-  window.startEditReview = (id, comment, rating) => {
-    editingReviewId = id;
-    currentRating = rating;
-    document.getElementById('review-comment').value = comment;
-    updateStars();
-    window.scrollTo({top: document.getElementById('review-form').offsetTop - 20, behavior: 'smooth'});
-  }
-
-  document.addEventListener('click', e=>{
-    if(e.target.classList.contains('star')){
-      currentRating = parseInt(e.target.dataset.rating);
-      updateStars();
-    }
-  });
-
-  const form = document.getElementById('review-form');
-  if(form) form.addEventListener('submit', submitReview);
-  const ta = document.getElementById('review-comment');
-  if(ta) ta.addEventListener('input', e => document.querySelector('.char-count').textContent = e.target.value.length+'/500');
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    checkAuth();
-    loadReviews();
-  });
-</script>
-
-<style>
-  .review-actions { display:flex; gap:10px; margin-left:auto; }
-  .review-header { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
-  .stars .star { cursor:pointer; font-size:1.2rem; color:#ccc; }
-  .stars .star.active { color:#FF9800; }
-  .review { border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; margin-bottom: 20px; background-color: #fdfdfd; }
-  .review:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); transform: translateY(-2px); transition: all 0.3s ease; }
-  .reviewer-name { font-weight: 600; color: #2c3e50; font-size: 1.1rem; }
-  .review-rating { color: #FF9800; font-size: 1.1rem; margin: 0 15px; }
-  .review-comment { margin-bottom: 10px; color: #555; line-height: 1.5; }
-  .review-date { font-size: 0.85rem; color: #888; }
-  .reviews-loading, .reviews-empty { text-align: center; padding: 30px; color: #7f8c8d; font-style: italic; }
-  .rating-wrapper { display: flex; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-  .stars { display: flex; gap: 5px; }
-  .star { cursor: pointer; font-size: 1.8rem; color: #ddd; transition: color 0.2s; }
-  .star:hover, .star.active { color: #FF9800; }
-  #rating-text { font-weight: 500; color: #7f8c8d; min-width: 120px; }
-  #review-comment { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; font-size: 1rem; resize: vertical; }
-  #review-comment:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
-  .char-count { font-size: 0.85rem; color: #7f8c8d; float: right; }
-  button[type="submit"] { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; }
-  button[type="submit"]:hover { background-color: #2980b9; }
-  #auth-prompt { text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 8px; margin-top: 20px; }
-  #auth-prompt a { color: #3498db; text-decoration: none; font-weight: 600; }
-  #auth-prompt a:hover { text-decoration: underline; }
-  @media (max-width: 600px) {
-    .review-header { flex-direction: column; align-items: flex-start; }
-    .review-actions { margin-top: 10px; width: 100%; justify-content: flex-end; }
-    .rating-wrapper { flex-direction: column; align-items: flex-start; }
-  }
-</style>
 </body>
 </html>
