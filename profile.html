@@ -1666,7 +1666,7 @@
                 <div class="section-header">
                     <div>
                         <h2 class="section-title" id="journalTitle">Food Journal</h2>
-                        <p class="section-subtitle" id="journalSubtitle">Your culinary adventures and experiences</p>
+                        <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews and experiences</p>
                     </div>
                     <div class="section-actions">
                         <div class="d-flex gap-sm">
@@ -1683,10 +1683,10 @@
                 <div id="journalEntries">
                     <div class="empty-state">
                         <div class="empty-icon">📝</div>
-                        <h3 class="empty-title">No Journal Entries Yet</h3>
-                        <p class="empty-description">Start documenting your restaurant experiences to build your food journey! Track where you've been, what you loved, and discover new places to try.</p>
-                        <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
-                            <i class="fas fa-plus"></i> Add Your First Entry
+                        <h3 class="empty-title">No Reviews Yet</h3>
+                        <p class="empty-description">Start reviewing restaurants to build your food journey! Your reviews will appear here.</p>
+                        <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                            <i class="fas fa-utensils"></i> Browse Restaurants
                         </button>
                     </div>
                 </div>
@@ -2313,7 +2313,7 @@
             setTextContent('listsSubtitle', 'Organize your favorite restaurants');
             setTextContent('customListsTitle', 'Custom Lists');
             setTextContent('journalTitle', 'Food Journal');
-            setTextContent('journalSubtitle', 'Your culinary adventures and experiences');
+            setTextContent('journalSubtitle', 'Your restaurant reviews and experiences');
 
             await loadUserProfile();
             
@@ -2380,7 +2380,7 @@
             setTextContent('listsSubtitle', `${targetUserName}'s favorite restaurants`);
             setTextContent('customListsTitle', `${targetUserName}'s Custom Lists`);
             setTextContent('journalTitle', `${targetUserName}'s Food Journal`);
-            setTextContent('journalSubtitle', `${targetUserName}'s culinary adventures and experiences`);
+            setTextContent('journalSubtitle', `${targetUserName}'s restaurant reviews and experiences`);
 
             // Display user info
             setTextContent('profileName', profile.full_name || profile.username || 'User');
@@ -2632,23 +2632,13 @@
             const targetId = userId || currentUser.id;
             
             try {
-                // Get visited count from visited list
-                const { data: visitedList } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId)
-                    .eq('title', 'Visited')
-                    .single();
+                // Get visited count from reviews
+                const { data: reviews } = await supabase
+                    .from('reviews')
+                    .select('restaurant_id')
+                    .eq('user_id', targetId);
                     
-                let visitedCount = 0;
-                if (visitedList) {
-                    const { data: visitedRestaurants } = await supabase
-                        .from('lists_restraunts')
-                        .select('id')
-                        .eq('list_id', visitedList.id);
-                        
-                    visitedCount = visitedRestaurants ? visitedRestaurants.length : 0;
-                }
+                const visitedCount = reviews ? new Set(reviews.map(r => r.restaurant_id)).size : 0;
                 
                 // Get followers count
                 const { data: followers } = await supabase
@@ -3165,7 +3155,7 @@
             });
         }
 
-        // Food Journal System
+        // Food Journal System - UPDATED TO SHOW REVIEWS
         const foodJournal = {
             currentRestaurant: null,
             swipedRestaurants: new Set(),
@@ -3187,13 +3177,13 @@
                 const targetId = userId || currentUser.id;
                 
                 try {
-                    const { data: entries, error } = await supabase
-                        .from('journal_entries')
-                        .select('visit_date')
+                    const { data: reviews, error } = await supabase
+                        .from('reviews')
+                        .select('created_at')
                         .eq('user_id', targetId)
-                        .order('visit_date', { ascending: false });
+                        .order('created_at', { ascending: false });
                     
-                    if (error || !entries || entries.length === 0) return 0;
+                    if (error || !reviews || reviews.length === 0) return 0;
                     
                     let streak = 0;
                     const today = new Date();
@@ -3201,11 +3191,11 @@
                     
                     let currentDate = new Date(today);
                     
-                    for (let i = 0; i < entries.length; i++) {
-                        const entryDate = new Date(entries[i].visit_date);
-                        entryDate.setHours(0, 0, 0, 0);
+                    for (let i = 0; i < reviews.length; i++) {
+                        const reviewDate = new Date(reviews[i].created_at);
+                        reviewDate.setHours(0, 0, 0, 0);
                         
-                        const diffTime = currentDate - entryDate;
+                        const diffTime = currentDate - reviewDate;
                         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                         
                         if (diffDays === 0) {
@@ -3215,7 +3205,7 @@
                         } else if (diffDays === 1) {
                             // Consecutive day
                             streak++;
-                            currentDate = entryDate;
+                            currentDate = reviewDate;
                         } else {
                             // Streak broken
                             break;
@@ -3237,27 +3227,33 @@
                 if (!targetId) return;
                 
                 try {
-                    const { data: entries, error } = await supabase
-                        .from('journal_entries')
-                        .select('*')
+                    // Load reviews instead of journal entries
+                    const { data: reviews, error } = await supabase
+                        .from('reviews')
+                        .select(`
+                            *,
+                            restraunts (
+                                id, name, category, image, slug, rating
+                            )
+                        `)
                         .eq('user_id', targetId)
-                        .order('visit_date', { ascending: false });
-                    
+                        .order('created_at', { ascending: false });
+
                     if (error) throw error;
                     
-                    if (!entries || entries.length === 0) {
+                    if (!reviews || reviews.length === 0) {
                         const emptyStateText = isViewingOwnProfile ? 
-                            'Start documenting your restaurant experiences to build your food journey! Track where you\'ve been, what you loved, and discover new places to try.' :
-                            'This user hasn\'t added any journal entries yet.';
+                            'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
+                            'This user hasn\'t reviewed any restaurants yet.';
                         
                         journalEntries.innerHTML = `
                             <div class="empty-state">
                                 <div class="empty-icon">📝</div>
-                                <h3 class="empty-title">No Journal Entries Yet</h3>
+                                <h3 class="empty-title">No Reviews Yet</h3>
                                 <p class="empty-description">${emptyStateText}</p>
                                 ${isViewingOwnProfile ? `
-                                    <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
-                                        <i class="fas fa-plus"></i> Add Your First Entry
+                                    <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                        <i class="fas fa-utensils"></i> Browse Restaurants
                                     </button>
                                 ` : ''}
                             </div>
@@ -3268,15 +3264,15 @@
                     journalEntries.innerHTML = '';
                     
                     // Filter entries if needed
-                    let entriesToShow = entries;
+                    let reviewsToShow = reviews;
                     if (journalFilter === 'recent') {
-                        entriesToShow = entries.slice(0, 5);
+                        reviewsToShow = reviews.slice(0, 5);
                     } else if (journalFilter === 'favorites') {
-                        entriesToShow = entries.filter(entry => entry.rating >= 4);
+                        reviewsToShow = reviews.filter(review => review.rating >= 4);
                     }
                     
-                    for (const entry of entriesToShow) {
-                        const restaurant = restaurants.find(r => r.id === entry.restaurant_id);
+                    for (const review of reviewsToShow) {
+                        const restaurant = review.restraunts;
                         if (!restaurant) continue;
                         
                         const entryElement = document.createElement('div');
@@ -3285,45 +3281,51 @@
                             <div class="entry-header">
                                 <div class="restaurant-info">
                                     <div class="restaurant-image">
-                                        ${restaurant.image ? `<img src="images/${restaurant.image}" alt="${restaurant.name}">` : restaurant.name.charAt(0)}
+                                        <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
+                                            ${restaurant.image ? 
+                                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">` : 
+                                                restaurant.name.charAt(0)
+                                            }
+                                        </a>
                                     </div>
                                     <div class="restaurant-details">
-                                        <h3>${restaurant.name}</h3>
+                                        <h3>
+                                            <a href="cards/${restaurant.slug}.html" style="text-decoration: none; color: inherit;">
+                                                ${restaurant.name}
+                                            </a>
+                                        </h3>
                                         <div class="restaurant-category">${restaurant.category}</div>
                                     </div>
                                 </div>
                                 <div class="entry-rating">
-                                    ${'⭐'.repeat(Math.floor(entry.rating))}
-                                    <span>${entry.rating}</span>
+                                    ${'⭐'.repeat(Math.floor(review.rating))}
+                                    <span>${review.rating}/5</span>
                                 </div>
                             </div>
                             <div class="entry-meta">
                                 <div class="meta-badge">
                                     <i class="fas fa-calendar"></i>
-                                    ${formatDate(entry.visit_date)}
+                                    ${formatDate(review.created_at)}
                                 </div>
                                 <div class="meta-badge">
                                     <i class="fas fa-utensils"></i>
                                     ${restaurant.category}
                                 </div>
                                 <div class="meta-badge">
-                                    <i class="fas fa-dollar-sign"></i>
-                                    $${entry.price_range || 'N/A'}
+                                    <i class="fas fa-star"></i>
+                                    ${review.rating}/5
                                 </div>
                             </div>
-                            <div class="entry-notes">${entry.notes || 'No notes provided'}</div>
-                            <div class="entry-tags">
-                                ${entry.tags ? entry.tags.split(',').map(tag => `<span class="tag">#${tag.trim()}</span>`).join('') : ''}
-                            </div>
+                            <div class="entry-notes">${review.comment || 'No review text provided'}</div>
                             ${isViewingOwnProfile ? `
                                 <div class="entry-actions">
-                                    <button class="btn btn-secondary btn-sm" onclick="editJournalEntry(${entry.id})">
+                                    <button class="btn btn-secondary btn-sm" onclick="editReview(${review.id})">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
-                                    <button class="btn btn-secondary btn-sm">
+                                    <button class="btn btn-secondary btn-sm" onclick="shareReview(${review.id})">
                                         <i class="fas fa-share"></i> Share
                                     </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${entry.restaurant_id})">
+                                    <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${restaurant.id})">
                                         <i class="fas fa-heart"></i> Favorite
                                     </button>
                                 </div>
@@ -3333,12 +3335,12 @@
                     }
                     
                 } catch (error) {
-                    console.error('Error loading journal entries:', error);
+                    console.error('Error loading reviews:', error);
                     journalEntries.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">Error Loading Journal</h3>
-                            <p class="empty-description">There was an error loading your journal entries. Please try again later.</p>
+                            <h3 class="empty-title">Error Loading Reviews</h3>
+                            <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
                         </div>
                     `;
                 }
@@ -4229,8 +4231,12 @@
             showToast(`Editing list ${listId}`, 'info');
         }
 
-        function editJournalEntry(entryId) {
-            showToast(`Editing journal entry ${entryId}`, 'info');
+        function editReview(reviewId) {
+            showToast(`Editing review ${reviewId}`, 'info');
+        }
+
+        function shareReview(reviewId) {
+            showToast(`Sharing review ${reviewId}`, 'info');
         }
 
         function deleteJournalEntry(entryId) {
@@ -4586,7 +4592,8 @@
         window.viewList = viewList;
         window.hideListDetail = hideListDetail;
         window.editList = editList;
-        window.editJournalEntry = editJournalEntry;
+        window.editReview = editReview;
+        window.shareReview = shareReview;
         window.deleteJournalEntry = deleteJournalEntry;
         window.addToFavorites = addToFavorites;
         window.duplicateEntry = duplicateEntry;
