@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pablo & Abdo - Modern Diner Experience</title>
 
-  <link rel="icon" type="image/png" href="images/logo.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 :root {
@@ -89,214 +88,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 .hidden{display:none}
 .popular-badge{background:#FF9800;color:white;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;font-weight:600}
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
-</style><style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root {
-  --bg: #fff;
-  --text: #333;
-  --text2: #666;
-  --nav-bg: #f8f9fa;
-  --nav-shadow: rgba(0,0,0,0.1);
-  --btn-bg: #FF6F00;
-  --btn-text: #fff;
-  --card: #f8f9fa;
-  --input-bg: #fff;
-  --input-text: #333;
-  --accent: #FF9800;
-}
-[data-theme="dark"] {
-  --bg: #1e2a4a;
-  --text: #fff;
-  --text2: #cbd5e1;
-  --nav-bg: #2d3748;
-  --nav-shadow: rgba(255,255,255,0.1);
-  --btn-bg: #ff944d;
-  --btn-text: #111;
-  --card: #2d3748;
-  --input-bg: #2d3748;
-  --input-text: #fff;
-  --accent: #ff944d;
-}
-body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.btn{padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);border:none;cursor:pointer;transition:all 0.2s ease;font-weight:600}
-.btn:hover{transform:scale(1.03)}
-.section{max-width:900px;margin:0 auto;padding:40px 20px}
-</style>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root {
-  --bg: #fff;
-  --text: #333;
-  --text2: #666;
-  --nav-bg: #f8f9fa;
-  --nav-shadow: rgba(0,0,0,0.1);
-  --btn-bg: #FF6F00;
-  --btn-text: #fff;
-  --card: #f8f9fa;
-  --input-bg: #fff;
-  --input-text: #333;
-  --accent: #FF9800;
-}
-[data-theme="dark"] {
-  --bg: #1e2a4a;
-  --text: #fff;
-  --text2: #cbd5e1;
-  --nav-bg: #2d3748;
-  --nav-shadow: rgba(255,255,255,0.1);
-  --btn-bg: #ff944d;
-  --btn-text: #111;
-  --card: #2d3748;
-  --input-bg: #2d3748;
-  --input-text: #fff;
-  --accent: #ff944d;
-}
-body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.btn{padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);border:none;cursor:pointer;transition:all 0.2s ease;font-weight:600}
-.btn:hover{transform:scale(1.03)}
-.section{max-width:900px;margin:0 auto;padding:40px 20px}
-</style>
-</head>
-<body>
 
-<div class="top-stripe">
-  <button class="back-btn" onclick="window.location.href='../restraunts.html'">← Back to Restaurants</button>
-  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
-</div>
-
-<!-- DYNAMIC REVIEWS SYSTEM -->
-
-<footer>
-  <p>© 2025 Zo2y. All rights reserved.</p>
-  <p style="margin-top: 10px; font-size: 0.8rem;">Pablo & Abdo - Modern Diner Experience</p>
-  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Delivery Areas: Heliopolis, Madinaty</p>
-</footer>
-
-
-
-
-
-
-
-
-
-<script>
-// Theme Toggle
-const themeToggle = document.getElementById('themeToggle');
-function applyTheme(theme){
-  document.documentElement.setAttribute('data-theme',theme);
-  if(themeToggle) themeToggle.textContent = theme==='dark'?'☀️ Light Mode':'🌙 Dark Mode';
-  localStorage.setItem('restaurant-theme',theme);
-}
-function toggleTheme(){
-  const current=document.documentElement.getAttribute('data-theme')||'light';
-  applyTheme(current==='light'?'dark':'light');
-}
-function initializeTheme(){
-  const saved=localStorage.getItem('restaurant-theme');
-  if(saved) applyTheme(saved);
-  else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-}
-if(themeToggle) themeToggle.addEventListener('click',toggleTheme);
-initializeTheme();
-
-// Menu Category Filter
-const menuBtns=document.querySelectorAll('.menu-category-btn');
-const menuSections=document.querySelectorAll('.menu-category-section');
-if(menuBtns.length>0){
-  menuBtns.forEach(btn=>{
-    btn.addEventListener('click',function(){
-      const category=this.getAttribute('data-category');
-      menuBtns.forEach(b=>b.classList.remove('active'));
-      this.classList.add('active');
-      menuSections.forEach(section=>{
-        section.style.display=(category==='all'||section.getAttribute('data-category')===category)?'block':'none';
-      });
-    });
-  });
-}
-
-// Branch Filter
-const branchBtns=document.querySelectorAll('.branch-filter-btn');
-const branchCards=document.querySelectorAll('.branch-card');
-if(branchBtns.length>0){
-  branchBtns.forEach(btn=>{
-    btn.addEventListener('click',function(){
-      const loc=this.getAttribute('data-location');
-      branchBtns.forEach(b=>b.classList.remove('active'));
-      this.classList.add('active');
-      branchCards.forEach(card=>{
-        card.style.display=(loc==='all'||card.getAttribute('data-location')===loc)?'block':'none';
-      });
-    });
-  });
-}
-</script>
-
-
-
-
-
-
-
-<!-- ENHANCED REVIEW SYSTEM -->
-<section class="section reviews" id="reviews-section">
-  <h2>Customer Reviews</h2>
-  
-  <!-- Reviews Stats -->
-  <div class="reviews-stats" id="reviewsStats">
-    <div class="reviews-loading">Loading reviews...</div>
-  </div>
-
-  <!-- Reviews List -->
-  <div class="reviews-container" id="reviewsList"></div>
-
-  <!-- Add Review Form -->
-  <div class="review-form-section">
-    <h3>Share Your Experience</h3>
-    <form id="review-form" style="display: none;">
-      <div class="rating-input">
-        <label>Your Rating:</label>
-        <div class="stars-rating">
-          <span class="star" data-rating="1">★</span>
-          <span class="star" data-rating="2">★</span>
-          <span class="star" data-rating="3">★</span>
-          <span class="star" data-rating="4">★</span>
-          <span class="star" data-rating="5">★</span>
-        </div>
-        <span class="rating-text" id="ratingText">Select your rating</span>
-      </div>
-      
-      <div class="comment-input">
-        <textarea 
-          id="review-comment" 
-          placeholder="Tell us about your experience... What did you like? What could be better?" 
-          rows="4" 
-          maxlength="500"
-        ></textarea>
-        <div class="char-count">
-          <span id="charCount">0</span>/500 characters
-        </div>
-      </div>
-      
-      <div class="form-actions">
-        <button type="submit" class="btn submit-review-btn">
-          <span class="btn-text">Submit Review</span>
-          <span class="btn-loading" style="display: none;">Posting...</span>
-        </button>
-        <button type="button" class="btn secondary cancel-edit-btn" style="display: none;">
-          Cancel Edit
-        </button>
-      </div>
-    </form>
-    
-    <div id="auth-prompt" class="auth-prompt">
-      <div class="auth-icon">🔐</div>
-      <p>Please <a href="../login.html" class="auth-link">sign in</a> to share your experience</p>
-    </div>
-  </div>
-</section>
-
-<style>
 /* Enhanced Review System Styles */
 .reviews-stats {
   background: var(--card);
@@ -690,14 +482,597 @@ if(branchBtns.length>0){
     padding: 15px;
   }
 }
+
+/* List Manager Styles */
+.list-manager-fab {
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 30px !important;
+  z-index: 10000 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+.fab-main {
+  width: 60px !important;
+  height: 60px !important;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+  color: white !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.fab-main::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.fab-main:hover::before {
+  left: 100%;
+}
+
+.fab-main:hover {
+  transform: scale(1.1) rotate(90deg) !important;
+  box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
+}
+
+.fab-main:active {
+  transform: scale(0.95) !important;
+}
+
+.fab-tooltip {
+  position: absolute !important;
+  bottom: 70px !important;
+  right: 0 !important;
+  background: #1e293b !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  transform: translateY(10px) !important;
+  transition: all 0.3s ease !important;
+  pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+}
+
+.fab-main:hover + .fab-tooltip {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.list-dropdown {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 320px;
+  max-width: 400px;
+  display: none;
+  z-index: 10000;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  backdrop-filter: blur(20px);
+  transform-origin: bottom right;
+  animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.list-dropdown.show {
+  display: block !important;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #334155;
+}
+
+.dropdown-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f59e0b;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #1e293b;
+  color: #f59e0b;
+}
+
+.list-section {
+  margin-bottom: 20px;
+}
+
+.list-section-title {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #334155;
+  margin-left: 8px;
+}
+
+.list-item { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  padding: 12px 10px; 
+  cursor: pointer; 
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.list-item:hover { 
+  background: rgba(245, 158, 11, 0.1); 
+  transform: translateX(4px);
+}
+
+.list-checkbox { 
+  width: 20px; 
+  height: 20px; 
+  border: 2px solid #475569;
+  border-radius: 6px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.list-checkbox.checked { 
+  background: #f59e0b; 
+  border-color: #f59e0b;
+  animation: checkPop 0.3s ease;
+}
+
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.list-checkbox.checked::after { 
+  content: "✓"; 
+  color: #0f172a; 
+  font-size: 12px; 
+  font-weight: bold; 
+}
+
+.list-item-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.list-item:hover .list-item-text {
+  color: #f59e0b;
+}
+
+.new-list-section {
+  border-top: 1px solid #334155;
+  padding-top: 20px;
+  margin-top: 15px;
+}
+
+.new-list-input { 
+  width: 100%; 
+  padding: 12px 16px; 
+  background: #1e293b;
+  border: 1px solid #475569; 
+  border-radius: 10px; 
+  color: white; 
+  margin-bottom: 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.new-list-input:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.add-list-btn { 
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+  color: #0f172a; 
+  border: none;
+  padding: 12px 20px; 
+  border-radius: 10px; 
+  cursor: pointer; 
+  font-weight: 600; 
+  width: 100%; 
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.add-list-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.add-list-btn:active {
+  transform: translateY(0);
+}
+
+.list-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #334155, transparent);
+  margin: 16px 0;
+}
+
+.empty-custom-lists {
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  padding: 20px;
+  font-style: italic;
+}
+
+.auth-prompt {
+  text-align: center;
+  padding: 30px 20px;
+  color: #94a3b8;
+}
+
+.auth-prompt .icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.auth-prompt .text {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.login-btn {
+  background: #f59e0b;
+  color: #0f172a;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: #ffb84d;
+}
+
+/* Pulse animation for new lists */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.pulse {
+  animation: pulseGlow 2s infinite;
+}
 </style>
+</head>
+<body>
+
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='../index.html'">← Back to Restaurants</button>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+</div>
+
+<section class="hero">
+  <img src="../images/pablo.png" alt="Pablo & Abdo Logo" class="logo" onclick="window.location.href='../index.html'">
+  <h1>Pablo & Abdo</h1>
+  <p>Modern diner experience with fusion cuisine, creative burgers, and innovative dishes that blend international flavors.</p>
+  <div class="rating">⭐ 4.6/5 (2,900+ reviews)</div>
+
+  <a href="tel:17041" class="btn">Call Hotline: 17041</a>
+  <a href="https://www.instagram.com/pabloandabdo/?hl=en" target="_blank" class="btn secondary">Order Online</a>
+</section>
+
+<section class="section">
+  <h2>Contact & Branches</h2>
+  <div class="hotline">
+    <strong>Hotline:</strong> <a href="tel:17041">17041</a>
+    <strong>Website:</strong> <a href="https://www.instagram.com/pabloandabdo/?hl=en" target="_blank">Instagram</a>
+  </div>
+
+  <div class="branches">
+    <div class="branch-card">
+      <h3>📍 Heliopolis</h3>
+      <p>96 Omar Ibn El Khattab<br>Open: 9:00 AM - 11:00 PM</p>
+      <a href="https://maps.google.com/search?q=Pablo+%26+Abdo+Heliopolis" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-card">
+      <h3>📍 Madinaty</h3>
+      <p>Open Air Mall, Boom Room<br>Open: 9:00 AM - 11:00 PM</p>
+      <a href="https://maps.google.com/search?q=Pablo+%26+Abdo+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
+</section>
+
+<section class="section menu">
+  <h2>Burgers</h2>
+    
+    <div class="menu-item">
+      <div>
+        <span>Smash Pablo Burger</span>
+        <div class="menu-item-description">Pablo sauce, pickled cucumber, onion slices, lettuce, tomato and cheese slice</div>
+      </div>
+      <span>99 - 210 EGP</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>DDR Smash Burger</span>
+        <div class="menu-item-description">Beef bacon, doritos, pickled cucumber, dynamite sauce, ranch sauce and cheese slice</div>
+      </div>
+      <span>130 - 179 EGP</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Original Smash Tony Burger</span>
+        <div class="menu-item-description">Bacon, mushroom, caramelized onion, pickled cucumber, lettuce, cheese and balsamic sauce</div>
+      </div>
+      <span>130 - 179 EGP</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Chicken Sandwiches</h2>
+  
+    <div class="menu-item">
+      <div>
+        <span>Chicken Paplo Sandwich</span>
+        <div class="menu-item-description">Fried chicken, pickles, lettuce, tomatoes, cheese and polito sauce</div>
+      </div>
+      <span>149 - 199 EGP</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Buffalo Chicken Sandwich</span>
+        <div class="menu-item-description">Fried chicken, pickles, tomatoes, cheese slice, buffalo sauce, ranch or blue cheese sauce</div>
+      </div>
+      <span>149 - 209 EGP</span>
+    </div>
+  
+    <div class="menu-item">
+      <div>
+        <span>Corden Bleu Sandwich</span>
+        <div class="menu-item-description">Cordon bleu chicken, pickles, tomatoes, lettuce, mustard sauce and mayo</div>
+      </div>
+      <span>139 EGP</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Mexican Corner</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Loaded Nachos</span>
+        <div class="menu-item-description">Corn tortilla, beef chili con carne, jalapeno, lettuce, pico de gallo, guacamole, sour cream and cheese sauce</div>
+      </div>
+      <span>219 EGP</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Quesadilla</span>
+        <div class="menu-item-description">Flour tortilla, mix cheese, pico de gallo and Mexican salsa</div>
+      </div>
+      <span>185 EGP</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Brisket De Gallo Taco</span>
+        <div class="menu-item-description">2 soft or hard taco buns, lettuce, pico de gallo, chimichurri ranch sauce and cheese sauce</div>
+      </div>
+      <span>169 EGP</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Fries</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Buffalo Fries</span>
+        <div class="menu-item-description">French fries, buffalo chicken, cheese sauce and ranch sauce</div>
+      </div>
+      <span>120 - 185 EGP</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Chicken Daynamite Fries</span>
+        <div class="menu-item-description">Alumete fries, popcorn chicken, spicy cheetos, spicy cocktail sauce and ranch sauce</div>
+      </div>
+      <span>119 - 185 EGP</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Pablo Fries</span>
+        <div class="menu-item-description">French fries, pastrami, brisket, bacon, cilantro, cheese sauce, sriracha mayonnaise and chimichurri sauce</div>
+      </div>
+      <span>125 - 189 EGP</span>
+    </div>
+
+  <h2 style="margin-top: 30px;">Desserts</h2>
+
+    <div class="menu-item">
+      <div>
+        <span>Nutella Pancake</span>
+      </div>
+      <span>75 EGP</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Lotus Pancake</span>
+      </div>
+      <span>75 EGP</span>
+    </div>
+
+    <div class="menu-item">
+      <div>
+        <span>Game Boy</span>
+        <div class="menu-item-description">Ice cream, nutella, lotus, hazelnut and biscuits</div>
+      </div>
+      <span>140 EGP</span>
+    </div>
+  
+  <a href="https://www.instagram.com/pabloandabdo/?hl=en" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<!-- ENHANCED REVIEW SYSTEM -->
+<section class="section reviews" id="reviews-section">
+  <h2>Customer Reviews</h2>
+  
+  <!-- Reviews Stats -->
+  <div class="reviews-stats" id="reviewsStats">
+    <div class="reviews-loading">Loading reviews...</div>
+  </div>
+
+  <!-- Reviews List -->
+  <div class="reviews-container" id="reviewsList"></div>
+
+  <!-- Add Review Form -->
+  <div class="review-form-section">
+    <h3>Share Your Experience</h3>
+    <form id="review-form" style="display: none;">
+      <div class="rating-input">
+        <label>Your Rating:</label>
+        <div class="stars-rating">
+          <span class="star" data-rating="1">★</span>
+          <span class="star" data-rating="2">★</span>
+          <span class="star" data-rating="3">★</span>
+          <span class="star" data-rating="4">★</span>
+          <span class="star" data-rating="5">★</span>
+        </div>
+        <span class="rating-text" id="ratingText">Select your rating</span>
+      </div>
+      
+      <div class="comment-input">
+        <textarea 
+          id="review-comment" 
+          placeholder="Tell us about your experience... What did you like? What could be better?" 
+          rows="4" 
+          maxlength="500"
+        ></textarea>
+        <div class="char-count">
+          <span id="charCount">0</span>/500 characters
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn submit-review-btn">
+          <span class="btn-text">Submit Review</span>
+          <span class="btn-loading" style="display: none;">Posting...</span>
+        </button>
+        <button type="button" class="btn secondary cancel-edit-btn" style="display: none;">
+          Cancel Edit
+        </button>
+      </div>
+    </form>
+    
+    <div id="auth-prompt" class="auth-prompt">
+      <div class="auth-icon">🔐</div>
+      <p>Please <a href="../login.html" class="auth-link">sign in</a> to share your experience</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 Zo2y. All rights reserved.</p>
+  <p style="margin-top: 10px; font-size: 0.8rem;">Pablo & Abdo - Modern Diner Experience</p>
+  <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text-color-secondary);">Delivery Areas: Heliopolis, Madinaty</p>
+</footer>
+
+<script>
+// Theme Toggle
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme',theme);
+  if(themeToggle) themeToggle.textContent = theme==='dark'?'☀️ Light Mode':'🌙 Dark Mode';
+  localStorage.setItem('restaurant-theme',theme);
+}
+function toggleTheme(){
+  const current=document.documentElement.getAttribute('data-theme')||'light';
+  applyTheme(current==='light'?'dark':'light');
+}
+function initializeTheme(){
+  const saved=localStorage.getItem('restaurant-theme');
+  if(saved) applyTheme(saved);
+  else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+}
+if(themeToggle) themeToggle.addEventListener('click',toggleTheme);
+initializeTheme();
+</script>
 
 <script type="module">
 // Enhanced Review System
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const supabase = createClient("https://gfkhjbztayjyojsgdpgk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s");
-const restaurantId = 48;
+const restaurantId = 4; // Pablo & Abdo ID
 
 let currentUser = null;
 let currentRating = 0;
@@ -1131,13 +1506,10 @@ class RestaurantListManager {
         const path = window.location.pathname;
         const slug = path.split('/').pop().replace('.html', '');
         const slugToId = {
-            'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
-            'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
-            'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
-            'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
-            'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
-            'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
-            'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
+            'caizo': 1,
+            'tabali': 2,
+            'panda': 3,
+            'pablo': 4
         };
         return slugToId[slug] || null;
     }
@@ -1196,12 +1568,6 @@ class RestaurantListManager {
             existingDropdown.remove();
         }
 
-        // Remove existing styles if any
-        const existingStyles = document.querySelector('style[data-list-manager]');
-        if (existingStyles) {
-            existingStyles.remove();
-        }
-
         // Create the floating action button
         const fab = document.createElement('div');
         fab.className = 'list-manager-fab';
@@ -1213,340 +1579,6 @@ class RestaurantListManager {
             </div>
             <div class="fab-tooltip">Save to Lists</div>
         `;
-        
-        // Add FAB styles
-        const styles = `
-            .list-manager-fab {
-                position: fixed !important;
-                bottom: 30px !important;
-                right: 30px !important;
-                z-index: 10000 !important;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-            }
-            
-            .fab-main {
-                width: 60px !important;
-                height: 60px !important;
-                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-                border-radius: 50% !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                cursor: pointer !important;
-                box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                border: none !important;
-                color: white !important;
-                position: relative !important;
-                overflow: hidden !important;
-            }
-            
-            .fab-main::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                transition: left 0.5s;
-            }
-            
-            .fab-main:hover::before {
-                left: 100%;
-            }
-            
-            .fab-main:hover {
-                transform: scale(1.1) rotate(90deg) !important;
-                box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
-            }
-            
-            .fab-main:active {
-                transform: scale(0.95) !important;
-            }
-            
-            .fab-tooltip {
-                position: absolute !important;
-                bottom: 70px !important;
-                right: 0 !important;
-                background: #1e293b !important;
-                color: white !important;
-                padding: 8px 12px !important;
-                border-radius: 6px !important;
-                font-size: 12px !important;
-                font-weight: 500 !important;
-                white-space: nowrap !important;
-                opacity: 0 !important;
-                transform: translateY(10px) !important;
-                transition: all 0.3s ease !important;
-                pointer-events: none !important;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-            }
-            
-            .fab-main:hover + .fab-tooltip {
-                opacity: 1 !important;
-                transform: translateY(0) !important;
-            }
-            
-            .list-dropdown {
-                position: fixed;
-                bottom: 100px;
-                right: 30px;
-                background: #0f172a;
-                border: 1px solid #334155;
-                border-radius: 16px;
-                padding: 20px;
-                min-width: 320px;
-                max-width: 400px;
-                display: none;
-                z-index: 10000;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-                backdrop-filter: blur(20px);
-                transform-origin: bottom right;
-                animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            
-            @keyframes dropdownSlide {
-                from {
-                    opacity: 0;
-                    transform: scale(0.8) translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
-                }
-            }
-            
-            .list-dropdown.show {
-                display: block !important;
-            }
-            
-            .dropdown-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #334155;
-            }
-            
-            .dropdown-title {
-                font-size: 18px;
-                font-weight: 700;
-                color: #f59e0b;
-                margin: 0;
-            }
-            
-            .close-btn {
-                background: none;
-                border: none;
-                color: #64748b;
-                cursor: pointer;
-                padding: 8px;
-                border-radius: 8px;
-                transition: all 0.2s ease;
-            }
-            
-            .close-btn:hover {
-                background: #1e293b;
-                color: #f59e0b;
-            }
-            
-            .list-section {
-                margin-bottom: 20px;
-            }
-            
-            .list-section-title {
-                font-size: 11px;
-                color: #94a3b8;
-                text-transform: uppercase;
-                font-weight: 600;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .list-section-title::after {
-                content: '';
-                flex: 1;
-                height: 1px;
-                background: #334155;
-                margin-left: 8px;
-            }
-            
-            .list-item { 
-                display: flex; 
-                align-items: center; 
-                gap: 12px; 
-                padding: 12px 10px; 
-                cursor: pointer; 
-                border-radius: 10px;
-                transition: all 0.2s ease;
-                margin-bottom: 4px;
-            }
-            
-            .list-item:hover { 
-                background: rgba(245, 158, 11, 0.1); 
-                transform: translateX(4px);
-            }
-            
-            .list-checkbox { 
-                width: 20px; 
-                height: 20px; 
-                border: 2px solid #475569;
-                border-radius: 6px; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
-                flex-shrink: 0;
-                transition: all 0.2s ease;
-                position: relative;
-            }
-            
-            .list-checkbox.checked { 
-                background: #f59e0b; 
-                border-color: #f59e0b;
-                animation: checkPop 0.3s ease;
-            }
-            
-            @keyframes checkPop {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.2); }
-                100% { transform: scale(1); }
-            }
-            
-            .list-checkbox.checked::after { 
-                content: "✓"; 
-                color: #0f172a; 
-                font-size: 12px; 
-                font-weight: bold; 
-            }
-            
-            .list-item-text {
-                flex: 1;
-                font-size: 14px;
-                font-weight: 500;
-                color: #e2e8f0;
-            }
-            
-            .list-item:hover .list-item-text {
-                color: #f59e0b;
-            }
-            
-            .new-list-section {
-                border-top: 1px solid #334155;
-                padding-top: 20px;
-                margin-top: 15px;
-            }
-            
-            .new-list-input { 
-                width: 100%; 
-                padding: 12px 16px; 
-                background: #1e293b;
-                border: 1px solid #475569; 
-                border-radius: 10px; 
-                color: white; 
-                margin-bottom: 12px;
-                font-size: 14px;
-                transition: all 0.2s ease;
-            }
-            
-            .new-list-input:focus {
-                outline: none;
-                border-color: #f59e0b;
-                box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-            }
-            
-            .add-list-btn { 
-                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
-                color: #0f172a; 
-                border: none;
-                padding: 12px 20px; 
-                border-radius: 10px; 
-                cursor: pointer; 
-                font-weight: 600; 
-                width: 100%; 
-                font-size: 14px;
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-            }
-            
-            .add-list-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-            }
-            
-            .add-list-btn:active {
-                transform: translateY(0);
-            }
-            
-            .list-divider {
-                height: 1px;
-                background: linear-gradient(90deg, transparent, #334155, transparent);
-                margin: 16px 0;
-            }
-            
-            .empty-custom-lists {
-                text-align: center;
-                color: #64748b;
-                font-size: 13px;
-                padding: 20px;
-                font-style: italic;
-            }
-            
-            .auth-prompt {
-                text-align: center;
-                padding: 30px 20px;
-                color: #94a3b8;
-            }
-            
-            .auth-prompt .icon {
-                font-size: 48px;
-                margin-bottom: 12px;
-                opacity: 0.5;
-            }
-            
-            .auth-prompt .text {
-                font-size: 14px;
-                margin-bottom: 16px;
-            }
-            
-            .login-btn {
-                background: #f59e0b;
-                color: #0f172a;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            
-            .login-btn:hover {
-                background: #ffb84d;
-            }
-            
-            /* Pulse animation for new lists */
-            @keyframes pulseGlow {
-                0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-                70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-            }
-            
-            .pulse {
-                animation: pulseGlow 2s infinite;
-            }
-        `;
-        
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = styles;
-        styleSheet.setAttribute('data-list-manager', 'true');
-        document.head.appendChild(styleSheet);
         
         // Create dropdown
         const dropdown = document.createElement('div');
@@ -1834,3 +1866,5 @@ class RestaurantListManager {
     }
 }
 </script>
+</body>
+</html>
