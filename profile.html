@@ -481,6 +481,7 @@
             border: 1px solid var(--border);
             transition: var(--transition);
             margin-bottom: 16px;
+            cursor: pointer;
         }
 
         .journal-entry:hover {
@@ -649,6 +650,76 @@
             background: var(--accent);
             height: 100%;
             transition: width 0.5s ease;
+        }
+
+        /* === FOOD MAP STYLES === */
+        .map-container {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .map-visualization {
+            height: 400px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .map-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .map-point:hover {
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+
+        .map-point.visited {
+            background: var(--success);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+        }
+
+        .map-point.want-to-visit {
+            background: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+        }
+
+        .map-point.highly-rated {
+            background: var(--error);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 16px;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+        }
+
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .map-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
         }
 
         /* === MODALS === */
@@ -1126,12 +1197,10 @@
 
         /* === MOBILE-SPECIFIC STYLES === */
         @media (max-width: 768px) {
-            /* Container adjustments */
             .container {
                 padding: 0 16px;
             }
 
-            /* Profile header mobile optimization */
             .profile-header {
                 padding: 24px 0;
                 margin-bottom: 20px;
@@ -1187,7 +1256,6 @@
                 padding: 12px 16px;
             }
 
-            /* Stats grid mobile optimization */
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
@@ -1211,7 +1279,6 @@
                 font-size: 12px;
             }
 
-            /* Streak card mobile optimization */
             .streak-card {
                 flex-direction: column;
                 text-align: center;
@@ -1233,7 +1300,6 @@
                 max-width: 200px;
             }
 
-            /* Navigation tabs mobile optimization */
             .nav-tabs {
                 padding: 6px;
                 margin-bottom: 20px;
@@ -1244,7 +1310,6 @@
                 font-size: 14px;
             }
 
-            /* Section headers mobile optimization */
             .section-header {
                 flex-direction: column;
                 gap: 16px;
@@ -1258,7 +1323,6 @@
                 flex-wrap: wrap;
             }
 
-            /* Cards grid mobile optimization */
             .cards-grid {
                 grid-template-columns: 1fr;
                 gap: 16px;
@@ -1268,7 +1332,6 @@
                 margin-bottom: 0;
             }
 
-            /* Journal entries mobile optimization */
             .journal-entry {
                 padding: 20px;
             }
@@ -1307,13 +1370,11 @@
                 justify-content: center;
             }
 
-            /* Achievements grid mobile optimization */
             .achievements-grid {
                 grid-template-columns: 1fr;
                 gap: 16px;
             }
 
-            /* Follower cards mobile optimization */
             .follower-card {
                 padding: 16px;
             }
@@ -1338,7 +1399,6 @@
                 justify-content: center;
             }
 
-            /* Modals mobile optimization */
             .modal {
                 padding: 10px;
                 align-items: flex-end;
@@ -1366,7 +1426,6 @@
                 justify-content: center;
             }
 
-            /* Avatar selection grid mobile optimization */
             .avatar-icon-grid {
                 grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
                 gap: 10px;
@@ -1378,14 +1437,12 @@
                 font-size: 20px;
             }
 
-            /* List icon options mobile optimization */
             .list-icon-option {
                 width: 36px;
                 height: 36px;
                 font-size: 18px;
             }
 
-            /* Footer mobile optimization */
             .profile-footer {
                 padding: 30px 0;
                 margin-top: 40px;
@@ -1403,7 +1460,6 @@
                 gap: 16px;
             }
 
-            /* Toast notifications mobile optimization */
             .toast-container {
                 top: 10px;
                 right: 10px;
@@ -1414,7 +1470,6 @@
                 padding: 12px;
             }
 
-            /* Home button mobile optimization */
             .home-button {
                 width: 44px;
                 height: 44px;
@@ -1423,7 +1478,20 @@
                 left: 10px;
             }
 
-            /* Touch-friendly improvements */
+            .map-visualization {
+                height: 300px;
+            }
+
+            .map-legend {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .touch-friendly {
+                -webkit-tap-highlight-color: transparent;
+            }
+
             .btn, .nav-tab, .rating-star, .list-icon-option, .avatar-icon-option {
                 -webkit-tap-highlight-color: transparent;
             }
@@ -1437,13 +1505,11 @@
                 min-width: 44px;
             }
 
-            /* Improved scrolling */
             .nav-tabs, .modal-content {
                 -webkit-overflow-scrolling: touch;
             }
         }
 
-        /* Additional mobile optimizations for very small screens */
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -1479,56 +1545,6 @@
 
             .follower-actions .btn {
                 width: 100%;
-            }
-        }
-
-        /* === RESPONSIVE DESIGN (Original) === */
-        @media (max-width: 768px) {
-            .profile-top {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .profile-actions {
-                justify-content: center;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .streak-card {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .achievements-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .section-header {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .section-actions {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-
-            .footer-links {
-                flex-wrap: wrap;
-                justify-content: center;
             }
         }
     </style>
@@ -1651,6 +1667,9 @@
             <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
                 <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
             </div>
+            <div class="nav-tab" data-tab="map" onclick="showTab('map')">
+                <i class="fas fa-map"></i> Food Map
+            </div>
             <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
                 <i class="fas fa-trophy"></i> Achievements
             </div>
@@ -1767,6 +1786,88 @@
                                 <i class="fas fa-plus"></i> Create Your First List
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Food Map Tab Content -->
+        <div class="tab-content" id="map-tab">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Food Exploration Map</h2>
+                        <p class="section-subtitle">Track your culinary journey across locations</p>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" onclick="foodMap.toggleView()">
+                            <i class="fas fa-layer-group"></i> 
+                            <span id="mapViewToggle">List View</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="foodMap.filterByCuisine()">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Map Container -->
+                <div id="mapContainer" style="display: block;">
+                    <div class="map-container">
+                        <div id="foodMap" class="map-visualization">
+                            <div class="text-center">
+                                <div class="empty-icon">🗺️</div>
+                                <h3 class="empty-title">Interactive Food Map</h3>
+                                <p class="empty-description">Map view would show your visited restaurants geographically</p>
+                                <button class="btn btn-primary mt-md" onclick="foodMap.showSampleMap()">
+                                    <i class="fas fa-eye"></i> View Sample Map
+                                </button>
+                            </div>
+                        </div>
+                        <div class="map-legend">
+                            <div class="map-legend-item">
+                                <div class="map-legend-color" style="background: var(--success);"></div>
+                                <span>Visited</span>
+                            </div>
+                            <div class="map-legend-item">
+                                <div class="map-legend-color" style="background: var(--accent);"></div>
+                                <span>Want to Visit</span>
+                            </div>
+                            <div class="map-legend-item">
+                                <div class="map-legend-color" style="background: var(--error);"></div>
+                                <span>Highly Rated</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List View -->
+                <div id="mapListView" style="display: none;">
+                    <div class="cards-grid" id="mapRestaurantsList">
+                        <!-- Restaurants will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="stats-grid mt-lg">
+                    <div class="stat-card">
+                        <div class="stat-icon">📍</div>
+                        <div class="stat-number" id="citiesCount">0</div>
+                        <div class="stat-label">Cities Explored</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌍</div>
+                        <div class="stat-number" id="cuisinesCount">0</div>
+                        <div class="stat-label">Cuisines Tried</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🚶</div>
+                        <div class="stat-number" id="localPlacesCount">0</div>
+                        <div class="stat-label">Local Favorites</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✈️</div>
+                        <div class="stat-number" id="travelPlacesCount">0</div>
+                        <div class="stat-label">Travel Finds</div>
                     </div>
                 </div>
             </div>
@@ -2176,6 +2277,7 @@
         let journalFilter = 'all';
         let currentActiveList = null;
         let selectedAvatarIcon = null;
+        let currentEditingReview = null;
 
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -2242,6 +2344,7 @@
                 await followerSystem.init();
                 await foodJournal.init();
                 await achievementsSystem.init();
+                await foodMap.init();
                 
                 setupEventListeners();
                 if (isViewingOwnProfile) {
@@ -2627,16 +2730,18 @@
             return null;
         }
 
-        // Update stats
+        // Update stats - FIXED VERSION
         async function updateStats(userId = null) {
             const targetId = userId || currentUser.id;
             
             try {
-                // Get visited count from reviews
-                const { data: reviews } = await supabase
+                // Get visited count from reviews - FIXED: Count unique restaurants
+                const { data: reviews, error } = await supabase
                     .from('reviews')
                     .select('restaurant_id')
                     .eq('user_id', targetId);
+
+                if (error) throw error;
                     
                 const visitedCount = reviews ? new Set(reviews.map(r => r.restaurant_id)).size : 0;
                 
@@ -3154,301 +3259,578 @@
                 grid.appendChild(card);
             });
         }
-// Food Journal System - FIXED VERSION (No joins needed)
-const foodJournal = {
-    currentRestaurant: null,
-    swipedRestaurants: new Set(),
-    
-    async init() {
-        await this.loadJournalStats();
-        await this.loadJournalEntries();
-    },
-    
-    async loadJournalStats() {
-        const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
-        const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
-        
-        const streak = await this.calculateStreak();
-        setTextContent('streakCount', streak);
-    },
-    
-    async calculateStreak(userId = null) {
-        const targetId = userId || currentUser.id;
-        
-        try {
-            const { data: reviews, error } = await supabase
-                .from('reviews')
-                .select('created_at')
-                .eq('user_id', targetId)
-                .order('created_at', { ascending: false });
-            
-            if (error || !reviews || reviews.length === 0) return 0;
-            
-            let streak = 0;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            let currentDate = new Date(today);
-            
-            for (let i = 0; i < reviews.length; i++) {
-                const reviewDate = new Date(reviews[i].created_at);
-                reviewDate.setHours(0, 0, 0, 0);
-                
-                const diffTime = currentDate - reviewDate;
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) {
-                    // Same day, continue
-                    if (i === 0) streak = 1;
-                    continue;
-                } else if (diffDays === 1) {
-                    // Consecutive day
-                    streak++;
-                    currentDate = reviewDate;
-                } else {
-                    // Streak broken
-                    break;
-                }
-            }
-            
-            return streak;
-        } catch (error) {
-            console.error('Error calculating streak:', error);
-            return 0;
-        }
-    },
-    
-    async loadJournalEntries() {
-        const journalEntries = getElement('journalEntries');
-        if (!journalEntries) return;
-        
-        const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-        if (!targetId) return;
-        
-        try {
-            console.log('Loading reviews for user:', targetId);
-            
-            // Load reviews without the join
-            const { data: reviews, error } = await supabase
-                .from('reviews')
-                .select('*')
-                .eq('user_id', targetId)
-                .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error('Supabase error:', error);
-                throw error;
-            }
+        // Food Journal System - FIXED VERSION
+        const foodJournal = {
+            currentRestaurant: null,
+            swipedRestaurants: new Set(),
             
-            console.log('Reviews loaded:', reviews);
+            async init() {
+                await this.loadJournalStats();
+                await this.loadJournalEntries();
+            },
             
-            if (!reviews || reviews.length === 0) {
-                const emptyStateText = isViewingOwnProfile ? 
-                    'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
-                    'This user hasn\'t reviewed any restaurants yet.';
+            async loadJournalStats() {
+                const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
+                const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
                 
-                journalEntries.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <h3 class="empty-title">No Reviews Yet</h3>
-                        <p class="empty-description">${emptyStateText}</p>
-                        ${isViewingOwnProfile ? `
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                <i class="fas fa-utensils"></i> Browse Restaurants
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-                return;
-            }
+                const streak = await this.calculateStreak();
+                setTextContent('streakCount', streak);
+            },
             
-            journalEntries.innerHTML = '';
-            
-            // Filter entries if needed
-            let reviewsToShow = reviews;
-            if (journalFilter === 'recent') {
-                reviewsToShow = reviews.slice(0, 5);
-            } else if (journalFilter === 'favorites') {
-                reviewsToShow = reviews.filter(review => review.rating >= 4);
-            }
-            
-            for (const review of reviewsToShow) {
-                // Find restaurant data from our local restaurants array
-                const restaurant = restaurants.find(r => r.id === review.restaurant_id);
+            async calculateStreak(userId = null) {
+                const targetId = userId || currentUser.id;
                 
-                if (!restaurant) {
-                    console.warn('No restaurant data found for review:', review.id, 'restaurant_id:', review.restaurant_id);
-                    // Create a fallback restaurant object
-                    const fallbackRestaurant = {
-                        id: review.restaurant_id,
-                        name: 'Unknown Restaurant',
-                        category: 'Unknown',
-                        slug: 'unknown',
-                        image: null
-                    };
+                try {
+                    const { data: reviews, error } = await supabase
+                        .from('reviews')
+                        .select('created_at')
+                        .eq('user_id', targetId)
+                        .order('created_at', { ascending: false });
                     
-                    this.renderReviewEntry(review, fallbackRestaurant);
-                    continue;
+                    if (error || !reviews || reviews.length === 0) return 0;
+                    
+                    let streak = 0;
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let currentDate = new Date(today);
+                    
+                    for (let i = 0; i < reviews.length; i++) {
+                        const reviewDate = new Date(reviews[i].created_at);
+                        reviewDate.setHours(0, 0, 0, 0);
+                        
+                        const diffTime = currentDate - reviewDate;
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays === 0) {
+                            // Same day, continue
+                            if (i === 0) streak = 1;
+                            continue;
+                        } else if (diffDays === 1) {
+                            // Consecutive day
+                            streak++;
+                            currentDate = reviewDate;
+                        } else {
+                            // Streak broken
+                            break;
+                        }
+                    }
+                    
+                    return streak;
+                } catch (error) {
+                    console.error('Error calculating streak:', error);
+                    return 0;
                 }
-                
-                this.renderReviewEntry(review, restaurant);
-            }
+            },
             
-        } catch (error) {
-            console.error('Error loading reviews:', error);
-            // Show a more helpful error message
-            journalEntries.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">⚠️</div>
-                    <h3 class="empty-title">Unable to Load Reviews</h3>
-                    <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
+            async loadJournalEntries() {
+                const journalEntries = getElement('journalEntries');
+                if (!journalEntries) return;
+                
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+                
+                try {
+                    console.log('Loading reviews for user:', targetId);
+                    
+                    // Load reviews without the join
+                    const { data: reviews, error } = await supabase
+                        .from('reviews')
+                        .select('*')
+                        .eq('user_id', targetId)
+                        .order('created_at', { ascending: false });
+
+                    if (error) {
+                        console.error('Supabase error:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Reviews loaded:', reviews);
+                    
+                    if (!reviews || reviews.length === 0) {
+                        const emptyStateText = isViewingOwnProfile ? 
+                            'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
+                            'This user hasn\'t reviewed any restaurants yet.';
+                        
+                        journalEntries.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📝</div>
+                                <h3 class="empty-title">No Reviews Yet</h3>
+                                <p class="empty-description">${emptyStateText}</p>
+                                ${isViewingOwnProfile ? `
+                                    <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                        <i class="fas fa-utensils"></i> Browse Restaurants
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    journalEntries.innerHTML = '';
+                    
+                    // Filter entries if needed
+                    let reviewsToShow = reviews;
+                    if (journalFilter === 'recent') {
+                        reviewsToShow = reviews.slice(0, 5);
+                    } else if (journalFilter === 'favorites') {
+                        reviewsToShow = reviews.filter(review => review.rating >= 4);
+                    }
+                    
+                    for (const review of reviewsToShow) {
+                        // Find restaurant data from our local restaurants array
+                        const restaurant = restaurants.find(r => r.id === review.restaurant_id);
+                        
+                        if (!restaurant) {
+                            console.warn('No restaurant data found for review:', review.id, 'restaurant_id:', review.restaurant_id);
+                            // Create a fallback restaurant object
+                            const fallbackRestaurant = {
+                                id: review.restaurant_id,
+                                name: 'Unknown Restaurant',
+                                category: 'Unknown',
+                                slug: 'unknown',
+                                image: null
+                            };
+                            
+                            this.renderReviewEntry(review, fallbackRestaurant);
+                            continue;
+                        }
+                        
+                        this.renderReviewEntry(review, restaurant);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading reviews:', error);
+                    // Show a more helpful error message
+                    journalEntries.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Unable to Load Reviews</h3>
+                            <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
+                            ${isViewingOwnProfile ? `
+                                <div class="d-flex gap-sm justify-center mt-md">
+                                    <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                                        <i class="fas fa-utensils"></i> Browse Restaurants
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="foodJournal.loadJournalEntries()">
+                                        <i class="fas fa-refresh"></i> Try Again
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            },
+            
+            renderReviewEntry(review, restaurant) {
+                const journalEntries = getElement('journalEntries');
+                const entryElement = document.createElement('div');
+                entryElement.className = 'journal-entry';
+                
+                // Make the entire entry clickable
+                entryElement.style.cursor = 'pointer';
+                entryElement.onclick = () => this.editReviewEntry(review, restaurant);
+                
+                // Create restaurant link
+                const restaurantLink = restaurant.slug && restaurant.slug !== 'unknown' ? 
+                    `cards/${restaurant.slug}.html` : 
+                    'javascript:void(0)';
+                
+                const restaurantImage = restaurant.image ? 
+                    `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                    `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                
+                entryElement.innerHTML = `
+                    <div class="entry-header">
+                        <div class="restaurant-info">
+                            <div class="restaurant-image">
+                                <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
+                                    ${restaurantImage}
+                                </a>
+                            </div>
+                            <div class="restaurant-details">
+                                <h3>
+                                    <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
+                                        ${restaurant.name}
+                                    </a>
+                                </h3>
+                                <div class="restaurant-category">${restaurant.category}</div>
+                            </div>
+                        </div>
+                        <div class="entry-rating">
+                            ${'⭐'.repeat(Math.floor(review.rating))}
+                            <span>${review.rating}/5</span>
+                        </div>
+                    </div>
+                    <div class="entry-meta">
+                        <div class="meta-badge">
+                            <i class="fas fa-calendar"></i>
+                            ${formatDate(review.created_at)}
+                        </div>
+                        <div class="meta-badge">
+                            <i class="fas fa-utensils"></i>
+                            ${restaurant.category}
+                        </div>
+                        <div class="meta-badge">
+                            <i class="fas fa-star"></i>
+                            ${review.rating}/5
+                        </div>
+                    </div>
+                    <div class="entry-notes">${review.comment || 'No review text provided'}</div>
                     ${isViewingOwnProfile ? `
-                        <div class="d-flex gap-sm justify-center mt-md">
-                            <button class="btn btn-primary" onclick="window.location.href='index.html'">
-                                <i class="fas fa-utensils"></i> Browse Restaurants
+                        <div class="entry-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editReviewEntry(${JSON.stringify(review).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-secondary" onclick="foodJournal.loadJournalEntries()">
-                                <i class="fas fa-refresh"></i> Try Again
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); shareReview(${review.id})">
+                                <i class="fas fa-share"></i> Share
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); addToFavorites(${restaurant.id})">
+                                <i class="fas fa-heart"></i> Favorite
                             </button>
                         </div>
                     ` : ''}
-                </div>
-            `;
-        }
-    },
-    
-    renderReviewEntry(review, restaurant) {
-        const journalEntries = getElement('journalEntries');
-        const entryElement = document.createElement('div');
-        entryElement.className = 'journal-entry';
-        
-        // Create restaurant link - if we don't have a slug, don't make it clickable
-        const restaurantLink = restaurant.slug && restaurant.slug !== 'unknown' ? 
-            `cards/${restaurant.slug}.html` : 
-            'javascript:void(0)';
-        
-        const restaurantImage = restaurant.image ? 
-            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
-        
-        entryElement.innerHTML = `
-            <div class="entry-header">
-                <div class="restaurant-info">
-                    <div class="restaurant-image">
-                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="return false;"' : ''}>
-                            ${restaurantImage}
-                        </a>
-                    </div>
-                    <div class="restaurant-details">
-                        <h3>
-                            <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="return false;"' : ''}>
-                                ${restaurant.name}
-                            </a>
-                        </h3>
-                        <div class="restaurant-category">${restaurant.category}</div>
-                    </div>
-                </div>
-                <div class="entry-rating">
-                    ${'⭐'.repeat(Math.floor(review.rating))}
-                    <span>${review.rating}/5</span>
-                </div>
-            </div>
-            <div class="entry-meta">
-                <div class="meta-badge">
-                    <i class="fas fa-calendar"></i>
-                    ${formatDate(review.created_at)}
-                </div>
-                <div class="meta-badge">
-                    <i class="fas fa-utensils"></i>
-                    ${restaurant.category}
-                </div>
-                <div class="meta-badge">
-                    <i class="fas fa-star"></i>
-                    ${review.rating}/5
-                </div>
-            </div>
-            <div class="entry-notes">${review.comment || 'No review text provided'}</div>
-            ${isViewingOwnProfile ? `
-                <div class="entry-actions">
-                    <button class="btn btn-secondary btn-sm" onclick="editReview(${review.id})">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="shareReview(${review.id})">
-                        <i class="fas fa-share"></i> Share
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="addToFavorites(${restaurant.id})">
-                        <i class="fas fa-heart"></i> Favorite
-                    </button>
-                </div>
-            ` : ''}
-        `;
-        journalEntries.appendChild(entryElement);
-    },
-    
-    setRating(stars) {
-        const starsElements = document.querySelectorAll('#ratingStars span');
-        starsElements.forEach((star, index) => {
-            if (index < stars) {
-                star.classList.add('active');
-            } else {
-                star.classList.remove('active');
-            }
-        });
-        
-        const selectedRating = getElement('selectedRating');
-        if (selectedRating) selectedRating.value = stars;
-    },
-    
-    async saveJournalEntry() {
-        const restaurantId = parseInt(getElement('restaurantSelect')?.value);
-        const visitDate = getElement('visitDate')?.value;
-        const rating = parseInt(getElement('selectedRating')?.value || '0');
-        const notes = getElement('visitNotes')?.value || '';
-        const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
-        
-        if (!restaurantId || !visitDate || rating === 0) {
-            showToast('Please fill in all required fields', 'error');
-            return;
-        }
-        
-        try {
-            // Add to visited list
-            await listManager.toggleInList('visited', restaurantId);
+                `;
+                journalEntries.appendChild(entryElement);
+            },
             
-            // Save journal entry
-            const { error } = await supabase
-                .from('journal_entries')
-                .insert({
-                    user_id: currentUser.id,
-                    restaurant_id: restaurantId,
-                    visit_date: visitDate,
-                    rating: rating,
-                    notes: notes,
-                    tags: tags.join(','),
-                    created_at: new Date().toISOString()
+            // Add this new function to edit reviews
+            async editReviewEntry(review, restaurant) {
+                if (!isViewingOwnProfile) {
+                    // If viewing someone else's profile, just show the review
+                    this.showReviewDetail(review, restaurant);
+                    return;
+                }
+
+                // Pre-populate the edit form
+                const restaurantSelect = getElement('restaurantSelect');
+                const visitDate = getElement('visitDate');
+                const visitNotes = getElement('visitNotes');
+                const visitTags = getElement('visitTags');
+                
+                if (restaurantSelect) restaurantSelect.value = review.restaurant_id;
+                if (visitDate) visitDate.value = review.visit_date || review.created_at.split('T')[0];
+                if (visitNotes) visitNotes.value = review.comment || '';
+                if (visitTags) visitTags.value = review.tags || '';
+                
+                // Set rating
+                this.setRating(review.rating);
+                
+                // Store the review ID for updating
+                currentEditingReview = review.id;
+                
+                // Change modal title and button
+                const modalTitle = document.querySelector('#addEntryModal .modal-title');
+                const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+                
+                if (modalTitle) modalTitle.textContent = 'Edit Review';
+                if (submitButton) submitButton.textContent = 'Update Review';
+                
+                showModal('addEntryModal');
+            },
+
+            // Function to show review details (for non-owners)
+            showReviewDetail(review, restaurant) {
+                const modal = document.createElement('div');
+                modal.className = 'modal active';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">${restaurant.name} Review</h3>
+                            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="entry-header">
+                                <div class="restaurant-info">
+                                    <div class="restaurant-image">
+                                        ${restaurant.image ? 
+                                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">` : 
+                                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`
+                                        }
+                                    </div>
+                                    <div class="restaurant-details">
+                                        <h3>${restaurant.name}</h3>
+                                        <div class="restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="entry-rating">
+                                    ${'⭐'.repeat(Math.floor(review.rating))}
+                                    <span>${review.rating}/5</span>
+                                </div>
+                            </div>
+                            <div class="entry-meta">
+                                <div class="meta-badge">
+                                    <i class="fas fa-calendar"></i>
+                                    ${formatDate(review.created_at)}
+                                </div>
+                                <div class="meta-badge">
+                                    <i class="fas fa-utensils"></i>
+                                    ${restaurant.category}
+                                </div>
+                            </div>
+                            <div class="entry-notes">
+                                <h4>Review</h4>
+                                <p>${review.comment || 'No review text provided'}</p>
+                            </div>
+                            ${review.tags ? `
+                                <div class="entry-tags">
+                                    ${review.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
                 });
+            },
             
-            if (error) throw error;
+            setRating(stars) {
+                const starsElements = document.querySelectorAll('#ratingStars span');
+                starsElements.forEach((star, index) => {
+                    if (index < stars) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+                
+                const selectedRating = getElement('selectedRating');
+                if (selectedRating) selectedRating.value = stars;
+            },
             
-            const restaurant = restaurants.find(r => r.id === restaurantId);
-            showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
-            closeModal('addEntryModal');
+            async saveJournalEntry() {
+                const restaurantId = parseInt(getElement('restaurantSelect')?.value);
+                const visitDate = getElement('visitDate')?.value;
+                const rating = parseInt(getElement('selectedRating')?.value || '0');
+                const notes = getElement('visitNotes')?.value || '';
+                const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
+                
+                if (!restaurantId || !visitDate || rating === 0) {
+                    showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+                
+                try {
+                    // Check if we're editing an existing review
+                    if (currentEditingReview) {
+                        // Update existing review
+                        const { error } = await supabase
+                            .from('reviews')
+                            .update({
+                                restaurant_id: restaurantId,
+                                visit_date: visitDate,
+                                rating: rating,
+                                comment: notes,
+                                tags: tags.join(','),
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', currentEditingReview);
+                        
+                        if (error) throw error;
+                        
+                        showToast('Review updated successfully!', 'success');
+                        currentEditingReview = null;
+                        
+                    } else {
+                        // Create new review
+                        const { error } = await supabase
+                            .from('reviews')
+                            .insert({
+                                user_id: currentUser.id,
+                                restaurant_id: restaurantId,
+                                visit_date: visitDate,
+                                rating: rating,
+                                comment: notes,
+                                tags: tags.join(','),
+                                created_at: new Date().toISOString()
+                            });
+                        
+                        if (error) throw error;
+                        
+                        // Add to visited list
+                        await listManager.toggleInList('visited', restaurantId);
+                        
+                        const restaurant = restaurants.find(r => r.id === restaurantId);
+                        showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
+                    }
+                    
+                    closeModal('addEntryModal');
+                    
+                    // Reset form
+                    const form = getElement('journalEntryForm');
+                    if (form) form.reset();
+                    this.setRating(0);
+                    
+                    // Reset modal title and button
+                    const modalTitle = document.querySelector('#addEntryModal .modal-title');
+                    const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+                    
+                    if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
+                    if (submitButton) submitButton.textContent = 'Save Entry';
+                    
+                    // Reload journal entries
+                    await this.loadJournalEntries();
+                    await updateStats();
+                    
+                } catch (error) {
+                    console.error('Error saving journal entry:', error);
+                    showToast('Error saving journal entry', 'error');
+                }
+            }
+        };
+
+        // Food Map System
+        const foodMap = {
+            isMapView: true,
+            visitedRestaurants: new Set(),
             
-            // Reset form
-            const form = getElement('journalEntryForm');
-            if (form) form.reset();
-            this.setRating(0);
+            async init() {
+                await this.loadVisitedRestaurants();
+                this.updateMapStats();
+                this.renderListView();
+            },
             
-            // Reload journal entries
-            await this.loadJournalEntries();
-            await updateStats();
+            async loadVisitedRestaurants() {
+                try {
+                    const { data: reviews, error } = await supabase
+                        .from('reviews')
+                        .select('restaurant_id')
+                        .eq('user_id', currentUser.id);
+                        
+                    if (!error && reviews) {
+                        this.visitedRestaurants = new Set(reviews.map(r => r.restaurant_id));
+                    }
+                } catch (error) {
+                    console.error('Error loading visited restaurants:', error);
+                }
+            },
             
-        } catch (error) {
-            console.error('Error saving journal entry:', error);
-            showToast('Error saving journal entry', 'error');
-        }
-    }
-};
+            toggleView() {
+                this.isMapView = !this.isMapView;
+                
+                const mapContainer = getElement('mapContainer');
+                const listView = getElement('mapListView');
+                const toggleButton = getElement('mapViewToggle');
+                
+                if (mapContainer) mapContainer.style.display = this.isMapView ? 'block' : 'none';
+                if (listView) listView.style.display = this.isMapView ? 'none' : 'block';
+                if (toggleButton) toggleButton.textContent = this.isMapView ? 'List View' : 'Map View';
+                
+                if (!this.isMapView) {
+                    this.renderListView();
+                }
+            },
+            
+            renderListView() {
+                const container = getElement('mapRestaurantsList');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                // Get visited restaurants with details
+                const visitedWithDetails = restaurants.filter(r => this.visitedRestaurants.has(r.id));
+                
+                if (visitedWithDetails.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state w-100">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Visited Restaurants Yet</h3>
+                            <p class="empty-description">Start reviewing restaurants to build your food map!</p>
+                            <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                                <i class="fas fa-plus"></i> Add Your First Review
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                visitedWithDetails.forEach(restaurant => {
+                    const card = document.createElement('div');
+                    card.className = 'restaurant-tile';
+                    card.innerHTML = `
+                        <div class="restaurant-tile-image">
+                            ${restaurant.image ? 
+                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">` : 
+                                `<div style="width: 100%; height: 100%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #0b1633; font-size: 24px;">🍽️</div>`
+                            }
+                        </div>
+                        <div class="restaurant-tile-content">
+                            <div class="restaurant-tile-name">${restaurant.name}</div>
+                            <div class="restaurant-tile-category">${restaurant.category}</div>
+                            <div class="restaurant-tile-rating">⭐ ${restaurant.rating}</div>
+                            <div class="restaurant-tile-description">${restaurant.description || 'No description available'}</div>
+                            <div class="d-flex gap-sm mt-md">
+                                <span class="tag">Visited</span>
+                                <span class="tag">${restaurant.category}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Make card clickable
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => {
+                        window.location.href = `cards/${restaurant.slug}.html`;
+                    };
+                    
+                    container.appendChild(card);
+                });
+            },
+            
+            updateMapStats() {
+                // Calculate stats for the map overview
+                const visitedCount = this.visitedRestaurants.size;
+                const uniqueCuisines = new Set(restaurants.filter(r => this.visitedRestaurants.has(r.id)).map(r => r.category));
+                const citiesCount = Math.min(visitedCount, 5); // Mock data - in real app, you'd have actual city data
+                
+                setTextContent('citiesCount', citiesCount);
+                setTextContent('cuisinesCount', uniqueCuisines.size);
+                setTextContent('localPlacesCount', Math.floor(visitedCount * 0.7)); // Mock data
+                setTextContent('travelPlacesCount', Math.floor(visitedCount * 0.3)); // Mock data
+            },
+            
+            showSampleMap() {
+                // In a real implementation, this would show an interactive map
+                // For now, we'll show a sample visualization
+                const mapElement = getElement('foodMap');
+                if (!mapElement) return;
+                
+                mapElement.innerHTML = `
+                    <div class="text-center p-xl">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🗺️</div>
+                        <h3 style="margin-bottom: 8px;">Interactive Food Map</h3>
+                        <p style="color: var(--muted); margin-bottom: 24px;">This would display an interactive map showing all your visited restaurants</p>
+                        <div style="display: inline-block; background: var(--card); padding: 20px; border-radius: var(--radius); border: 1px solid var(--border);">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+                                ${Array.from({length: 9}, (_, i) => 
+                                    `<div class="map-point ${i % 3 === 0 ? 'visited' : i % 3 === 1 ? 'want-to-visit' : 'highly-rated'}" style="left: ${30 + (i % 3) * 20}%; top: ${30 + Math.floor(i / 3) * 20}%;"></div>`
+                                ).join('')}
+                            </div>
+                            <p style="font-size: 14px; color: var(--muted);">Sample restaurant locations on map</p>
+                        </div>
+                        <button class="btn btn-secondary mt-md" onclick="foodMap.showListView()">
+                            <i class="fas fa-list"></i> Switch to List View
+                        </button>
+                    </div>
+                `;
+            },
+            
+            showListView() {
+                this.isMapView = false;
+                this.toggleView();
+            },
+            
+            filterByCuisine() {
+                showToast('Filter functionality would open cuisine selection', 'info');
+                // In real implementation, this would filter the map/list by cuisine type
+            }
+        };
 
         // Follower System
         const followerSystem = {
@@ -4146,6 +4528,8 @@ const foodJournal = {
                 foodJournal.loadJournalEntries();
             } else if (tabName === 'achievements') {
                 achievementsSystem.loadAchievements();
+            } else if (tabName === 'map') {
+                foodMap.init();
             }
         }
 
