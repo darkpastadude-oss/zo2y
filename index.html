@@ -11,6 +11,7 @@
             --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); --shadow: rgba(0,0,0,0.3);
             --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
             --gradient-subtle: linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(255,184,77,0.1) 100%);
+            --success: #10b981; --error: #ef4444; --info: #3b82f6;
         }
         *{box-sizing:border-box; margin:0; padding:0;} 
         html,body{height:100%} 
@@ -849,6 +850,48 @@
             display: none !important;
         }
 
+        /* Custom Notification */
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            max-width: 400px;
+            transform: translateX(120%);
+            transition: transform 0.4s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+        }
+        
+        .notification-success {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+        
+        .notification-error {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+        
+        .notification-info {
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+        }
+        
+        .notification-show {
+            transform: translateX(0);
+        }
+        
+        .notification-icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .hero-inner {
@@ -1089,6 +1132,12 @@
         </div>
     </footer>
 
+    <!-- Custom Notification -->
+    <div id="customNotification" class="custom-notification">
+        <i class="notification-icon"></i>
+        <span class="notification-message"></span>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     (function(){
@@ -1234,6 +1283,171 @@
         });
       }
 
+      // ---------- LIST MANAGEMENT SYSTEM ----------
+      const listManager = {
+        userLists: [],
+        currentLists: {
+          favorites: null,
+          visited: null,
+          wantToGo: null
+        },
+        
+        async init() { 
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) return;
+          
+          await this.loadUserLists();
+          this.updateListCounts();
+        },
+        
+        async loadUserLists() {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: lists, error } = await supabase
+              .from('lists')
+              .select('*')
+              .eq('user_id', user.id);
+            
+            if (error) throw error;
+            
+            this.userLists = lists || [];
+            await this.setupDefaultLists();
+            await this.loadListRestaurants();
+            
+          } catch (error) {
+            console.error('Error loading lists:', error);
+          }
+        },
+        
+        async setupDefaultLists() {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+          this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+          this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+          
+          if (!this.currentLists.favorites) {
+            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+          }
+          if (!this.currentLists.visited) {
+            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+          }
+          if (!this.currentLists.wantToGo) {
+            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+          }
+        },
+        
+        async createList(title, description) {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          const { data: newList, error } = await supabase
+            .from('lists')
+            .insert([
+              {
+                user_id: user.id,
+                title: title,
+                description: description
+              }
+            ])
+            .select()
+            .single();
+          
+          if (error) {
+            console.error('Error creating list:', error);
+            return null;
+          }
+          
+          this.userLists.push(newList);
+          return newList;
+        },
+        
+        async loadListRestaurants() {
+          for (const listType in this.currentLists) {
+            const list = this.currentLists[listType];
+            if (list) {
+              const { data: listRestaurants, error } = await supabase
+                .from('lists_restraunts')
+                .select('restraunt_id')
+                .eq('list_id', list.id);
+              
+              if (!error && listRestaurants) {
+                list.restaurants = listRestaurants.map(item => item.restraunt_id);
+              } else {
+                list.restaurants = [];
+              }
+            }
+          }
+        },
+        
+        updateListCounts() {
+          if (this.currentLists.favorites) {
+            document.getElementById('favoritesCount').textContent = this.currentLists.favorites.restaurants?.length || 0;
+          }
+          if (this.currentLists.visited) {
+            document.getElementById('visitedCount').textContent = this.currentLists.visited.restaurants?.length || 0;
+          }
+          if (this.currentLists.wantToGo) {
+            document.getElementById('wantToGoCount').textContent = this.currentLists.wantToGo.restaurants?.length || 0;
+          }
+        },
+        
+        async toggleInList(listType, restaurantId) {
+          const list = this.currentLists[listType];
+          if (!list) return false;
+          
+          const isInList = list.restaurants?.includes(restaurantId);
+          
+          try {
+            if (isInList) {
+              const { error } = await supabase
+                .from('lists_restraunts')
+                .delete()
+                .match({
+                  list_id: list.id,
+                  restraunt_id: restaurantId
+                });
+              
+              if (error) throw error;
+              
+              list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+              showNotification(`Removed from ${list.title}`, "info");
+              
+            } else {
+              const { error } = await supabase
+                .from('lists_restraunts')
+                .insert([
+                  {
+                    list_id: list.id,
+                    restraunt_id: restaurantId,
+                    added_at: new Date().toISOString()
+                  }
+                ]);
+              
+              if (error) throw error;
+              
+              if (!list.restaurants) list.restaurants = [];
+              list.restaurants.push(restaurantId);
+              showNotification(`Added to ${list.title}`, "success");
+            }
+            
+            this.updateListCounts();
+            return !isInList;
+            
+          } catch (error) {
+            console.error('Error updating list:', error);
+            showNotification('Error saving changes', 'error');
+            return isInList;
+          }
+        },
+        
+        isInList(listType, restaurantId) {
+          const list = this.currentLists[listType];
+          return list?.restaurants?.includes(restaurantId) || false;
+        }
+      };
+
       // ---------- CARD CREATION ----------
       const featuredSlider = document.getElementById('featuredSlider');
       const trendingSlider = document.getElementById('trendingSlider');
@@ -1269,6 +1483,19 @@
         
         el.appendChild(clickableContent);
         
+        // Add list buttons for logged-in users
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const listActions = document.createElement('div');
+          listActions.className = 'list-actions';
+          listActions.innerHTML = `
+            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
+            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+          `;
+          el.appendChild(listActions);
+        }
+        
         return el;
       }
 
@@ -1286,6 +1513,33 @@
             const trendingCard = makeCard(r);
             trendingSlider.appendChild(trendingCard); 
           }
+        });
+
+        // Add event listeners for list buttons
+        document.querySelectorAll('.list-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault(); 
+            e.stopPropagation();
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
+            btn.classList.toggle('active', wasAdded);
+          });
+        });
+
+        // Touch support
+        document.querySelectorAll('.list-btn').forEach(btn => {
+          btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          });
+          
+          btn.addEventListener('touchend', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
+            btn.classList.toggle('active', wasAdded);
+          });
         });
       }
 
@@ -1368,9 +1622,34 @@
         else nav.classList.remove('scrolled'); 
       });
 
+      // Custom notification function
+      function showNotification(message, type = "info") {
+        const notification = document.getElementById("customNotification");
+        const icon = notification.querySelector(".notification-icon");
+        const messageEl = notification.querySelector(".notification-message");
+        
+        messageEl.textContent = message;
+        notification.className = `custom-notification notification-${type}`;
+        
+        if (type === "success") {
+          icon.className = "notification-icon fas fa-check-circle";
+        } else if (type === "error") {
+          icon.className = "notification-icon fas fa-exclamation-circle";
+        } else {
+          icon.className = "notification-icon fas fa-info-circle";
+        }
+        
+        notification.classList.add("notification-show");
+        
+        setTimeout(() => {
+          notification.classList.remove("notification-show");
+        }, 2500);
+      }
+
       // Initialize everything
       document.addEventListener('DOMContentLoaded', function() {
         updateAuthUI();
+        listManager.init();
         calculateStats();
         initCards();
         initSpotlight();
