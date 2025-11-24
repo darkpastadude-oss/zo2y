@@ -1297,7 +1297,6 @@
           if (!session) return;
           
           await this.loadUserLists();
-          this.updateListCounts();
         },
         
         async loadUserLists() {
@@ -1381,18 +1380,6 @@
           }
         },
         
-        updateListCounts() {
-          if (this.currentLists.favorites) {
-            document.getElementById('favoritesCount').textContent = this.currentLists.favorites.restaurants?.length || 0;
-          }
-          if (this.currentLists.visited) {
-            document.getElementById('visitedCount').textContent = this.currentLists.visited.restaurants?.length || 0;
-          }
-          if (this.currentLists.wantToGo) {
-            document.getElementById('wantToGoCount').textContent = this.currentLists.wantToGo.restaurants?.length || 0;
-          }
-        },
-        
         async toggleInList(listType, restaurantId) {
           const list = this.currentLists[listType];
           if (!list) return false;
@@ -1432,7 +1419,6 @@
               showNotification(`Added to ${list.title}`, "success");
             }
             
-            this.updateListCounts();
             return !isInList;
             
           } catch (error) {
@@ -1483,35 +1469,32 @@
         
         el.appendChild(clickableContent);
         
-        // Add list buttons for logged-in users
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const listActions = document.createElement('div');
-          listActions.className = 'list-actions';
-          listActions.innerHTML = `
-            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
-            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
-            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
-          `;
-          el.appendChild(listActions);
-        }
-        
         return el;
       }
 
-      function initCards(){
-        featuredSlider.innerHTML = ''; 
-        trendingSlider.innerHTML = '';
+      async function addListButtonsToCards() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         
-        // Add all restaurants to featured
-        restaurants.forEach(r => { 
-          const card = makeCard(r);
-          featuredSlider.appendChild(card); 
+        // Add list buttons to all cards
+        document.querySelectorAll('.card').forEach(card => {
+          // Check if list buttons already exist
+          if (card.querySelector('.list-actions')) return;
           
-          // Add high-rated restaurants to trending
-          if (r.rating >= 4.5) {
-            const trendingCard = makeCard(r);
-            trendingSlider.appendChild(trendingCard); 
+          const listActions = document.createElement('div');
+          listActions.className = 'list-actions';
+          
+          // Find the restaurant ID from the card
+          const restaurantName = card.querySelector('h3').textContent;
+          const restaurant = restaurants.find(r => r.name === restaurantName);
+          
+          if (restaurant) {
+            listActions.innerHTML = `
+              <button class="list-btn favorite ${listManager.isInList('favorites', restaurant.id) ? 'active' : ''}" data-id="${restaurant.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+              <button class="list-btn want-to-go ${listManager.isInList('wantToGo', restaurant.id) ? 'active' : ''}" data-id="${restaurant.id}" data-list="wantToGo" title="Want to Go">📍</button>
+              <button class="list-btn visited ${listManager.isInList('visited', restaurant.id) ? 'active' : ''}" data-id="${restaurant.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+            `;
+            card.appendChild(listActions);
           }
         });
 
@@ -1541,6 +1524,26 @@
             btn.classList.toggle('active', wasAdded);
           });
         });
+      }
+
+      function initCards(){
+        featuredSlider.innerHTML = ''; 
+        trendingSlider.innerHTML = '';
+        
+        // Add all restaurants to featured
+        restaurants.forEach(r => { 
+          const card = makeCard(r);
+          featuredSlider.appendChild(card); 
+          
+          // Add high-rated restaurants to trending
+          if (r.rating >= 4.5) {
+            const trendingCard = makeCard(r);
+            trendingSlider.appendChild(trendingCard); 
+          }
+        });
+
+        // Add list buttons after cards are created
+        addListButtonsToCards();
       }
 
       // ---------- OTHER UI FUNCTIONS ----------
@@ -1647,9 +1650,9 @@
       }
 
       // Initialize everything
-      document.addEventListener('DOMContentLoaded', function() {
-        updateAuthUI();
-        listManager.init();
+      document.addEventListener('DOMContentLoaded', async function() {
+        await updateAuthUI();
+        await listManager.init();
         calculateStats();
         initCards();
         initSpotlight();
