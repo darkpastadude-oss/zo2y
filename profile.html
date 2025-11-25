@@ -348,42 +348,6 @@
             font-weight: 500;
         }
 
-        /* === STREAK CARD === */
-        .streak-card {
-            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
-            color: #0b1633;
-            padding: 24px;
-            border-radius: var(--radius);
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .streak-icon {
-            font-size: 40px;
-        }
-
-        .streak-content {
-            flex: 1;
-        }
-
-        .streak-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .streak-description {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .streak-actions {
-            display: flex;
-            gap: 12px;
-        }
-
         /* === NAVIGATION TABS === */
         .nav-tabs {
             display: flex;
@@ -1312,27 +1276,6 @@
                 font-size: 12px;
             }
 
-            .streak-card {
-                flex-direction: column;
-                text-align: center;
-                padding: 20px;
-                gap: 16px;
-            }
-
-            .streak-icon {
-                font-size: 36px;
-            }
-
-            .streak-actions {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .streak-actions .btn {
-                flex: 1;
-                max-width: 200px;
-            }
-
             .nav-tabs {
                 padding: 6px;
                 margin-bottom: 20px;
@@ -1668,20 +1611,6 @@
                 <div class="stat-icon">🔥</div>
                 <div class="stat-number" id="streakCount">0</div>
                 <div class="stat-label">Day Streak</div>
-            </div>
-        </div>
-
-        <!-- Streak Card -->
-        <div class="streak-card">
-            <div class="streak-icon">🔥</div>
-            <div class="streak-content">
-                <div class="streak-title" id="streakTitle">Start Your Food Journey!</div>
-                <div class="streak-description" id="streakDescription">Add your first restaurant visit to start building your streak</div>
-            </div>
-            <div class="streak-actions">
-                <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="viewProgress()">
-                    View Progress
-                </button>
             </div>
         </div>
 
@@ -2820,18 +2749,6 @@
                 setTextContent('listsCount', listsCount);
                 setTextContent('streakCount', streakCount);
                 setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
-                
-                // Update streak card
-                const streakTitle = getElement('streakTitle');
-                const streakDescription = getElement('streakDescription');
-                
-                if (streakCount > 0) {
-                    if (streakTitle) streakTitle.textContent = `${streakCount}-Day Journaling Streak!`;
-                    if (streakDescription) streakDescription.textContent = `You're on fire! Keep documenting your food adventures to maintain your streak.`;
-                } else {
-                    if (streakTitle) streakTitle.textContent = 'Start Your Food Journey!';
-                    if (streakDescription) streakDescription.textContent = 'Document your first restaurant visit to start building your streak and unlock achievements.';
-                }
                 
             } catch (error) {
                 console.error('Error updating stats:', error);
