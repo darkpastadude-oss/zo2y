@@ -119,11 +119,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             box-shadow: var(--shadow);
             transition: var(--transition);
             text-decoration: none;
             border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .home-button img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
         }
 
         .home-button:hover {
@@ -665,20 +671,6 @@
             font-size: 14px;
             color: var(--muted);
             margin-bottom: 16px;
-        }
-
-        .achievement-progress {
-            background: var(--bg);
-            border-radius: 20px;
-            height: 6px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .achievement-progress-bar {
-            background: var(--accent);
-            height: 100%;
-            transition: width 0.5s ease;
         }
 
         /* === FOOD MAP STYLES === */
@@ -1228,10 +1220,14 @@
             .home-button {
                 width: 44px;
                 height: 44px;
-                font-size: 18px;
                 top: 10px;
                 left: 10px;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            }
+
+            .home-button img {
+                width: 26px;
+                height: 26px;
             }
 
             .profile-header {
@@ -1533,6 +1529,74 @@
             .nav-tabs, .modal-content {
                 -webkit-overflow-scrolling: touch;
             }
+
+            /* Mobile-specific layout improvements */
+            .mobile-stats {
+                display: flex;
+                justify-content: space-around;
+                margin-bottom: 20px;
+                padding: 0 10px;
+            }
+
+            .mobile-stat {
+                text-align: center;
+            }
+
+            .mobile-stat-number {
+                font-size: 20px;
+                font-weight: bold;
+                color: var(--accent);
+            }
+
+            .mobile-stat-label {
+                font-size: 12px;
+                color: var(--muted);
+            }
+
+            .mobile-list-preview {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-top: 16px;
+            }
+
+            .mobile-restaurant-card {
+                background: var(--card);
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+                border: 1px solid var(--border);
+            }
+
+            .mobile-restaurant-image {
+                width: 100%;
+                height: 100px;
+                background: var(--bg);
+                overflow: hidden;
+            }
+
+            .mobile-restaurant-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .mobile-restaurant-info {
+                padding: 10px;
+            }
+
+            .mobile-restaurant-name {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .mobile-restaurant-rating {
+                font-size: 12px;
+                color: var(--accent);
+            }
         }
 
         @media (max-width: 480px) {
@@ -1571,6 +1635,10 @@
             .follower-actions .btn {
                 width: 100%;
             }
+
+            .mobile-list-preview {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
   <link rel="icon" type="image/png" href="images/logo.png">
@@ -1578,7 +1646,7 @@
 <body>
     <!-- Home Button -->
     <a href="index.html" class="home-button">
-        <i class="fas fa-home"></i>
+        <img src="images/logo.png" alt="Zo2y Logo">
     </a>
 
     <!-- Viewing Other Profile Indicator -->
@@ -1635,7 +1703,7 @@
                     <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addEntryBtn">
                         <i class="fas fa-plus"></i> Add Journal
                     </button>
-                    <button class="btn btn-secondary" id="settingsBtn">
+                    <button class="btn btn-secondary" id="settingsBtn" onclick="showModal('settingsModal')">
                         <i class="fas fa-cog"></i> Settings
                     </button>
                     <button class="btn btn-secondary d-none" id="followButton">
@@ -1647,8 +1715,28 @@
     </div>
 
     <div class="container">
+        <!-- Mobile Stats -->
+        <div class="mobile-stats d-block d-md-none">
+            <div class="mobile-stat">
+                <div class="mobile-stat-number" id="mobileVisitedCount">0</div>
+                <div class="mobile-stat-label">Visited</div>
+            </div>
+            <div class="mobile-stat">
+                <div class="mobile-stat-number" id="mobileFollowersCount">0</div>
+                <div class="mobile-stat-label">Followers</div>
+            </div>
+            <div class="mobile-stat">
+                <div class="mobile-stat-number" id="mobileListsCount">0</div>
+                <div class="mobile-stat-label">Lists</div>
+            </div>
+            <div class="mobile-stat">
+                <div class="mobile-stat-number" id="mobileStreakCount">0</div>
+                <div class="mobile-stat-label">Streak</div>
+            </div>
+        </div>
+
         <!-- Stats Grid -->
-        <div class="stats-grid">
+        <div class="stats-grid d-none d-md-grid">
             <div class="stat-card">
                 <div class="stat-icon">🍽️</div>
                 <div class="stat-number" id="visitedCount">0</div>
@@ -1756,9 +1844,10 @@
                     </div>
                 </div>
 
+                <!-- Default Lists with Mobile Preview -->
                 <div class="cards-grid">
-                    <!-- Default Lists -->
-                    <div class="card" onclick="showList('favorites')">
+                    <!-- Favorites List -->
+                    <div class="card">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-heart" style="color: var(--error);"></i> Favorites
@@ -1768,10 +1857,21 @@
                         <div class="card-body">
                             <p>My all-time favorite spots that never disappoint.</p>
                             <div class="text-muted mt-sm" id="favoritesListCount">0 restaurants</div>
+                            
+                            <!-- Mobile Preview -->
+                            <div class="mobile-list-preview d-block d-md-none" id="favoritesMobilePreview">
+                                <!-- Preview items will be populated here -->
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-outline btn-sm w-100" onclick="showList('favorites')">
+                                View All
+                            </button>
                         </div>
                     </div>
 
-                    <div class="card" onclick="showList('visited')">
+                    <!-- Visited List -->
+                    <div class="card">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-check-circle" style="color: var(--success);"></i> Visited
@@ -1781,10 +1881,21 @@
                         <div class="card-body">
                             <p>Restaurants I have visited and reviewed.</p>
                             <div class="text-muted mt-sm" id="visitedListCount">0 restaurants</div>
+                            
+                            <!-- Mobile Preview -->
+                            <div class="mobile-list-preview d-block d-md-none" id="visitedMobilePreview">
+                                <!-- Preview items will be populated here -->
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-outline btn-sm w-100" onclick="showList('visited')">
+                                View All
+                            </button>
                         </div>
                     </div>
 
-                    <div class="card" onclick="showList('wantToGo')">
+                    <!-- Want to Go List -->
+                    <div class="card">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-bookmark" style="color: var(--accent);"></i> Want to Go
@@ -1794,6 +1905,16 @@
                         <div class="card-body">
                             <p>Restaurants I want to try in the future.</p>
                             <div class="text-muted mt-sm" id="wantToGoListCount">0 restaurants</div>
+                            
+                            <!-- Mobile Preview -->
+                            <div class="mobile-list-preview d-block d-md-none" id="wantToGoMobilePreview">
+                                <!-- Preview items will be populated here -->
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-outline btn-sm w-100" onclick="showList('wantToGo')">
+                                View All
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1958,9 +2079,6 @@
                         </div>
                         <div class="achievement-title">Food Explorer</div>
                         <div class="achievement-desc">Visit 10 different restaurants</div>
-                        <div class="achievement-progress">
-                            <div class="achievement-progress-bar" style="width: 30%"></div>
-                        </div>
                         <div class="text-xs text-muted mt-sm">3/10 • 50 pts</div>
                     </div>
                     <div class="achievement-card">
@@ -1969,9 +2087,6 @@
                         </div>
                         <div class="achievement-title">Cuisine Connoisseur</div>
                         <div class="achievement-desc">Try 5 different cuisines</div>
-                        <div class="achievement-progress">
-                            <div class="achievement-progress-bar" style="width: 60%"></div>
-                        </div>
                         <div class="text-xs text-muted mt-sm">3/5 • 75 pts</div>
                     </div>
                     <div class="achievement-card locked">
@@ -1980,9 +2095,6 @@
                         </div>
                         <div class="achievement-title">Review Master</div>
                         <div class="achievement-desc">Write 15 reviews</div>
-                        <div class="achievement-progress">
-                            <div class="achievement-progress-bar" style="width: 20%"></div>
-                        </div>
                         <div class="text-xs text-muted mt-sm">3/15 • 100 pts</div>
                     </div>
                 </div>
@@ -2056,7 +2168,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-links">
-                    <a href="#" class="footer-link">Settings</a>
+                    <a href="#" class="footer-link" onclick="showModal('settingsModal')">Settings</a>
                     <a href="#" class="footer-link">Privacy</a>
                     <a href="#" class="footer-link">Support</a>
                     <a href="#" class="footer-link">About</a>
@@ -2213,6 +2325,77 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Settings</h3>
+                <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Notifications</label>
+                    <div class="d-flex justify-between align-center">
+                        <span>Push Notifications</span>
+                        <label class="switch">
+                            <input type="checkbox" id="pushNotifications" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="d-flex justify-between align-center mt-sm">
+                        <span>Email Notifications</span>
+                        <label class="switch">
+                            <input type="checkbox" id="emailNotifications" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Privacy</label>
+                    <div class="d-flex justify-between align-center">
+                        <span>Show profile to public</span>
+                        <label class="switch">
+                            <input type="checkbox" id="publicProfile" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="d-flex justify-between align-center mt-sm">
+                        <span>Allow followers</span>
+                        <label class="switch">
+                            <input type="checkbox" id="allowFollowers" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Appearance</label>
+                    <select class="form-select" id="themeSelect">
+                        <option value="dark">Dark Mode</option>
+                        <option value="light">Light Mode</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Language</label>
+                    <select class="form-select" id="languageSelect">
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('settingsModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2821,6 +3004,12 @@
                 setTextContent('streakCount', streakCount);
                 setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
                 
+                // Update mobile stats
+                setTextContent('mobileVisitedCount', visitedCount);
+                setTextContent('mobileFollowersCount', followersCount);
+                setTextContent('mobileListsCount', listsCount);
+                setTextContent('mobileStreakCount', streakCount);
+                
                 // Update streak card
                 const streakTitle = getElement('streakTitle');
                 const streakDescription = getElement('streakDescription');
@@ -2917,6 +3106,7 @@
                 await this.loadListRestaurants();
                 updateAllListCounts();
                 await this.loadCustomLists(targetId);
+                this.updateMobilePreviews();
             },
             
             async loadUserLists(userId) {
@@ -3038,6 +3228,7 @@
                     
                     // Update all list counts
                     updateAllListCounts();
+                    this.updateMobilePreviews();
                     
                     return !isInList;
                     
@@ -3093,6 +3284,63 @@
                 } catch (error) {
                     console.error('Error loading custom lists:', error);
                 }
+            },
+
+            // Update mobile previews for lists
+            updateMobilePreviews() {
+                // Update favorites preview
+                this.updateListPreview('favorites', this.currentLists.favorites);
+                
+                // Update visited preview
+                this.updateListPreview('visited', this.currentLists.visited);
+                
+                // Update want to go preview
+                this.updateListPreview('wantToGo', this.currentLists.wantToGo);
+            },
+
+            updateListPreview(listType, list) {
+                const previewContainer = getElement(`${listType}MobilePreview`);
+                if (!previewContainer) return;
+                
+                previewContainer.innerHTML = '';
+                
+                if (!list || !list.restaurants || list.restaurants.length === 0) {
+                    previewContainer.innerHTML = `
+                        <div class="text-center text-muted py-2">
+                            No restaurants yet
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Show up to 4 restaurants in preview
+                const previewRestaurants = list.restaurants.slice(0, 4);
+                
+                previewRestaurants.forEach(restaurantId => {
+                    const restaurant = restaurants.find(r => r.id === restaurantId);
+                    if (!restaurant) return;
+                    
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'mobile-restaurant-card';
+                    previewItem.onclick = () => {
+                        window.location.href = `cards/${restaurant.slug}.html`;
+                    };
+                    
+                    previewItem.innerHTML = `
+                        <div class="mobile-restaurant-image">
+                            ${restaurant.image ? 
+                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">` : 
+                                `<div style="width: 100%; height: 100%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #0b1633; font-size: 16px;">🍽️</div>`
+                            }
+                        </div>
+                        <div class="mobile-restaurant-info">
+                            <div class="mobile-restaurant-name">${restaurant.name}</div>
+                            <div class="mobile-restaurant-rating">⭐ ${restaurant.rating}</div>
+                        </div>
+                    `;
+                    
+                    previewContainer.appendChild(previewItem);
+                });
             }
         };
 
@@ -4447,7 +4695,6 @@
                     const userAchievement = userAchievements.find(ua => ua.achievement_id === achievement.id);
                     const progress = userAchievement ? userAchievement.progress : 0;
                     const unlocked = progress >= achievement.goal;
-                    const progressPercentage = Math.min((progress / achievement.goal) * 100, 100);
 
                     const achievementElement = document.createElement('div');
                     achievementElement.className = `achievement-card ${unlocked ? '' : 'locked'}`;
@@ -4458,9 +4705,6 @@
                         </div>
                         <div class="achievement-title">${achievement.name}</div>
                         <div class="achievement-desc">${achievement.description}</div>
-                        <div class="achievement-progress">
-                            <div class="achievement-progress-bar" style="width: ${progressPercentage}%"></div>
-                        </div>
                         <div class="text-xs text-muted mt-sm">
                             ${progress}/${achievement.goal} • ${achievement.points} pts
                         </div>
@@ -4530,7 +4774,6 @@
                     // For demo purposes, set random progress
                     const progress = Math.floor(Math.random() * (achievement.goal + 2));
                     const unlocked = progress >= achievement.goal;
-                    const progressPercentage = Math.min((progress / achievement.goal) * 100, 100);
 
                     const achievementElement = document.createElement('div');
                     achievementElement.className = `achievement-card ${unlocked ? '' : 'locked'}`;
@@ -4541,9 +4784,6 @@
                         </div>
                         <div class="achievement-title">${achievement.name}</div>
                         <div class="achievement-desc">${achievement.description}</div>
-                        <div class="achievement-progress">
-                            <div class="achievement-progress-bar" style="width: ${progressPercentage}%"></div>
-                        </div>
                         <div class="text-xs text-muted mt-sm">
                             ${progress}/${achievement.goal} • ${achievement.points} pts
                         </div>
@@ -4820,6 +5060,13 @@
             }
         }
 
+        // Settings functions
+        function saveSettings() {
+            // In a real app, this would save settings to the database
+            showToast('Settings saved successfully!', 'success');
+            closeModal('settingsModal');
+        }
+
         // Set up event listeners
         function setupEventListeners() {
             // Tab buttons
@@ -4879,7 +5126,7 @@
             const settingsBtn = getElement('settingsBtn');
             if (settingsBtn) {
                 settingsBtn.addEventListener('click', () => {
-                    showToast('Settings panel would open here', 'info');
+                    showModal('settingsModal');
                 });
             }
             
@@ -5090,6 +5337,7 @@
         window.viewProgress = viewProgress;
         window.showFollowersSection = showFollowersSection;
         window.goToMyProfile = goToMyProfile;
+        window.saveSettings = saveSettings;
     </script>
 </body>
 </html>
