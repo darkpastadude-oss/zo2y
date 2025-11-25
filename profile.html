@@ -1183,6 +1183,78 @@
             to { transform: rotate(360deg); }
         }
 
+        /* === NEW LIST LAYOUT STYLES === */
+        .lists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .list-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .list-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .list-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .list-card-description {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-item {
+            height: 80px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-card-button {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .list-card-button:hover {
+            background: var(--bg-hover);
+        }
+
         /* === MOBILE-SPECIFIC STYLES === */
         @media (max-width: 768px) {
             .container {
@@ -1476,6 +1548,16 @@
             .nav-tabs, .modal-content {
                 -webkit-overflow-scrolling: touch;
             }
+
+            /* Mobile-specific list layout */
+            .lists-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .list-preview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 480px) {
@@ -1608,9 +1690,9 @@
                 <div class="stat-label">Lists Created</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🔥</div>
-                <div class="stat-number" id="streakCount">0</div>
-                <div class="stat-label">Day Streak</div>
+                <div class="stat-icon">⭐</div>
+                <div class="stat-number" id="reviewsCount">0</div>
+                <div class="stat-label">Reviews Written</div>
             </div>
         </div>
 
@@ -1685,46 +1767,9 @@
                     </div>
                 </div>
 
-                <div class="cards-grid">
-                    <!-- Default Lists -->
-                    <div class="card" onclick="showList('favorites')">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-heart" style="color: var(--error);"></i> Favorites
-                            </div>
-                            <i class="fas fa-chevron-right text-muted"></i>
-                        </div>
-                        <div class="card-body">
-                            <p>My all-time favorite spots that never disappoint.</p>
-                            <div class="text-muted mt-sm" id="favoritesListCount">0 restaurants</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="showList('visited')">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-check-circle" style="color: var(--success);"></i> Visited
-                            </div>
-                            <i class="fas fa-chevron-right text-muted"></i>
-                        </div>
-                        <div class="card-body">
-                            <p>Restaurants I have visited and reviewed.</p>
-                            <div class="text-muted mt-sm" id="visitedListCount">0 restaurants</div>
-                        </div>
-                    </div>
-
-                    <div class="card" onclick="showList('wantToGo')">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-bookmark" style="color: var(--accent);"></i> Want to Go
-                            </div>
-                            <i class="fas fa-chevron-right text-muted"></i>
-                        </div>
-                        <div class="card-body">
-                            <p>Restaurants I want to try in the future.</p>
-                            <div class="text-muted mt-sm" id="wantToGoListCount">0 restaurants</div>
-                        </div>
-                    </div>
+                <!-- New List Layout -->
+                <div class="lists-grid" id="listsGrid">
+                    <!-- Lists will be populated here -->
                 </div>
 
                 <!-- Custom Lists Section -->
@@ -2740,14 +2785,19 @@
                     
                 const listsCount = userLists ? userLists.length : 0;
                 
-                // Get streak count
-                const streakCount = await foodJournal.calculateStreak(targetId);
+                // Get reviews count
+                const { data: userReviews } = await supabase
+                    .from('reviews')
+                    .select('id')
+                    .eq('user_id', targetId);
+                    
+                const reviewsCount = userReviews ? userReviews.length : 0;
                 
                 // Update UI
                 setTextContent('visitedCount', visitedCount);
                 setTextContent('followersCount', followersCount);
                 setTextContent('listsCount', listsCount);
-                setTextContent('streakCount', streakCount);
+                setTextContent('reviewsCount', reviewsCount);
                 setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
                 
             } catch (error) {
@@ -2834,6 +2884,7 @@
                 await this.loadListRestaurants();
                 updateAllListCounts();
                 await this.loadCustomLists(targetId);
+                this.renderListsGrid();
             },
             
             async loadUserLists(userId) {
@@ -3010,6 +3061,118 @@
                 } catch (error) {
                     console.error('Error loading custom lists:', error);
                 }
+            },
+
+            // New method to render lists in the grid layout
+            renderListsGrid() {
+                const listsGrid = getElement('listsGrid');
+                if (!listsGrid) return;
+                
+                listsGrid.innerHTML = '';
+                
+                // Define default lists with their properties
+                const defaultLists = [
+                    {
+                        id: 'favorites',
+                        title: 'Favorites',
+                        description: 'Your top picks.',
+                        icon: 'fas fa-heart',
+                        color: 'var(--error)',
+                        restaurants: this.currentLists.favorites?.restaurants || []
+                    },
+                    {
+                        id: 'visited',
+                        title: 'Visited',
+                        description: 'Restaurants you’ve checked out.',
+                        icon: 'fas fa-check-circle',
+                        color: 'var(--success)',
+                        restaurants: this.currentLists.visited?.restaurants || []
+                    },
+                    {
+                        id: 'wantToGo',
+                        title: 'Want To Go',
+                        description: 'Saved for later.',
+                        icon: 'fas fa-bookmark',
+                        color: 'var(--accent)',
+                        restaurants: this.currentLists.wantToGo?.restaurants || []
+                    }
+                ];
+                
+                // Add custom lists
+                const allLists = [...defaultLists, ...customLists.map(list => ({
+                    id: list.id,
+                    title: list.title,
+                    description: list.description || 'Your custom-made collection.',
+                    icon: 'fas fa-utensils',
+                    color: 'var(--accent)',
+                    restaurants: list.restaurants || []
+                }))];
+                
+                if (allLists.length === 0) {
+                    listsGrid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <h3 class="empty-title">No Lists Yet</h3>
+                            <p class="empty-description">Create your first list to organize restaurants by occasion, cuisine, or mood!</p>
+                            <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
+                                <i class="fas fa-plus"></i> Create Your First List
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                allLists.forEach(list => {
+                    const listCard = document.createElement('div');
+                    listCard.className = 'list-card';
+                    listCard.onclick = () => showList(list.id);
+                    
+                    // Get preview images
+                    const previewItems = [];
+                    for (let i = 0; i < 4; i++) {
+                        if (list.restaurants && list.restaurants[i]) {
+                            const restaurantId = list.restaurants[i];
+                            const restaurant = restaurants.find(r => r.id === restaurantId);
+                            if (restaurant) {
+                                previewItems.push(`
+                                    <div class="list-preview-item">
+                                        <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                    </div>
+                                `);
+                            } else {
+                                previewItems.push(`
+                                    <div class="list-preview-item">
+                                        <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                            🍽️
+                                        </div>
+                                    </div>
+                                `);
+                            }
+                        } else {
+                            previewItems.push(`
+                                <div class="list-preview-item">
+                                    <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                        🍽️
+                                    </div>
+                                </div>
+                            `);
+                        }
+                    }
+                    
+                    listCard.innerHTML = `
+                        <h3 class="list-card-title">
+                            <i class="${list.icon}" style="color: ${list.color};"></i>
+                            ${list.title}
+                        </h3>
+                        <p class="list-card-description">${list.description}</p>
+                        <div class="list-preview-grid">
+                            ${previewItems.join('')}
+                        </div>
+                        <button class="list-card-button">View List</button>
+                    `;
+                    
+                    listsGrid.appendChild(listCard);
+                });
             }
         };
 
@@ -3027,6 +3190,8 @@
             
             updateCustomListCounts();
             updateStats();
+            // Update the lists grid
+            listManager.renderListsGrid();
         }
 
         function updateCustomListCounts() {
@@ -3251,57 +3416,7 @@
             },
             
             async loadJournalStats() {
-                const visitedCount = listManager.currentLists.visited?.restaurants?.length || 0;
-                const wantToGoCount = listManager.currentLists.wantToGo?.restaurants?.length || 0;
-                
-                const streak = await this.calculateStreak();
-                setTextContent('streakCount', streak);
-            },
-            
-            async calculateStreak(userId = null) {
-                const targetId = userId || currentUser.id;
-                
-                try {
-                    const { data: reviews, error } = await supabase
-                        .from('reviews')
-                        .select('created_at')
-                        .eq('user_id', targetId)
-                        .order('created_at', { ascending: false });
-                    
-                    if (error || !reviews || reviews.length === 0) return 0;
-                    
-                    let streak = 0;
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    let currentDate = new Date(today);
-                    
-                    for (let i = 0; i < reviews.length; i++) {
-                        const reviewDate = new Date(reviews[i].created_at);
-                        reviewDate.setHours(0, 0, 0, 0);
-                        
-                        const diffTime = currentDate - reviewDate;
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDays === 0) {
-                            // Same day, continue
-                            if (i === 0) streak = 1;
-                            continue;
-                        } else if (diffDays === 1) {
-                            // Consecutive day
-                            streak++;
-                            currentDate = reviewDate;
-                        } else {
-                            // Streak broken
-                            break;
-                        }
-                    }
-                    
-                    return streak;
-                } catch (error) {
-                    console.error('Error calculating streak:', error);
-                    return 0;
-                }
+                // Stats are now handled by updateStats function
             },
             
             async loadJournalEntries() {
@@ -4510,6 +4625,8 @@
                 achievementsSystem.loadAchievements();
             } else if (tabName === 'map') {
                 foodMap.init();
+            } else if (tabName === 'lists') {
+                listManager.renderListsGrid();
             }
         }
 
