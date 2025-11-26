@@ -112,18 +112,23 @@
             left: 20px;
             z-index: 100;
             background: var(--accent);
-            color: #0b1633;
             width: 50px;
             height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             box-shadow: var(--shadow);
             transition: var(--transition);
             text-decoration: none;
             border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .home-button img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .home-button:hover {
@@ -1598,12 +1603,12 @@
             }
         }
     </style>
-  <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
     <!-- Home Button -->
     <a href="index.html" class="home-button">
-        <i class="fas fa-home"></i>
+        <img src="images/logo.png" alt="Zo2y Logo">
     </a>
 
     <!-- Viewing Other Profile Indicator -->
@@ -1767,26 +1772,9 @@
                     </div>
                 </div>
 
-                <!-- New List Layout -->
+                <!-- Lists Grid -->
                 <div class="lists-grid" id="listsGrid">
                     <!-- Lists will be populated here -->
-                </div>
-
-                <!-- Custom Lists Section -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3 class="section-title" id="customListsTitle">Custom Lists</h3>
-                    </div>
-                    <div class="cards-grid" id="customLists">
-                        <div class="empty-state">
-                            <div class="empty-icon">📋</div>
-                            <h3 class="empty-title">No Custom Lists Yet</h3>
-                            <p class="empty-description">Create your first custom list to organize restaurants by occasion, cuisine, or mood!</p>
-                            <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
-                                <i class="fas fa-plus"></i> Create Your First List
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -2429,7 +2417,6 @@
             setTextContent('listsTabText', 'My Lists');
             setTextContent('listsTitle', 'My Lists');
             setTextContent('listsSubtitle', 'Organize your favorite restaurants');
-            setTextContent('customListsTitle', 'Custom Lists');
             setTextContent('journalTitle', 'Food Journal');
             setTextContent('journalSubtitle', 'Your restaurant reviews and experiences');
 
@@ -2496,7 +2483,6 @@
             setTextContent('listsTabText', `${targetUserName}'s Lists`);
             setTextContent('listsTitle', `${targetUserName}'s Lists`);
             setTextContent('listsSubtitle', `${targetUserName}'s favorite restaurants`);
-            setTextContent('customListsTitle', `${targetUserName}'s Custom Lists`);
             setTextContent('journalTitle', `${targetUserName}'s Food Journal`);
             setTextContent('journalSubtitle', `${targetUserName}'s restaurant reviews and experiences`);
 
@@ -3056,8 +3042,6 @@
                         }
                     }
                     
-                    renderCustomLists();
-                    
                 } catch (error) {
                     console.error('Error loading custom lists:', error);
                 }
@@ -3127,11 +3111,16 @@
                     listCard.className = 'list-card';
                     listCard.onclick = () => showList(list.id);
                     
-                    // Get preview images
+                    // Get preview images - FIXED: Shuffle restaurant previews
                     const previewItems = [];
+                    const restaurantIds = list.restaurants || [];
+                    
+                    // Shuffle restaurant IDs to get random previews
+                    const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
+                    
                     for (let i = 0; i < 4; i++) {
-                        if (list.restaurants && list.restaurants[i]) {
-                            const restaurantId = list.restaurants[i];
+                        if (shuffledIds[i]) {
+                            const restaurantId = shuffledIds[i];
                             const restaurant = restaurants.find(r => r.id === restaurantId);
                             if (restaurant) {
                                 previewItems.push(`
@@ -3168,7 +3157,10 @@
                         <div class="list-preview-grid">
                             ${previewItems.join('')}
                         </div>
-                        <button class="list-card-button">View List</button>
+                        <div class="d-flex justify-between align-center mt-md">
+                            <span class="text-sm text-muted">${restaurantIds.length} places</span>
+                            <button class="list-card-button">View List</button>
+                        </div>
                     `;
                     
                     listsGrid.appendChild(listCard);
@@ -3188,74 +3180,9 @@
                 setTextContent('wantToGoListCount', `${listManager.currentLists.wantToGo.restaurants?.length || 0} restaurants`);
             }
             
-            updateCustomListCounts();
             updateStats();
             // Update the lists grid
             listManager.renderListsGrid();
-        }
-
-        function updateCustomListCounts() {
-            const customListCards = document.querySelectorAll('.custom-list-card');
-            
-            customListCards.forEach(card => {
-                const listId = parseInt(card.getAttribute('data-list-id'));
-                const list = customLists.find(l => l.id === listId);
-                
-                if (list) {
-                    const countElement = card.querySelector('.list-count');
-                    if (countElement) {
-                        countElement.textContent = `${list.restaurants?.length || 0} restaurants`;
-                    }
-                }
-            });
-        }
-
-        // Render custom lists
-        function renderCustomLists() {
-            const customListsContainer = getElement('customLists');
-            if (!customListsContainer) return;
-            
-            customListsContainer.innerHTML = '';
-            
-            if (customLists.length === 0) {
-                const emptyStateText = isViewingOwnProfile ? 
-                    'Create your first custom list to organize restaurants by occasion, cuisine, or mood!' :
-                    'This user hasn\'t created any custom lists yet.';
-                
-                customListsContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <h3 class="empty-title">No Custom Lists Yet</h3>
-                        <p class="empty-description">${emptyStateText}</p>
-                        ${isViewingOwnProfile ? `
-                            <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
-                                <i class="fas fa-plus"></i> Create Your First List
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-                return;
-            }
-            
-            customLists.forEach(list => {
-                const listElement = document.createElement('div');
-                listElement.className = 'card custom-list-card';
-                listElement.setAttribute('data-list-id', list.id);
-                listElement.onclick = () => viewList(list.id);
-                listElement.innerHTML = `
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-utensils"></i> ${list.title}
-                        </div>
-                        <i class="fas fa-chevron-right text-muted"></i>
-                    </div>
-                    <div class="card-body">
-                        <p>${list.description || 'No description'}</p>
-                        <div class="text-muted mt-sm list-count">${list.restaurants?.length || 0} restaurants</div>
-                    </div>
-                `;
-                customListsContainer.appendChild(listElement);
-            });
         }
 
         // Show list detail view
@@ -3305,11 +3232,6 @@
             await renderListRestaurants(list.restaurants || [], list);
         }
 
-        // View custom list
-        async function viewList(listId) {
-            await showList(listId);
-        }
-
         // Hide list detail view
         function hideListDetail() {
             const listsTab = getElement('lists-tab');
@@ -3352,6 +3274,12 @@
                     </div>
                 `;
                 return;
+            }
+            
+            // FIXED: Update list detail title to show count
+            const listDetailTitle = getElement('listDetailTitle');
+            if (listDetailTitle) {
+                listDetailTitle.textContent = `${list.title} (${listRestaurants.length} places)`;
             }
             
             listRestaurants.forEach(restaurant => {
@@ -4730,7 +4658,7 @@
                 customLists.push(newList);
                 
                 // Update UI
-                renderCustomLists();
+                listManager.renderListsGrid();
                 hideCreateListModal();
                 showToast(`List "${listName}" created!`, 'success');
                 
@@ -5109,7 +5037,6 @@
         window.createCustomList = createCustomList;
         window.viewUserProfile = viewUserProfile;
         window.showList = showList;
-        window.viewList = viewList;
         window.hideListDetail = hideListDetail;
         window.editList = editList;
         window.editReview = editReview;
