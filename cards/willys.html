@@ -48,6 +48,39 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn,.theme-toggle{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
 </style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root {
+  --bg: #fff;
+  --text: #333;
+  --text2: #666;
+  --nav-bg: #f8f9fa;
+  --nav-shadow: rgba(0,0,0,0.1);
+  --btn-bg: #FF6F00;
+  --btn-text: #fff;
+  --card: #f8f9fa;
+  --input-bg: #fff;
+  --input-text: #333;
+  --accent: #FF9800;
+}
+[data-theme="dark"] {
+  --bg: #1e2a4a;
+  --text: #fff;
+  --text2: #cbd5e1;
+  --nav-bg: #2d3748;
+  --nav-shadow: rgba(255,255,255,0.1);
+  --btn-bg: #ff944d;
+  --btn-text: #111;
+  --card: #2d3748;
+  --input-bg: #2d3748;
+  --input-text: #fff;
+  --accent: #ff944d;
+}
+body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
+.btn{padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);border:none;cursor:pointer;transition:all 0.2s ease;font-weight:600}
+.btn:hover{transform:scale(1.03)}
+.section{max-width:900px;margin:0 auto;padding:40px 20px}
+</style>
 </head>
 <body>
 
@@ -1168,5 +1201,57 @@ window.deleteReview = deleteReview;
 </script>
 
 
+<script>
+// Theme Toggle
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme',theme);
+  if(themeToggle) themeToggle.textContent = theme==='dark'?'☀️ Light Mode':'🌙 Dark Mode';
+  localStorage.setItem('restaurant-theme',theme);
+}
+function toggleTheme(){
+  const current=document.documentElement.getAttribute('data-theme')||'light';
+  applyTheme(current==='light'?'dark':'light');
+}
+function initializeTheme(){
+  const saved=localStorage.getItem('restaurant-theme');
+  if(saved) applyTheme(saved);
+  else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+}
+if(themeToggle) themeToggle.addEventListener('click',toggleTheme);
+initializeTheme();
+
+// Menu Category Filter
+const menuBtns=document.querySelectorAll('.menu-category-btn');
+const menuSections=document.querySelectorAll('.menu-category-section');
+if(menuBtns.length>0){
+  menuBtns.forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const category=this.getAttribute('data-category');
+      menuBtns.forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      menuSections.forEach(section=>{
+        section.style.display=(category==='all'||section.getAttribute('data-category')===category)?'block':'none';
+      });
+    });
+  });
+}
+
+// Branch Filter
+const branchBtns=document.querySelectorAll('.branch-filter-btn');
+const branchCards=document.querySelectorAll('.branch-card');
+if(branchBtns.length>0){
+  branchBtns.forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const loc=this.getAttribute('data-location');
+      branchBtns.forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      branchCards.forEach(card=>{
+        card.style.display=(loc==='all'||card.getAttribute('data-location')===loc)?'block':'none';
+      });
+    });
+  });
+}
+</script>
 </body>
 </html>
