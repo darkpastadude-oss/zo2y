@@ -63,10 +63,19 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
+.menu-filter{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{background:var(--card);border:1px solid var(--nav-shadow);padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.9rem}
+.filter-btn.active,.filter-btn:hover{background:var(--btn-bg);color:var(--btn-text)}
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
 .menu-item span:last-child{font-weight:600;color:var(--text)}
+.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
+.branch-list-item{margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid var(--nav-shadow)}
+.branch-list-item h4{margin-bottom:5px;font-size:1.1rem}
+.branch-list-item p{color:var(--text2);margin-bottom:10px}
+.branch-list-item a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
+.branch-list-item a:hover{text-decoration:underline}
 footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
 @media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
 
@@ -470,6 +479,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   bottom: 30px !important;
   right: 30px !important;
   z-index: 10000 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
 }
 
 .fab-main {
@@ -489,9 +499,28 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   overflow: hidden !important;
 }
 
+.fab-main::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.fab-main:hover::before {
+  left: 100%;
+}
+
 .fab-main:hover {
   transform: scale(1.1) rotate(90deg) !important;
   box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
+}
+
+.fab-main:active {
+  transform: scale(0.95) !important;
 }
 
 .fab-tooltip {
@@ -509,6 +538,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   transform: translateY(10px) !important;
   transition: all 0.3s ease !important;
   pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
 }
 
 .fab-main:hover + .fab-tooltip {
@@ -530,6 +560,19 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   z-index: 10000;
   box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   backdrop-filter: blur(20px);
+  transform-origin: bottom right;
+  animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .list-dropdown.show {
@@ -578,6 +621,17 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   font-weight: 600;
   margin-bottom: 12px;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #334155;
+  margin-left: 8px;
 }
 
 .list-item { 
@@ -593,6 +647,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 
 .list-item:hover { 
   background: rgba(245, 158, 11, 0.1); 
+  transform: translateX(4px);
 }
 
 .list-checkbox { 
@@ -605,11 +660,19 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   justify-content: center; 
   flex-shrink: 0;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .list-checkbox.checked { 
   background: #f59e0b; 
   border-color: #f59e0b;
+  animation: checkPop 0.3s ease;
+}
+
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .list-checkbox.checked::after { 
@@ -626,6 +689,16 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   color: #e2e8f0;
 }
 
+.list-item:hover .list-item-text {
+  color: #f59e0b;
+}
+
+.new-list-section {
+  border-top: 1px solid #334155;
+  padding-top: 20px;
+  margin-top: 15px;
+}
+
 .new-list-input { 
   width: 100%; 
   padding: 12px 16px; 
@@ -635,6 +708,13 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   color: white; 
   margin-bottom: 12px;
   font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.new-list-input:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
 }
 
 .add-list-btn { 
@@ -648,10 +728,25 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   width: 100%; 
   font-size: 14px;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .add-list-btn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.add-list-btn:active {
+  transform: translateY(0);
+}
+
+.list-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #334155, transparent);
+  margin: 16px 0;
 }
 
 .empty-custom-lists {
@@ -668,6 +763,17 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   color: #94a3b8;
 }
 
+.auth-prompt .icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.auth-prompt .text {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
 .login-btn {
   background: #f59e0b;
   color: #0f172a;
@@ -676,8 +782,25 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: #ffb84d;
+}
+
+/* Pulse animation for new lists */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.pulse {
+  animation: pulseGlow 2s infinite;
 }
 </style>
+  <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
 
@@ -729,80 +852,74 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   </div>
 </section>
 
+<!-- Enhanced Menu Section -->
 <section class="section menu">
-  <h2>Sandwiches</h2>
-    
-    <div class="menu-item"><span>Spicy Ranch Chicken Panini Sandwich</span><span>EGP 169</span></div>
+  <h2>Our Menu</h2>
   
-    <div class="menu-item"><span>Crisp Alpine Roast Beef Sandwich</span><span>EGP 210</span></div>
+  <div class="menu-filter" id="menuFilter">
+    <button class="filter-btn active" data-filter="all">All Items</button>
+    <button class="filter-btn" data-filter="salads">Salads</button>
+    <button class="filter-btn" data-filter="sandwiches">Sandwiches</button>
+    <button class="filter-btn" data-filter="bakery">Bakery</button>
+    <button class="filter-btn" data-filter="pastries">Pastries</button>
+    <button class="filter-btn" data-filter="coffee">Coffee</button>
+    <button class="filter-btn" data-filter="beverages">Beverages</button>
+  </div>
   
-    <div class="menu-item"><span>Chicken Cranberry Pretzel Sandwich</span><span>EGP 165</span></div>
-  
-    <div class="menu-item"><span>Smoked Turkey Sandwich</span><span>EGP 145</span></div>
-
-    <div class="menu-item"><span>Halomui Simit Sandwich</span><span>EGP 135</span></div>
-
-    <div class="menu-item"><span>Salmon Bagel Sandwich</span><span>EGP 210</span></div>
-
-  <h2 style="margin-top: 30px;">Bakery</h2>
-  
-    <div class="menu-item"><span>Feta Mint Pate</span><span>EGP 89</span></div>
-  
-    <div class="menu-item"><span>Nutella Trio Croissant</span><span>EGP 89</span></div>
-  
-    <div class="menu-item"><span>Plain Croissant</span><span>EGP 70</span></div>
-  
-    <div class="menu-item"><span>Chocolate Chunk Cookies</span><span>EGP 72</span></div>
-
-    <div class="menu-item"><span>Double Chocolate Cookies</span><span>EGP 72</span></div>
-
-    <div class="menu-item"><span>Blueberry Muffin</span><span>EGP 82</span></div>
-
-    <div class="menu-item"><span>Chocolate Chips Muffin</span><span>EGP 79</span></div>
-
-    <div class="menu-item"><span>Banana Bread</span><span>EGP 65</span></div>
-
-    <div class="menu-item"><span>Marble Cake</span><span>EGP 65</span></div>
-
-  <h2 style="margin-top: 30px;">Pastries</h2>
-
-    <div class="menu-item"><span>Brownie Bites</span><span>EGP 98</span></div>
-
-    <div class="menu-item"><span>Sugar Millefeuille</span><span>EGP 125</span></div>
-
-    <div class="menu-item"><span>Caramelized Almond Cheesecake</span><span>EGP 155</span></div>
-
-    <div class="menu-item"><span>Honey Cake</span><span>EGP 135</span></div>
-
-    <div class="menu-item"><span>Blueberry Cheesecake</span><span>EGP 145</span></div>
-
-    <div class="menu-item"><span>Tiramisu</span><span>EGP 145</span></div>
-
-    <div class="menu-item"><span>Chocolate Fudge Cake</span><span>EGP 135</span></div>
-
-    <div class="menu-item"><span>Black Forest Brownies</span><span>EGP 145</span></div>
-
-  <h2 style="margin-top: 30px;">Coffee & Beverages</h2>
-
-    <div class="menu-item"><span>Espresso</span><span>EGP 60</span></div>
-
-    <div class="menu-item"><span>Flat White</span><span>EGP 80</span></div>
-
-    <div class="menu-item"><span>Spanish Latte</span><span>EGP 120 - 135</span></div>
-
-    <div class="menu-item"><span>Caramel Nuts Macchiato</span><span>EGP 115 - 135</span></div>
-
-    <div class="menu-item"><span>Latte</span><span>EGP 90 - 105</span></div>
-
-    <div class="menu-item"><span>Iced Spanish Latte</span><span>EGP 125</span></div>
-
-    <div class="menu-item"><span>Iced Latte</span><span>EGP 100</span></div>
-
-    <div class="menu-item"><span>Hot Chocolate</span><span>EGP 125 - 150</span></div>
-
-    <div class="menu-item"><span>Matcha Spanish Latte</span><span>EGP 120 - 135</span></div>
+  <div id="menuContainer">
+    <!-- Menu items will be dynamically populated by JavaScript -->
+  </div>
   
   <a href="https://vasko.coffee/" target="_blank" class="btn secondary" style="margin-top: 20px;">View Full Menu</a>
+</section>
+
+<!-- Additional Branches Section -->
+<section class="section">
+  <h2>All Branches</h2>
+  
+  <div class="branch-list">
+    <div class="branch-list-item">
+      <h4>Heliopolis (Korba)</h4>
+      <p>3 Ramses St. from Baghdad – Korba, Heliopolis</p>
+      <a href="https://maps.google.com/search?q=Vasko+Korba+Heliopolis" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Cloud 9 Mall, New Cairo</h4>
+      <p>Inside Cloud 9 Mall, Mohamed Naguib Spine, New Cairo</p>
+      <a href="https://maps.google.com/search?q=Vasko+Cloud+9+Mall+New+Cairo" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Cairo Festival City Mall, New Cairo</h4>
+      <p>Inside Cairo Festival City Mall</p>
+      <a href="https://maps.google.com/search?q=Vasko+Cairo+Festival+City+Mall" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Maadi</h4>
+      <p>Branch in Maadi area</p>
+      <a href="https://maps.google.com/search?q=Vasko+Maadi" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Gate Way Mall, Al Rehab City</h4>
+      <p>VASKO in Gate Way Mall, Al Rehab City</p>
+      <a href="https://maps.google.com/search?q=Vasko+Gate+Way+Mall+Al+Rehab" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Mall of Arabia, 6th of October</h4>
+      <p>Gate 5 in Mall of Arabia</p>
+      <a href="https://maps.google.com/search?q=Vasko+Mall+of+Arabia" target="_blank">📍 Get Directions</a>
+    </div>
+    
+    <div class="branch-list-item">
+      <h4>Open Air Mall, Madinaty</h4>
+      <p>Inside Open Air Mall, Madinaty</p>
+      <a href="https://maps.google.com/search?q=Vasko+Open+Air+Mall+Madinaty" target="_blank">📍 Get Directions</a>
+    </div>
+  </div>
 </section>
 
 <!-- ENHANCED REVIEW SYSTEM -->
@@ -869,13 +986,13 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text2);">Follow us: @vasko.egypt on Instagram</p>
 </footer>
 
-<!-- List Manager Script -->
+<!-- List Manager Button -->
 <script>
 // Wait for page to load
 window.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Page loaded, initializing list manager...');
     
-    // Load Supabase via ES modules
+    // Load Supabase via ES modules - THIS IS THE WORKING METHOD
     const script = document.createElement('script');
     script.type = 'module';
     script.innerHTML = `
@@ -900,11 +1017,26 @@ window.addEventListener('DOMContentLoaded', function() {
 class RestaurantListManager {
     constructor() {
         this.supabase = window.supabase;
-        this.restaurantId = 7; // Vasko ID
+        this.restaurantId = this.getRestaurantIdFromSlug();
         this.userLists = [];
         this.customLists = [];
         console.log('🎯 RestaurantListManager created for ID:', this.restaurantId);
         this.init();
+    }
+
+    getRestaurantIdFromSlug() {
+        const path = window.location.pathname;
+        const slug = path.split('/').pop().replace('.html', '');
+        const slugToId = {
+            'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
+            'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
+            'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
+            'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
+            'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
+            'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
+            'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
+        };
+        return slugToId[slug] || null;
     }
 
     async init() {
@@ -983,12 +1115,17 @@ class RestaurantListManager {
             dropdown.classList.toggle('show');
             if (dropdown.classList.contains('show')) {
                 this.updateDropdown(dropdown);
+                // Add pulse animation to FAB when dropdown is open
+                fab.querySelector('.fab-main').classList.add('pulse');
+            } else {
+                fab.querySelector('.fab-main').classList.remove('pulse');
             }
         });
         
         // Close dropdown when clicking outside
         document.addEventListener('click', () => {
             dropdown.classList.remove('show');
+            fab.querySelector('.fab-main').classList.remove('pulse');
         });
         
         dropdown.addEventListener('click', (e) => e.stopPropagation());
@@ -1052,6 +1189,10 @@ class RestaurantListManager {
 
         // Custom Lists Section
         if (this.customLists.length > 0) {
+            const divider = document.createElement('div');
+            divider.className = 'list-divider';
+            dropdown.appendChild(divider);
+
             const customSection = document.createElement('div');
             customSection.className = 'list-section';
             customSection.innerHTML = '<div class="list-section-title">📁 Your Collections</div>';
@@ -1070,6 +1211,10 @@ class RestaurantListManager {
             
             dropdown.appendChild(customSection);
         } else {
+            const divider = document.createElement('div');
+            divider.className = 'list-divider';
+            dropdown.appendChild(divider);
+            
             const emptySection = document.createElement('div');
             emptySection.className = 'empty-custom-lists';
             emptySection.innerHTML = 'No custom lists yet. Create your first one below! ✨';
@@ -1251,7 +1396,7 @@ class RestaurantListManager {
 // Enhanced Review System
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const supabase = createClient("https://gfkhjbztayjyojsgdpgk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZURI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s");
+const supabase = createClient("https://gfkhjbztayjyojsgdpgk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s");
 const restaurantId = 7;
 
 let currentUser = null;
@@ -1263,6 +1408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
     await loadReviews();
     setupEventListeners();
+    initializeMenu();
 });
 
 async function checkAuth() {
@@ -1358,6 +1504,7 @@ async function loadReviews() {
             const displayName = user?.full_name || user?.username || 'Anonymous';
             const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             const canEditDelete = currentUser && currentUser.id === review.user_id;
+            const isEditing = editingReviewId === review.id;
 
             return `
                 <div class="review-card" id="review-${review.id}">
@@ -1461,6 +1608,11 @@ async function submitReview(e) {
 
     if (!comment) {
         showNotification('Please write a comment', 'error');
+        return;
+    }
+
+    if (comment.length > 500) {
+        showNotification('Comment must be 500 characters or less', 'error');
         return;
     }
 
@@ -1636,6 +1788,176 @@ function showNotification(message, type = 'info') {
 // Make functions globally available
 window.editReview = editReview;
 window.deleteReview = deleteReview;
+
+// Menu initialization
+function initializeMenu() {
+    const menuData = {
+        salads: [
+            { name: "Chicken Caesar Salad", price: "175 EGP" }
+        ],
+        sandwiches: [
+            { name: "Spicy Ranch Chicken Panini Sandwich", description: "Panini bread, chicken breast, cheddar cheese, ranch sauce, pickles, lettuce", price: "169 EGP" },
+            { name: "Crisp Alpine Roast Beef Sandwich", description: "Multgrain Toast, roasted beef, cheddar cheese, caramelized onion, mayonnaise, rocca, cucumber, relish", price: "210 EGP" },
+            { name: "Chicken Cranberry Pretzel Sandwich", description: "Prezel bread, chicken breast, cheddar cheese, cream cheese, roquefort cheese, lettuce, sundried tomato, cranberry", price: "165 EGP" },
+            { name: "Smoked Turkey Sandwich", description: "multigrain brown bread, smoked turkey, cheddar cheese, mayonnaise, lettuce, pickles", price: "145 EGP" },
+            { name: "Halomui Simit Sandwich", description: "sesame simit, halloumi cheese, sundried tomatoes, cream cheese, olive paste, lettuce, pesto sauce", price: "135 EGP" },
+            { name: "Salmon Bagel Sandwich", description: "bagel, smoked salmon, cream cheese, rocca, onion, dill, lemon, olive oil, capers", price: "210 EGP" }
+        ],
+        bakery: [
+            { name: "Feta Mint Pate", price: "89 EGP" },
+            { name: "Nutella Trio Croissant", price: "89 EGP" },
+            { name: "Plain Croissant", price: "70 EGP" },
+            { name: "Chocolate Chunk Cookies", price: "72 EGP" },
+            { name: "Double Chocolate Cookies", price: "72 EGP" },
+            { name: "Blueberry Muffin", price: "82 EGP" },
+            { name: "Chocolate Chips Muffin", price: "79 EGP" },
+            { name: "Banana Bread", price: "65 EGP" },
+            { name: "Marble Cake", price: "65 EGP" }
+        ],
+        pastries: [
+            { name: "Brownie Bites", price: "98 EGP" },
+            { name: "Sugar Millefeuille", price: "125 EGP" },
+            { name: "Caramelized Almond Cheesecake", price: "155 EGP" },
+            { name: "Honey Cake", price: "135 EGP" },
+            { name: "Blueberry Cheesecake", price: "145 EGP" },
+            { name: "Tiramisu", price: "145 EGP" },
+            { name: "Chocolate Fudge Cake", price: "135 EGP" },
+            { name: "Black Forest Brownies", price: "145 EGP" }
+        ],
+        coffee: [
+            { name: "Espresso", price: "60 EGP" },
+            { name: "Espresso Macchiato", price: "65 EGP" },
+            { name: "Flat White", price: "80 EGP" },
+            { name: "Cortado", price: "80 EGP" },
+            { name: "Cream Double Shot", price: "95 - 135 EGP" },
+            { name: "Spanish Latte", price: "120 - 135 EGP" },
+            { name: "Caramel Nuts Macchiato", price: "115 - 135 EGP" },
+            { name: "Latte", price: "90 - 105 EGP" },
+            { name: "Cappuccino", price: "90 - 105 EGP" },
+            { name: "Americano", price: "70 - 80 EGP" },
+            { name: "Mocha", price: "110 - 125 EGP" },
+            { name: "White Mocha", price: "110 - 125 EGP" }
+        ],
+        beverages: [
+            { name: "Hot Chocolate", price: "125 - 150 EGP" },
+            { name: "Tea", price: "60 EGP" },
+            { name: "Green Tea with Mint", price: "60 EGP" },
+            { name: "Iced Cream Double Shot Coffee", price: "125 EGP" },
+            { name: "Iced Spanish Latte", price: "125 EGP" },
+            { name: "Iced Caramel with Nuts Macchiato", price: "125 EGP" },
+            { name: "Iced Latte", price: "100 EGP" },
+            { name: "Iced Americano", price: "80 EGP" },
+            { name: "Iced Mocha", price: "120 EGP" },
+            { name: "Iced White Mocha", price: "120 EGP" },
+            { name: "Caramel Frappe", price: "110 EGP" },
+            { name: "Passion Fruit Frappe", price: "120 EGP" },
+            { name: "Iced Belgian Chocolate", price: "150 EGP" },
+            { name: "Passion Fruit Mojito", price: "125 EGP" },
+            { name: "Watermelon Mojito", price: "125 EGP" },
+            { name: "Mojito", description: "Peach or watermelon", price: "98 EGP" },
+            { name: "Iced Tea", description: "Lemon or peach", price: "98 EGP" },
+            { name: "Lemon Mint", price: "72 EGP" },
+            { name: "Matcha Spanish Latte", price: "120 - 135 EGP" },
+            { name: "Iced Matcha Spanish Latte", price: "145 EGP" },
+            { name: "Berries Matcha Frappe", price: "145 EGP" },
+            { name: "V60/Iced V60 Coffee", price: "95 EGP" },
+            { name: "French Press Coffee", price: "95 EGP" },
+            { name: "Aero Press Coffee", price: "95 EGP" },
+            { name: "Single Plain Turkish Coffee", price: "60 EGP" },
+            { name: "Double Plain Turkish Coffee", price: "70 EGP" },
+            { name: "Single Cardamom Turkish Coffee", price: "60 EGP" },
+            { name: "Double Cardamom Turkish Coffee", price: "70 EGP" },
+            { name: "Spanish Coffee Frappe", price: "125 EGP" },
+            { name: "Espresso Frappe", price: "120 EGP" },
+            { name: "Vanilla Frappe Coffee", price: "120 EGP" },
+            { name: "Caramel Frappe Coffee", price: "120 EGP" },
+            { name: "Mocha Frappe Coffee", price: "125 EGP" },
+            { name: "White Mocha Frappe Coffee", price: "125 EGP" }
+        ]
+    };
+
+    // Set up filter buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            button.classList.add('active');
+            
+            const filter = button.getAttribute('data-filter');
+            displayMenuItems(filter, menuData);
+        });
+    });
+
+    // Initial display
+    displayMenuItems('all', menuData);
+}
+
+function displayMenuItems(filter, menuData) {
+    const container = document.getElementById('menuContainer');
+    container.innerHTML = '';
+
+    if (filter === 'all') {
+        // Display all categories
+        Object.keys(menuData).forEach(category => {
+            if (menuData[category].length > 0) {
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                categoryTitle.style.marginTop = '30px';
+                categoryTitle.style.marginBottom = '15px';
+                categoryTitle.style.fontSize = '1.3rem';
+                categoryTitle.style.color = 'var(--text)';
+                container.appendChild(categoryTitle);
+                
+                menuData[category].forEach(item => {
+                    const menuItem = createMenuItem(item);
+                    container.appendChild(menuItem);
+                });
+            }
+        });
+    } else {
+        // Display specific category
+        if (menuData[filter] && menuData[filter].length > 0) {
+            menuData[filter].forEach(item => {
+                const menuItem = createMenuItem(item);
+                container.appendChild(menuItem);
+            });
+        } else {
+            container.innerHTML = '<p>No items found in this category.</p>';
+        }
+    }
+}
+
+function createMenuItem(item) {
+    const menuItem = document.createElement('div');
+    menuItem.className = 'menu-item';
+    
+    const itemContent = document.createElement('div');
+    itemContent.style.flex = '1';
+    
+    const itemName = document.createElement('span');
+    itemName.textContent = item.name;
+    itemName.style.fontWeight = '600';
+    itemName.style.color = 'var(--text)';
+    
+    const itemPrice = document.createElement('span');
+    itemPrice.textContent = item.price;
+    itemPrice.style.fontWeight = '600';
+    itemPrice.style.color = 'var(--text)';
+    
+    menuItem.appendChild(itemName);
+    menuItem.appendChild(itemPrice);
+    
+    if (item.description) {
+        const description = document.createElement('div');
+        description.className = 'menu-item-description';
+        description.textContent = item.description;
+        menuItem.appendChild(description);
+    }
+    
+    return menuItem;
+}
 </script>
 
 <script>
