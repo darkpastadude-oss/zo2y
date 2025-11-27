@@ -1,26 +1,49 @@
-// remove-theme-script.cjs
+// remove-theme-toggle.cjs
 const fs = require('fs');
 const path = require('path');
 
-// Function to remove the theme script from a file
-function removeThemeScriptFromFile(filePath) {
+// Function to remove theme toggle from a file
+function removeThemeToggleFromFile(filePath) {
     try {
         let content = fs.readFileSync(filePath, 'utf8');
-        
-        // Pattern to match the theme toggle script block
-        const themeScriptPattern = /<script>\s*\/\/ Theme Toggle[^]*?initializeTheme\(\);\s*<\/script>/;
-        
-        // Check if the theme script exists in this file
-        if (themeScriptPattern.test(content)) {
-            // Remove the theme script block
-            const newContent = content.replace(themeScriptPattern, '');
-            
-            // Write the modified content back
-            fs.writeFileSync(filePath, newContent, 'utf8');
-            console.log(`✅ Removed theme script from: ${path.basename(filePath)}`);
+        let modified = false;
+
+        // Remove the theme toggle button from top-stripe
+        const buttonPattern = /<button class="theme-toggle"[^>]*>🌙 Dark Mode<\/button>/;
+        if (buttonPattern.test(content)) {
+            content = content.replace(buttonPattern, '');
+            modified = true;
+            console.log(`✅ Removed theme toggle button from: ${path.basename(filePath)}`);
+        }
+
+        // Remove the entire theme toggle script block
+        const themeScriptPatterns = [
+            /<script>\s*\/\/ Theme Toggle[\s\S]*?initializeTheme\(\);\s*<\/script>/,
+            /<script>[\s\S]*?themeToggle[\s\S]*?applyTheme[\s\S]*?toggleTheme[\s\S]*?initializeTheme[\s\S]*?<\/script>/,
+            /<script>[\s\S]*?data-theme[\s\S]*?localStorage\.setItem\('restaurant-theme'[\s\S]*?<\/script>/
+        ];
+
+        themeScriptPatterns.forEach(pattern => {
+            if (pattern.test(content)) {
+                content = content.replace(pattern, '');
+                modified = true;
+                console.log(`✅ Removed theme script from: ${path.basename(filePath)}`);
+            }
+        });
+
+        // Remove CSS variables for themes
+        const cssPattern = /:root\s*{[\s\S]*?}\s*\[\s*data-theme\s*=\s*"dark"\s*\][\s\S]*?}/;
+        if (cssPattern.test(content)) {
+            content = content.replace(cssPattern, '');
+            modified = true;
+            console.log(`✅ Removed theme CSS from: ${path.basename(filePath)}`);
+        }
+
+        if (modified) {
+            fs.writeFileSync(filePath, content, 'utf8');
             return true;
         } else {
-            console.log(`⏩ No theme script found in: ${path.basename(filePath)}`);
+            console.log(`⏩ No theme toggle found in: ${path.basename(filePath)}`);
             return false;
         }
     } catch (error) {
@@ -29,7 +52,7 @@ function removeThemeScriptFromFile(filePath) {
     }
 }
 
-// Main function to process all HTML files in the cards directory
+// Main function
 function processAllRestaurantFiles() {
     const cardsDir = path.join(__dirname, 'cards');
     
@@ -38,7 +61,7 @@ function processAllRestaurantFiles() {
         return;
     }
     
-    console.log('🔍 Scanning cards directory for HTML files...');
+    console.log('🔍 Scanning cards directory for theme toggle...');
     
     const files = fs.readdirSync(cardsDir);
     const htmlFiles = files.filter(file => file.endsWith('.html'));
@@ -49,12 +72,12 @@ function processAllRestaurantFiles() {
     
     htmlFiles.forEach(file => {
         const filePath = path.join(cardsDir, file);
-        if (removeThemeScriptFromFile(filePath)) {
+        if (removeThemeToggleFromFile(filePath)) {
             processedCount++;
         }
     });
     
-    console.log(`\n🎉 Done! Processed ${processedCount} files out of ${htmlFiles.length}`);
+    console.log(`\n🎉 Done! Removed theme toggle from ${processedCount} files out of ${htmlFiles.length}`);
 }
 
 // Run the script
