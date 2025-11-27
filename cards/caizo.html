@@ -1099,26 +1099,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   <p style="margin-top: 5px; font-size: 0.7rem; color: var(--text-color-secondary);">Delivery Areas: Zayed, New Giza, New Cairo, Maadi, Sahel, Nasr City</p>
 </footer>
 
-<script>
-// Theme Toggle
-const themeToggle = document.getElementById('themeToggle');
-function applyTheme(theme){
-  document.documentElement.setAttribute('data-theme',theme);
-  if(themeToggle) themeToggle.textContent = theme==='dark'?'☀️ Light Mode':'🌙 Dark Mode';
-  localStorage.setItem('restaurant-theme',theme);
-}
-function toggleTheme(){
-  const current=document.documentElement.getAttribute('data-theme')||'light';
-  applyTheme(current==='light'?'dark':'light');
-}
-function initializeTheme(){
-  const saved=localStorage.getItem('restaurant-theme');
-  if(saved) applyTheme(saved);
-  else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-}
-if(themeToggle) themeToggle.addEventListener('click',toggleTheme);
-initializeTheme();
-</script>
+
 
 <script type="module">
 // Enhanced Review System
