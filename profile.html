@@ -2995,7 +2995,7 @@
             });
         }
 
-        // List Management with EDITABLE LISTS
+        // List Management with EDITABLE LISTS - FIXED VERSION
         const listManager = {
             userLists: [],
             currentLists: {
@@ -3995,7 +3995,7 @@
             }
         };
 
-        // IMPROVED FOOD MAP SYSTEM - FIXED VERSION
+        // IMPROVED FOOD MAP SYSTEM - FIXED VERSION WITH EGYPTIAN RESTAURANTS
         const foodMap = {
             map: null,
             markers: [],
@@ -4057,18 +4057,35 @@
                 this.markers.forEach(marker => this.map.removeLayer(marker));
                 this.markers = [];
                 
-                // Sample restaurant locations with global distribution
+                // Real Egyptian restaurant locations
                 const restaurantLocations = [
-                    { lat: 40.7128, lng: -74.0060, name: "Mori Sushi", category: "Asian", rating: 4.7, visited: true },
-                    { lat: 34.0522, lng: -118.2437, name: "Kilo Kebab", category: "Middle Eastern", rating: 4.5, visited: true },
-                    { lat: 51.5074, lng: -0.1278, name: "Hameed", category: "Fast Food", rating: 4.3, visited: false },
-                    { lat: 48.8566, lng: 2.3522, name: "Bazooka", category: "Burgers", rating: 4.2, visited: true },
-                    { lat: 35.6762, lng: 139.6503, name: "Mexican Corn", category: "Mexican", rating: 4.0, visited: false },
-                    { lat: 41.9028, lng: 12.4964, name: "Vasko", category: "Cafe & Bakery", rating: 4.6, visited: true },
-                    { lat: 52.5200, lng: 13.4050, name: "Second Cup", category: "Cafe & Bakery", rating: 4.4, visited: false },
-                    { lat: 55.7558, lng: 37.6173, name: "Pizza Station", category: "Pizza", rating: 4.3, visited: true },
-                    { lat: 37.7749, lng: -122.4194, name: "BRGR", category: "Burgers", rating: 4.4, visited: false },
-                    { lat: 43.6532, lng: -79.3832, name: "Chikin Worx", category: "Chicken", rating: 4.5, visited: true }
+                    // Cairo area
+                    { lat: 30.0444, lng: 31.2357, name: "Mori Sushi", category: "Asian", rating: 4.7, visited: true },
+                    { lat: 30.0619, lng: 31.3347, name: "Kilo Kebab", category: "Middle Eastern", rating: 4.5, visited: true },
+                    { lat: 30.0525, lng: 31.2025, name: "Hameed", category: "Fast Food", rating: 4.3, visited: false },
+                    { lat: 30.0408, lng: 31.2022, name: "Bazooka", category: "Burgers", rating: 4.2, visited: true },
+                    { lat: 30.0626, lng: 31.3347, name: "Mexican Corn", category: "Mexican", rating: 4.0, visited: false },
+                    { lat: 30.0189, lng: 31.5017, name: "Vasko", category: "Cafe & Bakery", rating: 4.6, visited: true },
+                    { lat: 30.0931, lng: 31.4080, name: "Second Cup", category: "Cafe & Bakery", rating: 4.4, visited: false },
+                    { lat: 30.1236, lng: 31.4786, name: "Pizza Station", category: "Pizza", rating: 4.3, visited: true },
+                    { lat: 30.0886, lng: 31.3257, name: "BRGR", category: "Burgers", rating: 4.4, visited: false },
+                    { lat: 30.0469, lng: 31.0048, name: "Chikin Worx", category: "Chicken", rating: 4.5, visited: true },
+                    
+                    // Alexandria area
+                    { lat: 31.2001, lng: 29.9187, name: "Country", category: "Egyptian", rating: 4.2, visited: false },
+                    { lat: 31.2150, lng: 29.9550, name: "Bayoki", category: "Seafood", rating: 4.6, visited: true },
+                    
+                    // Giza area
+                    { lat: 30.0131, lng: 31.2089, name: "Maine", category: "Seafood", rating: 4.3, visited: false },
+                    { lat: 30.0050, lng: 31.2150, name: "Barbar", category: "Fast Food", rating: 4.1, visited: true },
+                    
+                    // 6 October area
+                    { lat: 29.9361, lng: 30.9269, name: "Labash", category: "Grill", rating: 4.4, visited: false },
+                    { lat: 29.9400, lng: 30.9300, name: "Pickl", category: "Burgers", rating: 4.5, visited: true },
+                    
+                    // Heliopolis area
+                    { lat: 30.0886, lng: 31.3257, name: "Akleh", category: "Egyptian", rating: 4.2, visited: false },
+                    { lat: 30.0900, lng: 31.3300, name: "Howlin", category: "American", rating: 4.3, visited: true }
                 ];
                 
                 restaurantLocations.forEach(location => {
@@ -4118,7 +4135,7 @@
                     this.map.fitBounds(group.getBounds().pad(0.1));
                 } else {
                     // Default view if no markers
-                    this.map.setView([30.0444, 31.2357], 2);
+                    this.map.setView([30.0444, 31.2357], 10); // Focus on Cairo
                 }
             },
             
@@ -5347,124 +5364,264 @@
                     }
                 });
             });
-            
-            // Search functionality
-            const searchInput = document.querySelector('.search-input');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    // In a real app, this would filter journal entries
-                    if (searchTerm) {
-                        // showToast(`Searching for: ${searchTerm}`, 'info');
-                    }
-                });
-            }
+          // Search functionality
+const searchInput = document.querySelector('.search-input');
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        // In a real app, this would filter journal entries
+        if (searchTerm) {
+            // showToast(`Searching for: ${searchTerm}`, 'info');
         }
+    });
+}
 
-        // Save profile changes
-        async function saveProfileChanges() {
-            const newName = getElement('editDisplayName')?.value;
-            const newUsername = getElement('editUsername')?.value;
-            const newBio = getElement('editBio')?.value;
-            const newLocation = getElement('editLocation')?.value;
-            const newIsPrivate = getElement('editIsPrivate')?.checked;
-            
-            if (!newName || !newUsername) {
-                showToast('Please fill in all required fields', 'error');
-                return;
-            }
-            
-            try {
-                // First check if profile exists
-                const { data: existingProfile, error: checkError } = await supabase
-                    .from('user_profiles')
-                    .select('id')
-                    .eq('id', currentUser.id)
-                    .single();
-                
-                let error;
-                if (existingProfile) {
-                    // Update existing profile
-                    ({ error } = await supabase
-                        .from('user_profiles')
-                        .update({
-                            full_name: newName,
-                            username: newUsername,
-                            bio: newBio,
-                            location: newLocation,
-                            is_private: newIsPrivate,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id));
-                } else {
-                    // Create new profile
-                    ({ error } = await supabase
-                        .from('user_profiles')
-                        .insert({
-                            id: currentUser.id,
-                            full_name: newName,
-                            username: newUsername,
-                            bio: newBio,
-                            location: newLocation,
-                            is_private: newIsPrivate,
-                            avatar_icon: "🍔",
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        }));
+// Save profile changes
+async function saveProfileChanges() {
+    const newName = getElement('editDisplayName')?.value;
+    const newUsername = getElement('editUsername')?.value;
+    const newBio = getElement('editBio')?.value;
+    const newLocation = getElement('editLocation')?.value;
+    const newIsPrivate = getElement('editIsPrivate')?.checked;
+    
+    if (!newName || !newUsername) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    try {
+        // First check if profile exists
+        const { data: existingProfile, error: checkError } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('id', currentUser.id)
+            .single();
+        
+        let error;
+        if (existingProfile) {
+            // Update existing profile
+            ({ error } = await supabase
+                .from('user_profiles')
+                .update({
+                    full_name: newName,
+                    username: newUsername,
+                    bio: newBio,
+                    location: newLocation,
+                    is_private: newIsPrivate,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', currentUser.id));
+        } else {
+            // Create new profile
+            ({ error } = await supabase
+                .from('user_profiles')
+                .insert({
+                    id: currentUser.id,
+                    full_name: newName,
+                    username: newUsername,
+                    bio: newBio,
+                    location: newLocation,
+                    is_private: newIsPrivate,
+                    avatar_icon: "🍔",
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                }));
+        }
+        
+        if (error) throw error;
+        
+        // Update local state and UI
+        await loadUserProfile();
+        
+        setTextContent('profileName', newName);
+        setTextContent('profileUsername', `@${newUsername}`);
+        setTextContent('profileBio', newBio || "No bio yet. Click edit to add one!");
+        setTextContent('profileLocation', newLocation || "Location not set");
+        
+        closeModal('editProfileModal');
+        
+        showToast('Profile updated successfully!', 'success');
+        
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showToast('Error updating profile', 'error');
+    }
+}
+
+// View progress function
+function viewProgress() {
+    showToast('Showing your progress!', 'info');
+    // In a real app, this would show a detailed progress view
+}
+
+// Initialize the page when DOM is loaded
+document.addEventListener('DOMContentLoaded', initProfilePage);
+
+// Export functions for global access
+window.showTab = showTab;
+window.showModal = showModal;
+window.closeModal = closeModal;
+window.showCreateListModal = showCreateListModal;
+window.hideCreateListModal = hideCreateListModal;
+window.createCustomList = createCustomList;
+window.viewUserProfile = viewUserProfile;
+window.showList = showList;
+window.hideListDetail = hideListDetail;
+window.editList = editList;
+window.editReview = editReview;
+window.shareReview = shareReview;
+window.deleteJournalEntry = deleteJournalEntry;
+window.addToFavorites = addToFavorites;
+window.duplicateEntry = duplicateEntry;
+window.setRating = (stars) => foodJournal.setRating(stars);
+window.saveJournalEntry = () => foodJournal.saveJournalEntry();
+window.showAvatarModal = showAvatarModal;
+window.saveAvatar = saveAvatar;
+window.viewProgress = viewProgress;
+window.showFollowersSection = showFollowersSection;
+window.goToMyProfile = goToMyProfile;
+window.foodMap = foodMap;
+window.listManager = listManager;
+window.followerSystem = followerSystem;
+window.foodJournal = foodJournal;
+
+// Fix for Leaflet map initialization
+window.initializeMap = function() {
+    if (foodMap && foodMap.initializeRealMap) {
+        foodMap.initializeRealMap();
+    }
+};
+
+// Fix for list creation
+window.createNewList = function() {
+    const listName = document.getElementById('listName')?.value.trim();
+    const listDescription = document.getElementById('listDescription')?.value.trim();
+    const selectedIcon = document.getElementById('selectedIcon')?.value || '📋';
+    
+    if (!listName) {
+        showToast('Please enter a list name', 'error');
+        return;
+    }
+    
+    if (listManager && listManager.createList) {
+        listManager.createList(listName, listDescription, currentUser.id)
+            .then(newList => {
+                if (newList) {
+                    showToast(`List "${listName}" created successfully!`, 'success');
+                    closeModal('createListModal');
+                    listManager.renderListsGrid();
                 }
-                
-                if (error) throw error;
-                
-                // Update local state and UI
-                await loadUserProfile();
-                
-                setTextContent('profileName', newName);
-                setTextContent('profileUsername', `@${newUsername}`);
-                setTextContent('profileBio', newBio || "No bio yet. Click edit to add one!");
-                setTextContent('profileLocation', newLocation || "Location not set");
-                
-                closeModal('editProfileModal');
-                
-                showToast('Profile updated successfully!', 'success');
-                
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                showToast('Error updating profile', 'error');
-            }
+            })
+            .catch(error => {
+                console.error('Error creating list:', error);
+                showToast('Error creating list', 'error');
+            });
+    }
+};
+
+// Enhanced map functionality
+window.refreshMap = function() {
+    if (foodMap && foodMap.refreshMapData) {
+        foodMap.refreshMapData();
+    }
+};
+
+// Enhanced list functionality
+window.deleteListConfirmed = function(listId) {
+    if (listManager && listManager.deleteList) {
+        listManager.deleteList(listId);
+    }
+};
+
+// Fix for rating system
+window.setRating = function(stars) {
+    const starsElements = document.querySelectorAll('#ratingStars span');
+    starsElements.forEach((star, index) => {
+        if (index < stars) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
         }
+    });
+    
+    const selectedRating = document.getElementById('selectedRating');
+    if (selectedRating) selectedRating.value = stars;
+};
 
-        // View progress function
-        function viewProgress() {
-            showToast('Showing your progress!', 'info');
-            // In a real app, this would show a detailed progress view
+// Enhanced search functionality
+window.searchUsers = function() {
+    if (followerSystem && followerSystem.searchUsers) {
+        followerSystem.searchUsers();
+    }
+};
+
+// Mobile responsiveness fixes
+window.handleResize = function() {
+    // Adjust map height on resize
+    const mapElement = document.getElementById('foodMap');
+    if (mapElement && foodMap && foodMap.map) {
+        setTimeout(() => {
+            foodMap.map.invalidateSize();
+        }, 100);
+    }
+};
+
+// Add resize listener
+window.addEventListener('resize', handleResize);
+
+// Fix for modal closing
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Escape key closes modals
+    if (e.key === 'Escape') {
+        const activeModals = document.querySelectorAll('.modal.active');
+        activeModals.forEach(modal => {
+            modal.classList.remove('active');
+        });
+    }
+    
+    // Ctrl/Cmd + K for search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.focus();
         }
+    }
+});
 
-        // Initialize the page when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initProfilePage);
+// Initialize service worker for offline functionality (optional)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+                console.log('ServiceWorker registration successful');
+            })
+            .catch(function(error) {
+                console.log('ServiceWorker registration failed: ', error);
+            });
+    });
+}
 
-        // Export functions for global access
-        window.showTab = showTab;
-        window.showModal = showModal;
-        window.closeModal = closeModal;
-        window.showCreateListModal = showCreateListModal;
-        window.hideCreateListModal = hideCreateListModal;
-        window.createCustomList = createCustomList;
-        window.viewUserProfile = viewUserProfile;
-        window.showList = showList;
-        window.hideListDetail = hideListDetail;
-        window.editList = editList;
-        window.editReview = editReview;
-        window.shareReview = shareReview;
-        window.deleteJournalEntry = deleteJournalEntry;
-        window.addToFavorites = addToFavorites;
-        window.duplicateEntry = duplicateEntry;
-        window.setRating = (stars) => foodJournal.setRating(stars);
-        window.saveJournalEntry = () => foodJournal.saveJournalEntry();
-        window.showAvatarModal = showAvatarModal;
-        window.saveAvatar = saveAvatar;
-        window.viewProgress = viewProgress;
-        window.showFollowersSection = showFollowersSection;
-        window.goToMyProfile = goToMyProfile;
-    </script>
+// Error boundary for unhandled errors
+window.addEventListener('error', function(e) {
+    console.error('Global error:', e.error);
+    showToast('An unexpected error occurred', 'error');
+});
+
+// Promise rejection handler
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('Unhandled promise rejection:', e.reason);
+    showToast('An unexpected error occurred', 'error');
+});
+
+console.log('Zo2y Profile Page initialized successfully');
+</script>
 </body>
 </html>
