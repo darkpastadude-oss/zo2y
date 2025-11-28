@@ -1825,11 +1825,19 @@
 
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <div class="nav-tab active" data-tab="journal">
-<div class="nav-tab" data-tab="lists">
-<div class="nav-tab" data-tab="map">
-<div class="nav-tab" data-tab="achievements">
-<div class="nav-tab" data-tab="followers">
+            <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')">
+                <i class="fas fa-book"></i> Food Journal
+            </div>
+            <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
+                <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
+            </div>
+            <div class="nav-tab" data-tab="map" onclick="showTab('map')">
+                <i class="fas fa-map"></i> Food Map
+            </div>
+            <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
+                <i class="fas fa-trophy"></i> Achievements
+            </div>
+            <div class="nav-tab" data-tab="followers" onclick="showTab('followers')">
                 <i class="fas fa-users"></i> Followers
                 <span class="nav-tab-badge d-none" id="followersBadge">0</span>
             </div>
@@ -3320,7 +3328,7 @@
                     {
                         id: 'visited',
                         title: 'Visited',
-                        description: 'Restaurants you\'ve checked out.',
+                        description: 'Restaurants you've checked out.',
                         icon: 'fas fa-check-circle',
                         color: 'var(--success)',
                         restaurants: this.currentLists.visited?.restaurants || [],
@@ -5229,15 +5237,6 @@
                 listManager.renderListsGrid();
             }
         }
-        // Add event listeners for nav tabs
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabName = this.getAttribute('data-tab');
-            showTab(tabName);
-        });
-    });
-});
 
         function showFollowersSection(section) {
             // Update active buttons
