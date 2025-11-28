@@ -440,7 +440,7 @@
         /* === CARDS GRID === */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
         }
 
@@ -1684,6 +1684,19 @@
 
             .list-preview-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            
+            /* Fix card sizing on mobile */
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .restaurant-tile {
+                margin-bottom: 16px;
+            }
+            
+            .restaurant-tile-image {
+                height: 150px;
             }
         }
 
@@ -3985,7 +3998,7 @@
             }
         };
 
-        // SIMPLIFIED FOOD MAP SYSTEM
+        // IMPROVED FOOD MAP SYSTEM
         const foodMap = {
             map: null,
             markers: [],
@@ -4029,8 +4042,8 @@
                         className: 'map-tiles'
                     }).addTo(this.map);
                     
-                    // Add sample markers for demonstration
-                    this.addSampleMarkers();
+                    // Add markers for restaurants with actual coordinates
+                    this.addRestaurantMarkers();
                     
                     showToast('🗺️ Interactive map loaded!', 'success');
                     
@@ -4040,18 +4053,22 @@
                 }
             },
             
-            addSampleMarkers() {
-                // Sample restaurant locations in Cairo
-                const sampleLocations = [
-                    { lat: 30.0444, lng: 31.2357, name: "Downtown Cairo", restaurant: "Various Restaurants" },
-                    { lat: 30.0626, lng: 31.3347, name: "Nasr City", restaurant: "Food District" },
-                    { lat: 30.0189, lng: 31.5017, name: "New Cairo", restaurant: "Modern Eateries" },
-                    { lat: 29.9627, lng: 31.2590, name: "Maadi", restaurant: "Cozy Cafes" },
-                    { lat: 30.0525, lng: 31.2025, name: "Mohandseen", restaurant: "International Cuisine" }
+            addRestaurantMarkers() {
+                // Clear existing markers
+                this.markers.forEach(marker => this.map.removeLayer(marker));
+                this.markers = [];
+                
+                // Sample restaurant locations in Cairo with actual coordinates
+                const restaurantLocations = [
+                    { lat: 30.0444, lng: 31.2357, name: "Mori Sushi", category: "Asian", rating: 4.7, visited: true },
+                    { lat: 30.0626, lng: 31.3347, name: "Kilo Kebab", category: "Middle Eastern", rating: 4.5, visited: true },
+                    { lat: 30.0189, lng: 31.5017, name: "Hameed", category: "Fast Food", rating: 4.3, visited: false },
+                    { lat: 29.9627, lng: 31.2590, name: "Bazooka", category: "Burgers", rating: 4.2, visited: true },
+                    { lat: 30.0525, lng: 31.2025, name: "Mexican Corn", category: "Mexican", rating: 4.0, visited: false }
                 ];
                 
-                sampleLocations.forEach(location => {
-                    const isVisited = Math.random() > 0.5; // Random for demo
+                restaurantLocations.forEach(location => {
+                    const isVisited = location.visited;
                     const markerColor = isVisited ? 'green' : 'orange';
                     
                     // Create custom icon
@@ -4071,11 +4088,12 @@
                         .addTo(this.map)
                         .bindPopup(`
                             <div class="map-popup">
-                                <h3>${location.restaurant}</h3>
-                                <h4>${location.name}</h4>
-                                <p>Sample restaurant location in ${location.name}</p>
+                                <h3>${location.name}</h3>
+                                <h4>${location.category}</h4>
+                                <p>⭐ ${location.rating}/5</p>
+                                <p>${location.visited ? 'Visited' : 'Want to Visit'}</p>
                                 <div class="popup-actions">
-                                    <button onclick="foodMap.viewSampleRestaurant()" class="btn btn-primary btn-sm">
+                                    <button onclick="foodMap.viewRestaurant('${location.name}')" class="btn btn-primary btn-sm">
                                         View Restaurant
                                     </button>
                                 </div>
@@ -4092,8 +4110,14 @@
                 }
             },
             
-            viewSampleRestaurant() {
-                showToast('This would open a restaurant page', 'info');
+            viewRestaurant(name) {
+                // Find the restaurant in our data
+                const restaurant = restaurants.find(r => r.name === name);
+                if (restaurant && restaurant.slug) {
+                    window.location.href = `cards/${restaurant.slug}.html`;
+                } else {
+                    showToast(`Would navigate to ${name} details`, 'info');
+                }
             },
             
             async loadVisitedRestaurants() {
@@ -4115,6 +4139,7 @@
                 showToast('🔄 Refreshing map data...', 'info');
                 // In a real implementation, this would reload restaurant data
                 setTimeout(() => {
+                    this.addRestaurantMarkers();
                     showToast('✅ Map data updated!', 'success');
                 }, 1000);
             },
