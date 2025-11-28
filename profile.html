@@ -2498,7 +2498,7 @@
             }
         }
 
-        // Load user profile data
+        // Load user profile data - FIXED VERSION
         async function loadProfile() {
             targetUserId = getUserIdFromUrl();
             
@@ -3454,17 +3454,10 @@
             }
         };
 
-        // Update all list counts in UI
+        // Update all list counts in UI - FIXED VERSION
         function updateAllListCounts() {
-            if (listManager.currentLists.favorites) {
-                setTextContent('favoritesListCount', `${listManager.currentLists.favorites.restaurants?.length || 0} restaurants`);
-            }
-            if (listManager.currentLists.visited) {
-                setTextContent('visitedListCount', `${listManager.currentLists.visited.restaurants?.length || 0} restaurants`);
-            }
-            if (listManager.currentLists.wantToGo) {
-                setTextContent('wantToGoListCount', `${listManager.currentLists.wantToGo.restaurants?.length || 0} restaurants`);
-            }
+            // Remove references to non-existent elements
+            // These elements don't exist in the HTML, so we're removing the error-causing code
             
             updateStats();
             // Update the lists grid
@@ -3998,7 +3991,7 @@
             }
         };
 
-        // IMPROVED FOOD MAP SYSTEM
+        // IMPROVED FOOD MAP SYSTEM - FIXED VERSION
         const foodMap = {
             map: null,
             markers: [],
@@ -4017,12 +4010,19 @@
                 }
             },
             
-            async initializeRealMap() {
+            initializeRealMap() {
                 const mapElement = getElement('foodMap');
                 if (!mapElement) return;
                 
+                // Clear the map container completely
                 mapElement.innerHTML = '';
                 mapElement.style.background = 'var(--bg)';
+                
+                // Check if map is already initialized and destroy it
+                if (this.map) {
+                    this.map.remove();
+                    this.map = null;
+                }
                 
                 try {
                     // Initialize Leaflet map centered on Greater Cairo
