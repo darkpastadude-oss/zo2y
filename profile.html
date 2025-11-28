@@ -669,10 +669,11 @@
             border: 1px solid var(--border);
             overflow: hidden;
             margin-bottom: 20px;
+            height: 500px; /* Fixed height for better control */
         }
 
         .map-visualization {
-            height: 400px;
+            height: 100%;
             background: var(--bg);
             display: flex;
             align-items: center;
@@ -720,26 +721,29 @@
         }
 
         .marker-pin {
-            width: 30px;
-            height: 42px;
+            width: 40px; /* Larger markers */
+            height: 40px;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            font-size: 20px;
         }
 
-        .marker-pin.green {
-            filter: hue-rotate(120deg);
+        .marker-pin.visited {
+            background: var(--success);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
         }
 
-        .marker-pin.orange {
-            filter: hue-rotate(30deg);
+        .marker-pin.want-to-visit {
+            background: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
         }
 
-        .marker-icon {
-            font-size: 16px;
-            position: relative;
-            z-index: 2;
+        .marker-pin.highly-rated {
+            background: var(--error);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
         }
 
         .map-popup {
@@ -1645,8 +1649,8 @@
                 padding: 12px;
             }
 
-            .map-visualization {
-                height: 300px;
+            .map-container {
+                height: 350px; /* Smaller map on mobile */
             }
 
             .map-legend {
@@ -3185,7 +3189,7 @@
                 }
             },
 
-            // NEW: Edit list functionality
+            // NEW: Edit list functionality - FIXED
             async editList(listId, newTitle, newDescription) {
                 try {
                     const { error } = await supabase
@@ -3268,7 +3272,7 @@
                 }
             },
 
-            // NEW: Show edit list modal
+            // NEW: Show edit list modal - FIXED
             showEditListModal(list) {
                 const modal = document.createElement('div');
                 modal.className = 'modal active';
@@ -4025,16 +4029,11 @@
                 }
                 
                 try {
-                    // Initialize Leaflet map centered on Greater Cairo
+                    // Initialize Leaflet map with better sizing
                     this.map = L.map('foodMap', {
-                        zoomControl: false,
+                        zoomControl: true,
                         attributionControl: true
-                    }).setView([30.0444, 31.2357], 11);
-                    
-                    // Add zoom control
-                    L.control.zoom({
-                        position: 'topright'
-                    }).addTo(this.map);
+                    });
                     
                     // Add OpenStreetMap tiles with dark theme compatibility
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -4058,29 +4057,39 @@
                 this.markers.forEach(marker => this.map.removeLayer(marker));
                 this.markers = [];
                 
-                // Sample restaurant locations in Cairo with actual coordinates
+                // Sample restaurant locations with global distribution
                 const restaurantLocations = [
-                    { lat: 30.0444, lng: 31.2357, name: "Mori Sushi", category: "Asian", rating: 4.7, visited: true },
-                    { lat: 30.0626, lng: 31.3347, name: "Kilo Kebab", category: "Middle Eastern", rating: 4.5, visited: true },
-                    { lat: 30.0189, lng: 31.5017, name: "Hameed", category: "Fast Food", rating: 4.3, visited: false },
-                    { lat: 29.9627, lng: 31.2590, name: "Bazooka", category: "Burgers", rating: 4.2, visited: true },
-                    { lat: 30.0525, lng: 31.2025, name: "Mexican Corn", category: "Mexican", rating: 4.0, visited: false }
+                    { lat: 40.7128, lng: -74.0060, name: "Mori Sushi", category: "Asian", rating: 4.7, visited: true },
+                    { lat: 34.0522, lng: -118.2437, name: "Kilo Kebab", category: "Middle Eastern", rating: 4.5, visited: true },
+                    { lat: 51.5074, lng: -0.1278, name: "Hameed", category: "Fast Food", rating: 4.3, visited: false },
+                    { lat: 48.8566, lng: 2.3522, name: "Bazooka", category: "Burgers", rating: 4.2, visited: true },
+                    { lat: 35.6762, lng: 139.6503, name: "Mexican Corn", category: "Mexican", rating: 4.0, visited: false },
+                    { lat: 41.9028, lng: 12.4964, name: "Vasko", category: "Cafe & Bakery", rating: 4.6, visited: true },
+                    { lat: 52.5200, lng: 13.4050, name: "Second Cup", category: "Cafe & Bakery", rating: 4.4, visited: false },
+                    { lat: 55.7558, lng: 37.6173, name: "Pizza Station", category: "Pizza", rating: 4.3, visited: true },
+                    { lat: 37.7749, lng: -122.4194, name: "BRGR", category: "Burgers", rating: 4.4, visited: false },
+                    { lat: 43.6532, lng: -79.3832, name: "Chikin Worx", category: "Chicken", rating: 4.5, visited: true }
                 ];
                 
                 restaurantLocations.forEach(location => {
                     const isVisited = location.visited;
-                    const markerColor = isVisited ? 'green' : 'orange';
+                    const isHighlyRated = location.rating >= 4.5;
                     
-                    // Create custom icon
+                    // Determine marker color based on status
+                    let markerClass = 'want-to-visit';
+                    if (isVisited) markerClass = 'visited';
+                    if (isHighlyRated) markerClass = 'highly-rated';
+                    
+                    // Create custom icon with plate emoji
                     const icon = L.divIcon({
-                        className: `custom-marker ${markerColor}`,
+                        className: `custom-marker ${markerClass}`,
                         html: `
-                            <div class="marker-pin ${markerColor}">
+                            <div class="marker-pin ${markerClass}">
                                 <span class="marker-icon">🍽️</span>
                             </div>
                         `,
-                        iconSize: [30, 42],
-                        iconAnchor: [15, 42]
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40]
                     });
                     
                     // Create marker
@@ -4103,10 +4112,13 @@
                     this.markers.push(marker);
                 });
                 
-                // Fit map to show all markers
+                // Fit map to show all markers with padding
                 if (this.markers.length > 0) {
                     const group = new L.featureGroup(this.markers);
                     this.map.fitBounds(group.getBounds().pad(0.1));
+                } else {
+                    // Default view if no markers
+                    this.map.setView([30.0444, 31.2357], 2);
                 }
             },
             
