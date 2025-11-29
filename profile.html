@@ -2886,12 +2886,12 @@
                 // Get visited count from reviews - FIXED: Count unique restaurants
                 const { data: reviews, error } = await supabase
                     .from('reviews')
-                    .select('restaurant_id')
+                    .select('restraunt_id')
                     .eq('user_id', targetId);
 
                 if (error) throw error;
                     
-                const visitedCount = reviews ? new Set(reviews.map(r => r.restaurant_id)).size : 0;
+                const visitedCount = reviews ? new Set(reviews.map(r => r.restraunt_id)).size : 0;
                 
                 // Get followers count
                 const { data: followers } = await supabase
@@ -2929,7 +2929,7 @@
             }
         }
 
-        // Load restaurants from database
+        // Load restaurants from database - FIXED VERSION
         async function loadRestaurants() {
             // Try to get from cache first
             if (cachedData.restaurants && cachedData.restaurants.length > 0) {
@@ -2959,16 +2959,16 @@
                 console.error('Error loading restaurants:', error);
                 // Fallback data if database fails
                 restaurants = [
-                    { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', description:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-                    { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-                    { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', description:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-                    { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', description:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-                    { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' },
-                    { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', description:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png' },
-                    { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', description:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg' },
-                    { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', description:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png' },
-                    { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', description:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png' },
-                    { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', description:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg' }
+                    { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', description:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png', latitude: 30.0444, longitude: 31.2357 },
+                    { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', latitude: 30.0626, longitude: 31.3347 },
+                    { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', description:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png', latitude: 30.0189, longitude: 31.5017 },
+                    { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', description:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg', latitude: 29.9627, longitude: 31.2590 },
+                    { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg', latitude: 30.0525, longitude: 31.2025 },
+                    { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', description:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png', latitude: 30.0276, longitude: 31.2108 },
+                    { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', description:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg', latitude: 30.0689, longitude: 31.3456 },
+                    { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', description:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png', latitude: 30.0412, longitude: 31.2189 },
+                    { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', description:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png', latitude: 30.0134, longitude: 31.4892 },
+                    { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', description:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg', latitude: 30.0598, longitude: 31.2783 }
                 ];
                 
                 // Cache the fallback data
@@ -3049,7 +3049,12 @@
             async createList(title, description, userId = currentUser.id) {
                 const { data: newList, error } = await supabase
                     .from('lists')
-                    .insert([{ user_id: userId, title: title, description: description }])
+                    .insert([{ 
+                        user_id: userId, 
+                        title: title, 
+                        description: description,
+                        is_default: true
+                    }])
                     .select()
                     .single();
                 
@@ -3066,13 +3071,13 @@
                 for (const listType in this.currentLists) {
                     const list = this.currentLists[listType];
                     if (list) {
-                        const { data: listRestaurants, error } = await supabase
+                        const { data: listRestraunts, error } = await supabase
                             .from('lists_restraunts')
                             .select('restraunt_id')
                             .eq('list_id', list.id);
                         
-                        if (!error && listRestaurants) {
-                            list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                        if (!error && listRestraunts) {
+                            list.restaurants = listRestraunts.map(item => item.restraunt_id);
                             console.log(`Loaded ${list.restaurants.length} restaurants for ${list.title}`);
                         } else {
                             list.restaurants = [];
@@ -3081,7 +3086,7 @@
                 }
             },
             
-            async toggleInList(listType, restaurantId) {
+            async toggleInList(listType, restrauntId) {
                 let list;
                 
                 // Handle custom lists (by ID)
@@ -3094,7 +3099,7 @@
                     if (!list) return false;
                 }
                 
-                const isInList = list.restaurants?.includes(restaurantId);
+                const isInList = list.restaurants?.includes(restrauntId);
                 
                 try {
                     if (isInList) {
@@ -3103,12 +3108,12 @@
                             .delete()
                             .match({ 
                                 list_id: list.id, 
-                                restraunt_id: restaurantId
+                                restraunt_id: restrauntId
                             });
                         
                         if (error) throw error;
                         
-                        list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                        list.restaurants = list.restaurants.filter(id => id !== restrauntId);
                         showToast(`Removed from ${list.title}`, "info");
                         
                     } else {
@@ -3116,14 +3121,15 @@
                             .from('lists_restraunts')
                             .insert([{ 
                                 list_id: list.id, 
-                                restraunt_id: restaurantId,
+                                restraunt_id: restrauntId,
+                                user_id: currentUser.id,
                                 added_at: new Date().toISOString()
                             }]);
                         
                         if (error) throw error;
                         
                         if (!list.restaurants) list.restaurants = [];
-                        list.restaurants.push(restaurantId);
+                        list.restaurants.push(restrauntId);
                         showToast(`Added to ${list.title}`, "success");
                     }
                     
@@ -3139,7 +3145,7 @@
                 }
             },
             
-            isInList(listType, restaurantId) {
+            isInList(listType, restrauntId) {
                 let list;
                 
                 if (typeof listType === 'number') {
@@ -3148,7 +3154,7 @@
                     list = this.currentLists[listType];
                 }
                 
-                return list?.restaurants?.includes(restaurantId) || false;
+                return list?.restaurants?.includes(restrauntId) || false;
             },
 
             async loadCustomLists(userId) {
@@ -3159,7 +3165,7 @@
                         .from('lists')
                         .select('*')
                         .eq('user_id', userId)
-                        .not('title', 'in', '("Favorites","Visited","Want to Go")');
+                        .eq('is_default', false);
                     
                     if (error) throw error;
                     
@@ -3167,13 +3173,13 @@
                     
                     // Load restaurants for each custom list
                     for (const list of customLists) {
-                        const { data: listRestaurants, error } = await supabase
+                        const { data: listRestraunts, error } = await supabase
                             .from('lists_restraunts')
                             .select('restraunt_id')
                             .eq('list_id', list.id);
                         
-                        if (!error && listRestaurants) {
-                            list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                        if (!error && listRestraunts) {
+                            list.restaurants = listRestraunts.map(item => item.restraunt_id);
                         } else {
                             list.restaurants = [];
                         }
@@ -3289,7 +3295,7 @@
                                 </div>
                                 <div class="edit-list-actions">
                                     <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                                    <button type="button" class="btn btn-error" onclick="listManager.deleteList(${list.id}); this.closest('.modal').remove()">
+                                    <button type="button" class="btn btn-error" onclick="listManager.deleteList('${list.id}'); this.closest('.modal').remove()">
                                         <i class="fas fa-trash"></i> Delete List
                                     </button>
                                     <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -3388,19 +3394,19 @@
                     
                     // Get preview images - FIXED: Shuffle restaurant previews
                     const previewItems = [];
-                    const restaurantIds = list.restaurants || [];
+                    const restrauntIds = list.restaurants || [];
                     
                     // Shuffle restaurant IDs to get random previews
-                    const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
+                    const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
                     
                     for (let i = 0; i < 4; i++) {
                         if (shuffledIds[i]) {
-                            const restaurantId = shuffledIds[i];
-                            const restaurant = restaurants.find(r => r.id === restaurantId);
-                            if (restaurant) {
+                            const restrauntId = shuffledIds[i];
+                            const restraunt = restaurants.find(r => r.id === restrauntId);
+                            if (restraunt) {
                                 previewItems.push(`
                                     <div class="list-preview-item">
-                                        <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                        <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
                                     </div>
                                 `);
                             } else {
@@ -3440,13 +3446,13 @@
                             ${previewItems.join('')}
                         </div>
                         <div class="d-flex justify-between align-center mt-md">
-                            <span class="text-sm text-muted">${restaurantIds.length} places</span>
-                            <button class="list-card-button" onclick="event.stopPropagation(); showList(${list.isDefault ? `'${list.id}'` : list.id})">View List</button>
+                            <span class="text-sm text-muted">${restrauntIds.length} places</span>
+                            <button class="list-card-button" onclick="event.stopPropagation(); showList(${list.isDefault ? `'${list.id}'` : `'${list.id}'`})">View List</button>
                         </div>
                     `;
                     
                     // Make the main card clickable for viewing the list
-                    listCard.onclick = () => showList(list.isDefault ? list.id : list.id);
+                    listCard.onclick = () => showList(list.id);
                     
                     listsGrid.appendChild(listCard);
                 });
@@ -3454,18 +3460,19 @@
         };
 
         // Show list detail view
-        async function showList(listType) {
+        async function showList(listId) {
             let list;
             
-            if (listType === 'favorites') {
+            if (listId === 'favorites') {
                 list = listManager.currentLists.favorites;
-            } else if (listType === 'visited') {
+            } else if (listId === 'visited') {
                 list = listManager.currentLists.visited;
-            } else if (listType === 'wantToGo') {
+            } else if (listId === 'wantToGo') {
                 list = listManager.currentLists.wantToGo;
             } else {
                 // Handle custom list by ID
-                list = customLists.find(l => l.id === listType);
+                list = customLists.find(l => l.id === listId) || 
+                       listManager.userLists.find(l => l.id === listId);
             }
             
             if (!list) {
@@ -3494,7 +3501,7 @@
             const addToListBtn = getElement('addToListBtn');
             
             if (editListBtn) {
-                editListBtn.style.display = isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listType) ? 'flex' : 'none';
+                editListBtn.style.display = isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listId) ? 'flex' : 'none';
                 editListBtn.onclick = () => listManager.showEditListModal(list);
             }
             if (addToListBtn) addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
@@ -3518,16 +3525,16 @@
         }
 
         // Render restaurants in a list
-        async function renderListRestaurants(restaurantIds, list) {
+        async function renderListRestaurants(restrauntIds, list) {
             const grid = getElement('listRestaurantsGrid');
             if (!grid) return;
             
             grid.innerHTML = '';
             
-            const numericIds = restaurantIds.map(id => Number(id));
-            const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
+            const numericIds = restrauntIds.map(id => Number(id));
+            const listRestraunts = restaurants.filter(r => numericIds.includes(r.id));
             
-            if (listRestaurants.length === 0) {
+            if (listRestraunts.length === 0) {
                 const emptyStateText = isViewingOwnProfile ? 
                     'Start adding restaurants to your list!' :
                     'This list is currently empty.';
@@ -3550,15 +3557,15 @@
             // FIXED: Update list detail title to show count
             const listDetailTitle = getElement('listDetailTitle');
             if (listDetailTitle) {
-                listDetailTitle.textContent = `${list.title} (${listRestaurants.length} places)`;
+                listDetailTitle.textContent = `${list.title} (${listRestraunts.length} places)`;
             }
             
-            listRestaurants.forEach(restaurant => {
+            listRestraunts.forEach(restraunt => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 
                 const clickableContent = document.createElement('a');
-                clickableContent.href = `cards/${restaurant.slug}.html`;
+                clickableContent.href = `cards/${restraunt.slug}.html`;
                 clickableContent.style.textDecoration = 'none';
                 clickableContent.style.color = 'inherit';
                 clickableContent.style.display = 'block';
@@ -3568,12 +3575,12 @@
                     <div class="card-body">
                         <div class="d-flex align-center gap-md">
                             <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                <img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                             </div>
                             <div style="flex: 1;">
-                                <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
-                                <div class="text-sm text-muted">${restaurant.category}</div>
-                                <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating}</div>
+                                <h3 style="margin-bottom: 4px;">${restraunt.name}</h3>
+                                <div class="text-sm text-muted">${restraunt.category}</div>
+                                <div class="text-sm" style="margin-top: 4px;">⭐ ${restraunt.rating}</div>
                             </div>
                         </div>
                     </div>
@@ -3592,7 +3599,7 @@
                     removeBtn.onclick = async (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        await listManager.toggleInList(list.id, restaurant.id);
+                        await listManager.toggleInList(list.id, restraunt.id);
                         // Refresh the list view
                         await renderListRestaurants(list.restaurants || [], list);
                     };
@@ -3606,8 +3613,8 @@
 
         // Food Journal System - FIXED VERSION
         const foodJournal = {
-            currentRestaurant: null,
-            swipedRestaurants: new Set(),
+            currentRestraunt: null,
+            swipedRestraunts: new Set(),
             
             async init() {
                 await this.loadJournalStats();
@@ -3674,24 +3681,24 @@
                     
                     for (const review of reviewsToShow) {
                         // Find restaurant data from our local restaurants array
-                        const restaurant = restaurants.find(r => r.id === review.restaurant_id);
+                        const restraunt = restaurants.find(r => r.id === review.restraunt_id);
                         
-                        if (!restaurant) {
-                            console.warn('No restaurant data found for review:', review.id, 'restaurant_id:', review.restaurant_id);
+                        if (!restraunt) {
+                            console.warn('No restaurant data found for review:', review.id, 'restraunt_id:', review.restraunt_id);
                             // Create a fallback restaurant object
-                            const fallbackRestaurant = {
-                                id: review.restaurant_id,
+                            const fallbackRestraunt = {
+                                id: review.restraunt_id,
                                 name: 'Unknown Restaurant',
                                 category: 'Unknown',
                                 slug: 'unknown',
                                 image: null
                             };
                             
-                            this.renderReviewEntry(review, fallbackRestaurant);
+                            this.renderReviewEntry(review, fallbackRestraunt);
                             continue;
                         }
                         
-                        this.renderReviewEntry(review, restaurant);
+                        this.renderReviewEntry(review, restraunt);
                     }
                     
                 } catch (error) {
@@ -3717,39 +3724,39 @@
                 }
             },
             
-            renderReviewEntry(review, restaurant) {
+            renderReviewEntry(review, restraunt) {
                 const journalEntries = getElement('journalEntries');
                 const entryElement = document.createElement('div');
                 entryElement.className = 'journal-entry';
                 
                 // Make the entire entry clickable
                 entryElement.style.cursor = 'pointer';
-                entryElement.onclick = () => this.editReviewEntry(review, restaurant);
+                entryElement.onclick = () => this.editReviewEntry(review, restraunt);
                 
                 // Create restaurant link
-                const restaurantLink = restaurant.slug && restaurant.slug !== 'unknown' ? 
-                    `cards/${restaurant.slug}.html` : 
+                const restrauntLink = restraunt.slug && restraunt.slug !== 'unknown' ? 
+                    `cards/${restraunt.slug}.html` : 
                     'javascript:void(0)';
                 
-                const restaurantImage = restaurant.image ? 
-                    `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                    `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                const restrauntImage = restraunt.image ? 
+                    `<img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                    `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restraunt.name.charAt(0)}</div>`;
                 
                 entryElement.innerHTML = `
                     <div class="entry-header">
                         <div class="restaurant-info">
                             <div class="restaurant-image">
-                                <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
-                                    ${restaurantImage}
+                                <a href="${restrauntLink}" style="text-decoration: none; color: inherit;" ${restraunt.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
+                                    ${restrauntImage}
                                 </a>
                             </div>
                             <div class="restaurant-details">
                                 <h3>
-                                    <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" ${restaurant.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
-                                        ${restaurant.name}
+                                    <a href="${restrauntLink}" style="text-decoration: none; color: inherit;" ${restraunt.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
+                                        ${restraunt.name}
                                     </a>
                                 </h3>
-                                <div class="restaurant-category">${restaurant.category}</div>
+                                <div class="restaurant-category">${restraunt.category}</div>
                             </div>
                         </div>
                         <div class="entry-rating">
@@ -3764,7 +3771,7 @@
                         </div>
                         <div class="meta-badge">
                             <i class="fas fa-utensils"></i>
-                            ${restaurant.category}
+                            ${restraunt.category}
                         </div>
                         <div class="meta-badge">
                             <i class="fas fa-star"></i>
@@ -3774,13 +3781,13 @@
                     <div class="entry-notes">${review.comment || 'No review text provided'}</div>
                     ${isViewingOwnProfile ? `
                         <div class="entry-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editReviewEntry(${JSON.stringify(review).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editReviewEntry(${JSON.stringify(review).replace(/"/g, '&quot;')}, ${JSON.stringify(restraunt).replace(/"/g, '&quot;')})">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); shareReview(${review.id})">
                                 <i class="fas fa-share"></i> Share
                             </button>
-                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); addToFavorites(${restaurant.id})">
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); addToFavorites(${restraunt.id})">
                                 <i class="fas fa-heart"></i> Favorite
                             </button>
                         </div>
@@ -3790,10 +3797,10 @@
             },
             
             // Add this new function to edit reviews
-            async editReviewEntry(review, restaurant) {
+            async editReviewEntry(review, restraunt) {
                 if (!isViewingOwnProfile) {
                     // If viewing someone else's profile, just show the review
-                    this.showReviewDetail(review, restaurant);
+                    this.showReviewDetail(review, restraunt);
                     return;
                 }
 
@@ -3803,7 +3810,7 @@
                 const visitNotes = getElement('visitNotes');
                 const visitTags = getElement('visitTags');
                 
-                if (restaurantSelect) restaurantSelect.value = review.restaurant_id;
+                if (restaurantSelect) restaurantSelect.value = review.restraunt_id;
                 if (visitDate) visitDate.value = review.visit_date || review.created_at.split('T')[0];
                 if (visitNotes) visitNotes.value = review.comment || '';
                 if (visitTags) visitTags.value = review.tags || '';
@@ -3825,27 +3832,27 @@
             },
 
             // Function to show review details (for non-owners)
-            showReviewDetail(review, restaurant) {
+            showReviewDetail(review, restraunt) {
                 const modal = document.createElement('div');
                 modal.className = 'modal active';
                 modal.innerHTML = `
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h3 class="modal-title">${restaurant.name} Review</h3>
+                            <h3 class="modal-title">${restraunt.name} Review</h3>
                             <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
                         </div>
                         <div class="modal-body">
                             <div class="entry-header">
                                 <div class="restaurant-info">
                                     <div class="restaurant-image">
-                                        ${restaurant.image ? 
-                                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">` : 
-                                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`
+                                        ${restraunt.image ? 
+                                            `<img src="images/${restraunt.image}" alt="${restraunt.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">` : 
+                                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restraunt.name.charAt(0)}</div>`
                                         }
                                     </div>
                                     <div class="restaurant-details">
-                                        <h3>${restaurant.name}</h3>
-                                        <div class="restaurant-category">${restaurant.category}</div>
+                                        <h3>${restraunt.name}</h3>
+                                        <div class="restaurant-category">${restraunt.category}</div>
                                     </div>
                                 </div>
                                 <div class="entry-rating">
@@ -3860,7 +3867,7 @@
                                 </div>
                                 <div class="meta-badge">
                                     <i class="fas fa-utensils"></i>
-                                    ${restaurant.category}
+                                    ${restraunt.category}
                                 </div>
                             </div>
                             <div class="entry-notes">
@@ -3900,13 +3907,13 @@
             },
             
             async saveJournalEntry() {
-                const restaurantId = parseInt(getElement('restaurantSelect')?.value);
+                const restrauntId = parseInt(getElement('restaurantSelect')?.value);
                 const visitDate = getElement('visitDate')?.value;
                 const rating = parseInt(getElement('selectedRating')?.value || '0');
                 const notes = getElement('visitNotes')?.value || '';
                 const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
                 
-                if (!restaurantId || !visitDate || rating === 0) {
+                if (!restrauntId || !visitDate || rating === 0) {
                     showToast('Please fill in all required fields', 'error');
                     return;
                 }
@@ -3918,7 +3925,7 @@
                         const { error } = await supabase
                             .from('reviews')
                             .update({
-                                restaurant_id: restaurantId,
+                                restraunt_id: restrauntId,
                                 visit_date: visitDate,
                                 rating: rating,
                                 comment: notes,
@@ -3938,7 +3945,7 @@
                             .from('reviews')
                             .insert({
                                 user_id: currentUser.id,
-                                restaurant_id: restaurantId,
+                                restraunt_id: restrauntId,
                                 visit_date: visitDate,
                                 rating: rating,
                                 comment: notes,
@@ -3949,10 +3956,10 @@
                         if (error) throw error;
                         
                         // Add to visited list
-                        await listManager.toggleInList('visited', restaurantId);
+                        await listManager.toggleInList('visited', restrauntId);
                         
-                        const restaurant = restaurants.find(r => r.id === restaurantId);
-                        showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
+                        const restraunt = restaurants.find(r => r.id === restrauntId);
+                        showToast(`Added ${restraunt?.name || 'restaurant'} to your journal! ✨`, 'success');
                     }
                     
                     closeModal('addEntryModal');
@@ -3985,10 +3992,10 @@
             map: null,
             markers: [],
             isMapView: true,
-            visitedRestaurants: new Set(),
+            visitedRestraunts: new Set(),
             
             async init() {
-                await this.loadVisitedRestaurants();
+                await this.loadVisitedRestraunts();
                 this.updateMapStats();
                 this.renderListView();
                 
@@ -4032,7 +4039,7 @@
                     }).addTo(this.map);
                     
                     // Add markers for restaurants with actual coordinates
-                    this.addRestaurantMarkers();
+                    this.addRestrauntMarkers();
                     
                     showToast('🗺️ Interactive map loaded!', 'success');
                     
@@ -4042,22 +4049,16 @@
                 }
             },
             
-            addRestaurantMarkers() {
+            addRestrauntMarkers() {
                 // Clear existing markers
                 this.markers.forEach(marker => this.map.removeLayer(marker));
                 this.markers = [];
                 
-                // Sample restaurant locations in Cairo with actual coordinates
-                const restaurantLocations = [
-                    { lat: 30.0444, lng: 31.2357, name: "Mori Sushi", category: "Asian", rating: 4.7, visited: true },
-                    { lat: 30.0626, lng: 31.3347, name: "Kilo Kebab", category: "Middle Eastern", rating: 4.5, visited: true },
-                    { lat: 30.0189, lng: 31.5017, name: "Hameed", category: "Fast Food", rating: 4.3, visited: false },
-                    { lat: 29.9627, lng: 31.2590, name: "Bazooka", category: "Burgers", rating: 4.2, visited: true },
-                    { lat: 30.0525, lng: 31.2025, name: "Mexican Corn", category: "Mexican", rating: 4.0, visited: false }
-                ];
-                
-                restaurantLocations.forEach(location => {
-                    const isVisited = location.visited;
+                // Use actual restaurant data with coordinates
+                restaurants.forEach(restraunt => {
+                    if (!restraunt.latitude || !restraunt.longitude) return;
+                    
+                    const isVisited = this.visitedRestraunts.has(restraunt.id);
                     const markerColor = isVisited ? 'green' : 'orange';
                     
                     // Create custom icon
@@ -4073,18 +4074,23 @@
                     });
                     
                     // Create marker
-                    const marker = L.marker([location.lat, location.lng], { icon })
+                    const marker = L.marker([restraunt.latitude, restraunt.longitude], { icon })
                         .addTo(this.map)
                         .bindPopup(`
                             <div class="map-popup">
-                                <h3>${location.name}</h3>
-                                <h4>${location.category}</h4>
-                                <p>⭐ ${location.rating}/5</p>
-                                <p>${location.visited ? 'Visited' : 'Want to Visit'}</p>
+                                <h3>${restraunt.name}</h3>
+                                <h4>${restraunt.category}</h4>
+                                <p>⭐ ${restraunt.rating}/5</p>
+                                <p>${isVisited ? 'Visited' : 'Want to Visit'}</p>
                                 <div class="popup-actions">
-                                    <button onclick="foodMap.viewRestaurant('${location.name}')" class="btn btn-primary btn-sm">
+                                    <button onclick="foodMap.viewRestraunt('${restraunt.slug}')" class="btn btn-primary btn-sm">
                                         View Restaurant
                                     </button>
+                                    ${isViewingOwnProfile ? `
+                                        <button onclick="listManager.toggleInList('favorites', ${restraunt.id})" class="btn btn-secondary btn-sm">
+                                            ${listManager.isInList('favorites', restraunt.id) ? '❤️ Remove Favorite' : '🤍 Add Favorite'}
+                                        </button>
+                                    ` : ''}
                                 </div>
                             </div>
                         `);
@@ -4099,25 +4105,19 @@
                 }
             },
             
-            viewRestaurant(name) {
-                // Find the restaurant in our data
-                const restaurant = restaurants.find(r => r.name === name);
-                if (restaurant && restaurant.slug) {
-                    window.location.href = `cards/${restaurant.slug}.html`;
-                } else {
-                    showToast(`Would navigate to ${name} details`, 'info');
-                }
+            viewRestraunt(slug) {
+                window.location.href = `cards/${slug}.html`;
             },
             
-            async loadVisitedRestaurants() {
+            async loadVisitedRestraunts() {
                 try {
                     const { data: reviews, error } = await supabase
                         .from('reviews')
-                        .select('restaurant_id')
+                        .select('restraunt_id')
                         .eq('user_id', currentUser.id);
                         
                     if (!error && reviews) {
-                        this.visitedRestaurants = new Set(reviews.map(r => r.restaurant_id));
+                        this.visitedRestraunts = new Set(reviews.map(r => r.restraunt_id));
                     }
                 } catch (error) {
                     console.error('Error loading visited restaurants:', error);
@@ -4128,7 +4128,7 @@
                 showToast('🔄 Refreshing map data...', 'info');
                 // In a real implementation, this would reload restaurant data
                 setTimeout(() => {
-                    this.addRestaurantMarkers();
+                    this.addRestrauntMarkers();
                     showToast('✅ Map data updated!', 'success');
                 }, 1000);
             },
@@ -4156,7 +4156,7 @@
                 container.innerHTML = '';
                 
                 // Get visited restaurants with details
-                const visitedWithDetails = restaurants.filter(r => this.visitedRestaurants.has(r.id));
+                const visitedWithDetails = restaurants.filter(r => this.visitedRestraunts.has(r.id));
                 
                 if (visitedWithDetails.length === 0) {
                     container.innerHTML = `
@@ -4172,24 +4172,24 @@
                     return;
                 }
                 
-                visitedWithDetails.forEach(restaurant => {
+                visitedWithDetails.forEach(restraunt => {
                     const card = document.createElement('div');
                     card.className = 'restaurant-tile';
                     card.innerHTML = `
                         <div class="restaurant-tile-image">
-                            ${restaurant.image ? 
-                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">` : 
+                            ${restraunt.image ? 
+                                `<img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy">` : 
                                 `<div style="width: 100%; height: 100%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #0b1633; font-size: 24px;">🍽️</div>`
                             }
                         </div>
                         <div class="restaurant-tile-content">
-                            <div class="restaurant-tile-name">${restaurant.name}</div>
-                            <div class="restaurant-tile-category">${restaurant.category}</div>
-                            <div class="restaurant-tile-rating">⭐ ${restaurant.rating}</div>
-                            <div class="restaurant-tile-description">${restaurant.description || 'No description available'}</div>
+                            <div class="restaurant-tile-name">${restraunt.name}</div>
+                            <div class="restaurant-tile-category">${restraunt.category}</div>
+                            <div class="restaurant-tile-rating">⭐ ${restraunt.rating}</div>
+                            <div class="restaurant-tile-description">${restraunt.description || 'No description available'}</div>
                             <div class="d-flex gap-sm mt-md">
                                 <span class="tag">Visited</span>
-                                <span class="tag">${restaurant.category}</span>
+                                <span class="tag">${restraunt.category}</span>
                             </div>
                         </div>
                     `;
@@ -4197,7 +4197,7 @@
                     // Make card clickable
                     card.style.cursor = 'pointer';
                     card.onclick = () => {
-                        window.location.href = `cards/${restaurant.slug}.html`;
+                        window.location.href = `cards/${restraunt.slug}.html`;
                     };
                     
                     container.appendChild(card);
@@ -4206,8 +4206,8 @@
             
             updateMapStats() {
                 // Calculate stats for the map overview
-                const visitedCount = this.visitedRestaurants.size;
-                const uniqueCuisines = new Set(restaurants.filter(r => this.visitedRestaurants.has(r.id)).map(r => r.category));
+                const visitedCount = this.visitedRestraunts.size;
+                const uniqueCuisines = new Set(restaurants.filter(r => this.visitedRestraunts.has(r.id)).map(r => r.category));
                 const citiesCount = Math.min(visitedCount, 5); // Mock data - in real app, you'd have actual city data
                 
                 setTextContent('citiesCount', citiesCount);
@@ -4533,7 +4533,7 @@
                     const followersList = getElement('followersList');
                     if (!followersList) return;
 
-                    if (!follows || follows.length === 0) {
+                    if (!followers || follows.length === 0) {
                         followersList.innerHTML = `
                             <div class="empty-state">
                                 <div class="empty-icon">👥</div>
@@ -4889,7 +4889,8 @@
                         user_id: currentUser.id, 
                         title: listName,
                         description: listDescription,
-                        icon: listIcon
+                        icon: listIcon,
+                        is_default: false
                     }])
                     .select()
                     .single();
@@ -4936,8 +4937,8 @@
             }
         }
 
-        function addToFavorites(restaurantId) {
-            listManager.toggleInList('favorites', restaurantId);
+        function addToFavorites(restrauntId) {
+            listManager.toggleInList('favorites', restrauntId);
         }
 
         function duplicateEntry(entryId) {
