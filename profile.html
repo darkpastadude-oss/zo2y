@@ -2878,57 +2878,56 @@
             return null;
         }
 
-        // Update stats - FIXED VERSION
-        async function updateStats(userId = null) {
-            const targetId = userId || currentUser.id;
+       // Update stats - FIXED VERSION
+async function updateStats(userId = null) {
+    const targetId = userId || currentUser.id;
+    
+    try {
+        // Get visited count from reviews - FIXED: Use restraunt_id (with typo)
+        const { data: reviews, error } = await supabase
+            .from('reviews')
+            .select('restraunt_id')
+            .eq('user_id', targetId);
+
+        if (error) throw error;
             
-            try {
-                // Get visited count from reviews - FIXED: Count unique restaurants
-                const { data: reviews, error } = await supabase
-                    .from('reviews')
-                    .select('restraunt_id')
-                    .eq('user_id', targetId);
-
-                if (error) throw error;
-                    
-                const visitedCount = reviews ? new Set(reviews.map(r => r.restraunt_id)).size : 0;
-                
-                // Get followers count
-                const { data: followers } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('followed_id', targetId);
-                    
-                const followersCount = followers ? followers.length : 0;
-                
-                // Get lists count - FIXED: Count all lists including default ones
-                const { data: userLists } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId);
-                    
-                const listsCount = userLists ? userLists.length : 0;
-                
-                // Get reviews count
-                const { data: userReviews } = await supabase
-                    .from('reviews')
-                    .select('id')
-                    .eq('user_id', targetId);
-                    
-                const reviewsCount = userReviews ? userReviews.length : 0;
-                
-                // Update UI
-                setTextContent('visitedCount', visitedCount);
-                setTextContent('followersCount', followersCount);
-                setTextContent('listsCount', listsCount);
-                setTextContent('reviewsCount', reviewsCount);
-                setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
-                
-            } catch (error) {
-                console.error('Error updating stats:', error);
-            }
-        }
-
+        const visitedCount = reviews ? new Set(reviews.map(r => r.restraunt_id)).size : 0;
+        
+        // Get followers count
+        const { data: followers } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('followed_id', targetId);
+            
+        const followersCount = followers ? followers.length : 0;
+        
+        // Get lists count - FIXED: Count all lists including default ones
+        const { data: userLists } = await supabase
+            .from('lists')
+            .select('id')
+            .eq('user_id', targetId);
+            
+        const listsCount = userLists ? userLists.length : 0;
+        
+        // Get reviews count
+        const { data: userReviews } = await supabase
+            .from('reviews')
+            .select('id')
+            .eq('user_id', targetId);
+            
+        const reviewsCount = userReviews ? userReviews.length : 0;
+        
+        // Update UI
+        setTextContent('visitedCount', visitedCount);
+        setTextContent('followersCount', followersCount);
+        setTextContent('listsCount', listsCount);
+        setTextContent('reviewsCount', reviewsCount);
+        setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
+        
+    } catch (error) {
+        console.error('Error updating stats:', error);
+    }
+}
         // Load restaurants from database - FIXED VERSION
         async function loadRestaurants() {
             // Try to get from cache first
@@ -3611,151 +3610,258 @@
             });
         }
 
-        // Food Journal System - FIXED VERSION
-        const foodJournal = {
-            currentRestraunt: null,
-            swipedRestraunts: new Set(),
+       // Food Journal System - FIXED VERSION
+const foodJournal = {
+    currentRestraunt: null,
+    swipedRestraunts: new Set(),
+    
+    async init() {
+        await this.loadJournalStats();
+        await this.loadJournalEntries();
+    },
+    
+    async loadJournalStats() {
+        // Stats are now handled by updateStats function
+    },
+    
+    async loadJournalEntries() {
+        const journalEntries = getElement('journalEntries');
+        if (!journalEntries) return;
+        
+        const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+        if (!targetId) return;
+        
+        try {
+            console.log('Loading reviews for user:', targetId);
             
-            async init() {
-                await this.loadJournalStats();
-                await this.loadJournalEntries();
-            },
-            
-            async loadJournalStats() {
-                // Stats are now handled by updateStats function
-            },
-            
-            async loadJournalEntries() {
-                const journalEntries = getElement('journalEntries');
-                if (!journalEntries) return;
-                
-                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                if (!targetId) return;
-                
-                try {
-                    console.log('Loading reviews for user:', targetId);
-                    
-                    // Load reviews without the join
-                    const { data: reviews, error } = await supabase
-                        .from('reviews')
-                        .select('*')
-                        .eq('user_id', targetId)
-                        .order('created_at', { ascending: false });
+            // Load reviews - FIXED: Use correct column name restraunt_id
+            const { data: reviews, error } = await supabase
+                .from('reviews')
+                .select('*')
+                .eq('user_id', targetId)
+                .order('created_at', { ascending: false });
 
-                    if (error) {
-                        console.error('Supabase error:', error);
-                        throw error;
-                    }
-                    
-                    console.log('Reviews loaded:', reviews);
-                    
-                    if (!reviews || reviews.length === 0) {
-                        const emptyStateText = isViewingOwnProfile ? 
-                            'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
-                            'This user hasn\'t reviewed any restaurants yet.';
-                        
-                        journalEntries.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📝</div>
-                                <h3 class="empty-title">No Reviews Yet</h3>
-                                <p class="empty-description">${emptyStateText}</p>
-                                ${isViewingOwnProfile ? `
-                                    <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                        <i class="fas fa-utensils"></i> Browse Restaurants
-                                    </button>
-                                ` : ''}
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    journalEntries.innerHTML = '';
-                    
-                    // Filter entries if needed
-                    let reviewsToShow = reviews;
-                    if (journalFilter === 'recent') {
-                        reviewsToShow = reviews.slice(0, 5);
-                    } else if (journalFilter === 'favorites') {
-                        reviewsToShow = reviews.filter(review => review.rating >= 4);
-                    }
-                    
-                    for (const review of reviewsToShow) {
-                        // Find restaurant data from our local restaurants array
-                        const restraunt = restaurants.find(r => r.id === review.restraunt_id);
-                        
-                        if (!restraunt) {
-                            console.warn('No restaurant data found for review:', review.id, 'restraunt_id:', review.restraunt_id);
-                            // Create a fallback restaurant object
-                            const fallbackRestraunt = {
-                                id: review.restraunt_id,
-                                name: 'Unknown Restaurant',
-                                category: 'Unknown',
-                                slug: 'unknown',
-                                image: null
-                            };
-                            
-                            this.renderReviewEntry(review, fallbackRestraunt);
-                            continue;
-                        }
-                        
-                        this.renderReviewEntry(review, restraunt);
-                    }
-                    
-                } catch (error) {
-                    console.error('Error loading reviews:', error);
-                    // Show a more helpful error message
-                    journalEntries.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <h3 class="empty-title">Unable to Load Reviews</h3>
-                            <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
-                            ${isViewingOwnProfile ? `
-                                <div class="d-flex gap-sm justify-center mt-md">
-                                    <button class="btn btn-primary" onclick="window.location.href='index.html'">
-                                        <i class="fas fa-utensils"></i> Browse Restaurants
-                                    </button>
-                                    <button class="btn btn-secondary" onclick="foodJournal.loadJournalEntries()">
-                                        <i class="fas fa-refresh"></i> Try Again
-                                    </button>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                }
-            },
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
             
-            renderReviewEntry(review, restraunt) {
-                const journalEntries = getElement('journalEntries');
-                const entryElement = document.createElement('div');
-                entryElement.className = 'journal-entry';
+            console.log('Reviews loaded:', reviews);
+            
+            if (!reviews || reviews.length === 0) {
+                const emptyStateText = isViewingOwnProfile ? 
+                    'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
+                    'This user hasn\'t reviewed any restaurants yet.';
                 
-                // Make the entire entry clickable
-                entryElement.style.cursor = 'pointer';
-                entryElement.onclick = () => this.editReviewEntry(review, restraunt);
+                journalEntries.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3 class="empty-title">No Reviews Yet</h3>
+                        <p class="empty-description">${emptyStateText}</p>
+                        ${isViewingOwnProfile ? `
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                <i class="fas fa-utensils"></i> Browse Restaurants
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                return;
+            }
+            
+            journalEntries.innerHTML = '';
+            
+            // Filter entries if needed
+            let reviewsToShow = reviews;
+            if (journalFilter === 'recent') {
+                reviewsToShow = reviews.slice(0, 5);
+            } else if (journalFilter === 'favorites') {
+                reviewsToShow = reviews.filter(review => review.rating >= 4);
+            }
+            
+            for (const review of reviewsToShow) {
+                // FIXED: Use restraunt_id (with typo) to match your database
+                const restrauntId = review.restraunt_id || review.restaurant_id;
                 
-                // Create restaurant link
-                const restrauntLink = restraunt.slug && restraunt.slug !== 'unknown' ? 
-                    `cards/${restraunt.slug}.html` : 
-                    'javascript:void(0)';
+                if (!restrauntId) {
+                    console.warn('Review has no restaurant ID:', review.id);
+                    continue;
+                }
                 
-                const restrauntImage = restraunt.image ? 
-                    `<img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                    `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restraunt.name.charAt(0)}</div>`;
+                // Find restaurant data from our local restaurants array
+                const restraunt = restaurants.find(r => r.id === restrauntId);
                 
-                entryElement.innerHTML = `
+                if (!restraunt) {
+                    console.warn('No restaurant data found for review:', review.id, 'restraunt_id:', restrauntId);
+                    // Create a fallback restaurant object
+                    const fallbackRestraunt = {
+                        id: restrauntId,
+                        name: 'Unknown Restaurant',
+                        category: 'Unknown',
+                        slug: 'unknown',
+                        image: null
+                    };
+                    
+                    this.renderReviewEntry(review, fallbackRestraunt);
+                    continue;
+                }
+                
+                this.renderReviewEntry(review, restraunt);
+            }
+            
+        } catch (error) {
+            console.error('Error loading reviews:', error);
+            // Show a more helpful error message
+            journalEntries.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <h3 class="empty-title">Unable to Load Reviews</h3>
+                    <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
+                    ${isViewingOwnProfile ? `
+                        <div class="d-flex gap-sm justify-center mt-md">
+                            <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                                <i class="fas fa-utensils"></i> Browse Restaurants
+                            </button>
+                            <button class="btn btn-secondary" onclick="foodJournal.loadJournalEntries()">
+                                <i class="fas fa-refresh"></i> Try Again
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+    },
+    
+    renderReviewEntry(review, restraunt) {
+        const journalEntries = getElement('journalEntries');
+        const entryElement = document.createElement('div');
+        entryElement.className = 'journal-entry';
+        
+        // Make the entire entry clickable
+        entryElement.style.cursor = 'pointer';
+        entryElement.onclick = () => this.editReviewEntry(review, restraunt);
+        
+        // Create restaurant link
+        const restrauntLink = restraunt.slug && restraunt.slug !== 'unknown' ? 
+            `cards/${restraunt.slug}.html` : 
+            'javascript:void(0)';
+        
+        const restrauntImage = restraunt.image ? 
+            `<img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restraunt.name.charAt(0)}</div>`;
+        
+        entryElement.innerHTML = `
+            <div class="entry-header">
+                <div class="restaurant-info">
+                    <div class="restaurant-image">
+                        <a href="${restrauntLink}" style="text-decoration: none; color: inherit;" ${restraunt.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
+                            ${restrauntImage}
+                        </a>
+                    </div>
+                    <div class="restaurant-details">
+                        <h3>
+                            <a href="${restrauntLink}" style="text-decoration: none; color: inherit;" ${restraunt.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
+                                ${restraunt.name}
+                            </a>
+                        </h3>
+                        <div class="restaurant-category">${restraunt.category}</div>
+                    </div>
+                </div>
+                <div class="entry-rating">
+                    ${'⭐'.repeat(Math.floor(review.rating))}
+                    <span>${review.rating}/5</span>
+                </div>
+            </div>
+            <div class="entry-meta">
+                <div class="meta-badge">
+                    <i class="fas fa-calendar"></i>
+                    ${formatDate(review.created_at)}
+                </div>
+                <div class="meta-badge">
+                    <i class="fas fa-utensils"></i>
+                    ${restraunt.category}
+                </div>
+                <div class="meta-badge">
+                    <i class="fas fa-star"></i>
+                    ${review.rating}/5
+                </div>
+            </div>
+            <div class="entry-notes">${review.comment || 'No review text provided'}</div>
+            ${isViewingOwnProfile ? `
+                <div class="entry-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editReviewEntry(${JSON.stringify(review).replace(/"/g, '&quot;')}, ${JSON.stringify(restraunt).replace(/"/g, '&quot;')})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); shareReview(${review.id})">
+                        <i class="fas fa-share"></i> Share
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); addToFavorites(${restraunt.id})">
+                        <i class="fas fa-heart"></i> Favorite
+                    </button>
+                </div>
+            ` : ''}
+        `;
+        journalEntries.appendChild(entryElement);
+    },
+    
+    // Add this new function to edit reviews
+    async editReviewEntry(review, restraunt) {
+        if (!isViewingOwnProfile) {
+            // If viewing someone else's profile, just show the review
+            this.showReviewDetail(review, restraunt);
+            return;
+        }
+
+        // Pre-populate the edit form
+        const restaurantSelect = getElement('restaurantSelect');
+        const visitDate = getElement('visitDate');
+        const visitNotes = getElement('visitNotes');
+        const visitTags = getElement('visitTags');
+        
+        // FIXED: Use restraunt_id (with typo)
+        const restrauntId = review.restraunt_id || review.restaurant_id;
+        
+        if (restaurantSelect) restaurantSelect.value = restrauntId;
+        if (visitDate) visitDate.value = review.visit_date || review.created_at.split('T')[0];
+        if (visitNotes) visitNotes.value = review.comment || '';
+        if (visitTags) visitTags.value = review.tags || '';
+        
+        // Set rating
+        this.setRating(review.rating);
+        
+        // Store the review ID for updating
+        currentEditingReview = review.id;
+        
+        // Change modal title and button
+        const modalTitle = document.querySelector('#addEntryModal .modal-title');
+        const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+        
+        if (modalTitle) modalTitle.textContent = 'Edit Review';
+        if (submitButton) submitButton.textContent = 'Update Review';
+        
+        showModal('addEntryModal');
+    },
+
+    // Function to show review details (for non-owners)
+    showReviewDetail(review, restraunt) {
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">${restraunt.name} Review</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
                     <div class="entry-header">
                         <div class="restaurant-info">
                             <div class="restaurant-image">
-                                <a href="${restrauntLink}" style="text-decoration: none; color: inherit;" ${restraunt.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
-                                    ${restrauntImage}
-                                </a>
+                                ${restraunt.image ? 
+                                    `<img src="images/${restraunt.image}" alt="${restraunt.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">` : 
+                                    `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restraunt.name.charAt(0)}</div>`
+                                }
                             </div>
                             <div class="restaurant-details">
-                                <h3>
-                                    <a href="${restrauntLink}" style="text-decoration: none; color: inherit;" ${restraunt.slug === 'unknown' ? 'onclick="event.stopPropagation(); return false;"' : ''}>
-                                        ${restraunt.name}
-                                    </a>
-                                </h3>
+                                <h3>${restraunt.name}</h3>
                                 <div class="restaurant-category">${restraunt.category}</div>
                             </div>
                         </div>
@@ -3773,220 +3879,123 @@
                             <i class="fas fa-utensils"></i>
                             ${restraunt.category}
                         </div>
-                        <div class="meta-badge">
-                            <i class="fas fa-star"></i>
-                            ${review.rating}/5
-                        </div>
                     </div>
-                    <div class="entry-notes">${review.comment || 'No review text provided'}</div>
-                    ${isViewingOwnProfile ? `
-                        <div class="entry-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editReviewEntry(${JSON.stringify(review).replace(/"/g, '&quot;')}, ${JSON.stringify(restraunt).replace(/"/g, '&quot;')})">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); shareReview(${review.id})">
-                                <i class="fas fa-share"></i> Share
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); addToFavorites(${restraunt.id})">
-                                <i class="fas fa-heart"></i> Favorite
-                            </button>
+                    <div class="entry-notes">
+                        <h4>Review</h4>
+                        <p>${review.comment || 'No review text provided'}</p>
+                    </div>
+                    ${review.tags ? `
+                        <div class="entry-tags">
+                            ${review.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
                         </div>
                     ` : ''}
-                `;
-                journalEntries.appendChild(entryElement);
-            },
-            
-            // Add this new function to edit reviews
-            async editReviewEntry(review, restraunt) {
-                if (!isViewingOwnProfile) {
-                    // If viewing someone else's profile, just show the review
-                    this.showReviewDetail(review, restraunt);
-                    return;
-                }
-
-                // Pre-populate the edit form
-                const restaurantSelect = getElement('restaurantSelect');
-                const visitDate = getElement('visitDate');
-                const visitNotes = getElement('visitNotes');
-                const visitTags = getElement('visitTags');
-                
-                if (restaurantSelect) restaurantSelect.value = review.restraunt_id;
-                if (visitDate) visitDate.value = review.visit_date || review.created_at.split('T')[0];
-                if (visitNotes) visitNotes.value = review.comment || '';
-                if (visitTags) visitTags.value = review.tags || '';
-                
-                // Set rating
-                this.setRating(review.rating);
-                
-                // Store the review ID for updating
-                currentEditingReview = review.id;
-                
-                // Change modal title and button
-                const modalTitle = document.querySelector('#addEntryModal .modal-title');
-                const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
-                
-                if (modalTitle) modalTitle.textContent = 'Edit Review';
-                if (submitButton) submitButton.textContent = 'Update Review';
-                
-                showModal('addEntryModal');
-            },
-
-            // Function to show review details (for non-owners)
-            showReviewDetail(review, restraunt) {
-                const modal = document.createElement('div');
-                modal.className = 'modal active';
-                modal.innerHTML = `
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 class="modal-title">${restraunt.name} Review</h3>
-                            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="entry-header">
-                                <div class="restaurant-info">
-                                    <div class="restaurant-image">
-                                        ${restraunt.image ? 
-                                            `<img src="images/${restraunt.image}" alt="${restraunt.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">` : 
-                                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restraunt.name.charAt(0)}</div>`
-                                        }
-                                    </div>
-                                    <div class="restaurant-details">
-                                        <h3>${restraunt.name}</h3>
-                                        <div class="restaurant-category">${restraunt.category}</div>
-                                    </div>
-                                </div>
-                                <div class="entry-rating">
-                                    ${'⭐'.repeat(Math.floor(review.rating))}
-                                    <span>${review.rating}/5</span>
-                                </div>
-                            </div>
-                            <div class="entry-meta">
-                                <div class="meta-badge">
-                                    <i class="fas fa-calendar"></i>
-                                    ${formatDate(review.created_at)}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-utensils"></i>
-                                    ${restraunt.category}
-                                </div>
-                            </div>
-                            <div class="entry-notes">
-                                <h4>Review</h4>
-                                <p>${review.comment || 'No review text provided'}</p>
-                            </div>
-                            ${review.tags ? `
-                                <div class="entry-tags">
-                                    ${review.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-                
-                // Close modal when clicking outside
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.remove();
-                    }
-                });
-            },
-            
-            setRating(stars) {
-                const starsElements = document.querySelectorAll('#ratingStars span');
-                starsElements.forEach((star, index) => {
-                    if (index < stars) {
-                        star.classList.add('active');
-                    } else {
-                        star.classList.remove('active');
-                    }
-                });
-                
-                const selectedRating = getElement('selectedRating');
-                if (selectedRating) selectedRating.value = stars;
-            },
-            
-            async saveJournalEntry() {
-                const restrauntId = parseInt(getElement('restaurantSelect')?.value);
-                const visitDate = getElement('visitDate')?.value;
-                const rating = parseInt(getElement('selectedRating')?.value || '0');
-                const notes = getElement('visitNotes')?.value || '';
-                const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
-                
-                if (!restrauntId || !visitDate || rating === 0) {
-                    showToast('Please fill in all required fields', 'error');
-                    return;
-                }
-                
-                try {
-                    // Check if we're editing an existing review
-                    if (currentEditingReview) {
-                        // Update existing review
-                        const { error } = await supabase
-                            .from('reviews')
-                            .update({
-                                restraunt_id: restrauntId,
-                                visit_date: visitDate,
-                                rating: rating,
-                                comment: notes,
-                                tags: tags.join(','),
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', currentEditingReview);
-                        
-                        if (error) throw error;
-                        
-                        showToast('Review updated successfully!', 'success');
-                        currentEditingReview = null;
-                        
-                    } else {
-                        // Create new review
-                        const { error } = await supabase
-                            .from('reviews')
-                            .insert({
-                                user_id: currentUser.id,
-                                restraunt_id: restrauntId,
-                                visit_date: visitDate,
-                                rating: rating,
-                                comment: notes,
-                                tags: tags.join(','),
-                                created_at: new Date().toISOString()
-                            });
-                        
-                        if (error) throw error;
-                        
-                        // Add to visited list
-                        await listManager.toggleInList('visited', restrauntId);
-                        
-                        const restraunt = restaurants.find(r => r.id === restrauntId);
-                        showToast(`Added ${restraunt?.name || 'restaurant'} to your journal! ✨`, 'success');
-                    }
-                    
-                    closeModal('addEntryModal');
-                    
-                    // Reset form
-                    const form = getElement('journalEntryForm');
-                    if (form) form.reset();
-                    this.setRating(0);
-                    
-                    // Reset modal title and button
-                    const modalTitle = document.querySelector('#addEntryModal .modal-title');
-                    const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
-                    
-                    if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
-                    if (submitButton) submitButton.textContent = 'Save Entry';
-                    
-                    // Reload journal entries
-                    await this.loadJournalEntries();
-                    await updateStats();
-                    
-                } catch (error) {
-                    console.error('Error saving journal entry:', error);
-                    showToast('Error saving journal entry', 'error');
-                }
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
             }
-        };
-
+        });
+    },
+    
+    setRating(stars) {
+        const starsElements = document.querySelectorAll('#ratingStars span');
+        starsElements.forEach((star, index) => {
+            if (index < stars) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+        
+        const selectedRating = getElement('selectedRating');
+        if (selectedRating) selectedRating.value = stars;
+    },
+    
+    async saveJournalEntry() {
+        const restrauntId = parseInt(getElement('restaurantSelect')?.value);
+        const visitDate = getElement('visitDate')?.value;
+        const rating = parseInt(getElement('selectedRating')?.value || '0');
+        const notes = getElement('visitNotes')?.value || '';
+        const tags = (getElement('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
+        
+        if (!restrauntId || !visitDate || rating === 0) {
+            showToast('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        try {
+            // Check if we're editing an existing review
+            if (currentEditingReview) {
+                // Update existing review - FIXED: Use restraunt_id (with typo)
+                const { error } = await supabase
+                    .from('reviews')
+                    .update({
+                        restraunt_id: restrauntId,
+                        visit_date: visitDate,
+                        rating: rating,
+                        comment: notes,
+                        tags: tags.join(','),
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentEditingReview);
+                
+                if (error) throw error;
+                
+                showToast('Review updated successfully!', 'success');
+                currentEditingReview = null;
+                
+            } else {
+                // Create new review - FIXED: Use restraunt_id (with typo)
+                const { error } = await supabase
+                    .from('reviews')
+                    .insert({
+                        user_id: currentUser.id,
+                        restraunt_id: restrauntId,
+                        visit_date: visitDate,
+                        rating: rating,
+                        comment: notes,
+                        tags: tags.join(','),
+                        created_at: new Date().toISOString()
+                    });
+                
+                if (error) throw error;
+                
+                // Add to visited list
+                await listManager.toggleInList('visited', restrauntId);
+                
+                const restraunt = restaurants.find(r => r.id === restrauntId);
+                showToast(`Added ${restraunt?.name || 'restaurant'} to your journal! ✨`, 'success');
+            }
+            
+            closeModal('addEntryModal');
+            
+            // Reset form
+            const form = getElement('journalEntryForm');
+            if (form) form.reset();
+            this.setRating(0);
+            
+            // Reset modal title and button
+            const modalTitle = document.querySelector('#addEntryModal .modal-title');
+            const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+            
+            if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
+            if (submitButton) submitButton.textContent = 'Save Entry';
+            
+            // Reload journal entries
+            await this.loadJournalEntries();
+            await updateStats();
+            
+        } catch (error) {
+            console.error('Error saving journal entry:', error);
+            showToast('Error saving journal entry', 'error');
+        }
+    }
+};
         // IMPROVED FOOD MAP SYSTEM - FIXED VERSION
         const foodMap = {
             map: null,
