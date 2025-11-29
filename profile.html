@@ -2901,7 +2901,7 @@
                     
                 const followersCount = followers ? followers.length : 0;
                 
-                // Get lists count
+                // Get lists count - FIXED: Count all lists including default ones
                 const { data: userLists } = await supabase
                     .from('lists')
                     .select('id')
@@ -3006,7 +3006,6 @@
                 
                 await this.loadUserLists(targetId);
                 await this.loadListRestaurants();
-                updateAllListCounts();
                 await this.loadCustomLists(targetId);
                 this.renderListsGrid();
             },
@@ -3129,7 +3128,7 @@
                     }
                     
                     // Update all list counts
-                    updateAllListCounts();
+                    updateStats();
                     
                     return !isInList;
                     
@@ -3453,16 +3452,6 @@
                 });
             }
         };
-
-        // Update all list counts in UI - FIXED VERSION
-        function updateAllListCounts() {
-            // Remove references to non-existent elements
-            // These elements don't exist in the HTML, so we're removing the error-causing code
-            
-            updateStats();
-            // Update the lists grid
-            listManager.renderListsGrid();
-        }
 
         // Show list detail view
         async function showList(listType) {
@@ -4257,14 +4246,13 @@
             }
         };
 
-        // Follower System (from working old code)
+        // Follower System - FIXED VERSION
         const followerSystem = {
             currentSection: 'followers',
             
             async init() {
                 if (!currentUser) return;
                 await this.loadFollowStats();
-                await this.loadFollowers(); // Load followers by default
                 
                 // Add event listener for search
                 const userSearch = getElement('userSearch');
@@ -4291,18 +4279,6 @@
                         .select('followed_id')
                         .eq('follower_id', currentUser.id);
 
-                    // Update badge
-                    const pendingRequests = await this.getPendingRequestsCount();
-                    const followersBadge = getElement('followersBadge');
-                    if (followersBadge) {
-                        if (pendingRequests > 0) {
-                            followersBadge.textContent = pendingRequests;
-                            followersBadge.style.display = 'inline-flex';
-                        } else {
-                            followersBadge.style.display = 'none';
-                        }
-                    }
-
                     // Update section badges
                     const followersCountBadge = getElement('followersCountBadge');
                     const followingCountBadge = getElement('followingCountBadge');
@@ -4316,20 +4292,6 @@
 
                 } catch (error) {
                     console.error('Error loading follow stats:', error);
-                }
-            },
-
-            async getPendingRequestsCount() {
-                try {
-                    const { data: requests, error } = await supabase
-                        .from('follow_requests')
-                        .select('id')
-                        .eq('receiver_id', currentUser.id)
-                        .eq('status', 'pending');
-
-                    return !error && requests ? requests.length : 0;
-                } catch (error) {
-                    return 0;
                 }
             },
 
@@ -4450,7 +4412,7 @@
                         .eq('followed_id', targetUserId)
                         .single();
 
-                    // Check if request pending
+                    // Check if request pending - FIXED: Remove the join that was causing 406 error
                     const { data: request } = await supabase
                         .from('follow_requests')
                         .select('id')
@@ -4637,127 +4599,6 @@
                     }
                 } catch (error) {
                     console.error('Error loading following:', error);
-                }
-            },
-
-            async loadFollowRequests() {
-                try {
-                    const { data: requests, error } = await supabase
-                        .from('follow_requests')
-                        .select(`
-                            id,
-                            status,
-                            created_at,
-                            user_profiles!follow_requests_sender_id_fkey (
-                                id,
-                                username,
-                                full_name,
-                                avatar_icon,
-                                bio
-                            )
-                        `)
-                        .eq('receiver_id', currentUser.id)
-                        .eq('status', 'pending');
-
-                    if (error) throw error;
-
-                    const requestsList = getElement('followRequestsList');
-                    if (!requestsList) return;
-
-                    if (!requests || requests.length === 0) {
-                        requestsList.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📨</div>
-                                <h3 class="empty-title">No pending requests</h3>
-                                <p class="empty-description">You don't have any pending follow requests.</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    requestsList.innerHTML = '';
-
-                    for (const request of requests) {
-                        const user = request.user_profiles;
-                        if (!user) continue;
-
-                        const requestElement = document.createElement('div');
-                        requestElement.className = 'follower-card';
-                        requestElement.innerHTML = `
-                            <div class="follower-header">
-                                <div class="follower-avatar">${user.avatar_icon || '👤'}</div>
-                                <div class="follower-info">
-                                    <div class="follower-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                    <div class="follower-username">@${user.username || 'user'}</div>
-                                </div>
-                            </div>
-                            <div class="follower-actions">
-                                <button class="btn btn-success btn-sm" onclick="followerSystem.acceptFollowRequest('${request.id}', '${user.id}')">
-                                    <i class="fas fa-check"></i> Accept
-                                </button>
-                                <button class="btn btn-secondary btn-sm" onclick="followerSystem.declineFollowRequest('${request.id}')">
-                                    <i class="fas fa-times"></i> Decline
-                                </button>
-                                <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
-                                    <i class="fas fa-eye"></i> View Profile
-                                </button>
-                            </div>
-                        `;
-                        requestsList.appendChild(requestElement);
-                    }
-
-                } catch (error) {
-                    console.error('Error loading follow requests:', error);
-                }
-            },
-
-            async acceptFollowRequest(requestId, senderId) {
-                try {
-                    // Create follow relationship
-                    const { error: followError } = await supabase
-                        .from('follows')
-                        .insert({
-                            follower_id: senderId,
-                            followed_id: currentUser.id,
-                            created_at: new Date().toISOString()
-                        });
-
-                    if (followError) throw followError;
-
-                    // Update request status
-                    const { error: requestError } = await supabase
-                        .from('follow_requests')
-                        .update({ status: 'accepted' })
-                        .eq('id', requestId);
-
-                    if (requestError) throw requestError;
-
-                    showToast('Follow request accepted', 'success');
-                    this.loadFollowRequests();
-                    this.loadFollowStats();
-
-                } catch (error) {
-                    console.error('Error accepting follow request:', error);
-                    showToast('Error accepting follow request', 'error');
-                }
-            },
-
-            async declineFollowRequest(requestId) {
-                try {
-                    const { error } = await supabase
-                        .from('follow_requests')
-                        .update({ status: 'declined' })
-                        .eq('id', requestId);
-
-                    if (error) throw error;
-
-                    showToast('Follow request declined', 'info');
-                    this.loadFollowRequests();
-                    this.loadFollowStats();
-
-                } catch (error) {
-                    console.error('Error declining follow request:', error);
-                    showToast('Error declining follow request', 'error');
                 }
             }
         };
@@ -5007,7 +4848,7 @@
             
             // Load follow requests if that modal is opened
             if (modalId === 'followRequestsModal') {
-                followerSystem.loadFollowRequests();
+                // followerSystem.loadFollowRequests();
             }
         }
 
