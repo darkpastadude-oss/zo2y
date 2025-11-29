@@ -2883,39 +2883,64 @@ async function updateStats(userId = null) {
     const targetId = userId || currentUser.id;
     
     try {
-        // Get visited count from reviews - FIXED: Use restraunt_id (with typo)
-        const { data: reviews, error } = await supabase
+        console.log('Updating stats for user:', targetId);
+        
+        // Get visited count from reviews - FIXED: Use correct column names
+        const { data: reviews, error: reviewsError } = await supabase
             .from('reviews')
-            .select('restraunt_id')
+            .select('restraunt_id, restaurant_id')
             .eq('user_id', targetId);
 
-        if (error) throw error;
+        if (reviewsError) {
+            console.error('Error loading reviews:', reviewsError);
+        }
             
-        const visitedCount = reviews ? new Set(reviews.map(r => r.restraunt_id)).size : 0;
+        // Handle both column names (restraunt_id with typo and restaurant_id correct)
+        let visitedCount = 0;
+        if (reviews && reviews.length > 0) {
+            const restaurantIds = reviews.map(r => r.restraunt_id || r.restaurant_id).filter(id => id);
+            visitedCount = new Set(restaurantIds).size;
+        }
+        console.log('Visited count:', visitedCount, 'from', reviews?.length, 'reviews');
         
         // Get followers count
-        const { data: followers } = await supabase
+        const { data: followers, error: followersError } = await supabase
             .from('follows')
             .select('id')
             .eq('followed_id', targetId);
+
+        if (followersError) {
+            console.error('Error loading followers:', followersError);
+        }
             
         const followersCount = followers ? followers.length : 0;
+        console.log('Followers count:', followersCount);
         
-        // Get lists count - FIXED: Count all lists including default ones
-        const { data: userLists } = await supabase
+        // Get lists count
+        const { data: userLists, error: listsError } = await supabase
             .from('lists')
             .select('id')
             .eq('user_id', targetId);
+
+        if (listsError) {
+            console.error('Error loading lists:', listsError);
+        }
             
         const listsCount = userLists ? userLists.length : 0;
+        console.log('Lists count:', listsCount);
         
         // Get reviews count
-        const { data: userReviews } = await supabase
+        const { data: userReviews, error: userReviewsError } = await supabase
             .from('reviews')
             .select('id')
             .eq('user_id', targetId);
+
+        if (userReviewsError) {
+            console.error('Error loading user reviews:', userReviewsError);
+        }
             
         const reviewsCount = userReviews ? userReviews.length : 0;
+        console.log('Reviews count:', reviewsCount);
         
         // Update UI
         setTextContent('visitedCount', visitedCount);
@@ -2926,6 +2951,12 @@ async function updateStats(userId = null) {
         
     } catch (error) {
         console.error('Error updating stats:', error);
+        // Set fallback values
+        setTextContent('visitedCount', 0);
+        setTextContent('followersCount', 0);
+        setTextContent('listsCount', 0);
+        setTextContent('reviewsCount', 0);
+        setTextContent('visitedCountMeta', '0 restaurants visited');
     }
 }
         // Load restaurants from database - FIXED VERSION
@@ -4118,8 +4149,7 @@ const foodJournal = {
                 window.location.href = `cards/${slug}.html`;
             },
             
-            async loadVisitedRestraunts() {
-                try {
+                            try {
                     const { data: reviews, error } = await supabase
                         .from('reviews')
                         .select('restraunt_id')
@@ -4186,7 +4216,8 @@ const foodJournal = {
                     card.className = 'restaurant-tile';
                     card.innerHTML = `
                         <div class="restaurant-tile-image">
-                            ${restraunt.image ? 
+                    async loadVisitedRestraunts() {
+        ${restraunt.image ? 
                                 `<img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy">` : 
                                 `<div style="width: 100%; height: 100%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #0b1633; font-size: 24px;">🍽️</div>`
                             }
