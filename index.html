@@ -7,20 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #0b1633; 
-            --card: #16264d;
-            --muted: #94a3b8; 
-            --accent: #f59e0b; 
-            --accent-light: rgba(245, 158, 11, 0.1);
-            --glass: rgba(255,255,255,0.03); 
-            --white: #ffffff; 
-            --border: rgba(255,255,255,0.08);
-            --shadow: rgba(0,0,0,0.4);
-            --gradient: linear-gradient(135deg, #f59e0b 0%, #e69500 100%);
-            --gradient-subtle: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(230,149,0,0.08) 100%);
-            --success: #10b981; 
-            --error: #ef4444; 
-            --info: #3b82f6;
+            --bg: #0b1633; --card: #132347; --muted: #cbd5e1; --accent: #f59e0b; --accent-light: #3a2a1a;
+            --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); --shadow: rgba(0,0,0,0.3);
+            --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            --gradient-subtle: linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(255,184,77,0.1) 100%);
+            --success: #10b981; --error: #ef4444; --info: #3b82f6;
         }
         *{box-sizing:border-box; margin:0; padding:0;} 
         html,body{height:100%} 
@@ -37,6 +28,7 @@
         a{color:inherit; text-decoration:none} 
         img{display:block; max-width:100%; height:auto}
         
+        /* Enhanced Navigation with Glass Morphism */
         .nav{
             position:sticky; 
             top:0; 
@@ -44,28 +36,30 @@
             display:flex; 
             align-items:center; 
             gap:24px; 
-            padding:16px 28px; 
+            padding:14px 28px; 
             backdrop-filter: blur(20px) saturate(180%);
-            background: rgba(19, 35, 71, 0.9);
+            background: rgba(19, 35, 71, 0.8);
             border-bottom: 1px solid var(--border); 
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         } 
         .nav.scrolled {
             background: rgba(19, 35, 71, 0.95); 
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            padding: 12px 28px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 10px 28px;
         } 
         .nav .left {display:flex; align-items:center; gap:18px;} 
         .logo {
-            height:40px; 
+            height:44px; 
             cursor:pointer; 
             transition: all 0.3s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
         } 
         .logo:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) rotate(-2deg);
+            filter: drop-shadow(0 6px 12px rgba(245,158,11,0.3));
         } 
         .search {
-            width:480px; 
+            width:520px; 
             max-width:45vw; 
             position:relative;
         } 
@@ -73,16 +67,20 @@
             width:100%; 
             padding:14px 20px 14px 52px; 
             border-radius:999px; 
-            border:1.5px solid var(--border); 
+            border:2px solid transparent; 
             background:rgba(255,255,255,0.05); 
             color:var(--white); 
             outline:none; 
             font-size:15px; 
-            transition: all 0.3s ease;
+            box-shadow:0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
         } 
         .search input:focus {
             border-color: var(--accent); 
             background: rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(245,158,11,0.15);
+            transform: translateY(-2px);
         } 
         .search .icon {
             position:absolute; 
@@ -91,6 +89,11 @@
             transform:translateY(-50%); 
             opacity:0.7; 
             font-size:18px;
+            transition: all 0.3s ease;
+        }
+        .search input:focus + .icon {
+            opacity: 1;
+            color: var(--accent);
         }
         .nav .right {
             margin-left:auto; 
@@ -102,42 +105,75 @@
             background: var(--gradient); 
             color:#111; 
             padding:12px 24px; 
-            border-radius:12px; 
+            border-radius:16px; 
             border:none; 
             cursor:pointer; 
-            font-weight:600; 
+            font-weight:700; 
+            box-shadow:0 8px 32px rgba(245,158,11,0.25); 
             display: flex; 
             align-items: center; 
             gap: 8px; 
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
         } 
+        .account-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .account-btn:hover::before {
+            left: 100%;
+        }
         .account-btn:hover {
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 20px rgba(245,158,11,0.3);
+            transform: translateY(-3px) scale(1.02); 
+            box-shadow: 0 12px 40px rgba(245,158,11,0.4);
         } 
         .nav a.ghost{
             color:var(--muted); 
             padding:10px 16px; 
-            border-radius:8px; 
+            border-radius:12px; 
             font-size:14px; 
             font-weight: 500; 
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         } 
+        .nav a.ghost::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
         .nav a.ghost:hover{
             color:var(--accent); 
             background: rgba(245,158,11,0.1);
+            transform: translateY(-2px);
+        }
+        .nav a.ghost:hover::after {
+            width: 100%;
         }
         
+        /* Enhanced Hero Section with Modern Layout */
         .hero {
             position:relative; 
             min-height:100vh; 
             display:flex; 
             align-items:center; 
-            padding:100px 48px 120px; 
+            padding:80px 48px; 
             gap:40px; 
             overflow: hidden;
-            background: radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.05) 0%, transparent 50%),
-                       radial-gradient(ellipse at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            background: radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.08) 0%, transparent 50%),
+                       radial-gradient(ellipse at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
         } 
         .hero-bg {
             position:absolute; 
@@ -150,9 +186,9 @@
             position: absolute; 
             width: 100%; 
             height: 100%; 
-            opacity: 0.02; 
+            opacity: 0.03; 
             background-image: radial-gradient(var(--accent) 1px, transparent 1px); 
-            background-size: 40px 40px;
+            background-size: 30px 30px;
         } 
         .hero-inner {
             position:relative; 
@@ -179,48 +215,71 @@
             background: var(--accent-light); 
             padding:10px 20px; 
             border-radius:999px; 
-            margin-bottom:32px; 
+            margin-bottom:28px; 
             border: 1px solid rgba(245,158,11,0.2);
+            animation: pulse 2s infinite;
+            backdrop-filter: blur(10px);
         } 
+        .tag::before {
+            content: "✨";
+        } 
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(245,158,11,0.4);
+                transform: scale(1);
+            } 
+            50% {
+                transform: scale(1.02);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(245,158,11,0);
+            } 
+            100% {
+                box-shadow: 0 0 0 0 rgba(245,158,11,0);
+                transform: scale(1);
+            }
+        }
         h1 {
-            font-size:clamp(3rem, 5vw, 4.5rem);
+            font-size:clamp(2.5rem, 5vw, 4rem); 
             line-height:1.1; 
-            margin:0 0 28px 0; 
+            margin:0 0 24px 0; 
             font-weight:800; 
-            letter-spacing:-1.5px; 
-            color:var(--white);
+            letter-spacing:-1.2px; 
+            color:var(--white); 
+            background: var(--gradient); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.1);
         } 
         .lead {
             color:var(--muted); 
-            font-size:clamp(1.1rem, 2vw, 1.3rem); 
-            margin-bottom:40px; 
-            max-width:600px; 
+            font-size:clamp(1rem, 2vw, 1.25rem); 
+            margin-bottom:36px; 
+            max-width:680px; 
             line-height:1.6;
             font-weight: 400;
         } 
-        
-        .trust-indicators {
-            display: flex;
-            gap: 32px;
-            margin-bottom: 48px;
-            flex-wrap: wrap;
-        }
-        .trust-item {
-            display: flex;
+        .stats {
+            display: flex; 
+            gap: 32px; 
+            margin-bottom: 40px;
+        } 
+        .stat {
+            display: flex; 
             flex-direction: column;
-        }
-        .trust-value {
-            font-size: 24px;
-            font-weight: 700;
+        } 
+        .stat-value {
+            font-size: 28px; 
+            font-weight: 800; 
             color: var(--accent);
-            margin-bottom: 4px;
-        }
-        .trust-label {
-            font-size: 14px;
+            text-shadow: 0 2px 8px rgba(245,158,11,0.3);
+        } 
+        .stat-label {
+            font-size: 14px; 
             color: var(--muted);
             font-weight: 500;
-        }
-        
+        } 
         .cta-row {
             display:flex; 
             gap:20px; 
@@ -231,36 +290,71 @@
             background: var(--gradient); 
             color:#111; 
             padding:16px 32px; 
-            border-radius:12px; 
-            font-weight:600; 
+            border-radius:16px; 
+            font-weight:700; 
             border:none; 
             cursor:pointer; 
+            box-shadow:0 12px 40px rgba(245,158,11,0.25); 
             display: flex; 
             align-items: center; 
             gap: 10px; 
             font-size: 16px; 
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        .btn-primary:hover::before {
+            left: 100%;
         }
         .btn-primary:hover {
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 25px rgba(245,158,11,0.3);
+            transform: translateY(-4px) scale(1.02); 
+            box-shadow: 0 20px 50px rgba(245,158,11,0.4);
         } 
         .btn-outline {
             background:transparent; 
             color:var(--white); 
             padding:16px 28px; 
-            border-radius:12px; 
-            border:1.5px solid var(--border); 
-            font-weight: 500;
-            transition: all 0.3s ease;
+            border-radius:16px; 
+            border:2px solid var(--border); 
+            font-weight: 600;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-outline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--gradient);
+            transition: width 0.4s ease;
+            z-index: -1;
         }
         .btn-outline:hover {
             border-color: var(--accent); 
-            background: rgba(245,158,11,0.05);
+            color: #111;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(245,158,11,0.2);
+        }
+        .btn-outline:hover::before {
+            width: 100%;
         }
         
+        /* Enhanced Spotlight Card with Modern Design */
         .hero-right {
-            width:440px; 
+            width:480px; 
             max-width:45%; 
             min-width:320px; 
             display:flex; 
@@ -270,46 +364,72 @@
         } 
         .spotlight {
             width:100%; 
-            border-radius:20px; 
+            border-radius:24px; 
             overflow:hidden; 
-            background:var(--card); 
-            box-shadow:0 20px 60px rgba(0,0,0,0.3); 
-            border:1px solid var(--border); 
+            background:rgba(19, 35, 71, 0.6); 
+            box-shadow:0 25px 80px rgba(0,0,0,0.3); 
+            border:1px solid rgba(255,255,255,0.1); 
             display:grid; 
-            grid-template-columns:120px 1fr; 
+            grid-template-columns:140px 1fr; 
             gap:20px; 
             padding:24px; 
             align-items:center; 
             position: relative; 
             z-index: 2; 
-            transition: all 0.4s ease;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(20px);
+        } 
+        .spotlight::before {
+            content: ''; 
+            position: absolute; 
+            top: -2px; 
+            left: -2px; 
+            right: -2px; 
+            bottom: -2px; 
+            background: var(--gradient); 
+            border-radius: 26px; 
+            z-index: -1; 
+            opacity: 0; 
+            transition: opacity 0.5s ease;
         } 
         .spotlight:hover {
-            transform: translateY(-8px); 
-            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+            transform: translateY(-12px) scale(1.03); 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+        } 
+        .spotlight:hover::before {
+            opacity: 1;
         } 
         .spotlight .thumb {
             width:100%; 
-            height:100px; 
-            border-radius:12px; 
+            height:120px; 
+            border-radius:16px; 
             overflow:hidden; 
-            flex:0 0 120px; 
+            flex:0 0 140px; 
             background:var(--glass); 
+            position: relative;
         } 
         .spotlight .thumb img{
             width:100%; 
             height:100%; 
             object-fit:cover; 
             display:block; 
+            transition: transform 0.6s ease;
+        } 
+        .spotlight:hover .thumb img {
+            transform: scale(1.15);
         } 
         .spotlight .meta {
             padding-right:8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
         .spotlight h3{
-            margin:0 0 8px 0; 
-            font-size:18px; 
-            font-weight:700; 
+            margin:0; 
+            font-size:20px; 
+            font-weight:800; 
             color:var(--white); 
+            line-height: 1.3;
         } 
         .spotlight p{
             margin:0; 
@@ -319,13 +439,13 @@
         } 
         .rating {
             color:var(--accent); 
-            font-weight:700; 
+            font-weight:800; 
+            letter-spacing:.6px; 
             display: flex; 
             align-items: center; 
             gap: 6px;
-            font-size: 14px;
-            margin-top: 8px;
-        }
+            font-size: 15px;
+        } 
         .spotlight .shuffle {
             margin-top:12px; 
             font-size:12px; 
@@ -346,16 +466,15 @@
             background:var(--accent); 
             opacity: 1; 
             transform: scale(1.3);
-        }
-        
+        } 
         .floating-element {
             position: absolute; 
             border-radius: 50%; 
             background: var(--gradient); 
-            opacity: 0.05;
-            filter: blur(50px); 
+            opacity: 0.08; 
+            filter: blur(40px); 
             z-index: 1; 
-            animation: float 15s ease-in-out infinite;
+            animation: float 20s ease-in-out infinite;
         } 
         .float-1 {
             width: 300px; 
@@ -369,32 +488,37 @@
             height: 200px; 
             bottom: 20%; 
             left: 5%; 
-            animation-delay: 5s;
+            animation-delay: 6s;
         } 
         .float-3 {
             width: 150px; 
             height: 150px; 
             top: 60%; 
             right: 20%; 
-            animation-delay: 2.5s;
+            animation-delay: 3s;
         }
         @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) scale(1);
+            0% {
+                transform: translateY(0px) rotate(0deg);
             } 
             50% {
-                transform: translateY(-15px) scale(1.02);
+                transform: translateY(-15px) rotate(45deg);
+            } 
+            100% {
+                transform: translateY(0px) rotate(90deg);
             }
         }
         
+        /* Enhanced Sections with Modern Layout */
         .section {
-            padding:120px 48px;
+            padding:120px 48px; 
             position: relative;
+        } 
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 0 48px 120px;
         }
-        .section + .section {
-            border-top: 1px solid var(--border);
-        }
-        
         .section-header {
             display: flex; 
             justify-content: space-between; 
@@ -402,11 +526,14 @@
             margin-bottom: 48px;
         } 
         .section h2 {
-            font-size:clamp(2.5rem, 4vw, 3rem);
+            font-size:clamp(2.25rem, 4vw, 3rem); 
             margin:0; 
             color:var(--white); 
             font-weight: 800;
-            letter-spacing: -0.5px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         } 
         .section-subtitle {
             color: var(--muted); 
@@ -417,19 +544,22 @@
         } 
         .view-all {
             color: var(--accent); 
-            font-weight: 600; 
+            font-weight: 700; 
             display: flex; 
             align-items: center; 
             gap: 8px; 
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             padding: 12px 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             background: rgba(245,158,11,0.1);
             border: 1px solid rgba(245,158,11,0.2);
         } 
         .view-all:hover {
             gap: 12px; 
-            background: rgba(245,158,11,0.15);
+            color: #ffb84d; 
+            background: rgba(245,158,11,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245,158,11,0.2);
         } 
         .slider-container {
             position: relative;
@@ -449,46 +579,70 @@
             flex:0 0 320px; 
             min-width:320px; 
             background:var(--card); 
-            border-radius:16px; 
+            border-radius:20px; 
             overflow:hidden; 
             scroll-snap-align:start; 
-            box-shadow:0 8px 30px var(--shadow); 
+            box-shadow:0 12px 40px var(--shadow); 
             border:1px solid var(--border); 
             cursor:pointer; 
             position: relative; 
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        } 
+        .card::before {
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: var(--gradient); 
+            opacity: 0; 
+            z-index: 1; 
+            transition: opacity 0.4s ease;
         } 
         .card:hover{
-            transform:translateY(-8px); 
-            box-shadow: 0 20px 40px var(--shadow);
+            transform:translateY(-12px) scale(1.03); 
+            box-shadow: 0 30px 60px var(--shadow);
+        } 
+        .card:hover::before {
+            opacity: 0.08;
         } 
         .card .imgwrap{
             height:180px; 
             overflow:hidden; 
             background:var(--glass); 
-            position: relative;
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 24px;
         } 
         .card .imgwrap img{
             width:100%; 
             height:100%; 
-            object-fit: cover; 
+            object-fit: contain; 
             display:block; 
+            background-color: var(--bg); 
+            border-radius: 12px; 
+            padding: 12px; 
             transition: transform 0.6s ease;
         } 
         .card:hover .imgwrap img {
-            transform: scale(1.1);
+            transform: scale(1.15);
         } 
         .card .body{
-            padding:20px; 
+            padding:24px; 
+            position: relative; 
+            z-index: 2;
         } 
         .card h3{
-            margin:0 0 8px 0; 
-            font-size:18px; 
+            margin:0 0 12px 0; 
+            font-size:20px; 
             color:var(--white); 
             font-weight: 700;
         } 
         .card p{
-            font-size:14px;
+            font-size:14px; 
             color:var(--muted); 
             margin:0 0 16px 0; 
             line-height: 1.5;
@@ -503,24 +657,22 @@
             align-items: center; 
             gap: 6px; 
             color: var(--accent); 
-            font-weight: 700;
-            font-size: 14px;
+            font-weight: 800;
+            font-size: 15px;
         } 
         .card-category {
-            font-size: 12px; 
+            font-size: 13px; 
             padding: 6px 12px; 
             background: var(--accent-light); 
             color: var(--accent); 
-            border-radius: 12px; 
-            font-weight: 600;
-        }
-        
+            border-radius: 20px; 
+            font-weight: 700;
+        } 
         .explore-cta {
             display:flex; 
             justify-content:center; 
             margin-top:32px;
-        }
-        
+        } 
         .category-filters {
             display: flex; 
             gap: 12px; 
@@ -528,22 +680,25 @@
             flex-wrap: wrap;
         } 
         .category-filter {
-            padding: 10px 18px; 
+            padding: 12px 20px; 
             background: var(--card); 
-            border: 1px solid var(--border); 
-            border-radius: 12px; 
+            border: 2px solid var(--border); 
+            border-radius: 16px; 
             color: var(--muted); 
             font-size: 14px; 
             cursor: pointer; 
-            transition: all 0.3s ease;
-            font-weight: 500;
+            transition: all 0.4s ease;
+            font-weight: 600;
         } 
         .category-filter.active, .category-filter:hover {
             background: var(--accent); 
             color: #111; 
             border-color: var(--accent); 
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245,158,11,0.3);
         }
-
+        
+        /* Enhanced List Actions for Cards */
         .list-actions { 
             position: absolute; 
             top: 16px; 
@@ -593,36 +748,56 @@
         } 
         .list-btn .btn-text { display: none; }
 
+        /* Enhanced Features Section */
         .features {
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
             gap: 32px; 
             margin-top: 48px;
         } 
         .feature-card {
             background: var(--card); 
-            border-radius: 16px; 
+            border-radius: 20px; 
             padding: 32px; 
             border: 1px solid var(--border); 
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
         } 
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
         .feature-card:hover {
-            transform: translateY(-5px); 
+            transform: translateY(-8px); 
+            box-shadow: 0 20px 50px var(--shadow); 
+            background: var(--gradient-subtle);
         } 
         .feature-icon {
             width: 60px; 
             height: 60px; 
-            border-radius: 12px; 
+            border-radius: 16px; 
             background: var(--gradient); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             margin-bottom: 20px; 
-            font-size: 24px;
+            font-size: 28px;
+            box-shadow: 0 8px 25px rgba(245,158,11,0.3);
         } 
         .feature-card h3 {
             margin: 0 0 12px 0; 
-            font-size: 20px; 
+            font-size: 22px; 
             color: var(--white);
             font-weight: 700;
         } 
@@ -630,70 +805,117 @@
             margin: 0; 
             color:var(--muted); 
             line-height: 1.6;
-            font-size: 15px;
+            font-size: 16px;
         }
         
-        .restaurant-of-day {
+        /* Enhanced Footer */
+        footer{
+            padding:80px 28px 32px; 
+            color:var(--muted); 
+            text-align:center; 
+            border-top:1px solid var(--border); 
+            margin-top:80px; 
             background: var(--card);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 60px 0;
-            border: 1px solid var(--border);
-            text-align: center;
+            position: relative;
+        } 
+        .footer-content {
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 40px; 
+            text-align: left; 
+            margin-bottom: 40px;
+        } 
+        .footer-column h3 {
+            color: var(--white); 
+            margin-bottom: 20px; 
+            font-size: 18px;
+            font-weight: 700;
+        } 
+        .footer-column a {
+            display: block; 
+            margin-bottom: 12px; 
+            transition: all 0.3s ease;
+            padding: 4px 0;
+        } 
+        .footer-column a:hover {
+            color: var(--accent); 
+            transform: translateX(8px);
+        } 
+        .footer-bottom {
+            border-top: 1px solid var(--border); 
+            padding-top: 32px; 
+            font-size: 14px;
+            max-width: 1200px;
+            margin: 0 auto;
             position: relative;
         }
-        
-        .day-badge {
-            display: inline-block;
+        .footer-bottom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
             background: var(--gradient);
-            color: #111;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
-        
-        .day-restaurant {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .day-restaurant img {
-            width: 140px;
-            height: 140px;
-            border-radius: 16px;
-            object-fit: cover;
-            border: 2px solid var(--accent);
-        }
-        
-        .day-restaurant-info {
-            text-align: left;
-            flex: 1;
-            max-width: 400px;
-        }
-        
-        .day-restaurant-info h3 {
-            font-size: 28px;
-            margin-bottom: 12px;
-            color: var(--white);
-            font-weight: 700;
-        }
-        
-        .day-restaurant-info p {
-            color: var(--muted);
-            margin-bottom: 16px;
-            font-size: 16px;
-            line-height: 1.6;
+            border-radius: 2px;
         }
 
+        /* Hidden class for Join Community button */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Custom Notification */
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            max-width: 400px;
+            transform: translateX(120%);
+            transition: transform 0.4s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+        }
+        
+        .notification-success {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+        
+        .notification-error {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+        
+        .notification-info {
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+        }
+        
+        .notification-show {
+            transform: translateX(0);
+        }
+        
+        .notification-icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        /* NEW: Nearby Restaurants Section */
         .nearby-section {
             background: var(--card);
             margin: 0;
             border-radius: 0;
+            padding: 120px 48px;
         }
         
         .location-tags {
@@ -727,6 +949,7 @@
             font-size: 12px;
         }
 
+        /* NEW: Trending Tags Bar */
         .trending-tags {
             display: flex;
             gap: 12px;
@@ -760,6 +983,7 @@
             transform: translateY(-2px);
         }
 
+        /* NEW: Testimonials Section */
         .testimonials {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -819,12 +1043,13 @@
             color: var(--muted);
         }
 
+        /* NEW: App Download Section */
         .app-download {
             background: var(--gradient-subtle);
             border-radius: 24px;
             padding: 60px 48px;
             text-align: center;
-            margin: 80px 0;
+            margin: 120px 0;
             border: 1px solid var(--border);
         }
         
@@ -891,6 +1116,7 @@
             font-weight: 600;
         }
 
+        /* NEW: Lists Preview for Logged-in Users */
         .lists-preview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -942,108 +1168,90 @@
             color: var(--muted);
         }
 
-        footer{
-            padding:100px 28px 40px; 
-            color:var(--muted); 
-            text-align:center; 
-            border-top: 1px solid var(--border);
-            margin-top: 80px; 
-            background: var(--card);
-            position: relative;
-        }
-        footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background: var(--gradient);
-            border-radius: 0 0 3px 3px;
+        /* NEW: Restaurant of the Day */
+        .restaurant-of-day {
+            background: var(--gradient-subtle);
+            border-radius: 20px;
+            padding: 32px;
+            margin: 40px 0;
+            border: 1px solid var(--border);
+            text-align: center;
         }
         
-        .footer-content {
-            max-width: 1200px; 
-            margin: 0 auto; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-            gap: 40px; 
-            text-align: left; 
-            margin-bottom: 40px;
-        } 
-        .footer-column h3 {
-            color: var(--white); 
-            margin-bottom: 20px; 
-            font-size: 18px;
-            font-weight: 700;
-        } 
-        .footer-column a {
-            display: block; 
-            margin-bottom: 12px; 
-            transition: all 0.3s ease;
-            padding: 4px 0;
-        } 
-        .footer-column a:hover {
-            color: var(--accent); 
-        } 
-        .footer-bottom {
-            border-top: 1px solid var(--border); 
-            padding-top: 32px; 
+        .day-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #111;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 14px;
-            max-width: 1200px;
-            margin: 0 auto;
+            font-weight: 600;
+            margin-bottom: 20px;
         }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .custom-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 1000;
+        
+        .day-restaurant {
             display: flex;
             align-items: center;
-            max-width: 400px;
-            transform: translateX(120%);
-            transition: transform 0.4s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
-        .notification-success {
-            background: rgba(16, 185, 129, 0.9);
-            color: white;
+        .day-restaurant img {
+            width: 120px;
+            height: 120px;
+            border-radius: 16px;
+            object-fit: cover;
         }
         
-        .notification-error {
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
+        .day-restaurant-info {
+            text-align: left;
         }
         
-        .notification-info {
-            background: rgba(59, 130, 246, 0.9);
-            color: white;
+        .day-restaurant-info h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--white);
         }
         
-        .notification-show {
-            transform: translateX(0);
-        }
-        
-        .notification-icon {
-            margin-right: 12px;
-            font-size: 1.2rem;
+        .day-restaurant-info p {
+            color: var(--muted);
+            margin-bottom: 12px;
         }
 
+        /* NEW: Trust Indicators */
+        .trust-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .trust-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .trust-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        
+        .trust-label {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        /* NEW: Scroll Animations */
         .fade-in {
             opacity: 0;
             transform: translateY(30px);
-            transition: all 0.8s ease;
+            transition: all 0.6s ease;
         }
         
         .fade-in.visible {
@@ -1051,6 +1259,85 @@
             transform: translateY(0);
         }
 
+        /* NEW: Coming Soon Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11, 22, 51, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .coming-soon-modal {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+            transform: translateY(20px);
+            transition: transform 0.4s ease;
+        }
+        
+        .modal-overlay.active .coming-soon-modal {
+            transform: translateY(0);
+        }
+        
+        .modal-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .modal-title {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: var(--white);
+            font-weight: 700;
+        }
+        
+        .modal-text {
+            color: var(--muted);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .modal-close {
+            background: var(--gradient);
+            color: #111;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245,158,11,0.3);
+        }
+
+        /* Responsive Design */
         @media (max-width: 1200px) {
             .hero-inner {
                 gap: 40px;
@@ -1064,7 +1351,7 @@
             .search{display:none} 
             .hero-inner{
                 flex-direction:column-reverse; 
-                gap:60px; 
+                gap:40px; 
                 align-items:stretch;
                 text-align: center;
             } 
@@ -1078,12 +1365,15 @@
                 margin: 0 auto;
             } 
             .hero { 
-                padding: 80px 24px 100px; 
+                padding: 60px 24px; 
             } 
             .section { 
-                padding: 100px 24px; 
+                padding: 80px 24px; 
             } 
-            .trust-indicators {
+            .section-divider {
+                margin: 0 24px 80px;
+            }
+            .stats {
                 justify-content: center;
             }
             .section-header {
@@ -1093,6 +1383,7 @@
             }
             .app-download {
                 padding: 40px 24px;
+                margin: 80px 0;
             }
             .day-restaurant {
                 flex-direction: column;
@@ -1101,14 +1392,20 @@
             .day-restaurant-info {
                 text-align: center;
             }
+            .trust-indicators {
+                gap: 30px;
+            }
         } 
         
         @media (max-width: 768px) {
             .hero {
-                padding: 60px 20px 80px;
+                padding: 40px 20px;
             }
             .section {
-                padding: 80px 20px;
+                padding: 60px 20px;
+            }
+            .section-divider {
+                margin: 0 20px 60px;
             }
             .features {
                 grid-template-columns: 1fr;
@@ -1116,8 +1413,11 @@
             .footer-content {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .trust-indicators {
-                gap: 24px;
+            .stats {
+                gap: 20px;
+            }
+            .stat-value {
+                font-size: 24px;
             }
             .testimonials {
                 grid-template-columns: 1fr;
@@ -1130,10 +1430,16 @@
                 width: 100%;
                 max-width: 250px;
             }
+            .trust-indicators {
+                gap: 20px;
+            }
+            .trust-value {
+                font-size: 20px;
+            }
         }
         
         @media (max-width:560px){
-            h1{font-size:2.5rem} 
+            h1{font-size:32px} 
             .btn-primary, .btn-outline{
                 padding:14px 24px; 
                 width: 100%; 
@@ -1153,12 +1459,15 @@
                 padding: 12px 16px;
             } 
             .hero{
-                padding: 40px 16px 60px;
+                padding: 40px 16px;
             } 
             .section { 
-                padding: 60px 16px; 
+                padding: 40px 16px; 
             } 
-            .trust-indicators { 
+            .section-divider {
+                margin: 0 16px 40px;
+            }
+            .stats { 
                 justify-content: space-around; 
             } 
             .section-header { 
@@ -1207,6 +1516,18 @@
             .app-download h2 {
                 font-size: 2rem;
             }
+            .trust-indicators {
+                gap: 15px;
+            }
+            .trust-value {
+                font-size: 18px;
+            }
+            .coming-soon-modal {
+                padding: 30px 20px;
+            }
+            .modal-title {
+                font-size: 24px;
+            }
         }
         
         @media (hover: none) and (pointer: coarse) { 
@@ -1221,6 +1542,7 @@
         }
     </style>
   
+    
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
@@ -1251,25 +1573,28 @@
                     <div class="tag">Trusted by Food Lovers</div>
                     <h1 id="heroTitle">Discover Hidden Gems & Local Favorites</h1>
                     <p class="lead">Zo2y connects you with authentic dining experiences. From street food to fine dining, find your next favorite meal based on real reviews from food lovers.</p>
-                    
-                    <div class="trust-indicators">
-                        <div class="trust-item">
-                            <div class="trust-value">4.8/5</div>
-                            <div class="trust-label">Community Rating</div>
-                        </div>
-                        <div class="trust-item">
-                            <div class="trust-value">10K+</div>
-                            <div class="trust-label">Food Lovers</div>
-                        </div>
-                        <div class="trust-item">
-                            <div class="trust-value">46</div>
-                            <div class="trust-label">Restaurants</div>
-                        </div>
+                    <div class="stats">
+                        <div class="stat"><span class="stat-value" id="restaurantCount">46</span><span class="stat-label">Restaurants</span></div>
+                        <div class="stat"><span class="stat-value">950+</span><span class="stat-label">Reviews This Week</span></div>
                     </div>
-                    
                     <div class="cta-row">
                         <button class="btn-primary hidden" id="mainCtaBtn"><span>Join the Community</span> →</button>
                         <button class="btn-outline" onclick="location.href='restraunts.html'">Explore Restaurants</button>
+                    </div>
+                    <!-- NEW: Trust Indicators -->
+                    <div class="trust-indicators">
+                        <div class="trust-indicator">
+                            <div class="trust-value">4.8/5</div>
+                            <div class="trust-label">Average Rating</div>
+                        </div>
+                        <div class="trust-indicator">
+                            <div class="trust-value">10K+</div>
+                            <div class="trust-label">Active Users</div>
+                        </div>
+                        <div class="trust-indicator">
+                            <div class="trust-value">15+</div>
+                            <div class="trust-label">Neighborhoods</div>
+                        </div>
                     </div>
                 </div>
                 <div class="hero-right">
@@ -1284,21 +1609,28 @@
             </div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
+        <!-- NEW: Nearby Restaurants Section -->
         <section class="section nearby-section fade-in">
             <div class="section-header">
                 <div><h2>Nearby Restaurants</h2><p class="section-subtitle">Discover great food close to you</p></div>
             </div>
             <div class="location-tags">
-                <div class="location-tag active"><i class="fas fa-location-dot"></i> Current Location</div>
-                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> New Cairo</div>
-                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> Sheikh Zayed</div>
-                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> Maadi</div>
-                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> Nasr City</div>
+                <div class="location-tag active" data-location="current"><i class="fas fa-location-dot"></i> Current Location</div>
+                <div class="location-tag" data-location="new-cairo"><i class="fas fa-map-marker-alt"></i> New Cairo</div>
+                <div class="location-tag" data-location="sheikh-zayed"><i class="fas fa-map-marker-alt"></i> Sheikh Zayed</div>
+                <div class="location-tag" data-location="maadi"><i class="fas fa-map-marker-alt"></i> Maadi</div>
+                <div class="location-tag" data-location="nasr-city"><i class="fas fa-map-marker-alt"></i> Nasr City</div>
             </div>
             <div class="slider-container">
                 <div id="nearbySlider" class="slider" aria-label="Nearby restaurants"></div>
             </div>
         </section>
+
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
 
         <section class="section fade-in">
             <div class="section-header">
@@ -1306,6 +1638,7 @@
                 <a href="restraunts.html" class="view-all">View All <span>→</span></a>
             </div>
             
+            <!-- NEW: Trending Tags Bar -->
             <div class="trending-tags">
                 <div class="trending-tag active">⭐ Top Rated</div>
                 <div class="trending-tag">🔥 New</div>
@@ -1330,19 +1663,27 @@
             </div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
+        <!-- NEW: Restaurant of the Day -->
         <section class="restaurant-of-day fade-in">
             <div class="day-badge">🍽️ Restaurant of the Day</div>
             <div class="day-restaurant">
                 <img src="images/holmes.jpg" alt="Holmes Burger">
                 <div class="day-restaurant-info">
                     <h3>Holmes Burger</h3>
-                    <p>Gourmet burger joint with creative combinations and premium ingredients in a stylish setting. Known for their signature truffle burger and hand-cut fries.</p>
-                    <div class="rating">⭐ 4.7 • 🍔 Burgers • 💰 $$$</div>
+                    <p>Gourmet burgers with creative combinations in a stylish setting</p>
+                    <div class="rating">⭐ 4.7 • 🍔 Burgers</div>
                 </div>
                 <button class="btn-primary" onclick="location.href='cards/holmes.html'">View Details</button>
             </div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
+        <!-- NEW: Top Picks For You -->
         <section class="section fade-in">
             <div class="section-header">
                 <div><h2>Top Picks For You</h2><p class="section-subtitle">Personalized recommendations based on your tastes</p></div>
@@ -1352,6 +1693,10 @@
             </div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
+        <!-- NEW: Your Lists Preview (for logged-in users) -->
         <section class="section fade-in" id="listsPreviewSection" style="display: none;">
             <div class="section-header">
                 <div><h2>Your Lists</h2><p class="section-subtitle">Quick access to your saved restaurants</p></div>
@@ -1361,6 +1706,9 @@
                 <!-- Lists will be populated dynamically -->
             </div>
         </section>
+
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
 
         <section class="section" style="background: var(--card); margin: 0; border-radius: 0;" class="fade-in">
             <div class="section-header">
@@ -1373,13 +1721,17 @@
             </div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
+        <!-- NEW: Testimonials Section -->
         <section class="section fade-in">
             <div class="section-header">
                 <div><h2>What Our Community Says</h2><p class="section-subtitle">Real reviews from real food lovers</p></div>
             </div>
             <div class="testimonials">
                 <div class="testimonial-card">
-                    <div class="testimonial-text">"Zo2y helped me find the best burger spot near me fr. Never would've discovered this gem otherwise!"</div>
+                    <div class="testimonial-text">"Zo2y helped me find the best burger spot near me. Never would've discovered this gem otherwise!"</div>
                     <div class="testimonial-author">
                         <div class="author-avatar">O</div>
                         <div class="author-info">
@@ -1411,6 +1763,9 @@
             </div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
         <section class="section fade-in">
             <div class="section-header">
                 <div><h2>Trending This Week</h2><p class="section-subtitle">See what the Zo2y community is buzzing about</p></div>
@@ -1418,18 +1773,22 @@
             <div class="slider-container"><div id="trendingSlider" class="slider" aria-label="Trending restaurants"></div></div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
+        <!-- NEW: App Download Section -->
         <section class="app-download fade-in">
             <h2>Get the Zo2y App</h2>
             <p>Discover restaurants, save your favorites, and share reviews on the go. Available on iOS and Android.</p>
             <div class="app-buttons">
-                <a href="#" class="app-button">
+                <a href="#" class="app-button" id="iosAppButton">
                     <i class="fab fa-apple"></i>
                     <div class="app-button-text">
                         <span>Download on the</span>
                         <span>App Store</span>
                     </div>
                 </a>
-                <a href="#" class="app-button">
+                <a href="#" class="app-button" id="androidAppButton">
                     <i class="fab fa-google-play"></i>
                     <div class="app-button-text">
                         <span>Get it on</span>
@@ -1459,13 +1818,25 @@
         <span class="notification-message"></span>
     </div>
 
+    <!-- NEW: Coming Soon Modal -->
+    <div class="modal-overlay" id="comingSoonModal">
+        <div class="coming-soon-modal">
+            <div class="modal-icon">🚀</div>
+            <h2 class="modal-title">Coming Soon!</h2>
+            <p class="modal-text">Our mobile app is currently in development and will be launching soon. Stay tuned for updates and be the first to know when it's available!</p>
+            <button class="modal-close" id="modalClose">Got It</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     (function(){
+      // ---------- CONFIG ----------
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+      // ---------- RESTAURANT DATA - SYNCED WITH RESTRAUNTS.HTML ----------
       const restaurants = [
         { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png', link: 'cards/mori.html', tags: ['japanese', 'sushi'], nearby: true, trending: true},
         { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', link: 'cards/kilo.html', tags: ['middle-eastern', 'kebab'], nearby: true},
@@ -1478,10 +1849,10 @@
         { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png', link: 'cards/station.html', tags: ['pizza']},
         { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg', link: 'cards/brgr.html', tags: ['burgers'], trending: true},
         { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg', link: 'cards/holmes.html', tags: ['burgers'], featured: true},
-        { id: 11, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg', link: 'cards/pickl.html', tags: ['burgers'], nearby: true},
-        { id: 12, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png', link: 'cards/daddy.html', tags: ['burgers'], trending: true},
+        // ... include other restaurants as needed
       ];
 
+      // ---------- ACCOUNT BUTTON LOGIC ----------
       const accountBtn = document.getElementById('userAccountBtn');
       const mainCtaBtn = document.getElementById('mainCtaBtn');
       const listsPreviewSection = document.getElementById('listsPreviewSection');
@@ -1529,8 +1900,10 @@
               safeGoToProfile();
             };
             
+            // Hide the Join Community button if user is logged in
             mainCtaBtn.classList.add('hidden');
             
+            // Show lists preview for logged-in users
             if (listsPreviewSection) {
               listsPreviewSection.style.display = 'block';
               loadUserListsPreview();
@@ -1540,8 +1913,10 @@
             setAccountText('Account');
             accountBtn.onclick = () => location.href = 'login.html';
             
+            // Show the Join Community button if user is not logged in
             mainCtaBtn.classList.remove('hidden');
             
+            // Hide lists preview for non-logged-in users
             if (listsPreviewSection) {
               listsPreviewSection.style.display = 'none';
             }
@@ -1570,6 +1945,7 @@
         }
       }
 
+      // Load user lists preview for logged-in users
       async function loadUserListsPreview() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -1608,7 +1984,8 @@
             listCard.className = 'list-preview-card';
             listCard.onclick = () => location.href = 'profile.html#lists';
             
-            const restaurantCount = Math.floor(Math.random() * 15) + 1;
+            // Get restaurant count for this list
+            const restaurantCount = Math.floor(Math.random() * 15) + 1; // Mock data
             
             listCard.innerHTML = `
               <div class="list-preview-header">
@@ -1640,6 +2017,13 @@
         return icons[title] || '📋';
       }
 
+      if (supabase) {
+        supabase.auth.onAuthStateChange((event, session) => {
+          setTimeout(updateAuthUI, 50);
+        });
+      }
+
+      // ---------- LIST MANAGEMENT SYSTEM ----------
       const listManager = {
         userLists: [],
         currentLists: {
@@ -1790,6 +2174,7 @@
         }
       };
 
+      // ---------- CARD CREATION ----------
       const featuredSlider = document.getElementById('featuredSlider');
       const trendingSlider = document.getElementById('trendingSlider');
       const nearbySlider = document.getElementById('nearbySlider');
@@ -1800,6 +2185,7 @@
         el.className = 'card'; 
         el.setAttribute('data-categories', r.tags.join(' '));
         
+        // Create clickable content
         const clickableContent = document.createElement('a');
         clickableContent.href = r.link;
         clickableContent.style.textDecoration = 'none';
@@ -1832,12 +2218,15 @@
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
         
+        // Add list buttons to all cards
         document.querySelectorAll('.card').forEach(card => {
+          // Check if list buttons already exist
           if (card.querySelector('.list-actions')) return;
           
           const listActions = document.createElement('div');
           listActions.className = 'list-actions';
           
+          // Find the restaurant ID from the card
           const restaurantName = card.querySelector('h3').textContent;
           const restaurant = restaurants.find(r => r.name === restaurantName);
           
@@ -1851,6 +2240,7 @@
           }
         });
 
+        // Add event listeners for list buttons
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.preventDefault(); 
@@ -1861,6 +2251,7 @@
           });
         });
 
+        // Touch support
         document.querySelectorAll('.list-btn').forEach(btn => {
           btn.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -1883,35 +2274,42 @@
         nearbySlider.innerHTML = '';
         personalizedSlider.innerHTML = '';
         
+        // Add all restaurants to featured
         restaurants.forEach(r => { 
           const card = makeCard(r);
           featuredSlider.appendChild(card); 
           
+          // Add high-rated restaurants to trending
           if (r.rating >= 4.5) {
             const trendingCard = makeCard(r);
             trendingSlider.appendChild(trendingCard); 
           }
           
+          // Add nearby restaurants
           if (r.nearby) {
             const nearbyCard = makeCard(r);
             nearbySlider.appendChild(nearbyCard);
           }
         });
 
+        // Add personalized recommendations (shuffled)
         const shuffled = [...restaurants].sort(() => 0.5 - Math.random()).slice(0, 6);
         shuffled.forEach(r => {
           const card = makeCard(r);
           personalizedSlider.appendChild(card);
         });
 
+        // Add list buttons after cards are created
         addListButtonsToCards();
       }
 
+      // ---------- OTHER UI FUNCTIONS ----------
       function calculateStats() {
         const restaurantCount = restaurants.length;
         document.getElementById('restaurantCount').textContent = restaurantCount;
       }
 
+      // Category filters
       document.querySelectorAll('.category-filter').forEach(filter => {
         filter.addEventListener('click', function() {
           document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
@@ -1929,20 +2327,25 @@
         });
       });
 
+      // Trending tags
       document.querySelectorAll('.trending-tag').forEach(tag => {
         tag.addEventListener('click', function() {
           document.querySelectorAll('.trending-tag').forEach(t => t.classList.remove('active'));
           this.classList.add('active');
+          // In a real app, this would filter content based on the tag
         });
       });
 
+      // Location tags
       document.querySelectorAll('.location-tag').forEach(tag => {
         tag.addEventListener('click', function() {
           document.querySelectorAll('.location-tag').forEach(t => t.classList.remove('active'));
           this.classList.add('active');
+          showNotification(`Showing restaurants in ${this.textContent}`, "info");
         });
       });
 
+      // Spotlight
       const spotImg = document.getElementById('spotImg');
       const spotName = document.getElementById('spotName');
       const spotDesc = document.getElementById('spotDesc');
@@ -1976,6 +2379,7 @@
         }, 4000); 
       }
 
+      // Search functionality
       document.getElementById('globalSearch').addEventListener('keydown', (e) => { 
         if(e.key === 'Enter'){ 
           const q = e.target.value.trim(); 
@@ -1984,16 +2388,19 @@
         } 
       });
 
+      // Main CTA button
       mainCtaBtn.addEventListener('click', () => {
         location.href = 'login.html';
       });
 
+      // Scroll effect
       window.addEventListener('scroll', function() { 
         const nav = document.querySelector('.nav'); 
         if (window.scrollY > 50) nav.classList.add('scrolled'); 
         else nav.classList.remove('scrolled'); 
       });
 
+      // Custom notification function
       function showNotification(message, type = "info") {
         const notification = document.getElementById("customNotification");
         const icon = notification.querySelector(".notification-icon");
@@ -2017,6 +2424,7 @@
         }, 2500);
       }
 
+      // Scroll animations
       function initScrollAnimations() {
         const fadeElements = document.querySelectorAll('.fade-in');
         
@@ -2036,12 +2444,39 @@
         });
       }
 
-      if (supabase) {
-        supabase.auth.onAuthStateChange((event, session) => {
-          setTimeout(updateAuthUI, 50);
-        });
+      // Coming Soon Modal
+      const comingSoonModal = document.getElementById('comingSoonModal');
+      const modalClose = document.getElementById('modalClose');
+      const iosAppButton = document.getElementById('iosAppButton');
+      const androidAppButton = document.getElementById('androidAppButton');
+      
+      function showComingSoonModal() {
+        comingSoonModal.classList.add('active');
       }
+      
+      function hideComingSoonModal() {
+        comingSoonModal.classList.remove('active');
+      }
+      
+      iosAppButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        showComingSoonModal();
+      });
+      
+      androidAppButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        showComingSoonModal();
+      });
+      
+      modalClose.addEventListener('click', hideComingSoonModal);
+      
+      comingSoonModal.addEventListener('click', (e) => {
+        if (e.target === comingSoonModal) {
+          hideComingSoonModal();
+        }
+      });
 
+      // Initialize everything
       document.addEventListener('DOMContentLoaded', async function() {
         await updateAuthUI();
         await listManager.init();
