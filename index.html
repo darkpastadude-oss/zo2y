@@ -325,7 +325,28 @@
             gap: 6px;
             font-size: 14px;
             margin-top: 8px;
+        }
+        .spotlight .shuffle {
+            margin-top:12px; 
+            font-size:12px; 
+            color:var(--muted); 
+            display:flex; 
+            gap:8px; 
+            align-items:center;
         } 
+        .dot {
+            width:8px; 
+            height:8px; 
+            border-radius:50%; 
+            background:var(--muted); 
+            opacity: 0.3; 
+            transition: all 0.4s ease;
+        } 
+        .dot.active {
+            background:var(--accent); 
+            opacity: 1; 
+            transform: scale(1.3);
+        }
         
         .floating-element {
             position: absolute; 
@@ -492,7 +513,13 @@
             color: var(--accent); 
             border-radius: 12px; 
             font-weight: 600;
-        } 
+        }
+        
+        .explore-cta {
+            display:flex; 
+            justify-content:center; 
+            margin-top:32px;
+        }
         
         .category-filters {
             display: flex; 
@@ -516,6 +543,55 @@
             color: #111; 
             border-color: var(--accent); 
         }
+
+        .list-actions { 
+            position: absolute; 
+            top: 16px; 
+            right: 16px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            opacity: 0; 
+            z-index: 20;
+            pointer-events: auto;
+            transition: all 0.4s ease;
+        } 
+        .card:hover .list-actions { 
+            opacity: 1;
+            transform: translateX(0);
+        } 
+        .list-btn { 
+            background: rgba(11, 22, 51, 0.9); 
+            border: 2px solid var(--border); 
+            color: var(--white); 
+            padding: 10px; 
+            border-radius: 14px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 6px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            backdrop-filter: blur(20px); 
+            width: 48px; 
+            height: 48px; 
+            pointer-events: auto;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        } 
+        .list-btn:hover { 
+            transform: scale(1.15) rotate(5deg); 
+            background: var(--accent); 
+            color: #0b1633; 
+            border-color: var(--accent);
+            box-shadow: 0 8px 20px rgba(245,158,11,0.4);
+        } 
+        .list-btn.active { 
+            background: var(--accent); 
+            color: #0b1633; 
+            border-color: var(--accent);
+            transform: scale(1.1);
+        } 
+        .list-btn .btn-text { display: none; }
 
         .features {
             display: grid; 
@@ -614,6 +690,258 @@
             line-height: 1.6;
         }
 
+        .nearby-section {
+            background: var(--card);
+            margin: 0;
+            border-radius: 0;
+        }
+        
+        .location-tags {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .location-tag {
+            padding: 10px 18px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--muted);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .location-tag.active, .location-tag:hover {
+            background: var(--accent);
+            color: #111;
+            border-color: var(--accent);
+        }
+        
+        .location-tag i {
+            font-size: 12px;
+        }
+
+        .trending-tags {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 20px 0;
+            margin-bottom: 32px;
+            scrollbar-width: none;
+        }
+        
+        .trending-tags::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .trending-tag {
+            padding: 10px 18px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--muted);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .trending-tag.active, .trending-tag:hover {
+            background: var(--accent);
+            color: #111;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .testimonials {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        
+        .testimonial-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        
+        .testimonial-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: var(--white);
+            font-style: italic;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #111;
+        }
+        
+        .author-info h4 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--white);
+        }
+        
+        .author-info p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .app-download {
+            background: var(--gradient-subtle);
+            border-radius: 24px;
+            padding: 60px 48px;
+            text-align: center;
+            margin: 80px 0;
+            border: 1px solid var(--border);
+        }
+        
+        .app-download h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .app-download p {
+            font-size: 18px;
+            color: var(--muted);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .app-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .app-button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--white);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .app-button:hover {
+            background: var(--accent);
+            color: #111;
+            transform: translateY(-2px);
+        }
+        
+        .app-button i {
+            font-size: 24px;
+        }
+        
+        .app-button-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .app-button-text span:first-child {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .app-button-text span:last-child {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .lists-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 32px;
+        }
+        
+        .list-preview-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .list-preview-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        
+        .list-preview-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .list-preview-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #111;
+            font-weight: bold;
+        }
+        
+        .list-preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--white);
+        }
+        
+        .list-preview-count {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
         footer{
             padding:100px 28px 40px; 
             color:var(--muted); 
@@ -671,6 +999,47 @@
             display: none !important;
         }
 
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            max-width: 400px;
+            transform: translateX(120%);
+            transition: transform 0.4s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+        }
+        
+        .notification-success {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+        
+        .notification-error {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+        
+        .notification-info {
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+        }
+        
+        .notification-show {
+            transform: translateX(0);
+        }
+        
+        .notification-icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
         .fade-in {
             opacity: 0;
             transform: translateY(30px);
@@ -681,55 +1050,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-
-        .list-actions { 
-            position: absolute; 
-            top: 16px; 
-            right: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-            opacity: 0; 
-            z-index: 20;
-            pointer-events: auto;
-            transition: all 0.4s ease;
-        } 
-        .card:hover .list-actions { 
-            opacity: 1;
-            transform: translateX(0);
-        } 
-        .list-btn { 
-            background: rgba(11, 22, 51, 0.9); 
-            border: 2px solid var(--border); 
-            color: var(--white); 
-            padding: 10px; 
-            border-radius: 14px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 6px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            backdrop-filter: blur(20px); 
-            width: 48px; 
-            height: 48px; 
-            pointer-events: auto;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        } 
-        .list-btn:hover { 
-            transform: scale(1.15) rotate(5deg); 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent);
-            box-shadow: 0 8px 20px rgba(245,158,11,0.4);
-        } 
-        .list-btn.active { 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent);
-            transform: scale(1.1);
-        } 
-        .list-btn .btn-text { display: none; }
 
         @media (max-width: 1200px) {
             .hero-inner {
@@ -771,6 +1091,9 @@
                 align-items: flex-start;
                 gap: 20px;
             }
+            .app-download {
+                padding: 40px 24px;
+            }
             .day-restaurant {
                 flex-direction: column;
                 text-align: center;
@@ -795,6 +1118,17 @@
             }
             .trust-indicators {
                 gap: 24px;
+            }
+            .testimonials {
+                grid-template-columns: 1fr;
+            }
+            .app-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .app-button {
+                width: 100%;
+                max-width: 250px;
             }
         }
         
@@ -832,25 +1166,6 @@
                 align-items: flex-start; 
                 gap: 16px; 
             } 
-            .footer-content {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-            .category-filters {
-                gap: 8px;
-            }
-            .category-filter {
-                padding: 8px 14px;
-                font-size: 13px;
-            }
-            .restaurant-of-day {
-                padding: 32px 24px;
-                margin: 40px 0;
-            }
-            .day-restaurant img {
-                width: 120px;
-                height: 120px;
-            }
             .list-actions { 
                 opacity: 1; 
                 top: 12px; 
@@ -866,6 +1181,31 @@
             } 
             .list-btn.active { 
                 background: var(--accent); 
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .category-filters {
+                gap: 8px;
+            }
+            .category-filter {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            .location-tags, .trending-tags {
+                gap: 8px;
+            }
+            .location-tag, .trending-tag {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .app-download {
+                padding: 32px 20px;
+                margin: 60px 0;
+            }
+            .app-download h2 {
+                font-size: 2rem;
             }
         }
         
@@ -936,10 +1276,57 @@
                     <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
                         <div class="thumb"><img id="spotImg" src="images/mori.png" alt="Featured restaurant"></div>
                         <div class="meta">
-                            <div><h3 id="spotName">Mori Sushi</h3><p id="spotDesc">Modern sushi chain serving fresh rolls & nigiri.</p><div class="rating" id="spotRating">⭐ 4.7</div></div>
+                            <div><h3 id="spotName">Mori Sushi</h3><p id="spotDesc">Modern sushi chain serving fresh rolls & nigiri.</p><div class="rating" id="spotRating">⭐ 4.7</div><div class="shuffle" id="shuffleDots" aria-hidden="true"></div></div>
+                            <div style="align-self:start"><button class="btn-primary" id="spotAction" style="padding:10px 16px; font-size:14px">View Details</button></div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="section nearby-section fade-in">
+            <div class="section-header">
+                <div><h2>Nearby Restaurants</h2><p class="section-subtitle">Discover great food close to you</p></div>
+            </div>
+            <div class="location-tags">
+                <div class="location-tag active"><i class="fas fa-location-dot"></i> Current Location</div>
+                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> New Cairo</div>
+                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> Sheikh Zayed</div>
+                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> Maadi</div>
+                <div class="location-tag"><i class="fas fa-map-marker-alt"></i> Nasr City</div>
+            </div>
+            <div class="slider-container">
+                <div id="nearbySlider" class="slider" aria-label="Nearby restaurants"></div>
+            </div>
+        </section>
+
+        <section class="section fade-in">
+            <div class="section-header">
+                <div><h2>Featured Restaurants</h2><p class="section-subtitle">Handpicked selections based on quality, authenticity, and user ratings</p></div>
+                <a href="restraunts.html" class="view-all">View All <span>→</span></a>
+            </div>
+            
+            <div class="trending-tags">
+                <div class="trending-tag active">⭐ Top Rated</div>
+                <div class="trending-tag">🔥 New</div>
+                <div class="trending-tag">🍔 Burgers</div>
+                <div class="trending-tag">🍣 Sushi</div>
+                <div class="trending-tag">🥤 Cafés</div>
+                <div class="trending-tag">🌮 Mexican</div>
+                <div class="trending-tag">🍗 Chicken</div>
+                <div class="trending-tag">🍕 Pizza</div>
+            </div>
+            
+            <div class="category-filters">
+                <div class="category-filter active" data-category="all">All</div>
+                <div class="category-filter" data-category="japanese">Japanese</div>
+                <div class="category-filter" data-category="middle-eastern">Middle Eastern</div>
+                <div class="category-filter" data-category="mexican">Mexican</div>
+                <div class="category-filter" data-category="burgers">Burgers</div>
+                <div class="category-filter" data-category="cafe">Cafés</div>
+            </div>
+            <div class="slider-container">
+                <div id="featuredSlider" class="slider" aria-label="Featured restaurants"></div>
             </div>
         </section>
 
@@ -958,24 +1345,24 @@
 
         <section class="section fade-in">
             <div class="section-header">
-                <div><h2>Featured Restaurants</h2><p class="section-subtitle">Handpicked selections based on quality, authenticity, and user ratings</p></div>
-                <a href="restraunts.html" class="view-all">View All <span>→</span></a>
-            </div>
-            
-            <div class="category-filters">
-                <div class="category-filter active" data-category="all">All</div>
-                <div class="category-filter" data-category="japanese">Japanese</div>
-                <div class="category-filter" data-category="middle-eastern">Middle Eastern</div>
-                <div class="category-filter" data-category="mexican">Mexican</div>
-                <div class="category-filter" data-category="burgers">Burgers</div>
-                <div class="category-filter" data-category="cafe">Cafés</div>
+                <div><h2>Top Picks For You</h2><p class="section-subtitle">Personalized recommendations based on your tastes</p></div>
             </div>
             <div class="slider-container">
-                <div id="featuredSlider" class="slider" aria-label="Featured restaurants"></div>
+                <div id="personalizedSlider" class="slider" aria-label="Personalized recommendations"></div>
             </div>
         </section>
 
-        <section class="section fade-in" style="background: var(--card); margin: 0; border-radius: 0;">
+        <section class="section fade-in" id="listsPreviewSection" style="display: none;">
+            <div class="section-header">
+                <div><h2>Your Lists</h2><p class="section-subtitle">Quick access to your saved restaurants</p></div>
+                <a href="profile.html" class="view-all">View All <span>→</span></a>
+            </div>
+            <div class="lists-preview" id="listsPreview">
+                <!-- Lists will be populated dynamically -->
+            </div>
+        </section>
+
+        <section class="section" style="background: var(--card); margin: 0; border-radius: 0;" class="fade-in">
             <div class="section-header">
                 <div><h2>Why Food Lovers Choose Zo2y</h2><p class="section-subtitle">We're more than just ratings - we're a community built around authentic culinary experiences</p></div>
             </div>
@@ -988,9 +1375,68 @@
 
         <section class="section fade-in">
             <div class="section-header">
+                <div><h2>What Our Community Says</h2><p class="section-subtitle">Real reviews from real food lovers</p></div>
+            </div>
+            <div class="testimonials">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">"Zo2y helped me find the best burger spot near me fr. Never would've discovered this gem otherwise!"</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">O</div>
+                        <div class="author-info">
+                            <h4>Omar</h4>
+                            <p>Food Explorer</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">"As someone new to Cairo, Zo2y has been my go-to for finding authentic local restaurants. The community reviews are spot on!"</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">S</div>
+                        <div class="author-info">
+                            <h4>Sarah</h4>
+                            <p>New in Town</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-text">"I've discovered so many hidden gems through Zo2y. The personalized recommendations actually match my taste!"</div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">M</div>
+                        <div class="author-info">
+                            <h4>Mohamed</h4>
+                            <p>Food Blogger</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section fade-in">
+            <div class="section-header">
                 <div><h2>Trending This Week</h2><p class="section-subtitle">See what the Zo2y community is buzzing about</p></div>
             </div>
             <div class="slider-container"><div id="trendingSlider" class="slider" aria-label="Trending restaurants"></div></div>
+        </section>
+
+        <section class="app-download fade-in">
+            <h2>Get the Zo2y App</h2>
+            <p>Discover restaurants, save your favorites, and share reviews on the go. Available on iOS and Android.</p>
+            <div class="app-buttons">
+                <a href="#" class="app-button">
+                    <i class="fab fa-apple"></i>
+                    <div class="app-button-text">
+                        <span>Download on the</span>
+                        <span>App Store</span>
+                    </div>
+                </a>
+                <a href="#" class="app-button">
+                    <i class="fab fa-google-play"></i>
+                    <div class="app-button-text">
+                        <span>Get it on</span>
+                        <span>Google Play</span>
+                    </div>
+                </a>
+            </div>
         </section>
     </main>
 
@@ -1007,6 +1453,12 @@
         </div>
     </footer>
 
+    <!-- Custom Notification -->
+    <div id="customNotification" class="custom-notification">
+        <i class="notification-icon"></i>
+        <span class="notification-message"></span>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     (function(){
@@ -1015,21 +1467,24 @@
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       const restaurants = [
-        { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png', link: 'cards/mori.html', tags: ['japanese', 'sushi']},
-        { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', link: 'cards/kilo.html', tags: ['middle-eastern', 'kebab']},
-        { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png', link: 'cards/hameed.html', tags: ['middle-eastern', 'fast-food']},
-        { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg', link: 'cards/bazooka.html', tags: ['burgers', 'fried-chicken']},
+        { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png', link: 'cards/mori.html', tags: ['japanese', 'sushi'], nearby: true, trending: true},
+        { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', link: 'cards/kilo.html', tags: ['middle-eastern', 'kebab'], nearby: true},
+        { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png', link: 'cards/hameed.html', tags: ['middle-eastern', 'fast-food'], nearby: true},
+        { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg', link: 'cards/bazooka.html', tags: ['burgers', 'fried-chicken'], trending: true},
         { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg', link: 'cards/mexican.html', tags: ['mexican', 'street-food']},
-        { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png', link: 'cards/chikin.html', tags: ['chicken']},
-        { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg', link: 'cards/vasko.html', tags: ['cafe', 'coffee']},
-        { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png', link: 'cards/secondcup.html', tags: ['cafe', 'coffee']},
+        { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png', link: 'cards/chikin.html', tags: ['chicken'], nearby: true},
+        { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg', link: 'cards/vasko.html', tags: ['cafe', 'coffee'], trending: true},
+        { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png', link: 'cards/secondcup.html', tags: ['cafe', 'coffee'], nearby: true},
         { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png', link: 'cards/station.html', tags: ['pizza']},
-        { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg', link: 'cards/brgr.html', tags: ['burgers']},
-        { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg', link: 'cards/holmes.html', tags: ['burgers']},
+        { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg', link: 'cards/brgr.html', tags: ['burgers'], trending: true},
+        { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg', link: 'cards/holmes.html', tags: ['burgers'], featured: true},
+        { id: 11, slug:'pickl', name:'Pickl Egypt', category:'Burgers', desc:'Dubai\'s famous burger chain now in Egypt — loaded burgers, crispy chicken & shakes.', rating:4.6, image: 'pickl.jpg', link: 'cards/pickl.html', tags: ['burgers'], nearby: true},
+        { id: 12, slug:'daddy', name:'Daddy\'s Burger', category:'Burgers', desc:'Gourmet burgers, crispy chicken sandwiches, and amazing sides.', rating:4.6, image: 'daddy.png', link: 'cards/daddy.html', tags: ['burgers'], trending: true},
       ];
 
       const accountBtn = document.getElementById('userAccountBtn');
       const mainCtaBtn = document.getElementById('mainCtaBtn');
+      const listsPreviewSection = document.getElementById('listsPreviewSection');
       
       function setAccountText(text){
         accountBtn.innerHTML = `<i class="fas fa-user"></i> <span>${escapeHtml(text)}</span>`;
@@ -1075,12 +1530,21 @@
             };
             
             mainCtaBtn.classList.add('hidden');
+            
+            if (listsPreviewSection) {
+              listsPreviewSection.style.display = 'block';
+              loadUserListsPreview();
+            }
 
           } else {
             setAccountText('Account');
             accountBtn.onclick = () => location.href = 'login.html';
             
             mainCtaBtn.classList.remove('hidden');
+            
+            if (listsPreviewSection) {
+              listsPreviewSection.style.display = 'none';
+            }
             
             try { localStorage.removeItem('zo2y_user'); } catch(e){}
           }
@@ -1104,6 +1568,76 @@
           console.error('safeGoToProfile err', err);
           window.location.href = 'login.html';
         }
+      }
+
+      async function loadUserListsPreview() {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) return;
+          
+          const { data: lists, error } = await supabase
+            .from('lists')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .limit(3);
+          
+          if (error) throw error;
+          
+          const listsPreview = document.getElementById('listsPreview');
+          if (!listsPreview) return;
+          
+          if (!lists || lists.length === 0) {
+            listsPreview.innerHTML = `
+              <div class="list-preview-card" onclick="location.href='profile.html'">
+                <div class="list-preview-header">
+                  <div class="list-preview-icon">📋</div>
+                  <div>
+                    <div class="list-preview-title">Create Your First List</div>
+                    <div class="list-preview-count">Start organizing your favorites</div>
+                  </div>
+                </div>
+              </div>
+            `;
+            return;
+          }
+          
+          listsPreview.innerHTML = '';
+          
+          lists.forEach(list => {
+            const listCard = document.createElement('div');
+            listCard.className = 'list-preview-card';
+            listCard.onclick = () => location.href = 'profile.html#lists';
+            
+            const restaurantCount = Math.floor(Math.random() * 15) + 1;
+            
+            listCard.innerHTML = `
+              <div class="list-preview-header">
+                <div class="list-preview-icon">${getListIcon(list.title)}</div>
+                <div>
+                  <div class="list-preview-title">${list.title}</div>
+                  <div class="list-preview-count">${restaurantCount} restaurants</div>
+                </div>
+              </div>
+            `;
+            
+            listsPreview.appendChild(listCard);
+          });
+          
+        } catch (error) {
+          console.error('Error loading user lists preview:', error);
+        }
+      }
+      
+      function getListIcon(title) {
+        const icons = {
+          'Favorites': '❤️',
+          'Visited': '✅',
+          'Want to Go': '📍',
+          'Date Night': '💑',
+          'Business Lunch': '💼',
+          'Family Friendly': '👨‍👩‍👧‍👦'
+        };
+        return icons[title] || '📋';
       }
 
       const listManager = {
@@ -1221,6 +1755,7 @@
               if (error) throw error;
               
               list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+              showNotification(`Removed from ${list.title}`, "info");
               
             } else {
               const { error } = await supabase
@@ -1237,12 +1772,14 @@
               
               if (!list.restaurants) list.restaurants = [];
               list.restaurants.push(restaurantId);
+              showNotification(`Added to ${list.title}`, "success");
             }
             
             return !isInList;
             
           } catch (error) {
             console.error('Error updating list:', error);
+            showNotification('Error saving changes', 'error');
             return isInList;
           }
         },
@@ -1255,6 +1792,8 @@
 
       const featuredSlider = document.getElementById('featuredSlider');
       const trendingSlider = document.getElementById('trendingSlider');
+      const nearbySlider = document.getElementById('nearbySlider');
+      const personalizedSlider = document.getElementById('personalizedSlider');
 
       function makeCard(r){
         const el = document.createElement('div'); 
@@ -1341,6 +1880,8 @@
       function initCards(){
         featuredSlider.innerHTML = ''; 
         trendingSlider.innerHTML = '';
+        nearbySlider.innerHTML = '';
+        personalizedSlider.innerHTML = '';
         
         restaurants.forEach(r => { 
           const card = makeCard(r);
@@ -1350,6 +1891,17 @@
             const trendingCard = makeCard(r);
             trendingSlider.appendChild(trendingCard); 
           }
+          
+          if (r.nearby) {
+            const nearbyCard = makeCard(r);
+            nearbySlider.appendChild(nearbyCard);
+          }
+        });
+
+        const shuffled = [...restaurants].sort(() => 0.5 - Math.random()).slice(0, 6);
+        shuffled.forEach(r => {
+          const card = makeCard(r);
+          personalizedSlider.appendChild(card);
         });
 
         addListButtonsToCards();
@@ -1377,11 +1929,26 @@
         });
       });
 
+      document.querySelectorAll('.trending-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+          document.querySelectorAll('.trending-tag').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+
+      document.querySelectorAll('.location-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+          document.querySelectorAll('.location-tag').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+
       const spotImg = document.getElementById('spotImg');
       const spotName = document.getElementById('spotName');
       const spotDesc = document.getElementById('spotDesc');
       const spotRating = document.getElementById('spotRating');
       const spotAction = document.getElementById('spotAction');
+      const shuffleDots = document.getElementById('shuffleDots');
       
       let currentSpotlightIndex = 0;
       function renderSpotlight(index){
@@ -1392,6 +1959,13 @@
         spotDesc.textContent = r.desc;
         spotRating.textContent = `⭐ ${r.rating}`;
         spotAction.onclick = () => location.href = r.link;
+        
+        shuffleDots.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+          const d = document.createElement('div');
+          d.className = 'dot' + (i === (index % 5) ? ' active' : '');
+          shuffleDots.appendChild(d);
+        }
       }
       
       function initSpotlight(){ 
@@ -1419,6 +1993,29 @@
         if (window.scrollY > 50) nav.classList.add('scrolled'); 
         else nav.classList.remove('scrolled'); 
       });
+
+      function showNotification(message, type = "info") {
+        const notification = document.getElementById("customNotification");
+        const icon = notification.querySelector(".notification-icon");
+        const messageEl = notification.querySelector(".notification-message");
+        
+        messageEl.textContent = message;
+        notification.className = `custom-notification notification-${type}`;
+        
+        if (type === "success") {
+          icon.className = "notification-icon fas fa-check-circle";
+        } else if (type === "error") {
+          icon.className = "notification-icon fas fa-exclamation-circle";
+        } else {
+          icon.className = "notification-icon fas fa-info-circle";
+        }
+        
+        notification.classList.add("notification-show");
+        
+        setTimeout(() => {
+          notification.classList.remove("notification-show");
+        }, 2500);
+      }
 
       function initScrollAnimations() {
         const fadeElements = document.querySelectorAll('.fade-in');
