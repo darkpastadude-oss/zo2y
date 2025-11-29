@@ -4149,7 +4149,8 @@ const foodJournal = {
                 window.location.href = `cards/${slug}.html`;
             },
             
-                            try {
+            async loadVisitedRestraunts() {
+                try {
                     const { data: reviews, error } = await supabase
                         .from('reviews')
                         .select('restraunt_id')
@@ -4216,8 +4217,7 @@ const foodJournal = {
                     card.className = 'restaurant-tile';
                     card.innerHTML = `
                         <div class="restaurant-tile-image">
-                    async loadVisitedRestraunts() {
-        ${restraunt.image ? 
+                            ${restraunt.image ? 
                                 `<img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy">` : 
                                 `<div style="width: 100%; height: 100%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #0b1633; font-size: 24px;">🍽️</div>`
                             }
