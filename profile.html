@@ -2878,86 +2878,90 @@
             return null;
         }
 
-        // FIXED: Update stats function with correct table and column names
         async function updateStats(userId = null) {
-            const targetId = userId || currentUser.id;
+    const targetId = userId || currentUser.id;
+    
+    try {
+        console.log('Updating stats for user:', targetId);
+        
+        // Get visited count from BOTH journal_entries AND the Visited list
+        let allRestaurantIds = [];
+        
+        // 1. Get from journal_entries
+        const { data: journalEntries, error: journalError } = await supabase
+            .from('journal_entries')
+            .select('restaurant_id')
+            .eq('user_id', targetId);
+
+        if (!journalError && journalEntries) {
+            allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
+        }
+        
+        // 2. Get from Visited list (in case there are manual additions)
+        const { data: visitedList, error: listError } = await supabase
+            .from('lists')
+            .select('id')
+            .eq('user_id', targetId)
+            .eq('title', 'Visited')
+            .single();
+
+        if (!listError && visitedList) {
+            const { data: listRestaurants, error: listRestError } = await supabase
+                .from('lists_restraunts')
+                .select('restraunt_id')
+                .eq('list_id', visitedList.id);
             
-            try {
-                console.log('Updating stats for user:', targetId);
-                
-                // Get visited count from journal_entries - CORRECTED
-                const { data: journalEntries, error: journalError } = await supabase
-                    .from('journal_entries')
-                    .select('restaurant_id')
-                    .eq('user_id', targetId);
-
-                if (journalError) {
-                    console.error('Error loading journal entries:', journalError);
-                }
-                    
-                let visitedCount = 0;
-                if (journalEntries && journalEntries.length > 0) {
-                    const restaurantIds = journalEntries.map(entry => entry.restaurant_id).filter(id => id);
-                    visitedCount = new Set(restaurantIds).size;
-                }
-                console.log('Visited count:', visitedCount, 'from', journalEntries?.length, 'journal entries');
-                
-                // Get followers count
-                const { data: followers, error: followersError } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('followed_id', targetId);
-
-                if (followersError) {
-                    console.error('Error loading followers:', followersError);
-                }
-                    
-                const followersCount = followers ? followers.length : 0;
-                console.log('Followers count:', followersCount);
-                
-                // Get lists count
-                const { data: userLists, error: listsError } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId);
-
-                if (listsError) {
-                    console.error('Error loading lists:', listsError);
-                }
-                    
-                const listsCount = userLists ? userLists.length : 0;
-                console.log('Lists count:', listsCount);
-                
-                // Get journal entries count
-                const { data: userJournalEntries, error: journalCountError } = await supabase
-                    .from('journal_entries')
-                    .select('id')
-                    .eq('user_id', targetId);
-
-                if (journalCountError) {
-                    console.error('Error loading user journal entries:', journalCountError);
-                }
-                    
-                const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
-                console.log('Journal entries count:', reviewsCount);
-                
-                // Update UI
-                setTextContent('visitedCount', visitedCount);
-                setTextContent('followersCount', followersCount);
-                setTextContent('listsCount', listsCount);
-                setTextContent('reviewsCount', reviewsCount);
-                setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
-                
-            } catch (error) {
-                console.error('Error updating stats:', error);
-                // Set fallback values
-                setTextContent('visitedCount', 0);
-                setTextContent('followersCount', 0);
-                setTextContent('listsCount', 0);
-                setTextContent('reviewsCount', 0);
-                setTextContent('visitedCountMeta', '0 restaurants visited');
+            if (!listRestError && listRestaurants) {
+                const listIds = listRestaurants.map(item => item.restraunt_id);
+                allRestaurantIds = [...allRestaurantIds, ...listIds];
             }
         }
+
+        // Get unique count from combined sources
+        const visitedCount = new Set(allRestaurantIds).size;
+        console.log('Total visited count:', visitedCount, 'from combined sources');
+        
+        // Get followers count
+        const { data: followers, error: followersError } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('followed_id', targetId);
+
+        const followersCount = followers ? followers.length : 0;
+        
+        // Get lists count
+        const { data: userLists, error: listsError } = await supabase
+            .from('lists')
+            .select('id')
+            .eq('user_id', targetId);
+
+        const listsCount = userLists ? userLists.length : 0;
+        
+        // Get journal entries count
+        const { data: userJournalEntries, error: journalCountError } = await supabase
+            .from('journal_entries')
+            .select('id')
+            .eq('user_id', targetId);
+
+        const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
+        
+        // Update UI
+        setTextContent('visitedCount', visitedCount);
+        setTextContent('followersCount', followersCount);
+        setTextContent('listsCount', listsCount);
+        setTextContent('reviewsCount', reviewsCount);
+        setTextContent('visitedCountMeta', `${visitedCount} restaurants visited`);
+        
+    } catch (error) {
+        console.error('Error updating stats:', error);
+        // Set fallback values
+        setTextContent('visitedCount', 0);
+        setTextContent('followersCount', 0);
+        setTextContent('listsCount', 0);
+        setTextContent('reviewsCount', 0);
+        setTextContent('visitedCountMeta', '0 restaurants visited');
+    }
+}
 
         // Load restaurants from database - FIXED VERSION
         async function loadRestaurants() {
