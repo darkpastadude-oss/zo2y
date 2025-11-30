@@ -5,12 +5,34 @@
   <title>Zo2y — Restaurant Submissions</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Add similar styling as main page */
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .submission { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px; }
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px; 
+      background: #0b1633; 
+      color: white; 
+    }
+    .submission { 
+      border: 1px solid #ccc; 
+      padding: 15px; 
+      margin: 10px 0; 
+      border-radius: 8px; 
+      background: #132347;
+    }
     .pending { border-left: 4px solid #f59e0b; }
     .approved { border-left: 4px solid #10b981; }
     .rejected { border-left: 4px solid #ef4444; }
+    button {
+      background: #f59e0b;
+      color: #0b1633;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background: #ffb84d;
+    }
   </style>
 </head>
 <body>
@@ -24,16 +46,23 @@
 
     async function loadSubmissions() {
       const { data, error } = await supabase
-        .from('restaurant_submissions')
+        .from('restaurant_submissions')  // This matches your form
         .select('*')
         .order('submitted_at', { ascending: false });
 
       if (error) {
         console.error('Error loading submissions:', error);
+        document.getElementById('submissions').innerHTML = '<p>Error loading submissions: ' + error.message + '</p>';
         return;
       }
 
       const container = document.getElementById('submissions');
+      
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p>No restaurant submissions found.</p>';
+        return;
+      }
+
       container.innerHTML = '';
 
       data.forEach(submission => {
@@ -44,6 +73,10 @@
           <p><strong>Location:</strong> ${submission.location}</p>
           <p><strong>Description:</strong> ${submission.description}</p>
           <p><strong>Recommendation:</strong> ${submission.recommendation}</p>
+          <p><strong>Specialty:</strong> ${submission.specialty_dish || 'Not specified'}</p>
+          <p><strong>Price Range:</strong> ${submission.price_range || 'Not specified'}</p>
+          <p><strong>Website:</strong> ${submission.website || 'Not provided'}</p>
+          <p><strong>Phone:</strong> ${submission.phone || 'Not provided'}</p>
           <p><strong>Status:</strong> ${submission.status}</p>
           <p><strong>Submitted:</strong> ${new Date(submission.submitted_at).toLocaleDateString()}</p>
           <button onclick="updateStatus('${submission.id}', 'approved')">Approve</button>
@@ -55,18 +88,23 @@
 
     async function updateStatus(id, status) {
       const { error } = await supabase
-        .from('restaurant_submissions')
-        .update({ status, reviewed_at: new Date().toISOString() })
+        .from('restaurant_submissions')  // This matches your form
+        .update({ 
+          status: status, 
+          reviewed_at: new Date().toISOString() 
+        })
         .eq('id', id);
 
       if (error) {
         console.error('Error updating status:', error);
-        alert('Error updating status');
+        alert('Error updating status: ' + error.message);
       } else {
+        alert('Status updated successfully!');
         loadSubmissions();
       }
     }
 
+    // Load submissions when page opens
     loadSubmissions();
   </script>
 </body>
