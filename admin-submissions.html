@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Zo2y — Restaurant Submissions</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Add similar styling as main page */
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .submission { border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 8px; }
+    .pending { border-left: 4px solid #f59e0b; }
+    .approved { border-left: 4px solid #10b981; }
+    .rejected { border-left: 4px solid #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>Restaurant Submissions</h1>
+  <div id="submissions"></div>
+
+  <script>
+    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function loadSubmissions() {
+      const { data, error } = await supabase
+        .from('restaurant_submissions')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading submissions:', error);
+        return;
+      }
+
+      const container = document.getElementById('submissions');
+      container.innerHTML = '';
+
+      data.forEach(submission => {
+        const div = document.createElement('div');
+        div.className = `submission ${submission.status}`;
+        div.innerHTML = `
+          <h3>${submission.restaurant_name} - ${submission.category}</h3>
+          <p><strong>Location:</strong> ${submission.location}</p>
+          <p><strong>Description:</strong> ${submission.description}</p>
+          <p><strong>Recommendation:</strong> ${submission.recommendation}</p>
+          <p><strong>Status:</strong> ${submission.status}</p>
+          <p><strong>Submitted:</strong> ${new Date(submission.submitted_at).toLocaleDateString()}</p>
+          <button onclick="updateStatus('${submission.id}', 'approved')">Approve</button>
+          <button onclick="updateStatus('${submission.id}', 'rejected')">Reject</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function updateStatus(id, status) {
+      const { error } = await supabase
+        .from('restaurant_submissions')
+        .update({ status, reviewed_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating status:', error);
+        alert('Error updating status');
+      } else {
+        loadSubmissions();
+      }
+    }
+
+    loadSubmissions();
+  </script>
+</body>
+</html>
