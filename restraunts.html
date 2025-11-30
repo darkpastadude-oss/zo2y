@@ -325,37 +325,6 @@
       width: 60%;
     }
 
-    /* Mobile Filter Button */
-    .mobile-filter-btn {
-      display: none;
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 10px 16px;
-      border-radius: 16px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-    
-    .mobile-filter-btn:hover {
-      background: var(--accent);
-      color: #0b1633;
-    }
-    
-    .mobile-filters {
-      display: none;
-      background: var(--card);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 20px;
-      border: 1px solid var(--border);
-    }
-    
-    .mobile-filters.show {
-      display: block;
-    }
-
     /* Responsive Design */
     @media (max-width: 768px) { 
       header { padding: 12px 16px; flex-wrap: wrap; gap: 12px; } 
@@ -384,8 +353,6 @@
       .user-welcome span { display: none; } 
       .user-welcome { padding: 8px; } 
       .container { padding: 0 16px; }
-      .mobile-filter-btn { display: block; }
-      .category-filters { display: none; }
     }
     
     @media (hover: none) and (pointer: coarse) { 
@@ -432,9 +399,6 @@
     
     <div class="controls">
       <div class="controls-info">Showing <span id="count">0</span> restaurants</div>
-      <button class="mobile-filter-btn" id="mobileFilterBtn">
-        <i class="fas fa-filter"></i> Filters
-      </button>
       <div class="category-filters">
         <div class="category-dropdown">
           <select id="categorySelect">
@@ -457,27 +421,6 @@
       </div>
     </div>
     
-    <div class="mobile-filters" id="mobileFilters">
-      <div class="category-dropdown">
-        <select id="mobileCategorySelect">
-          <option value="All">All Categories</option>
-          <option value="Asian">Asian</option>
-          <option value="Burgers">Burgers</option>
-          <option value="Chicken">Chicken</option>
-          <option value="Middle Eastern">Middle Eastern</option>
-          <option value="Mexican">Mexican</option>
-          <option value="Fast Food">Fast Food</option>
-          <option value="Cafe & Bakery">Cafe & Bakery</option>
-          <option value="Pizza">Pizza</option>
-          <option value="BBQ & Ribs">BBQ & Ribs</option>
-          <option value="Italian">Italian</option>
-          <option value="Seafood">Seafood</option>
-          <option value="Breakfast">Breakfast</option>
-          <option value="Sandwiches">Sandwiches</option>
-        </select>
-      </div>
-    </div>
-    
     <div id="grid" class="grid"></div>
     <div id="empty" class="empty">
       <div>🍽️</div>
@@ -492,64 +435,9 @@
   <div id="notificationContainer" class="notification-container"></div>
 
   <script>
-    // Performance and state management
-    const state = {
-      session: null,
-      profile: null,
-      restaurants: [],
-      filteredRestaurants: [],
-      currentList: 'all',
-      searchTerm: '',
-      categoryFilter: 'All',
-      debounceTimer: null,
-      pendingUpdates: new Map() // For batching list updates
-    };
-
     const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-    // ---------- PERFORMANCE OPTIMIZATIONS ----------
-    
-    // Debounce function for search
-    function debounce(func, wait) {
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(state.debounceTimer);
-          func(...args);
-        };
-        clearTimeout(state.debounceTimer);
-        state.debounceTimer = setTimeout(later, wait);
-      };
-    }
-
-    // Cache for session and profile
-    function getCachedSession() {
-      try {
-        const cached = localStorage.getItem('zo2y_session');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          // Check if cache is still valid (less than 5 minutes old)
-          if (Date.now() - parsed.timestamp < 300000) {
-            return parsed.data;
-          }
-        }
-      } catch (e) {
-        console.warn('Error reading cached session', e);
-      }
-      return null;
-    }
-
-    function setCachedSession(session) {
-      try {
-        localStorage.setItem('zo2y_session', JSON.stringify({
-          data: session,
-          timestamp: Date.now()
-        }));
-      } catch (e) {
-        console.warn('Error caching session', e);
-      }
-    }
 
     // ---------- WORKING ACCOUNT SYSTEM ----------
     const userWelcome = document.getElementById('userWelcome');
@@ -565,86 +453,73 @@
     // Updates UI based on supabase session
     async function updateAuthUI() {
       try {
-        // Try to use cached session first for faster UI update
-        const cachedSession = getCachedSession();
-        if (cachedSession) {
-          state.session = cachedSession;
-          updateUIForSession(cachedSession);
-        }
-
-        // Then fetch fresh session data
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.warn('supabase getSession err', error);
         }
 
         if (session && session.user) {
-          // Update cache
-          setCachedSession(session);
-          state.session = session;
-          updateUIForSession(session);
-          
+          // User is logged in
+          const userId = session.user.id;
+
           // Fetch profile from user_profiles table
-          await fetchUserProfile(session.user.id);
+          let username = null;
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('username, full_name, avatar_url')
+              .eq('id', userId)
+              .limit(1)
+              .maybeSingle();
+
+            if (profileError) {
+              console.warn('profile fetch err', profileError);
+            } else if (profile) {
+              username = profile.username || profile.full_name || null;
+              // Store profile locally for other pages
+              try { localStorage.setItem('zo2y_user', JSON.stringify(profile)); } catch(e){}
+            }
+          } catch (err) {
+            console.warn('profile fetch catch', err);
+          }
+
+          // Fallback display name
+          const displayName = username || session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User';
+
+          // Set UI elements
+          userWelcome.style.display = 'flex';
+          loginBtn.style.display = 'none';
+          document.getElementById('listTabs').style.display = 'flex';
+          document.getElementById('loginPrompt').style.display = 'none';
           
+          userName.textContent = displayName;
+          userAvatar.textContent = displayName.charAt(0).toUpperCase();
+
+          // Set click handler for profile redirect
+          userWelcome.onclick = (e) => {
+            e.preventDefault();
+            safeGoToProfile();
+          };
+
         } else {
           // Not logged in
-          updateUIForNoSession();
+          userWelcome.style.display = 'none';
+          loginBtn.style.display = 'block';
+          document.getElementById('listTabs').style.display = 'none';
+          document.getElementById('loginPrompt').style.display = 'block';
+          
+          try { localStorage.removeItem('zo2y_user'); } catch(e){}
+          
+          loginBtn.onclick = () => location.href = 'login.html';
         }
       } catch (e) {
         console.error('updateAuthUI error', e);
         // Fallback to logged out state
-        updateUIForNoSession();
-      }
-    }
-
-    function updateUIForSession(session) {
-      userWelcome.style.display = 'flex';
-      loginBtn.style.display = 'none';
-      document.getElementById('listTabs').style.display = 'flex';
-      document.getElementById('loginPrompt').style.display = 'none';
-      
-      // Set click handler for profile redirect
-      userWelcome.onclick = (e) => {
-        e.preventDefault();
-        safeGoToProfile();
-      };
-    }
-
-    function updateUIForNoSession() {
-      userWelcome.style.display = 'none';
-      loginBtn.style.display = 'block';
-      document.getElementById('listTabs').style.display = 'none';
-      document.getElementById('loginPrompt').style.display = 'block';
-      
-      try { localStorage.removeItem('zo2y_user'); } catch(e){}
-      
-      loginBtn.onclick = () => location.href = 'login.html';
-    }
-
-    async function fetchUserProfile(userId) {
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('username, full_name, avatar_url')
-          .eq('id', userId)
-          .limit(1)
-          .maybeSingle();
-
-        if (profileError) {
-          console.warn('profile fetch err', profileError);
-        } else if (profile) {
-          state.profile = profile;
-          // Store profile locally for other pages
-          try { localStorage.setItem('zo2y_user', JSON.stringify(profile)); } catch(e){}
-          
-          // Update UI with profile data
-          const displayName = profile.username || profile.full_name || state.session.user.email?.split('@')[0] || 'User';
-          userName.textContent = displayName;
-          userAvatar.textContent = displayName.charAt(0).toUpperCase();
-        }
-      } catch (err) {
-        console.warn('profile fetch catch', err);
+        userWelcome.style.display = 'none';
+        loginBtn.style.display = 'block';
+        document.getElementById('listTabs').style.display = 'none';
+        document.getElementById('loginPrompt').style.display = 'block';
+        loginBtn.onclick = () => location.href = 'login.html';
       }
     }
 
@@ -668,12 +543,6 @@
     // Listen for auth changes so UI updates automatically
     if (supabase) {
       supabase.auth.onAuthStateChange((event, session) => {
-        // Update cache on auth state change
-        if (session) {
-          setCachedSession(session);
-        } else {
-          try { localStorage.removeItem('zo2y_session'); } catch(e){}
-        }
         setTimeout(updateAuthUI, 50);
       });
     }
@@ -743,7 +612,7 @@
       }, 400);
     }
 
-    // ---------- ENHANCED LIST MANAGEMENT ----------
+    // ---------- LIST MANAGEMENT ----------
     const listManager = {
       userLists: [],
       currentLists: {
@@ -968,238 +837,152 @@
     const countEl = document.getElementById('count');
     const qInput = document.getElementById('q');
     const categorySelect = document.getElementById('categorySelect');
-    const mobileCategorySelect = document.getElementById('mobileCategorySelect');
-    const mobileFilterBtn = document.getElementById('mobileFilterBtn');
-    const mobileFilters = document.getElementById('mobileFilters');
+    let currentList = 'all';
 
-    // Show loading skeleton
-    function showSkeleton(count = 12) {
+    // Simple rendering function - FIXED VERSION
+    async function renderList(list) {
       grid.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const skeletonTile = document.createElement('div');
-        skeletonTile.className = 'tile';
-        skeletonTile.innerHTML = `
-          <div class="media">
-            <div class="skeleton skeleton-img"></div>
-          </div>
+      
+      if (!list || !list.length) { 
+        empty.style.display = 'block'; 
+        grid.style.display = 'none'; 
+        countEl.textContent = '0'; 
+        return; 
+      }
+      
+      empty.style.display = 'none'; 
+      grid.style.display = 'grid'; 
+      countEl.textContent = list.length;
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      const isLoggedIn = !!session;
+      
+      list.forEach(r => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        
+        // Create clickable content
+        const clickableContent = document.createElement('a');
+        clickableContent.href = `cards/${r.slug}.html`;
+        clickableContent.style.textDecoration = 'none';
+        clickableContent.style.color = 'inherit';
+        clickableContent.style.display = 'block';
+        clickableContent.style.height = '100%';
+        
+        clickableContent.innerHTML = `
+          <div class="media"><img src="images/${r.image}" alt="${r.name}" loading="lazy"></div>
           <div class="inner">
-            <div class="skeleton skeleton-text"></div>
-            <div class="skeleton skeleton-text short"></div>
-            <div class="skeleton skeleton-text"></div>
-            <div class="skeleton skeleton-text"></div>
+            <h3>${r.name}</h3>
+            <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
+            <p class="desc">${r.desc}</p>
           </div>
         `;
-        grid.appendChild(skeletonTile);
+        
+        tile.appendChild(clickableContent);
+        
+        // Add list buttons that don't navigate
+        if (isLoggedIn) {
+          const listActions = document.createElement('div');
+          listActions.className = 'list-actions';
+          listActions.innerHTML = `
+            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
+            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+          `;
+          tile.appendChild(listActions);
+        }
+        
+        grid.appendChild(tile);
+      });
+
+      // Add event listeners for list buttons
+      if (isLoggedIn) {
+        document.querySelectorAll('.list-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.preventDefault(); 
+            e.stopPropagation();
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
+            btn.classList.toggle('active', wasAdded);
+            
+            if (currentList !== 'all') await filterAndRender();
+          });
+        });
+
+        // Touch support
+        document.querySelectorAll('.list-btn').forEach(btn => {
+          btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          });
+          
+          btn.addEventListener('touchend', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const restaurantId = parseInt(btn.dataset.id);
+            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
+            btn.classList.toggle('active', wasAdded);
+            
+            if (currentList !== 'all') await filterAndRender();
+          });
+        });
       }
     }
 
-    // Enhanced filtering with performance optimizations
-    function filterRestaurants() {
-      const q = state.searchTerm.trim().toLowerCase();
-      const categoryMatch = state.categoryFilter === 'All' || state.categoryFilter;
+    // SIMPLIFIED FILTERING - FIXED VERSION
+    async function filterAndRender() {
+      const { data: { session } } = await supabase.auth.getSession();
+      const isLoggedIn = !!session;
       
-      return restaurants.filter(r => {
-        // FIXED: Search only by name and only from the beginning
+      let filtered = restaurants.filter(r => {
+        const q = qInput.value.trim().toLowerCase();
+        const categoryMatch = categorySelect.value === 'All' || r.category === categorySelect.value;
+        
+        // Search by name (from beginning)
         const searchMatch = !q || r.name.toLowerCase().startsWith(q);
         
         let listMatch = true;
-        if (state.session && state.currentList !== 'all') {
-          if (state.currentList === 'favorites') listMatch = listManager.isInList('favorites', r.id);
-          else if (state.currentList === 'visited') listMatch = listManager.isInList('visited', r.id);
-          else if (state.currentList === 'want-to-go') listMatch = listManager.isInList('wantToGo', r.id);
+        if (isLoggedIn && currentList !== 'all') {
+          if (currentList === 'favorites') listMatch = listManager.isInList('favorites', r.id);
+          else if (currentList === 'visited') listMatch = listManager.isInList('visited', r.id);
+          else if (currentList === 'want-to-go') listMatch = listManager.isInList('wantToGo', r.id);
         }
         
-        const categoryFilterMatch = categoryMatch === 'All' || r.category === categoryMatch;
-        
-        return searchMatch && listMatch && categoryFilterMatch;
+        return categoryMatch && searchMatch && listMatch;
       });
-    }
-
-    // Optimized rendering with lazy loading and accessibility
-    async function renderList(list) {
-      // Show skeleton while loading
-      showSkeleton();
       
-      // Use setTimeout to allow the UI to update with skeleton
-      setTimeout(async () => {
-        grid.innerHTML = '';
-        
-        if (!list.length) { 
-          empty.style.display = 'block'; 
-          grid.style.display = 'none'; 
-          countEl.textContent = '0'; 
-          return; 
-        }
-        
-        empty.style.display = 'none'; 
-        grid.style.display = 'grid'; 
-        countEl.textContent = list.length;
-        
-        const isLoggedIn = !!state.session;
-        
-        list.forEach(r => {
-          const tile = document.createElement('article');
-          tile.className = 'tile';
-          tile.setAttribute('aria-label', `${r.name}, ${r.category} restaurant with ${r.rating} star rating`);
-          
-          // Create clickable content
-          const clickableContent = document.createElement('a');
-          clickableContent.href = `cards/${r.slug}.html`;
-          clickableContent.style.textDecoration = 'none';
-          clickableContent.style.color = 'inherit';
-          clickableContent.style.display = 'block';
-          clickableContent.style.height = '100%';
-          
-          clickableContent.innerHTML = `
-            <div class="media">
-              <img src="images/${r.image}" alt="${r.name} restaurant" loading="lazy">
-            </div>
-            <div class="inner">
-              <h3>${r.name}</h3>
-              <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category}</div>
-              <p class="desc">${r.desc}</p>
-            </div>
-          `;
-          
-          tile.appendChild(clickableContent);
-          
-          // Add list buttons that don't navigate
-          if (isLoggedIn) {
-            const listActions = document.createElement('div');
-            listActions.className = 'list-actions';
-            listActions.innerHTML = `
-              <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" 
-                      data-id="${r.id}" data-list="favorites" 
-                      aria-label="${listManager.isInList('favorites', r.id) ? 'Remove from Favorites' : 'Add to Favorites'}">
-                ❤️
-              </button>
-              <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" 
-                      data-id="${r.id}" data-list="wantToGo" 
-                      aria-label="${listManager.isInList('wantToGo', r.id) ? 'Remove from Want to Go' : 'Add to Want to Go'}">
-                📍
-              </button>
-              <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" 
-                      data-id="${r.id}" data-list="visited" 
-                      aria-label="${listManager.isInList('visited', r.id) ? 'Remove from Visited' : 'Mark as Visited'}">
-                🍽️
-              </button>
-            `;
-            tile.appendChild(listActions);
-          }
-          
-          grid.appendChild(tile);
-        });
-
-        // Add event listeners for list buttons
-        if (isLoggedIn) {
-          document.querySelectorAll('.list-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              e.preventDefault(); 
-              e.stopPropagation();
-              const restaurantId = parseInt(btn.dataset.id);
-              const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-              btn.classList.toggle('active', wasAdded);
-              btn.setAttribute('aria-label', 
-                wasAdded ? `Remove from ${btn.dataset.list === 'favorites' ? 'Favorites' : 
-                           btn.dataset.list === 'visited' ? 'Visited' : 'Want to Go'}` : 
-                `Add to ${btn.dataset.list === 'favorites' ? 'Favorites' : 
-                btn.dataset.list === 'visited' ? 'Visited' : 'Want to Go'}`);
-              
-              if (state.currentList !== 'all') await filterAndRender();
-            });
-          });
-
-          // Touch support
-          document.querySelectorAll('.list-btn').forEach(btn => {
-            btn.addEventListener('touchstart', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            });
-            
-            btn.addEventListener('touchend', async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const restaurantId = parseInt(btn.dataset.id);
-              const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-              btn.classList.toggle('active', wasAdded);
-              
-              if (state.currentList !== 'all') await filterAndRender();
-            });
-          });
-        }
-      }, 50); // Small delay to show skeleton
+      await renderList(filtered);
     }
 
-    async function filterAndRender() {
-      state.filteredRestaurants = filterRestaurants();
-      await renderList(state.filteredRestaurants);
-    }
-
-    // Debounced search function
-    const debouncedFilterAndRender = debounce(filterAndRender, 300);
-
-    // ---------- EVENT LISTENERS ----------
-    qInput.addEventListener('input', (e) => {
-      state.searchTerm = e.target.value;
-      debouncedFilterAndRender();
-    });
-    
-    categorySelect.addEventListener('change', (e) => {
-      state.categoryFilter = e.target.value;
-      mobileCategorySelect.value = e.target.value; // Sync with mobile select
-      filterAndRender();
-    });
-    
-    mobileCategorySelect.addEventListener('change', (e) => {
-      state.categoryFilter = e.target.value;
-      categorySelect.value = e.target.value; // Sync with desktop select
-      filterAndRender();
-    });
-    
-    mobileFilterBtn.addEventListener('click', () => {
-      mobileFilters.classList.toggle('show');
-    });
-    
+    // Event Listeners
+    qInput.addEventListener('input', filterAndRender);
+    categorySelect.addEventListener('change', filterAndRender);
     document.getElementById('reset').addEventListener('click', () => {
       qInput.value = ''; 
-      state.searchTerm = '';
       categorySelect.value = 'All'; 
-      mobileCategorySelect.value = 'All';
-      state.categoryFilter = 'All';
-      state.currentList = 'all';
+      currentList = 'all';
       document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
       document.querySelector('[data-list="all"]').classList.add('active');
-      mobileFilters.classList.remove('show');
       filterAndRender();
     });
 
     document.querySelectorAll('.list-tab').forEach(tab => {
       tab.addEventListener('click', async () => {
-        if (!state.session) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        state.currentList = tab.dataset.list;
+        currentList = tab.dataset.list;
         await filterAndRender();
       });
     });
 
-    // Close mobile filters when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!mobileFilters.contains(e.target) && !mobileFilterBtn.contains(e.target)) {
-        mobileFilters.classList.remove('show');
-      }
-    });
-
-    // ---------- INITIALIZATION ----------
+    // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize state
-      state.restaurants = restaurants;
-      state.restaurants.sort((a,b) => b.rating - a.rating);
-      
-      // Initialize UI
       updateAuthUI();
       listManager.init();
-      filterAndRender();
+      restaurants.sort((a,b) => b.rating - a.rating);
+      filterAndRender(); // This will now show restaurants
     });
   </script>
 </body>
