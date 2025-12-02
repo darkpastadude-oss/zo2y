@@ -1,0 +1,85 @@
+Menu Extraction Summary Report
+Generated: 12/1/2025, 10:25:09 PM
+========================================
+
+📊 STATISTICS:
+- Total files processed: 50
+- Successful extractions: 47
+- Failed extractions: 3
+- Total menu items extracted: 943
+
+🏆 TOP RESTAURANTS BY ITEM COUNT:
+1. Pappa Roti: 53 items (papa.html)
+2. Mori Sushi: 50 items (mori.html)
+3. Second Cup Coffee: 44 items (secondcup.html)
+4. Labash: 39 items (labash.html)
+5. Mince: 35 items (mince.html)
+6. Maine: 34 items (maine.html)
+7. Holmes Burgers: 32 items (holmes.html)
+8. Mexican Corn: 31 items (mexican.html)
+9. Pickl Egypt: 31 items (pickl.html)
+10. Sauce Restaurant: 31 items (sauce.html)
+
+📁 DETAILED RESULTS:
+Pizza 88                       |  14 items | 88.html
+Hashville                      |  20 items | Hashville.html
+Akleh                          |   6 items | akleh.html
+Barbar                         |   9 items | barbar.html
+Bayouki                        |  14 items | bayoki.html
+Bazooka                        |  18 items | bazooka.html
+BRGR                           |  11 items | brgr.html
+Buffalo Burger                 |  14 items | buffalo.html
+Butcher's Burger               |  24 items | butchers.html
+Caizo                          |  17 items | caizo.html
+Chez Koukou                    |  15 items | chez.html
+Chikin Worx                    |  12 items | chikin.html
+Country Hills                  |  21 items | country.html
+Crave                          |  27 items | crave.html
+Crispy Hen                     |   7 items | crispy.html
+Crumbs                         |  26 items | crumbs.html
+Daddy's Burger                 |   6 items | daddy.html
+Dawgs 'n' Shakes               |  19 items | dawgs.html
+Hameed                         |  12 items | hameed.html
+Heart Attack                   |  15 items | heart.html
+Holmes Burgers                 |  32 items | holmes.html
+Howlin' Birds                  |  16 items | howlin.html
+Husk                           |  12 items | husk.html
+Kansas Chicken                 |  16 items | kansas.html
+Kilo Kebab                     |  11 items | kilo.html
+Labash                         |  39 items | labash.html
+Lord of the Wings              |   4 items | lord.html
+Maine                          |  34 items | maine.html
+Man'oucheh                     |  25 items | man.html
+Mario's                        |  26 items | mario.html
+Mexican Corn                   |  31 items | mexican.html
+Mince                          |  35 items | mince.html
+Mori Sushi                     |  50 items | mori.html
+Pablo & Abdo                   |   9 items | pablo.html
+Panda House                    |  17 items | panda.html
+Pappa Roti                     |  53 items | papa.html
+Pasta2Go                       |  15 items | pasta.html
+Peking                         |   5 items | peking.html
+Pickl Egypt                    |  31 items | pickl.html
+Qasr El Kababgy                |  12 items | qasr.html
+Chicken & Ribs                 |  16 items | ribs.html
+Sauce Restaurant               |  31 items | sauce.html
+Second Cup Coffee              |  44 items | secondcup.html
+Pizza Station                  |  16 items | station.html
+Tabali                         |   0 items | tabali.html
+Vasko                          |   0 items | vasko.html
+Koshary Ward                   |   0 items | ward.html
+What The Crust                 |  29 items | what.html
+Willy's Kitchen                |  24 items | willys.html
+Wok and Walk                   |   3 items | wok.html
+
+
+⚠️  FAILED EXTRACTIONS:
+- tabali.html: No menu items found
+- vasko.html: No menu items found
+- ward.html: No menu items found
+
+
+📍 OUTPUT FILES:
+- Combined CSV: ./all_menus.csv
+- Individual CSVs: ./extracted_menus/
+- This report: extraction_summary.txt
