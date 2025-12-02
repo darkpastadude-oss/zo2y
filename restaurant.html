@@ -144,11 +144,19 @@ const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Get restaurant slug from URL
+// Get restaurant slug from URL PARAMETER (not filename)
 function getRestaurantSlug() {
-  const path = window.location.pathname;
-  const filename = path.split('/').pop();
-  return filename.replace('.html', '').toLowerCase();
+  const urlParams = new URLSearchParams(window.location.search);
+  const slug = urlParams.get('slug');
+  
+  // Fallback: If no parameter, try filename (for backward compatibility)
+  if (!slug) {
+    const path = window.location.pathname;
+    const filename = path.split('/').pop();
+    return filename.replace('.html', '').toLowerCase();
+  }
+  
+  return slug.toLowerCase();
 }
 
 // Load ALL restaurant data from Supabase
@@ -158,9 +166,9 @@ async function loadRestaurantData() {
   try {
     console.log('Loading data for slug:', slug);
     
-    // 1. Load restaurant info
+    // 1. Load restaurant info - FIXED TABLE NAME
     const { data: restaurant, error: restaurantError } = await supabase
-      .from('restaraunts')
+      .from('restraunts')  // <- FIXED: 'restraunts' not 'restaraunts'
       .select('*')
       .eq('slug', slug)
       .single();
@@ -415,8 +423,11 @@ window.addEventListener('DOMContentLoaded', function() {
 
         async loadUserLists() {
             try {
+                const { data: { user } } = await this.supabase.auth.getUser();
+                if (!user) return;
+
                 const { data: lists } = await this.supabase
-                    .from('lists').select('*').eq('user_id', this.currentUser.id);
+                    .from('lists').select('*').eq('user_id', user.id);
                 this.userLists = lists || [];
                 
                 // Separate custom lists from default lists

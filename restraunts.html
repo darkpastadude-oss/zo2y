@@ -807,12 +807,33 @@
       try {
         showLoadingSkeleton();
         
+        console.log("🔄 Loading restaurants from Supabase...");
+        
+        // FIXED: Correct table name 'restraunts' (with two 'r's)
         const { data, error } = await supabase
-          .from('restaraunts')
+          .from('restraunts')  // <- THIS WAS FIXED: 'restraunts' not 'restaraunts'
           .select('id, slug, name, category, description, rating, image')
           .order('rating', { ascending: false });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+        
+        console.log(`✅ Loaded ${data?.length || 0} restaurants from database`);
+        
+        if (!data || data.length === 0) {
+          console.warn('⚠️ No restaurants found in the database');
+          // Show empty state
+          document.getElementById('grid').innerHTML = '';
+          document.getElementById('empty').style.display = 'block';
+          document.getElementById('empty').innerHTML = `
+            <div>📭</div>
+            <h3>No restaurants in database</h3>
+            <p>Add restaurants to your Supabase 'restraunts' table</p>
+          `;
+          return;
+        }
         
         restaurants = data.map(restaurant => ({
           id: restaurant.id,
@@ -827,29 +848,51 @@
         // Extract unique categories
         categories = new Set(restaurants.map(r => r.category).filter(Boolean));
         
+        console.log(`📊 Found ${categories.size} unique categories`);
+        
         // Populate category dropdown
         populateCategoryDropdown();
         
         // Render initial list
         await filterAndRender();
         
+        showNotification(`Loaded ${restaurants.length} restaurants`, 'success');
+        
       } catch (error) {
-        console.error('Error loading restaurants:', error);
-        showNotification('Error loading restaurants. Please refresh.', 'error');
-        // Fallback: Show empty state
+        console.error('❌ Error loading restaurants:', error);
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        
+        // Show user-friendly error
+        let errorMessage = 'Error loading restaurants. ';
+        if (error.message?.includes('JWT')) {
+          errorMessage += 'Authentication error. Please refresh.';
+        } else if (error.code === 'PGRST116') {
+          errorMessage += 'Table "restraunts" not found. Check table name.';
+        } else {
+          errorMessage += 'Please check your connection and refresh.';
+        }
+        
+        showNotification(errorMessage, 'error');
+        
+        // Show error state
         document.getElementById('grid').innerHTML = '';
         document.getElementById('empty').style.display = 'block';
         document.getElementById('empty').innerHTML = `
           <div>⚠️</div>
           <h3>Error loading restaurants</h3>
-          <p>Please check your connection and refresh</p>
+          <p>${errorMessage}</p>
+          <button class="btn" onclick="location.reload()" style="margin-top: 10px;">Refresh Page</button>
         `;
       }
     }
 
     function populateCategoryDropdown() {
       const categorySelect = document.getElementById('categorySelect');
-      const defaultOptions = categorySelect.innerHTML;
       
       // Clear existing options except "All Categories"
       categorySelect.innerHTML = '<option value="All">All Categories</option>';
