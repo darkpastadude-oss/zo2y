@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Zo2y — Discover Local Favorites</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -598,7 +599,7 @@
             background: var(--gradient); 
             opacity: 0; 
             z-index: 1; 
-            transition: opacity 0.4s ease;
+transition: opacity 0.4s ease;
         } 
         .card:hover{
             transform:translateY(-12px) scale(1.03); 
@@ -1574,7 +1575,7 @@
                     <h1 id="heroTitle">Discover Hidden Gems & Local Favorites</h1>
                     <p class="lead">Zo2y connects you with authentic dining experiences. From street food to fine dining, find your next favorite meal based on real reviews from food lovers.</p>
                     <div class="stats">
-                        <div class="stat"><span class="stat-value" id="restaurantCount">46</span><span class="stat-label">Restaurants</span></div>
+                        <div class="stat"><span class="stat-value" id="restaurantCount">0</span><span class="stat-label">Restaurants</span></div>
                         <div class="stat"><span class="stat-value">950+</span><span class="stat-label">Reviews This Week</span></div>
                     </div>
                     <div class="cta-row">
@@ -1599,9 +1600,9 @@
                 </div>
                 <div class="hero-right">
                     <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
-                        <div class="thumb"><img id="spotImg" src="images/mori.png" alt="Featured restaurant"></div>
+                        <div class="thumb"><img id="spotImg" src="images/default-logo.jpg" alt="Featured restaurant"></div>
                         <div class="meta">
-                            <div><h3 id="spotName">Mori Sushi</h3><p id="spotDesc">Modern sushi chain serving fresh rolls & nigiri.</p><div class="rating" id="spotRating">⭐ 4.7</div><div class="shuffle" id="shuffleDots" aria-hidden="true"></div></div>
+                            <div><h3 id="spotName">Loading...</h3><p id="spotDesc">Discover amazing restaurants</p><div class="rating" id="spotRating">⭐ 4.7</div><div class="shuffle" id="shuffleDots" aria-hidden="true"></div></div>
                             <div style="align-self:start"><button class="btn-primary" id="spotAction" style="padding:10px 16px; font-size:14px">View Details</button></div>
                         </div>
                     </div>
@@ -1652,11 +1653,7 @@
             
             <div class="category-filters">
                 <div class="category-filter active" data-category="all">All</div>
-                <div class="category-filter" data-category="japanese">Japanese</div>
-                <div class="category-filter" data-category="middle-eastern">Middle Eastern</div>
-                <div class="category-filter" data-category="mexican">Mexican</div>
-                <div class="category-filter" data-category="burgers">Burgers</div>
-                <div class="category-filter" data-category="cafe">Cafés</div>
+                <!-- Categories will be populated dynamically -->
             </div>
             <div class="slider-container">
                 <div id="featuredSlider" class="slider" aria-label="Featured restaurants"></div>
@@ -1670,7 +1667,7 @@
         <section class="restaurant-of-day fade-in">
             <div class="day-badge">🍽️ Restaurant of the Day</div>
             <div class="day-restaurant">
-                <img src="images/holmes.jpg" alt="Holmes Burger">
+                <img src="images/holmes.jpg" alt="Holmes Burger" onerror="this.src='images/default-logo.jpg'">
                 <div class="day-restaurant-info">
                     <h3>Holmes Burger</h3>
                     <p>Gourmet burgers with creative combinations in a stylish setting</p>
@@ -1828,7 +1825,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     (function(){
       // ---------- CONFIG ----------
@@ -1836,21 +1832,142 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // ---------- RESTAURANT DATA - SYNCED WITH RESTRAUNTS.HTML ----------
-      const restaurants = [
-        { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png', link: 'cards/mori.html', tags: ['japanese', 'sushi'], nearby: true, trending: true},
-        { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', link: 'cards/kilo.html', tags: ['middle-eastern', 'kebab'], nearby: true},
-        { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png', link: 'cards/hameed.html', tags: ['middle-eastern', 'fast-food'], nearby: true},
-        { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg', link: 'cards/bazooka.html', tags: ['burgers', 'fried-chicken'], trending: true},
-        { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg', link: 'cards/mexican.html', tags: ['mexican', 'street-food']},
-        { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png', link: 'cards/chikin.html', tags: ['chicken'], nearby: true},
-        { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg', link: 'cards/vasko.html', tags: ['cafe', 'coffee'], trending: true},
-        { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png', link: 'cards/secondcup.html', tags: ['cafe', 'coffee'], nearby: true},
-        { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png', link: 'cards/station.html', tags: ['pizza']},
-        { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg', link: 'cards/brgr.html', tags: ['burgers'], trending: true},
-        { id: 33, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burger joint with creative burger combinations and premium ingredients in a stylish setting.', rating:4.7, image: 'holmes.jpg', link: 'cards/holmes.html', tags: ['burgers'], featured: true},
-        // ... include other restaurants as needed
-      ];
+      // ---------- RESTAURANT DATA - LOADED FROM SUPABASE ----------
+      let restaurants = [];
+      let categories = new Set();
+
+      // Function to load restaurants from Supabase
+      async function loadRestaurantsFromSupabase() {
+        try {
+          console.log("🔄 Loading restaurants from Supabase...");
+          
+          // Load from the 'restraunts' table (note the spelling)
+          const { data, error } = await supabase
+            .from('restraunts')  // Table name from your database
+            .select('id, slug, name, category, description, rating, image')
+            .order('rating', { ascending: false });
+          
+          if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+          }
+          
+          console.log(`✅ Loaded ${data?.length || 0} restaurants from database`);
+          
+          if (!data || data.length === 0) {
+            console.warn('⚠️ No restaurants found in the database');
+            // Use fallback data or show empty state
+            restaurants = getFallbackRestaurants();
+          } else {
+            restaurants = data.map(restaurant => ({
+              id: restaurant.id,
+              slug: restaurant.slug,
+              name: restaurant.name,
+              category: restaurant.category,
+              desc: restaurant.description,
+              rating: restaurant.rating,
+              image: restaurant.image || 'default-logo.jpg',
+              // Add some properties for filtering
+              nearby: Math.random() > 0.3, // Randomly assign as nearby
+              trending: restaurant.rating >= 4.5 // High-rated are trending
+            }));
+          }
+          
+          // Extract unique categories
+          categories = new Set(restaurants.map(r => r.category).filter(Boolean));
+          console.log(`📊 Found ${categories.size} unique categories`);
+          
+          // Populate category filters
+          populateCategoryFilters();
+          
+          // Update stats
+          calculateStats();
+          
+          // Render all sections
+          initCards();
+          
+          // Initialize spotlight with random restaurant
+          if (restaurants.length > 0) {
+            initSpotlight();
+          }
+          
+          showNotification(`Loaded ${restaurants.length} restaurants`, 'success');
+          
+        } catch (error) {
+          console.error('❌ Error loading restaurants:', error);
+          console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+          
+          // Fallback to hardcoded data
+          restaurants = getFallbackRestaurants();
+          categories = new Set(restaurants.map(r => r.category).filter(Boolean));
+          populateCategoryFilters();
+          calculateStats();
+          initCards();
+          if (restaurants.length > 0) {
+            initSpotlight();
+          }
+          
+          showNotification('Using fallback data', 'info');
+        }
+      }
+
+      // Fallback restaurant data in case Supabase fails
+      function getFallbackRestaurants() {
+        return [
+          { id: 1, slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png', link: 'cards/mori.html', tags: ['japanese', 'sushi'], nearby: true, trending: true},
+          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png', link: 'cards/kilo.html', tags: ['middle-eastern', 'kebab'], nearby: true},
+          { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png', link: 'cards/hameed.html', tags: ['middle-eastern', 'fast-food'], nearby: true},
+          { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg', link: 'cards/bazooka.html', tags: ['burgers', 'fried-chicken'], trending: true},
+          { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg', link: 'cards/mexican.html', tags: ['mexican', 'street-food']},
+          { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, image: 'chikin.png', link: 'cards/chikin.html', tags: ['chicken'], nearby: true},
+          { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, image: 'vasko.jpg', link: 'cards/vasko.html', tags: ['cafe', 'coffee'], trending: true},
+          { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, image: 'secondcup.png', link: 'cards/secondcup.html', tags: ['cafe', 'coffee'], nearby: true},
+          { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, image: 'station.png', link: 'cards/station.html', tags: ['pizza']},
+          { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, image: 'brgr.jpg', link: 'cards/brgr.html', tags: ['burgers'], trending: true},
+        ];
+      }
+
+      function populateCategoryFilters() {
+        const categoryFilters = document.querySelector('.category-filters');
+        // Clear existing filters except "All"
+        const allFilter = categoryFilters.querySelector('[data-category="all"]');
+        categoryFilters.innerHTML = '';
+        categoryFilters.appendChild(allFilter);
+        
+        // Add categories alphabetically
+        const sortedCategories = Array.from(categories).sort();
+        sortedCategories.forEach(category => {
+          const filter = document.createElement('div');
+          filter.className = 'category-filter';
+          filter.setAttribute('data-category', category.toLowerCase().replace(/[^a-z0-9]/g, '-'));
+          filter.textContent = category;
+          categoryFilters.appendChild(filter);
+        });
+        
+        // Add event listeners
+        document.querySelectorAll('.category-filter').forEach(filter => {
+          filter.addEventListener('click', function() {
+            document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
+            this.classList.add('active');
+            const category = this.getAttribute('data-category');
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+              const cardCategory = card.getAttribute('data-category');
+              if (category === 'all' || cardCategory === category) {
+                card.style.display = 'block';
+              } else {
+                card.style.display = 'none';
+              }
+            });
+          });
+        });
+      }
 
       // ---------- ACCOUNT BUTTON LOGIC ----------
       const accountBtn = document.getElementById('userAccountBtn');
@@ -2183,11 +2300,11 @@
       function makeCard(r){
         const el = document.createElement('div'); 
         el.className = 'card'; 
-        el.setAttribute('data-categories', r.tags.join(' '));
+        el.setAttribute('data-category', r.category ? r.category.toLowerCase().replace(/[^a-z0-9]/g, '-') : '');
         
         // Create clickable content
         const clickableContent = document.createElement('a');
-        clickableContent.href = r.link;
+        clickableContent.href = `restaurant.html?slug=${r.slug}`;
         clickableContent.style.textDecoration = 'none';
         clickableContent.style.color = 'inherit';
         clickableContent.style.display = 'block';
@@ -2197,14 +2314,14 @@
         
         clickableContent.innerHTML = `
           <div class="imgwrap">
-            <img src="images/${r.image}" alt="${r.name}" loading="lazy">
+            <img src="images/${r.image}" alt="${r.name}" loading="lazy" onerror="this.src='images/default-logo.jpg'">
           </div>
           <div class="body">
             <h3>${r.name}</h3>
             <p>${r.desc}</p>
             <div class="meta">
               <div class="card-rating">⭐ ${r.rating}</div>
-              <div class="card-category">${r.category}</div>
+              <div class="card-category">${r.category || 'Restaurant'}</div>
             </div>
           </div>
         `;
@@ -2226,7 +2343,7 @@
           const listActions = document.createElement('div');
           listActions.className = 'list-actions';
           
-          // Find the restaurant ID from the card
+          // Find the restaurant from the card title
           const restaurantName = card.querySelector('h3').textContent;
           const restaurant = restaurants.find(r => r.name === restaurantName);
           
@@ -2280,7 +2397,7 @@
           featuredSlider.appendChild(card); 
           
           // Add high-rated restaurants to trending
-          if (r.rating >= 4.5) {
+          if (r.trending || r.rating >= 4.5) {
             const trendingCard = makeCard(r);
             trendingSlider.appendChild(trendingCard); 
           }
@@ -2308,24 +2425,6 @@
         const restaurantCount = restaurants.length;
         document.getElementById('restaurantCount').textContent = restaurantCount;
       }
-
-      // Category filters
-      document.querySelectorAll('.category-filter').forEach(filter => {
-        filter.addEventListener('click', function() {
-          document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active'));
-          this.classList.add('active');
-          const category = this.getAttribute('data-category');
-          const cards = document.querySelectorAll('.card');
-          
-          cards.forEach(card => {
-            if (category === 'all' || card.getAttribute('data-categories').includes(category)) {
-              card.style.display = 'block';
-            } else {
-              card.style.display = 'none';
-            }
-          });
-        });
-      });
 
       // Trending tags
       document.querySelectorAll('.trending-tag').forEach(tag => {
@@ -2361,7 +2460,7 @@
         spotName.textContent = r.name;
         spotDesc.textContent = r.desc;
         spotRating.textContent = `⭐ ${r.rating}`;
-        spotAction.onclick = () => location.href = r.link;
+        spotAction.onclick = () => location.href = `restaurant.html?slug=${r.slug}`;
         
         shuffleDots.innerHTML = '';
         for (let i = 0; i < 5; i++) {
@@ -2372,6 +2471,7 @@
       }
       
       function initSpotlight(){ 
+        if (restaurants.length === 0) return;
         renderSpotlight(0); 
         setInterval(() => { 
           currentSpotlightIndex = (currentSpotlightIndex + 1) % restaurants.length; 
@@ -2480,9 +2580,7 @@
       document.addEventListener('DOMContentLoaded', async function() {
         await updateAuthUI();
         await listManager.init();
-        calculateStats();
-        initCards();
-        initSpotlight();
+        await loadRestaurantsFromSupabase();
         initScrollAnimations();
       });
 
