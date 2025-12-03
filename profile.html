@@ -484,6 +484,7 @@
             border: 1px solid var(--border);
             margin-bottom: 12px;
             transition: transform 0.2s ease;
+            position: relative;
         }
 
         .journal-entry:active {
@@ -999,6 +1000,35 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* === JOURNAL ENTRY ACTIONS === */
+        .entry-actions {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .entry-action-btn {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .entry-action-btn:hover {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
         /* === MOBILE RESPONSIVE DESIGN === */
         @media (max-width: 768px) {
             .container {
@@ -1156,6 +1186,11 @@
 
             .user-actions {
                 flex-direction: column;
+            }
+
+            .entry-actions {
+                top: 12px;
+                right: 12px;
             }
         }
 
@@ -1693,6 +1728,49 @@
         </div>
     </div>
 
+    <!-- Edit Review Modal -->
+    <div class="modal" id="editJournalEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Review</h3>
+                <button class="modal-close" onclick="closeModal('editJournalEntryModal')">&times;</button>
+            </div>
+            <form id="editJournalEntryForm">
+                <input type="hidden" id="editEntryId">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="editRestaurantSelect">Restaurant</label>
+                        <select class="form-select" id="editRestaurantSelect" required>
+                            <option value="">Select restaurant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars" id="editRatingStars">
+                            <span class="rating-star" onclick="setEditRating(1)" data-rating="1">★</span>
+                            <span class="rating-star" onclick="setEditRating(2)" data-rating="2">★</span>
+                            <span class="rating-star" onclick="setEditRating(3)" data-rating="3">★</span>
+                            <span class="rating-star" onclick="setEditRating(4)" data-rating="4">★</span>
+                            <span class="rating-star" onclick="setEditRating(5)" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="editSelectedRating" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editVisitNotes">Notes</label>
+                        <textarea class="form-textarea" id="editVisitNotes" placeholder="How was your experience?" rows="4"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-error" onclick="deleteJournalEntry()" id="deleteEntryBtn">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editJournalEntryModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Review</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Edit Profile Modal -->
     <div class="modal" id="editProfileModal">
         <div class="modal-content">
@@ -1770,6 +1848,32 @@
         </div>
     </div>
 
+    <!-- Create List Modal -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create List</h3>
+                <button class="modal-close" onclick="closeModal('createListModal')">&times;</button>
+            </div>
+            <form id="createListForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="listName">List Name</label>
+                        <input type="text" class="form-input" id="listName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="listDescription">Description</label>
+                        <textarea class="form-textarea" id="listDescription" placeholder="What's this list about?" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div id="toastContainer"></div>
 
@@ -1789,8 +1893,8 @@
         let customLists = [];
         let currentTab = 'journal';
         let selectedAvatarIcon = null;
-        let selectedListIcon = '📋';
         let currentActiveList = null;
+        let journalEntries = [];
         let isInitialized = false;
 
         // Food icons for avatar selection
@@ -1841,11 +1945,16 @@
             currentUser = session.user;
             console.log("✅ User authenticated:", currentUser.email);
             
-            // Load essential data in parallel
-            await Promise.all([
-                loadProfile(),
-                loadRestaurantsFromSupabase()
-            ]);
+            // Get target user ID from URL
+            targetUserId = getUserIdFromUrl();
+            isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
+            
+            console.log("👤 Viewing own profile?", isViewingOwnProfile);
+            console.log("🎯 Target user ID:", targetUserId);
+            
+            // Load essential data
+            await loadProfile();
+            await loadRestaurantsFromSupabase();
             
             // Show initial content
             showTab('journal');
@@ -1883,13 +1992,6 @@
         // === PROFILE MANAGEMENT ===
         async function loadProfile() {
             console.log("🔄 Loading profile...");
-            
-            // Get user ID from URL
-            targetUserId = getUserIdFromUrl();
-            console.log("🔍 Target user ID from URL:", targetUserId);
-            
-            isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
-            console.log("👤 Viewing own profile?", isViewingOwnProfile);
             
             if (isViewingOwnProfile) {
                 await loadOwnProfile();
@@ -1944,7 +2046,10 @@
             document.getElementById('viewingOtherProfile').style.display = 'flex';
             
             // Hide mobile FAB when viewing others
-            document.getElementById('mobileFab').style.display = 'none';
+            const mobileFab = document.getElementById('mobileFab');
+            if (mobileFab) {
+                mobileFab.style.display = 'none';
+            }
             
             // Load target user profile
             const { data: profile, error } = await supabase
@@ -1963,17 +2068,17 @@
             targetUser = profile;
             console.log("✅ Target user loaded:", targetUser);
             
-            // Update UI
-            userProfile = profile; // Use same variable for consistency
+            // Update UI with target user data
+            userProfile = profile;
             updateProfileUI();
             
             // Load follow status
             await loadFollowStatus();
             
-            // Update stats
+            // Update stats for target user
             await updateStats(targetUserId);
             
-            // Load user data
+            // Load user data for target user
             await loadUserLists(targetUserId);
             await loadCommunityData(targetUserId);
         }
@@ -1981,26 +2086,40 @@
         function updateProfileUI() {
             if (!userProfile) return;
             
+            // Always use the correct profile (could be current user or target user)
+            const profileToUse = isViewingOwnProfile ? userProfile : targetUser;
+            
+            if (!profileToUse) return;
+            
             document.getElementById('profileName').textContent = 
-                userProfile.full_name || currentUser.email.split('@')[0];
+                profileToUse.full_name || profileToUse.username || 'User';
             document.getElementById('profileUsername').textContent = 
-                `@${userProfile.username || currentUser.email.split('@')[0]}`;
+                `@${profileToUse.username || 'user'}`;
             document.getElementById('profileBio').textContent = 
-                userProfile.bio || "No bio yet";
+                profileToUse.bio || "No bio yet";
             document.getElementById('profileLocation').textContent = 
-                userProfile.location || "Location not set";
+                profileToUse.location || "Location not set";
             document.getElementById('profileAvatar').textContent = 
-                userProfile.avatar_icon || "🍔";
+                profileToUse.avatar_icon || "🍔";
             
             // Update mobile header
-            updateMobileHeader();
+            const mobileAvatar = document.getElementById('mobileAvatar');
+            const mobileUsername = document.getElementById('mobileUsername');
             
-            // Populate edit form
+            if (mobileAvatar && profileToUse) {
+                mobileAvatar.textContent = profileToUse.avatar_icon || "🍔";
+            }
+            
+            if (mobileUsername && profileToUse) {
+                mobileUsername.textContent = `@${profileToUse.username || 'user'}`;
+            }
+            
+            // Populate edit form only for own profile
             if (isViewingOwnProfile) {
-                document.getElementById('editDisplayName').value = userProfile.full_name || '';
-                document.getElementById('editUsername').value = userProfile.username || '';
-                document.getElementById('editBio').value = userProfile.bio || '';
-                document.getElementById('editLocation').value = userProfile.location || '';
+                document.getElementById('editDisplayName').value = profileToUse.full_name || '';
+                document.getElementById('editUsername').value = profileToUse.username || '';
+                document.getElementById('editBio').value = profileToUse.bio || '';
+                document.getElementById('editLocation').value = profileToUse.location || '';
             }
         }
 
@@ -2088,8 +2207,7 @@
                     const { error } = await supabase
                         .from('follows')
                         .delete()
-                        .eq('follower_id', currentUser.id)
-                        .eq('followed_id', targetUserId);
+                        .eq('id', follow.id);
 
                     if (error) throw error;
                     
@@ -2114,6 +2232,7 @@
                 }
 
                 await updateStats();
+                await loadCommunityData();
 
             } catch (error) {
                 console.error('Error toggling follow:', error);
@@ -2129,7 +2248,7 @@
         }
 
         async function updateStats(userId = null) {
-            const targetId = userId || currentUser.id;
+            const targetId = userId || (isViewingOwnProfile ? currentUser.id : targetUserId);
             console.log("📊 Updating stats for user:", targetId);
             
             try {
@@ -2171,8 +2290,8 @@
                 let favoritesCount = 0;
                 if (!listError && favoritesList) {
                     const { data: favorites, error: favoritesError } = await supabase
-                        .from('lists_restraunts')
-                        .select('restraunt_id')
+                        .from('lists_restaurants')
+                        .select('restaurant_id')
                         .eq('list_id', favoritesList.id);
                     
                     if (!favoritesError) {
@@ -2220,8 +2339,9 @@
                 
                 restaurants = data || [];
                 
-                // Populate restaurant select dropdown for journal entries
+                // Populate restaurant select dropdowns
                 populateRestaurantSelect();
+                populateEditRestaurantSelect();
                 
             } catch (error) {
                 console.error('❌ Error loading restaurants:', error);
@@ -2255,9 +2375,301 @@
             });
         }
 
-        // === COMMUNITY FUNCTIONS (FIXED) ===
+        function populateEditRestaurantSelect() {
+            const select = document.getElementById('editRestaurantSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Select restaurant</option>';
+            
+            restaurants.forEach(restaurant => {
+                const option = document.createElement('option');
+                option.value = restaurant.id;
+                option.textContent = `${restaurant.name} (${restaurant.category})`;
+                select.appendChild(option);
+            });
+        }
+
+        // === JOURNAL FUNCTIONS ===
+        async function loadJournalEntries() {
+            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+            const container = document.getElementById('journalEntries');
+            if (!container) return;
+            
+            // Clear loading skeletons
+            hideLoadingSkeletons();
+            
+            try {
+                const { data: entries, error } = await supabase
+                    .from('journal_entries')
+                    .select('*')
+                    .eq('user_id', targetId)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                
+                if (error) {
+                    console.error('Error loading journal entries:', error);
+                    throw error;
+                }
+                
+                journalEntries = entries || [];
+                
+                if (!journalEntries || journalEntries.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <h3 class="empty-title">No Reviews Yet</h3>
+                            <p class="empty-description">${isViewingOwnProfile ? 'Start reviewing restaurants!' : 'No reviews yet'}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary" onclick="showModal('addEntryModal')" style="margin-top: 16px;">
+                                    <i class="fas fa-plus"></i> Add Your First Review
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                for (const entry of journalEntries) {
+                    const restaurant = restaurants.find(r => r.id === entry.restaurant_id) || {
+                        name: 'Unknown Restaurant',
+                        category: 'Unknown',
+                        slug: '#',
+                        image: null
+                    };
+                    
+                    const entryEl = document.createElement('div');
+                    entryEl.className = 'journal-entry';
+                    entryEl.tabIndex = 0;
+                    
+                    // Create restaurant info div that links to restaurant page
+                    const restaurantInfo = document.createElement('div');
+                    restaurantInfo.className = 'restaurant-info';
+                    restaurantInfo.style.cursor = 'pointer';
+                    restaurantInfo.onclick = () => {
+                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+                    };
+                    
+                    restaurantInfo.innerHTML = `
+                        <div class="restaurant-image">
+                            ${restaurant.image ? 
+                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" onerror="this.onerror=null; this.src='images/default-logo.jpg';">` :
+                                '🍽️'
+                            }
+                        </div>
+                        <div class="restaurant-details">
+                            <h3>${restaurant.name}</h3>
+                            <div class="category">${restaurant.category}</div>
+                        </div>
+                    `;
+                    
+                    const entryContent = `
+                        <div class="entry-header">
+                            ${restaurantInfo.outerHTML}
+                            <div class="entry-rating">
+                                ${'⭐'.repeat(Math.floor(entry.rating))}
+                                <span>${entry.rating}/5</span>
+                            </div>
+                        </div>
+                        <div class="entry-content">
+                            ${entry.notes ? entry.notes.replace(/\n/g, '<br>') : 'No review text'}
+                        </div>
+                        <div class="entry-date">
+                            ${new Date(entry.created_at).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </div>
+                    `;
+                    
+                    entryEl.innerHTML = entryContent;
+                    
+                    // Add edit/delete buttons for own entries
+                    if (isViewingOwnProfile) {
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'entry-actions';
+                        actionsDiv.innerHTML = `
+                            <button class="entry-action-btn" onclick="editJournalEntry('${entry.id}')" title="Edit review">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="entry-action-btn" onclick="confirmDeleteJournalEntry('${entry.id}')" title="Delete review">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                        entryEl.appendChild(actionsDiv);
+                    }
+                    
+                    container.appendChild(entryEl);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading journal entries:', error);
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><h3 class="empty-title">Error Loading Reviews</h3></div>';
+            }
+        }
+
+        function setRating(stars) {
+            const starsElements = document.querySelectorAll('#ratingStars .rating-star');
+            starsElements.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('active');
+                    star.textContent = '★';
+                } else {
+                    star.classList.remove('active');
+                    star.textContent = '☆';
+                }
+            });
+            document.getElementById('selectedRating').value = stars;
+        }
+
+        function setEditRating(stars) {
+            const starsElements = document.querySelectorAll('#editRatingStars .rating-star');
+            starsElements.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('active');
+                    star.textContent = '★';
+                } else {
+                    star.classList.remove('active');
+                    star.textContent = '☆';
+                }
+            });
+            document.getElementById('editSelectedRating').value = stars;
+        }
+
+        async function saveJournalEntry() {
+            const restaurantId = parseInt(document.getElementById('restaurantSelect').value);
+            const rating = parseInt(document.getElementById('selectedRating').value);
+            const notes = document.getElementById('visitNotes').value.trim();
+            
+            if (!restaurantId || rating === 0) {
+                showToast('Please select a restaurant and rating', 'error');
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('journal_entries')
+                    .insert([{
+                        user_id: currentUser.id,
+                        restaurant_id: restaurantId,
+                        rating: rating,
+                        notes: notes,
+                        created_at: new Date().toISOString()
+                    }]);
+                
+                if (error) throw error;
+                
+                closeModal('addEntryModal');
+                await loadJournalEntries();
+                await updateStats();
+                
+                // Reset form
+                document.getElementById('journalEntryForm').reset();
+                setRating(0);
+                
+                showToast('Review saved successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error saving review:', error);
+                showToast('Error saving review', 'error');
+            }
+        }
+
+        function editJournalEntry(entryId) {
+            const entry = journalEntries.find(e => e.id === entryId);
+            if (!entry) return;
+            
+            const restaurant = restaurants.find(r => r.id === entry.restaurant_id);
+            
+            // Populate edit modal
+            document.getElementById('editEntryId').value = entryId;
+            document.getElementById('editRestaurantSelect').value = entry.restaurant_id;
+            document.getElementById('editVisitNotes').value = entry.notes || '';
+            setEditRating(entry.rating);
+            
+            // Show delete button for this entry
+            const deleteBtn = document.getElementById('deleteEntryBtn');
+            deleteBtn.onclick = () => deleteJournalEntry(entryId);
+            
+            showModal('editJournalEntryModal');
+        }
+
+        async function updateJournalEntry() {
+            const entryId = document.getElementById('editEntryId').value;
+            const restaurantId = parseInt(document.getElementById('editRestaurantSelect').value);
+            const rating = parseInt(document.getElementById('editSelectedRating').value);
+            const notes = document.getElementById('editVisitNotes').value.trim();
+            
+            if (!restaurantId || rating === 0) {
+                showToast('Please select a restaurant and rating', 'error');
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('journal_entries')
+                    .update({
+                        restaurant_id: restaurantId,
+                        rating: rating,
+                        notes: notes,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', entryId)
+                    .eq('user_id', currentUser.id);
+                
+                if (error) throw error;
+                
+                closeModal('editJournalEntryModal');
+                await loadJournalEntries();
+                await updateStats();
+                
+                showToast('Review updated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error updating review:', error);
+                showToast('Error updating review', 'error');
+            }
+        }
+
+        async function deleteJournalEntry(entryId) {
+            if (!confirm('Are you sure you want to delete this review?')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('journal_entries')
+                    .delete()
+                    .eq('id', entryId)
+                    .eq('user_id', currentUser.id);
+                
+                if (error) throw error;
+                
+                closeModal('editJournalEntryModal');
+                await loadJournalEntries();
+                await updateStats();
+                
+                showToast('Review deleted successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error deleting review:', error);
+                showToast('Error deleting review', 'error');
+            }
+        }
+
+        function confirmDeleteJournalEntry(entryId) {
+            if (confirm('Are you sure you want to delete this review?')) {
+                deleteJournalEntry(entryId);
+            }
+        }
+
+        // === COMMUNITY FUNCTIONS ===
         async function loadCommunityData(userId = null) {
-            const targetId = userId || currentUser.id;
+            const targetId = userId || (isViewingOwnProfile ? currentUser.id : targetUserId);
             console.log("👥 Loading community data for user:", targetId);
             
             // Load both followers and following
@@ -2267,8 +2679,7 @@
             ]);
         }
 
-        async function loadFollowers(userId = null) {
-            const targetId = userId || currentUser.id;
+        async function loadFollowers(userId) {
             const grid = document.getElementById('followersGrid');
             if (!grid) return;
             
@@ -2280,7 +2691,7 @@
                 const { data: followers, error } = await supabase
                     .from('follows')
                     .select('follower_id')
-                    .eq('followed_id', targetId);
+                    .eq('followed_id', userId);
                 
                 if (error) {
                     console.error('Error loading followers:', error);
@@ -2312,7 +2723,18 @@
                 
                 grid.innerHTML = '';
                 
-                users.forEach(user => {
+                for (const user of users) {
+                    // Get user stats
+                    const { data: userEntries } = await supabase
+                        .from('journal_entries')
+                        .select('id')
+                        .eq('user_id', user.id);
+                    
+                    const { data: userLists } = await supabase
+                        .from('lists')
+                        .select('id')
+                        .eq('user_id', user.id);
+                    
                     const card = document.createElement('div');
                     card.className = 'user-card';
                     card.innerHTML = `
@@ -2325,11 +2747,11 @@
                         </div>
                         <div class="user-stats">
                             <div class="user-stat">
-                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-number">${userEntries?.length || 0}</div>
                                 <div class="user-stat-label">Reviews</div>
                             </div>
                             <div class="user-stat">
-                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-number">${userLists?.length || 0}</div>
                                 <div class="user-stat-label">Lists</div>
                             </div>
                         </div>
@@ -2337,7 +2759,7 @@
                             <button class="btn btn-secondary" onclick="viewUserProfile('${user.id}')">
                                 View Profile
                             </button>
-                            ${isViewingOwnProfile ? `
+                            ${isViewingOwnProfile && user.id !== currentUser.id ? `
                                 <button class="btn btn-primary" onclick="followUser('${user.id}')">
                                     Follow Back
                                 </button>
@@ -2345,7 +2767,7 @@
                         </div>
                     `;
                     grid.appendChild(card);
-                });
+                }
                 
             } catch (error) {
                 console.error('❌ Error loading followers:', error);
@@ -2353,8 +2775,7 @@
             }
         }
 
-        async function loadFollowing(userId = null) {
-            const targetId = userId || currentUser.id;
+        async function loadFollowing(userId) {
             const grid = document.getElementById('followingGrid');
             if (!grid) return;
             
@@ -2366,7 +2787,7 @@
                 const { data: following, error } = await supabase
                     .from('follows')
                     .select('followed_id')
-                    .eq('follower_id', targetId);
+                    .eq('follower_id', userId);
                 
                 if (error) {
                     console.error('Error loading following:', error);
@@ -2398,7 +2819,18 @@
                 
                 grid.innerHTML = '';
                 
-                users.forEach(user => {
+                for (const user of users) {
+                    // Get user stats
+                    const { data: userEntries } = await supabase
+                        .from('journal_entries')
+                        .select('id')
+                        .eq('user_id', user.id);
+                    
+                    const { data: userLists } = await supabase
+                        .from('lists')
+                        .select('id')
+                        .eq('user_id', user.id);
+                    
                     const card = document.createElement('div');
                     card.className = 'user-card';
                     card.innerHTML = `
@@ -2411,11 +2843,11 @@
                         </div>
                         <div class="user-stats">
                             <div class="user-stat">
-                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-number">${userEntries?.length || 0}</div>
                                 <div class="user-stat-label">Reviews</div>
                             </div>
                             <div class="user-stat">
-                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-number">${userLists?.length || 0}</div>
                                 <div class="user-stat-label">Lists</div>
                             </div>
                         </div>
@@ -2423,7 +2855,7 @@
                             <button class="btn btn-secondary" onclick="viewUserProfile('${user.id}')">
                                 View Profile
                             </button>
-                            ${isViewingOwnProfile ? `
+                            ${isViewingOwnProfile && user.id !== currentUser.id ? `
                                 <button class="btn btn-error" onclick="unfollowUser('${user.id}')">
                                     Unfollow
                                 </button>
@@ -2431,7 +2863,7 @@
                         </div>
                     `;
                     grid.appendChild(card);
-                });
+                }
                 
             } catch (error) {
                 console.error('❌ Error loading following:', error);
@@ -2474,7 +2906,18 @@
                 
                 results.innerHTML = '';
                 
-                users.forEach(user => {
+                for (const user of users) {
+                    // Get user stats
+                    const { data: userEntries } = await supabase
+                        .from('journal_entries')
+                        .select('id')
+                        .eq('user_id', user.id);
+                    
+                    const { data: userLists } = await supabase
+                        .from('lists')
+                        .select('id')
+                        .eq('user_id', user.id);
+                    
                     const card = document.createElement('div');
                     card.className = 'user-card';
                     card.innerHTML = `
@@ -2487,11 +2930,11 @@
                         </div>
                         <div class="user-stats">
                             <div class="user-stat">
-                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-number">${userEntries?.length || 0}</div>
                                 <div class="user-stat-label">Reviews</div>
                             </div>
                             <div class="user-stat">
-                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-number">${userLists?.length || 0}</div>
                                 <div class="user-stat-label">Lists</div>
                             </div>
                         </div>
@@ -2505,7 +2948,7 @@
                         </div>
                     `;
                     results.appendChild(card);
-                });
+                }
                 
             } catch (error) {
                 console.error('❌ Error searching users:', error);
@@ -2560,7 +3003,7 @@
 
         // === LIST MANAGEMENT ===
         async function loadUserLists(userId = null) {
-            const targetId = userId || currentUser.id;
+            const targetId = userId || (isViewingOwnProfile ? currentUser.id : targetUserId);
             console.log("📋 Loading lists for user:", targetId);
             
             try {
@@ -2632,7 +3075,7 @@
                         user_id: currentUser.id, 
                         title: title, 
                         description: description,
-                        icon: selectedListIcon,
+                        icon: '📋',
                         created_at: new Date().toISOString()
                     }])
                     .select()
@@ -2657,7 +3100,7 @@
             }
         }
 
-        function renderListsGrid() {
+        async function renderListsGrid() {
             const listsGrid = document.getElementById('listsGrid');
             if (!listsGrid) return;
             
@@ -2682,19 +3125,42 @@
             
             listsGrid.innerHTML = '';
             
-            customLists.forEach(list => {
+            for (const list of customLists) {
+                // Get restaurant count for this list
+                const { data: listRestaurants, error } = await supabase
+                    .from('lists_restaurants')
+                    .select('restaurant_id')
+                    .eq('list_id', list.id);
+                
+                const restaurantCount = listRestaurants?.length || 0;
+                
+                // Get preview images (first 4 restaurants)
+                let previewItems = '';
+                if (listRestaurants && listRestaurants.length > 0) {
+                    const previewRestaurantIds = listRestaurants.slice(0, 4).map(lr => lr.restaurant_id);
+                    const previewRestaurants = restaurants.filter(r => previewRestaurantIds.includes(r.id));
+                    
+                    previewItems = previewRestaurants.map(restaurant => `
+                        <div class="list-preview-item">
+                            ${restaurant.image ? 
+                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" onerror="this.onerror=null; this.src='images/default-logo.jpg';">` :
+                                '<div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">🍽️</div>'
+                            }
+                        </div>
+                    `).join('');
+                } else {
+                    previewItems = Array(4).fill(0).map(() => `
+                        <div class="list-preview-item">
+                            <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                🍽️
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
                 const listCard = document.createElement('div');
                 listCard.className = 'list-card';
                 listCard.onclick = () => showListDetail(list);
-                
-                // Get preview images (simplified for now)
-                const previewItems = Array(4).fill(0).map(() => `
-                    <div class="list-preview-item">
-                        <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                            🍽️
-                        </div>
-                    </div>
-                `).join('');
                 
                 listCard.innerHTML = `
                     <div class="list-card-title">
@@ -2706,7 +3172,7 @@
                         ${previewItems}
                     </div>
                     <div class="list-card-footer">
-                        <span style="font-size: 12px; color: var(--muted);">0 places</span>
+                        <span style="font-size: 12px; color: var(--muted);">${restaurantCount} ${restaurantCount === 1 ? 'place' : 'places'}</span>
                         ${isViewingOwnProfile ? `
                             <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editList('${list.id}')">
                                 <i class="fas fa-edit"></i> Edit
@@ -2716,7 +3182,7 @@
                 `;
                 
                 listsGrid.appendChild(listCard);
-            });
+            }
         }
 
         async function showListDetail(list) {
@@ -2749,8 +3215,8 @@
             try {
                 // Get restaurants in this list
                 const { data: listRestaurants, error } = await supabase
-                    .from('lists_restraunts')
-                    .select('restraunt_id')
+                    .from('lists_restaurants')
+                    .select('restaurant_id')
                     .eq('list_id', listId);
                 
                 if (error) {
@@ -2774,7 +3240,7 @@
                     return;
                 }
                 
-                const restaurantIds = listRestaurants.map(item => item.restraunt_id);
+                const restaurantIds = listRestaurants.map(item => item.restaurant_id);
                 const listRestaurantsData = restaurants.filter(r => restaurantIds.includes(r.id));
                 
                 if (listRestaurantsData.length === 0) {
@@ -2827,6 +3293,7 @@
                             e.stopPropagation();
                             await removeFromList(listId, restaurant.id);
                             await loadListRestaurants(listId);
+                            await renderListsGrid(); // Update list count
                         };
                         card.appendChild(removeBtn);
                     }
@@ -2843,9 +3310,9 @@
         async function removeFromList(listId, restaurantId) {
             try {
                 const { error } = await supabase
-                    .from('lists_restraunts')
+                    .from('lists_restaurants')
                     .delete()
-                    .match({ list_id: listId, restraunt_id: restaurantId });
+                    .match({ list_id: listId, restaurant_id: restaurantId });
                 
                 if (error) throw error;
                 
@@ -2867,158 +3334,13 @@
             const list = customLists.find(l => l.id === listId);
             if (!list) return;
             
-            // Pre-populate edit modal
+            // Pre-populate create modal (reused for editing)
             document.getElementById('listName').value = list.title;
             document.getElementById('listDescription').value = list.description || '';
-            document.getElementById('selectedListIcon').value = list.icon || '📋';
             
-            // Show create modal (reused for editing)
+            // Show create modal (we'll need to handle update vs create differently)
             showModal('createListModal');
-        }
-
-        // === JOURNAL FUNCTIONS ===
-        async function loadJournalEntries() {
-            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-            const container = document.getElementById('journalEntries');
-            if (!container) return;
-            
-            // Clear loading skeletons
-            hideLoadingSkeletons();
-            
-            try {
-                const { data: entries, error } = await supabase
-                    .from('journal_entries')
-                    .select('*')
-                    .eq('user_id', targetId)
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-                
-                if (error) {
-                    console.error('Error loading journal entries:', error);
-                    throw error;
-                }
-                
-                if (!entries || entries.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">No Reviews Yet</h3>
-                            <p class="empty-description">${isViewingOwnProfile ? 'Start reviewing restaurants!' : 'No reviews yet'}</p>
-                            ${isViewingOwnProfile ? `
-                                <button class="btn btn-primary" onclick="showModal('addEntryModal')" style="margin-top: 16px;">
-                                    <i class="fas fa-plus"></i> Add Your First Review
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    return;
-                }
-                
-                container.innerHTML = '';
-                
-                for (const entry of entries) {
-                    const restaurant = restaurants.find(r => r.id === entry.restaurant_id) || {
-                        name: 'Unknown Restaurant',
-                        category: 'Unknown',
-                        slug: '#',
-                        image: null
-                    };
-                    
-                    const entryEl = document.createElement('div');
-                    entryEl.className = 'journal-entry';
-                    entryEl.tabIndex = 0;
-                    entryEl.innerHTML = `
-                        <div class="entry-header">
-                            <div class="restaurant-info">
-                                <div class="restaurant-image">
-                                    ${restaurant.image ? 
-                                        `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">` :
-                                        '🍽️'
-                                    }
-                                </div>
-                                <div class="restaurant-details">
-                                    <h3>${restaurant.name}</h3>
-                                    <div class="category">${restaurant.category}</div>
-                                </div>
-                            </div>
-                            <div class="entry-rating">
-                                ${'⭐'.repeat(Math.floor(entry.rating))}
-                                <span>${entry.rating}/5</span>
-                            </div>
-                        </div>
-                        <div class="entry-content">
-                            ${entry.notes ? entry.notes.replace(/\n/g, '<br>') : 'No review text'}
-                        </div>
-                        <div class="entry-date">
-                            ${new Date(entry.created_at).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </div>
-                    `;
-                    container.appendChild(entryEl);
-                }
-                
-            } catch (error) {
-                console.error('❌ Error loading journal entries:', error);
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><h3 class="empty-title">Error Loading Reviews</h3></div>';
-            }
-        }
-
-        function setRating(stars) {
-            const starsElements = document.querySelectorAll('#ratingStars .rating-star');
-            starsElements.forEach((star, index) => {
-                if (index < stars) {
-                    star.classList.add('active');
-                    star.textContent = '★';
-                } else {
-                    star.classList.remove('active');
-                    star.textContent = '☆';
-                }
-            });
-            document.getElementById('selectedRating').value = stars;
-        }
-
-        async function saveJournalEntry() {
-            const restaurantId = parseInt(document.getElementById('restaurantSelect').value);
-            const rating = parseInt(document.getElementById('selectedRating').value);
-            const notes = document.getElementById('visitNotes').value.trim();
-            
-            if (!restaurantId || rating === 0) {
-                showToast('Please select a restaurant and rating', 'error');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('journal_entries')
-                    .insert([{
-                        user_id: currentUser.id,
-                        restaurant_id: restaurantId,
-                        rating: rating,
-                        notes: notes,
-                        created_at: new Date().toISOString()
-                    }]);
-                
-                if (error) throw error;
-                
-                closeModal('addEntryModal');
-                loadJournalEntries();
-                await updateStats();
-                
-                // Reset form
-                document.getElementById('journalEntryForm').reset();
-                setRating(0);
-                
-                showToast('Review saved successfully!', 'success');
-                
-            } catch (error) {
-                console.error('Error saving review:', error);
-                showToast('Error saving review', 'error');
-            }
+            // For now, just show the modal - you'll need to add update functionality
         }
 
         // === AVATAR FUNCTIONS ===
@@ -3226,10 +3548,30 @@
                 saveJournalEntry();
             });
             
+            // Edit journal form submission
+            document.getElementById('editJournalEntryForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                updateJournalEntry();
+            });
+            
             // Edit profile form submission
             document.getElementById('editProfileForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 saveProfileChanges();
+            });
+            
+            // Create list form submission
+            document.getElementById('createListForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const title = document.getElementById('listName').value.trim();
+                const description = document.getElementById('listDescription').value.trim();
+                
+                if (!title) {
+                    showToast('Please enter a list name', 'error');
+                    return;
+                }
+                
+                createList(title, description);
             });
             
             // Modal close on outside click
@@ -3273,7 +3615,12 @@
         window.showModal = showModal;
         window.closeModal = closeModal;
         window.setRating = setRating;
+        window.setEditRating = setEditRating;
         window.saveJournalEntry = saveJournalEntry;
+        window.editJournalEntry = editJournalEntry;
+        window.updateJournalEntry = updateJournalEntry;
+        window.deleteJournalEntry = deleteJournalEntry;
+        window.confirmDeleteJournalEntry = confirmDeleteJournalEntry;
         window.showAvatarModal = showAvatarModal;
         window.saveAvatar = saveAvatar;
         window.goToMyProfile = goToMyProfile;
@@ -3285,6 +3632,7 @@
         window.searchUsers = searchUsers;
         window.followUser = followUser;
         window.unfollowUser = unfollowUser;
+        window.toggleFollow = toggleFollow;
     </script>
 </body>
 </html>
