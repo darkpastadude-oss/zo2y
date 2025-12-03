@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* === DARK THEME === */
+        /* === DARK BLUE THEME === */
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --muted: #94a3b8;
+            --bg: #0b1633;
+            --card: #132347;
+            --muted: #cbd5e1;
             --accent: #f59e0b;
             --white: #ffffff;
             --border: rgba(255,255,255,0.1);
@@ -40,29 +40,27 @@
             padding: 0 20px;
         }
 
-        /* === FIXED HOME BUTTON (EXACTLY LIKE restaurants.html) === */
+        /* === HOME BUTTON === */
         .home-button {
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 1000;
-            width: 40px;
-            height: 40px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
             text-decoration: none;
-            border-radius: 0;
-            background: transparent;
-            border: none;
+            border: 2px solid transparent;
         }
 
         .home-button img {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-            border-radius: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .home-button:hover {
@@ -74,7 +72,6 @@
             background: var(--card);
             padding: 30px 0;
             margin-bottom: 20px;
-            margin-top: 40px;
         }
 
         .profile-top {
@@ -222,7 +219,7 @@
             color: var(--muted);
         }
 
-        /* === NAV TABS (SIMPLE VERSION) === */
+        /* === NAV TABS === */
         .nav-tabs {
             display: flex;
             background: var(--card);
@@ -268,7 +265,7 @@
             font-weight: 700;
         }
 
-        /* === RESTAURANT GRID (from restaurants.html) === */
+        /* === RESTAURANT GRID === */
         .restaurant-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -444,14 +441,79 @@
             font-size: 12px;
         }
 
-        /* === FOLLOWERS SECTION === */
-        .followers-grid {
+        /* === LISTS GRID === */
+        .lists-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .list-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .list-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .list-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .list-card-description {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-item {
+            height: 80px;
+            background: var(--bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* === COMMUNITY / FOLLOWERS === */
+        .community-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 16px;
         }
 
-        .follower-card {
+        .user-card {
             background: var(--card);
             border-radius: var(--radius);
             padding: 16px;
@@ -459,48 +521,64 @@
             transition: all 0.3s ease;
         }
 
-        .follower-card:hover {
+        .user-card:hover {
             transform: translateY(-2px);
             border-color: var(--accent);
         }
 
-        .follower-header {
+        .user-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 12px;
         }
 
-        .follower-avatar {
-            width: 40px;
-            height: 40px;
+        .user-avatar {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             color: #0b1633;
         }
 
-        .follower-info {
+        .user-info {
             flex: 1;
         }
 
-        .follower-name {
+        .user-name {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 16px;
             margin-bottom: 2px;
         }
 
-        .follower-username {
+        .user-username {
             color: var(--muted);
-            font-size: 12px;
+            font-size: 13px;
         }
 
-        .follower-actions {
+        .user-stats {
             display: flex;
-            gap: 8px;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .user-stat {
+            text-align: center;
+        }
+
+        .user-stat-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .user-stat-label {
+            font-size: 12px;
+            color: var(--muted);
         }
 
         /* === LOADING SKELETON === */
@@ -555,7 +633,7 @@
             margin-bottom: 16px;
         }
 
-        /* === MODAL STYLES === */
+        /* === MODALS === */
         .modal {
             position: fixed;
             top: 0;
@@ -574,7 +652,7 @@
             background: var(--card);
             border-radius: var(--radius);
             width: 90%;
-            max-width: 400px;
+            max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -642,6 +720,57 @@
             margin-top: 20px;
         }
 
+        /* === LIST ICONS === */
+        .list-icon-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .list-icon-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .list-icon-option.selected {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
+        /* === AVATAR GRID === */
+        .avatar-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .avatar-icon-option {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 24px;
+        }
+
+        .avatar-icon-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .avatar-icon-option.selected {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
         /* === TAB CONTENT === */
         .tab-content {
             display: none;
@@ -651,23 +780,26 @@
             display: block;
         }
 
+        /* === LIST DETAIL VIEW === */
+        .list-detail-view {
+            display: none;
+        }
+
+        .list-detail-view.active {
+            display: block;
+        }
+
         /* === MOBILE RESPONSIVE === */
         @media (max-width: 768px) {
             .home-button {
-                width: 35px;
-                height: 35px;
+                width: 40px;
+                height: 40px;
                 top: 10px;
                 left: 10px;
             }
 
-            .home-button img {
-                width: 35px;
-                height: 35px;
-            }
-
             .profile-header {
                 padding: 20px 0;
-                margin-top: 30px;
             }
 
             .profile-top {
@@ -710,7 +842,15 @@
                 opacity: 1;
             }
 
-            .followers-grid {
+            .lists-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .list-preview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .community-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -737,7 +877,7 @@
     <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-    <!-- Home Button (EXACTLY like restaurants.html) -->
+    <!-- Home Button -->
     <a href="index.html" class="home-button">
         <img src="images/logo.png" alt="Zo2y Logo">
     </a>
@@ -822,29 +962,23 @@
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')">
-                <i class="fas fa-book"></i> Reviews
+                <i class="fas fa-book"></i> Food Journal
             </div>
-            <div class="nav-tab" data-tab="favorites" onclick="showTab('favorites')">
-                <i class="fas fa-heart"></i> Favorites
+            <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
+                <i class="fas fa-list"></i> My Lists
             </div>
-            <div class="nav-tab" data-tab="visited" onclick="showTab('visited')">
-                <i class="fas fa-check-circle"></i> Visited
-            </div>
-            <div class="nav-tab" data-tab="wantToGo" onclick="showTab('wantToGo')">
-                <i class="fas fa-bookmark"></i> Want to Go
-            </div>
-            <div class="nav-tab" data-tab="followers" onclick="showTab('followers')">
-                <i class="fas fa-users"></i> Followers
+            <div class="nav-tab" data-tab="community" onclick="showTab('community')">
+                <i class="fas fa-users"></i> Community
             </div>
         </div>
 
-        <!-- Journal Tab Content -->
+        <!-- Food Journal Tab -->
         <div class="tab-content active" id="journal-tab">
             <div class="section">
                 <div class="section-header">
-                    <h2 class="section-title">Recent Reviews</h2>
+                    <h2 class="section-title">Food Journal</h2>
                     <button class="btn btn-primary" onclick="showModal('addEntryModal')">
-                        <i class="fas fa-plus"></i> New
+                        <i class="fas fa-plus"></i> New Review
                     </button>
                 </div>
                 <div id="journalEntries">
@@ -853,51 +987,74 @@
             </div>
         </div>
 
-        <!-- Restaurant Lists Tabs -->
-        <div class="tab-content" id="favorites-tab">
+        <!-- My Lists Tab -->
+        <div class="tab-content" id="lists-tab">
             <div class="section">
                 <div class="section-header">
-                    <h2 class="section-title">Favorite Restaurants</h2>
-                </div>
-                <div class="restaurant-grid" id="favoritesGrid">
-                    <!-- Favorites will load dynamically -->
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-content" id="visited-tab">
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">Visited Restaurants</h2>
-                </div>
-                <div class="restaurant-grid" id="visitedGrid">
-                    <!-- Visited restaurants will load dynamically -->
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-content" id="wantToGo-tab">
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">Want to Go</h2>
-                </div>
-                <div class="restaurant-grid" id="wantToGoGrid">
-                    <!-- Want to Go restaurants will load dynamically -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Followers Tab Content -->
-        <div class="tab-content" id="followers-tab">
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">Followers</h2>
-                    <button class="btn btn-primary" onclick="loadFollowers()">
-                        <i class="fas fa-sync-alt"></i> Refresh
+                    <h2 class="section-title">My Lists</h2>
+                    <button class="btn btn-primary" onclick="showModal('createListModal')">
+                        <i class="fas fa-plus"></i> Create List
                     </button>
                 </div>
-                <div class="followers-grid" id="followersGrid">
-                    <!-- Followers will load here -->
+                <div class="lists-grid" id="listsGrid">
+                    <!-- Lists will load here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- List Detail View (hidden by default) -->
+        <div class="list-detail-view" id="list-detail-view">
+            <div class="section">
+                <div class="section-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="hideListDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <div>
+                            <h2 class="section-title" id="listDetailTitle">List Title</h2>
+                            <div style="font-size: 14px; color: var(--muted);" id="listDetailDescription">List description</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="showModal('addRestaurantToListModal')" id="addToListBtn">
+                        <i class="fas fa-plus"></i> Add Restaurant
+                    </button>
+                </div>
+                <div class="restaurant-grid" id="listRestaurantsGrid">
+                    <!-- List restaurants will load here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Community Tab -->
+        <div class="tab-content" id="community-tab">
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Community</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary active" onclick="showCommunitySection('followers')">
+                            Followers
+                        </button>
+                        <button class="btn btn-secondary" onclick="showCommunitySection('following')">
+                            Following
+                        </button>
+                        <button class="btn btn-primary" onclick="showModal('searchUsersModal')">
+                            <i class="fas fa-search"></i> Find Users
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Followers Section -->
+                <div id="followersSection" style="display: block;">
+                    <div class="community-grid" id="followersGrid">
+                        <!-- Followers will load here -->
+                    </div>
+                </div>
+
+                <!-- Following Section -->
+                <div id="followingSection" style="display: none;">
+                    <div class="community-grid" id="followingGrid">
+                        <!-- Following will load here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -920,7 +1077,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Rating</label>
-                        <div id="ratingStars" style="display: flex; gap: 4px; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
                             <span onclick="setRating(1)" style="cursor: pointer; font-size: 20px; opacity: 0.3;">⭐</span>
                             <span onclick="setRating(2)" style="cursor: pointer; font-size: 20px; opacity: 0.3;">⭐</span>
                             <span onclick="setRating(3)" style="cursor: pointer; font-size: 20px; opacity: 0.3;">⭐</span>
@@ -935,7 +1092,45 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('addEntryModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="submit" class="btn btn-primary">Save Review</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New List</h3>
+                <button class="modal-close" onclick="closeModal('createListModal')">&times;</button>
+            </div>
+            <form id="createListForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="listName" placeholder="e.g., Date Night Spots" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="listDescription" placeholder="What kind of restaurants go in this list?"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <div class="list-icon-option" data-icon="💑" onclick="selectListIcon('💑')">💑</div>
+                            <div class="list-icon-option" data-icon="🥪" onclick="selectListIcon('🥪')">🥪</div>
+                            <div class="list-icon-option" data-icon="🍳" onclick="selectListIcon('🍳')">🍳</div>
+                            <div class="list-icon-option" data-icon="💼" onclick="selectListIcon('💼')">💼</div>
+                            <div class="list-icon-option" data-icon="🌮" onclick="selectListIcon('🌮')">🌮</div>
+                            <div class="list-icon-option" data-icon="🍕" onclick="selectListIcon('🍕')">🍕</div>
+                        </div>
+                        <input type="hidden" id="selectedListIcon" value="📋">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
                     </div>
                 </div>
             </form>
@@ -985,8 +1180,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Select a food icon</label>
-                    <div id="avatarIconGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                    <div class="avatar-icon-grid" id="avatarIconGrid">
                         <!-- Avatar icons will be populated here -->
                     </div>
                 </div>
@@ -998,21 +1192,42 @@
         </div>
     </div>
 
+    <!-- Search Users Modal -->
+    <div class="modal" id="searchUsersModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="closeModal('searchUsersModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input type="text" class="form-input" id="userSearch" placeholder="Search by username or name..." onkeyup="searchUsers()">
+                </div>
+                <div id="searchResults" class="community-grid">
+                    <!-- Search results will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // === FIXED JAVASCRIPT CODE ===
-        // Supabase configuration
+        // === SUPABASE CONFIGURATION ===
         const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Global state
+        // === GLOBAL STATE ===
         let currentUser = null;
         let userProfile = null;
         let targetUser = null;
         let targetUserId = null;
         let isViewingOwnProfile = true;
         let restaurants = [];
+        let customLists = [];
         let currentTab = 'journal';
+        let selectedAvatarIcon = null;
+        let selectedListIcon = '📋';
+        let currentActiveList = null;
 
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -1039,9 +1254,6 @@
             await loadProfile();
             await loadRestaurantsFromSupabase();
             
-            // Initialize list manager
-            await listManager.init();
-            
             // Show initial content
             showTab('journal');
             
@@ -1049,22 +1261,15 @@
         }
 
         function showLoadingSkeleton() {
-            const grids = ['favoritesGrid', 'visitedGrid', 'wantToGoGrid'];
+            const grids = ['listsGrid', 'followersGrid', 'followingGrid'];
             grids.forEach(gridId => {
                 const grid = document.getElementById(gridId);
                 if (grid) {
                     grid.innerHTML = '';
                     for (let i = 0; i < 4; i++) {
                         const card = document.createElement('div');
-                        card.className = 'restaurant-card skeleton';
-                        card.innerHTML = `
-                            <div class="restaurant-media skeleton-img"></div>
-                            <div class="restaurant-content">
-                                <div class="skeleton-text"></div>
-                                <div class="skeleton-text short"></div>
-                                <div class="skeleton-text"></div>
-                            </div>
-                        `;
+                        card.className = 'skeleton';
+                        card.style.height = '200px';
                         grid.appendChild(card);
                     }
                 }
@@ -1074,10 +1279,6 @@
         function hideLoadingSkeleton() {
             document.querySelectorAll('.skeleton').forEach(el => {
                 el.classList.remove('skeleton');
-                el.querySelectorAll('.skeleton-img, .skeleton-text').forEach(child => {
-                    child.style.background = 'none';
-                    child.style.animation = 'none';
-                });
             });
         }
 
@@ -1128,6 +1329,11 @@
             
             // Update stats
             await updateStats();
+            
+            // Load user data
+            await loadUserLists();
+            await loadFollowers();
+            await loadFollowing();
         }
 
         async function createUserProfile() {
@@ -1194,6 +1400,11 @@
             
             // Update stats
             await updateStats(targetUserId);
+            
+            // Load user data
+            await loadUserLists(targetUserId);
+            await loadFollowers(targetUserId);
+            await loadFollowing(targetUserId);
         }
 
         async function loadFollowStatus() {
@@ -1248,7 +1459,7 @@
                     
                     followButton.textContent = 'Follow';
                     followButton.className = 'btn btn-primary';
-                    alert(`Unfollowed ${targetUser.username || 'user'}`);
+                    
                 } else {
                     // Follow
                     const { error } = await supabase
@@ -1263,7 +1474,6 @@
                     
                     followButton.textContent = 'Following';
                     followButton.className = 'btn btn-success';
-                    alert(`Started following ${targetUser.username || 'user'}`);
                 }
 
                 await updateStats();
@@ -1366,165 +1576,521 @@
         }
 
         // === LIST MANAGEMENT ===
-        const listManager = {
-            userLists: [],
-            currentLists: {
-                favorites: null,
-                visited: null,
-                wantToGo: null
-            },
+        async function loadUserLists(userId = null) {
+            const targetId = userId || currentUser.id;
             
-            async init() { 
-                if (!isViewingOwnProfile) return;
+            try {
+                const { data: lists } = await supabase
+                    .from('lists')
+                    .select('*')
+                    .eq('user_id', targetId);
                 
-                await this.loadUserLists();
-                await this.loadListRestaurants();
-            },
-            
-            async loadUserLists() {
-                try {
-                    const { data: lists } = await supabase
-                        .from('lists')
-                        .select('*')
-                        .eq('user_id', currentUser.id);
-                    
-                    this.userLists = lists || [];
-                    await this.setupDefaultLists();
-                    
-                } catch (error) {
-                    console.error('Error loading lists:', error);
-                }
-            },
-            
-            async setupDefaultLists() {
-                this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-                this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-                this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                customLists = lists || [];
                 
-                if (isViewingOwnProfile) {
-                    if (!this.currentLists.favorites) {
-                        this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-                    }
-                    if (!this.currentLists.visited) {
-                        this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-                    }
-                    if (!this.currentLists.wantToGo) {
-                        this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-                    }
+                // Ensure default lists exist for own profile
+                if (isViewingOwnProfile && !userId) {
+                    await ensureDefaultLists();
                 }
-            },
+                
+                // Render lists
+                renderListsGrid();
+                
+            } catch (error) {
+                console.error('Error loading lists:', error);
+            }
+        }
+
+        async function ensureDefaultLists() {
+            const defaultLists = ['Favorites', 'Visited', 'Want to Go'];
             
-            async createList(title, description) {
-                const { data: newList } = await supabase
+            for (const listName of defaultLists) {
+                const existingList = customLists.find(list => list.title === listName);
+                if (!existingList) {
+                    await createList(listName, `My ${listName.toLowerCase()} restaurants`);
+                }
+            }
+            
+            // Reload lists
+            await loadUserLists();
+        }
+
+        async function createList(title, description) {
+            try {
+                const { data: newList, error } = await supabase
                     .from('lists')
                     .insert([{ 
                         user_id: currentUser.id, 
                         title: title, 
-                        description: description 
+                        description: description,
+                        icon: selectedListIcon
                     }])
                     .select()
                     .single();
                 
-                if (newList) {
-                    this.userLists.push(newList);
-                }
-                return newList;
-            },
-            
-            async loadListRestaurants() {
-                for (const listType in this.currentLists) {
-                    const list = this.currentLists[listType];
-                    if (list) {
-                        const { data: listRestaurants } = await supabase
-                            .from('lists_restraunts')
-                            .select('restraunt_id')
-                            .eq('list_id', list.id);
-                        
-                        list.restaurants = listRestaurants?.map(item => item.restraunt_id) || [];
-                    }
-                }
-            },
-            
-            async toggleInList(listType, restaurantId) {
-                const list = this.currentLists[listType];
-                if (!list) return false;
+                if (error) throw error;
                 
-                const isInList = list.restaurants?.includes(restaurantId);
+                customLists.push(newList);
+                renderListsGrid();
+                closeModal('createListModal');
+                alert('List created successfully!');
                 
-                try {
-                    if (isInList) {
-                        await supabase
-                            .from('lists_restraunts')
-                            .delete()
-                            .match({ list_id: list.id, restraunt_id: restaurantId });
-                        
-                        list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                        
-                    } else {
-                        await supabase
-                            .from('lists_restraunts')
-                            .insert([{ list_id: list.id, restraunt_id: restaurantId }]);
-                        
-                        if (!list.restaurants) list.restaurants = [];
-                        list.restaurants.push(restaurantId);
-                    }
-                    
-                    // Refresh current view
-                    await showTab(currentTab);
-                    await updateStats();
-                    
-                    return !isInList;
-                    
-                } catch (error) {
-                    console.error('Error updating list:', error);
-                    return isInList;
-                }
-            },
-            
-            isInList(listType, restaurantId) {
-                const list = this.currentLists[listType];
-                return list?.restaurants?.includes(restaurantId) || false;
-            }
-        };
-
-        // === DYNAMIC CONTENT RENDERING ===
-        function showTab(tabName) {
-            // Update active tab
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected tab
-            const tabElement = document.getElementById(`${tabName}-tab`);
-            tabElement.classList.add('active');
-            currentTab = tabName;
-            
-            // Load content for the tab
-            switch(tabName) {
-                case 'journal':
-                    loadJournalEntries();
-                    break;
-                case 'favorites':
-                    renderRestaurantGrid('favoritesGrid', 'favorites');
-                    break;
-                case 'visited':
-                    renderRestaurantGrid('visitedGrid', 'visited');
-                    break;
-                case 'wantToGo':
-                    renderRestaurantGrid('wantToGoGrid', 'wantToGo');
-                    break;
-                case 'followers':
-                    loadFollowers();
-                    break;
+                // Update stats
+                await updateStats();
+                
+            } catch (error) {
+                console.error('Error creating list:', error);
+                alert('Error creating list');
             }
         }
 
+        function renderListsGrid() {
+            const listsGrid = document.getElementById('listsGrid');
+            if (!listsGrid) return;
+            
+            listsGrid.innerHTML = '';
+            
+            if (customLists.length === 0) {
+                listsGrid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-icon">📋</div>
+                        <h3 class="empty-title">No Lists Yet</h3>
+                        <p class="empty-description">Create your first list to organize your favorite restaurants!</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('createListModal')">
+                            <i class="fas fa-plus"></i> Create Your First List
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            customLists.forEach(list => {
+                const listCard = document.createElement('div');
+                listCard.className = 'list-card';
+                listCard.onclick = () => showListDetail(list);
+                
+                // Get preview images
+                const previewItems = [];
+                // In a real app, you'd fetch actual restaurant images for this list
+                for (let i = 0; i < 4; i++) {
+                    previewItems.push(`
+                        <div class="list-preview-item">
+                            <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                🍽️
+                            </div>
+                        </div>
+                    `);
+                }
+                
+                listCard.innerHTML = `
+                    <div class="list-card-title">
+                        <span>${list.icon || '📋'}</span>
+                        ${list.title}
+                    </div>
+                    <div class="list-card-description">${list.description || 'No description'}</div>
+                    <div class="list-preview-grid">
+                        ${previewItems.join('')}
+                    </div>
+                    <div class="list-card-footer">
+                        <span style="font-size: 12px; color: var(--muted);">0 places</span>
+                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editList('${list.id}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+                `;
+                
+                listsGrid.appendChild(listCard);
+            });
+        }
+
+        async function showListDetail(list) {
+            currentActiveList = list;
+            
+            // Hide lists tab, show detail view
+            document.getElementById('lists-tab').style.display = 'none';
+            document.getElementById('list-detail-view').classList.add('active');
+            
+            // Update detail view header
+            document.getElementById('listDetailTitle').textContent = list.title;
+            document.getElementById('listDetailDescription').textContent = list.description || '';
+            
+            // Show/hide add button based on ownership
+            const addToListBtn = document.getElementById('addToListBtn');
+            if (addToListBtn) {
+                addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
+            }
+            
+            // Load list restaurants
+            await loadListRestaurants(list.id);
+        }
+
+        async function loadListRestaurants(listId) {
+            const grid = document.getElementById('listRestaurantsGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            try {
+                // Get restaurants in this list
+                const { data: listRestaurants } = await supabase
+                    .from('lists_restraunts')
+                    .select('restraunt_id')
+                    .eq('list_id', listId);
+                
+                if (!listRestaurants || listRestaurants.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <p class="empty-description">${isViewingOwnProfile ? 'Add restaurants to this list!' : 'This list is empty'}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary mt-md" onclick="showModal('addRestaurantToListModal')">
+                                    <i class="fas fa-plus"></i> Add Restaurants
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const restaurantIds = listRestaurants.map(item => item.restraunt_id);
+                const listRestaurantsData = restaurants.filter(r => restaurantIds.includes(r.id));
+                
+                listRestaurantsData.forEach(restaurant => {
+                    const card = document.createElement('div');
+                    card.className = 'restaurant-card';
+                    
+                    const clickableContent = document.createElement('a');
+                    clickableContent.href = `cards/${restaurant.slug}.html`;
+                    clickableContent.style.textDecoration = 'none';
+                    clickableContent.style.color = 'inherit';
+                    clickableContent.style.display = 'block';
+                    clickableContent.style.height = '100%';
+                    
+                    clickableContent.innerHTML = `
+                        <div class="restaurant-media">
+                            <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" onerror="this.src='images/default-logo.jpg'">
+                        </div>
+                        <div class="restaurant-content">
+                            <h3 class="restaurant-name">${restaurant.name}</h3>
+                            <div class="restaurant-category">
+                                <span class="restaurant-rating">⭐ ${restaurant.rating}</span> • ${restaurant.category}
+                            </div>
+                            <p class="restaurant-desc">${restaurant.description || 'Delicious food served with care'}</p>
+                        </div>
+                    `;
+                    
+                    card.appendChild(clickableContent);
+                    
+                    // Add remove button for own lists
+                    if (isViewingOwnProfile) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'list-btn';
+                        removeBtn.innerHTML = '❌';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '8px';
+                        removeBtn.style.right = '8px';
+                        removeBtn.onclick = async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            await removeFromList(listId, restaurant.id);
+                            await loadListRestaurants(listId);
+                        };
+                        card.appendChild(removeBtn);
+                    }
+                    
+                    grid.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error loading list restaurants:', error);
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading restaurants</div>';
+            }
+        }
+
+        async function removeFromList(listId, restaurantId) {
+            try {
+                await supabase
+                    .from('lists_restraunts')
+                    .delete()
+                    .match({ list_id: listId, restraunt_id: restaurantId });
+                
+                alert('Removed from list!');
+                
+            } catch (error) {
+                console.error('Error removing from list:', error);
+                alert('Error removing from list');
+            }
+        }
+
+        function hideListDetail() {
+            document.getElementById('lists-tab').style.display = 'block';
+            document.getElementById('list-detail-view').classList.remove('active');
+            currentActiveList = null;
+        }
+
+        function editList(listId) {
+            const list = customLists.find(l => l.id === listId);
+            if (!list) return;
+            
+            // Pre-populate edit modal
+            document.getElementById('listName').value = list.title;
+            document.getElementById('listDescription').value = list.description || '';
+            document.getElementById('selectedListIcon').value = list.icon || '📋';
+            
+            // Show create modal (reused for editing)
+            showModal('createListModal');
+            // Note: You'd need to modify the createList function to handle updates
+        }
+
+        // === COMMUNITY FUNCTIONS ===
+        async function loadFollowers(userId = null) {
+            const targetId = userId || currentUser.id;
+            const grid = document.getElementById('followersGrid');
+            if (!grid) return;
+            
+            try {
+                // Get followers
+                const { data: followers } = await supabase
+                    .from('follows')
+                    .select('follower_id')
+                    .eq('followed_id', targetId);
+                
+                if (!followers || followers.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">No Followers Yet</h3>
+                            <p class="empty-description">${isViewingOwnProfile ? 'Share your profile to get followers!' : 'This user has no followers yet'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Get user details for each follower
+                const followerIds = followers.map(f => f.follower_id);
+                const { data: users } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .in('id', followerIds);
+                
+                grid.innerHTML = '';
+                
+                users.forEach(user => {
+                    const card = document.createElement('div');
+                    card.className = 'user-card';
+                    card.innerHTML = `
+                        <div class="user-header">
+                            <div class="user-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.full_name || user.username || 'User'}</div>
+                                <div class="user-username">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        <div class="user-stats">
+                            <div class="user-stat">
+                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-label">Reviews</div>
+                            </div>
+                            <div class="user-stat">
+                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-label">Lists</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" onclick="viewUserProfile('${user.id}')">
+                                View Profile
+                            </button>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary" onclick="followUser('${user.id}')">
+                                    Follow Back
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error loading followers:', error);
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading followers</div>';
+            }
+        }
+
+        async function loadFollowing(userId = null) {
+            const targetId = userId || currentUser.id;
+            const grid = document.getElementById('followingGrid');
+            if (!grid) return;
+            
+            try {
+                // Get following
+                const { data: following } = await supabase
+                    .from('follows')
+                    .select('followed_id')
+                    .eq('follower_id', targetId);
+                
+                if (!following || following.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">Not Following Anyone</h3>
+                            <p class="empty-description">${isViewingOwnProfile ? 'Discover and follow other food lovers!' : 'This user is not following anyone'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Get user details for each followed user
+                const followingIds = following.map(f => f.followed_id);
+                const { data: users } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .in('id', followingIds);
+                
+                grid.innerHTML = '';
+                
+                users.forEach(user => {
+                    const card = document.createElement('div');
+                    card.className = 'user-card';
+                    card.innerHTML = `
+                        <div class="user-header">
+                            <div class="user-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.full_name || user.username || 'User'}</div>
+                                <div class="user-username">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        <div class="user-stats">
+                            <div class="user-stat">
+                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-label">Reviews</div>
+                            </div>
+                            <div class="user-stat">
+                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-label">Lists</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" onclick="viewUserProfile('${user.id}')">
+                                View Profile
+                            </button>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-error" onclick="unfollowUser('${user.id}')">
+                                    Unfollow
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error loading following:', error);
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading following</div>';
+            }
+        }
+
+        async function searchUsers() {
+            const searchTerm = document.getElementById('userSearch').value.trim();
+            const results = document.getElementById('searchResults');
+            
+            if (!searchTerm) {
+                results.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--muted);">Enter a search term</div>';
+                return;
+            }
+            
+            try {
+                const { data: users } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .neq('id', currentUser.id)
+                    .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+                    .limit(20);
+                
+                if (!users || users.length === 0) {
+                    results.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon">🔍</div>
+                            <h3 class="empty-title">No Users Found</h3>
+                            <p class="empty-description">Try searching with a different name or username</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                results.innerHTML = '';
+                
+                users.forEach(user => {
+                    const card = document.createElement('div');
+                    card.className = 'user-card';
+                    card.innerHTML = `
+                        <div class="user-header">
+                            <div class="user-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.full_name || user.username || 'User'}</div>
+                                <div class="user-username">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        <div class="user-stats">
+                            <div class="user-stat">
+                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-label">Reviews</div>
+                            </div>
+                            <div class="user-stat">
+                                <div class="user-stat-number">0</div>
+                                <div class="user-stat-label">Lists</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="followUser('${user.id}')">
+                            Follow
+                        </button>
+                    `;
+                    results.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error searching users:', error);
+                results.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error searching users</div>';
+            }
+        }
+
+        async function followUser(userId) {
+            try {
+                await supabase
+                    .from('follows')
+                    .insert({
+                        follower_id: currentUser.id,
+                        followed_id: userId,
+                        created_at: new Date().toISOString()
+                    });
+                
+                alert('Followed user!');
+                loadFollowing();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Error following user:', error);
+                alert('Error following user');
+            }
+        }
+
+        async function unfollowUser(userId) {
+            try {
+                await supabase
+                    .from('follows')
+                    .delete()
+                    .match({ follower_id: currentUser.id, followed_id: userId });
+                
+                alert('Unfollowed user!');
+                loadFollowing();
+                updateStats();
+                
+            } catch (error) {
+                console.error('Error unfollowing user:', error);
+                alert('Error unfollowing user');
+            }
+        }
+
+        // === JOURNAL FUNCTIONS ===
         async function loadJournalEntries() {
             const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
             const container = document.getElementById('journalEntries');
@@ -1596,197 +2162,6 @@
             }
         }
 
-        async function renderRestaurantGrid(gridId, listType) {
-            const grid = document.getElementById(gridId);
-            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-            
-            try {
-                // Get list ID
-                const { data: list } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId)
-                    .eq('title', getListTitle(listType))
-                    .single();
-                
-                if (!list) {
-                    grid.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🍽️</div>
-                            <h3 class="empty-title">No restaurants</h3>
-                            <p class="empty-description">${isViewingOwnProfile ? 'Start adding restaurants!' : 'No restaurants yet'}</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Get restaurant IDs in this list
-                const { data: listItems } = await supabase
-                    .from('lists_restraunts')
-                    .select('restraunt_id')
-                    .eq('list_id', list.id);
-                
-                if (!listItems || listItems.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🍽️</div>
-                            <h3 class="empty-title">No restaurants</h3>
-                            <p class="empty-description">${isViewingOwnProfile ? 'Start adding restaurants!' : 'No restaurants yet'}</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                const restaurantIds = listItems.map(item => item.restraunt_id);
-                const listRestaurants = restaurants.filter(r => restaurantIds.includes(r.id));
-                
-                if (listRestaurants.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🍽️</div>
-                            <h3 class="empty-title">No restaurants</h3>
-                            <p class="empty-description">Restaurants not found in database</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                grid.innerHTML = '';
-                
-                listRestaurants.forEach(restaurant => {
-                    const card = document.createElement('div');
-                    card.className = 'restaurant-card';
-                    
-                    const clickableContent = document.createElement('a');
-                    clickableContent.href = `cards/${restaurant.slug}.html`;
-                    clickableContent.style.textDecoration = 'none';
-                    clickableContent.style.color = 'inherit';
-                    clickableContent.style.display = 'block';
-                    clickableContent.style.height = '100%';
-                    
-                    clickableContent.innerHTML = `
-                        <div class="restaurant-media">
-                            <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" onerror="this.src='images/default-logo.jpg'">
-                        </div>
-                        <div class="restaurant-content">
-                            <h3 class="restaurant-name">${restaurant.name}</h3>
-                            <div class="restaurant-category">
-                                <span class="restaurant-rating">⭐ ${restaurant.rating}</span> • ${restaurant.category}
-                            </div>
-                            <p class="restaurant-desc">${restaurant.description || 'Delicious food served with care'}</p>
-                        </div>
-                    `;
-                    
-                    card.appendChild(clickableContent);
-                    
-                    // Add list buttons for own profile
-                    if (isViewingOwnProfile) {
-                        const listActions = document.createElement('div');
-                        listActions.className = 'list-actions';
-                        listActions.innerHTML = `
-                            <button class="list-btn favorite ${listManager.isInList('favorites', restaurant.id) ? 'active' : ''}" 
-                                    data-id="${restaurant.id}" data-list="favorites" title="Add to Favorites">❤️</button>
-                            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', restaurant.id) ? 'active' : ''}" 
-                                    data-id="${restaurant.id}" data-list="wantToGo" title="Want to Go">📍</button>
-                            <button class="list-btn visited ${listManager.isInList('visited', restaurant.id) ? 'active' : ''}" 
-                                    data-id="${restaurant.id}" data-list="visited" title="Mark as Visited">🍽️</button>
-                        `;
-                        card.appendChild(listActions);
-                        
-                        // Add event listeners
-                        listActions.querySelectorAll('.list-btn').forEach(btn => {
-                            btn.addEventListener('click', async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const restaurantId = parseInt(btn.dataset.id);
-                                const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-                                btn.classList.toggle('active', wasAdded);
-                            });
-                        });
-                    }
-                    
-                    grid.appendChild(card);
-                });
-                
-            } catch (error) {
-                console.error(`Error loading ${listType}:`, error);
-                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading restaurants</div>';
-            }
-        }
-
-        async function loadFollowers() {
-            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-            const grid = document.getElementById('followersGrid');
-            if (!grid) return;
-            
-            try {
-                // Get followers
-                const { data: followers } = await supabase
-                    .from('follows')
-                    .select('follower_id')
-                    .eq('followed_id', targetId);
-                
-                if (!followers || followers.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">👥</div>
-                            <h3 class="empty-title">No followers yet</h3>
-                            <p class="empty-description">${isViewingOwnProfile ? 'Share your profile to get followers!' : 'This user has no followers yet'}</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Get user details for each follower
-                const followerIds = followers.map(f => f.follower_id);
-                const { data: users } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .in('id', followerIds);
-                
-                grid.innerHTML = '';
-                
-                users.forEach(user => {
-                    const card = document.createElement('div');
-                    card.className = 'follower-card';
-                    card.innerHTML = `
-                        <div class="follower-header">
-                            <div class="follower-avatar">${user.avatar_icon || '👤'}</div>
-                            <div class="follower-info">
-                                <div class="follower-name">${user.full_name || user.username || 'User'}</div>
-                                <div class="follower-username">@${user.username || 'user'}</div>
-                            </div>
-                        </div>
-                        <div class="follower-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
-                                View Profile
-                            </button>
-                            ${isViewingOwnProfile ? `
-                                <button class="btn btn-primary btn-sm" onclick="followUser('${user.id}')">
-                                    Follow Back
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-                
-            } catch (error) {
-                console.error('Error loading followers:', error);
-                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading followers</div>';
-            }
-        }
-
-        function getListTitle(listType) {
-            switch(listType) {
-                case 'favorites': return 'Favorites';
-                case 'visited': return 'Visited';
-                case 'wantToGo': return 'Want to Go';
-                default: return listType;
-            }
-        }
-
-        // === REVIEW SYSTEM ===
         function setRating(stars) {
             const starsElements = document.querySelectorAll('#ratingStars span');
             starsElements.forEach((star, index) => {
@@ -1816,11 +2191,8 @@
                         created_at: new Date().toISOString()
                     }]);
                 
-                // Add to visited list
-                await listManager.toggleInList('visited', restaurantId);
-                
                 closeModal('addEntryModal');
-                await showTab('journal');
+                loadJournalEntries();
                 await updateStats();
                 
                 // Reset form
@@ -1835,6 +2207,11 @@
 
         // === AVATAR FUNCTIONS ===
         function showAvatarModal() {
+            if (!isViewingOwnProfile) {
+                alert('You can only change your own avatar');
+                return;
+            }
+            
             const avatarIconGrid = document.getElementById('avatarIconGrid');
             if (!avatarIconGrid) return;
             
@@ -1842,30 +2219,16 @@
             
             foodIcons.forEach(icon => {
                 const iconOption = document.createElement('div');
-                iconOption.style.cssText = `
-                    width: 50px;
-                    height: 50px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    font-size: 24px;
-                    background: ${userProfile?.avatar_icon === icon ? 'var(--accent)' : 'transparent'};
-                    color: ${userProfile?.avatar_icon === icon ? '#0b1633' : 'inherit'};
-                `;
+                iconOption.className = `avatar-icon-option ${userProfile?.avatar_icon === icon ? 'selected' : ''}`;
                 iconOption.textContent = icon;
                 iconOption.onclick = () => {
-                    // Remove selected from all
-                    avatarIconGrid.querySelectorAll('div').forEach(opt => {
-                        opt.style.background = 'transparent';
-                        opt.style.color = 'inherit';
+                    // Remove selected class from all options
+                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                        opt.classList.remove('selected');
                     });
-                    // Select this one
-                    iconOption.style.background = 'var(--accent)';
-                    iconOption.style.color = '#0b1633';
-                    window.selectedAvatarIcon = icon;
+                    // Add selected class to clicked option
+                    iconOption.classList.add('selected');
+                    selectedAvatarIcon = icon;
                 };
                 avatarIconGrid.appendChild(iconOption);
             });
@@ -1874,7 +2237,7 @@
         }
 
         async function saveAvatar() {
-            if (!window.selectedAvatarIcon) {
+            if (!selectedAvatarIcon) {
                 alert('Please select an avatar');
                 return;
             }
@@ -1882,11 +2245,11 @@
             try {
                 await supabase
                     .from('user_profiles')
-                    .update({ avatar_icon: window.selectedAvatarIcon })
+                    .update({ avatar_icon: selectedAvatarIcon })
                     .eq('id', currentUser.id);
                 
-                document.getElementById('profileAvatar').textContent = window.selectedAvatarIcon;
-                userProfile.avatar_icon = window.selectedAvatarIcon;
+                document.getElementById('profileAvatar').textContent = selectedAvatarIcon;
+                userProfile.avatar_icon = selectedAvatarIcon;
                 
                 closeModal('avatarModal');
                 alert('Avatar updated!');
@@ -1895,6 +2258,14 @@
                 console.error('Error updating avatar:', error);
                 alert('Error updating avatar');
             }
+        }
+
+        function selectListIcon(icon) {
+            selectedListIcon = icon;
+            document.querySelectorAll('.list-icon-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
         }
 
         // === PROFILE EDIT FUNCTIONS ===
@@ -1937,6 +2308,50 @@
         }
 
         // === UTILITY FUNCTIONS ===
+        function showTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const tabElement = document.getElementById(`${tabName}-tab`);
+            tabElement.classList.add('active');
+            currentTab = tabName;
+            
+            // Load content for the tab
+            switch(tabName) {
+                case 'journal':
+                    loadJournalEntries();
+                    break;
+                case 'lists':
+                    // Already loaded in init
+                    break;
+                case 'community':
+                    // Already loaded in init
+                    break;
+            }
+        }
+
+        function showCommunitySection(section) {
+            // Update button states
+            document.querySelectorAll('#community-tab .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show/hide sections
+            document.getElementById('followersSection').style.display = 'none';
+            document.getElementById('followingSection').style.display = 'none';
+            document.getElementById(`${section}Section`).style.display = 'block';
+        }
+
         function showModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
         }
@@ -1953,32 +2368,21 @@
             window.location.href = `profile.html?id=${userId}`;
         }
 
-        async function followUser(userId) {
-            try {
-                await supabase
-                    .from('follows')
-                    .insert({
-                        follower_id: currentUser.id,
-                        followed_id: userId,
-                        created_at: new Date().toISOString()
-                    });
-                
-                alert('Followed user!');
-                loadFollowers();
-                updateStats();
-                
-            } catch (error) {
-                console.error('Error following user:', error);
-                alert('Error following user');
-            }
-        }
-
         // === EVENT LISTENERS ===
         function setupEventListeners() {
             // Journal form submission
             document.getElementById('journalEntryForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 saveJournalEntry();
+            });
+            
+            // Create list form submission
+            document.getElementById('createListForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                createList(
+                    document.getElementById('listName').value,
+                    document.getElementById('listDescription').value
+                );
             });
             
             // Edit profile form submission
@@ -2005,10 +2409,16 @@
         window.saveJournalEntry = saveJournalEntry;
         window.showAvatarModal = showAvatarModal;
         window.saveAvatar = saveAvatar;
+        window.selectListIcon = selectListIcon;
         window.goToMyProfile = goToMyProfile;
         window.viewUserProfile = viewUserProfile;
-        window.loadFollowers = loadFollowers;
+        window.showCommunitySection = showCommunitySection;
+        window.searchUsers = searchUsers;
         window.followUser = followUser;
+        window.unfollowUser = unfollowUser;
+        window.showListDetail = showListDetail;
+        window.hideListDetail = hideListDetail;
+        window.editList = editList;
     </script>
 </body>
 </html>
