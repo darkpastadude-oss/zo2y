@@ -13,14 +13,18 @@
             --card: #132347;
             --muted: #cbd5e1;
             --accent: #f59e0b;
+            --glass: rgba(255,255,255,0.03);
             --white: #ffffff;
             --border: rgba(255,255,255,0.1);
-            --success: #10b981;
+            --bg-hover: #1a2c5a;
             --error: #ef4444;
+            --success: #10b981;
             --warning: #f59e0b;
+            
             --radius: 12px;
             --radius-sm: 8px;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
             --transition: all 0.3s ease;
         }
 
@@ -45,67 +49,32 @@
             padding: 0 20px;
         }
 
-        /* === UTILITY CLASSES === */
-        .d-none { display: none; }
-        .d-flex { display: flex; }
-        .d-block { display: block; }
-        .flex-column { flex-direction: column; }
-        .align-center { align-items: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-sm { gap: 12px; }
-        .gap-md { gap: 16px; }
-        .gap-lg { gap: 24px; }
-        .w-100 { width: 100%; }
-        .text-center { text-align: center; }
-        .text-muted { color: var(--muted); }
-        .text-primary { color: var(--accent); }
-        .font-bold { font-weight: 700; }
-        .text-sm { font-size: 0.875rem; }
-        .text-base { font-size: 1rem; }
-        .text-lg { font-size: 1.125rem; }
-        .text-xl { font-size: 1.25rem; }
-        .text-2xl { font-size: 1.5rem; }
-        .mt-sm { margin-top: 12px; }
-        .mt-md { margin-top: 16px; }
-        .mt-lg { margin-top: 24px; }
-        .mb-sm { margin-bottom: 12px; }
-        .mb-md { margin-bottom: 16px; }
-        .mb-lg { margin-bottom: 24px; }
-        .p-sm { padding: 12px; }
-        .p-md { padding: 16px; }
-        .p-lg { padding: 24px; }
-
         /* === IMPROVED HOME BUTTON === */
         .home-button {
             position: fixed;
             top: 20px;
             left: 20px;
             z-index: 100;
-            background: var(--accent);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: var(--shadow);
             transition: var(--transition);
             text-decoration: none;
-            border: 2px solid transparent;
             overflow: hidden;
         }
 
         .home-button img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
         }
 
         .home-button:hover {
-            transform: scale(1.1);
-            background: #e69500;
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+            transform: scale(1.1) rotate(-2deg);
+            filter: drop-shadow(0 6px 12px rgba(245,158,11,0.3));
         }
 
         /* === PROFILE HEADER === */
@@ -240,7 +209,7 @@
         }
 
         .btn-secondary:hover {
-            background: rgba(255,255,255,0.12);
+            background: var(--bg-hover);
             transform: translateY(-2px);
         }
 
@@ -260,14 +229,29 @@
             color: white;
         }
 
+        .btn-success:hover {
+            background: #0d9c6d;
+            transform: translateY(-2px);
+        }
+
         .btn-error {
             background: var(--error);
             color: white;
         }
 
+        .btn-error:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
         .btn-sm {
             padding: 8px 16px;
             font-size: 13px;
+        }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 16px;
         }
 
         .btn-icon {
@@ -327,6 +311,7 @@
             margin-bottom: 30px;
             border: 1px solid var(--border);
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .nav-tab {
@@ -343,12 +328,22 @@
         }
 
         .nav-tab:hover {
-            background: rgba(255,255,255,0.1);
+            background: var(--bg-hover);
         }
 
         .nav-tab.active {
             background: var(--accent);
             color: #0b1633;
+        }
+
+        .nav-tab-badge {
+            background: var(--error);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
         }
 
         /* === CONTENT SECTIONS === */
@@ -368,18 +363,71 @@
             font-weight: 700;
         }
 
-        /* === JOURNAL ENTRIES === */
-        .journal-entries {
-            display: grid;
-            gap: 16px;
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: -8px;
         }
 
+        .section-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* === CARDS GRID === */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        /* === JOURNAL ENTRIES === */
         .journal-entry {
             background: var(--card);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 24px;
             border: 1px solid var(--border);
             transition: var(--transition);
+            margin-bottom: 16px;
             cursor: pointer;
         }
 
@@ -411,7 +459,6 @@
             justify-content: center;
             font-size: 24px;
             overflow: hidden;
-            flex-shrink: 0;
         }
 
         .restaurant-image img {
@@ -435,7 +482,23 @@
             align-items: center;
             gap: 8px;
             font-weight: 600;
-            flex-shrink: 0;
+        }
+
+        .entry-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: var(--bg);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .entry-notes {
@@ -443,83 +506,170 @@
             line-height: 1.6;
         }
 
-        .entry-date {
+        .entry-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            background: var(--accent);
+            color: #0b1633;
+            padding: 4px 8px;
+            border-radius: 12px;
             font-size: 12px;
-            color: var(--muted);
-            text-align: right;
+            font-weight: 500;
         }
 
         .entry-actions {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
-            margin-top: 16px;
         }
 
-        /* === LISTS GRID === */
-        .lists-grid {
+        /* === ACHIEVEMENTS === */
+        .achievements-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
         }
 
-        .list-card {
+        .achievement-card {
             background: var(--card);
             border-radius: var(--radius);
             padding: 20px;
             border: 1px solid var(--border);
             transition: var(--transition);
-            cursor: pointer;
-            position: relative;
         }
 
-        .list-card:hover {
+        .achievement-card:hover {
             transform: translateY(-4px);
             border-color: var(--accent);
         }
 
-        .list-card-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .achievement-card.locked {
+            opacity: 0.6;
         }
 
-        .list-card-description {
-            color: var(--muted);
-            font-size: 14px;
-            margin-bottom: 16px;
+        .achievement-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            position: relative;
         }
 
-        .list-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .list-preview-item {
-            height: 60px;
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
+        .achievement-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 12px;
         }
 
-        .list-preview-item img {
-            width: 100%;
+        .achievement-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .achievement-desc {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .achievement-progress {
+            background: var(--bg);
+            border-radius: 20px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .achievement-progress-bar {
+            background: var(--accent);
             height: 100%;
-            object-fit: cover;
+            transition: width 0.5s ease;
         }
 
-        .list-card-footer {
+        /* === FOLLOWER CARDS === */
+        .follower-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .follower-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .follower-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .follower-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #0b1633;
+        }
+
+        .follower-info {
+            flex: 1;
+        }
+
+        .follower-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .follower-username {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .follower-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .follower-stat {
+            text-align: center;
+        }
+
+        .follower-stat-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .follower-stat-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .follower-actions {
+            display: flex;
+            gap: 8px;
         }
 
         /* === MODALS === */
@@ -595,7 +745,7 @@
         .form-input, .form-select, .form-textarea {
             width: 100%;
             padding: 12px;
-            background: rgba(255,255,255,0.05);
+            background: var(--bg);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             color: var(--white);
@@ -636,7 +786,288 @@
             margin-top: 24px;
         }
 
-        /* === AVATAR SELECTION === */
+        /* === TOAST NOTIFICATIONS === */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+        }
+
+        .toast {
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            border-left: 4px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--error); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--error); }
+        .toast.warning .toast-icon { color: var(--warning); }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .toast-close:hover {
+            color: var(--white);
+        }
+
+        /* === EMPTY STATES === */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+
+        .empty-description {
+            font-size: 16px;
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* === NEW LIST LAYOUT STYLES === */
+        .lists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .list-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 20px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .list-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .list-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .list-card-description {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-item {
+            height: 80px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-card-button {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .list-card-button:hover {
+            background: var(--bg-hover);
+        }
+
+        /* === LOADING STATES === */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* === SEARCH BOX === */
+        .search-box {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* === RESTAURANT TILES === */
+        .restaurant-tile {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .restaurant-tile:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .restaurant-tile-image {
+            width: 100%;
+            height: 200px;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        .restaurant-tile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-tile-content {
+            padding: 16px;
+        }
+
+        .restaurant-tile-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .restaurant-tile-category {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .restaurant-tile-rating {
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .restaurant-tile-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* === LIST ICONS === */
+        .list-icon-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 20px;
+        }
+
+        .list-icon-option:hover {
+            background: var(--bg-hover);
+        }
+
         .avatar-icon-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
@@ -656,7 +1087,7 @@
         }
 
         .avatar-icon-option:hover {
-            background: rgba(255,255,255,0.1);
+            background: var(--bg-hover);
         }
 
         .avatar-icon-option.selected {
@@ -664,29 +1095,69 @@
             color: #0b1633;
         }
 
-        /* === EMPTY STATES === */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--muted);
+        /* === UTILITY CLASSES === */
+        .d-flex { display: flex; }
+        .d-grid { display: grid; }
+        .d-none { display: none; }
+        .d-block { display: block; }
+        .flex-column { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-wrap { flex-wrap: wrap; }
+        .align-center { align-items: center; }
+        .align-start { align-items: flex-start; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-start { justify-content: flex-start; }
+        .gap-xs { gap: 8px; }
+        .gap-sm { gap: 12px; }
+        .gap-md { gap: 16px; }
+        .gap-lg { gap: 24px; }
+        .gap-xl { gap: 32px; }
+        .w-100 { width: 100%; }
+        .h-100 { height: 100%; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .font-light { font-weight: 300; }
+        .font-normal { font-weight: 400; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .text-muted { color: var(--muted); }
+        .text-light { color: var(--muted); }
+        .text-primary { color: var(--accent); }
+        .text-success { color: var(--success); }
+        .text-error { color: var(--error); }
+        .mt-xs { margin-top: 8px; }
+        .mt-sm { margin-top: 12px; }
+        .mt-md { margin-top: 16px; }
+        .mt-lg { margin-top: 24px; }
+        .mt-xl { margin-top: 32px; }
+        .mb-xs { margin-bottom: 8px; }
+        .mb-sm { margin-bottom: 12px; }
+        .mb-md { margin-bottom: 16px; }
+        .mb-lg { margin-bottom: 24px; }
+        .mb-xl { margin-bottom: 32px; }
+        .p-xs { padding: 8px; }
+        .p-sm { padding: 12px; }
+        .p-md { padding: 16px; }
+        .p-lg { padding: 24px; }
+        .p-xl { padding: 32px; }
+
+        /* === FOLLOWER SECTIONS === */
+        .followers-section {
+            display: none;
         }
 
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .empty-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--white);
-        }
-
-        .empty-description {
-            font-size: 16px;
-            margin-bottom: 24px;
+        .followers-section.active {
+            display: block;
         }
 
         /* === TAB CONTENT === */
@@ -696,12 +1167,6 @@
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         /* === MOBILE RESPONSIVE === */
@@ -711,8 +1176,8 @@
             }
 
             .home-button {
-                width: 44px;
-                height: 44px;
+                width: 40px;
+                height: 40px;
                 top: 10px;
                 left: 10px;
             }
@@ -735,6 +1200,10 @@
                 margin: 0 auto;
             }
 
+            .profile-info {
+                width: 100%;
+            }
+
             .profile-name {
                 font-size: 24px;
             }
@@ -745,22 +1214,33 @@
 
             .profile-bio {
                 font-size: 15px;
+                margin-bottom: 20px;
             }
 
             .profile-meta {
                 flex-direction: column;
                 gap: 12px;
                 align-items: center;
+                margin-bottom: 20px;
             }
 
             .profile-actions {
                 justify-content: center;
                 width: 100%;
+                gap: 10px;
+            }
+
+            .profile-actions .btn {
+                flex: 1;
+                justify-content: center;
+                min-width: 120px;
+                padding: 12px 16px;
             }
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
+                margin-bottom: 20px;
             }
 
             .stat-card {
@@ -769,14 +1249,20 @@
 
             .stat-icon {
                 font-size: 24px;
+                margin-bottom: 8px;
             }
 
             .stat-number {
                 font-size: 28px;
             }
 
+            .stat-label {
+                font-size: 12px;
+            }
+
             .nav-tabs {
                 padding: 6px;
+                margin-bottom: 20px;
             }
 
             .nav-tab {
@@ -788,40 +1274,27 @@
                 flex-direction: column;
                 gap: 16px;
                 align-items: flex-start;
+                margin-bottom: 20px;
             }
 
-            .lists-grid {
+            .section-actions {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .cards-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
 
             .list-preview-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .modal {
-                padding: 10px;
-                align-items: flex-end;
-            }
-
-            .modal-content {
-                max-height: 85vh;
-                border-radius: var(--radius) var(--radius) 0 0;
-            }
-
-            .modal-header {
-                padding: 16px;
-            }
-
-            .modal-body {
-                padding: 16px;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .form-actions .btn {
-                width: 100%;
+            .lists-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
             }
         }
 
@@ -835,6 +1308,30 @@
             }
 
             .profile-actions .btn {
+                width: 100%;
+            }
+
+            .section-actions {
+                flex-direction: column;
+            }
+
+            .section-actions .btn {
+                width: 100%;
+            }
+
+            .entry-actions {
+                flex-direction: column;
+            }
+
+            .entry-actions .btn {
+                width: 100%;
+            }
+
+            .follower-actions {
+                flex-direction: column;
+            }
+
+            .follower-actions .btn {
                 width: 100%;
             }
         }
@@ -899,7 +1396,10 @@
                         <i class="fas fa-edit"></i> Edit Profile
                     </button>
                     <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addEntryBtn">
-                        <i class="fas fa-plus"></i> Add Review
+                        <i class="fas fa-plus"></i> Add Journal
+                    </button>
+                    <button class="btn btn-secondary" id="settingsBtn">
+                        <i class="fas fa-cog"></i> Settings
                     </button>
                     <button class="btn btn-secondary d-none" id="followButton">
                         Follow
@@ -915,7 +1415,7 @@
             <div class="stat-card">
                 <div class="stat-icon">🍽️</div>
                 <div class="stat-number" id="visitedCount">0</div>
-                <div class="stat-label">Visited</div>
+                <div class="stat-label">Restaurants Visited</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
@@ -925,12 +1425,12 @@
             <div class="stat-card">
                 <div class="stat-icon">📋</div>
                 <div class="stat-number" id="listsCount">0</div>
-                <div class="stat-label">Lists</div>
+                <div class="stat-label">Lists Created</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">⭐</div>
                 <div class="stat-number" id="reviewsCount">0</div>
-                <div class="stat-label">Reviews</div>
+                <div class="stat-label">Reviews Written</div>
             </div>
         </div>
 
@@ -940,10 +1440,14 @@
                 <i class="fas fa-book"></i> Food Journal
             </div>
             <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
-                <i class="fas fa-list"></i> My Lists
+                <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
             </div>
-            <div class="nav-tab" data-tab="community" onclick="showTab('community')">
-                <i class="fas fa-users"></i> Community
+            <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
+                <i class="fas fa-trophy"></i> Achievements
+            </div>
+            <div class="nav-tab" data-tab="followers" onclick="showTab('followers')">
+                <i class="fas fa-users"></i> Followers
+                <span class="nav-tab-badge d-none" id="followersBadge">0</span>
             </div>
         </div>
 
@@ -951,17 +1455,30 @@
         <div class="tab-content active" id="journal-tab">
             <div class="section">
                 <div class="section-header">
-                    <h2 class="section-title">Food Journal</h2>
-                    <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addJournalBtn">
-                        <i class="fas fa-plus"></i> New Entry
-                    </button>
+                    <div>
+                        <h2 class="section-title" id="journalTitle">Food Journal</h2>
+                        <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews and experiences</p>
+                    </div>
+                    <div class="section-actions">
+                        <div class="d-flex gap-sm">
+                            <button class="btn btn-secondary btn-sm active filter-btn" data-filter="all">All</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')" id="addJournalBtn">
+                            <i class="fas fa-plus"></i> New Entry
+                        </button>
+                    </div>
                 </div>
 
-                <div id="journalEntries" class="journal-entries">
+                <div id="journalEntries">
                     <div class="empty-state">
                         <div class="empty-icon">📝</div>
                         <h3 class="empty-title">No Reviews Yet</h3>
-                        <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
+                        <p class="empty-description">Start reviewing restaurants to build your food journey! Your reviews will appear here.</p>
+                        <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                            <i class="fas fa-utensils"></i> Browse Restaurants
+                        </button>
                     </div>
                 </div>
             </div>
@@ -971,10 +1488,18 @@
         <div class="tab-content" id="lists-tab">
             <div class="section">
                 <div class="section-header">
-                    <h2 class="section-title">My Lists</h2>
-                    <button class="btn btn-primary" onclick="showModal('createListModal')" id="createListBtn">
-                        <i class="fas fa-plus"></i> New List
-                    </button>
+                    <div>
+                        <h2 class="section-title" id="listsTitle">My Lists</h2>
+                        <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary btn-sm" id="sortListsBtn">
+                            <i class="fas fa-sort"></i> Sort
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateListModal()" id="createListBtn">
+                            <i class="fas fa-plus"></i> New List
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Lists Grid -->
@@ -984,46 +1509,149 @@
             </div>
         </div>
 
-        <!-- Community Tab Content -->
-        <div class="tab-content" id="community-tab">
+        <!-- List Detail View -->
+        <div class="tab-content" id="list-detail-view">
             <div class="section">
                 <div class="section-header">
-                    <h2 class="section-title">Community</h2>
-                    <div class="d-flex gap-sm">
-                        <button class="btn btn-secondary active" onclick="showCommunitySection('followers')">
-                            Followers
+                    <div class="d-flex align-center gap-md">
+                        <button class="btn btn-secondary btn-sm" onclick="hideListDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
                         </button>
-                        <button class="btn btn-secondary" onclick="showCommunitySection('following')">
-                            Following
+                        <div>
+                            <h2 class="section-title" id="listDetailTitle">List Title</h2>
+                            <p class="section-subtitle" id="listDetailDescription">List description</p>
+                        </div>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary btn-sm" id="editListBtn">
+                            <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn btn-primary" onclick="showModal('followerSearchModal')">
+                        <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')" id="addToListBtn">
+                            <i class="fas fa-plus"></i> Add Restaurant
+                        </button>
+                    </div>
+                </div>
+
+                <div class="cards-grid" id="listRestaurantsGrid">
+                    <div class="empty-state">
+                        <div class="empty-icon">🍽️</div>
+                        <h3 class="empty-title">No Restaurants Yet</h3>
+                        <p class="empty-description">Start adding restaurants to this list!</p>
+                        <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add Your First Restaurant
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements Tab Content -->
+        <div class="tab-content" id="achievements-tab">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Achievements</h2>
+                        <p class="section-subtitle">Track your food journey progress</p>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-trophy"></i> View All
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="achievements-grid" id="achievementsList">
+                    <!-- Achievements will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Followers Tab Content -->
+        <div class="tab-content" id="followers-tab">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Followers & Following</h2>
+                        <p class="section-subtitle">Connect with other food lovers</p>
+                    </div>
+                    <div class="section-actions">
+                        <div class="d-flex gap-sm">
+                            <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="showFollowersSection('followers')">
+                                Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="showFollowersSection('following')">
+                                Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" onclick="showModal('followerSearchModal')" id="addFollowersBtn">
                             <i class="fas fa-user-plus"></i> Find Users
                         </button>
                     </div>
                 </div>
 
                 <!-- Followers Section -->
-                <div id="followersSection" style="display: block;">
-                    <div class="lists-grid" id="followersList">
-                        <!-- Followers will be populated here -->
+                <div class="followers-section active" id="followersSection">
+                    <div class="section-header">
+                        <h3 class="section-title">Your Followers</h3>
+                        <p class="section-subtitle">People who follow your food journey</p>
+                    </div>
+                    <div id="followersList">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">No followers yet</h3>
+                            <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
+                            <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Following Section -->
-                <div id="followingSection" style="display: none;">
-                    <div class="lists-grid" id="followingList">
-                        <!-- Following will be populated here -->
+                <div class="followers-section" id="followingSection">
+                    <div class="section-header">
+                        <h3 class="section-title">You're Following</h3>
+                        <p class="section-subtitle">People whose food journey you follow</p>
+                    </div>
+                    <div id="followingList">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">Not following anyone yet</h3>
+                            <p class="empty-description">Discover and follow other food lovers to see their restaurant adventures!</p>
+                            <button class="btn btn-primary mt-md" onclick="showModal('followerSearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Footer -->
+    <div class="profile-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Settings</a>
+                    <a href="#" class="footer-link">Privacy</a>
+                    <a href="#" class="footer-link">Support</a>
+                    <a href="#" class="footer-link">About</a>
+                    <a href="#" class="footer-link" id="logoutBtn">Logout</a>
+                </div>
+                <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Add Review Modal -->
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Add Journal Entry Modal -->
     <div class="modal" id="addEntryModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Add Review</h3>
+                <h3 class="modal-title">Add Journal Entry</h3>
                 <button class="modal-close" onclick="closeModal('addEntryModal')">&times;</button>
             </div>
             
@@ -1058,9 +1686,14 @@
                         <textarea class="form-textarea" id="visitNotes" placeholder="What did you order? How was the experience?"></textarea>
                     </div>
                     
+                    <div class="form-group">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-input" id="visitTags" placeholder="Add tags (e.g., date night, business, casual)">
+                    </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('addEntryModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Review</button>
+                        <button type="submit" class="btn btn-primary">Save Entry</button>
                     </div>
                 </div>
             </form>
@@ -1085,6 +1718,19 @@
                     <div class="form-group">
                         <label class="form-label">Description</label>
                         <textarea class="form-textarea" id="listDescription" placeholder="What kind of restaurants go in this list?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div class="d-flex gap-md flex-wrap">
+                            <div class="list-icon-option" data-icon="💑">💑</div>
+                            <div class="list-icon-option" data-icon="🥪">🥪</div>
+                            <div class="list-icon-option" data-icon="🍳">🍳</div>
+                            <div class="list-icon-option" data-icon="💼">💼</div>
+                            <div class="list-icon-option" data-icon="🌮">🌮</div>
+                            <div class="list-icon-option" data-icon="🍕">🍕</div>
+                        </div>
+                        <input type="hidden" id="selectedIcon" value="📋">
                     </div>
                     
                     <div class="form-actions">
@@ -1125,6 +1771,17 @@
                         <label class="form-label">Location</label>
                         <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Account Privacy</label>
+                        <div class="d-flex gap-md align-center">
+                            <input type="checkbox" id="editIsPrivate" class="form-input" style="width: auto;">
+                            <label for="editIsPrivate" class="form-label" style="margin-bottom: 0;">Private Account</label>
+                        </div>
+                        <div class="text-xs text-muted mt-xs">
+                            Private accounts require approval for follow requests
+                        </div>
+                    </div>
                     
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
@@ -1144,8 +1801,11 @@
             </div>
             
             <div class="modal-body">
-                <div class="avatar-icon-grid" id="avatarIconGrid">
-                    <!-- Avatar icons will be populated here -->
+                <div class="form-group">
+                    <label class="form-label">Select a food icon</label>
+                    <div class="avatar-icon-grid" id="avatarIconGrid">
+                        <!-- Avatar icons will be populated here -->
+                    </div>
                 </div>
                 
                 <div class="form-actions">
@@ -1156,13 +1816,38 @@
         </div>
     </div>
 
+    <!-- Follower Search Modal -->
+    <div class="modal" id="followerSearchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="closeModal('followerSearchModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Search for users</label>
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="userSearch" placeholder="Search by username or name...">
+                    </div>
+                </div>
+                
+                <div id="searchResults" class="user-grid" style="margin-top: 20px;">
+                    <!-- Search results will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // === SUPABASE CONFIGURATION ===
+        // === PERFORMANCE-OPTIMIZED PROFILE CODE ===
+        // Supabase configuration
         const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // === GLOBAL STATE ===
+        // Global state
         let currentUser = null;
         let userProfile = null;
         let targetUser = null;
@@ -1171,56 +1856,94 @@
         let restaurants = [];
         let customLists = [];
         let currentTab = 'journal';
+        let journalFilter = 'all';
+        let currentActiveList = null;
         let selectedAvatarIcon = null;
-        
+        let currentEditingJournalEntry = null;
+
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                await initProfilePage();
-                setupEventListeners();
-            } catch (error) {
-                console.error("Failed to initialize:", error);
-                showToast("Failed to load profile. Please refresh.", "error");
-            }
-        });
+        // Go back to own profile
+        function goToMyProfile() {
+            window.location.href = 'profile.html';
+        }
 
+        // Enhanced Toast System
+        function showToast(message, type = 'info', duration = 3000) {
+            const toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="${icons[type]} toast-icon"></i>
+                <div class="toast-content">
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close">&times;</button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, duration);
+            
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.remove();
+            });
+        }
+
+        // Initialize the profile page
         async function initProfilePage() {
-            // Check authentication
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (!session) {
-                window.location.href = "login.html";
-                return;
+            try {
+                // Load profile data
+                await loadProfile();
+                
+                // Load restaurants dynamically
+                await loadRestaurants();
+                
+                // Initialize systems
+                await Promise.all([
+                    listManager.init(),
+                    followerSystem.init(),
+                    foodJournal.init(),
+                    achievementsSystem.init()
+                ]);
+                
+                setupEventListeners();
+                
+                if (isViewingOwnProfile) {
+                    showToast('Welcome back to your profile!', 'success');
+                }
+            } catch (error) {
+                console.error('Error initializing profile page:', error);
+                showToast('Error loading profile', 'error');
             }
-            
-            currentUser = session.user;
-            
-            // Get target user ID from URL
-            targetUserId = getUserIdFromUrl();
-            isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
-            
-            // Load essential data in parallel for faster loading
-            await Promise.all([
-                loadProfile(),
-                loadRestaurants()
-            ]);
-            
-            // Show initial content
-            showTab('journal');
         }
 
-        // Get user ID from URL
-        function getUserIdFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-            return id;
-        }
-
-        // Load user profile
+        // Load user profile data
         async function loadProfile() {
+            targetUserId = getUserIdFromUrl();
+            
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (error || !user) { 
+                window.location.href = "login.html"; 
+                return; 
+            }
+
+            currentUser = user;
+            isViewingOwnProfile = !targetUserId || targetUserId === user.id;
+
             if (isViewingOwnProfile) {
                 await loadOwnProfile();
             } else {
@@ -1229,251 +1952,232 @@
         }
 
         async function loadOwnProfile() {
-            // Show own profile UI
-            document.getElementById('editProfileBtn').style.display = 'flex';
-            document.getElementById('addEntryBtn').style.display = 'flex';
-            document.getElementById('followButton').style.display = 'none';
-            document.getElementById('viewingOtherProfile').style.display = 'none';
+            // Show own profile elements
+            const editProfileBtn = document.getElementById('editProfileBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const followButton = document.getElementById('followButton');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const viewingIndicator = document.getElementById('viewingOtherProfile');
+            const addEntryBtn = document.getElementById('addEntryBtn');
+            const createListBtn = document.getElementById('createListBtn');
             
-            // Load user profile
-            const { data: profile, error } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
+            if (editProfileBtn) editProfileBtn.style.display = 'flex';
+            if (settingsBtn) settingsBtn.style.display = 'flex';
+            if (followButton) followButton.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'block';
+            if (viewingIndicator) viewingIndicator.style.display = 'none';
+            if (addEntryBtn) addEntryBtn.style.display = 'flex';
+            if (createListBtn) createListBtn.style.display = 'flex';
+
+            await loadUserProfile();
             
-            if (error) {
-                userProfile = {};
-                await createUserProfile();
-            } else {
-                userProfile = profile || {};
+            // Update UI
+            document.getElementById('profileName').textContent = userProfile?.full_name || userProfile?.username || currentUser.email.split('@')[0];
+            document.getElementById('profileUsername').textContent = `@${userProfile?.username || currentUser.email.split('@')[0]}`;
+            document.getElementById('profileBio').textContent = userProfile?.bio || "No bio yet. Click edit to add one!";
+            document.getElementById('profileLocation').textContent = userProfile?.location || "Location not set";
+            document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
+            
+            // Set avatar
+            const avatar = document.getElementById('profileAvatar');
+            if (avatar) {
+                avatar.textContent = userProfile?.avatar_icon || "🍔";
             }
-            
-            // Update UI with profile data
-            updateProfileUI();
-            
+
             // Update stats
             await updateStats();
-            
-            // Load user data
-            await loadUserLists();
-            await loadCommunityData();
         }
 
         async function loadOtherUserProfile() {
-            // Hide edit buttons for other profiles
-            document.getElementById('editProfileBtn').style.display = 'none';
-            document.getElementById('addEntryBtn').style.display = 'none';
-            document.getElementById('followButton').style.display = 'block';
-            document.getElementById('viewingOtherProfile').style.display = 'flex';
+            // Hide elements for other users' profiles
+            const editProfileBtn = document.getElementById('editProfileBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const followButton = document.getElementById('followButton');
+            const viewingIndicator = document.getElementById('viewingOtherProfile');
+            const addEntryBtn = document.getElementById('addEntryBtn');
+            const createListBtn = document.getElementById('createListBtn');
+            const addJournalBtn = document.getElementById('addJournalBtn');
             
+            if (editProfileBtn) editProfileBtn.style.display = 'none';
+            if (settingsBtn) settingsBtn.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (followButton) followButton.style.display = 'block';
+            if (viewingIndicator) viewingIndicator.style.display = 'flex';
+            if (addEntryBtn) addEntryBtn.style.display = 'none';
+            if (createListBtn) createListBtn.style.display = 'none';
+            if (addJournalBtn) addJournalBtn.style.display = 'none';
+
             // Load target user profile
             const { data: profile, error } = await supabase
                 .from('user_profiles')
                 .select('*')
                 .eq('id', targetUserId)
                 .single();
-            
+
             if (error || !profile) {
-                showToast('User not found', 'error');
-                setTimeout(() => window.location.href = 'profile.html', 1500);
+                alert('User not found');
+                window.location.href = 'profile.html';
                 return;
             }
-            
+
             targetUser = profile;
-            userProfile = profile;
-            
-            // Update UI with target user data
-            updateProfileUI();
-            
+
+            // Display user info
+            document.getElementById('profileName').textContent = profile.full_name || profile.username || 'User';
+            document.getElementById('profileUsername').textContent = `@${profile.username || 'user'}`;
+            document.getElementById('profileBio').textContent = profile.bio || "No bio yet";
+            document.getElementById('profileLocation').textContent = profile.location || "Location not set";
+            document.getElementById('memberSince').textContent = `Member since ${new Date(profile.created_at).getFullYear()}`;
+
+            // Set avatar
+            const avatar = document.getElementById('profileAvatar');
+            if (avatar) {
+                avatar.textContent = profile.avatar_icon || "🍔";
+            }
+
             // Load follow status
             await loadFollowStatus();
-            
-            // Update stats for target user
             await updateStats(targetUserId);
-            
-            // Load user data for target user
-            await loadUserLists(targetUserId);
-            await loadCommunityData(targetUserId);
         }
 
-        function updateProfileUI() {
-            if (!userProfile) return;
+        async function loadUserProfile() {
+            const { data: profile, error } = await supabase
+                .from("user_profiles")
+                .select("*")
+                .eq("id", currentUser.id)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error("Error loading profile:", error);
+            }
+
+            userProfile = profile || {};
             
-            const profileToUse = isViewingOwnProfile ? userProfile : targetUser;
-            if (!profileToUse) return;
-            
-            document.getElementById('profileName').textContent = 
-                profileToUse.full_name || profileToUse.username || 'User';
-            document.getElementById('profileUsername').textContent = 
-                `@${profileToUse.username || 'user'}`;
-            document.getElementById('profileBio').textContent = 
-                profileToUse.bio || "No bio yet. Click edit to add one!";
-            document.getElementById('profileLocation').textContent = 
-                profileToUse.location || "Location not set";
-            document.getElementById('profileAvatar').textContent = 
-                profileToUse.avatar_icon || "🍔";
-            
-            // Populate edit form only for own profile
-            if (isViewingOwnProfile) {
-                document.getElementById('editDisplayName').value = profileToUse.full_name || '';
-                document.getElementById('editUsername').value = profileToUse.username || '';
-                document.getElementById('editBio').value = profileToUse.bio || '';
-                document.getElementById('editLocation').value = profileToUse.location || '';
+            if (!profile) {
+                const { error: insertError } = await supabase
+                    .from("user_profiles")
+                    .insert({
+                        id: currentUser.id,
+                        username: currentUser.email.split('@')[0],
+                        full_name: currentUser.email.split('@')[0],
+                        bio: "",
+                        location: "",
+                        avatar_icon: "🍔",
+                        is_private: false,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (insertError) {
+                    console.error('Error creating profile:', insertError);
+                }
             }
         }
 
-        async function createUserProfile() {
-            const username = currentUser.email.split('@')[0];
-            const { error } = await supabase
-                .from('user_profiles')
-                .insert([{
-                    id: currentUser.id,
-                    username: username,
-                    full_name: username,
-                    avatar_icon: "🍔",
-                    created_at: new Date().toISOString()
-                }]);
-
-            if (error) {
-                console.error('Error creating profile:', error);
-            } else {
-                const { data: newProfile } = await supabase
-                    .from('user_profiles')
+        // Load restaurants dynamically like restaurants.html
+        async function loadRestaurants() {
+            try {
+                const { data, error } = await supabase
+                    .from('restraunts')
                     .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
+                    .order('name');
                 
-                userProfile = newProfile || {};
-                updateProfileUI();
+                if (error) throw error;
+                
+                restaurants = data || [];
+                populateRestaurantSelect();
+                
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+                restaurants = [];
             }
         }
 
-        async function loadFollowStatus() {
-            const followButton = document.getElementById('followButton');
-            if (!followButton) return;
-
-            try {
-                const { data: follow, error } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('follower_id', currentUser.id)
-                    .eq('followed_id', targetUserId)
-                    .single();
-
-                if (error && error.code !== 'PGRST116') {
-                    console.error('Error checking follow status:', error);
-                }
-
-                if (follow) {
-                    followButton.textContent = 'Following';
-                    followButton.className = 'btn btn-success';
-                    followButton.onclick = () => toggleFollow();
-                } else {
-                    followButton.textContent = 'Follow';
-                    followButton.className = 'btn btn-primary';
-                    followButton.onclick = () => toggleFollow();
-                }
-            } catch (error) {
-                console.error('Error loading follow status:', error);
-            }
-        }
-
-        async function toggleFollow() {
-            const followButton = document.getElementById('followButton');
-            if (!followButton) return;
-
-            try {
-                const { data: follow, error: checkError } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('follower_id', currentUser.id)
-                    .eq('followed_id', targetUserId)
-                    .single();
-
-                if (checkError && checkError.code !== 'PGRST116') {
-                    console.error('Error checking follow status:', checkError);
-                }
-
-                if (follow) {
-                    // Unfollow
-                    const { error } = await supabase
-                        .from('follows')
-                        .delete()
-                        .eq('id', follow.id);
-
-                    if (error) throw error;
-                    
-                    followButton.textContent = 'Follow';
-                    followButton.className = 'btn btn-primary';
-                    showToast(`Unfollowed ${targetUser.username || 'user'}`, 'info');
-                } else {
-                    // Follow
-                    const { error } = await supabase
-                        .from('follows')
-                        .insert({
-                            follower_id: currentUser.id,
-                            followed_id: targetUserId,
-                            created_at: new Date().toISOString()
-                        });
-
-                    if (error) throw error;
-                    
-                    followButton.textContent = 'Following';
-                    followButton.className = 'btn btn-success';
-                    showToast(`Started following ${targetUser.username || 'user'}`, 'success');
-                }
-
-                await updateStats();
-                await loadCommunityData();
-
-            } catch (error) {
-                console.error('Error toggling follow:', error);
-                showToast('Error updating follow status', 'error');
-            }
+        function populateRestaurantSelect() {
+            const restaurantSelect = document.getElementById('restaurantSelect');
+            if (!restaurantSelect) return;
+            
+            restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
+            
+            restaurants.forEach(restaurant => {
+                const option = document.createElement('option');
+                option.value = restaurant.id;
+                option.textContent = `${restaurant.name} (${restaurant.category})`;
+                restaurantSelect.appendChild(option);
+            });
         }
 
         async function updateStats(userId = null) {
             const targetId = userId || currentUser.id;
             
             try {
-                // Get visited count from journal entries
-                const { data: journalEntries } = await supabase
+                // Get visited count
+                const { data: journalEntries, error: journalError } = await supabase
                     .from('journal_entries')
                     .select('restaurant_id')
                     .eq('user_id', targetId);
+
+                let allRestaurantIds = [];
+                if (!journalError && journalEntries) {
+                    allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
+                }
                 
-                const visitedCount = new Set(journalEntries?.map(entry => entry.restaurant_id) || []).size;
+                // Get from Visited list
+                const { data: visitedList, error: listError } = await supabase
+                    .from('lists')
+                    .select('id')
+                    .eq('user_id', targetId)
+                    .eq('title', 'Visited')
+                    .single();
+
+                if (!listError && visitedList) {
+                    const { data: listRestaurants, error: listRestError } = await supabase
+                        .from('lists_restraunts')
+                        .select('restraunt_id')
+                        .eq('list_id', visitedList.id);
+                    
+                    if (!listRestError && listRestaurants) {
+                        const listIds = listRestaurants.map(item => item.restraunt_id);
+                        allRestaurantIds = [...allRestaurantIds, ...listIds];
+                    }
+                }
+
+                const visitedCount = new Set(allRestaurantIds).size;
                 
                 // Get followers count
-                const { data: followers } = await supabase
+                const { data: followers, error: followersError } = await supabase
                     .from('follows')
                     .select('id')
                     .eq('followed_id', targetId);
-                
-                const followersCount = followers?.length || 0;
-                
-                // Get reviews count
-                const reviewsCount = journalEntries?.length || 0;
+
+                const followersCount = followers ? followers.length : 0;
                 
                 // Get lists count
-                const { data: lists } = await supabase
+                const { data: userLists, error: listsError } = await supabase
                     .from('lists')
                     .select('id')
                     .eq('user_id', targetId);
+
+                const listsCount = userLists ? userLists.length : 0;
                 
-                const listsCount = lists?.length || 0;
+                // Get journal entries count
+                const { data: userJournalEntries, error: journalCountError } = await supabase
+                    .from('journal_entries')
+                    .select('id')
+                    .eq('user_id', targetId);
+
+                const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
                 
                 // Update UI
                 document.getElementById('visitedCount').textContent = visitedCount;
                 document.getElementById('followersCount').textContent = followersCount;
                 document.getElementById('listsCount').textContent = listsCount;
                 document.getElementById('reviewsCount').textContent = reviewsCount;
-                document.getElementById('visitedCountMeta').textContent = 
-                    `${visitedCount} restaurants visited`;
+                document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
                 
             } catch (error) {
                 console.error('Error updating stats:', error);
+                // Set fallback values
                 document.getElementById('visitedCount').textContent = 0;
                 document.getElementById('followersCount').textContent = 0;
                 document.getElementById('listsCount').textContent = 0;
@@ -1482,349 +2186,407 @@
             }
         }
 
-        // Load restaurants from database
-        async function loadRestaurants() {
-            try {
-                const { data, error } = await supabase
-                    .from('restraunts')
-                    .select('id, slug, name, category, description, rating, image')
-                    .order('rating', { ascending: false });
+        // List Management System
+        const listManager = {
+            userLists: [],
+            currentLists: {
+                favorites: null,
+                visited: null,
+                wantToGo: null
+            },
+            
+            async init() { 
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+                
+                await this.loadUserLists(targetId);
+                await this.loadListRestaurants();
+                await this.loadCustomLists(targetId);
+                this.renderListsGrid();
+            },
+            
+            async loadUserLists(userId) {
+                try {
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', userId);
+                    
+                    if (error) throw error;
+                    
+                    this.userLists = lists || [];
+                    await this.setupDefaultLists(userId);
+                    
+                } catch (error) {
+                    console.error('Error loading lists:', error);
+                }
+            },
+            
+            async setupDefaultLists(userId) {
+                this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+                this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+                this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                
+                if (isViewingOwnProfile) {
+                    if (!this.currentLists.favorites) {
+                        this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId);
+                    }
+                    if (!this.currentLists.visited) {
+                        this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId);
+                    }
+                    if (!this.currentLists.wantToGo) {
+                        this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId);
+                    }
+                }
+            },
+            
+            async createList(title, description, userId = currentUser.id) {
+                const { data: newList, error } = await supabase
+                    .from('lists')
+                    .insert([{ 
+                        user_id: userId, 
+                        title: title, 
+                        description: description,
+                        is_default: true
+                    }])
+                    .select()
+                    .single();
                 
                 if (error) {
-                    console.error('Supabase error:', error);
-                    // Use fallback data if database fails
-                    restaurants = getFallbackRestaurants();
-                } else {
-                    restaurants = data || [];
+                    console.error('Error creating list:', error);
+                    return null;
                 }
                 
-                // Populate restaurant select dropdowns
-                populateRestaurantSelect();
-                
-            } catch (error) {
-                console.error('Error loading restaurants:', error);
-                restaurants = getFallbackRestaurants();
-                populateRestaurantSelect();
-            }
-        }
-
-        function getFallbackRestaurants() {
-            return [
-                { id: 1, slug:'mori', name:'Mori Sushi', category:'Asian', description:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, image: 'mori.png' },
-                { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', description:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, image: 'kilo.png' },
-                { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', description:'Local favorite for sandwiches & quick bites.', rating:4.3, image: 'hameed.png' },
-                { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', description:'Loaded burgers & crispy fried chicken combos.', rating:4.2, image: 'bazooka.jpg' },
-                { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', description:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, image: 'mexican.jpg' }
-            ];
-        }
-
-        function populateRestaurantSelect() {
-            const select = document.getElementById('restaurantSelect');
-            if (!select) return;
+                this.userLists.push(newList);
+                return newList;
+            },
             
-            select.innerHTML = '<option value="">Select a restaurant</option>';
+            async loadListRestaurants() {
+                for (const listType in this.currentLists) {
+                    const list = this.currentLists[listType];
+                    if (list) {
+                        const { data: listRestraunts, error } = await supabase
+                            .from('lists_restraunts')
+                            .select('restraunt_id')
+                            .eq('list_id', list.id);
+                        
+                        if (!error && listRestraunts) {
+                            list.restaurants = listRestraunts.map(item => item.restraunt_id);
+                        } else {
+                            list.restaurants = [];
+                        }
+                    }
+                }
+            },
             
-            restaurants.forEach(restaurant => {
-                const option = document.createElement('option');
-                option.value = restaurant.id;
-                option.textContent = `${restaurant.name} (${restaurant.category})`;
-                select.appendChild(option);
-            });
-        }
+            async loadCustomLists(userId) {
+                if (!userId) return;
+                
+                try {
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .eq('is_default', false);
+                    
+                    if (error) throw error;
+                    
+                    customLists = lists || [];
+                    
+                    for (const list of customLists) {
+                        const { data: listRestraunts, error } = await supabase
+                            .from('lists_restraunts')
+                            .select('restraunt_id')
+                            .eq('list_id', list.id);
+                        
+                        if (!error && listRestraunts) {
+                            list.restaurants = listRestraunts.map(item => item.restraunt_id);
+                        } else {
+                            list.restaurants = [];
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading custom lists:', error);
+                }
+            },
 
-        // === JOURNAL FUNCTIONS ===
-        async function loadJournalEntries() {
-            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-            const container = document.getElementById('journalEntries');
-            if (!container) return;
-            
-            try {
-                const { data: entries, error } = await supabase
-                    .from('journal_entries')
-                    .select('*')
-                    .eq('user_id', targetId)
-                    .order('created_at', { ascending: false });
+            async toggleInList(listType, restrauntId) {
+                let list;
                 
-                if (error) throw error;
+                if (typeof listType === 'number') {
+                    list = customLists.find(l => l.id === listType);
+                    if (!list) return false;
+                } else {
+                    list = this.currentLists[listType];
+                    if (!list) return false;
+                }
                 
-                if (!entries || entries.length === 0) {
-                    container.innerHTML = `
+                const isInList = list.restaurants?.includes(restrauntId);
+                
+                try {
+                    if (isInList) {
+                        const { error } = await supabase
+                            .from('lists_restraunts')
+                            .delete()
+                            .match({ 
+                                list_id: list.id, 
+                                restraunt_id: restrauntId
+                            });
+                        
+                        if (error) throw error;
+                        
+                        list.restaurants = list.restaurants.filter(id => id !== restrauntId);
+                        showToast(`Removed from ${list.title}`, "info");
+                        
+                    } else {
+                        const { error } = await supabase
+                            .from('lists_restraunts')
+                            .insert([{ 
+                                list_id: list.id, 
+                                restraunt_id: restrauntId,
+                                user_id: currentUser.id,
+                                added_at: new Date().toISOString()
+                            }]);
+                        
+                        if (error) throw error;
+                        
+                        if (!list.restaurants) list.restaurants = [];
+                        list.restaurants.push(restrauntId);
+                        showToast(`Added to ${list.title}`, "success");
+                    }
+                    
+                    updateStats();
+                    return !isInList;
+                    
+                } catch (error) {
+                    console.error('Error updating list:', error);
+                    showToast('Error saving changes', 'error');
+                    return isInList;
+                }
+            },
+
+            isInList(listType, restrauntId) {
+                let list;
+                
+                if (typeof listType === 'number') {
+                    list = customLists.find(l => l.id === listType);
+                } else {
+                    list = this.currentLists[listType];
+                }
+                
+                return list?.restaurants?.includes(restrauntId) || false;
+            },
+
+            // Render lists in grid layout
+            renderListsGrid() {
+                const listsGrid = document.getElementById('listsGrid');
+                if (!listsGrid) return;
+                
+                listsGrid.innerHTML = '';
+                
+                const defaultLists = [
+                    {
+                        id: 'favorites',
+                        title: 'Favorites',
+                        description: 'Your top picks.',
+                        icon: 'fas fa-heart',
+                        color: 'var(--error)',
+                        restaurants: this.currentLists.favorites?.restaurants || [],
+                        isDefault: true
+                    },
+                    {
+                        id: 'visited',
+                        title: 'Visited',
+                        description: 'Restaurants you have checked out.',
+                        icon: 'fas fa-check-circle',
+                        color: 'var(--success)',
+                        restaurants: this.currentLists.visited?.restaurants || [],
+                        isDefault: true
+                    },
+                    {
+                        id: 'wantToGo',
+                        title: 'Want To Go',
+                        description: 'Saved for later.',
+                        icon: 'fas fa-bookmark',
+                        color: 'var(--accent)',
+                        restaurants: this.currentLists.wantToGo?.restaurants || [],
+                        isDefault: true
+                    }
+                ];
+                
+                const allLists = [...defaultLists, ...customLists.map(list => ({
+                    id: list.id,
+                    title: list.title,
+                    description: list.description || 'Your custom-made collection.',
+                    icon: 'fas fa-utensils',
+                    color: 'var(--accent)',
+                    restaurants: list.restaurants || [],
+                    isDefault: false
+                }))];
+                
+                if (allLists.length === 0) {
+                    listsGrid.innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">No Reviews Yet</h3>
-                            <p class="empty-description">${isViewingOwnProfile ? 'Start reviewing restaurants!' : 'No reviews yet'}</p>
-                            ${isViewingOwnProfile ? `
-                                <button class="btn btn-primary" onclick="showModal('addEntryModal')" style="margin-top: 16px;">
-                                    <i class="fas fa-plus"></i> Add Your First Review
+                            <div class="empty-icon">📋</div>
+                            <h3 class="empty-title">No Lists Yet</h3>
+                            <p class="empty-description">Create your first list to organize restaurants by occasion, cuisine, or mood!</p>
+                            <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
+                                <i class="fas fa-plus"></i> Create Your First List
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                allLists.forEach(list => {
+                    const listCard = document.createElement('div');
+                    listCard.className = 'list-card';
+                    
+                    const previewItems = [];
+                    const restrauntIds = list.restaurants || [];
+                    const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
+                    
+                    for (let i = 0; i < 4; i++) {
+                        if (shuffledIds[i]) {
+                            const restrauntId = shuffledIds[i];
+                            const restraunt = restaurants.find(r => r.id === restrauntId);
+                            if (restraunt) {
+                                previewItems.push(`
+                                    <div class="list-preview-item">
+                                        <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                                    </div>
+                                `);
+                            } else {
+                                previewItems.push(`
+                                    <div class="list-preview-item">
+                                        <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                            🍽️
+                                        </div>
+                                    </div>
+                                `);
+                            }
+                        } else {
+                            previewItems.push(`
+                                <div class="list-preview-item">
+                                    <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                        🍽️
+                                    </div>
+                                </div>
+                            `);
+                        }
+                    }
+                    
+                    listCard.innerHTML = `
+                        <div class="list-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <h3 class="list-card-title">
+                                <i class="${list.icon}" style="color: ${list.color};"></i>
+                                ${list.title}
+                            </h3>
+                            ${!list.isDefault && isViewingOwnProfile ? `
+                                <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); listManager.showEditListModal(${JSON.stringify(list).replace(/"/g, '&quot;')})" style="background: transparent; border: none; color: var(--muted);">
+                                    <i class="fas fa-ellipsis-v"></i>
                                 </button>
                             ` : ''}
                         </div>
-                    `;
-                    return;
-                }
-                
-                container.innerHTML = '';
-                
-                for (const entry of entries) {
-                    const restaurant = restaurants.find(r => r.id === entry.restaurant_id) || {
-                        name: 'Unknown Restaurant',
-                        category: 'Unknown',
-                        slug: '#',
-                        image: null
-                    };
-                    
-                    const entryEl = document.createElement('div');
-                    entryEl.className = 'journal-entry';
-                    
-                    // Create restaurant info
-                    const restaurantInfo = document.createElement('div');
-                    restaurantInfo.className = 'restaurant-info';
-                    restaurantInfo.style.cursor = 'pointer';
-                    restaurantInfo.onclick = () => {
-                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    };
-                    
-                    const imageContent = restaurant.image ? 
-                        `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" onerror="this.onerror=null; this.src='images/default-logo.jpg';">` :
-                        '🍽️';
-                    
-                    restaurantInfo.innerHTML = `
-                        <div class="restaurant-image">
-                            ${imageContent}
+                        <p class="list-card-description">${list.description}</p>
+                        <div class="list-preview-grid">
+                            ${previewItems.join('')}
                         </div>
-                        <div class="restaurant-details">
-                            <h3>${restaurant.name}</h3>
-                            <div class="restaurant-category">${restaurant.category}</div>
+                        <div class="d-flex justify-between align-center mt-md">
+                            <span class="text-sm text-muted">${restrauntIds.length} places</span>
+                            <button class="list-card-button" onclick="event.stopPropagation(); showList(${list.isDefault ? `'${list.id}'` : `'${list.id}'`})">View List</button>
                         </div>
                     `;
                     
-                    const entryContent = `
-                        <div class="entry-header">
-                            ${restaurantInfo.outerHTML}
-                            <div class="entry-rating">
-                                ${'⭐'.repeat(Math.floor(entry.rating))}
-                                <span>${entry.rating}/5</span>
-                            </div>
-                        </div>
-                        <div class="entry-notes">
-                            ${entry.notes ? entry.notes.replace(/\n/g, '<br>') : 'No review text'}
-                        </div>
-                        <div class="entry-date">
-                            ${new Date(entry.created_at).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric'
-                            })}
-                        </div>
-                    `;
-                    
-                    entryEl.innerHTML = entryContent;
-                    
-                    // Add edit/delete buttons for own entries
-                    if (isViewingOwnProfile) {
-                        const actionsDiv = document.createElement('div');
-                        actionsDiv.className = 'entry-actions';
-                        actionsDiv.innerHTML = `
-                            <button class="btn btn-secondary btn-sm" onclick="editJournalEntry('${entry.id}')">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteJournalEntry('${entry.id}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                        entryEl.appendChild(actionsDiv);
-                    }
-                    
-                    container.appendChild(entryEl);
-                }
-                
-            } catch (error) {
-                console.error('Error loading journal entries:', error);
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><h3 class="empty-title">Error Loading Reviews</h3></div>';
+                    listCard.onclick = () => showList(list.id);
+                    listsGrid.appendChild(listCard);
+                });
             }
-        }
+        };
 
-        function setRating(stars) {
-            const starsElements = document.querySelectorAll('#ratingStars .rating-star');
-            starsElements.forEach((star, index) => {
-                if (index < stars) {
-                    star.classList.add('active');
-                } else {
-                    star.classList.remove('active');
-                }
-            });
-            document.getElementById('selectedRating').value = stars;
-        }
-
-        async function saveJournalEntry() {
-            const restaurantId = parseInt(document.getElementById('restaurantSelect').value);
-            const visitDate = document.getElementById('visitDate').value;
-            const rating = parseInt(document.getElementById('selectedRating').value);
-            const notes = document.getElementById('visitNotes').value.trim();
+        // Show list detail view
+        async function showList(listId) {
+            let list;
             
-            if (!restaurantId || !visitDate || rating === 0) {
-                showToast('Please fill in all required fields', 'error');
+            if (listId === 'favorites') {
+                list = listManager.currentLists.favorites;
+            } else if (listId === 'visited') {
+                list = listManager.currentLists.visited;
+            } else if (listId === 'wantToGo') {
+                list = listManager.currentLists.wantToGo;
+            } else {
+                list = customLists.find(l => l.id === listId) || 
+                       listManager.userLists.find(l => l.id === listId);
+            }
+            
+            if (!list) {
+                showToast('List not found', 'error');
                 return;
             }
             
-            try {
-                const { error } = await supabase
-                    .from('journal_entries')
-                    .insert([{
-                        user_id: currentUser.id,
-                        restaurant_id: restaurantId,
-                        visit_date: visitDate,
-                        rating: rating,
-                        notes: notes,
-                        created_at: new Date().toISOString()
-                    }]);
-                
-                if (error) throw error;
-                
-                closeModal('addEntryModal');
-                await loadJournalEntries();
-                await updateStats();
-                
-                // Reset form
-                document.getElementById('journalEntryForm').reset();
-                setRating(0);
-                document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
-                
-                showToast('Review saved successfully!', 'success');
-                
-            } catch (error) {
-                console.error('Error saving review:', error);
-                showToast('Error saving review', 'error');
-            }
-        }
-
-        async function deleteJournalEntry(entryId) {
-            if (!confirm('Are you sure you want to delete this review?')) {
-                return;
+            currentActiveList = list;
+            
+            const listsTab = document.getElementById('lists-tab');
+            const listDetailView = document.getElementById('list-detail-view');
+            
+            if (listsTab) listsTab.style.display = 'none';
+            if (listDetailView) {
+                listDetailView.style.display = 'block';
+                listDetailView.classList.add('active');
             }
             
-            try {
-                const { error } = await supabase
-                    .from('journal_entries')
-                    .delete()
-                    .eq('id', entryId)
-                    .eq('user_id', currentUser.id);
-                
-                if (error) throw error;
-                
-                await loadJournalEntries();
-                await updateStats();
-                
-                showToast('Review deleted successfully!', 'success');
-                
-            } catch (error) {
-                console.error('Error deleting review:', error);
-                showToast('Error deleting review', 'error');
+            document.getElementById('listDetailTitle').textContent = list.title;
+            document.getElementById('listDetailDescription').textContent = list.description || '';
+            
+            const editListBtn = document.getElementById('editListBtn');
+            const addToListBtn = document.getElementById('addToListBtn');
+            
+            if (editListBtn) {
+                editListBtn.style.display = isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listId) ? 'flex' : 'none';
             }
+            if (addToListBtn) addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
+            
+            await renderListRestaurants(list.restaurants || [], list);
         }
 
-        // === LIST MANAGEMENT ===
-        async function loadUserLists(userId = null) {
-            const targetId = userId || currentUser.id;
+        // Hide list detail view
+        function hideListDetail() {
+            const listsTab = document.getElementById('lists-tab');
+            const listDetailView = document.getElementById('list-detail-view');
             
-            try {
-                const { data: lists, error } = await supabase
-                    .from('lists')
-                    .select('*')
-                    .eq('user_id', targetId);
-                
-                if (error) {
-                    customLists = [];
-                } else {
-                    customLists = lists || [];
-                }
-                
-                // Ensure default lists exist only for own profile
-                if (isViewingOwnProfile && !userId && customLists.length === 0) {
-                    await createDefaultLists();
-                    // Reload after creating default lists
-                    await loadUserLists(targetId);
-                    return;
-                }
-                
-                // Render lists
-                renderListsGrid();
-                
-            } catch (error) {
-                customLists = [];
-                renderListsGrid();
+            if (listsTab) listsTab.style.display = 'block';
+            if (listDetailView) {
+                listDetailView.style.display = 'none';
+                listDetailView.classList.remove('active');
             }
+            
+            currentActiveList = null;
         }
 
-        async function createDefaultLists() {
-            const defaultLists = [
-                { title: 'Favorites', description: 'My favorite restaurants', icon: '❤️' },
-                { title: 'Visited', description: 'Places I have visited', icon: '✅' },
-                { title: 'Want to Go', description: 'Restaurants I want to try', icon: '📝' }
-            ];
+        // Render restaurants in a list
+        async function renderListRestaurants(restrauntIds, list) {
+            const grid = document.getElementById('listRestaurantsGrid');
+            if (!grid) return;
             
-            for (const list of defaultLists) {
-                try {
-                    await supabase
-                        .from('lists')
-                        .insert([{
-                            user_id: currentUser.id,
-                            title: list.title,
-                            description: list.description,
-                            icon: list.icon,
-                            created_at: new Date().toISOString()
-                        }]);
-                } catch (error) {
-                    console.error(`Error creating list ${list.title}:`, error);
-                }
-            }
-        }
-
-        async function createList(title, description) {
-            if (!title) {
-                showToast('Please enter a list name', 'error');
-                return;
-            }
+            grid.innerHTML = '';
             
-            try {
-                const { error } = await supabase
-                    .from('lists')
-                    .insert([{ 
-                        user_id: currentUser.id, 
-                        title: title, 
-                        description: description,
-                        icon: '📋',
-                        created_at: new Date().toISOString()
-                    }]);
-                
-                if (error) throw error;
-                
-                closeModal('createListModal');
-                showToast('List created successfully!', 'success');
-                
-                // Reload lists
-                await loadUserLists();
-                await updateStats();
-                
-            } catch (error) {
-                console.error('Error creating list:', error);
-                showToast('Error creating list', 'error');
-            }
-        }
-
-        async function renderListsGrid() {
-            const listsGrid = document.getElementById('listsGrid');
-            if (!listsGrid) return;
+            const numericIds = restrauntIds.map(id => Number(id));
+            const listRestraunts = restaurants.filter(r => numericIds.includes(r.id));
             
-            if (customLists.length === 0) {
-                listsGrid.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1 / -1;">
-                        <div class="empty-icon">📋</div>
-                        <h3 class="empty-title">No Lists Yet</h3>
-                        <p class="empty-description">${isViewingOwnProfile ? 'Create your first list to organize your favorite restaurants!' : 'This user has no lists yet'}</p>
+            if (listRestraunts.length === 0) {
+                const emptyStateText = isViewingOwnProfile ? 
+                    'Start adding restaurants to your list!' :
+                    'This list is currently empty.';
+                
+                grid.innerHTML = `
+                    <div class="empty-state w-100">
+                        <div class="empty-icon">🍽️</div>
+                        <h3 class="empty-title">No Restaurants Yet</h3>
+                        <p class="empty-description">${emptyStateText}</p>
                         ${isViewingOwnProfile ? `
-                            <button class="btn btn-primary" onclick="showModal('createListModal')" style="margin-top: 16px;">
-                                <i class="fas fa-plus"></i> Create Your First List
+                            <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                                <i class="fas fa-plus"></i> Add Your First Restaurant
                             </button>
                         ` : ''}
                     </div>
@@ -1832,520 +2594,583 @@
                 return;
             }
             
-            listsGrid.innerHTML = '';
+            const listDetailTitle = document.getElementById('listDetailTitle');
+            if (listDetailTitle) {
+                listDetailTitle.textContent = `${list.title} (${listRestraunts.length} places)`;
+            }
             
-            for (const list of customLists) {
-                // Get restaurant count for this list
-                const { data: listRestaurants, error } = await supabase
-                    .from('lists_restraunts')
-                    .select('restraunt_id')
-                    .eq('list_id', list.id);
+            listRestraunts.forEach(restraunt => {
+                const card = document.createElement('div');
+                card.className = 'card';
                 
-                const restaurantCount = listRestaurants?.length || 0;
+                const clickableContent = document.createElement('a');
+                clickableContent.href = `restaurant.html?slug=${restraunt.slug}`;
+                clickableContent.style.textDecoration = 'none';
+                clickableContent.style.color = 'inherit';
+                clickableContent.style.display = 'block';
+                clickableContent.style.height = '100%';
                 
-                // Get preview images (first 4 restaurants)
-                let previewItems = '';
-                if (listRestaurants && listRestaurants.length > 0) {
-                    const previewRestaurantIds = listRestaurants.slice(0, 4).map(lr => lr.restraunt_id);
-                    const previewRestaurants = restaurants.filter(r => previewRestaurantIds.includes(r.id));
-                    
-                    previewItems = previewRestaurants.map(restaurant => `
-                        <div class="list-preview-item">
-                            ${restaurant.image ? 
-                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" onerror="this.onerror=null; this.src='images/default-logo.jpg';">` :
-                                '<div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">🍽️</div>'
-                            }
-                        </div>
-                    `).join('');
-                } else {
-                    previewItems = Array(4).fill(0).map(() => `
-                        <div class="list-preview-item">
-                            <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                🍽️
+                clickableContent.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex align-center gap-md">
+                            <div class="restaurant-image" style="width: 60px; height: 60px;">
+                                <img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 4px;">${restraunt.name}</h3>
+                                <div class="text-sm text-muted">${restraunt.category}</div>
+                                <div class="text-sm" style="margin-top: 4px;">⭐ ${restraunt.rating}</div>
                             </div>
                         </div>
-                    `).join('');
-                }
-                
-                const listCard = document.createElement('div');
-                listCard.className = 'list-card';
-                listCard.onclick = () => window.location.href = `list.html?id=${list.id}`;
-                
-                listCard.innerHTML = `
-                    <div class="list-card-title">
-                        <span>${list.icon || '📋'}</span>
-                        ${list.title}
-                    </div>
-                    <div class="list-card-description">${list.description || 'No description'}</div>
-                    <div class="list-preview-grid">
-                        ${previewItems}
-                    </div>
-                    <div class="list-card-footer">
-                        <span style="font-size: 12px; color: var(--muted);">${restaurantCount} ${restaurantCount === 1 ? 'place' : 'places'}</span>
-                        <span style="font-size: 12px; color: var(--muted);">Click to view</span>
                     </div>
                 `;
                 
-                listsGrid.appendChild(listCard);
-            }
+                card.appendChild(clickableContent);
+                
+                if (isViewingOwnProfile) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'btn btn-secondary btn-sm';
+                    removeBtn.style.position = 'absolute';
+                    removeBtn.style.top = '10px';
+                    removeBtn.style.right = '10px';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.onclick = async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await listManager.toggleInList(list.id, restraunt.id);
+                        await renderListRestaurants(list.restaurants || [], list);
+                    };
+                    card.style.position = 'relative';
+                    card.appendChild(removeBtn);
+                }
+                
+                grid.appendChild(card);
+            });
         }
 
-        // === COMMUNITY FUNCTIONS ===
-        async function loadCommunityData(userId = null) {
-            const targetId = userId || currentUser.id;
+        // Food Journal System
+        const foodJournal = {
+            async init() {
+                await this.loadJournalEntries();
+            },
             
-            // Load both followers and following
-            await Promise.all([
-                loadFollowers(targetId),
-                loadFollowing(targetId)
-            ]);
-        }
+            async loadJournalEntries() {
+                const journalEntries = document.getElementById('journalEntries');
+                if (!journalEntries) return;
+                
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+                
+                try {
+                    const { data: entries, error } = await supabase
+                        .from('journal_entries')
+                        .select('*')
+                        .eq('user_id', targetId)
+                        .order('created_at', { ascending: false });
 
-        async function loadFollowers(userId) {
-            const grid = document.getElementById('followersList');
-            if (!grid) return;
-            
-            try {
-                // Get followers
-                const { data: followers, error } = await supabase
-                    .from('follows')
-                    .select('follower_id')
-                    .eq('followed_id', userId);
-                
-                if (error) throw error;
-                
-                if (!followers || followers.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1 / -1;">
-                            <div class="empty-icon">👥</div>
-                            <h3 class="empty-title">No Followers Yet</h3>
-                            <p class="empty-description">${isViewingOwnProfile ? 'Share your profile to get followers!' : 'This user has no followers yet'}</p>
+                    if (error) throw error;
+                    
+                    if (!entries || entries.length === 0) {
+                        const emptyStateText = isViewingOwnProfile ? 
+                            'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
+                            'This user hasn\'t reviewed any restaurants yet.';
+                        
+                        journalEntries.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📝</div>
+                                <h3 class="empty-title">No Reviews Yet</h3>
+                                <p class="empty-description">${emptyStateText}</p>
+                                ${isViewingOwnProfile ? `
+                                    <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                        <i class="fas fa-utensils"></i> Browse Restaurants
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    journalEntries.innerHTML = '';
+                    
+                    let entriesToShow = entries;
+                    if (journalFilter === 'recent') {
+                        entriesToShow = entries.slice(0, 5);
+                    } else if (journalFilter === 'favorites') {
+                        entriesToShow = entries.filter(entry => entry.rating >= 4);
+                    }
+                    
+                    for (const entry of entriesToShow) {
+                        const restaurantId = entry.restaurant_id;
+                        const restaurant = restaurants.find(r => r.id === restaurantId);
+                        
+                        if (!restaurant) continue;
+                        
+                        this.renderJournalEntry(entry, restaurant);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading journal entries:', error);
+                    journalEntries.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Unable to Load Reviews</h3>
+                            <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
                         </div>
                     `;
+                }
+            },
+            
+            renderJournalEntry(entry, restaurant) {
+                const journalEntries = document.getElementById('journalEntries');
+                const entryElement = document.createElement('div');
+                entryElement.className = 'journal-entry';
+                entryElement.style.cursor = 'pointer';
+                entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
+                
+                const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
+                const restaurantImage = restaurant.image ? 
+                    `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                    `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                
+                entryElement.innerHTML = `
+                    <div class="entry-header">
+                        <div class="restaurant-info">
+                            <div class="restaurant-image">
+                                <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
+                                    ${restaurantImage}
+                                </a>
+                            </div>
+                            <div class="restaurant-details">
+                                <h3>
+                                    <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
+                                        ${restaurant.name}
+                                    </a>
+                                </h3>
+                                <div class="restaurant-category">${restaurant.category}</div>
+                            </div>
+                        </div>
+                        <div class="entry-rating">
+                            ${'⭐'.repeat(Math.floor(entry.rating))}
+                            <span>${entry.rating}/5</span>
+                        </div>
+                    </div>
+                    <div class="entry-meta">
+                        <div class="meta-badge">
+                            <i class="fas fa-calendar"></i>
+                            ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                        </div>
+                        <div class="meta-badge">
+                            <i class="fas fa-utensils"></i>
+                            ${restaurant.category}
+                        </div>
+                        <div class="meta-badge">
+                            <i class="fas fa-star"></i>
+                            ${entry.rating}/5
+                        </div>
+                    </div>
+                    <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
+                    ${entry.tags ? `
+                        <div class="entry-tags">
+                            ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    ${isViewingOwnProfile ? `
+                        <div class="entry-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', ${restaurant.id})">
+                                <i class="fas fa-heart"></i> Favorite
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+                journalEntries.appendChild(entryElement);
+            },
+            
+            async editJournalEntry(entry, restaurant) {
+                if (!isViewingOwnProfile) {
+                    this.showJournalEntryDetail(entry, restaurant);
+                    return;
+                }
+
+                const restaurantSelect = document.getElementById('restaurantSelect');
+                const visitDate = document.getElementById('visitDate');
+                const visitNotes = document.getElementById('visitNotes');
+                const visitTags = document.getElementById('visitTags');
+                
+                if (restaurantSelect) restaurantSelect.value = entry.restaurant_id;
+                if (visitDate) visitDate.value = entry.visit_date || entry.created_at.split('T')[0];
+                if (visitNotes) visitNotes.value = entry.notes || '';
+                if (visitTags) visitTags.value = entry.tags || '';
+                
+                this.setRating(entry.rating);
+                currentEditingJournalEntry = entry.id;
+                
+                const modalTitle = document.querySelector('#addEntryModal .modal-title');
+                const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+                
+                if (modalTitle) modalTitle.textContent = 'Edit Journal Entry';
+                if (submitButton) submitButton.textContent = 'Update Entry';
+                
+                showModal('addEntryModal');
+            },
+
+            setRating(stars) {
+                const starsElements = document.querySelectorAll('#ratingStars span');
+                starsElements.forEach((star, index) => {
+                    if (index < stars) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+                
+                const selectedRating = document.getElementById('selectedRating');
+                if (selectedRating) selectedRating.value = stars;
+            },
+            
+            async saveJournalEntry() {
+                const restaurantId = parseInt(document.getElementById('restaurantSelect')?.value);
+                const visitDate = document.getElementById('visitDate')?.value;
+                const rating = parseInt(document.getElementById('selectedRating')?.value || '0');
+                const notes = document.getElementById('visitNotes')?.value || '';
+                const tags = (document.getElementById('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
+                
+                if (!restaurantId || !visitDate || rating === 0) {
+                    showToast('Please fill in all required fields', 'error');
                     return;
                 }
                 
-                // Get user details for each follower
-                const followerIds = followers.map(f => f.follower_id);
-                const { data: users, error: usersError } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .in('id', followerIds);
-                
-                if (usersError) throw usersError;
-                
-                grid.innerHTML = '';
-                
-                for (const user of users) {
-                    const card = document.createElement('div');
-                    card.className = 'list-card';
-                    card.onclick = () => viewUserProfile(user.id);
+                try {
+                    if (currentEditingJournalEntry) {
+                        const { error } = await supabase
+                            .from('journal_entries')
+                            .update({
+                                restaurant_id: restaurantId,
+                                visit_date: visitDate,
+                                rating: rating,
+                                notes: notes,
+                                tags: tags.join(','),
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', currentEditingJournalEntry);
+                        
+                        if (error) throw error;
+                        
+                        showToast('Journal entry updated successfully!', 'success');
+                        currentEditingJournalEntry = null;
+                        
+                    } else {
+                        const { error } = await supabase
+                            .from('journal_entries')
+                            .insert({
+                                user_id: currentUser.id,
+                                restaurant_id: restaurantId,
+                                visit_date: visitDate,
+                                rating: rating,
+                                notes: notes,
+                                tags: tags.join(','),
+                                created_at: new Date().toISOString()
+                            });
+                        
+                        if (error) throw error;
+                        
+                        await listManager.toggleInList('visited', restaurantId);
+                        const restaurant = restaurants.find(r => r.id === restaurantId);
+                        showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
+                    }
                     
-                    card.innerHTML = `
-                        <div class="d-flex align-center gap-md">
-                            <div class="profile-avatar" style="width: 60px; height: 60px; font-size: 24px;">
-                                ${user.avatar_icon || '👤'}
-                            </div>
-                            <div>
-                                <div class="list-card-title" style="margin-bottom: 4px;">
-                                    ${user.full_name || user.username || 'User'}
-                                </div>
-                                <div class="list-card-description" style="margin-bottom: 0;">
-                                    @${user.username || 'user'}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="list-card-footer">
-                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); followUser('${user.id}')">
-                                Follow Back
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); viewUserProfile('${user.id}')">
-                                View Profile
-                            </button>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                }
-                
-            } catch (error) {
-                console.error('Error loading followers:', error);
-                grid.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><h3 class="empty-title">Error Loading Followers</h3></div>';
-            }
-        }
-
-        async function loadFollowing(userId) {
-            const grid = document.getElementById('followingList');
-            if (!grid) return;
-            
-            try {
-                // Get following
-                const { data: following, error } = await supabase
-                    .from('follows')
-                    .select('followed_id')
-                    .eq('follower_id', userId);
-                
-                if (error) throw error;
-                
-                if (!following || following.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1 / -1;">
-                            <div class="empty-icon">👥</div>
-                            <h3 class="empty-title">Not Following Anyone</h3>
-                            <p class="empty-description">${isViewingOwnProfile ? 'Discover and follow other food lovers!' : 'This user is not following anyone'}</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Get user details for each followed user
-                const followingIds = following.map(f => f.followed_id);
-                const { data: users, error: usersError } = await supabase
-                    .from('user_profiles')
-                    .select('*')
-                    .in('id', followingIds);
-                
-                if (usersError) throw usersError;
-                
-                grid.innerHTML = '';
-                
-                for (const user of users) {
-                    const card = document.createElement('div');
-                    card.className = 'list-card';
-                    card.onclick = () => viewUserProfile(user.id);
+                    closeModal('addEntryModal');
                     
-                    card.innerHTML = `
-                        <div class="d-flex align-center gap-md">
-                            <div class="profile-avatar" style="width: 60px; height: 60px; font-size: 24px;">
-                                ${user.avatar_icon || '👤'}
-                            </div>
-                            <div>
-                                <div class="list-card-title" style="margin-bottom: 4px;">
-                                    ${user.full_name || user.username || 'User'}
-                                </div>
-                                <div class="list-card-description" style="margin-bottom: 0;">
-                                    @${user.username || 'user'}
-                                </div>
-                            </div>
+                    const form = document.getElementById('journalEntryForm');
+                    if (form) form.reset();
+                    this.setRating(0);
+                    
+                    const modalTitle = document.querySelector('#addEntryModal .modal-title');
+                    const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+                    
+                    if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
+                    if (submitButton) submitButton.textContent = 'Save Entry';
+                    
+                    await this.loadJournalEntries();
+                    await updateStats();
+                    
+                } catch (error) {
+                    console.error('Error saving journal entry:', error);
+                    showToast('Error saving journal entry', 'error');
+                }
+            }
+        };
+
+        // Follower System
+        const followerSystem = {
+            currentSection: 'followers',
+            
+            async init() {
+                if (!currentUser) return;
+                await this.loadFollowStats();
+            },
+
+            async loadFollowStats() {
+                try {
+                    const { data: followers, error: followersError } = await supabase
+                        .from('follows')
+                        .select('follower_id')
+                        .eq('followed_id', currentUser.id);
+
+                    const { data: following, error: followingError } = await supabase
+                        .from('follows')
+                        .select('followed_id')
+                        .eq('follower_id', currentUser.id);
+
+                    const followersCountBadge = document.getElementById('followersCountBadge');
+                    const followingCountBadge = document.getElementById('followingCountBadge');
+                    
+                    if (followersCountBadge) {
+                        followersCountBadge.textContent = followers ? followers.length : 0;
+                    }
+                    if (followingCountBadge) {
+                        followingCountBadge.textContent = following ? following.length : 0;
+                    }
+
+                } catch (error) {
+                    console.error('Error loading follow stats:', error);
+                }
+            }
+        };
+
+        // Achievements System
+        const achievementsSystem = {
+            async init() {
+                await this.loadAchievements();
+            },
+
+            async loadAchievements() {
+                const achievementsList = document.getElementById('achievementsList');
+                if (!achievementsList) return;
+
+                // For now, show sample achievements
+                this.displaySampleAchievements();
+            },
+
+            displaySampleAchievements() {
+                const sampleAchievements = [
+                    { 
+                        id: 1, 
+                        name: "Food Explorer", 
+                        description: "Visit 10 different restaurants", 
+                        icon: "🗺️", 
+                        goal: 10,
+                        points: 50
+                    },
+                    { 
+                        id: 2, 
+                        name: "Cuisine Connoisseur", 
+                        description: "Try 5 different cuisines", 
+                        icon: "🌍", 
+                        goal: 5,
+                        points: 75
+                    },
+                    { 
+                        id: 3, 
+                        name: "Review Master", 
+                        description: "Write 15 reviews", 
+                        icon: "📝", 
+                        goal: 15,
+                        points: 100
+                    }
+                ];
+
+                const achievementsList = document.getElementById('achievementsList');
+                if (!achievementsList) return;
+
+                achievementsList.innerHTML = '';
+
+                sampleAchievements.forEach(achievement => {
+                    const progress = Math.floor(Math.random() * (achievement.goal + 2));
+                    const unlocked = progress >= achievement.goal;
+                    const progressPercentage = Math.min((progress / achievement.goal) * 100, 100);
+
+                    const achievementElement = document.createElement('div');
+                    achievementElement.className = `achievement-card ${unlocked ? '' : 'locked'}`;
+                    achievementElement.innerHTML = `
+                        <div class="achievement-icon">
+                            ${achievement.icon}
+                            ${unlocked ? '<div class="achievement-badge">✓</div>' : ''}
                         </div>
-                        <div class="list-card-footer">
-                            <button class="btn btn-error btn-sm" onclick="event.stopPropagation(); unfollowUser('${user.id}')">
-                                Unfollow
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); viewUserProfile('${user.id}')">
-                                View Profile
-                            </button>
+                        <div class="achievement-title">${achievement.name}</div>
+                        <div class="achievement-desc">${achievement.description}</div>
+                        <div class="achievement-progress">
+                            <div class="achievement-progress-bar" style="width: ${progressPercentage}%"></div>
+                        </div>
+                        <div class="text-xs text-muted mt-sm">
+                            ${progress}/${achievement.goal} • ${achievement.points} pts
                         </div>
                     `;
-                    grid.appendChild(card);
-                }
-                
-            } catch (error) {
-                console.error('Error loading following:', error);
-                grid.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><h3 class="empty-title">Error Loading Following</h3></div>';
+                    achievementsList.appendChild(achievementElement);
+                });
             }
+        };
+
+        // Utility Functions
+        function getUserIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            return id ? id.trim() : null;
         }
 
-        function showCommunitySection(section) {
-            // Update button states
-            document.querySelectorAll('#community-tab .btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Show/hide sections
-            document.getElementById('followersSection').style.display = 'none';
-            document.getElementById('followingSection').style.display = 'none';
-            document.getElementById(`${section}Section`).style.display = 'block';
-        }
-
-        async function followUser(userId) {
-            try {
-                const { error } = await supabase
-                    .from('follows')
-                    .insert({
-                        follower_id: currentUser.id,
-                        followed_id: userId,
-                        created_at: new Date().toISOString()
-                    });
-                
-                if (error) throw error;
-                
-                showToast('Followed user!', 'success');
-                await loadCommunityData();
-                await updateStats();
-                
-            } catch (error) {
-                console.error('Error following user:', error);
-                showToast('Error following user', 'error');
-            }
-        }
-
-        async function unfollowUser(userId) {
-            try {
-                const { error } = await supabase
-                    .from('follows')
-                    .delete()
-                    .match({ follower_id: currentUser.id, followed_id: userId });
-                
-                if (error) throw error;
-                
-                showToast('Unfollowed user!', 'success');
-                await loadCommunityData();
-                await updateStats();
-                
-            } catch (error) {
-                console.error('Error unfollowing user:', error);
-                showToast('Error unfollowing user', 'error');
-            }
-        }
-
-        function viewUserProfile(userId) {
-            window.location.href = `profile.html?id=${userId}`;
-        }
-
-        // === AVATAR FUNCTIONS ===
-        function showAvatarModal() {
-            if (!isViewingOwnProfile) {
-                showToast('You can only change your own avatar', 'info');
-                return;
-            }
-            
-            const avatarIconGrid = document.getElementById('avatarIconGrid');
-            if (!avatarIconGrid) return;
-            
-            avatarIconGrid.innerHTML = '';
-            
-            foodIcons.forEach(icon => {
-                const iconOption = document.createElement('div');
-                iconOption.className = `avatar-icon-option ${userProfile?.avatar_icon === icon ? 'selected' : ''}`;
-                iconOption.textContent = icon;
-                iconOption.onclick = () => {
-                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    iconOption.classList.add('selected');
-                    selectedAvatarIcon = icon;
-                };
-                avatarIconGrid.appendChild(iconOption);
-            });
-            
-            showModal('avatarModal');
-        }
-
-        async function saveAvatar() {
-            if (!selectedAvatarIcon) {
-                showToast('Please select an avatar', 'error');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('user_profiles')
-                    .update({ avatar_icon: selectedAvatarIcon })
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                document.getElementById('profileAvatar').textContent = selectedAvatarIcon;
-                userProfile.avatar_icon = selectedAvatarIcon;
-                
-                closeModal('avatarModal');
-                showToast('Avatar updated!', 'success');
-                
-            } catch (error) {
-                console.error('Error updating avatar:', error);
-                showToast('Error updating avatar', 'error');
-            }
-        }
-
-        // === PROFILE EDIT FUNCTIONS ===
-        async function saveProfileChanges() {
-            const displayName = document.getElementById('editDisplayName').value.trim();
-            const username = document.getElementById('editUsername').value.trim();
-            const bio = document.getElementById('editBio').value.trim();
-            const location = document.getElementById('editLocation').value.trim();
-            
-            if (!displayName || !username) {
-                showToast('Please fill in display name and username', 'error');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('user_profiles')
-                    .update({
-                        full_name: displayName,
-                        username: username,
-                        bio: bio,
-                        location: location,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                userProfile = {
-                    ...userProfile,
-                    full_name: displayName,
-                    username: username,
-                    bio: bio,
-                    location: location
-                };
-                
-                updateProfileUI();
-                closeModal('editProfileModal');
-                showToast('Profile updated!', 'success');
-                
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                showToast('Error updating profile', 'error');
-            }
-        }
-
-        // === UTILITY FUNCTIONS ===
         function showTab(tabName) {
-            // Update active tab
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            
-            // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
+                tab.style.display = 'none';
             });
             
-            // Show selected tab
             const tabElement = document.getElementById(`${tabName}-tab`);
-            tabElement.classList.add('active');
+            if (tabElement) {
+                tabElement.classList.add('active');
+                tabElement.style.display = 'block';
+            }
+            
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+            if (activeButton) activeButton.classList.add('active');
+            
             currentTab = tabName;
             
-            // Load content for the tab
-            switch(tabName) {
-                case 'journal':
-                    loadJournalEntries();
-                    break;
-                case 'lists':
-                    // Already loaded in init
-                    break;
-                case 'community':
-                    // Already loaded in init
-                    break;
+            if (tabName === 'followers') {
+                followerSystem.loadFollowers();
+            } else if (tabName === 'journal') {
+                foodJournal.loadJournalEntries();
+            } else if (tabName === 'achievements') {
+                achievementsSystem.loadAchievements();
+            } else if (tabName === 'lists') {
+                listManager.renderListsGrid();
             }
         }
 
         function showModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-            document.body.style.overflow = 'hidden';
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('active');
             
-            // Set current date for visit date
             if (modalId === 'addEntryModal') {
-                document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
+                const visitDate = document.getElementById('visitDate');
+                if (visitDate) {
+                    const today = new Date().toISOString().split('T')[0];
+                    visitDate.value = today;
+                }
             }
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-            document.body.style.overflow = '';
-            
-            // Reset forms
-            if (modalId === 'addEntryModal') {
-                document.getElementById('journalEntryForm').reset();
-                setRating(0);
-            } else if (modalId === 'createListModal') {
-                document.getElementById('createListForm').reset();
-            }
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('active');
         }
 
-        function goToMyProfile() {
-            window.location.href = 'profile.html';
+        function showCreateListModal() {
+            showModal('createListModal');
         }
 
-        function showToast(message, type = 'info') {
-            // Create simple toast notification
-            const toast = document.createElement('div');
-            toast.style.position = 'fixed';
-            toast.style.bottom = '20px';
-            toast.style.right = '20px';
-            toast.style.padding = '12px 20px';
-            toast.style.borderRadius = '8px';
-            toast.style.background = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6';
-            toast.style.color = 'white';
-            toast.style.zIndex = '1000';
-            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-            toast.textContent = message;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
-
-        // === EVENT LISTENERS ===
+        // Set up event listeners
         function setupEventListeners() {
-            // Journal form submission
-            document.getElementById('journalEntryForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                saveJournalEntry();
-            });
-            
-            // Create list form submission
-            document.getElementById('createListForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const title = document.getElementById('listName').value.trim();
-                const description = document.getElementById('listDescription').value.trim();
-                createList(title, description);
-            });
-            
-            // Edit profile form submission
-            document.getElementById('editProfileForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                saveProfileChanges();
-            });
-            
-            // Modal close on outside click
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
+            // Tab buttons
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    showTab(tabName);
                 });
             });
             
-            // Close modal with Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal').forEach(modal => {
-                        if (modal.classList.contains('active')) {
-                            modal.classList.remove('active');
-                            document.body.style.overflow = '';
-                        }
-                    });
-                }
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    journalFilter = this.getAttribute('data-filter');
+                    foodJournal.loadJournalEntries();
+                });
             });
+            
+            // Journal entry form
+            const journalEntryForm = document.getElementById('journalEntryForm');
+            if (journalEntryForm) {
+                journalEntryForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    foodJournal.saveJournalEntry();
+                });
+            }
+            
+            // Create list form
+            const createListForm = document.getElementById('createListForm');
+            if (createListForm) {
+                createListForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    createCustomList();
+                });
+            }
+            
+            // Edit profile form
+            const editProfileForm = document.getElementById('editProfileForm');
+            if (editProfileForm) {
+                editProfileForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await saveProfileChanges();
+                });
+            }
+            
+            // Rating stars
+            document.querySelectorAll('.rating-star').forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    foodJournal.setRating(rating);
+                });
+            });
+            
+            // List icon selection
+            document.querySelectorAll('.list-icon-option').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    document.querySelectorAll('.list-icon-option').forEach(i => {
+                        i.style.background = 'transparent';
+                        i.style.border = '1px solid transparent';
+                    });
+                    this.style.background = 'rgba(245, 158, 11, 0.1)';
+                    this.style.border = '1px solid var(--accent)';
+                    const selectedIcon = document.getElementById('selectedIcon');
+                    if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
+                });
+            });
+            
+            // Logout button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to logout?')) {
+                        showToast('Logging out...', 'info');
+                        await supabase.auth.signOut();
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1500);
+                    }
+                });
+            }
         }
+
+        // Initialize the page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initProfilePage);
 
         // Export functions for global access
         window.showTab = showTab;
         window.showModal = showModal;
         window.closeModal = closeModal;
-        window.setRating = setRating;
-        window.saveJournalEntry = saveJournalEntry;
-        window.editJournalEntry = (entryId) => {
-            // For now, just show edit modal
-            showModal('addEntryModal');
-        };
-        window.deleteJournalEntry = deleteJournalEntry;
-        window.showAvatarModal = showAvatarModal;
-        window.saveAvatar = saveAvatar;
+        window.showCreateListModal = showCreateListModal;
+        window.showList = showList;
+        window.hideListDetail = hideListDetail;
+        window.setRating = (stars) => foodJournal.setRating(stars);
         window.goToMyProfile = goToMyProfile;
-        window.viewUserProfile = viewUserProfile;
-        window.showCommunitySection = showCommunitySection;
-        window.followUser = followUser;
-        window.unfollowUser = unfollowUser;
-        window.toggleFollow = toggleFollow;
     </script>
 </body>
 </html>
