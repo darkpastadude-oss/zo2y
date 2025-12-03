@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* === DARK BLUE THEME === */
+        /* === DARK BLUE THEME (Same as restaurants) === */
         :root {
             --bg: #0b1633;
             --card: #132347;
@@ -40,27 +40,25 @@
             padding: 0 20px;
         }
 
-        /* === HOME BUTTON === */
+        /* === HOME BUTTON (Same as restaurants.html) === */
         .home-button {
             position: fixed;
             top: 20px;
             left: 20px;
             z-index: 100;
-            width: 50px;
-            height: 50px;
-            border-radius: 0;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
             text-decoration: none;
-            border: 2px solid transparent;
         }
 
         .home-button img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
         }
 
         .home-button:hover {
@@ -72,6 +70,7 @@
             background: var(--card);
             padding: 30px 0;
             margin-bottom: 20px;
+            margin-top: 60px;
         }
 
         .profile-top {
@@ -720,57 +719,6 @@
             margin-top: 20px;
         }
 
-        /* === LIST ICONS === */
-        .list-icon-option {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 20px;
-        }
-
-        .list-icon-option:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .list-icon-option.selected {
-            background: var(--accent);
-            color: #0b1633;
-        }
-
-        /* === AVATAR GRID === */
-        .avatar-icon-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .avatar-icon-option {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 24px;
-        }
-
-        .avatar-icon-option:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .avatar-icon-option.selected {
-            background: var(--accent);
-            color: #0b1633;
-        }
-
         /* === TAB CONTENT === */
         .tab-content {
             display: none;
@@ -800,6 +748,7 @@
 
             .profile-header {
                 padding: 20px 0;
+                margin-top: 50px;
             }
 
             .profile-top {
@@ -877,7 +826,7 @@
     <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-    <!-- Home Button -->
+    <!-- Home Button (Same as restaurants.html) -->
     <a href="index.html" class="home-button">
         <img src="images/logo.png" alt="Zo2y Logo">
     </a>
@@ -982,7 +931,26 @@
                     </button>
                 </div>
                 <div id="journalEntries">
-                    <!-- Reviews will load here -->
+                    <!-- Loading skeleton -->
+                    <div class="journal-entry skeleton">
+                        <div class="entry-header">
+                            <div class="restaurant-info">
+                                <div class="restaurant-image skeleton-img"></div>
+                                <div class="restaurant-details">
+                                    <h3 class="skeleton-text"></h3>
+                                    <div style="font-size: 12px; color: var(--muted);" class="skeleton-text short"></div>
+                                </div>
+                            </div>
+                            <div class="entry-rating">
+                                <span class="skeleton-text short"></span>
+                            </div>
+                        </div>
+                        <div style="font-size: 13px; color: var(--white); margin-top: 8px;">
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text short"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -997,7 +965,26 @@
                     </button>
                 </div>
                 <div class="lists-grid" id="listsGrid">
-                    <!-- Lists will load here -->
+                    <!-- Loading skeleton -->
+                    <div class="list-card skeleton">
+                        <div class="list-card-title">
+                            <div class="skeleton-text short"></div>
+                        </div>
+                        <div class="list-card-description">
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text short"></div>
+                        </div>
+                        <div class="list-preview-grid">
+                            <div class="list-preview-item skeleton-img"></div>
+                            <div class="list-preview-item skeleton-img"></div>
+                            <div class="list-preview-item skeleton-img"></div>
+                            <div class="list-preview-item skeleton-img"></div>
+                        </div>
+                        <div class="list-card-footer">
+                            <span class="skeleton-text short"></span>
+                            <span class="skeleton-text short"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1020,7 +1007,15 @@
                     </button>
                 </div>
                 <div class="restaurant-grid" id="listRestaurantsGrid">
-                    <!-- List restaurants will load here -->
+                    <!-- Loading skeleton -->
+                    <div class="restaurant-card skeleton">
+                        <div class="restaurant-media skeleton-img"></div>
+                        <div class="restaurant-content">
+                            <h3 class="restaurant-name skeleton-text"></h3>
+                            <div class="restaurant-category skeleton-text short"></div>
+                            <p class="restaurant-desc skeleton-text"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1046,14 +1041,60 @@
                 <!-- Followers Section -->
                 <div id="followersSection" style="display: block;">
                     <div class="community-grid" id="followersGrid">
-                        <!-- Followers will load here -->
+                        <!-- Loading skeleton -->
+                        <div class="user-card skeleton">
+                            <div class="user-header">
+                                <div class="user-avatar skeleton-img"></div>
+                                <div class="user-info">
+                                    <div class="user-name skeleton-text"></div>
+                                    <div class="user-username skeleton-text short"></div>
+                                </div>
+                            </div>
+                            <div class="user-stats">
+                                <div class="user-stat">
+                                    <div class="user-stat-number skeleton-text short"></div>
+                                    <div class="user-stat-label skeleton-text short"></div>
+                                </div>
+                                <div class="user-stat">
+                                    <div class="user-stat-number skeleton-text short"></div>
+                                    <div class="user-stat-label skeleton-text short"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <span class="skeleton-text"></span>
+                                <span class="skeleton-text short"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Following Section -->
                 <div id="followingSection" style="display: none;">
                     <div class="community-grid" id="followingGrid">
-                        <!-- Following will load here -->
+                        <!-- Loading skeleton -->
+                        <div class="user-card skeleton">
+                            <div class="user-header">
+                                <div class="user-avatar skeleton-img"></div>
+                                <div class="user-info">
+                                    <div class="user-name skeleton-text"></div>
+                                    <div class="user-username skeleton-text short"></div>
+                                </div>
+                            </div>
+                            <div class="user-stats">
+                                <div class="user-stat">
+                                    <div class="user-stat-number skeleton-text short"></div>
+                                    <div class="user-stat-label skeleton-text short"></div>
+                                </div>
+                                <div class="user-stat">
+                                    <div class="user-stat-number skeleton-text short"></div>
+                                    <div class="user-stat-label skeleton-text short"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <span class="skeleton-text"></span>
+                                <span class="skeleton-text short"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1180,7 +1221,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <div class="avatar-icon-grid" id="avatarIconGrid">
+                    <div id="avatarIconGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); gap: 12px; margin-bottom: 20px;">
                         <!-- Avatar icons will be populated here -->
                     </div>
                 </div>
@@ -1234,21 +1275,25 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log("🔄 Initializing profile page...");
             await initProfilePage();
             setupEventListeners();
         });
 
         async function initProfilePage() {
-            showLoadingSkeleton();
+            console.log("🔄 Checking authentication...");
             
-            // Check auth
+            // Check auth using the same pattern as restaurants.html
             const { data: { session } } = await supabase.auth.getSession();
+            
             if (!session) {
+                console.log("⚠️ No session found, redirecting to login...");
                 window.location.href = "login.html";
                 return;
             }
             
             currentUser = session.user;
+            console.log("✅ User authenticated:", currentUser.email);
             
             // Load essential data
             await loadProfile();
@@ -1257,35 +1302,31 @@
             // Show initial content
             showTab('journal');
             
-            hideLoadingSkeleton();
+            // Hide loading skeletons
+            hideLoadingSkeletons();
         }
 
-        function showLoadingSkeleton() {
-            const grids = ['listsGrid', 'followersGrid', 'followingGrid'];
-            grids.forEach(gridId => {
-                const grid = document.getElementById(gridId);
-                if (grid) {
-                    grid.innerHTML = '';
-                    for (let i = 0; i < 4; i++) {
-                        const card = document.createElement('div');
-                        card.className = 'skeleton';
-                        card.style.height = '200px';
-                        grid.appendChild(card);
-                    }
-                }
-            });
-        }
-
-        function hideLoadingSkeleton() {
+        function hideLoadingSkeletons() {
             document.querySelectorAll('.skeleton').forEach(el => {
                 el.classList.remove('skeleton');
+                el.querySelectorAll('.skeleton-img, .skeleton-text').forEach(child => {
+                    child.style.background = 'none';
+                    child.style.animation = 'none';
+                });
             });
         }
 
         // === PROFILE MANAGEMENT ===
         async function loadProfile() {
+            console.log("🔄 Loading profile...");
+            
+            // Get user ID from URL
             targetUserId = getUserIdFromUrl();
+            console.log("🔍 Target user ID from URL:", targetUserId);
+            console.log("🔍 Current user ID:", currentUser.id);
+            
             isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
+            console.log("👤 Viewing own profile?", isViewingOwnProfile);
             
             if (isViewingOwnProfile) {
                 await loadOwnProfile();
@@ -1295,27 +1336,35 @@
         }
 
         async function loadOwnProfile() {
+            console.log("👤 Loading own profile...");
+            
             // Show own profile UI
             document.getElementById('editProfileBtn').style.display = 'flex';
             document.getElementById('addEntryBtn').style.display = 'flex';
             document.getElementById('followButton').style.display = 'none';
             document.getElementById('viewingOtherProfile').style.display = 'none';
             
-            // Load user profile
-            const { data: profile } = await supabase
+            // Load user profile from user_profiles table
+            const { data: profile, error } = await supabase
                 .from('user_profiles')
                 .select('*')
                 .eq('id', currentUser.id)
                 .single();
             
-            userProfile = profile || {};
+            if (error) {
+                console.error("❌ Error loading profile:", error);
+                userProfile = {};
+            } else {
+                userProfile = profile || {};
+                console.log("✅ Profile loaded:", userProfile);
+            }
             
             // Create profile if doesn't exist
             if (!profile) {
                 await createUserProfile();
             }
             
-            // Update UI
+            // Update UI with profile data
             document.getElementById('profileName').textContent = 
                 userProfile.full_name || currentUser.email.split('@')[0];
             document.getElementById('profileUsername').textContent = 
@@ -1337,6 +1386,8 @@
         }
 
         async function createUserProfile() {
+            console.log("🔄 Creating new profile...");
+            
             const { error } = await supabase
                 .from('user_profiles')
                 .insert([{
@@ -1348,8 +1399,9 @@
                 }]);
 
             if (error) {
-                console.error('Error creating profile:', error);
+                console.error('❌ Error creating profile:', error);
             } else {
+                console.log("✅ Profile created successfully");
                 // Reload profile
                 const { data: newProfile } = await supabase
                     .from('user_profiles')
@@ -1362,6 +1414,8 @@
         }
 
         async function loadOtherUserProfile() {
+            console.log("👤 Loading other user profile:", targetUserId);
+            
             // Hide edit buttons for other profiles
             document.getElementById('editProfileBtn').style.display = 'none';
             document.getElementById('addEntryBtn').style.display = 'none';
@@ -1369,19 +1423,21 @@
             document.getElementById('viewingOtherProfile').style.display = 'flex';
             
             // Load target user profile
-            const { data: profile } = await supabase
+            const { data: profile, error } = await supabase
                 .from('user_profiles')
                 .select('*')
                 .eq('id', targetUserId)
                 .single();
             
-            if (!profile) {
+            if (error || !profile) {
+                console.error('❌ User not found:', error);
                 alert('User not found');
                 window.location.href = 'profile.html';
                 return;
             }
             
             targetUser = profile;
+            console.log("✅ Target user loaded:", targetUser);
             
             // Update UI
             document.getElementById('profileName').textContent = 
@@ -1413,12 +1469,16 @@
 
             try {
                 // Check if already following
-                const { data: follow } = await supabase
+                const { data: follow, error } = await supabase
                     .from('follows')
                     .select('id')
                     .eq('follower_id', currentUser.id)
                     .eq('followed_id', targetUserId)
                     .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error('Error checking follow status:', error);
+                }
 
                 if (follow) {
                     followButton.textContent = 'Following';
@@ -1440,12 +1500,16 @@
 
             try {
                 // Check current status
-                const { data: follow } = await supabase
+                const { data: follow, error: checkError } = await supabase
                     .from('follows')
                     .select('id')
                     .eq('follower_id', currentUser.id)
                     .eq('followed_id', targetUserId)
                     .single();
+
+                if (checkError && checkError.code !== 'PGRST116') {
+                    console.error('Error checking follow status:', checkError);
+                }
 
                 if (follow) {
                     // Unfollow
@@ -1459,7 +1523,7 @@
                     
                     followButton.textContent = 'Follow';
                     followButton.className = 'btn btn-primary';
-                    
+                    alert(`Unfollowed ${targetUser.username || 'user'}`);
                 } else {
                     // Follow
                     const { error } = await supabase
@@ -1474,6 +1538,7 @@
                     
                     followButton.textContent = 'Following';
                     followButton.className = 'btn btn-success';
+                    alert(`Started following ${targetUser.username || 'user'}`);
                 }
 
                 await updateStats();
@@ -1486,31 +1551,42 @@
 
         function getUserIdFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('id');
+            const id = urlParams.get('id');
+            console.log("🔍 User ID from URL:", id);
+            return id;
         }
 
         async function updateStats(userId = null) {
             const targetId = userId || currentUser.id;
+            console.log("📊 Updating stats for user:", targetId);
             
             try {
                 // Get visited count from journal entries
-                const { data: journalEntries } = await supabase
+                const { data: journalEntries, error: journalError } = await supabase
                     .from('journal_entries')
                     .select('restaurant_id')
                     .eq('user_id', targetId);
                 
+                if (journalError) {
+                    console.error('Error fetching journal entries:', journalError);
+                }
+                
                 const visitedCount = new Set(journalEntries?.map(entry => entry.restaurant_id) || []).size;
                 
                 // Get followers count
-                const { data: followers } = await supabase
+                const { data: followers, error: followersError } = await supabase
                     .from('follows')
                     .select('id')
                     .eq('followed_id', targetId);
                 
+                if (followersError) {
+                    console.error('Error fetching followers:', followersError);
+                }
+                
                 const followersCount = followers?.length || 0;
                 
                 // Get favorites count
-                const { data: favoritesList } = await supabase
+                const { data: favoritesList, error: listError } = await supabase
                     .from('lists')
                     .select('id')
                     .eq('user_id', targetId)
@@ -1518,14 +1594,18 @@
                     .single();
                 
                 let favoritesCount = 0;
-                if (favoritesList) {
-                    const { data: favorites } = await supabase
+                if (!listError && favoritesList) {
+                    const { data: favorites, error: favoritesError } = await supabase
                         .from('lists_restraunts')
                         .select('restraunt_id')
                         .eq('list_id', favoritesList.id);
                     
-                    favoritesCount = favorites?.length || 0;
+                    if (!favoritesError) {
+                        favoritesCount = favorites?.length || 0;
+                    }
                 }
+                
+                console.log("📊 Stats calculated:", { visitedCount, followersCount, favoritesCount, reviewsCount: journalEntries?.length || 0 });
                 
                 // Update UI
                 document.getElementById('visitedCount').textContent = visitedCount;
@@ -1536,28 +1616,54 @@
                     `${visitedCount} restaurants visited`;
                 
             } catch (error) {
-                console.error('Error updating stats:', error);
+                console.error('❌ Error updating stats:', error);
+                // Set fallback values
+                document.getElementById('visitedCount').textContent = 0;
+                document.getElementById('followersCount').textContent = 0;
+                document.getElementById('favoritesCount').textContent = 0;
+                document.getElementById('reviewsCount').textContent = 0;
+                document.getElementById('visitedCountMeta').textContent = '0 restaurants visited';
             }
         }
 
         // === RESTAURANT DATA LOADING ===
         async function loadRestaurantsFromSupabase() {
+            console.log("🔄 Loading restaurants from Supabase...");
+            
             try {
+                // Use the same table name as restaurants.html
                 const { data, error } = await supabase
-                    .from('restraunts')
+                    .from('restraunts')  // Note the spelling: restraunts (with two r's)
                     .select('id, slug, name, category, description, rating, image')
                     .order('rating', { ascending: false });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('❌ Supabase error:', error);
+                    throw error;
+                }
+                
+                console.log(`✅ Loaded ${data?.length || 0} restaurants from database`);
                 
                 restaurants = data || [];
                 
-                // Populate restaurant select dropdown
+                // Populate restaurant select dropdown for journal entries
                 populateRestaurantSelect();
                 
             } catch (error) {
-                console.error('Error loading restaurants:', error);
+                console.error('❌ Error loading restaurants:', error);
                 restaurants = [];
+                
+                // Show error state
+                const journalEntries = document.getElementById('journalEntries');
+                if (journalEntries) {
+                    journalEntries.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Error Loading Restaurants</h3>
+                            <p class="empty-description">Could not load restaurant data. Please try again later.</p>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -1578,14 +1684,21 @@
         // === LIST MANAGEMENT ===
         async function loadUserLists(userId = null) {
             const targetId = userId || currentUser.id;
+            console.log("📋 Loading lists for user:", targetId);
             
             try {
-                const { data: lists } = await supabase
+                const { data: lists, error } = await supabase
                     .from('lists')
                     .select('*')
                     .eq('user_id', targetId);
                 
-                customLists = lists || [];
+                if (error) {
+                    console.error('❌ Error loading lists:', error);
+                    customLists = [];
+                } else {
+                    customLists = lists || [];
+                    console.log(`✅ Loaded ${customLists.length} lists`);
+                }
                 
                 // Ensure default lists exist for own profile
                 if (isViewingOwnProfile && !userId) {
@@ -1596,16 +1709,19 @@
                 renderListsGrid();
                 
             } catch (error) {
-                console.error('Error loading lists:', error);
+                console.error('❌ Error in loadUserLists:', error);
+                customLists = [];
             }
         }
 
         async function ensureDefaultLists() {
+            console.log("📋 Ensuring default lists exist...");
             const defaultLists = ['Favorites', 'Visited', 'Want to Go'];
             
             for (const listName of defaultLists) {
                 const existingList = customLists.find(list => list.title === listName);
                 if (!existingList) {
+                    console.log(`📋 Creating default list: ${listName}`);
                     await createList(listName, `My ${listName.toLowerCase()} restaurants`);
                 }
             }
@@ -1615,6 +1731,8 @@
         }
 
         async function createList(title, description) {
+            console.log(`📋 Creating list: ${title}`);
+            
             try {
                 const { data: newList, error } = await supabase
                     .from('lists')
@@ -1627,7 +1745,10 @@
                     .select()
                     .single();
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('❌ Error creating list:', error);
+                    throw error;
+                }
                 
                 customLists.push(newList);
                 renderListsGrid();
@@ -1638,7 +1759,7 @@
                 await updateStats();
                 
             } catch (error) {
-                console.error('Error creating list:', error);
+                console.error('❌ Error creating list:', error);
                 alert('Error creating list');
             }
         }
@@ -1647,30 +1768,34 @@
             const listsGrid = document.getElementById('listsGrid');
             if (!listsGrid) return;
             
-            listsGrid.innerHTML = '';
+            // Clear loading skeletons
+            hideLoadingSkeletons();
             
             if (customLists.length === 0) {
                 listsGrid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1;">
                         <div class="empty-icon">📋</div>
                         <h3 class="empty-title">No Lists Yet</h3>
-                        <p class="empty-description">Create your first list to organize your favorite restaurants!</p>
-                        <button class="btn btn-primary mt-md" onclick="showModal('createListModal')">
-                            <i class="fas fa-plus"></i> Create Your First List
-                        </button>
+                        <p class="empty-description">${isViewingOwnProfile ? 'Create your first list to organize your favorite restaurants!' : 'This user has no lists yet'}</p>
+                        ${isViewingOwnProfile ? `
+                            <button class="btn btn-primary mt-md" onclick="showModal('createListModal')">
+                                <i class="fas fa-plus"></i> Create Your First List
+                            </button>
+                        ` : ''}
                     </div>
                 `;
                 return;
             }
+            
+            listsGrid.innerHTML = '';
             
             customLists.forEach(list => {
                 const listCard = document.createElement('div');
                 listCard.className = 'list-card';
                 listCard.onclick = () => showListDetail(list);
                 
-                // Get preview images
+                // Get preview images (simplified for now)
                 const previewItems = [];
-                // In a real app, you'd fetch actual restaurant images for this list
                 for (let i = 0; i < 4; i++) {
                     previewItems.push(`
                         <div class="list-preview-item">
@@ -1692,9 +1817,11 @@
                     </div>
                     <div class="list-card-footer">
                         <span style="font-size: 12px; color: var(--muted);">0 places</span>
-                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editList('${list.id}')">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+                        ${isViewingOwnProfile ? `
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editList('${list.id}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        ` : ''}
                     </div>
                 `;
                 
@@ -1731,10 +1858,15 @@
             
             try {
                 // Get restaurants in this list
-                const { data: listRestaurants } = await supabase
+                const { data: listRestaurants, error } = await supabase
                     .from('lists_restraunts')
                     .select('restraunt_id')
                     .eq('list_id', listId);
+                
+                if (error) {
+                    console.error('Error loading list restaurants:', error);
+                    throw error;
+                }
                 
                 if (!listRestaurants || listRestaurants.length === 0) {
                     grid.innerHTML = `
@@ -1755,12 +1887,23 @@
                 const restaurantIds = listRestaurants.map(item => item.restraunt_id);
                 const listRestaurantsData = restaurants.filter(r => restaurantIds.includes(r.id));
                 
+                if (listRestaurantsData.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">Restaurants Not Found</h3>
+                            <p class="empty-description">The restaurants in this list are no longer available.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
                 listRestaurantsData.forEach(restaurant => {
                     const card = document.createElement('div');
                     card.className = 'restaurant-card';
                     
                     const clickableContent = document.createElement('a');
-                    clickableContent.href = `cards/${restaurant.slug}.html`;
+                    clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
                     clickableContent.style.textDecoration = 'none';
                     clickableContent.style.color = 'inherit';
                     clickableContent.style.display = 'block';
@@ -1802,7 +1945,7 @@
                 });
                 
             } catch (error) {
-                console.error('Error loading list restaurants:', error);
+                console.error('❌ Error loading list restaurants:', error);
                 grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading restaurants</div>';
             }
         }
@@ -1839,7 +1982,6 @@
             
             // Show create modal (reused for editing)
             showModal('createListModal');
-            // Note: You'd need to modify the createList function to handle updates
         }
 
         // === COMMUNITY FUNCTIONS ===
@@ -1848,12 +1990,20 @@
             const grid = document.getElementById('followersGrid');
             if (!grid) return;
             
+            // Clear loading skeletons
+            hideLoadingSkeletons();
+            
             try {
                 // Get followers
-                const { data: followers } = await supabase
+                const { data: followers, error } = await supabase
                     .from('follows')
                     .select('follower_id')
                     .eq('followed_id', targetId);
+                
+                if (error) {
+                    console.error('Error loading followers:', error);
+                    throw error;
+                }
                 
                 if (!followers || followers.length === 0) {
                     grid.innerHTML = `
@@ -1868,10 +2018,15 @@
                 
                 // Get user details for each follower
                 const followerIds = followers.map(f => f.follower_id);
-                const { data: users } = await supabase
+                const { data: users, error: usersError } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .in('id', followerIds);
+                
+                if (usersError) {
+                    console.error('Error loading follower profiles:', usersError);
+                    throw usersError;
+                }
                 
                 grid.innerHTML = '';
                 
@@ -1911,7 +2066,7 @@
                 });
                 
             } catch (error) {
-                console.error('Error loading followers:', error);
+                console.error('❌ Error loading followers:', error);
                 grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading followers</div>';
             }
         }
@@ -1921,12 +2076,20 @@
             const grid = document.getElementById('followingGrid');
             if (!grid) return;
             
+            // Clear loading skeletons
+            hideLoadingSkeletons();
+            
             try {
                 // Get following
-                const { data: following } = await supabase
+                const { data: following, error } = await supabase
                     .from('follows')
                     .select('followed_id')
                     .eq('follower_id', targetId);
+                
+                if (error) {
+                    console.error('Error loading following:', error);
+                    throw error;
+                }
                 
                 if (!following || following.length === 0) {
                     grid.innerHTML = `
@@ -1941,10 +2104,15 @@
                 
                 // Get user details for each followed user
                 const followingIds = following.map(f => f.followed_id);
-                const { data: users } = await supabase
+                const { data: users, error: usersError } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .in('id', followingIds);
+                
+                if (usersError) {
+                    console.error('Error loading following profiles:', usersError);
+                    throw usersError;
+                }
                 
                 grid.innerHTML = '';
                 
@@ -1984,7 +2152,7 @@
                 });
                 
             } catch (error) {
-                console.error('Error loading following:', error);
+                console.error('❌ Error loading following:', error);
                 grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading following</div>';
             }
         }
@@ -1999,12 +2167,17 @@
             }
             
             try {
-                const { data: users } = await supabase
+                const { data: users, error } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .neq('id', currentUser.id)
                     .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
                     .limit(20);
+                
+                if (error) {
+                    console.error('Error searching users:', error);
+                    throw error;
+                }
                 
                 if (!users || users.length === 0) {
                     results.innerHTML = `
@@ -2048,7 +2221,7 @@
                 });
                 
             } catch (error) {
-                console.error('Error searching users:', error);
+                console.error('❌ Error searching users:', error);
                 results.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error searching users</div>';
             }
         }
@@ -2096,13 +2269,21 @@
             const container = document.getElementById('journalEntries');
             if (!container) return;
             
+            // Clear loading skeletons
+            hideLoadingSkeletons();
+            
             try {
-                const { data: entries } = await supabase
+                const { data: entries, error } = await supabase
                     .from('journal_entries')
                     .select('*')
                     .eq('user_id', targetId)
                     .order('created_at', { ascending: false })
                     .limit(10);
+                
+                if (error) {
+                    console.error('Error loading journal entries:', error);
+                    throw error;
+                }
                 
                 if (!entries || entries.length === 0) {
                     container.innerHTML = `
@@ -2157,7 +2338,7 @@
                 }
                 
             } catch (error) {
-                console.error('Error loading journal entries:', error);
+                console.error('❌ Error loading journal entries:', error);
                 container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">Error loading reviews</div>';
             }
         }
@@ -2219,15 +2400,29 @@
             
             foodIcons.forEach(icon => {
                 const iconOption = document.createElement('div');
-                iconOption.className = `avatar-icon-option ${userProfile?.avatar_icon === icon ? 'selected' : ''}`;
+                iconOption.style.cssText = `
+                    width: 50px;
+                    height: 50px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-size: 24px;
+                    background: ${userProfile?.avatar_icon === icon ? 'var(--accent)' : 'transparent'};
+                    color: ${userProfile?.avatar_icon === icon ? '#0b1633' : 'inherit'};
+                `;
                 iconOption.textContent = icon;
                 iconOption.onclick = () => {
-                    // Remove selected class from all options
-                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                        opt.classList.remove('selected');
+                    // Remove selected from all
+                    avatarIconGrid.querySelectorAll('div').forEach(opt => {
+                        opt.style.background = 'transparent';
+                        opt.style.color = 'inherit';
                     });
-                    // Add selected class to clicked option
-                    iconOption.classList.add('selected');
+                    // Select this one
+                    iconOption.style.background = 'var(--accent)';
+                    iconOption.style.color = '#0b1633';
                     selectedAvatarIcon = icon;
                 };
                 avatarIconGrid.appendChild(iconOption);
