@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restaurant Details</title>
+<!-- ADDED: Favicon -->
+<link rel="icon" type="image/png" href="logo.png">
+<!-- ADDED: Apple Touch Icon for iOS devices -->
+<link rel="apple-touch-icon" href="logo.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 :root {
@@ -20,7 +24,7 @@
   --accent: #ff944d;
 }
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
+.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .back-btn{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease;display:flex;align-items:center;gap:6px}
 .back-btn:hover{background:rgba(255,255,255,0.3);transform:translateX(-3px)}
 .hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative}
@@ -58,8 +62,111 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 .no-data{text-align:center;padding:30px;color:var(--text2);font-style:italic;background:var(--card);border-radius:12px;margin:20px 0}
 .menu-category{margin-top:30px}
 .menu-category h3{margin-bottom:15px;color:#FF9800;font-size:1.3rem}
-@media (max-width:768px){.logo{width:120px;height:120px;margin-bottom:24px}.hero{padding:50px 16px 30px}.hero h1{font-size:2rem}.btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px}.branch-card{flex:1 1 100%}.section{padding:30px 16px}h2{font-size:1.4rem}}
-@media (max-width:480px){.top-stripe{padding:0 10px}.back-btn{padding:6px 12px;font-size:12px}.hero h1{font-size:1.8rem}.hero p{font-size:0.9rem}.hotline{font-size:1rem}}
+
+/* IMPROVED: Mobile Responsiveness */
+@media (max-width:768px){
+  .logo{width:120px;height:120px;margin-bottom:24px}
+  .hero{padding:50px 16px 30px}
+  .hero h1{font-size:2rem;line-height:1.2}
+  .hero p{font-size:0.95rem;line-height:1.5}
+  .btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .branch-card{flex:1 1 100%}
+  .section{padding:30px 16px}
+  h2{font-size:1.4rem;padding-bottom:8px}
+  h2::after{width:40px}
+  .branches{gap:15px}
+  .menu-item{padding:12px 8px;flex-wrap:wrap}
+  .menu-item span{font-size:0.95rem}
+  .top-stripe{height:44px;padding:0 12px}
+  .back-btn{padding:6px 12px;font-size:12px;min-height:32px}
+  .hotline{font-size:1rem;flex-direction:column;align-items:flex-start;gap:8px}
+  .hotline a{padding:6px 12px;font-size:0.9rem}
+  .reviews-stats{padding:15px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:15px}
+  .review-form-section{padding:20px}
+}
+
+@media (max-width:480px){
+  .top-stripe{padding:0 10px}
+  .back-btn{padding:6px 12px;font-size:12px}
+  .hero h1{font-size:1.8rem}
+  .hero p{font-size:0.9rem}
+  .hotline{font-size:1rem}
+  .rating{font-size:1rem}
+  .btn-group{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .btn{flex:1;min-width:calc(50% - 4px);max-width:100%}
+  .logo{width:100px;height:100px}
+  .section{padding:25px 12px}
+  h2{font-size:1.3rem}
+  .branch-card{padding:15px}
+  .menu-item{padding:10px 6px;flex-direction:column;gap:4px}
+  .menu-item span:last-child{font-size:1rem}
+  .reviews-stats{padding:12px}
+  .stats-grid{grid-template-columns:1fr;gap:12px}
+  .stat-value{font-size:1.5rem}
+  .review-card{padding:15px}
+  .review-form-section{padding:15px}
+  .stars-rating{gap:2px}
+  .star{font-size:1.7rem}
+}
+
+/* IMPROVED: Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse){
+  .btn:hover{transform:none}
+  .branch-card:hover{transform:none}
+  .menu-item:hover{background:transparent;padding-left:10px}
+  .list-item:hover{background:transparent;transform:none}
+  .fab-main:hover{transform:none}
+  .review-card:hover{transform:none}
+  .btn{min-height:44px}
+  .back-btn{min-height:32px}
+  input, textarea, select{font-size:16px !important} /* Prevents iOS zoom on focus */
+}
+
+/* IMPROVED: Safe area insets for notch phones */
+@supports(padding: max(0px)){
+  .top-stripe{
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-top: env(safe-area-inset-top);
+    height: calc(50px + env(safe-area-inset-top));
+  }
+  
+  @media (max-width:768px){
+    .top-stripe{
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+      height: calc(44px + env(safe-area-inset-top));
+    }
+  }
+}
+
+/* IMPROVED: Prevent horizontal scroll */
+html, body{
+  overflow-x:hidden;
+  width:100%;
+  position:relative;
+}
+
+/* IMPROVED: Better touch targets */
+button, 
+a.btn, 
+.star, 
+.list-item,
+.branch-card,
+.review-card{
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* IMPROVED: Loading state for mobile */
+.loading{
+  min-height:50vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
 </style>
 </head>
 <body>
@@ -83,10 +190,12 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     <p id="restaurant-description"></p>
     <div class="rating" id="restaurant-rating"></div>
     
-    <a id="call-hotline" class="btn" href="#">Call Hotline</a>
-    <a id="order-online" class="btn secondary" href="#" target="_blank">Order Online</a>
-    <a id="instagram-link" class="btn secondary" href="#" target="_blank" style="display:none;">Instagram</a>
-    <a id="facebook-link" class="btn secondary" href="#" target="_blank" style="display:none;">Facebook</a>
+    <div class="btn-group">
+      <a id="call-hotline" class="btn" href="#">Call Hotline</a>
+      <a id="order-online" class="btn secondary" href="#" target="_blank">Order Online</a>
+      <a id="instagram-link" class="btn secondary" href="#" target="_blank" style="display:none;">Instagram</a>
+      <a id="facebook-link" class="btn secondary" href="#" target="_blank" style="display:none;">Facebook</a>
+    </div>
   </section>
 
   <section class="section">
@@ -387,6 +496,9 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   cursor: pointer;
   transition: all 0.2s ease;
   line-height: 1;
+  min-width: 40px; /* IMPROVED: Better touch target */
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .star:hover,
@@ -415,6 +527,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   font-size: 0.95rem;
   resize: vertical;
   transition: all 0.3s ease;
+  min-height: 100px; /* IMPROVED: Better for mobile */
 }
 
 .comment-input textarea:focus {
@@ -447,6 +560,10 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   transition: all 0.2s ease;
   position: relative;
   min-width: 120px;
+  min-height: 44px; /* IMPROVED: Better touch target */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .submit-review-btn:hover:not(:disabled) {
@@ -464,6 +581,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   background: var(--nav-bg);
   color: var(--text);
   border: 1px solid var(--nav-shadow);
+  min-height: 44px; /* IMPROVED: Better touch target */
 }
 
 .auth-prompt {
@@ -534,7 +652,7 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   background: #3b82f6;
 }
 
-/* Responsive Design */
+/* IMPROVED: Responsive Design for Reviews */
 @media (max-width: 768px) {
   .review-header {
     flex-direction: column;
@@ -544,6 +662,8 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   
   .review-actions {
     align-self: flex-end;
+    width: 100%;
+    justify-content: flex-end;
   }
   
   .stats-grid {
@@ -559,6 +679,20 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   .cancel-edit-btn {
     width: 100%;
   }
+  
+  .rating-stars {
+    width: 50px;
+  }
+  
+  .reviewer-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+  
+  .review-rating {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -568,10 +702,54 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   
   .star {
     font-size: 1.7rem;
+    min-width: 35px;
   }
   
   .review-card {
     padding: 15px;
+  }
+  
+  .review-edit, .review-delete {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .rating-breakdown {
+    gap: 6px;
+  }
+  
+  .rating-row {
+    gap: 8px;
+  }
+  
+  .rating-stars {
+    font-size: 0.8rem;
+    width: 45px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* IMPROVED: Mobile-specific adjustments */
+@media (max-width: 360px) {
+  .star {
+    font-size: 1.5rem;
+    min-width: 30px;
+  }
+  
+  .hero h1 {
+    font-size: 1.6rem;
+  }
+  
+  .btn {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+  
+  .review-card {
+    padding: 12px;
   }
 }
 </style>
@@ -1616,6 +1794,66 @@ window.addEventListener('DOMContentLoaded', function() {
                 .pulse {
                     animation: pulseGlow 2s infinite;
                 }
+                
+                /* IMPROVED: Mobile styles for list manager */
+                @media (max-width: 768px) {
+                    .list-manager-fab {
+                        bottom: 20px !important;
+                        right: 20px !important;
+                    }
+                    
+                    .fab-main {
+                        width: 56px !important;
+                        height: 56px !important;
+                    }
+                    
+                    .fab-tooltip {
+                        display: none !important;
+                    }
+                    
+                    .list-dropdown {
+                        bottom: 80px;
+                        right: 20px;
+                        left: 20px;
+                        max-width: none;
+                        min-width: auto;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .list-manager-fab {
+                        bottom: 16px !important;
+                        right: 16px !important;
+                    }
+                    
+                    .fab-main {
+                        width: 52px !important;
+                        height: 52px !important;
+                    }
+                    
+                    .list-dropdown {
+                        padding: 16px;
+                        border-radius: 12px;
+                    }
+                    
+                    .dropdown-title {
+                        font-size: 16px;
+                    }
+                    
+                    .list-item {
+                        padding: 10px 8px;
+                    }
+                    
+                    .new-list-input {
+                        padding: 10px 14px;
+                        font-size: 13px;
+                    }
+                    
+                    .add-list-btn {
+                        padding: 10px 16px;
+                        font-size: 13px;
+                    }
+                }
             `;
             
             const styleSheet = document.createElement('style');
@@ -1911,7 +2149,7 @@ window.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         new RestaurantListManager();
     }, 1000);
-});
+}); 
 </script>
 </body>
 </html>
