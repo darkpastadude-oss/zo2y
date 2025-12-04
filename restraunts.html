@@ -13,11 +13,13 @@
       --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
       --shadow: 0 10px 30px rgba(0,0,0,0.3);
       --success: #10b981; --error: #ef4444; --info: #3b82f6;
+      --grid-columns: 4; /* Default grid columns */
     }
     * { box-sizing: border-box; margin: 0; padding: 0; } 
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; } 
     a { color: inherit; text-decoration: none; } 
-    img { display: block; max-width: 100%; height: auto; }
+    img { display: block; max-width: 100%; height: auto; opacity: 0; transition: opacity 0.3s ease; }
+    img.loaded { opacity: 1; }
     
     /* Enhanced Header */
     header { 
@@ -133,7 +135,26 @@
       display: flex; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; 
     } 
     .controls-info { color: var(--muted); font-size: 14px; font-weight: 500; } 
-    .category-filters { margin-left: auto; } 
+    .view-controls { 
+      display: flex; align-items: center; gap: 8px; margin-left: auto; 
+    }
+    .grid-size-buttons { 
+      display: flex; gap: 4px; background: var(--card); 
+      border: 1px solid var(--border); border-radius: 16px; padding: 4px;
+    }
+    .grid-btn { 
+      width: 36px; height: 36px; display: flex; align-items: center; 
+      justify-content: center; border-radius: 12px; cursor: pointer;
+      background: transparent; border: none; color: var(--muted);
+      transition: all 0.3s ease;
+    }
+    .grid-btn:hover { 
+      background: rgba(255,255,255,0.1); color: var(--white);
+    }
+    .grid-btn.active { 
+      background: var(--accent); color: #0b1633;
+    }
+    .category-filters { } 
     .category-dropdown select { 
       background: var(--card); border: 1px solid var(--border); color: var(--white); 
       padding: 8px 12px; border-radius: 16px; cursor: pointer; font-size: 13px;
@@ -144,14 +165,58 @@
       box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
     }
     
-    /* Enhanced Grid */
+    /* Enhanced Grid with variable columns */
     .grid { 
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; 
-    } 
+      display: grid; gap: 24px; transition: grid-template-columns 0.3s ease;
+    }
+    
+    /* Grid variations */
+    .grid-compact {
+      grid-template-columns: repeat(var(--grid-columns), 1fr);
+    }
+    
+    .grid-dense {
+      grid-template-columns: repeat(var(--grid-columns), 1fr);
+    }
+    
+    .grid-compact .tile .media {
+      height: 120px;
+    }
+    
+    .grid-dense .tile .media {
+      height: 100px;
+    }
+    
+    .grid-dense .tile .desc {
+      display: none;
+    }
+    
+    .grid-dense .tile h3 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .grid-dense .tile .category {
+      font-size: 11px;
+    }
+    
+    .grid-dense .list-actions {
+      top: 8px;
+      right: 8px;
+      gap: 4px;
+    }
+    
+    .grid-dense .list-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+    
     .tile { 
       background: var(--card); border-radius: 16px; overflow: hidden; 
       box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); 
       cursor: pointer; position: relative; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      will-change: transform;
     } 
     .tile:hover { 
       transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.2);
@@ -229,6 +294,7 @@
       background-size: 200% 100%;
       animation: loading 1.5s infinite;
       border-radius: 8px;
+      will-change: background-position;
     }
     
     @keyframes loading {
@@ -319,13 +385,51 @@
     .notification-close:hover {
       opacity: 1;
     }
+    
+    /* Performance: Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .tile, .list-btn, .btn, .auth-btn, .user-welcome, .notification-show {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
 
-    /* Responsive Design */
+    /* Responsive Design with better grid control */
+    @media (max-width: 1200px) {
+      :root {
+        --grid-columns: 3;
+      }
+    }
+    
+    @media (max-width: 992px) {
+      :root {
+        --grid-columns: 2;
+      }
+    }
+    
     @media (max-width: 768px) { 
       header { padding: 12px 16px; flex-wrap: wrap; gap: 12px; } 
       .toolbar { margin-left: 0; width: 100%; justify-content: space-between; } 
       .search { width: 200px; } 
-      .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; } 
+      .view-controls {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 12px;
+        justify-content: center;
+      }
+      .grid { 
+        grid-template-columns: repeat(var(--grid-columns), 1fr);
+        gap: 16px;
+      }
+      .grid-compact {
+        grid-template-columns: repeat(var(--grid-columns), 1fr);
+      }
+      .grid-dense {
+        grid-template-columns: repeat(var(--grid-columns), 1fr);
+      }
+      .grid-compact .tile .media { height: 100px; } 
+      .grid-dense .tile .media { height: 80px; } 
       .tile .media { height: 120px; padding: 12px; } 
       .tile .inner { padding: 12px; } 
       .tile h3 { font-size: 15px; } 
@@ -341,13 +445,47 @@
     }
     
     @media (max-width: 480px) { 
-      .grid { grid-template-columns: 1fr; } 
+      :root {
+        --grid-columns: 2;
+      }
+      .grid-compact {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .grid-dense {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .grid-compact .tile .media { height: 80px; padding: 8px; }
+      .grid-dense .tile .media { height: 60px; padding: 8px; }
+      .grid-dense .tile h3 { font-size: 12px; }
+      .grid-dense .tile .category { font-size: 10px; }
       .search { width: 160px; } 
       .toolbar { gap: 8px; } 
       .list-btn { width: 36px; height: 36px; font-size: 14px; } 
       .user-welcome span { display: none; } 
       .user-welcome { padding: 8px; } 
       .container { padding: 0 16px; }
+      .controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .category-filters {
+        width: 100%;
+      }
+      .category-dropdown select {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 360px) {
+      :root {
+        --grid-columns: 1;
+      }
+      .grid-compact {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grid-dense {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
     
     @media (hover: none) and (pointer: coarse) { 
@@ -402,9 +540,22 @@
           </select>
         </div>
       </div>
+      <div class="view-controls">
+        <div class="grid-size-buttons">
+          <button class="grid-btn active" data-view="normal" title="Normal View">
+            <i class="fas fa-th"></i>
+          </button>
+          <button class="grid-btn" data-view="compact" title="Compact View">
+            <i class="fas fa-th-large"></i>
+          </button>
+          <button class="grid-btn" data-view="dense" title="Dense View">
+            <i class="fas fa-th-list"></i>
+          </button>
+        </div>
+      </div>
     </div>
     
-    <div id="grid" class="grid">
+    <div id="grid" class="grid grid-compact">
       <!-- Loading skeleton -->
       <div class="tile skeleton">
         <div class="media skeleton-img"></div>
@@ -459,6 +610,41 @@
     const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Performance optimization: Debounce function
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Lazy loading for images
+    const imageObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.dataset.src;
+          img.onload = () => {
+            img.classList.add('loaded');
+            imageObserver.unobserve(img);
+          };
+          img.onerror = () => {
+            img.src = 'images/default-logo.jpg';
+            img.classList.add('loaded');
+            imageObserver.unobserve(img);
+          };
+        }
+      });
+    }, {
+      rootMargin: '100px 0px',
+      threshold: 0.01
+    });
 
     // ---------- WORKING ACCOUNT SYSTEM ----------
     const userWelcome = document.getElementById('userWelcome');
@@ -631,6 +817,50 @@
         isShowingNotification = false;
         processNotificationQueue();
       }, 400);
+    }
+
+    // ---------- GRID VIEW CONTROLS ----------
+    let currentView = 'normal';
+    
+    function initializeViewControls() {
+      const gridButtons = document.querySelectorAll('.grid-btn');
+      const grid = document.getElementById('grid');
+      
+      gridButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const view = btn.dataset.view;
+          
+          // Update active button
+          gridButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          // Update grid view
+          grid.classList.remove('grid-compact', 'grid-dense');
+          if (view === 'compact') {
+            grid.classList.add('grid-compact');
+          } else if (view === 'dense') {
+            grid.classList.add('grid-dense');
+          }
+          
+          currentView = view;
+          
+          // Save preference to localStorage
+          try {
+            localStorage.setItem('zo2y_grid_view', view);
+          } catch (e) {}
+        });
+      });
+      
+      // Load saved view preference
+      try {
+        const savedView = localStorage.getItem('zo2y_grid_view');
+        if (savedView) {
+          const savedBtn = document.querySelector(`.grid-btn[data-view="${savedView}"]`);
+          if (savedBtn) {
+            savedBtn.click();
+          }
+        }
+      } catch (e) {}
     }
 
     // ---------- LIST MANAGEMENT ----------
@@ -809,9 +1039,8 @@
         
         console.log("🔄 Loading restaurants from Supabase...");
         
-        // FIXED: Correct table name 'restraunts' (with two 'r's)
         const { data, error } = await supabase
-          .from('restraunts')  // <- THIS WAS FIXED: 'restraunts' not 'restaraunts'
+          .from('restraunts')
           .select('id, slug, name, category, description, rating, image')
           .order('rating', { ascending: false });
         
@@ -911,8 +1140,12 @@
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
       
-      // Add 8 skeleton cards
-      for (let i = 0; i < 8; i++) {
+      // Add skeleton cards based on current view
+      let count = 8;
+      if (currentView === 'compact') count = 12;
+      if (currentView === 'dense') count = 16;
+      
+      for (let i = 0; i < count; i++) {
         const skeletonCard = document.createElement('div');
         skeletonCard.className = 'tile skeleton';
         skeletonCard.innerHTML = `
@@ -935,15 +1168,27 @@
     const qInput = document.getElementById('q');
     const categorySelect = document.getElementById('categorySelect');
     let currentList = 'all';
+    let isRendering = false;
 
-    // Simple rendering function
+    // Debounced render function for better performance
+    const debouncedRender = debounce(() => {
+      if (!isRendering) {
+        filterAndRender();
+      }
+    }, 300);
+
+    // Simple rendering function with lazy loading
     async function renderList(list) {
+      if (isRendering) return;
+      isRendering = true;
+      
       grid.innerHTML = '';
       
       if (!list || !list.length) { 
         empty.style.display = 'block'; 
         grid.style.display = 'none'; 
         countEl.textContent = '0'; 
+        isRendering = false;
         return; 
       }
       
@@ -954,76 +1199,90 @@
       const { data: { session } } = await supabase.auth.getSession();
       const isLoggedIn = !!session;
       
-      list.forEach(r => {
-        const tile = document.createElement('div');
-        tile.className = 'tile';
+      // Performance: Render in batches for large lists
+      const batchSize = 20;
+      let renderedCount = 0;
+      
+      function renderBatch(startIndex) {
+        const endIndex = Math.min(startIndex + batchSize, list.length);
         
-        // Create clickable content
-        const clickableContent = document.createElement('a');
-        clickableContent.href = `restaurant.html?slug=${r.slug}`;
-        clickableContent.style.textDecoration = 'none';
-        clickableContent.style.color = 'inherit';
-        clickableContent.style.display = 'block';
-        clickableContent.style.height = '100%';
-        
-        clickableContent.innerHTML = `
-          <div class="media"><img src="images/${r.image}" alt="${r.name}" loading="lazy" onerror="this.src='images/default-logo.jpg'"></div>
-          <div class="inner">
-            <h3>${r.name}</h3>
-            <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category || 'Restaurant'}</div>
-            <p class="desc">${r.desc || 'Delicious food served with care'}</p>
-          </div>
-        `;
-        
-        tile.appendChild(clickableContent);
-        
-        // Add list buttons that don't navigate
-        if (isLoggedIn) {
-          const listActions = document.createElement('div');
-          listActions.className = 'list-actions';
-          listActions.innerHTML = `
-            <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
-            <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
-            <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+        for (let i = startIndex; i < endIndex; i++) {
+          const r = list[i];
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          
+          // Create clickable content
+          const clickableContent = document.createElement('a');
+          clickableContent.href = `restaurant.html?slug=${r.slug}`;
+          clickableContent.style.textDecoration = 'none';
+          clickableContent.style.color = 'inherit';
+          clickableContent.style.display = 'block';
+          clickableContent.style.height = '100%';
+          
+          clickableContent.innerHTML = `
+            <div class="media">
+              <img data-src="images/${r.image}" alt="${r.name}" loading="lazy">
+            </div>
+            <div class="inner">
+              <h3>${r.name}</h3>
+              <div class="category"><span class="rating">⭐ ${r.rating}</span> • ${r.category || 'Restaurant'}</div>
+              <p class="desc">${r.desc || 'Delicious food served with care'}</p>
+            </div>
           `;
-          tile.appendChild(listActions);
+          
+          tile.appendChild(clickableContent);
+          
+          // Add list buttons that don't navigate
+          if (isLoggedIn) {
+            const listActions = document.createElement('div');
+            listActions.className = 'list-actions';
+            listActions.innerHTML = `
+              <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+              <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
+              <button class="list-btn visited ${listManager.isInList('visited', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+            `;
+            tile.appendChild(listActions);
+          }
+          
+          grid.appendChild(tile);
+          
+          // Observe images for lazy loading
+          const img = tile.querySelector('img');
+          if (img) {
+            imageObserver.observe(img);
+          }
+          
+          renderedCount++;
         }
         
-        grid.appendChild(tile);
-      });
-
-      // Add event listeners for list buttons
-      if (isLoggedIn) {
-        document.querySelectorAll('.list-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.preventDefault(); 
-            e.stopPropagation();
-            const restaurantId = parseInt(btn.dataset.id);
-            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-            btn.classList.toggle('active', wasAdded);
-            
-            if (currentList !== 'all') await filterAndRender();
+        // Add event listeners for list buttons
+        if (isLoggedIn) {
+          document.querySelectorAll('.list-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault(); 
+              e.stopPropagation();
+              const restaurantId = parseInt(btn.dataset.id);
+              const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
+              btn.classList.toggle('active', wasAdded);
+              
+              if (currentList !== 'all') await filterAndRender();
+            });
           });
-        });
-
-        // Touch support
-        document.querySelectorAll('.list-btn').forEach(btn => {
-          btn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        }
+        
+        // Continue rendering if there are more items
+        if (endIndex < list.length) {
+          // Use requestAnimationFrame for smoother rendering
+          requestAnimationFrame(() => {
+            setTimeout(() => renderBatch(endIndex), 0);
           });
-          
-          btn.addEventListener('touchend', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const restaurantId = parseInt(btn.dataset.id);
-            const wasAdded = await listManager.toggleInList(btn.dataset.list, restaurantId);
-            btn.classList.toggle('active', wasAdded);
-            
-            if (currentList !== 'all') await filterAndRender();
-          });
-        });
+        } else {
+          isRendering = false;
+        }
       }
+      
+      // Start rendering first batch
+      renderBatch(0);
     }
 
     // SIMPLIFIED FILTERING
@@ -1053,8 +1312,8 @@
       await renderList(filtered);
     }
 
-    // Event Listeners
-    qInput.addEventListener('input', filterAndRender);
+    // Event Listeners with debouncing
+    qInput.addEventListener('input', debouncedRender);
     categorySelect.addEventListener('change', filterAndRender);
     document.getElementById('reset').addEventListener('click', () => {
       qInput.value = ''; 
@@ -1081,6 +1340,20 @@
       updateAuthUI();
       listManager.init();
       loadRestaurantsFromSupabase();
+      initializeViewControls();
+      
+      // Performance: Preload critical images
+      if ('connection' in navigator) {
+        const conn = navigator.connection;
+        if (conn.saveData || conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g') {
+          // Don't preload on slow connections
+          return;
+        }
+      }
+      
+      // Preload logo
+      const logo = new Image();
+      logo.src = 'images/logo.png';
     });
   </script>
 </body>
