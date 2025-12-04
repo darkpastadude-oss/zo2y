@@ -191,6 +191,18 @@
             font-weight: 600;
         }
 
+        /* Fix for the back button in viewing indicator - UPDATED */
+        .viewing-other-profile .profile-back-btn {
+            border: 2px solid #0b1633 !important;
+            color: #0b1633 !important;
+            background: transparent !important;
+        }
+
+        .viewing-other-profile .profile-back-btn:hover {
+            background: #0b1633 !important;
+            color: var(--accent) !important;
+        }
+
         /* === BUTTONS === */
         .btn {
             padding: 10px 20px;
@@ -1235,6 +1247,16 @@
             opacity: 1;
         }
 
+        /* Optimized lazy loading styles */
+        img.lazy-load {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        img.lazy-load.loaded {
+            opacity: 1;
+        }
+
         /* === UTILITY CLASSES === */
         .d-flex { display: flex; }
         .d-grid { display: grid; }
@@ -1631,7 +1653,7 @@
                 <i class="fas fa-eye"></i>
                 <span>You are viewing another user's profile</span>
             </div>
-            <button class="btn btn-outline" onclick="goToMyProfile()">
+            <button class="btn profile-back-btn" onclick="goToMyProfile()">
                 <i class="fas fa-user"></i> Back to My Profile
             </button>
         </div>
@@ -1927,8 +1949,184 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- All modals remain the same as in your original code -->
-    <!-- Add Journal Entry Modal, Create List Modal, Edit Profile Modal, Avatar Selection Modal, Community Search Modal -->
+    <!-- Add Journal Entry Modal -->
+    <div class="modal" id="addEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Journal Entry</h3>
+                <button class="modal-close" onclick="closeModal('addEntryModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="journalEntryForm">
+                    <div class="form-group">
+                        <label class="form-label" for="restaurantSelect">Restaurant *</label>
+                        <select class="form-select" id="restaurantSelect" required>
+                            <option value="">Select a restaurant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="visitDate">Visit Date *</label>
+                        <input type="date" class="form-input" id="visitDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Rating *</label>
+                        <div class="rating-stars" id="ratingStars">
+                            <span class="rating-star" data-rating="1">⭐</span>
+                            <span class="rating-star" data-rating="2">⭐</span>
+                            <span class="rating-star" data-rating="3">⭐</span>
+                            <span class="rating-star" data-rating="4">⭐</span>
+                            <span class="rating-star" data-rating="5">⭐</span>
+                        </div>
+                        <input type="hidden" id="selectedRating" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="visitNotes">Notes</label>
+                        <textarea class="form-textarea" id="visitNotes" rows="3" placeholder="Share your experience..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="visitTags">Tags (comma separated)</label>
+                        <input type="text" class="form-input" id="visitTags" placeholder="e.g., romantic, family-friendly, quick-bite">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addEntryModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New List</h3>
+                <button class="modal-close" onclick="closeModal('createListModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createListForm">
+                    <div class="form-group">
+                        <label class="form-label" for="listName">List Name *</label>
+                        <input type="text" class="form-input" id="listName" required placeholder="e.g., Date Night Spots">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="listDescription">Description</label>
+                        <textarea class="form-textarea" id="listDescription" rows="2" placeholder="Describe your list..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div class="d-flex gap-sm">
+                            <div class="list-icon-option" data-icon="fas fa-heart">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div class="list-icon-option" data-icon="fas fa-star">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="list-icon-option selected" data-icon="fas fa-utensils">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="list-icon-option" data-icon="fas fa-bookmark">
+                                <i class="fas fa-bookmark"></i>
+                            </div>
+                            <div class="list-icon-option" data-icon="fas fa-map-marker">
+                                <i class="fas fa-map-marker"></i>
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedIcon" value="fas fa-utensils">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="closeModal('editProfileModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="form-group">
+                        <label class="form-label" for="editDisplayName">Display Name *</label>
+                        <input type="text" class="form-input" id="editDisplayName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editUsername">Username *</label>
+                        <input type="text" class="form-input" id="editUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editBio">Bio</label>
+                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us about yourself..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editLocation">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="e.g., New York, NY">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="editIsPrivate">
+                            Private Profile
+                        </label>
+                        <small class="text-muted">When enabled, only followers can see your profile</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Your Avatar</h3>
+                <button class="modal-close" onclick="closeModal('avatarModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-icon-grid" id="avatarIconGrid">
+                    <!-- Food icons will be populated here -->
+                </div>
+                <div class="form-actions mt-lg">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAvatar()">Save Avatar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Search Modal -->
+    <div class="modal" id="communitySearchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="closeModal('communitySearchModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="userSearch" placeholder="Search by name or username...">
+                    </div>
+                </div>
+                <div id="searchResults">
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Search for users</h3>
+                        <p class="empty-description">Enter a name or username to find other food lovers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // === PERFORMANCE-OPTIMIZED PROFILE CODE ===
@@ -1956,41 +2154,57 @@
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
 
-        // Initialize Intersection Observer for lazy loading
+        // Optimized lazy loading with Intersection Observer
         function initLazyLoading() {
             if ('IntersectionObserver' in window) {
                 imageObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const img = entry.target;
-                            const src = img.getAttribute('data-src');
-                            if (src) {
-                                img.src = src;
-                                img.removeAttribute('data-src');
-                                img.classList.add('loaded');
-                            }
-                            imageObserver.unobserve(img);
+                            loadImage(img);
                         }
                     });
                 }, {
                     rootMargin: '50px 0px',
-                    threshold: 0.1
+                    threshold: 0.01
                 });
             }
         }
 
-        // Lazy load image
+        // Optimized image loading with retry mechanism
+        function loadImage(img) {
+            const src = img.getAttribute('data-src');
+            if (!src) return;
+            
+            // Create a new image to preload
+            const tempImage = new Image();
+            tempImage.onload = () => {
+                img.src = src;
+                img.removeAttribute('data-src');
+                img.classList.add('loaded');
+                if (imageObserver) imageObserver.unobserve(img);
+            };
+            
+            tempImage.onerror = () => {
+                // Fallback to placeholder on error
+                img.src = 'images/placeholder.jpg';
+                img.removeAttribute('data-src');
+                img.classList.add('loaded');
+                if (imageObserver) imageObserver.unobserve(img);
+            };
+            
+            tempImage.src = src;
+        }
+
+        // Optimized lazy load function
         function lazyLoadImage(img) {
+            if (!img.getAttribute('data-src')) return;
+            
             if (imageObserver) {
                 imageObserver.observe(img);
             } else {
-                // Fallback for browsers without IntersectionObserver
-                const src = img.getAttribute('data-src');
-                if (src) {
-                    img.src = src;
-                    img.removeAttribute('data-src');
-                    img.classList.add('loaded');
-                }
+                // Fallback: Load immediately
+                loadImage(img);
             }
         }
 
@@ -2047,7 +2261,7 @@
             });
         }
 
-        // Debounce function for performance
+        // Optimized debounce function
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -2060,23 +2274,39 @@
             };
         }
 
-        // Initialize the profile page
+        // Optimized throttle function for scroll/resize events
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+
+        // Initialize the profile page with optimizations
         async function initProfilePage() {
             try {
                 initLazyLoading();
                 
-                // Load profile data
+                // Load profile data first (most important)
                 await loadProfile();
                 
-                // Load restaurants dynamically
-                await loadRestaurants();
-                
-                // Initialize systems
+                // Load other data in parallel for better performance
                 await Promise.all([
-                    listManager.init(),
-                    communitySystem.init(),
-                    foodJournal.init(),
-                    achievementsSystem.init()
+                    loadRestaurants().catch(err => console.error('Restaurant load error:', err)),
+                    listManager.init().catch(err => console.error('List manager error:', err)),
+                    communitySystem.init().catch(err => console.error('Community system error:', err))
+                ]);
+                
+                // Initialize remaining systems
+                await Promise.all([
+                    foodJournal.init().catch(err => console.error('Food journal error:', err)),
+                    achievementsSystem.init().catch(err => console.error('Achievements error:', err))
                 ]);
                 
                 setupEventListeners();
@@ -2247,50 +2477,54 @@
             }
         }
 
-        // Load restaurants with caching
+        // Optimized restaurant loading with caching
         async function loadRestaurants() {
             if (isLoading) return;
             isLoading = true;
             
             try {
-                // Try to get from cache first
-                const cached = sessionStorage.getItem('restaurants_cache');
-                if (cached) {
-                    restaurants = JSON.parse(cached);
+                // Check cache first with timestamp
+                const cacheKey = 'restaurants_cache_v2';
+                const cacheTimeKey = 'restaurants_cache_time_v2';
+                
+                const cachedData = localStorage.getItem(cacheKey);
+                const cacheTime = localStorage.getItem(cacheTimeKey);
+                
+                // Use cache if less than 10 minutes old
+                if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < 10 * 60 * 1000) {
+                    restaurants = JSON.parse(cachedData);
                     populateRestaurantSelect();
                     isLoading = false;
                     return;
                 }
                 
+                // Fetch fresh data
                 const { data, error } = await supabase
                     .from('restraunts')
-                    .select('*')
+                    .select('id, name, category, image, slug, rating')
                     .order('name');
                 
                 if (error) throw error;
                 
                 restaurants = data || [];
                 
-                // Cache for 5 minutes
-                sessionStorage.setItem('restaurants_cache', JSON.stringify(restaurants));
-                sessionStorage.setItem('restaurants_cache_time', Date.now().toString());
+                // Cache the data
+                localStorage.setItem(cacheKey, JSON.stringify(restaurants));
+                localStorage.setItem(cacheTimeKey, Date.now().toString());
                 
                 populateRestaurantSelect();
                 
             } catch (error) {
                 console.error('Error loading restaurants:', error);
                 restaurants = [];
+                // Try to use stale cache if available
+                const staleCache = localStorage.getItem('restaurants_cache_v2');
+                if (staleCache) {
+                    restaurants = JSON.parse(staleCache);
+                    populateRestaurantSelect();
+                }
             } finally {
                 isLoading = false;
-            }
-        }
-
-        // Clear cache if older than 5 minutes
-        function clearOldCache() {
-            const cacheTime = sessionStorage.getItem('restaurants_cache_time');
-            if (cacheTime && Date.now() - parseInt(cacheTime) > 5 * 60 * 1000) {
-                sessionStorage.removeItem('restaurants_cache');
-                sessionStorage.removeItem('restaurants_cache_time');
             }
         }
 
@@ -2312,62 +2546,40 @@
             const targetId = userId || currentUser.id;
             
             try {
-                // Get visited count
-                const { data: journalEntries, error: journalError } = await supabase
-                    .from('journal_entries')
-                    .select('restaurant_id')
-                    .eq('user_id', targetId);
+                // Get all stats in parallel for better performance
+                const [journalEntriesRes, visitedListRes, followersRes, userListsRes, userJournalRes] = await Promise.all([
+                    supabase.from('journal_entries').select('restaurant_id').eq('user_id', targetId),
+                    supabase.from('lists').select('id').eq('user_id', targetId).eq('title', 'Visited').single(),
+                    supabase.from('follows').select('id').eq('followed_id', targetId),
+                    supabase.from('lists').select('id').eq('user_id', targetId),
+                    supabase.from('journal_entries').select('id').eq('user_id', targetId)
+                ]);
 
+                // Calculate visited count
                 let allRestaurantIds = [];
-                if (!journalError && journalEntries) {
-                    allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
+                
+                if (!journalEntriesRes.error && journalEntriesRes.data) {
+                    allRestaurantIds = journalEntriesRes.data.map(entry => entry.restaurant_id);
                 }
                 
-                // Get from Visited list
-                const { data: visitedList, error: listError } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId)
-                    .eq('title', 'Visited')
-                    .single();
-
-                if (!listError && visitedList) {
-                    const { data: listRestaurants, error: listRestError } = await supabase
+                if (!visitedListRes.error && visitedListRes.data) {
+                    const listRestaurantsRes = await supabase
                         .from('lists_restraunts')
                         .select('restraunt_id')
-                        .eq('list_id', visitedList.id);
+                        .eq('list_id', visitedListRes.data.id);
                     
-                    if (!listRestError && listRestaurants) {
-                        const listIds = listRestaurants.map(item => item.restraunt_id);
+                    if (!listRestaurantsRes.error && listRestaurantsRes.data) {
+                        const listIds = listRestaurantsRes.data.map(item => item.restraunt_id);
                         allRestaurantIds = [...allRestaurantIds, ...listIds];
                     }
                 }
 
                 const visitedCount = new Set(allRestaurantIds).size;
                 
-                // Get followers count
-                const { data: followers, error: followersError } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('followed_id', targetId);
-
-                const followersCount = followers ? followers.length : 0;
-                
-                // Get lists count
-                const { data: userLists, error: listsError } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId);
-
-                const listsCount = userLists ? userLists.length : 0;
-                
-                // Get journal entries count
-                const { data: userJournalEntries, error: journalCountError } = await supabase
-                    .from('journal_entries')
-                    .select('id')
-                    .eq('user_id', targetId);
-
-                const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
+                // Calculate other counts
+                const followersCount = followersRes.data ? followersRes.data.length : 0;
+                const listsCount = userListsRes.data ? userListsRes.data.length : 0;
+                const reviewsCount = userJournalRes.data ? userJournalRes.data.length : 0;
                 
                 // Update UI
                 document.getElementById('visitedCount').textContent = visitedCount;
@@ -2387,7 +2599,7 @@
             }
         }
 
-        // List Management System with optimizations
+        // Optimized List Management System
         const listManager = {
             userLists: [],
             currentLists: {
@@ -2463,7 +2675,6 @@
             },
             
             async loadListRestaurants() {
-                // Load in parallel for better performance
                 const promises = [];
                 
                 for (const listType in this.currentLists) {
@@ -2591,7 +2802,7 @@
                 return list?.restaurants?.includes(restrauntId) || false;
             },
 
-            // Render lists in grid layout with lazy loading
+            // Optimized list rendering with virtual scrolling
             renderListsGrid() {
                 const listsGrid = document.getElementById('listsGrid');
                 if (!listsGrid) return;
@@ -2653,8 +2864,8 @@
                     return;
                 }
                 
-                // Render lists in batches for better performance
-                this.renderListBatch(allLists, 0, 6);
+                // Render lists in batches
+                this.renderListBatch(allLists, 0, 4);
             },
 
             renderListBatch(lists, startIndex, batchSize) {
@@ -2669,11 +2880,11 @@
                     listsGrid.appendChild(listCard);
                 }
                 
-                // If there are more lists to render, schedule next batch
+                // Schedule next batch if needed
                 if (endIndex < lists.length) {
-                    requestAnimationFrame(() => {
+                    requestIdleCallback(() => {
                         this.renderListBatch(lists, endIndex, batchSize);
-                    });
+                    }, { timeout: 1000 });
                 }
             },
 
@@ -2695,7 +2906,9 @@
                                     <img data-src="images/${restraunt.image || 'placeholder.jpg'}" 
                                          alt="${restraunt.name}" 
                                          class="lazy-load"
-                                         onload="this.classList.add('loaded')">
+                                         loading="lazy"
+                                         width="80"
+                                         height="80">
                                 </div>
                             `);
                         } else {
@@ -2743,7 +2956,7 @@
                     listCard.querySelectorAll('img[data-src]').forEach(img => {
                         lazyLoadImage(img);
                     });
-                }, 0);
+                }, 50);
                 
                 return listCard;
             }
@@ -2806,7 +3019,7 @@
             currentActiveList = null;
         }
 
-        // Render restaurants in a list with lazy loading
+        // Optimized restaurant rendering with batch processing
         async function renderListRestaurants(restrauntIds, list) {
             const grid = document.getElementById('listRestaurantsGrid');
             if (!grid) return;
@@ -2841,8 +3054,8 @@
                 listDetailTitle.textContent = `${list.title} (${listRestraunts.length} places)`;
             }
             
-            // Render in batches for better performance
-            renderRestaurantBatch(listRestraunts, grid, list, 0, 6);
+            // Render in batches
+            renderRestaurantBatch(listRestraunts, grid, list, 0, 8);
         }
 
         function renderRestaurantBatch(restaurants, grid, list, startIndex, batchSize) {
@@ -2854,11 +3067,11 @@
                 grid.appendChild(card);
             }
             
-            // If there are more restaurants to render, schedule next batch
+            // Schedule next batch if needed
             if (endIndex < restaurants.length) {
-                requestAnimationFrame(() => {
+                requestIdleCallback(() => {
                     renderRestaurantBatch(restaurants, grid, list, endIndex, batchSize);
-                });
+                }, { timeout: 1000 });
             }
         }
 
@@ -2880,8 +3093,9 @@
                             <img data-src="images/${restaurant.image || 'placeholder.jpg'}" 
                                  alt="${restaurant.name}" 
                                  class="lazy-load"
-                                 onload="this.classList.add('loaded')"
-                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                 loading="lazy"
+                                 width="60"
+                                 height="60">
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <h3 style="margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis;">${restaurant.name}</h3>
@@ -2915,12 +3129,12 @@
             setTimeout(() => {
                 const img = clickableContent.querySelector('img[data-src]');
                 if (img) lazyLoadImage(img);
-            }, 0);
+            }, 50);
             
             return card;
         }
 
-        // Food Journal System with optimizations
+        // Optimized Food Journal System
         const foodJournal = {
             entries: [],
             
@@ -3004,8 +3218,8 @@
                     return;
                 }
                 
-                // Render in batches for better performance
-                this.renderEntryBatch(entriesToShow, 0, 3);
+                // Render in batches
+                this.renderEntryBatch(entriesToShow, 0, 4);
             },
             
             renderEntryBatch(entries, startIndex, batchSize) {
@@ -3024,11 +3238,11 @@
                     journalEntries.appendChild(entryElement);
                 }
                 
-                // If there are more entries to render, schedule next batch
+                // Schedule next batch if needed
                 if (endIndex < entries.length) {
-                    requestAnimationFrame(() => {
+                    requestIdleCallback(() => {
                         this.renderEntryBatch(entries, endIndex, batchSize);
-                    });
+                    }, { timeout: 1000 });
                 }
             },
             
@@ -3040,7 +3254,7 @@
                 
                 const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
                 const restaurantImage = restaurant.image ? 
-                    `<img data-src="images/${restaurant.image}" alt="${restaurant.name}" class="lazy-load" onload="this.classList.add('loaded')" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                    `<img data-src="images/${restaurant.image}" alt="${restaurant.name}" class="lazy-load" loading="lazy" width="60" height="60">` : 
                     `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
                 
                 entryElement.innerHTML = `
@@ -3101,7 +3315,7 @@
                 setTimeout(() => {
                     const img = entryElement.querySelector('img[data-src]');
                     if (img) lazyLoadImage(img);
-                }, 0);
+                }, 50);
                 
                 return entryElement;
             },
@@ -3220,7 +3434,7 @@
             }
         };
 
-        // Community System with optimizations
+        // Optimized Community System
         const communitySystem = {
             currentSection: 'followers',
             
@@ -3228,12 +3442,14 @@
                 if (!currentUser) return;
                 await this.loadFollowStats();
                 
-                // Add event listener for search with debounce
+                // Add optimized event listener for search
                 const userSearch = document.getElementById('userSearch');
                 if (userSearch) {
                     userSearch.addEventListener('input', debounce(() => {
                         if (userSearch.value.trim().length >= 2) {
                             this.searchUsers();
+                        } else {
+                            this.clearSearchResults();
                         }
                     }, 500));
                 }
@@ -3243,7 +3459,7 @@
                 try {
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     
-                    // Get counts in parallel for better performance
+                    // Get counts in parallel
                     const [followersRes, followingRes] = await Promise.all([
                         supabase
                             .from('follows')
@@ -3315,7 +3531,7 @@
                     const followerIds = follows.map(f => f.follower_id);
                     const { data: users, error: usersError } = await supabase
                         .from('user_profiles')
-                        .select('*')
+                        .select('id, username, full_name, avatar_icon, location, bio')
                         .in('id', followerIds);
 
                     if (!usersError) {
@@ -3373,7 +3589,7 @@
                     const followingIds = follows.map(f => f.followed_id);
                     const { data: users, error: usersError } = await supabase
                         .from('user_profiles')
-                        .select('*')
+                        .select('id, username, full_name, avatar_icon, location, bio')
                         .in('id', followingIds);
 
                     if (!usersError) {
@@ -3401,25 +3617,28 @@
                 const searchTerm = userSearch.value.trim();
                 
                 if (searchTerm.length < 2) {
-                    const searchResults = document.getElementById('searchResults');
-                    if (searchResults) {
-                        searchResults.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">🔍</div>
-                                <h3 class="empty-title">Type to search</h3>
-                                <p class="empty-description">Enter at least 2 characters to search for users</p>
-                            </div>
-                        `;
-                    }
+                    this.clearSearchResults();
                     return;
                 }
 
                 try {
+                    // Show loading state
+                    const searchResults = document.getElementById('searchResults');
+                    if (searchResults) {
+                        searchResults.innerHTML = `
+                            <div class="empty-state">
+                                <div class="loading-spinner"></div>
+                                <h3 class="empty-title">Searching...</h3>
+                                <p class="empty-description">Looking for users matching "${searchTerm}"</p>
+                            </div>
+                        `;
+                    }
+
                     const { data: users, error } = await supabase
                         .from('user_profiles')
-                        .select('*')
+                        .select('id, username, full_name, avatar_icon, location, bio')
                         .neq('id', currentUser.id)
-                        .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
+                        .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
                         .limit(20);
 
                     if (error) throw error;
@@ -3429,6 +3648,19 @@
                 } catch (error) {
                     console.error('Error searching users:', error);
                     showToast('Error searching users', 'error');
+                }
+            },
+
+            clearSearchResults() {
+                const searchResults = document.getElementById('searchResults');
+                if (searchResults) {
+                    searchResults.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <h3 class="empty-title">Search for users</h3>
+                            <p class="empty-description">Enter a name or username to find other food lovers</p>
+                        </div>
+                    `;
                 }
             },
 
@@ -3449,46 +3681,44 @@
 
                 container.innerHTML = '';
 
-                // Load follow statuses in parallel
-                const userPromises = users.map(async (user) => {
-                    const isCurrentUser = user.id === currentUser.id;
-                    let isFollowing = false;
-                    
-                    if (!isCurrentUser) {
-                        const { data: follow } = await supabase
-                            .from('follows')
-                            .select('id')
-                            .eq('follower_id', currentUser.id)
-                            .eq('followed_id', user.id)
-                            .single();
-                        
-                        isFollowing = !!follow;
-                    }
-                    
-                    return { user, isFollowing, isCurrentUser };
-                });
-
-                const userResults = await Promise.all(userPromises);
+                // Load follow statuses in parallel with batch size limit
+                const batchSize = 10;
+                const batches = [];
                 
-                // Render users in batches
-                this.renderUserBatch(userResults, container, 0, 5);
+                for (let i = 0; i < users.length; i += batchSize) {
+                    const batch = users.slice(i, i + batchSize);
+                    batches.push(batch);
+                }
+
+                for (const batch of batches) {
+                    const userPromises = batch.map(async (user) => {
+                        const isCurrentUser = user.id === currentUser.id;
+                        let isFollowing = false;
+                        
+                        if (!isCurrentUser) {
+                            const { data: follow } = await supabase
+                                .from('follows')
+                                .select('id')
+                                .eq('follower_id', currentUser.id)
+                                .eq('followed_id', user.id)
+                                .single();
+                            
+                            isFollowing = !!follow;
+                        }
+                        
+                        return { user, isFollowing, isCurrentUser };
+                    });
+
+                    const userResults = await Promise.all(userPromises);
+                    this.renderUserBatch(userResults, container);
+                }
             },
 
-            renderUserBatch(users, container, startIndex, batchSize) {
-                const endIndex = Math.min(startIndex + batchSize, users.length);
-                
-                for (let i = startIndex; i < endIndex; i++) {
-                    const { user, isFollowing, isCurrentUser } = users[i];
+            renderUserBatch(users, container) {
+                users.forEach(({ user, isFollowing, isCurrentUser }) => {
                     const userCard = this.createUserCard(user, isFollowing, isCurrentUser);
                     container.appendChild(userCard);
-                }
-                
-                // If there are more users to render, schedule next batch
-                if (endIndex < users.length) {
-                    requestAnimationFrame(() => {
-                        this.renderUserBatch(users, container, endIndex, batchSize);
-                    });
-                }
+                });
             },
 
             createUserCard(user, isFollowing, isCurrentUser) {
@@ -3500,20 +3730,6 @@
                         <div class="community-info">
                             <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
                             <div class="community-username">@${user.username || 'user'}</div>
-                        </div>
-                    </div>
-                    <div class="community-stats">
-                        <div class="community-stat">
-                            <span class="community-stat-number">${user.visited_count || 0}</span>
-                            <span class="community-stat-label">Visited</span>
-                        </div>
-                        <div class="community-stat">
-                            <span class="community-stat-number">${user.favorites_count || 0}</span>
-                            <span class="community-stat-label">Favorites</span>
-                        </div>
-                        <div class="community-stat">
-                            <span class="community-stat-number">${user.followers_count || 0}</span>
-                            <span class="community-stat-label">Followers</span>
                         </div>
                     </div>
                     <div class="community-actions">
@@ -3641,7 +3857,7 @@
             }
         }
 
-        // Achievements System with optimizations
+        // Optimized Achievements System
         const achievementsSystem = {
             async init() {
                 await this.loadAchievements();
@@ -3952,7 +4168,7 @@
             }
         }
 
-        // Set up event listeners with optimizations
+        // Optimized event listeners setup
         function setupEventListeners() {
             // Tab buttons
             document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -4052,8 +4268,12 @@
                 }
             });
             
-            // Clear cache on page unload
-            window.addEventListener('beforeunload', clearOldCache);
+            // Clean up observers on page unload
+            window.addEventListener('beforeunload', () => {
+                if (imageObserver) {
+                    imageObserver.disconnect();
+                }
+            });
         }
 
         // Create custom list
