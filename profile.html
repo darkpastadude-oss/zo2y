@@ -41,7 +41,6 @@
             color: var(--white);
             line-height: 1.6;
             overflow-x: hidden;
-            min-height: 100vh;
         }
 
         .container {
@@ -64,10 +63,6 @@
             transition: var(--transition);
             text-decoration: none;
             overflow: hidden;
-            border-radius: 50%;
-            background: var(--card);
-            padding: 5px;
-            border: 1px solid var(--border);
         }
 
         .home-button img {
@@ -114,7 +109,6 @@
             cursor: pointer;
             transition: var(--transition);
             color: #0b1633;
-            flex-shrink: 0;
         }
 
         .profile-avatar:hover {
@@ -124,15 +118,12 @@
 
         .profile-info {
             flex: 1;
-            min-width: 0;
         }
 
         .profile-name {
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 4px;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .profile-username {
@@ -146,7 +137,6 @@
             color: var(--muted);
             margin-bottom: 16px;
             max-width: 500px;
-            overflow-wrap: break-word;
         }
 
         .profile-meta {
@@ -154,14 +144,12 @@
             gap: 20px;
             font-size: 14px;
             color: var(--muted);
-            flex-wrap: wrap;
         }
 
         .meta-item {
             display: flex;
             align-items: center;
             gap: 6px;
-            flex-shrink: 0;
         }
 
         .profile-actions {
@@ -180,8 +168,6 @@
             display: none;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
         }
 
         .viewing-indicator {
@@ -189,18 +175,6 @@
             align-items: center;
             gap: 8px;
             font-weight: 600;
-        }
-
-        /* Fix for the back button in viewing indicator - UPDATED */
-        .viewing-other-profile .profile-back-btn {
-            border: 2px solid #0b1633 !important;
-            color: #0b1633 !important;
-            background: transparent !important;
-        }
-
-        .viewing-other-profile .profile-back-btn:hover {
-            background: #0b1633 !important;
-            color: var(--accent) !important;
         }
 
         /* === BUTTONS === */
@@ -216,7 +190,6 @@
             gap: 8px;
             text-decoration: none;
             font-size: 14px;
-            flex-shrink: 0;
         }
 
         .btn-primary {
@@ -339,11 +312,6 @@
             border: 1px solid var(--border);
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-
-        .nav-tabs::-webkit-scrollbar {
-            display: none;
         }
 
         .nav-tab {
@@ -386,10 +354,8 @@
         .section-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
         }
 
         .section-title {
@@ -406,7 +372,6 @@
         .section-actions {
             display: flex;
             gap: 12px;
-            flex-wrap: wrap;
         }
 
         /* === CARDS GRID === */
@@ -422,7 +387,6 @@
             border: 1px solid var(--border);
             overflow: hidden;
             transition: var(--transition);
-            position: relative;
         }
 
         .card:hover {
@@ -477,15 +441,12 @@
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
         }
 
         .restaurant-info {
             display: flex;
             align-items: center;
             gap: 12px;
-            min-width: 0;
         }
 
         .restaurant-image {
@@ -498,7 +459,6 @@
             justify-content: center;
             font-size: 24px;
             overflow: hidden;
-            flex-shrink: 0;
         }
 
         .restaurant-image img {
@@ -510,8 +470,6 @@
         .restaurant-details h3 {
             margin-bottom: 4px;
             font-size: 18px;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .restaurant-category {
@@ -524,7 +482,6 @@
             align-items: center;
             gap: 8px;
             font-weight: 600;
-            flex-shrink: 0;
         }
 
         .entry-meta {
@@ -542,13 +499,11 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            flex-shrink: 0;
         }
 
         .entry-notes {
             margin-bottom: 16px;
             line-height: 1.6;
-            overflow-wrap: break-word;
         }
 
         .entry-tags {
@@ -565,14 +520,12 @@
             border-radius: 12px;
             font-size: 12px;
             font-weight: 500;
-            flex-shrink: 0;
         }
 
         .entry-actions {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
-            flex-wrap: wrap;
         }
 
         /* === ACHIEVEMENTS === */
@@ -678,39 +631,30 @@
             justify-content: center;
             font-size: 20px;
             color: #0b1633;
-            flex-shrink: 0;
         }
 
         .community-info {
             flex: 1;
-            min-width: 0;
         }
 
         .community-name {
             font-weight: 600;
             margin-bottom: 4px;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .community-username {
             color: var(--muted);
             font-size: 14px;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .community-stats {
             display: flex;
             gap: 16px;
             margin-bottom: 16px;
-            flex-wrap: wrap;
         }
 
         .community-stat {
             text-align: center;
-            flex: 1;
-            min-width: 60px;
         }
 
         .community-stat-number {
@@ -727,7 +671,6 @@
         .community-actions {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
         }
 
         /* === MODALS === */
@@ -743,7 +686,6 @@
             justify-content: center;
             z-index: 1000;
             padding: 20px;
-            overflow-y: auto;
         }
 
         .modal.active {
@@ -766,10 +708,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            background: var(--card);
-            z-index: 1;
         }
 
         .modal-title {
@@ -783,12 +721,6 @@
             font-size: 24px;
             cursor: pointer;
             color: var(--muted);
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .modal-close:hover {
@@ -819,7 +751,6 @@
             border-radius: var(--radius-sm);
             color: var(--white);
             font-size: 14px;
-            transition: var(--transition);
         }
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -835,7 +766,6 @@
         .rating-stars {
             display: flex;
             gap: 4px;
-            flex-wrap: wrap;
         }
 
         .rating-star {
@@ -843,7 +773,6 @@
             cursor: pointer;
             transition: var(--transition);
             opacity: 0.3;
-            flex-shrink: 0;
         }
 
         .rating-star.active, .rating-star:hover {
@@ -856,7 +785,6 @@
             gap: 12px;
             justify-content: flex-end;
             margin-top: 24px;
-            flex-wrap: wrap;
         }
 
         /* === TOAST NOTIFICATIONS === */
@@ -865,8 +793,6 @@
             top: 20px;
             right: 20px;
             z-index: 1100;
-            max-width: 350px;
-            width: calc(100% - 40px);
         }
 
         .toast {
@@ -879,18 +805,6 @@
             gap: 12px;
             margin-bottom: 12px;
             border: 1px solid var(--border);
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
         }
 
         .toast.success { border-left-color: var(--success); }
@@ -899,7 +813,6 @@
 
         .toast-icon {
             font-size: 20px;
-            flex-shrink: 0;
         }
 
         .toast.success .toast-icon { color: var(--success); }
@@ -908,7 +821,6 @@
 
         .toast-content {
             flex: 1;
-            min-width: 0;
         }
 
         .toast-title {
@@ -919,7 +831,6 @@
         .toast-message {
             font-size: 14px;
             color: var(--muted);
-            overflow-wrap: break-word;
         }
 
         .toast-close {
@@ -928,13 +839,6 @@
             font-size: 18px;
             cursor: pointer;
             color: var(--muted);
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
         }
 
         .toast-close:hover {
@@ -985,8 +889,6 @@
             transition: var(--transition);
             cursor: pointer;
             position: relative;
-            display: flex;
-            flex-direction: column;
         }
 
         .list-card:hover {
@@ -1007,7 +909,6 @@
             color: var(--muted);
             font-size: 14px;
             margin-bottom: 16px;
-            overflow-wrap: break-word;
         }
 
         .list-preview-grid {
@@ -1025,18 +926,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
         .list-preview-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .list-preview-item:hover img {
-            transform: scale(1.05);
         }
 
         .list-card-button {
@@ -1049,7 +944,6 @@
             font-size: 14px;
             cursor: pointer;
             transition: var(--transition);
-            margin-top: auto;
         }
 
         .list-card-button:hover {
@@ -1105,7 +999,6 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--muted);
-            z-index: 1;
         }
 
         .search-input {
@@ -1115,7 +1008,6 @@
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             color: var(--white);
-            transition: var(--transition);
         }
 
         .search-input:focus {
@@ -1148,7 +1040,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
         }
 
         .restaurant-tile-content {
@@ -1159,8 +1050,6 @@
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 4px;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .restaurant-tile-category {
@@ -1179,7 +1068,6 @@
             color: var(--muted);
             font-size: 14px;
             line-height: 1.4;
-            overflow-wrap: break-word;
         }
 
         /* === LIST ICONS === */
@@ -1193,17 +1081,10 @@
             cursor: pointer;
             transition: var(--transition);
             font-size: 20px;
-            flex-shrink: 0;
-            border: 1px solid transparent;
         }
 
         .list-icon-option:hover {
             background: var(--bg-hover);
-        }
-
-        .list-icon-option.selected {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: var(--accent);
         }
 
         .avatar-icon-grid {
@@ -1222,45 +1103,21 @@
             cursor: pointer;
             transition: var(--transition);
             font-size: 24px;
-            flex-shrink: 0;
-            border: 2px solid transparent;
         }
 
         .avatar-icon-option:hover {
             background: var(--bg-hover);
-            transform: scale(1.05);
         }
 
         .avatar-icon-option.selected {
             background: var(--accent);
             color: #0b1633;
-            border-color: var(--accent);
-        }
-
-        /* === LAZY LOADING === */
-        .lazy-load {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .lazy-load.loaded {
-            opacity: 1;
-        }
-
-        /* Optimized lazy loading styles */
-        img.lazy-load {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        img.lazy-load.loaded {
-            opacity: 1;
         }
 
         /* === UTILITY CLASSES === */
         .d-flex { display: flex; }
         .d-grid { display: grid; }
-        .d-none { display: none !important; }
+        .d-none { display: none; }
         .d-block { display: block; }
         .flex-column { flex-direction: column; }
         .flex-row { flex-direction: row; }
@@ -1312,60 +1169,6 @@
         .p-md { padding: 16px; }
         .p-lg { padding: 24px; }
         .p-xl { padding: 32px; }
-
-        /* === IMAGE FALLBACK === */
-        .image-fallback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg);
-            color: var(--muted);
-            font-size: 24px;
-        }
-
-        /* === FOOTER === */
-        .profile-footer {
-            background: var(--card);
-            padding: 30px 0;
-            margin-top: 50px;
-            border-top: 1px solid var(--border);
-        }
-
-        .footer-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .footer-link {
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        .footer-link:hover {
-            color: var(--accent);
-        }
-
-        .copyright {
-            color: var(--muted);
-            font-size: 14px;
-            text-align: center;
-        }
-
-        /* === SMOOTH SCROLL === */
-        html {
-            scroll-behavior: smooth;
-        }
 
         /* === MOBILE RESPONSIVE === */
         @media (max-width: 768px) {
@@ -1519,20 +1322,6 @@
                 grid-template-columns: 1fr;
                 gap: 16px;
             }
-
-            .modal {
-                padding: 10px;
-            }
-
-            .modal-content {
-                max-height: 85vh;
-            }
-
-            .toast-container {
-                left: 20px;
-                right: 20px;
-                width: auto;
-            }
         }
 
         @media (max-width: 480px) {
@@ -1571,79 +1360,14 @@
             .community-actions .btn {
                 width: 100%;
             }
-
-            .list-preview-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .journal-entry {
-                padding: 16px;
-            }
-
-            .restaurant-image {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-
-            .restaurant-details h3 {
-                font-size: 16px;
-            }
-
-            .footer-links {
-                flex-direction: column;
-                align-items: center;
-                gap: 12px;
-            }
-        }
-
-        /* === TOUCH DEVICE OPTIMIZATIONS === */
-        @media (hover: none) {
-            .card:hover,
-            .journal-entry:hover,
-            .stat-card:hover,
-            .achievement-card:hover,
-            .community-card:hover,
-            .list-card:hover,
-            .restaurant-tile:hover {
-                transform: none;
-            }
-
-            .btn:hover {
-                transform: none;
-            }
-        }
-
-        /* === PERFORMANCE OPTIMIZATIONS === */
-        .will-change-transform {
-            will-change: transform;
-        }
-
-        /* === SCROLLBAR STYLING === */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #e69500;
         }
     </style>
     <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
     <!-- Home Button -->
-    <a href="index.html" class="home-button" aria-label="Go to Home">
-        <img src="images/logo.png" alt="Zo2y Logo" loading="lazy">
+    <a href="index.html" class="home-button">
+        <img src="images/logo.png" alt="Zo2y Logo">
     </a>
 
     <!-- Viewing Other Profile Indicator -->
@@ -1653,7 +1377,7 @@
                 <i class="fas fa-eye"></i>
                 <span>You are viewing another user's profile</span>
             </div>
-            <button class="btn profile-back-btn" onclick="goToMyProfile()">
+            <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="goToMyProfile()">
                 <i class="fas fa-user"></i> Back to My Profile
             </button>
         </div>
@@ -1664,7 +1388,7 @@
         <div class="container">
             <div class="profile-top">
                 <div class="avatar-container">
-                    <div class="profile-avatar" onclick="showAvatarModal()" id="profileAvatar" aria-label="Change avatar">
+                    <div class="profile-avatar" onclick="showAvatarModal()" id="profileAvatar">
                         🍔
                     </div>
                 </div>
@@ -1700,7 +1424,7 @@
                     <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addEntryBtn">
                         <i class="fas fa-plus"></i> Add Journal
                     </button>
-                    <button class="btn btn-secondary" id="settingsBtn" onclick="showSettings()">
+                    <button class="btn btn-secondary" id="settingsBtn">
                         <i class="fas fa-cog"></i> Settings
                     </button>
                     <button class="btn btn-secondary d-none" id="followButton">
@@ -1738,23 +1462,23 @@
 
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
-            <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')" role="tab" aria-selected="true">
+            <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')">
                 <i class="fas fa-book"></i> Food Journal
             </div>
-            <div class="nav-tab" data-tab="lists" onclick="showTab('lists')" role="tab" aria-selected="false">
+            <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
                 <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
             </div>
-            <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')" role="tab" aria-selected="false">
+            <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
                 <i class="fas fa-trophy"></i> Achievements
             </div>
-            <div class="nav-tab" data-tab="community" onclick="showTab('community')" role="tab" aria-selected="false">
+            <div class="nav-tab" data-tab="community" onclick="showTab('community')">
                 <i class="fas fa-users"></i> Community
                 <span class="nav-tab-badge d-none" id="followersBadge">0</span>
             </div>
         </div>
 
         <!-- Journal Tab Content -->
-        <div class="tab-content active" id="journal-tab" role="tabpanel">
+        <div class="tab-content active" id="journal-tab">
             <div class="section">
                 <div class="section-header">
                     <div>
@@ -1787,7 +1511,7 @@
         </div>
 
         <!-- Lists Tab Content -->
-        <div class="tab-content" id="lists-tab" role="tabpanel">
+        <div class="tab-content" id="lists-tab">
             <div class="section">
                 <div class="section-header">
                     <div>
@@ -1795,7 +1519,7 @@
                         <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
                     </div>
                     <div class="section-actions">
-                        <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="sortLists()">
+                        <button class="btn btn-secondary btn-sm" id="sortListsBtn">
                             <i class="fas fa-sort"></i> Sort
                         </button>
                         <button class="btn btn-primary btn-sm" onclick="showCreateListModal()" id="createListBtn">
@@ -1812,7 +1536,7 @@
         </div>
 
         <!-- List Detail View -->
-        <div class="tab-content" id="list-detail-view" role="tabpanel">
+        <div class="tab-content" id="list-detail-view">
             <div class="section">
                 <div class="section-header">
                     <div class="d-flex align-center gap-md">
@@ -1848,7 +1572,7 @@
         </div>
 
         <!-- Achievements Tab Content -->
-        <div class="tab-content" id="achievements-tab" role="tabpanel">
+        <div class="tab-content" id="achievements-tab">
             <div class="section">
                 <div class="section-header">
                     <div>
@@ -1856,7 +1580,7 @@
                         <p class="section-subtitle">Track your food journey progress</p>
                     </div>
                     <div class="section-actions">
-                        <button class="btn btn-secondary" onclick="viewAllAchievements()">
+                        <button class="btn btn-secondary">
                             <i class="fas fa-trophy"></i> View All
                         </button>
                     </div>
@@ -1869,7 +1593,7 @@
         </div>
 
         <!-- Community Tab Content -->
-        <div class="tab-content" id="community-tab" role="tabpanel">
+        <div class="tab-content" id="community-tab">
             <div class="section">
                 <div class="section-header">
                     <div>
@@ -1935,10 +1659,10 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-links">
-                    <a href="#" class="footer-link" onclick="showSettings()">Settings</a>
-                    <a href="#" class="footer-link" onclick="showPrivacy()">Privacy</a>
-                    <a href="#" class="footer-link" onclick="showSupport()">Support</a>
-                    <a href="#" class="footer-link" onclick="showAbout()">About</a>
+                    <a href="#" class="footer-link">Settings</a>
+                    <a href="#" class="footer-link">Privacy</a>
+                    <a href="#" class="footer-link">Support</a>
+                    <a href="#" class="footer-link">About</a>
                     <a href="#" class="footer-link" id="logoutBtn">Logout</a>
                 </div>
                 <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
@@ -1956,43 +1680,49 @@
                 <h3 class="modal-title">Add Journal Entry</h3>
                 <button class="modal-close" onclick="closeModal('addEntryModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <form id="journalEntryForm">
+            
+            <form id="journalEntryForm">
+                <div class="modal-body">
                     <div class="form-group">
-                        <label class="form-label" for="restaurantSelect">Restaurant *</label>
+                        <label class="form-label">Restaurant</label>
                         <select class="form-select" id="restaurantSelect" required>
                             <option value="">Select a restaurant</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label" for="visitDate">Visit Date *</label>
+                        <label class="form-label">Visit Date</label>
                         <input type="date" class="form-input" id="visitDate" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label">Rating *</label>
+                        <label class="form-label">Rating</label>
                         <div class="rating-stars" id="ratingStars">
-                            <span class="rating-star" data-rating="1">⭐</span>
-                            <span class="rating-star" data-rating="2">⭐</span>
-                            <span class="rating-star" data-rating="3">⭐</span>
-                            <span class="rating-star" data-rating="4">⭐</span>
-                            <span class="rating-star" data-rating="5">⭐</span>
+                            <span class="rating-star" data-rating="1" onclick="setRating(1)">⭐</span>
+                            <span class="rating-star" data-rating="2" onclick="setRating(2)">⭐</span>
+                            <span class="rating-star" data-rating="3" onclick="setRating(3)">⭐</span>
+                            <span class="rating-star" data-rating="4" onclick="setRating(4)">⭐</span>
+                            <span class="rating-star" data-rating="5" onclick="setRating(5)">⭐</span>
                         </div>
                         <input type="hidden" id="selectedRating" value="0">
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label" for="visitNotes">Notes</label>
-                        <textarea class="form-textarea" id="visitNotes" rows="3" placeholder="Share your experience..."></textarea>
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" id="visitNotes" placeholder="What did you order? How was the experience?"></textarea>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label" for="visitTags">Tags (comma separated)</label>
-                        <input type="text" class="form-input" id="visitTags" placeholder="e.g., romantic, family-friendly, quick-bite">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-input" id="visitTags" placeholder="Add tags (e.g., date night, business, casual)">
                     </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('addEntryModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Entry</button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2003,43 +1733,38 @@
                 <h3 class="modal-title">Create New List</h3>
                 <button class="modal-close" onclick="closeModal('createListModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <form id="createListForm">
+            
+            <form id="createListForm">
+                <div class="modal-body">
                     <div class="form-group">
-                        <label class="form-label" for="listName">List Name *</label>
-                        <input type="text" class="form-input" id="listName" required placeholder="e.g., Date Night Spots">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="listName" placeholder="e.g., Date Night Spots" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label" for="listDescription">Description</label>
-                        <textarea class="form-textarea" id="listDescription" rows="2" placeholder="Describe your list..."></textarea>
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="listDescription" placeholder="What kind of restaurants go in this list?"></textarea>
                     </div>
+                    
                     <div class="form-group">
                         <label class="form-label">Icon</label>
-                        <div class="d-flex gap-sm">
-                            <div class="list-icon-option" data-icon="fas fa-heart">
-                                <i class="fas fa-heart"></i>
-                            </div>
-                            <div class="list-icon-option" data-icon="fas fa-star">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <div class="list-icon-option selected" data-icon="fas fa-utensils">
-                                <i class="fas fa-utensils"></i>
-                            </div>
-                            <div class="list-icon-option" data-icon="fas fa-bookmark">
-                                <i class="fas fa-bookmark"></i>
-                            </div>
-                            <div class="list-icon-option" data-icon="fas fa-map-marker">
-                                <i class="fas fa-map-marker"></i>
-                            </div>
+                        <div class="d-flex gap-md flex-wrap">
+                            <div class="list-icon-option" data-icon="💑">💑</div>
+                            <div class="list-icon-option" data-icon="🥪">🥪</div>
+                            <div class="list-icon-option" data-icon="🍳">🍳</div>
+                            <div class="list-icon-option" data-icon="💼">💼</div>
+                            <div class="list-icon-option" data-icon="🌮">🌮</div>
+                            <div class="list-icon-option" data-icon="🍕">🍕</div>
                         </div>
-                        <input type="hidden" id="selectedIcon" value="fas fa-utensils">
+                        <input type="hidden" id="selectedIcon" value="📋">
                     </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('createListModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Create List</button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2050,37 +1775,46 @@
                 <h3 class="modal-title">Edit Profile</h3>
                 <button class="modal-close" onclick="closeModal('editProfileModal')">&times;</button>
             </div>
-            <div class="modal-body">
-                <form id="editProfileForm">
+            
+            <form id="editProfileForm">
+                <div class="modal-body">
                     <div class="form-group">
-                        <label class="form-label" for="editDisplayName">Display Name *</label>
+                        <label class="form-label">Display Name</label>
                         <input type="text" class="form-input" id="editDisplayName" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label" for="editUsername">Username *</label>
+                        <label class="form-label">Username</label>
                         <input type="text" class="form-input" id="editUsername" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label" for="editBio">Bio</label>
-                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us about yourself..."></textarea>
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" placeholder="Tell others about your food journey"></textarea>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="form-label" for="editLocation">Location</label>
-                        <input type="text" class="form-input" id="editLocation" placeholder="e.g., New York, NY">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
                     </div>
+
                     <div class="form-group">
-                        <label class="form-label">
-                            <input type="checkbox" id="editIsPrivate">
-                            Private Profile
-                        </label>
-                        <small class="text-muted">When enabled, only followers can see your profile</small>
+                        <label class="form-label">Account Privacy</label>
+                        <div class="d-flex gap-md align-center">
+                            <input type="checkbox" id="editIsPrivate" class="form-input" style="width: auto;">
+                            <label for="editIsPrivate" class="form-label" style="margin-bottom: 0;">Private Account</label>
+                        </div>
+                        <div class="text-xs text-muted mt-xs">
+                            Private accounts require approval for follow requests
+                        </div>
                     </div>
+                    
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2091,11 +1825,16 @@
                 <h3 class="modal-title">Choose Your Avatar</h3>
                 <button class="modal-close" onclick="closeModal('avatarModal')">&times;</button>
             </div>
+            
             <div class="modal-body">
-                <div class="avatar-icon-grid" id="avatarIconGrid">
-                    <!-- Food icons will be populated here -->
+                <div class="form-group">
+                    <label class="form-label">Select a food icon</label>
+                    <div class="avatar-icon-grid" id="avatarIconGrid">
+                        <!-- Avatar icons will be populated here -->
+                    </div>
                 </div>
-                <div class="form-actions mt-lg">
+                
+                <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('avatarModal')">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="saveAvatar()">Save Avatar</button>
                 </div>
@@ -2110,19 +1849,18 @@
                 <h3 class="modal-title">Find Users</h3>
                 <button class="modal-close" onclick="closeModal('communitySearchModal')">&times;</button>
             </div>
+            
             <div class="modal-body">
                 <div class="form-group">
+                    <label class="form-label">Search for users</label>
                     <div class="search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="search-input" id="userSearch" placeholder="Search by name or username...">
+                        <input type="text" class="search-input" id="userSearch" placeholder="Search by username or name...">
                     </div>
                 </div>
-                <div id="searchResults">
-                    <div class="empty-state">
-                        <div class="empty-icon">🔍</div>
-                        <h3 class="empty-title">Search for users</h3>
-                        <p class="empty-description">Enter a name or username to find other food lovers</p>
-                    </div>
+                
+                <div id="searchResults" class="user-grid" style="margin-top: 20px;">
+                    <!-- Search results will be populated here -->
                 </div>
             </div>
         </div>
@@ -2148,65 +1886,9 @@
         let currentActiveList = null;
         let selectedAvatarIcon = null;
         let currentEditingJournalEntry = null;
-        let isLoading = false;
-        let imageObserver = null;
 
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
-
-        // Optimized lazy loading with Intersection Observer
-        function initLazyLoading() {
-            if ('IntersectionObserver' in window) {
-                imageObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const img = entry.target;
-                            loadImage(img);
-                        }
-                    });
-                }, {
-                    rootMargin: '50px 0px',
-                    threshold: 0.01
-                });
-            }
-        }
-
-        // Optimized image loading with retry mechanism
-        function loadImage(img) {
-            const src = img.getAttribute('data-src');
-            if (!src) return;
-            
-            // Create a new image to preload
-            const tempImage = new Image();
-            tempImage.onload = () => {
-                img.src = src;
-                img.removeAttribute('data-src');
-                img.classList.add('loaded');
-                if (imageObserver) imageObserver.unobserve(img);
-            };
-            
-            tempImage.onerror = () => {
-                // Fallback to placeholder on error
-                img.src = 'images/placeholder.jpg';
-                img.removeAttribute('data-src');
-                img.classList.add('loaded');
-                if (imageObserver) imageObserver.unobserve(img);
-            };
-            
-            tempImage.src = src;
-        }
-
-        // Optimized lazy load function
-        function lazyLoadImage(img) {
-            if (!img.getAttribute('data-src')) return;
-            
-            if (imageObserver) {
-                imageObserver.observe(img);
-            } else {
-                // Fallback: Load immediately
-                loadImage(img);
-            }
-        }
 
         // Go back to own profile
         function goToMyProfile() {
@@ -2220,7 +1902,6 @@
             
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.setAttribute('role', 'alert');
             
             const icons = {
                 success: 'fas fa-check-circle',
@@ -2234,26 +1915,13 @@
                 <div class="toast-content">
                     <div class="toast-message">${message}</div>
                 </div>
-                <button class="toast-close" aria-label="Close notification">&times;</button>
+                <button class="toast-close">&times;</button>
             `;
             
             toastContainer.appendChild(toast);
             
-            // Announce to screen readers
-            const announcement = document.createElement('div');
-            announcement.setAttribute('aria-live', 'polite');
-            announcement.setAttribute('aria-atomic', 'true');
-            announcement.style.position = 'absolute';
-            announcement.style.left = '-9999px';
-            announcement.textContent = `${type}: ${message}`;
-            toast.appendChild(announcement);
-            
             setTimeout(() => {
-                announcement.remove();
-                if (toast.parentNode) {
-                    toast.style.animation = 'slideIn 0.3s ease reverse';
-                    setTimeout(() => toast.remove(), 300);
-                }
+                if (toast.parentNode) toast.remove();
             }, duration);
             
             toast.querySelector('.toast-close').addEventListener('click', () => {
@@ -2261,52 +1929,21 @@
             });
         }
 
-        // Optimized debounce function
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        // Optimized throttle function for scroll/resize events
-        function throttle(func, limit) {
-            let inThrottle;
-            return function() {
-                const args = arguments;
-                const context = this;
-                if (!inThrottle) {
-                    func.apply(context, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
-                }
-            };
-        }
-
-        // Initialize the profile page with optimizations
+        // Initialize the profile page
         async function initProfilePage() {
             try {
-                initLazyLoading();
-                
-                // Load profile data first (most important)
+                // Load profile data
                 await loadProfile();
                 
-                // Load other data in parallel for better performance
-                await Promise.all([
-                    loadRestaurants().catch(err => console.error('Restaurant load error:', err)),
-                    listManager.init().catch(err => console.error('List manager error:', err)),
-                    communitySystem.init().catch(err => console.error('Community system error:', err))
-                ]);
+                // Load restaurants dynamically
+                await loadRestaurants();
                 
-                // Initialize remaining systems
+                // Initialize systems
                 await Promise.all([
-                    foodJournal.init().catch(err => console.error('Food journal error:', err)),
-                    achievementsSystem.init().catch(err => console.error('Achievements error:', err))
+                    listManager.init(),
+                    communitySystem.init(),
+                    foodJournal.init(),
+                    achievementsSystem.init()
                 ]);
                 
                 setupEventListeners();
@@ -2350,13 +1987,13 @@
             const addEntryBtn = document.getElementById('addEntryBtn');
             const createListBtn = document.getElementById('createListBtn');
             
-            if (editProfileBtn) editProfileBtn.classList.remove('d-none');
-            if (settingsBtn) settingsBtn.classList.remove('d-none');
-            if (followButton) followButton.classList.add('d-none');
-            if (logoutBtn) logoutBtn.classList.remove('d-none');
-            if (viewingIndicator) viewingIndicator.classList.add('d-none');
-            if (addEntryBtn) addEntryBtn.classList.remove('d-none');
-            if (createListBtn) createListBtn.classList.remove('d-none');
+            if (editProfileBtn) editProfileBtn.style.display = 'flex';
+            if (settingsBtn) settingsBtn.style.display = 'flex';
+            if (followButton) followButton.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'block';
+            if (viewingIndicator) viewingIndicator.style.display = 'none';
+            if (addEntryBtn) addEntryBtn.style.display = 'flex';
+            if (createListBtn) createListBtn.style.display = 'flex';
 
             await loadUserProfile();
             
@@ -2373,12 +2010,6 @@
                 avatar.textContent = userProfile?.avatar_icon || "🍔";
             }
 
-            // Update tab text
-            document.getElementById('listsTabText').textContent = 'My Lists';
-            document.getElementById('listsTitle').textContent = 'My Lists';
-            document.getElementById('journalTitle').textContent = 'My Food Journal';
-            document.getElementById('journalSubtitle').textContent = 'Your restaurant reviews and experiences';
-
             // Update stats
             await updateStats();
         }
@@ -2394,14 +2025,14 @@
             const createListBtn = document.getElementById('createListBtn');
             const addJournalBtn = document.getElementById('addJournalBtn');
             
-            if (editProfileBtn) editProfileBtn.classList.add('d-none');
-            if (settingsBtn) settingsBtn.classList.add('d-none');
-            if (logoutBtn) logoutBtn.classList.add('d-none');
-            if (followButton) followButton.classList.remove('d-none');
-            if (viewingIndicator) viewingIndicator.classList.remove('d-none');
-            if (addEntryBtn) addEntryBtn.classList.add('d-none');
-            if (createListBtn) createListBtn.classList.add('d-none');
-            if (addJournalBtn) addJournalBtn.classList.add('d-none');
+            if (editProfileBtn) editProfileBtn.style.display = 'none';
+            if (settingsBtn) settingsBtn.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (followButton) followButton.style.display = 'block';
+            if (viewingIndicator) viewingIndicator.style.display = 'flex';
+            if (addEntryBtn) addEntryBtn.style.display = 'none';
+            if (createListBtn) createListBtn.style.display = 'none';
+            if (addJournalBtn) addJournalBtn.style.display = 'none';
 
             // Load target user profile
             const { data: profile, error } = await supabase
@@ -2430,14 +2061,6 @@
             if (avatar) {
                 avatar.textContent = profile.avatar_icon || "🍔";
             }
-
-            // Update tab text with username
-            const username = profile.username || 'User';
-            document.getElementById('listsTabText').textContent = `${username}'s Lists`;
-            document.getElementById('listsTitle').textContent = `${username}'s Lists`;
-            document.getElementById('listsSubtitle').textContent = `${username}'s restaurant collections`;
-            document.getElementById('journalTitle').textContent = `${username}'s Food Journal`;
-            document.getElementById('journalSubtitle').textContent = `${username}'s restaurant reviews and experiences`;
 
             // Load follow status
             await loadFollowStatus();
@@ -2477,54 +2100,22 @@
             }
         }
 
-        // Optimized restaurant loading with caching
+        // Load restaurants dynamically like restaurants.html
         async function loadRestaurants() {
-            if (isLoading) return;
-            isLoading = true;
-            
             try {
-                // Check cache first with timestamp
-                const cacheKey = 'restaurants_cache_v2';
-                const cacheTimeKey = 'restaurants_cache_time_v2';
-                
-                const cachedData = localStorage.getItem(cacheKey);
-                const cacheTime = localStorage.getItem(cacheTimeKey);
-                
-                // Use cache if less than 10 minutes old
-                if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < 10 * 60 * 1000) {
-                    restaurants = JSON.parse(cachedData);
-                    populateRestaurantSelect();
-                    isLoading = false;
-                    return;
-                }
-                
-                // Fetch fresh data
                 const { data, error } = await supabase
                     .from('restraunts')
-                    .select('id, name, category, image, slug, rating')
+                    .select('*')
                     .order('name');
                 
                 if (error) throw error;
                 
                 restaurants = data || [];
-                
-                // Cache the data
-                localStorage.setItem(cacheKey, JSON.stringify(restaurants));
-                localStorage.setItem(cacheTimeKey, Date.now().toString());
-                
                 populateRestaurantSelect();
                 
             } catch (error) {
                 console.error('Error loading restaurants:', error);
                 restaurants = [];
-                // Try to use stale cache if available
-                const staleCache = localStorage.getItem('restaurants_cache_v2');
-                if (staleCache) {
-                    restaurants = JSON.parse(staleCache);
-                    populateRestaurantSelect();
-                }
-            } finally {
-                isLoading = false;
             }
         }
 
@@ -2546,40 +2137,62 @@
             const targetId = userId || currentUser.id;
             
             try {
-                // Get all stats in parallel for better performance
-                const [journalEntriesRes, visitedListRes, followersRes, userListsRes, userJournalRes] = await Promise.all([
-                    supabase.from('journal_entries').select('restaurant_id').eq('user_id', targetId),
-                    supabase.from('lists').select('id').eq('user_id', targetId).eq('title', 'Visited').single(),
-                    supabase.from('follows').select('id').eq('followed_id', targetId),
-                    supabase.from('lists').select('id').eq('user_id', targetId),
-                    supabase.from('journal_entries').select('id').eq('user_id', targetId)
-                ]);
+                // Get visited count
+                const { data: journalEntries, error: journalError } = await supabase
+                    .from('journal_entries')
+                    .select('restaurant_id')
+                    .eq('user_id', targetId);
 
-                // Calculate visited count
                 let allRestaurantIds = [];
-                
-                if (!journalEntriesRes.error && journalEntriesRes.data) {
-                    allRestaurantIds = journalEntriesRes.data.map(entry => entry.restaurant_id);
+                if (!journalError && journalEntries) {
+                    allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
                 }
                 
-                if (!visitedListRes.error && visitedListRes.data) {
-                    const listRestaurantsRes = await supabase
+                // Get from Visited list
+                const { data: visitedList, error: listError } = await supabase
+                    .from('lists')
+                    .select('id')
+                    .eq('user_id', targetId)
+                    .eq('title', 'Visited')
+                    .single();
+
+                if (!listError && visitedList) {
+                    const { data: listRestaurants, error: listRestError } = await supabase
                         .from('lists_restraunts')
                         .select('restraunt_id')
-                        .eq('list_id', visitedListRes.data.id);
+                        .eq('list_id', visitedList.id);
                     
-                    if (!listRestaurantsRes.error && listRestaurantsRes.data) {
-                        const listIds = listRestaurantsRes.data.map(item => item.restraunt_id);
+                    if (!listRestError && listRestaurants) {
+                        const listIds = listRestaurants.map(item => item.restraunt_id);
                         allRestaurantIds = [...allRestaurantIds, ...listIds];
                     }
                 }
 
                 const visitedCount = new Set(allRestaurantIds).size;
                 
-                // Calculate other counts
-                const followersCount = followersRes.data ? followersRes.data.length : 0;
-                const listsCount = userListsRes.data ? userListsRes.data.length : 0;
-                const reviewsCount = userJournalRes.data ? userJournalRes.data.length : 0;
+                // Get followers count
+                const { data: followers, error: followersError } = await supabase
+                    .from('follows')
+                    .select('id')
+                    .eq('followed_id', targetId);
+
+                const followersCount = followers ? followers.length : 0;
+                
+                // Get lists count
+                const { data: userLists, error: listsError } = await supabase
+                    .from('lists')
+                    .select('id')
+                    .eq('user_id', targetId);
+
+                const listsCount = userLists ? userLists.length : 0;
+                
+                // Get journal entries count
+                const { data: userJournalEntries, error: journalCountError } = await supabase
+                    .from('journal_entries')
+                    .select('id')
+                    .eq('user_id', targetId);
+
+                const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
                 
                 // Update UI
                 document.getElementById('visitedCount').textContent = visitedCount;
@@ -2599,7 +2212,7 @@
             }
         }
 
-        // Optimized List Management System
+        // List Management System
         const listManager = {
             userLists: [],
             currentLists: {
@@ -2675,28 +2288,21 @@
             },
             
             async loadListRestaurants() {
-                const promises = [];
-                
                 for (const listType in this.currentLists) {
                     const list = this.currentLists[listType];
                     if (list) {
-                        promises.push(
-                            supabase
-                                .from('lists_restraunts')
-                                .select('restraunt_id')
-                                .eq('list_id', list.id)
-                                .then(({ data, error }) => {
-                                    if (!error && data) {
-                                        list.restaurants = data.map(item => item.restraunt_id);
-                                    } else {
-                                        list.restaurants = [];
-                                    }
-                                })
-                        );
+                        const { data: listRestraunts, error } = await supabase
+                            .from('lists_restraunts')
+                            .select('restraunt_id')
+                            .eq('list_id', list.id);
+                        
+                        if (!error && listRestraunts) {
+                            list.restaurants = listRestraunts.map(item => item.restraunt_id);
+                        } else {
+                            list.restaurants = [];
+                        }
                     }
                 }
-                
-                await Promise.all(promises);
             },
             
             async loadCustomLists(userId) {
@@ -2713,22 +2319,18 @@
                     
                     customLists = lists || [];
                     
-                    // Load restaurant IDs in parallel
-                    const promises = customLists.map(list => 
-                        supabase
+                    for (const list of customLists) {
+                        const { data: listRestraunts, error } = await supabase
                             .from('lists_restraunts')
                             .select('restraunt_id')
-                            .eq('list_id', list.id)
-                            .then(({ data, error }) => {
-                                if (!error && data) {
-                                    list.restaurants = data.map(item => item.restraunt_id);
-                                } else {
-                                    list.restaurants = [];
-                                }
-                            })
-                    );
-                    
-                    await Promise.all(promises);
+                            .eq('list_id', list.id);
+                        
+                        if (!error && listRestraunts) {
+                            list.restaurants = listRestraunts.map(item => item.restraunt_id);
+                        } else {
+                            list.restaurants = [];
+                        }
+                    }
                     
                 } catch (error) {
                     console.error('Error loading custom lists:', error);
@@ -2802,7 +2404,7 @@
                 return list?.restaurants?.includes(restrauntId) || false;
             },
 
-            // Optimized list rendering with virtual scrolling
+            // Render lists in grid layout
             renderListsGrid() {
                 const listsGrid = document.getElementById('listsGrid');
                 if (!listsGrid) return;
@@ -2846,8 +2448,7 @@
                     icon: 'fas fa-utensils',
                     color: 'var(--accent)',
                     restaurants: list.restaurants || [],
-                    isDefault: false,
-                    listData: list
+                    isDefault: false
                 }))];
                 
                 if (allLists.length === 0) {
@@ -2864,101 +2465,69 @@
                     return;
                 }
                 
-                // Render lists in batches
-                this.renderListBatch(allLists, 0, 4);
-            },
-
-            renderListBatch(lists, startIndex, batchSize) {
-                const listsGrid = document.getElementById('listsGrid');
-                if (!listsGrid) return;
-                
-                const endIndex = Math.min(startIndex + batchSize, lists.length);
-                
-                for (let i = startIndex; i < endIndex; i++) {
-                    const list = lists[i];
-                    const listCard = this.createListCard(list);
-                    listsGrid.appendChild(listCard);
-                }
-                
-                // Schedule next batch if needed
-                if (endIndex < lists.length) {
-                    requestIdleCallback(() => {
-                        this.renderListBatch(lists, endIndex, batchSize);
-                    }, { timeout: 1000 });
-                }
-            },
-
-            createListCard(list) {
-                const listCard = document.createElement('div');
-                listCard.className = 'list-card';
-                
-                const previewItems = [];
-                const restrauntIds = list.restaurants || [];
-                const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random()).slice(0, 4);
-                
-                for (let i = 0; i < 4; i++) {
-                    if (shuffledIds[i]) {
-                        const restrauntId = shuffledIds[i];
-                        const restraunt = restaurants.find(r => r.id === restrauntId);
-                        if (restraunt) {
-                            previewItems.push(`
-                                <div class="list-preview-item">
-                                    <img data-src="images/${restraunt.image || 'placeholder.jpg'}" 
-                                         alt="${restraunt.name}" 
-                                         class="lazy-load"
-                                         loading="lazy"
-                                         width="80"
-                                         height="80">
-                                </div>
-                            `);
+                allLists.forEach(list => {
+                    const listCard = document.createElement('div');
+                    listCard.className = 'list-card';
+                    
+                    const previewItems = [];
+                    const restrauntIds = list.restaurants || [];
+                    const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
+                    
+                    for (let i = 0; i < 4; i++) {
+                        if (shuffledIds[i]) {
+                            const restrauntId = shuffledIds[i];
+                            const restraunt = restaurants.find(r => r.id === restrauntId);
+                            if (restraunt) {
+                                previewItems.push(`
+                                    <div class="list-preview-item">
+                                        <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                                    </div>
+                                `);
+                            } else {
+                                previewItems.push(`
+                                    <div class="list-preview-item">
+                                        <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                            🍽️
+                                        </div>
+                                    </div>
+                                `);
+                            }
                         } else {
                             previewItems.push(`
-                                <div class="list-preview-item image-fallback">
-                                    🍽️
+                                <div class="list-preview-item">
+                                    <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                        🍽️
+                                    </div>
                                 </div>
                             `);
                         }
-                    } else {
-                        previewItems.push(`
-                            <div class="list-preview-item image-fallback">
-                                🍽️
-                            </div>
-                        `);
                     }
-                }
-                
-                listCard.innerHTML = `
-                    <div class="list-card-header">
-                        <h3 class="list-card-title">
-                            <i class="${list.icon}" style="color: ${list.color};"></i>
-                            ${list.title}
-                        </h3>
-                        ${!list.isDefault && isViewingOwnProfile ? `
-                            <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); listManager.showEditListModal(${list.id})">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                    <p class="list-card-description">${list.description}</p>
-                    <div class="list-preview-grid">
-                        ${previewItems.join('')}
-                    </div>
-                    <div class="d-flex justify-between align-center mt-md">
-                        <span class="text-sm text-muted">${restrauntIds.length} places</span>
-                        <button class="list-card-button" onclick="event.stopPropagation(); showList('${list.id}')">View List</button>
-                    </div>
-                `;
-                
-                listCard.onclick = () => showList(list.id);
-                
-                // Initialize lazy loading for images
-                setTimeout(() => {
-                    listCard.querySelectorAll('img[data-src]').forEach(img => {
-                        lazyLoadImage(img);
-                    });
-                }, 50);
-                
-                return listCard;
+                    
+                    listCard.innerHTML = `
+                        <div class="list-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <h3 class="list-card-title">
+                                <i class="${list.icon}" style="color: ${list.color};"></i>
+                                ${list.title}
+                            </h3>
+                            ${!list.isDefault && isViewingOwnProfile ? `
+                                <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); listManager.showEditListModal(${JSON.stringify(list).replace(/"/g, '&quot;')})" style="background: transparent; border: none; color: var(--muted);">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                        <p class="list-card-description">${list.description}</p>
+                        <div class="list-preview-grid">
+                            ${previewItems.join('')}
+                        </div>
+                        <div class="d-flex justify-between align-center mt-md">
+                            <span class="text-sm text-muted">${restrauntIds.length} places</span>
+                            <button class="list-card-button" onclick="event.stopPropagation(); showList(${list.isDefault ? `'${list.id}'` : `'${list.id}'`})">View List</button>
+                        </div>
+                    `;
+                    
+                    listCard.onclick = () => showList(list.id);
+                    listsGrid.appendChild(listCard);
+                });
             }
         };
 
@@ -2987,8 +2556,9 @@
             const listsTab = document.getElementById('lists-tab');
             const listDetailView = document.getElementById('list-detail-view');
             
-            if (listsTab) listsTab.classList.remove('active');
+            if (listsTab) listsTab.style.display = 'none';
             if (listDetailView) {
+                listDetailView.style.display = 'block';
                 listDetailView.classList.add('active');
             }
             
@@ -3011,15 +2581,16 @@
             const listsTab = document.getElementById('lists-tab');
             const listDetailView = document.getElementById('list-detail-view');
             
-            if (listsTab) listsTab.classList.add('active');
+            if (listsTab) listsTab.style.display = 'block';
             if (listDetailView) {
+                listDetailView.style.display = 'none';
                 listDetailView.classList.remove('active');
             }
             
             currentActiveList = null;
         }
 
-        // Optimized restaurant rendering with batch processing
+        // Render restaurants in a list
         async function renderListRestaurants(restrauntIds, list) {
             const grid = document.getElementById('listRestaurantsGrid');
             if (!grid) return;
@@ -3054,90 +2625,57 @@
                 listDetailTitle.textContent = `${list.title} (${listRestraunts.length} places)`;
             }
             
-            // Render in batches
-            renderRestaurantBatch(listRestraunts, grid, list, 0, 8);
-        }
-
-        function renderRestaurantBatch(restaurants, grid, list, startIndex, batchSize) {
-            const endIndex = Math.min(startIndex + batchSize, restaurants.length);
-            
-            for (let i = startIndex; i < endIndex; i++) {
-                const restaurant = restaurants[i];
-                const card = createRestaurantCard(restaurant, list);
-                grid.appendChild(card);
-            }
-            
-            // Schedule next batch if needed
-            if (endIndex < restaurants.length) {
-                requestIdleCallback(() => {
-                    renderRestaurantBatch(restaurants, grid, list, endIndex, batchSize);
-                }, { timeout: 1000 });
-            }
-        }
-
-        function createRestaurantCard(restaurant, list) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            
-            const clickableContent = document.createElement('a');
-            clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
-            clickableContent.style.textDecoration = 'none';
-            clickableContent.style.color = 'inherit';
-            clickableContent.style.display = 'block';
-            clickableContent.style.height = '100%';
-            
-            clickableContent.innerHTML = `
-                <div class="card-body">
-                    <div class="d-flex align-center gap-md">
-                        <div class="restaurant-image">
-                            <img data-src="images/${restaurant.image || 'placeholder.jpg'}" 
-                                 alt="${restaurant.name}" 
-                                 class="lazy-load"
-                                 loading="lazy"
-                                 width="60"
-                                 height="60">
-                        </div>
-                        <div style="flex: 1; min-width: 0;">
-                            <h3 style="margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis;">${restaurant.name}</h3>
-                            <div class="text-sm text-muted">${restaurant.category}</div>
-                            <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating || 'N/A'}</div>
+            listRestraunts.forEach(restraunt => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                const clickableContent = document.createElement('a');
+                clickableContent.href = `restaurant.html?slug=${restraunt.slug}`;
+                clickableContent.style.textDecoration = 'none';
+                clickableContent.style.color = 'inherit';
+                clickableContent.style.display = 'block';
+                clickableContent.style.height = '100%';
+                
+                clickableContent.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex align-center gap-md">
+                            <div class="restaurant-image" style="width: 60px; height: 60px;">
+                                <img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin-bottom: 4px;">${restraunt.name}</h3>
+                                <div class="text-sm text-muted">${restraunt.category}</div>
+                                <div class="text-sm" style="margin-top: 4px;">⭐ ${restraunt.rating}</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            
-            card.appendChild(clickableContent);
-            
-            if (isViewingOwnProfile) {
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'btn btn-secondary btn-sm';
-                removeBtn.style.position = 'absolute';
-                removeBtn.style.top = '10px';
-                removeBtn.style.right = '10px';
-                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                removeBtn.onclick = async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    await listManager.toggleInList(list.id, restaurant.id);
-                    await renderListRestaurants(list.restaurants || [], list);
-                };
-                card.style.position = 'relative';
-                card.appendChild(removeBtn);
-            }
-            
-            // Lazy load image
-            setTimeout(() => {
-                const img = clickableContent.querySelector('img[data-src]');
-                if (img) lazyLoadImage(img);
-            }, 50);
-            
-            return card;
+                `;
+                
+                card.appendChild(clickableContent);
+                
+                if (isViewingOwnProfile) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'btn btn-secondary btn-sm';
+                    removeBtn.style.position = 'absolute';
+                    removeBtn.style.top = '10px';
+                    removeBtn.style.right = '10px';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.onclick = async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await listManager.toggleInList(list.id, restraunt.id);
+                        await renderListRestaurants(list.restaurants || [], list);
+                    };
+                    card.style.position = 'relative';
+                    card.appendChild(removeBtn);
+                }
+                
+                grid.appendChild(card);
+            });
         }
 
-        // Optimized Food Journal System
+        // Food Journal System
         const foodJournal = {
-            entries: [],
-            
             async init() {
                 await this.loadJournalEntries();
             },
@@ -3158,9 +2696,7 @@
 
                     if (error) throw error;
                     
-                    this.entries = entries || [];
-                    
-                    if (this.entries.length === 0) {
+                    if (!entries || entries.length === 0) {
                         const emptyStateText = isViewingOwnProfile ? 
                             'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
                             'This user hasn\'t reviewed any restaurants yet.';
@@ -3180,7 +2716,23 @@
                         return;
                     }
                     
-                    this.renderFilteredEntries();
+                    journalEntries.innerHTML = '';
+                    
+                    let entriesToShow = entries;
+                    if (journalFilter === 'recent') {
+                        entriesToShow = entries.slice(0, 5);
+                    } else if (journalFilter === 'favorites') {
+                        entriesToShow = entries.filter(entry => entry.rating >= 4);
+                    }
+                    
+                    for (const entry of entriesToShow) {
+                        const restaurantId = entry.restaurant_id;
+                        const restaurant = restaurants.find(r => r.id === restaurantId);
+                        
+                        if (!restaurant) continue;
+                        
+                        this.renderJournalEntry(entry, restaurant);
+                    }
                     
                 } catch (error) {
                     console.error('Error loading journal entries:', error);
@@ -3194,59 +2746,8 @@
                 }
             },
             
-            renderFilteredEntries() {
+            renderJournalEntry(entry, restaurant) {
                 const journalEntries = document.getElementById('journalEntries');
-                if (!journalEntries) return;
-                
-                journalEntries.innerHTML = '';
-                
-                let entriesToShow = this.entries;
-                if (journalFilter === 'recent') {
-                    entriesToShow = this.entries.slice(0, 5);
-                } else if (journalFilter === 'favorites') {
-                    entriesToShow = this.entries.filter(entry => entry.rating >= 4);
-                }
-                
-                if (entriesToShow.length === 0) {
-                    journalEntries.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🔍</div>
-                            <h3 class="empty-title">No matching entries</h3>
-                            <p class="empty-description">Try changing your filter settings</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Render in batches
-                this.renderEntryBatch(entriesToShow, 0, 4);
-            },
-            
-            renderEntryBatch(entries, startIndex, batchSize) {
-                const journalEntries = document.getElementById('journalEntries');
-                if (!journalEntries) return;
-                
-                const endIndex = Math.min(startIndex + batchSize, entries.length);
-                
-                for (let i = startIndex; i < endIndex; i++) {
-                    const entry = entries[i];
-                    const restaurant = restaurants.find(r => r.id === entry.restaurant_id);
-                    
-                    if (!restaurant) continue;
-                    
-                    const entryElement = this.createJournalEntry(entry, restaurant);
-                    journalEntries.appendChild(entryElement);
-                }
-                
-                // Schedule next batch if needed
-                if (endIndex < entries.length) {
-                    requestIdleCallback(() => {
-                        this.renderEntryBatch(entries, endIndex, batchSize);
-                    }, { timeout: 1000 });
-                }
-            },
-            
-            createJournalEntry(entry, restaurant) {
                 const entryElement = document.createElement('div');
                 entryElement.className = 'journal-entry';
                 entryElement.style.cursor = 'pointer';
@@ -3254,7 +2755,7 @@
                 
                 const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
                 const restaurantImage = restaurant.image ? 
-                    `<img data-src="images/${restaurant.image}" alt="${restaurant.name}" class="lazy-load" loading="lazy" width="60" height="60">` : 
+                    `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
                     `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
                 
                 entryElement.innerHTML = `
@@ -3310,18 +2811,12 @@
                         </div>
                     ` : ''}
                 `;
-                
-                // Lazy load image
-                setTimeout(() => {
-                    const img = entryElement.querySelector('img[data-src]');
-                    if (img) lazyLoadImage(img);
-                }, 50);
-                
-                return entryElement;
+                journalEntries.appendChild(entryElement);
             },
             
             async editJournalEntry(entry, restaurant) {
                 if (!isViewingOwnProfile) {
+                    this.showJournalEntryDetail(entry, restaurant);
                     return;
                 }
 
@@ -3434,7 +2929,7 @@
             }
         };
 
-        // Optimized Community System
+        // Community System (formerly Follower System)
         const communitySystem = {
             currentSection: 'followers',
             
@@ -3442,16 +2937,14 @@
                 if (!currentUser) return;
                 await this.loadFollowStats();
                 
-                // Add optimized event listener for search
+                // Add event listener for search
                 const userSearch = document.getElementById('userSearch');
                 if (userSearch) {
-                    userSearch.addEventListener('input', debounce(() => {
-                        if (userSearch.value.trim().length >= 2) {
+                    userSearch.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
                             this.searchUsers();
-                        } else {
-                            this.clearSearchResults();
                         }
-                    }, 500));
+                    });
                 }
             },
 
@@ -3459,34 +2952,32 @@
                 try {
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     
-                    // Get counts in parallel
-                    const [followersRes, followingRes] = await Promise.all([
-                        supabase
-                            .from('follows')
-                            .select('follower_id')
-                            .eq('followed_id', targetId),
-                        supabase
-                            .from('follows')
-                            .select('followed_id')
-                            .eq('follower_id', targetId)
-                    ]);
+                    // Get followers count (people who follow the target user)
+                    const { data: followers, error: followersError } = await supabase
+                        .from('follows')
+                        .select('follower_id')
+                        .eq('followed_id', targetId);
+
+                    // Get following count (people the target user follows)
+                    const { data: following, error: followingError } = await supabase
+                        .from('follows')
+                        .select('followed_id')
+                        .eq('follower_id', targetId);
 
                     // Update section badges
                     const followersCountBadge = document.getElementById('followersCountBadge');
                     const followingCountBadge = document.getElementById('followingCountBadge');
                     
                     if (followersCountBadge) {
-                        followersCountBadge.textContent = followersRes.data ? followersRes.data.length : 0;
-                        followersCountBadge.classList.toggle('d-none', !followersRes.data?.length);
+                        followersCountBadge.textContent = followers ? followers.length : 0;
                     }
                     if (followingCountBadge) {
-                        followingCountBadge.textContent = followingRes.data ? followingRes.data.length : 0;
-                        followingCountBadge.classList.toggle('d-none', !followingRes.data?.length);
+                        followingCountBadge.textContent = following ? following.length : 0;
                     }
 
                     // Update main stats
                     if (isViewingOwnProfile) {
-                        document.getElementById('followersCount').textContent = followersRes.data ? followersRes.data.length : 0;
+                        document.getElementById('followersCount').textContent = followers ? followers.length : 0;
                     }
 
                 } catch (error) {
@@ -3498,6 +2989,7 @@
                 try {
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     
+                    // Get users that follow the target user
                     const { data: follows, error } = await supabase
                         .from('follows')
                         .select('follower_id')
@@ -3531,7 +3023,7 @@
                     const followerIds = follows.map(f => f.follower_id);
                     const { data: users, error: usersError } = await supabase
                         .from('user_profiles')
-                        .select('id, username, full_name, avatar_icon, location, bio')
+                        .select('*')
                         .in('id', followerIds);
 
                     if (!usersError) {
@@ -3556,6 +3048,7 @@
                 try {
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     
+                    // Get users that the target user is following
                     const { data: follows, error } = await supabase
                         .from('follows')
                         .select('followed_id')
@@ -3589,7 +3082,7 @@
                     const followingIds = follows.map(f => f.followed_id);
                     const { data: users, error: usersError } = await supabase
                         .from('user_profiles')
-                        .select('id, username, full_name, avatar_icon, location, bio')
+                        .select('*')
                         .in('id', followingIds);
 
                     if (!usersError) {
@@ -3616,29 +3109,17 @@
                 
                 const searchTerm = userSearch.value.trim();
                 
-                if (searchTerm.length < 2) {
-                    this.clearSearchResults();
+                if (!searchTerm) {
+                    showToast('Please enter a search term', 'error');
                     return;
                 }
 
                 try {
-                    // Show loading state
-                    const searchResults = document.getElementById('searchResults');
-                    if (searchResults) {
-                        searchResults.innerHTML = `
-                            <div class="empty-state">
-                                <div class="loading-spinner"></div>
-                                <h3 class="empty-title">Searching...</h3>
-                                <p class="empty-description">Looking for users matching "${searchTerm}"</p>
-                            </div>
-                        `;
-                    }
-
                     const { data: users, error } = await supabase
                         .from('user_profiles')
-                        .select('id, username, full_name, avatar_icon, location, bio')
+                        .select('*')
                         .neq('id', currentUser.id)
-                        .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+                        .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
                         .limit(20);
 
                     if (error) throw error;
@@ -3648,19 +3129,6 @@
                 } catch (error) {
                     console.error('Error searching users:', error);
                     showToast('Error searching users', 'error');
-                }
-            },
-
-            clearSearchResults() {
-                const searchResults = document.getElementById('searchResults');
-                if (searchResults) {
-                    searchResults.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">🔍</div>
-                            <h3 class="empty-title">Search for users</h3>
-                            <p class="empty-description">Enter a name or username to find other food lovers</p>
-                        </div>
-                    `;
                 }
             },
 
@@ -3681,77 +3149,68 @@
 
                 container.innerHTML = '';
 
-                // Load follow statuses in parallel with batch size limit
-                const batchSize = 10;
-                const batches = [];
-                
-                for (let i = 0; i < users.length; i += batchSize) {
-                    const batch = users.slice(i, i + batchSize);
-                    batches.push(batch);
-                }
-
-                for (const batch of batches) {
-                    const userPromises = batch.map(async (user) => {
-                        const isCurrentUser = user.id === currentUser.id;
-                        let isFollowing = false;
+                for (const user of users) {
+                    const isPrivate = user.is_private === true;
+                    const isCurrentUser = user.id === currentUser.id;
+                    
+                    // Check if current user is following this user
+                    let isFollowing = false;
+                    if (!isCurrentUser) {
+                        const { data: follow } = await supabase
+                            .from('follows')
+                            .select('id')
+                            .eq('follower_id', currentUser.id)
+                            .eq('followed_id', user.id)
+                            .single();
                         
-                        if (!isCurrentUser) {
-                            const { data: follow } = await supabase
-                                .from('follows')
-                                .select('id')
-                                .eq('follower_id', currentUser.id)
-                                .eq('followed_id', user.id)
-                                .single();
-                            
-                            isFollowing = !!follow;
-                        }
-                        
-                        return { user, isFollowing, isCurrentUser };
-                    });
-
-                    const userResults = await Promise.all(userPromises);
-                    this.renderUserBatch(userResults, container);
-                }
-            },
-
-            renderUserBatch(users, container) {
-                users.forEach(({ user, isFollowing, isCurrentUser }) => {
-                    const userCard = this.createUserCard(user, isFollowing, isCurrentUser);
-                    container.appendChild(userCard);
-                });
-            },
-
-            createUserCard(user, isFollowing, isCurrentUser) {
-                const userCard = document.createElement('div');
-                userCard.className = 'community-card';
-                userCard.innerHTML = `
-                    <div class="community-header">
-                        <div class="community-avatar">${user.avatar_icon || '👤'}</div>
-                        <div class="community-info">
-                            <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
-                            <div class="community-username">@${user.username || 'user'}</div>
+                        isFollowing = !!follow;
+                    }
+                    
+                    const userCard = document.createElement('div');
+                    userCard.className = 'community-card';
+                    userCard.innerHTML = `
+                        <div class="community-header">
+                            <div class="community-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="community-info">
+                                <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                <div class="community-username">@${user.username || 'user'}</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="community-actions">
-                        ${!isCurrentUser ? `
-                            <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
-                                <i class="fas fa-eye"></i> View Profile
-                            </button>
-                            <button class="btn ${isFollowing ? 'btn-success' : 'btn-primary'} btn-sm" onclick="communitySystem.toggleFollow('${user.id}', this)">
-                                ${isFollowing ? '<i class="fas fa-check"></i> Following' : 'Follow'}
-                            </button>
-                        ` : `
-                            <button class="btn btn-secondary btn-sm" disabled>
-                                <i class="fas fa-user"></i> This is you
-                            </button>
-                        `}
-                    </div>
-                `;
-                
-                return userCard;
+                        <div class="community-stats">
+                            <div class="community-stat">
+                                <span class="community-stat-number">${user.visited_count || 0}</span>
+                                <span class="community-stat-label">Visited</span>
+                            </div>
+                            <div class="community-stat">
+                                <span class="community-stat-number">${user.favorites_count || 0}</span>
+                                <span class="community-stat-label">Favorites</span>
+                            </div>
+                            <div class="community-stat">
+                                <span class="community-stat-number">${user.followers_count || 0}</span>
+                                <span class="community-stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="community-actions">
+                            ${!isCurrentUser ? `
+                                <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> View Profile
+                                </button>
+                                <button class="btn ${isFollowing ? 'btn-success' : 'btn-primary'} btn-sm" onclick="communitySystem.toggleFollow('${user.id}')">
+                                    ${isFollowing ? '<i class="fas fa-check"></i> Following' : 'Follow'}
+                                </button>
+                            ` : `
+                                <button class="btn btn-secondary btn-sm" disabled>
+                                    <i class="fas fa-user"></i> This is you
+                                </button>
+                            `}
+                        </div>
+                    `;
+                    
+                    container.appendChild(userCard);
+                }
             },
 
-            async toggleFollow(targetUserId, button) {
+            async toggleFollow(targetUserId) {
                 try {
                     // Check if already following
                     const { data: existingFollow } = await supabase
@@ -3771,10 +3230,6 @@
 
                         if (error) throw error;
                         
-                        if (button) {
-                            button.innerHTML = 'Follow';
-                            button.className = 'btn btn-primary btn-sm';
-                        }
                         showToast('Unfollowed user', 'info');
                     } else {
                         // Follow
@@ -3788,10 +3243,6 @@
 
                         if (error) throw error;
                         
-                        if (button) {
-                            button.innerHTML = '<i class="fas fa-check"></i> Following';
-                            button.className = 'btn btn-success btn-sm';
-                        }
                         showToast('Started following user', 'success');
                     }
 
@@ -3857,7 +3308,7 @@
             }
         }
 
-        // Optimized Achievements System
+        // Achievements System
         const achievementsSystem = {
             async init() {
                 await this.loadAchievements();
@@ -3937,7 +3388,7 @@
             const followButton = document.getElementById('followButton');
             if (!followButton) return;
 
-            followButton.classList.remove('d-none');
+            followButton.style.display = 'block';
 
             try {
                 // Check if already following
@@ -4025,59 +3476,40 @@
         }
 
         function showTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.nav-tab').forEach(btn => {
-                btn.classList.remove('active');
-                btn.setAttribute('aria-selected', 'false');
-            });
-            
-            const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
-            if (activeButton) {
-                activeButton.classList.add('active');
-                activeButton.setAttribute('aria-selected', 'true');
-            }
-            
-            // Update tab content
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
+                tab.style.display = 'none';
             });
             
             const tabElement = document.getElementById(`${tabName}-tab`);
             if (tabElement) {
                 tabElement.classList.add('active');
+                tabElement.style.display = 'block';
             }
+            
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+            if (activeButton) activeButton.classList.add('active');
             
             currentTab = tabName;
             
-            // Load data for the tab
-            switch(tabName) {
-                case 'community':
-                    showCommunitySection('followers');
-                    break;
-                case 'journal':
-                    foodJournal.loadJournalEntries();
-                    break;
-                case 'achievements':
-                    achievementsSystem.loadAchievements();
-                    break;
-                case 'lists':
-                    listManager.renderListsGrid();
-                    break;
+            if (tabName === 'community') {
+                showCommunitySection('followers');
+            } else if (tabName === 'journal') {
+                foodJournal.loadJournalEntries();
+            } else if (tabName === 'achievements') {
+                achievementsSystem.loadAchievements();
+            } else if (tabName === 'lists') {
+                listManager.renderListsGrid();
             }
         }
 
         function showModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                
-                // Focus on first input in modal
-                setTimeout(() => {
-                    const firstInput = modal.querySelector('input, select, textarea, button');
-                    if (firstInput) firstInput.focus();
-                }, 100);
-            }
+            if (modal) modal.classList.add('active');
             
             if (modalId === 'addEntryModal') {
                 const visitDate = document.getElementById('visitDate');
@@ -4090,10 +3522,7 @@
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
+            if (modal) modal.classList.remove('active');
         }
 
         function showCreateListModal() {
@@ -4109,23 +3538,12 @@
                     const iconOption = document.createElement('div');
                     iconOption.className = 'avatar-icon-option';
                     iconOption.textContent = icon;
-                    iconOption.setAttribute('role', 'button');
-                    iconOption.setAttribute('tabindex', '0');
                     iconOption.onclick = () => {
                         document.querySelectorAll('.avatar-icon-option').forEach(opt => {
                             opt.classList.remove('selected');
                         });
                         iconOption.classList.add('selected');
                         selectedAvatarIcon = icon;
-                    };
-                    iconOption.onkeypress = (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                                opt.classList.remove('selected');
-                            });
-                            iconOption.classList.add('selected');
-                            selectedAvatarIcon = icon;
-                        }
                     };
                     if (icon === (userProfile?.avatar_icon || "🍔")) {
                         iconOption.classList.add('selected');
@@ -4168,7 +3586,7 @@
             }
         }
 
-        // Optimized event listeners setup
+        // Set up event listeners
         function setupEventListeners() {
             // Tab buttons
             document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -4184,7 +3602,7 @@
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     journalFilter = this.getAttribute('data-filter');
-                    foodJournal.renderFilteredEntries();
+                    foodJournal.loadJournalEntries();
                 });
             });
             
@@ -4227,9 +3645,11 @@
             document.querySelectorAll('.list-icon-option').forEach(icon => {
                 icon.addEventListener('click', function() {
                     document.querySelectorAll('.list-icon-option').forEach(i => {
-                        i.classList.remove('selected');
+                        i.style.background = 'transparent';
+                        i.style.border = '1px solid transparent';
                     });
-                    this.classList.add('selected');
+                    this.style.background = 'rgba(245, 158, 11, 0.1)';
+                    this.style.border = '1px solid var(--accent)';
                     const selectedIcon = document.getElementById('selectedIcon');
                     if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
                 });
@@ -4249,31 +3669,6 @@
                     }
                 });
             }
-            
-            // Close modals when clicking outside
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        closeModal(modal.id);
-                    }
-                });
-            });
-            
-            // Close modals with Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal.active').forEach(modal => {
-                        closeModal(modal.id);
-                    });
-                }
-            });
-            
-            // Clean up observers on page unload
-            window.addEventListener('beforeunload', () => {
-                if (imageObserver) {
-                    imageObserver.disconnect();
-                }
-            });
         }
 
         // Create custom list
@@ -4371,31 +3766,6 @@
             }
         }
 
-        // Helper functions for footer links
-        function showSettings() {
-            showModal('editProfileModal');
-        }
-
-        function showPrivacy() {
-            showToast('Privacy policy coming soon!', 'info');
-        }
-
-        function showSupport() {
-            showToast('Support page coming soon!', 'info');
-        }
-
-        function showAbout() {
-            showToast('About page coming soon!', 'info');
-        }
-
-        function sortLists() {
-            showToast('Sort functionality coming soon!', 'info');
-        }
-
-        function viewAllAchievements() {
-            showToast('All achievements view coming soon!', 'info');
-        }
-
         // Initialize the page when DOM is loaded
         document.addEventListener('DOMContentLoaded', initProfilePage);
 
@@ -4411,12 +3781,6 @@
         window.showCommunitySection = showCommunitySection;
         window.viewUserProfile = viewUserProfile;
         window.showAvatarModal = showAvatarModal;
-        window.showSettings = showSettings;
-        window.showPrivacy = showPrivacy;
-        window.showSupport = showSupport;
-        window.showAbout = showAbout;
-        window.sortLists = sortLists;
-        window.viewAllAchievements = viewAllAchievements;
     </script>
 </body>
 </html>
