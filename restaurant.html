@@ -2,16 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restaurant Details</title>
+<!-- FAVICON -->
 <link rel="icon" type="image/png" href="images/logo.png">
+<link rel="apple-touch-icon" href="images/logo.png">
+<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
+
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 :root {
-  --bg: #1e2a4a; --text: #fff; --text2: #cbd5e1; --nav-bg: #2d3748;
-  --btn-bg: #ff944d; --btn-text: #111; --card: #2d3748; --accent: #ff944d;
+  --bg: #1e2a4a;
+  --text: #fff;
+  --text2: #cbd5e1;
+  --nav-bg: #2d3748;
+  --btn-bg: #ff944d;
+  --btn-text: #111;
+  --card: #2d3748;
+  --accent: #ff944d;
+  --success: #22c55e;
+  --error: #ef4444;
 }
-body{background-color:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden;width:100%}
+
+body{background-color:var(--bg);color:var(--text);line-height:1.6}
 
 /* UTILITY NAV BAR */
 .utility-nav {
@@ -25,17 +38,11 @@ body{background-color:var(--bg);color:var(--text);line-height:1.5;overflow-x:hid
   padding: 12px 0;
 }
 
-.nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px;
-}
-
 .nav-scroll {
   display: flex;
-  gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 0 16px;
+  gap: 8px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -62,19 +69,18 @@ body{background-color:var(--bg);color:var(--text);line-height:1.5;overflow-x:hid
   border-color: var(--btn-bg);
 }
 
-.nav-item:hover:not(.active) {
+.nav-item:hover {
   background: rgba(255, 255, 255, 0.15);
   color: var(--text);
 }
 
-/* COMPACT STYLES */
-.top-bar {
+/* TOP BAR */
+.top-stripe {
   background: #FF9800;
   padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
 }
 
 .back-btn {
@@ -88,47 +94,49 @@ body{background-color:var(--bg);color:var(--text);line-height:1.5;overflow-x:hid
   display: flex;
   align-items: center;
   gap: 6px;
-  white-space: nowrap;
 }
 
+.back-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* HERO SECTION */
 .hero {
-  padding: 40px 16px 30px;
   text-align: center;
+  padding: 40px 16px 30px;
   background: linear-gradient(135deg, var(--card) 0%, var(--bg) 100%);
 }
 
 .logo {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid white;
+  border: 4px solid white;
   margin-bottom: 20px;
 }
 
 .hero h1 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   margin-bottom: 8px;
-  line-height: 1.2;
 }
 
 .hero p {
   color: var(--text2);
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin-bottom: 16px;
   max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 16px;
 }
 
 .rating {
   color: #FF9800;
-  font-size: 1rem;
+  font-size: 1.1rem;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .btn-group {
@@ -146,13 +154,13 @@ body{background-color:var(--bg);color:var(--text);line-height:1.5;overflow-x:hid
   color: var(--btn-text);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.95rem;
   border: none;
   cursor: pointer;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.95rem;
 }
 
 .btn.secondary {
@@ -161,27 +169,32 @@ body{background-color:var(--bg);color:var(--text);line-height:1.5;overflow-x:hid
   border: 1px solid rgba(255,255,255,0.2);
 }
 
+.btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 18px rgba(255,152,0,0.2);
+}
+
+/* SECTIONS */
 .section {
-  padding: 40px 16px;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
+  padding: 40px 16px;
 }
 
 h2 {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   margin-bottom: 20px;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   border-bottom: 2px solid var(--btn-bg);
 }
 
+/* CONTACT & BRANCHES */
 .hotline {
-  background: var(--card);
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 24px;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -192,7 +205,10 @@ h2 {
   background: var(--btn-bg);
   padding: 8px 16px;
   border-radius: 20px;
-  display: inline-block;
+}
+
+.hotline a:hover {
+  text-decoration: none;
 }
 
 .branches {
@@ -203,68 +219,98 @@ h2 {
 
 .branch-card {
   background: var(--card);
-  border-radius: 12px;
-  padding: 16px;
   border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.branch-card h3 {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.branch-card p {
+  color: var(--text2);
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+}
+
+.branch-card a {
+  color: var(--btn-bg);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* TALABAT SECTION */
 .talabat-card {
   background: var(--card);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px;
-  margin: 24px 0;
   border: 1px solid rgba(255,255,255,0.1);
-}
-
-.talabat-header {
+  margin-bottom: 15px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 20px;
+}
+
+.talabat-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--nav-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .talabat-icon {
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
+.talabat-info {
+  flex: 1;
+}
+
 .talabat-info h3 {
-  font-size: 1.2rem;
-  margin-bottom: 4px;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.availability-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-top: 8px;
 }
 
 .status-badge.available {
   background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  color: var(--success);
 }
 
 .status-badge.not-available {
   background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  color: var(--error);
 }
 
 /* MENU */
-.menu-category {
-  margin-top: 24px;
-}
-
-.menu-category h3 {
-  color: var(--btn-bg);
-  font-size: 1.1rem;
-  margin-bottom: 12px;
-}
-
 .menu-item {
   display: flex;
   justify-content: space-between;
@@ -272,31 +318,78 @@ h2 {
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
+.menu-item span:last-child {
+  font-weight: 600;
+}
+
+.menu-category {
+  margin-top: 30px;
+}
+
+.menu-category h3 {
+  color: var(--btn-bg);
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+}
+
 /* REVIEWS */
+.reviews-stats {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-top: 5px;
+}
+
 .review-card {
   background: var(--card);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
   border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
 }
 
 .review-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
+  gap: 15px;
 }
 
 .reviewer-info {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
 }
 
 .reviewer-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), #FF6F00);
   display: flex;
@@ -307,36 +400,191 @@ h2 {
   font-size: 0.9rem;
 }
 
+.reviewer-details {
+  flex: 1;
+}
+
+.reviewer-name {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.review-date {
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
 .review-rating {
   color: #FF9800;
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+.review-comment {
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* REVIEW FORM */
+.review-form-section {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-top: 30px;
+}
+
+.rating-input {
+  margin-bottom: 20px;
+}
+
+.stars-rating {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.star {
+  font-size: 2rem;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.star:hover,
+.star.active {
+  color: #FF9800;
+  transform: scale(1.1);
+}
+
+.rating-text {
+  font-size: 0.9rem;
+  color: var(--text2);
+}
+
+.comment-input textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: var(--nav-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+.auth-prompt {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text2);
+}
+
+.auth-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
 }
 
 /* LIST MANAGER FAB */
 .list-manager-fab {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 30px;
+  right: 30px;
   z-index: 1000;
 }
 
 .fab-main {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
   border: none;
   color: white;
+  transition: all 0.3s ease;
+}
+
+.fab-main:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6);
+}
+
+/* LIST DROPDOWN */
+.list-dropdown {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 320px;
+  max-width: 400px;
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.list-dropdown.show {
+  display: block;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.list-item:hover {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.list-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #475569;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.list-checkbox.checked {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.list-checkbox.checked::after {
+  content: "✓";
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 /* FOOTER */
 footer {
   text-align: center;
-  padding: 40px 16px;
+  padding: 40px 20px;
   border-top: 1px solid rgba(255,255,255,0.1);
   color: var(--text2);
   font-size: 0.9rem;
@@ -363,63 +611,64 @@ footer {
   100% { transform: rotate(360deg); }
 }
 
-/* MOBILE OPTIMIZATIONS */
+/* MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {
-  .section {
-    padding: 32px 16px;
-  }
-  
-  .hero {
-    padding: 32px 16px 24px;
-  }
-  
-  .logo {
-    width: 80px;
-    height: 80px;
-  }
-  
-  .hero h1 {
-    font-size: 1.5rem;
-  }
-  
-  .btn {
-    min-height: 40px;
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-  
   .nav-item {
     padding: 6px 12px;
     font-size: 13px;
   }
   
+  .logo {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+  
+  .section {
+    padding: 30px 16px;
+  }
+  
+  .btn {
+    min-height: 40px;
+    padding: 8px 16px;
+  }
+  
+  .talabat-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .list-manager-fab {
+    bottom: 20px;
+    right: 20px;
+  }
+  
   .fab-main {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
+  }
+  
+  .list-dropdown {
+    bottom: 80px;
+    right: 20px;
+    left: 20px;
+    max-width: none;
   }
 }
 
 @media (max-width: 480px) {
-  .top-bar {
-    padding: 10px 12px;
-  }
-  
-  .back-btn {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-  
   .hero h1 {
-    font-size: 1.3rem;
-  }
-  
-  .btn-group {
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .btn {
-    width: 100%;
+    font-size: 1.5rem;
   }
   
   .nav-scroll {
@@ -430,6 +679,19 @@ footer {
     padding: 6px 12px;
     font-size: 12px;
   }
+  
+  .btn-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* TOUCH FRIENDLY */
@@ -437,17 +699,22 @@ footer {
   .btn:hover,
   .nav-item:hover,
   .branch-card:hover,
-  .review-card:hover {
+  .review-card:hover,
+  .fab-main:hover {
     transform: none;
   }
 }
 
 /* SAFE AREAS */
 @supports(padding: max(0px)) {
-  .top-bar {
-    padding-top: max(12px, env(safe-area-inset-top));
+  .utility-nav,
+  .top-stripe {
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
+  }
+  
+  .top-stripe {
+    padding-top: max(12px, env(safe-area-inset-top));
   }
   
   .list-manager-fab {
@@ -461,20 +728,18 @@ footer {
 
 <!-- Utility Navigation Bar -->
 <nav class="utility-nav">
-  <div class="nav-container">
-    <div class="nav-scroll">
-      <a href="#overview" class="nav-item active">Overview</a>
-      <a href="#branches" class="nav-item">Branches</a>
-      <a href="#ordering" class="nav-item">Ordering</a>
-      <a href="#menu" class="nav-item">Menu</a>
-      <a href="#reviews" class="nav-item">Reviews</a>
-    </div>
+  <div class="nav-scroll">
+    <a href="#overview" class="nav-item active">Overview</a>
+    <a href="#branches" class="nav-item">Branches</a>
+    <a href="#ordering" class="nav-item">Ordering</a>
+    <a href="#menu" class="nav-item">Menu</a>
+    <a href="#reviews" class="nav-item">Reviews</a>
   </div>
 </nav>
 
-<!-- Top Bar with Back Button -->
-<div class="top-bar">
-  <button class="back-btn" onclick="window.location.href='restraunts.html'">← Back</button>
+<!-- Top Bar -->
+<div class="top-stripe">
+  <button class="back-btn" onclick="window.location.href='restraunts.html'">← Back to Restaurants</button>
 </div>
 
 <!-- Loading State -->
@@ -513,19 +778,24 @@ footer {
   <!-- ORDERING SECTION -->
   <section class="section" id="ordering">
     <h2>Ordering Options</h2>
+    
     <div class="talabat-card">
-      <div class="talabat-header">
-        <img src="images/talabat.png" alt="Talabat" class="talabat-icon">
-        <div class="talabat-info">
-          <h3>Talabat</h3>
-          <div id="talabat-status">Checking availability...</div>
+      <div class="talabat-icon-wrapper">
+        <img src="images/talabat.png" alt="Talabat Logo" class="talabat-icon">
+      </div>
+      <div class="talabat-info">
+        <h3>Talabat</h3>
+        <div class="availability-status" id="talabat-status">
+          <span>Checking availability...</span>
         </div>
       </div>
     </div>
+    
     <div id="other-platforms" style="display:none">
-      <h3>Other Options</h3>
+      <h3>Other Platforms</h3>
       <div class="branch-card">
         <h4>Website Ordering</h4>
+        <p>Order directly from their website</p>
         <a id="website-order-link" class="btn secondary" href="#" target="_blank">Visit Website →</a>
       </div>
     </div>
@@ -541,43 +811,47 @@ footer {
   <!-- REVIEWS SECTION -->
   <section class="section" id="reviews">
     <h2>Customer Reviews</h2>
-    <div id="reviewsStats">Loading reviews...</div>
-    <div id="reviewsList" class="branches" style="margin-top:20px"></div>
     
+    <div class="reviews-stats" id="reviewsStats">
+      <div>Loading reviews...</div>
+    </div>
+
+    <div id="reviewsList"></div>
+
     <!-- Review Form -->
-    <div style="margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1)">
+    <div class="review-form-section">
       <h3>Share Your Experience</h3>
       <form id="review-form" style="display:none">
-        <div style="margin-bottom:16px">
-          <label style="display:block;margin-bottom:8px">Your Rating:</label>
-          <div class="stars-rating" style="display:flex;gap:4px">
-            <span class="star" data-rating="1" style="font-size:1.5rem;color:#4a5568;cursor:pointer">★</span>
-            <span class="star" data-rating="2" style="font-size:1.5rem;color:#4a5568;cursor:pointer">★</span>
-            <span class="star" data-rating="3" style="font-size:1.5rem;color:#4a5568;cursor:pointer">★</span>
-            <span class="star" data-rating="4" style="font-size:1.5rem;color:#4a5568;cursor:pointer">★</span>
-            <span class="star" data-rating="5" style="font-size:1.5rem;color:#4a5568;cursor:pointer">★</span>
+        <div class="rating-input">
+          <label>Your Rating:</label>
+          <div class="stars-rating">
+            <span class="star" data-rating="1">★</span>
+            <span class="star" data-rating="2">★</span>
+            <span class="star" data-rating="3">★</span>
+            <span class="star" data-rating="4">★</span>
+            <span class="star" data-rating="5">★</span>
           </div>
-          <span id="ratingText" style="font-size:0.9rem;color:var(--text2)">Select rating</span>
+          <span class="rating-text" id="ratingText">Select your rating</span>
         </div>
         
-        <div style="margin-bottom:20px">
-          <textarea id="review-comment" placeholder="Your review..." rows="3" 
-            style="width:100%;padding:12px;border-radius:8px;background:var(--card);color:var(--text);border:1px solid rgba(255,255,255,0.2)"></textarea>
-          <div style="text-align:right;font-size:0.8rem;color:var(--text2)">
-            <span id="charCount">0</span>/500
+        <div class="comment-input">
+          <textarea id="review-comment" placeholder="Tell us about your experience..." rows="4" maxlength="500"></textarea>
+          <div class="char-count">
+            <span id="charCount">0</span>/500 characters
           </div>
         </div>
         
         <button type="submit" class="btn">Submit Review</button>
       </form>
-      <div id="auth-prompt" style="text-align:center;padding:20px;color:var(--text2)">
-        <p>Please <a href="login.html" style="color:var(--btn-bg)">sign in</a> to review</p>
+      
+      <div id="auth-prompt" class="auth-prompt">
+        <p>Please <a href="login.html" class="auth-link">sign in</a> to share your experience</p>
       </div>
     </div>
   </section>
 
   <footer>
-    <p id="footer-copyright">© 2025 Zo2y</p>
+    <p id="footer-copyright">© 2025 Zo2y. All rights reserved.</p>
     <p id="footer-tagline" style="margin-top:10px;font-size:0.8rem"></p>
   </footer>
 </div>
@@ -585,7 +859,7 @@ footer {
 <!-- Error State -->
 <div id="error" class="error-message" style="display:none">
   <h2>Restaurant Not Found</h2>
-  <p>We couldn't find the restaurant.</p>
+  <p>We couldn't find the restaurant you're looking for.</p>
   <button class="btn" onclick="window.location.href='restraunts.html'">Back to Restaurants</button>
 </div>
 
@@ -594,18 +868,20 @@ footer {
   <div class="fab-main">+</div>
 </div>
 
+<!-- List Dropdown -->
+<div class="list-dropdown"></div>
+
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 // Initialize Supabase
-const supabase = window.supabase.createClient(
-  "https://gfkhjbztayjyojsgdpgk.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s"
-);
+const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// UTILITY NAV SMOOTH SCROLL
-document.addEventListener('DOMContentLoaded', function() {
+// Utility Navigation
+function initUtilityNav() {
   const navItems = document.querySelectorAll('.nav-item');
   const sections = ['overview', 'branches', 'ordering', 'menu', 'reviews'];
   
@@ -621,7 +897,6 @@ document.addEventListener('DOMContentLoaded', function() {
           behavior: 'smooth'
         });
         
-        // Update active nav item
         navItems.forEach(nav => nav.classList.remove('active'));
         this.classList.add('active');
       }
@@ -645,37 +920,64 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-});
-
-// CORE FUNCTIONS (same as before but optimized)
-function getRestaurantSlug() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('slug')?.toLowerCase() || window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
 }
 
+// Get restaurant slug from URL
+function getRestaurantSlug() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const slug = urlParams.get('slug');
+  
+  if (!slug) {
+    const path = window.location.pathname;
+    const filename = path.split('/').pop();
+    return filename.replace('.html', '').toLowerCase();
+  }
+  
+  return slug.toLowerCase();
+}
+
+// Load ALL restaurant data from Supabase
 async function loadRestaurantData() {
   const slug = getRestaurantSlug();
+  
   try {
-    const { data: restaurant } = await supabase
+    // 1. Load restaurant info
+    const { data: restaurant, error: restaurantError } = await supabase
       .from('restraunts')
       .select('*')
       .eq('slug', slug)
       .single();
 
-    if (!restaurant) throw new Error('Restaurant not found');
+    if (restaurantError || !restaurant) {
+      throw new Error('Restaurant not found');
+    }
 
-    const [{ data: menuItems }, { data: branches }] = await Promise.all([
-      supabase.from('menu_items').select('*').eq('restaurant_slug', slug).order('category'),
-      supabase.from('branches').select('*').eq('restaurant_slug', slug).order('branch_name')
-    ]);
+    // 2. Load menu items
+    const { data: menuItems } = await supabase
+      .from('menu_items')
+      .select('*')
+      .eq('restaurant_slug', slug)
+      .order('category');
 
-    return { restaurant, menuItems: menuItems || [], branches: branches || [] };
+    // 3. Load branches
+    const { data: branches } = await supabase
+      .from('branches')
+      .select('*')
+      .eq('restaurant_slug', slug)
+      .order('branch_name');
+
+    return { 
+      restaurant, 
+      menuItems: menuItems || [], 
+      branches: branches || [] 
+    };
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error loading restaurant data:', error);
     throw error;
   }
 }
 
+// Check Talabat availability
 async function checkTalabatAvailability(slug) {
   try {
     const { data: restaurant } = await supabase
@@ -683,49 +985,121 @@ async function checkTalabatAvailability(slug) {
       .select('talabat')
       .eq('slug', slug)
       .single();
-    return { available: restaurant?.talabat === 'yes', error: false };
-  } catch {
+
+    if (!restaurant) return { available: false, error: false };
+
+    const isAvailable = restaurant.talabat === 'yes';
+    return { available: isAvailable, error: false };
+  } catch (error) {
     return { available: false, error: true };
   }
 }
 
+// Update Talabat display
 async function updateTalabatDisplay(slug) {
   const statusElement = document.getElementById('talabat-status');
+  
   try {
     const result = await checkTalabatAvailability(slug);
-    statusElement.innerHTML = result.available 
-      ? '<span class="status-badge available">✓ Available on Talabat</span>'
-      : '<span class="status-badge not-available">Not Available</span>';
-  } catch {
-    statusElement.innerHTML = '<span>Availability unknown</span>';
+    
+    if (result.error) {
+      statusElement.innerHTML = '<span>Availability unknown</span>';
+      return;
+    }
+    
+    if (result.available) {
+      statusElement.innerHTML = `
+        <span class="status-badge available">
+          ✓ Available on Talabat
+        </span>
+        <span style="color: var(--text2); font-size: 0.9rem;">Check the Talabat app for ordering</span>
+      `;
+    } else {
+      statusElement.innerHTML = `
+        <span class="status-badge not-available">
+          Not Available
+        </span>
+        <span style="color: var(--text2); font-size: 0.9rem;">Not currently on Talabat</span>
+      `;
+    }
+  } catch (error) {
+    statusElement.innerHTML = '<span>Error checking availability</span>';
   }
 }
 
+// Get restaurant ID from slug
+function getRestaurantIdFromSlug() {
+  const slug = getRestaurantSlug();
+  const slugToId = {
+    'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
+    'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
+    'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
+    'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
+    'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
+    'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
+    'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46,
+    'caizo':47,'tabali':48,'panda':49,'pablo':50
+  };
+  return slugToId[slug] || null;
+}
+
+// Render restaurant data
 function renderRestaurantData({ restaurant, menuItems, branches }) {
+  // Hide loading, show main content
   document.getElementById('loading').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
+  
+  // Set page title
   document.title = `${restaurant.name} - Zo2y`;
   
-  // Set basic info
-  document.getElementById('restaurant-logo').src = restaurant.logo_url || 'images/default-logo.jpg';
+  // Hero section
+  const logoImg = document.getElementById('restaurant-logo');
+  logoImg.src = restaurant.logo_url || restaurant.image || 'images/default-logo.jpg';
+  logoImg.alt = `${restaurant.name} Logo`;
+  
   document.getElementById('restaurant-name').textContent = restaurant.name;
   document.getElementById('restaurant-description').textContent = restaurant.description || 'Delicious food served with care';
-  document.getElementById('restaurant-rating').innerHTML = restaurant.rating ? `⭐ ${restaurant.rating}/5` : '⭐ Rating not available';
+  
+  // Rating
+  const ratingElement = document.getElementById('restaurant-rating');
+  if (restaurant.rating) {
+    ratingElement.innerHTML = `⭐ ${restaurant.rating}/5`;
+  } else {
+    ratingElement.innerHTML = '⭐ Rating not available';
+  }
   
   // Contact buttons
   const hotlineBtn = document.getElementById('call-hotline');
   if (restaurant.hotline) {
     hotlineBtn.href = `tel:${restaurant.hotline}`;
-    hotlineBtn.textContent = `Call: ${restaurant.hotline}`;
-  } else hotlineBtn.style.display = 'none';
+    hotlineBtn.textContent = `Call Hotline: ${restaurant.hotline}`;
+  } else {
+    hotlineBtn.style.display = 'none';
+  }
   
   // Website link
   const websiteBtn = document.getElementById('order-online');
   if (restaurant.website_url) {
     websiteBtn.href = restaurant.website_url;
+    websiteBtn.textContent = 'Order Online';
     document.getElementById('website-order-link').href = restaurant.website_url;
     document.getElementById('other-platforms').style.display = 'block';
-  } else websiteBtn.style.display = 'none';
+  } else {
+    websiteBtn.style.display = 'none';
+  }
+  
+  // Social links
+  const instagramBtn = document.getElementById('instagram-link');
+  if (restaurant.instagram_url) {
+    instagramBtn.href = restaurant.instagram_url;
+    instagramBtn.style.display = 'inline-block';
+  }
+  
+  const facebookBtn = document.getElementById('facebook-link');
+  if (restaurant.facebook_url) {
+    facebookBtn.href = restaurant.facebook_url;
+    facebookBtn.style.display = 'inline-block';
+  }
   
   // Contact info
   const hotlineLink = document.getElementById('hotline-link');
@@ -739,196 +1113,531 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
   if (branches.length > 0) {
     branchesContainer.innerHTML = branches.map(branch => `
       <div class="branch-card">
-        <h3 style="margin-bottom:8px">${branch.branch_name}</h3>
-        <p style="color:var(--text2);margin-bottom:12px;font-size:0.9rem">${branch.details || 'Location details'}</p>
-        ${branch.directions_link ? `<a href="${branch.directions_link}" target="_blank" style="color:var(--btn-bg);font-size:0.9rem">📍 Get Directions</a>` : ''}
+        <h3>${branch.branch_name}</h3>
+        <p>${branch.details || 'Location details not available'}</p>
+        ${branch.directions_link ? `<a href="${branch.directions_link}" target="_blank">📍 Get Directions</a>` : ''}
       </div>
     `).join('');
   } else {
-    branchesContainer.innerHTML = '<p style="text-align:center;color:var(--text2)">No branch info</p>';
+    branchesContainer.innerHTML = '<p style="text-align:center;color:var(--text2)">No branch information available</p>';
   }
   
-  // Menu
+  // Menu items
   const menuContainer = document.getElementById('menu-container');
   if (menuItems.length > 0) {
-    const grouped = {};
+    // Group by category
+    const groupedByCategory = {};
     menuItems.forEach(item => {
-      if (!grouped[item.category]) grouped[item.category] = [];
-      grouped[item.category].push(item);
+      if (!groupedByCategory[item.category]) {
+        groupedByCategory[item.category] = [];
+      }
+      groupedByCategory[item.category].push(item);
     });
     
-    menuContainer.innerHTML = Object.entries(grouped).map(([category, items]) => `
+    // Render each category
+    menuContainer.innerHTML = Object.keys(groupedByCategory).map(category => `
       <div class="menu-category">
         <h3>${category}</h3>
-        ${items.map(item => `
+        ${groupedByCategory[category].map(item => `
           <div class="menu-item">
             <span>${item.item_name}</span>
-            <span style="font-weight:600">${item.price}</span>
+            <span>${item.price}</span>
           </div>
         `).join('')}
       </div>
     `).join('');
   } else {
-    menuContainer.innerHTML = '<p style="text-align:center;color:var(--text2)">Menu not available</p>';
+    menuContainer.innerHTML = '<p style="text-align:center;color:var(--text2)">Menu items not available</p>';
+  }
+  
+  // Full menu link
+  const fullMenuLink = document.getElementById('full-menu-link');
+  if (restaurant.website_url) {
+    fullMenuLink.href = restaurant.website_url;
+    fullMenuLink.style.display = 'inline-block';
   }
   
   // Footer
   document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
   
-  // Initialize Talabat and Reviews
+  // Update Talabat display
   updateTalabatDisplay(restaurant.slug);
-  initReviewSystem();
-  initListManager();
 }
 
-async function initPage() {
-  try {
-    const data = await loadRestaurantData();
-    renderRestaurantData(data);
-  } catch {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error').style.display = 'block';
-  }
+// Error handler
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error').style.display = 'block';
 }
 
-// REVIEW SYSTEM (optimized)
+// Enhanced Review System
 let currentUser = null;
-async function initReviewSystem() {
-  const restaurantId = getRestaurantIdFromSlug();
-  if (!restaurantId) return;
-  window.restaurantId = restaurantId;
-  
-  await checkAuth();
-  await loadReviews();
-  setupReviewEvents();
-}
+let currentRating = 0;
 
-function getRestaurantIdFromSlug() {
-  const slugMap = {
-    'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
-    'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
-    'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
-    'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
-    'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
-    'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39
-  };
-  return slugMap[getRestaurantSlug()] || null;
+async function initReviewSystem() {
+    const restaurantId = getRestaurantIdFromSlug();
+    if (!restaurantId) {
+        console.error('Could not determine restaurant ID from slug');
+        return;
+    }
+    
+    window.restaurantId = restaurantId;
+    
+    await checkAuth();
+    await loadReviews();
+    setupEventListeners();
 }
 
 async function checkAuth() {
-  const { data: { user } } = await supabase.auth.getUser();
-  currentUser = user;
-  const reviewForm = document.getElementById('review-form');
-  const authPrompt = document.getElementById('auth-prompt');
-  if (user) {
-    reviewForm.style.display = 'block';
-    authPrompt.style.display = 'none';
-  } else {
-    reviewForm.style.display = 'none';
-    authPrompt.style.display = 'block';
-  }
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        currentUser = user;
+        
+        const reviewForm = document.getElementById('review-form');
+        const authPrompt = document.getElementById('auth-prompt');
+        
+        if (user) {
+            reviewForm.style.display = 'block';
+            authPrompt.style.display = 'none';
+        } else {
+            reviewForm.style.display = 'none';
+            authPrompt.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Auth error:', error);
+    }
 }
 
 async function loadReviews() {
-  try {
-    const { data: reviews } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('restaurant_id', window.restaurantId)
-      .order('created_at', { ascending: false });
+    const container = document.getElementById('reviewsList');
+    const statsContainer = document.getElementById('reviewsStats');
+    
+    try {
+        const { data: reviews, error } = await supabase
+            .from('reviews')
+            .select('*')
+            .eq('restaurant_id', window.restaurantId)
+            .order('created_at', { ascending: false });
 
-    if (!reviews?.length) {
-      document.getElementById('reviewsList').innerHTML = '<p style="text-align:center;color:var(--text2)">No reviews yet</p>';
-      document.getElementById('reviewsStats').innerHTML = '<p style="color:var(--text2)">Be the first to review!</p>';
-      return;
+        if (error) throw error;
+
+        if (!reviews || reviews.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)">No reviews yet. Be the first to share your experience! 🎉</div>';
+            statsContainer.innerHTML = '<div style="text-align:center;color:var(--text2)">No reviews yet</div>';
+            return;
+        }
+
+        // Calculate stats
+        const totalReviews = reviews.length;
+        const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+        const ratingDistribution = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
+        reviews.forEach(review => ratingDistribution[review.rating]++);
+
+        // Update stats display
+        statsContainer.innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">${averageRating.toFixed(1)}</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${totalReviews}</div>
+                    <div class="stat-label">Total Reviews</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${Math.round((ratingDistribution[5] / totalReviews) * 100)}%</div>
+                    <div class="stat-label">5 Star Reviews</div>
+                </div>
+            </div>
+        `;
+
+        // Display reviews
+        container.innerHTML = reviews.map(review => {
+            const displayName = review.user_name || 'Anonymous';
+            const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+
+            return `
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">${initials}</div>
+                            <div class="reviewer-details">
+                                <div class="reviewer-name">${displayName}</div>
+                                <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                })}</div>
+                            </div>
+                        </div>
+                        <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+                    </div>
+                    <p class="review-comment">${review.comment}</p>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+        container.innerHTML = '<div style="text-align:center;color:var(--text2)">Error loading reviews. Please try again later.</div>';
+    }
+}
+
+function setupEventListeners() {
+    // Star rating
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('star')) {
+            currentRating = parseInt(e.target.dataset.rating);
+            updateStars();
+        }
+    });
+
+    // Review form submission
+    const reviewForm = document.getElementById('review-form');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', submitReview);
     }
 
-    // Stats
-    const total = reviews.length;
-    const avg = (reviews.reduce((s, r) => s + r.rating, 0) / total).toFixed(1);
-    document.getElementById('reviewsStats').innerHTML = `
-      <div style="display:flex;gap:20px;margin-bottom:16px">
-        <div><strong>${avg}</strong> <span style="color:var(--text2)">avg rating</span></div>
-        <div><strong>${total}</strong> <span style="color:var(--text2)">reviews</span></div>
-      </div>
-    `;
+    // Character count
+    const commentTextarea = document.getElementById('review-comment');
+    if (commentTextarea) {
+        commentTextarea.addEventListener('input', updateCharCount);
+    }
+}
 
-    // Reviews list
-    document.getElementById('reviewsList').innerHTML = reviews.map(review => `
-      <div class="review-card">
-        <div class="review-header">
-          <div class="reviewer-info">
-            <div class="reviewer-avatar">${review.user_name?.substring(0,2).toUpperCase() || 'U'}</div>
-            <div>
-              <div style="font-weight:600">${review.user_name || 'User'}</div>
-              <div style="font-size:0.8rem;color:var(--text2)">${new Date(review.created_at).toLocaleDateString()}</div>
+function updateStars() {
+    const stars = document.querySelectorAll('.star');
+    const ratingText = document.getElementById('ratingText');
+    
+    stars.forEach(star => {
+        const starRating = parseInt(star.dataset.rating);
+        star.classList.toggle('active', starRating <= currentRating);
+    });
+
+    const ratingTexts = ['Select your rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    if (ratingText) {
+        ratingText.textContent = ratingTexts[currentRating] || 'Select your rating';
+    }
+}
+
+function updateCharCount() {
+    const textarea = document.getElementById('review-comment');
+    const charCount = document.getElementById('charCount');
+    if (textarea && charCount) {
+        charCount.textContent = textarea.value.length;
+    }
+}
+
+async function submitReview(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        alert('Please sign in to submit a review');
+        return;
+    }
+
+    const comment = document.getElementById('review-comment').value.trim();
+    
+    if (currentRating === 0) {
+        alert('Please select a rating');
+        return;
+    }
+
+    if (!comment) {
+        alert('Please write a comment');
+        return;
+    }
+
+    try {
+        const { error } = await supabase
+            .from('reviews')
+            .insert({
+                restaurant_id: window.restaurantId,
+                user_id: currentUser.id,
+                user_name: currentUser.email?.split('@')[0] || 'User',
+                rating: currentRating,
+                comment: comment
+            });
+
+        if (error) throw error;
+        
+        alert('Review submitted successfully!');
+        
+        // Reset form
+        document.getElementById('review-form').reset();
+        currentRating = 0;
+        updateStars();
+        updateCharCount();
+        
+        // Reload reviews
+        await loadReviews();
+
+    } catch (error) {
+        console.error('Error submitting review:', error);
+        alert('Error submitting review. Please try again.');
+    }
+}
+
+// List Manager
+class RestaurantListManager {
+    constructor() {
+        this.supabase = supabase;
+        this.restaurantId = this.getRestaurantIdFromSlug();
+        this.userLists = [];
+        this.customLists = [];
+        this.init();
+    }
+
+    getRestaurantIdFromSlug() {
+        const slug = getRestaurantSlug();
+        const slugToId = {
+            'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
+            'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
+            'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
+            'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
+            'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
+            'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
+            'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
+        };
+        return slugToId[slug] || null;
+    }
+
+    async init() {
+        await this.checkAuth();
+        if (this.currentUser) {
+            await this.loadUserLists();
+        }
+        this.setupFAB();
+    }
+
+    async checkAuth() {
+        try {
+            const { data: { session } } = await this.supabase.auth.getSession();
+            this.currentUser = session?.user || null;
+        } catch (error) {
+            console.error('Auth error:', error);
+            this.currentUser = null;
+        }
+    }
+
+    async loadUserLists() {
+        try {
+            const { data: { user } } = await this.supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: lists } = await this.supabase
+                .from('lists').select('*').eq('user_id', user.id);
+            this.userLists = lists || [];
+            
+            this.customLists = this.userLists.filter(list => 
+                !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+            );
+        } catch (error) {
+            console.error('Error loading lists:', error);
+            this.userLists = [];
+            this.customLists = [];
+        }
+    }
+
+    setupFAB() {
+        const fab = document.querySelector('.fab-main');
+        fab.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = document.querySelector('.list-dropdown');
+            dropdown.classList.toggle('show');
+            if (dropdown.classList.contains('show')) {
+                this.updateDropdown(dropdown);
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            document.querySelector('.list-dropdown').classList.remove('show');
+        });
+    }
+
+    async updateDropdown(dropdown) {
+        dropdown.innerHTML = `
+            <div style="padding:20px;">
+                <h3 style="margin-bottom:20px;color:#f59e0b;">Save to Lists</h3>
+        `;
+
+        if (!this.currentUser) {
+            dropdown.innerHTML += `
+                <div style="text-align:center;padding:20px;">
+                    <p style="color:#94a3b8;margin-bottom:16px;">Sign in to save restaurants</p>
+                    <button onclick="window.location.href='login.html'" 
+                            style="background:#f59e0b;color:#0f172a;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">
+                        Sign In
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        // Quick Actions
+        dropdown.innerHTML += '<div style="margin-bottom:20px;"><strong style="color:#94a3b8;font-size:12px;">QUICK ACTIONS</strong></div>';
+        
+        const quickLists = [
+            { id: 'favorites', name: '❤️ Favorites' },
+            { id: 'wantToGo', name: '📍 Want to Go' },
+            { id: 'visited', name: '🍽️ Visited' }
+        ];
+
+        for (const list of quickLists) {
+            const isInList = await this.checkIfInList(list.id);
+            dropdown.innerHTML += `
+                <div class="list-item" onclick="listManager.toggleList('${list.id}')">
+                    <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
+                    <span>${list.name}</span>
+                </div>
+            `;
+        }
+
+        // Custom Lists
+        if (this.customLists.length > 0) {
+            dropdown.innerHTML += '<div style="margin:20px 0;"><strong style="color:#94a3b8;font-size:12px;">YOUR COLLECTIONS</strong></div>';
+            
+            for (const list of this.customLists) {
+                const isInList = await this.checkIfCustomList(list.id);
+                dropdown.innerHTML += `
+                    <div class="list-item" onclick="listManager.toggleCustomList('${list.id}')">
+                        <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
+                        <span>${list.title}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Create New List
+        dropdown.innerHTML += `
+            <div style="margin-top:20px;padding-top:20px;border-top:1px solid #334155;">
+                <input type="text" id="newListName" placeholder="New list name" 
+                       style="width:100%;padding:10px;margin-bottom:10px;background:#1e293b;color:white;border:1px solid #475569;border-radius:8px;">
+                <button onclick="listManager.createNewList()" 
+                        style="width:100%;background:#f59e0b;color:#0f172a;border:none;padding:12px;border-radius:8px;cursor:pointer;">
+                    Create New List
+                </button>
             </div>
-          </div>
-          <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
-        </div>
-        <p style="margin-top:12px">${review.comment}</p>
-      </div>
-    `).join('');
+        `;
+    }
+
+    async checkIfInList(listType) {
+        if (!this.currentUser || !this.restaurantId) return false;
+        const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
+        const { data: list } = await this.supabase.from('lists').select('id')
+            .eq('user_id', this.currentUser.id).eq('title', title).single();
+        if (!list) return false;
+        const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+            .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
+        return !!listRestaurants;
+    }
+
+    async checkIfCustomList(listId) {
+        if (!this.currentUser || !this.restaurantId) return false;
+        const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+            .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
+        return !!listRestaurants;
+    }
+
+    async toggleList(listType) {
+        if (!this.currentUser || !this.restaurantId) {
+            alert('Please log in to use lists');
+            return;
+        }
+        
+        const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
+        let { data: list } = await this.supabase.from('lists').select('id')
+            .eq('user_id', this.currentUser.id).eq('title', title).single();
+            
+        if (!list) {
+            const { data: newList } = await this.supabase.from('lists')
+                .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
+            list = newList;
+        }
+        
+        const isInList = await this.checkIfInList(listType);
+        if (isInList) {
+            await this.supabase.from('lists_restraunts').delete()
+                .match({ list_id: list.id, restraunt_id: this.restaurantId });
+            alert(`Removed from ${title}`);
+        } else {
+            await this.supabase.from('lists_restraunts').insert([
+                { list_id: list.id, restraunt_id: this.restaurantId }
+            ]);
+            alert(`Added to ${title}`);
+        }
+        
+        this.updateDropdown(document.querySelector('.list-dropdown'));
+    }
+
+    async toggleCustomList(listId) {
+        if (!this.currentUser || !this.restaurantId) {
+            alert('Please log in to use lists');
+            return;
+        }
+        
+        const list = this.customLists.find(l => l.id === listId);
+        const isInList = await this.checkIfCustomList(listId);
+        
+        if (isInList) {
+            await this.supabase.from('lists_restraunts').delete()
+                .match({ list_id: listId, restraunt_id: this.restaurantId });
+            alert(`Removed from ${list.title}`);
+        } else {
+            await this.supabase.from('lists_restraunts').insert([
+                { list_id: listId, restraunt_id: this.restaurantId }
+            ]);
+            alert(`Added to ${list.title}`);
+        }
+        
+        this.updateDropdown(document.querySelector('.list-dropdown'));
+    }
+
+    async createNewList() {
+        const input = document.getElementById('newListName');
+        const name = input.value.trim();
+        
+        if (!name) {
+            alert('Please enter a list name');
+            return;
+        }
+
+        if (!this.currentUser) {
+            alert('Please log in to create lists');
+            return;
+        }
+
+        try {
+            const { data: newList } = await this.supabase.from('lists')
+                .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
+            
+            if (newList) {
+                this.customLists.push(newList);
+                input.value = '';
+                alert(`"${name}" created!`);
+                this.updateDropdown(document.querySelector('.list-dropdown'));
+            }
+        } catch (error) {
+            alert('Error creating list');
+        }
+    }
+}
+
+// Initialize everything
+async function initPage() {
+  try {
+    initUtilityNav();
+    const data = await loadRestaurantData();
+    renderRestaurantData(data);
+    initReviewSystem();
+    window.listManager = new RestaurantListManager();
   } catch (error) {
-    console.error('Error loading reviews:', error);
+    showError();
   }
 }
 
-function setupReviewEvents() {
-  // Star rating
-  document.querySelectorAll('.star').forEach(star => {
-    star.addEventListener('click', () => {
-      const rating = parseInt(star.dataset.rating);
-      document.querySelectorAll('.star').forEach(s => {
-        s.style.color = parseInt(s.dataset.rating) <= rating ? '#FF9800' : '#4a5568';
-      });
-      document.getElementById('ratingText').textContent = ['Select', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating];
-    });
-  });
-
-  // Character count
-  document.getElementById('review-comment')?.addEventListener('input', function() {
-    document.getElementById('charCount').textContent = this.value.length;
-  });
-
-  // Form submission
-  document.getElementById('review-form')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    if (!currentUser) return;
-    
-    const rating = [...document.querySelectorAll('.star')].findIndex(s => s.style.color === '#FF9800') + 1;
-    const comment = document.getElementById('review-comment').value.trim();
-    
-    if (!rating || !comment) return;
-    
-    try {
-      await supabase.from('reviews').insert({
-        restaurant_id: window.restaurantId,
-        user_id: currentUser.id,
-        user_name: currentUser.email?.split('@')[0],
-        rating,
-        comment
-      });
-      
-      document.getElementById('review-form').reset();
-      document.querySelectorAll('.star').forEach(s => s.style.color = '#4a5568');
-      document.getElementById('ratingText').textContent = 'Select rating';
-      loadReviews();
-    } catch (error) {
-      console.error('Error submitting review:', error);
-    }
-  });
-}
-
-// LIST MANAGER (simplified)
-function initListManager() {
-  const fab = document.querySelector('.fab-main');
-  fab.addEventListener('click', () => {
-    alert('List functionality would open here');
-  });
-}
-
-// INITIALIZE PAGE
+// Start loading when page loads
 document.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
