@@ -59,15 +59,22 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
 
-/* UPDATED TALABAT AVAILABILITY SECTION */
+/* UPDATED TALABAT SECTION STYLES */
 .talabat-section {
   margin: 40px auto;
   max-width: 900px;
   padding: 0 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .talabat-section h2 {
   margin-bottom: 25px;
+  position: relative;
 }
 
 .talabat-card {
@@ -78,25 +85,56 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   padding: 25px;
   border: 1px solid var(--nav-shadow);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: 15px;
   flex-wrap: wrap;
   gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.talabat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.05), transparent);
+  transition: left 0.6s ease;
+}
+
+.talabat-card:hover::before {
+  left: 100%;
 }
 
 .talabat-card:hover {
   border-color: #FF6F00;
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(255, 152, 0, 0.15);
 }
 
-.talabat-icon {
+.talabat-icon-wrapper {
   width: 60px;
   height: 60px;
   flex-shrink: 0;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--nav-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.talabat-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.talabat-card:hover .talabat-icon {
+  transform: scale(1.05);
 }
 
 .talabat-info {
@@ -108,6 +146,7 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   font-size: 1.4rem;
   margin-bottom: 10px;
   color: var(--text);
+  font-weight: 600;
 }
 
 .availability-status {
@@ -116,6 +155,7 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   gap: 12px;
   margin-bottom: 8px;
   flex-wrap: wrap;
+  min-height: 24px;
 }
 
 .status-badge {
@@ -127,12 +167,19 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   font-size: 0.9rem;
   font-weight: 600;
   white-space: nowrap;
+  transition: all 0.3s ease;
 }
 
 .status-badge.available {
-  background: rgba(34, 197, 94, 0.2);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
   color: var(--success);
   border: 1px solid rgba(34, 197, 94, 0.3);
+  animation: pulseSuccess 2s ease-in-out;
+}
+
+@keyframes pulseSuccess {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
 }
 
 .status-badge.not-available {
@@ -143,12 +190,36 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 
 .status-badge .checkmark {
   font-size: 1rem;
+  animation: checkmarkPop 0.3s ease;
+}
+
+@keyframes checkmarkPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .status-loading {
   color: var(--text2);
   font-style: italic;
   font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-loading::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text2);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: loadingSpin 1s linear infinite;
+}
+
+@keyframes loadingSpin {
+  to { transform: rotate(360deg); }
 }
 
 .talabat-desc {
@@ -156,26 +227,40 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+.talabat-card:hover .talabat-desc {
+  color: var(--text);
 }
 
 .availability-warning {
   font-size: 0.85rem;
   color: #f59e0b;
-  margin-top: 8px;
-  padding: 8px 12px;
+  margin-top: 12px;
+  padding: 10px 14px;
   background: rgba(245, 158, 11, 0.1);
   border-radius: 8px;
   border-left: 3px solid #f59e0b;
+  animation: slideIn 0.5s ease;
+  display: none;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .availability-warning::before {
   content: "⚠️ ";
+  margin-right: 6px;
 }
 
 .other-platforms {
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid var(--nav-shadow);
+  animation: fadeIn 0.5s ease 0.2s both;
 }
 
 .other-platforms h3 {
@@ -194,11 +279,24 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   border: 1px solid var(--nav-shadow);
   gap: 20px;
   flex-wrap: wrap;
+  transition: all 0.3s ease;
+}
+
+.website-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .website-icon {
   font-size: 2.5rem;
   flex-shrink: 0;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
 .website-info {
@@ -230,19 +328,152 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   border-radius: 12px;
   font-weight: 600;
   font-size: 0.95rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   flex-shrink: 0;
   border: 1px solid var(--nav-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.website-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 152, 0, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.website-btn:hover::before {
+  left: 100%;
 }
 
 .website-btn:hover {
   background: var(--btn-bg);
   color: var(--btn-text);
   border-color: var(--btn-bg);
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.2);
 }
 
+/* MOBILE OPTIMIZATIONS */
+@media (max-width: 768px) {
+  .talabat-section {
+    padding: 0 16px;
+    margin: 30px auto;
+  }
+  
+  .talabat-card, .website-card {
+    padding: 20px;
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+    border-radius: 14px;
+  }
+  
+  .talabat-icon-wrapper {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .talabat-info, .website-info {
+    width: 100%;
+  }
+  
+  .website-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+    min-height: 48px;
+  }
+  
+  .availability-status {
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .status-badge {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .talabat-info h3 {
+    font-size: 1.3rem;
+  }
+  
+  .website-info h4 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .talabat-section {
+    padding: 0 12px;
+  }
+  
+  .talabat-card, .website-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .talabat-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .talabat-info h3, .website-info h4 {
+    font-size: 1.2rem;
+  }
+  
+  .status-badge {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+  }
+  
+  .availability-warning {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+  
+  .other-platforms h3 {
+    font-size: 1.1rem;
+  }
+}
+
+/* DARK MODE OPTIMIZATIONS */
+@media (prefers-color-scheme: dark) {
+  .talabat-card, .website-card {
+    background: #1a2332;
+    border-color: #2d3748;
+  }
+  
+  .website-btn {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+}
+
+/* REDUCED MOTION PREFERENCES */
+@media (prefers-reduced-motion: reduce) {
+  .talabat-card,
+  .website-card,
+  .website-btn,
+  .status-badge,
+  .talabat-icon {
+    transition: none;
+    animation: none;
+  }
+  
+  .talabat-card:hover,
+  .website-card:hover,
+  .website-btn:hover {
+    transform: none;
+  }
+}
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
@@ -463,39 +694,53 @@ a.btn,
     </div>
   </section>
 
-  <!-- UPDATED TALABAT SECTION -->
-  <section class="talabat-section">
-    <h2>Ordering Options</h2>
-    
-    <div class="talabat-card" id="talabat-card">
-      <div class="talabat-icon lazy lazy-img" id="talabat-icon"></div>
-      <div class="talabat-info">
-        <h3>Talabat</h3>
-        <div class="availability-status" id="talabat-status">
-          <span class="status-loading">...</span>
-        </div>
-        <p class="talabat-desc"></p>
-        <div class="availability-warning" id="availability-warning" style="display: none;">
-          Availability may vary based on your location
-        </div>
-      </div>
-      <!-- Removed the Order Now button -->
+ <!-- UPDATED TALABAT SECTION WITH PERFORMANCE OPTIMIZATION -->
+<section class="talabat-section">
+  <h2>Ordering Options</h2>
+  
+  <div class="talabat-card" id="talabat-card">
+    <!-- Optimized image with proper lazy loading -->
+    <div class="talabat-icon-wrapper">
+      <img 
+        id="talabat-icon" 
+        alt="Talabat Logo" 
+        class="talabat-icon lazy-img"
+        src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iOCIgb3BhY2l0eT0iMC4xIiBmaWxsPSIjRkZBNjAwIi8+Cjx0ZXh0IHg9IjMwIiB5PSIzNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjRkZBNjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5UTEFCQVQ8L3RleHQ+Cjwvc3ZnPg=="
+        data-src="images/talabat.png"
+        width="60"
+        height="60"
+        loading="lazy"
+        decoding="async"
+        fetchpriority="low"
+      />
     </div>
-    
-    <div id="other-platforms" class="other-platforms" style="display: none;">
-      <h3>Other Platforms</h3>
-      <div class="website-card">
-        <div class="website-icon">🌐</div>
-        <div class="website-info">
-          <h4>Website Ordering</h4>
-          <p class="website-desc">Order directly from their website</p>
-        </div>
-        <a id="website-order-link" class="website-btn" href="#" target="_blank">
-          Visit Website →
-        </a>
+    <div class="talabat-info">
+      <h3>Talabat</h3>
+      <div class="availability-status" id="talabat-status">
+        <span class="status-loading">Checking availability...</span>
+      </div>
+      <p class="talabat-desc" id="talabat-description">Check delivery availability in your area</p>
+      <div class="availability-warning" id="availability-warning" style="display: none;">
+        Availability may vary based on your location
       </div>
     </div>
-  </section>
+    <!-- Removed the Order Now button -->
+  </div>
+  
+  <div id="other-platforms" class="other-platforms" style="display: none;">
+    <h3>Other Platforms</h3>
+    <div class="website-card">
+      <div class="website-icon">🌐</div>
+      <div class="website-info">
+        <h4>Website Ordering</h4>
+        <p class="website-desc">Order directly from their website</p>
+      </div>
+      <a id="website-order-link" class="website-btn" href="#" target="_blank" rel="noopener noreferrer">
+        Visit Website →
+      </a>
+    </div>
+  </div>
+</section>
 
   <section class="section menu">
     <h2>Menu</h2>
