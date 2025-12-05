@@ -23,6 +23,8 @@
   --input-bg: #2d3748;
   --input-text: #fff;
   --accent: #ff944d;
+  --success: #22c55e;
+  --error: #ef4444;
 }
 body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6}
 .top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -50,6 +52,195 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
+
+/* TALABAT AVAILABILITY SECTION */
+.talabat-section {
+  margin: 40px auto;
+  max-width: 900px;
+  padding: 0 20px;
+}
+
+.talabat-section h2 {
+  margin-bottom: 25px;
+}
+
+.talabat-card {
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid var(--nav-shadow);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.talabat-card:hover {
+  border-color: #FF6F00;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 152, 0, 0.15);
+}
+
+.talabat-icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.talabat-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.talabat-info h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.availability-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.available {
+  background: rgba(34, 197, 94, 0.2);
+  color: var(--success);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-badge.not-available {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge .checkmark {
+  font-size: 1rem;
+}
+
+.status-loading {
+  color: var(--text2);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.talabat-desc {
+  color: var(--text2);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.talabat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #FF6F00 0%, #FF9800 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.talabat-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 111, 0, 0.4);
+  color: white;
+}
+
+.other-platforms {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--nav-shadow);
+}
+
+.other-platforms h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: var(--text2);
+  font-weight: 600;
+}
+
+.website-card {
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 25px;
+  border: 1px solid var(--nav-shadow);
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.website-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.website-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.website-info h4 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.website-desc {
+  color: var(--text2);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.website-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--nav-bg);
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid var(--nav-shadow);
+}
+
+.website-btn:hover {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border-color: var(--btn-bg);
+  transform: translateY(-2px);
+}
+
 .menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
 .menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
 .menu-item span{color:var(--text2)}
@@ -82,9 +273,31 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   .back-btn{padding:6px 12px;font-size:12px;min-height:32px}
   .hotline{font-size:1rem;flex-direction:column;align-items:flex-start;gap:8px}
   .hotline a{padding:6px 12px;font-size:0.9rem}
-  .reviews-stats{padding:15px}
-  .stats-grid{grid-template-columns:repeat(2,1fr);gap:15px}
-  .review-form-section{padding:20px}
+  
+  /* Talabat Mobile */
+  .talabat-card, .website-card {
+    padding: 20px;
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .talabat-icon, .website-icon {
+    font-size: 2.5rem;
+  }
+  
+  .talabat-info, .website-info {
+    width: 100%;
+  }
+  
+  .talabat-btn, .website-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .availability-status {
+    justify-content: center;
+  }
 }
 
 @media (max-width:480px){
@@ -102,13 +315,24 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   .branch-card{padding:15px}
   .menu-item{padding:10px 6px;flex-direction:column;gap:4px}
   .menu-item span:last-child{font-size:1rem}
-  .reviews-stats{padding:12px}
-  .stats-grid{grid-template-columns:1fr;gap:12px}
-  .stat-value{font-size:1.5rem}
-  .review-card{padding:15px}
-  .review-form-section{padding:15px}
-  .stars-rating{gap:2px}
-  .star{font-size:1.7rem}
+  
+  /* Talabat Mobile Small */
+  .talabat-card, .website-card {
+    padding: 16px;
+  }
+  
+  .talabat-icon, .website-icon {
+    font-size: 2rem;
+  }
+  
+  .talabat-info h3, .website-info h4 {
+    font-size: 1.2rem;
+  }
+  
+  .status-badge {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
 }
 
 /* IMPROVED: Touch-friendly improvements */
@@ -119,6 +343,8 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
   .list-item:hover{background:transparent;transform:none}
   .fab-main:hover{transform:none}
   .review-card:hover{transform:none}
+  .talabat-card:hover{transform:none}
+  .website-btn:hover{transform:none}
   .btn{min-height:44px}
   .back-btn{min-height:32px}
   input, textarea, select{font-size:16px !important} /* Prevents iOS zoom on focus */
@@ -155,7 +381,9 @@ a.btn,
 .star, 
 .list-item,
 .branch-card,
-.review-card{
+.review-card,
+.talabat-card,
+.website-card{
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
 }
@@ -207,6 +435,39 @@ a.btn,
 
     <div id="branches-container" class="branches">
       <!-- Branches loaded dynamically -->
+    </div>
+  </section>
+
+  <!-- NEW TALABAT SECTION -->
+  <section class="talabat-section">
+    <h2>Ordering Options</h2>
+    
+    <div class="talabat-card" id="talabat-card">
+      <div class="talabat-icon">🛵</div>
+      <div class="talabat-info">
+        <h3>Talabat</h3>
+        <div class="availability-status" id="talabat-status">
+          <span class="status-loading">Checking availability...</span>
+        </div>
+        <p class="talabat-desc">Order for delivery or pickup via Talabat</p>
+      </div>
+      <a id="talabat-link" class="talabat-btn" href="#" target="_blank" style="display: none;">
+        Order Now →
+      </a>
+    </div>
+    
+    <div id="other-platforms" class="other-platforms" style="display: none;">
+      <h3>Other Platforms</h3>
+      <div class="website-card">
+        <div class="website-icon">🌐</div>
+        <div class="website-info">
+          <h4>Website Ordering</h4>
+          <p class="website-desc">Order directly from their website</p>
+        </div>
+        <a id="website-order-link" class="website-btn" href="#" target="_blank">
+          Visit Website →
+        </a>
+      </div>
     </div>
   </section>
 
@@ -827,6 +1088,85 @@ async function loadRestaurantData() {
   }
 }
 
+// NEW: Check Talabat availability
+async function checkTalabatAvailability(slug) {
+  try {
+    console.log('Checking Talabat availability for:', slug);
+    
+    const { data: restaurant, error } = await supabase
+      .from('restraunts')
+      .select('talabat')
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      console.error('Error checking Talabat:', error);
+      return { available: false, error: true };
+    }
+
+    if (!restaurant) {
+      console.log('Restaurant not found in talabat check');
+      return { available: false, error: false };
+    }
+
+    // Check if talabat column exists and has value
+    const isAvailable = restaurant.talabat === 'yes';
+    
+    return {
+      available: isAvailable,
+      error: false
+    };
+  } catch (error) {
+    console.error('Error checking Talabat:', error);
+    return { available: false, error: true };
+  }
+}
+
+// NEW: Update Talabat display
+async function updateTalabatDisplay(slug) {
+  const statusElement = document.getElementById('talabat-status');
+  const linkElement = document.getElementById('talabat-link');
+  const cardElement = document.getElementById('talabat-card');
+  
+  try {
+    const result = await checkTalabatAvailability(slug);
+    
+    if (result.error) {
+      statusElement.innerHTML = '<span class="status-loading">Availability unknown</span>';
+      return;
+    }
+    
+    if (result.available) {
+      statusElement.innerHTML = `
+        <span class="status-badge available">
+          <span class="checkmark">✓</span>
+          Available
+        </span>
+        <span style="color: var(--text2); font-size: 0.9rem;">Ready to order</span>
+      `;
+      
+      // Create Talabat search URL
+      const restaurantName = document.getElementById('restaurant-name').textContent;
+      const searchQuery = encodeURIComponent(restaurantName + ' delivery');
+      linkElement.href = `https://www.talabat.com/search?query=${searchQuery}`;
+      linkElement.style.display = 'flex';
+      
+      // Add success animation
+      cardElement.style.animation = 'pulseSuccess 2s ease';
+    } else {
+      statusElement.innerHTML = `
+        <span class="status-badge not-available">
+          Not Available
+        </span>
+        <span style="color: var(--text2); font-size: 0.9rem;">Not on Talabat</span>
+      `;
+      linkElement.style.display = 'none';
+    }
+  } catch (error) {
+    statusElement.innerHTML = '<span class="status-loading">Error checking availability</span>';
+  }
+}
+
 // Get restaurant ID from slug
 function getRestaurantIdFromSlug() {
   const slug = getRestaurantSlug();
@@ -880,6 +1220,8 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
   if (restaurant.website_url) {
     websiteBtn.href = restaurant.website_url;
     websiteBtn.textContent = 'Order Online';
+    document.getElementById('website-order-link').href = restaurant.website_url;
+    document.getElementById('other-platforms').style.display = 'block';
   } else {
     websiteBtn.style.display = 'none';
   }
@@ -964,6 +1306,9 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
   
   // Footer
   document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
+  
+  // NEW: Update Talabat display
+  updateTalabatDisplay(restaurant.slug);
 }
 
 // Error handler
