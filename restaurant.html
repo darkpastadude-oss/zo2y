@@ -9,10 +9,16 @@
 <link rel="apple-touch-icon" href="images/logo.png">
 <!-- Fallback for older browsers -->
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
+
+<!-- Preload critical assets -->
+<link rel="preload" href="images/talabat.png" as="image">
+<link rel="preload" href="images/logo.png" as="image">
+
 <style>
+/* Base styles remain the same... */
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
 :root {
-  --bg: #1e2a4a; /* Always dark blue */
+  --bg: #1e2a4a;
   --text: #fff;
   --text2: #cbd5e1;
   --nav-bg: #2d3748;
@@ -53,7 +59,7 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 .branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
 .branch-card a:hover{text-decoration:underline}
 
-/* TALABAT AVAILABILITY SECTION */
+/* UPDATED TALABAT AVAILABILITY SECTION */
 .talabat-section {
   margin: 40px auto;
   max-width: 900px;
@@ -73,7 +79,7 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   border: 1px solid var(--nav-shadow);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
   flex-wrap: wrap;
   gap: 20px;
 }
@@ -85,8 +91,12 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
 }
 
 .talabat-icon {
-  font-size: 3rem;
+  width: 60px;
+  height: 60px;
   flex-shrink: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .talabat-info {
@@ -148,26 +158,18 @@ h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;bac
   margin: 0;
 }
 
-.talabat-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #FF6F00 0%, #FF9800 100%);
-  color: white;
-  text-decoration: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
+.availability-warning {
+  font-size: 0.85rem;
+  color: #f59e0b;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #f59e0b;
 }
 
-.talabat-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 111, 0, 0.4);
-  color: white;
+.availability-warning::before {
+  content: "⚠️ ";
 }
 
 .other-platforms {
@@ -255,6 +257,27 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
 .menu-category{margin-top:30px}
 .menu-category h3{margin-bottom:15px;color:#FF9800;font-size:1.3rem}
 
+/* Lazy loading classes */
+.lazy {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lazy.loaded {
+  opacity: 1;
+}
+
+.lazy-img {
+  background: linear-gradient(90deg, #2d3748 25%, #374151 50%, #2d3748 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* IMPROVED: Mobile Responsiveness */
 @media (max-width:768px){
   .logo{width:120px;height:120px;margin-bottom:24px}
@@ -282,15 +305,16 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     gap: 15px;
   }
   
-  .talabat-icon, .website-icon {
-    font-size: 2.5rem;
+  .talabat-icon {
+    width: 50px;
+    height: 50px;
   }
   
   .talabat-info, .website-info {
     width: 100%;
   }
   
-  .talabat-btn, .website-btn {
+  .website-btn {
     width: 100%;
     justify-content: center;
   }
@@ -321,8 +345,9 @@ footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow
     padding: 16px;
   }
   
-  .talabat-icon, .website-icon {
-    font-size: 2rem;
+  .talabat-icon {
+    width: 40px;
+    height: 40px;
   }
   
   .talabat-info h3, .website-info h4 {
@@ -414,7 +439,7 @@ a.btn,
 <!-- Main Content -->
 <div id="main-content" style="display: none;">
   <section class="hero">
-    <img id="restaurant-logo" alt="Restaurant Logo" class="logo" onclick="window.location.href='restraunts.html'">
+    <img id="restaurant-logo" alt="Restaurant Logo" class="logo lazy lazy-img" data-src="" onclick="window.location.href='restraunts.html'">
     <h1 id="restaurant-name"></h1>
     <p id="restaurant-description"></p>
     <div class="rating" id="restaurant-rating"></div>
@@ -438,22 +463,23 @@ a.btn,
     </div>
   </section>
 
-  <!-- NEW TALABAT SECTION -->
+  <!-- UPDATED TALABAT SECTION -->
   <section class="talabat-section">
     <h2>Ordering Options</h2>
     
     <div class="talabat-card" id="talabat-card">
-      <div class="talabat-icon">🛵</div>
+      <div class="talabat-icon lazy lazy-img" id="talabat-icon"></div>
       <div class="talabat-info">
         <h3>Talabat</h3>
         <div class="availability-status" id="talabat-status">
           <span class="status-loading">Checking availability...</span>
         </div>
-        <p class="talabat-desc">Order for delivery or pickup via Talabat</p>
+        <p class="talabat-desc">Check Talabat app for delivery or pickup options</p>
+        <div class="availability-warning" id="availability-warning" style="display: none;">
+          Availability may vary based on your location
+        </div>
       </div>
-      <a id="talabat-link" class="talabat-btn" href="#" target="_blank" style="display: none;">
-        Order Now →
-      </a>
+      <!-- Removed the Order Now button -->
     </div>
     
     <div id="other-platforms" class="other-platforms" style="display: none;">
@@ -1025,6 +1051,34 @@ const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+// Lazy Loading Observer
+const lazyLoadObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      const src = img.getAttribute('data-src');
+      
+      if (src) {
+        img.src = src;
+        img.onload = () => {
+          img.classList.remove('lazy-img');
+          img.classList.add('loaded');
+        };
+        img.onerror = () => {
+          img.src = 'images/default-logo.jpg';
+          img.classList.remove('lazy-img');
+          img.classList.add('loaded');
+        };
+      }
+      
+      lazyLoadObserver.unobserve(img);
+    }
+  });
+}, {
+  rootMargin: '50px',
+  threshold: 0.1
+});
+
 // Get restaurant slug from URL PARAMETER (not filename)
 function getRestaurantSlug() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1088,7 +1142,7 @@ async function loadRestaurantData() {
   }
 }
 
-// NEW: Check Talabat availability
+// UPDATED: Check Talabat availability
 async function checkTalabatAvailability(slug) {
   try {
     console.log('Checking Talabat availability for:', slug);
@@ -1122,11 +1176,15 @@ async function checkTalabatAvailability(slug) {
   }
 }
 
-// NEW: Update Talabat display
+// UPDATED: Update Talabat display
 async function updateTalabatDisplay(slug) {
   const statusElement = document.getElementById('talabat-status');
-  const linkElement = document.getElementById('talabat-link');
+  const iconElement = document.getElementById('talabat-icon');
   const cardElement = document.getElementById('talabat-card');
+  const warningElement = document.getElementById('availability-warning');
+  
+  // Set Talabat icon
+  iconElement.style.backgroundImage = 'url("images/talabat.png")';
   
   try {
     const result = await checkTalabatAvailability(slug);
@@ -1140,16 +1198,13 @@ async function updateTalabatDisplay(slug) {
       statusElement.innerHTML = `
         <span class="status-badge available">
           <span class="checkmark">✓</span>
-          Available
+          Available on Talabat
         </span>
-        <span style="color: var(--text2); font-size: 0.9rem;">Ready to order</span>
+        <span style="color: var(--text2); font-size: 0.9rem;">Check the Talabat app for ordering</span>
       `;
       
-      // Create Talabat search URL
-      const restaurantName = document.getElementById('restaurant-name').textContent;
-      const searchQuery = encodeURIComponent(restaurantName + ' delivery');
-      linkElement.href = `https://www.talabat.com/search?query=${searchQuery}`;
-      linkElement.style.display = 'flex';
+      // Show warning message
+      warningElement.style.display = 'block';
       
       // Add success animation
       cardElement.style.animation = 'pulseSuccess 2s ease';
@@ -1158,9 +1213,8 @@ async function updateTalabatDisplay(slug) {
         <span class="status-badge not-available">
           Not Available
         </span>
-        <span style="color: var(--text2); font-size: 0.9rem;">Not on Talabat</span>
+        <span style="color: var(--text2); font-size: 0.9rem;">Not currently on Talabat</span>
       `;
-      linkElement.style.display = 'none';
     }
   } catch (error) {
     statusElement.innerHTML = '<span class="status-loading">Error checking availability</span>';
@@ -1183,7 +1237,7 @@ function getRestaurantIdFromSlug() {
   return slugToId[slug] || null;
 }
 
-// Render restaurant data
+// Render restaurant data with lazy loading
 function renderRestaurantData({ restaurant, menuItems, branches }) {
   // Hide loading, show main content
   document.getElementById('loading').style.display = 'none';
@@ -1192,9 +1246,12 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
   // Set page title
   document.title = `${restaurant.name} - Zo2y`;
   
-  // Hero section
-  document.getElementById('restaurant-logo').src = restaurant.logo_url || restaurant.image || 'images/default-logo.jpg';
-  document.getElementById('restaurant-logo').alt = `${restaurant.name} Logo`;
+  // Hero section with lazy loading
+  const logoImg = document.getElementById('restaurant-logo');
+  logoImg.setAttribute('data-src', restaurant.logo_url || restaurant.image || 'images/default-logo.jpg');
+  logoImg.alt = `${restaurant.name} Logo`;
+  lazyLoadObserver.observe(logoImg);
+  
   document.getElementById('restaurant-name').textContent = restaurant.name;
   document.getElementById('restaurant-description').textContent = restaurant.description || 'Delicious food served with care';
   
@@ -1215,7 +1272,7 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     hotlineBtn.style.display = 'none';
   }
   
-  // Website link
+  // Website link - Only show if website_url exists
   const websiteBtn = document.getElementById('order-online');
   if (restaurant.website_url) {
     websiteBtn.href = restaurant.website_url;
@@ -1224,6 +1281,7 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     document.getElementById('other-platforms').style.display = 'block';
   } else {
     websiteBtn.style.display = 'none';
+    document.getElementById('other-platforms').style.display = 'none';
   }
   
   // Social links
@@ -1246,7 +1304,7 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     hotlineLink.textContent = restaurant.hotline;
   }
   
-  // Branches
+  // Branches with lazy loading
   const branchesContainer = document.getElementById('branches-container');
   if (branches.length > 0) {
     branches.forEach(branch => {
@@ -1263,7 +1321,7 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
   }
   
-  // Menu items
+  // Menu items with lazy loading
   const menuContainer = document.getElementById('menu-container');
   if (menuItems.length > 0) {
     // Group by category
@@ -1297,17 +1355,19 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
   }
   
-  // Full menu link
+  // Full menu link - Only show if website_url exists
   const fullMenuLink = document.getElementById('full-menu-link');
   if (restaurant.website_url) {
     fullMenuLink.href = restaurant.website_url;
     fullMenuLink.style.display = 'inline-block';
+  } else {
+    fullMenuLink.style.display = 'none';
   }
   
   // Footer
   document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
   
-  // NEW: Update Talabat display
+  // UPDATED: Update Talabat display
   updateTalabatDisplay(restaurant.slug);
 }
 
@@ -1317,7 +1377,7 @@ function showError() {
   document.getElementById('error').style.display = 'block';
 }
 
-// Initialize page
+// Initialize page with lazy loading
 async function initPage() {
   try {
     const data = await loadRestaurantData();
@@ -1333,6 +1393,7 @@ async function initPage() {
 document.addEventListener('DOMContentLoaded', initPage);
 </script>
 
+<!-- The rest of the code (Review System and List Manager) remains the same -->
 <!-- Enhanced Review System Script -->
 <script>
 // Enhanced Review System
