@@ -389,7 +389,7 @@
           <a href="#" class="forgot" id="forgotPassword">Forgot password?</a>
         </div>
 
-        <button type="submit">
+        <button type="submit" id="loginButton">
           <span>Login</span>
           <i class="fas fa-arrow-right"></i>
         </button>
@@ -450,14 +450,15 @@
     <span class="notification-message"></span>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-
-    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
+  <!-- Using older, more stable Supabase version -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1"></script>
+  <script>
+    // Initialize Supabase with version 1 (more stable)
+    const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
     // Notification function
     function showNotification(message, type) {
       const notification = document.getElementById("customNotification");
@@ -481,17 +482,24 @@
       }, 5000);
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Auto redirect if already logged in
-      const { data: { session } } = await supabase.auth.getSession();
+    document.addEventListener("DOMContentLoaded", async function() {
+      console.log("DOM loaded, initializing login...");
+      
+      // Check if user is already logged in
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+      }
+      
       if (session) {
-        showNotification("✅ Already logged in!", "success");
+        showNotification("✅ Already logged in! Redirecting...", "success");
         setTimeout(() => {
           window.location.href = "index.html";
         }, 1000);
         return;
       }
-
+      
       // Theme toggle
       const themeToggle = document.getElementById("themeToggle");
       const themeIcon = themeToggle.querySelector("i");
@@ -514,50 +522,56 @@
         }
       });
 
-      // Login form - FIXED VERSION
+      // Login form handler
       const loginForm = document.getElementById("loginForm");
-      loginForm.addEventListener("submit", async (e) => {
+      const loginButton = document.getElementById("loginButton");
+      
+      loginForm.addEventListener("submit", async function(e) {
         e.preventDefault();
         e.stopPropagation();
         
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
         
-        const button = loginForm.querySelector("button");
-        const original = button.innerHTML;
-
+        console.log("Attempting login for:", email);
+        
         if (!email || !password) {
           showNotification("Please enter both email and password", "error");
           return;
         }
-
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
-        button.disabled = true;
-
+        
+        // Disable button and show loading
+        loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+        loginButton.disabled = true;
+        
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({ 
-            email: email, 
-            password: password 
+          const { data, error } = await supabase.auth.signIn({
+            email: email,
+            password: password
           });
           
           if (error) {
-            showNotification("❌ " + error.message, "error");
+            console.error("Login error:", error);
+            showNotification("❌ Login failed: " + error.message, "error");
           } else {
+            console.log("Login successful:", data);
             showNotification("✅ Logged in successfully!", "success");
             setTimeout(() => {
               window.location.href = "index.html";
             }, 1500);
           }
         } catch (error) {
+          console.error("Unexpected error:", error);
           showNotification("❌ An unexpected error occurred", "error");
         }
-
-        button.innerHTML = original;
-        button.disabled = false;
+        
+        // Re-enable button
+        loginButton.innerHTML = '<span>Login</span><i class="fas fa-arrow-right"></i>';
+        loginButton.disabled = false;
       });
 
       // Forgot password
-      document.getElementById("forgotPassword").addEventListener("click", async (e) => {
+      document.getElementById("forgotPassword").addEventListener("click", async function(e) {
         e.preventDefault();
         const email = document.getElementById("email").value.trim();
         
@@ -566,7 +580,7 @@
           return;
         }
         
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.api.resetPasswordForEmail(email, {
           redirectTo: window.location.origin + '/update-password.html'
         });
         
@@ -577,36 +591,49 @@
         }
       });
 
-      // Social login
-      document.getElementById("googleLogin").addEventListener("click", async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: window.location.origin + "/index.html" },
-        });
-        if (error) showNotification("Google login failed: " + error.message, "error");
+      // Social login - Google
+      document.getElementById("googleLogin").addEventListener("click", async function() {
+        try {
+          const { error } = await supabase.auth.signIn({
+            provider: 'google'
+          }, {
+            redirectTo: window.location.origin + "/index.html"
+          });
+          
+          if (error) {
+            showNotification("Google login failed: " + error.message, "error");
+          }
+        } catch (error) {
+          console.error("Google login error:", error);
+          showNotification("❌ Google login failed", "error");
+        }
       });
 
-      document.getElementById("facebookLogin").addEventListener("click", async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "facebook",
-          options: { redirectTo: window.location.origin + "/index.html" },
-        });
-        if (error) showNotification("Facebook login failed: " + error.message, "error");
+      // Social login - Facebook
+      document.getElementById("facebookLogin").addEventListener("click", async function() {
+        try {
+          const { error } = await supabase.auth.signIn({
+            provider: 'facebook'
+          }, {
+            redirectTo: window.location.origin + "/index.html"
+          });
+          
+          if (error) {
+            showNotification("Facebook login failed: " + error.message, "error");
+          }
+        } catch (error) {
+          console.error("Facebook login error:", error);
+          showNotification("❌ Facebook login failed", "error");
+        }
       });
-
-      // Check if there's an auth error in URL (for magic link, etc)
-      const urlParams = new URLSearchParams(window.location.search);
-      const error = urlParams.get('error');
-      const message = urlParams.get('message');
       
-      if (error) {
-        showNotification(error + (message ? ": " + message : ""), "error");
-      }
+      // Test Supabase connection
+      console.log("Supabase initialized:", supabase !== undefined);
       
-      // Clear URL parameters after showing error
-      if (error || message) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
+      // Quick connection test
+      supabase.auth.onAuthStateChange((event, session) => {
+        console.log("Auth state changed:", event, session ? "User logged in" : "No user");
+      });
     });
   </script>
 </body>

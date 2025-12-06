@@ -463,7 +463,7 @@
           <label for="terms">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></label>
         </div>
 
-        <button type="submit">
+        <button type="submit" id="signupButton">
           <span>Create Account</span>
           <i class="fas fa-arrow-right"></i>
         </button>
@@ -551,22 +551,56 @@
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  <!-- Using Supabase v2 CDN (stable version) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+  <script>
+    // Initialize Supabase
+    const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // Notification function
+    function showNotification(message, type) {
+      const notification = document.getElementById("customNotification");
+      const icon = notification.querySelector(".notification-icon");
+      const messageEl = notification.querySelector(".notification-message");
+      
+      notification.className = "custom-notification";
+      notification.classList.add(`notification-${type}`);
+      
+      if (type === "success") {
+        icon.className = "notification-icon fas fa-check-circle";
+      } else {
+        icon.className = "notification-icon fas fa-exclamation-circle";
+      }
+      
+      messageEl.textContent = message;
+      notification.classList.add("notification-show");
+      
+      setTimeout(() => {
+        notification.classList.remove("notification-show");
+      }, 5000);
+    }
 
-    const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Auto redirect if already logged in
-      const { data: session } = await supabase.auth.getSession();
-      if (session.session) {
-        window.location.href = "index.html";
+    document.addEventListener("DOMContentLoaded", async function() {
+      console.log("Signup page loaded");
+      
+      // Check if user is already logged in
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+      }
+      
+      if (session) {
+        showNotification("✅ Already logged in! Redirecting...", "success");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1000);
         return;
       }
-
+      
       // Theme toggle
       const themeToggle = document.getElementById("themeToggle");
       const themeIcon = themeToggle.querySelector("i");
@@ -589,9 +623,13 @@
         }
       });
 
-      // Sign-up form
-      document.getElementById("signupForm").addEventListener("submit", async (e) => {
+      // Sign-up form handler
+      const signupForm = document.getElementById("signupForm");
+      const signupButton = document.getElementById("signupButton");
+      
+      signupForm.addEventListener("submit", async function(e) {
         e.preventDefault();
+        e.stopPropagation();
         
         const firstName = document.getElementById("firstName").value.trim();
         const lastName = document.getElementById("lastName").value.trim();
@@ -600,9 +638,8 @@
         const confirmPassword = document.getElementById("confirmPassword").value;
         const terms = document.getElementById("terms").checked;
         
-        const button = e.target.querySelector("button");
-        const original = button.innerHTML;
-
+        console.log("Signup attempt for:", email);
+        
         // Validation
         if (!firstName || !lastName || !email || !password || !confirmPassword) {
           showNotification("Please fill in all fields", "error");
@@ -624,73 +661,87 @@
           return;
         }
 
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-        button.disabled = true;
-
+        // Disable button and show loading
+        signupButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+        signupButton.disabled = true;
+        
         try {
           const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
+            email: email,
+            password: password,
             options: {
               data: {
                 first_name: firstName,
-                last_name: lastName
+                last_name: lastName,
+                full_name: firstName + ' ' + lastName
               }
             }
           });
-
+          
           if (error) {
-            showNotification("❌ " + error.message, "error");
+            console.error("Signup error:", error);
+            showNotification("❌ Signup failed: " + error.message, "error");
           } else {
-            // Send custom verification email
-            try {
-              const { data: emailData, error: emailError } = await supabase.functions.invoke('send-verification-email', {
-                body: {
-                  email: email,
-                  user_name: firstName,
-                  verification_link: `${window.location.origin}/auth/confirm`
-                }
-              });
-              
-              if (emailError) {
-                showNotification("✅ Account created! Check your email for verification.", "success");
-              } else {
-                showNotification("✅ Account created! Check your email for the verification link from Zo2y.", "success");
-              }
-            } catch (emailErr) {
-              showNotification("✅ Account created! Check your email for verification.", "success");
-            }
+            console.log("Signup successful:", data);
+            showNotification("✅ Account created! Check your email for verification.", "success");
             
+            // Show welcome popup after delay
             setTimeout(() => {
               document.getElementById("welcomePopup").classList.add("show");
             }, 1500);
+            
+            // Clear form
+            signupForm.reset();
           }
         } catch (error) {
+          console.error("Unexpected error:", error);
           showNotification("❌ An unexpected error occurred", "error");
         }
-
-        button.innerHTML = original;
-        button.disabled = false;
+        
+        // Re-enable button
+        signupButton.innerHTML = '<span>Create Account</span><i class="fas fa-arrow-right"></i>';
+        signupButton.disabled = false;
       });
 
-      // Social sign-up
-      document.getElementById("googleSignup").addEventListener("click", async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: window.location.origin + "/index.html" },
-        });
-        if (error) showNotification("Google sign-up failed: " + error.message, "error");
+      // Social sign-up - Google
+      document.getElementById("googleSignup").addEventListener("click", async function() {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: window.location.origin + "/index.html"
+            }
+          });
+          
+          if (error) {
+            showNotification("Google sign-up failed: " + error.message, "error");
+          }
+        } catch (error) {
+          console.error("Google signup error:", error);
+          showNotification("❌ Google sign-up failed", "error");
+        }
       });
 
-      document.getElementById("facebookSignup").addEventListener("click", async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "facebook",
-          options: { redirectTo: window.location.origin + "/index.html" },
-        });
-        if (error) showNotification("Facebook sign-up failed: " + error.message, "error");
+      // Social sign-up - Facebook
+      document.getElementById("facebookSignup").addEventListener("click", async function() {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'facebook',
+            options: {
+              redirectTo: window.location.origin + "/index.html"
+            }
+          });
+          
+          if (error) {
+            showNotification("Facebook sign-up failed: " + error.message, "error");
+          }
+        } catch (error) {
+          console.error("Facebook signup error:", error);
+          showNotification("❌ Facebook sign-up failed", "error");
+        }
       });
 
-      // Welcome popup
+      // Welcome popup handlers
       document.getElementById("welcomeClose").addEventListener("click", () => {
         document.getElementById("welcomePopup").classList.remove("show");
         window.location.href = "index.html";
@@ -705,29 +756,11 @@
         document.getElementById("welcomePopup").classList.remove("show");
         window.location.href = "profile.html";
       });
-
-      // Notification function
-      function showNotification(message, type) {
-        const notification = document.getElementById("customNotification");
-        const icon = notification.querySelector(".notification-icon");
-        const messageEl = notification.querySelector(".notification-message");
-        
-        notification.className = "custom-notification";
-        notification.classList.add(`notification-${type}`);
-        
-        if (type === "success") {
-          icon.className = "notification-icon fas fa-check-circle";
-        } else {
-          icon.className = "notification-icon fas fa-exclamation-circle";
-        }
-        
-        messageEl.textContent = message;
-        notification.classList.add("notification-show");
-        
-        setTimeout(() => {
-          notification.classList.remove("notification-show");
-        }, 5000);
-      }
+      
+      // Listen for auth state changes
+      supabase.auth.onAuthStateChange((event, session) => {
+        console.log("Auth state changed:", event, session ? "User logged in" : "No user");
+      });
     });
   </script>
 </body>
