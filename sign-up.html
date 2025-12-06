@@ -583,6 +583,44 @@
       }, 5000);
     }
 
+    // Function to check if email already exists
+    async function checkEmailExists(email) {
+      try {
+        // Try to sign in with a dummy password
+        // This will fail but will tell us if user exists
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: 'dummy_password_check_123!@#'
+        });
+        
+        // If error message indicates wrong password (not "User not found"), email exists
+        if (error) {
+          if (error.message && (
+            error.message.includes('Invalid login credentials') ||
+            error.message.includes('Email not confirmed') ||
+            error.message.includes('incorrect') ||
+            error.message.toLowerCase().includes('password')
+          )) {
+            return true; // User exists (wrong password error)
+          }
+          
+          if (error.message && error.message.includes('User not found')) {
+            return false; // User doesn't exist
+          }
+          
+          // Check for other auth errors
+          console.log("Email check auth error:", error.message);
+          return false;
+        }
+        
+        // No error means login succeeded (shouldn't happen with dummy password)
+        return true;
+      } catch (error) {
+        console.error("Error checking email:", error);
+        return false;
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async function() {
       console.log("Signup page loaded");
       
@@ -626,7 +664,41 @@
       // Sign-up form handler
       const signupForm = document.getElementById("signupForm");
       const signupButton = document.getElementById("signupButton");
+      const emailInput = document.getElementById("email");
       
+      // Store previous email to avoid repeated checks
+      let lastCheckedEmail = '';
+      
+      // Add email validation on blur
+      emailInput.addEventListener('blur', async function() {
+        const email = emailInput.value.trim();
+        if (!email || email === lastCheckedEmail) return;
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return; // Don't check invalid emails
+        }
+        
+        lastCheckedEmail = email;
+        console.log("Checking email availability:", email);
+        
+        // Show checking notification
+        const originalNotification = showNotification("Checking email availability...", "success");
+        
+        const emailExists = await checkEmailExists(email);
+        
+        if (emailExists) {
+          showNotification("⚠️ This email is already registered. Please sign in instead.", "error");
+          // Highlight the email field
+          emailInput.style.borderColor = "#ef4444";
+          emailInput.style.boxShadow = "0 0 0 3px rgba(239, 68, 68, 0.2)";
+        } else {
+          // Reset email field styling
+          emailInput.style.borderColor = "";
+          emailInput.style.boxShadow = "";
+        }
+      });
+
       signupForm.addEventListener("submit", async function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -646,6 +718,13 @@
           return;
         }
         
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showNotification("Please enter a valid email address", "error");
+          return;
+        }
+        
         if (password !== confirmPassword) {
           showNotification("Passwords do not match", "error");
           return;
@@ -661,7 +740,16 @@
           return;
         }
 
+        // Check if email already exists (final check)
+        const emailExists = await checkEmailExists(email);
+        
+        if (emailExists) {
+          showNotification("❌ This email is already registered. Please use a different email or sign in.", "error");
+          return;
+        }
+
         // Disable button and show loading
+        const originalButtonText = signupButton.innerHTML;
         signupButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
         signupButton.disabled = true;
         
@@ -674,24 +762,46 @@
                 first_name: firstName,
                 last_name: lastName,
                 full_name: firstName + ' ' + lastName
-              }
+              },
+              emailRedirectTo: window.location.origin + '/index.html'
             }
           });
           
           if (error) {
             console.error("Signup error:", error);
-            showNotification("❌ Signup failed: " + error.message, "error");
+            
+            // Check for specific errors
+            if (error.message.includes('already registered') || 
+                error.message.includes('User already registered') ||
+                error.message.includes('already exists')) {
+              showNotification("❌ This email is already registered. Please sign in instead.", "error");
+            } else if (error.message.includes('rate limit')) {
+              showNotification("❌ Too many attempts. Please try again later.", "error");
+            } else {
+              showNotification("❌ Signup failed: " + error.message, "error");
+            }
           } else {
             console.log("Signup successful:", data);
-            showNotification("✅ Account created! Check your email for verification.", "success");
             
-            // Show welcome popup after delay
-            setTimeout(() => {
-              document.getElementById("welcomePopup").classList.add("show");
-            }, 1500);
-            
-            // Clear form
-            signupForm.reset();
+            // Check if user was actually created
+            if (data.user) {
+              // User created successfully
+              showNotification("✅ Account created! Please check your email to verify your account.", "success");
+              
+              // Update welcome popup message for email verification
+              document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent = "Please verify your email first!";
+              document.getElementById("welcomePopup").querySelector("p").textContent = "We've sent a verification link to your email. Please click it to activate your account.";
+              
+              // Show welcome popup
+              setTimeout(() => {
+                document.getElementById("welcomePopup").classList.add("show");
+              }, 1500);
+              
+              // Clear form
+              signupForm.reset();
+            } else {
+              showNotification("❌ Account creation failed. Please try again.", "error");
+            }
           }
         } catch (error) {
           console.error("Unexpected error:", error);
@@ -699,17 +809,29 @@
         }
         
         // Re-enable button
-        signupButton.innerHTML = '<span>Create Account</span><i class="fas fa-arrow-right"></i>';
+        signupButton.innerHTML = originalButtonText;
         signupButton.disabled = false;
       });
 
       // Social sign-up - Google
       document.getElementById("googleSignup").addEventListener("click", async function() {
         try {
+          // First, try to get the current session to check if user exists
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session) {
+            showNotification("You're already logged in!", "error");
+            return;
+          }
+          
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: window.location.origin + "/index.html"
+              redirectTo: window.location.origin + "/auth-callback.html",
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
             }
           });
           
@@ -725,10 +847,19 @@
       // Social sign-up - Facebook
       document.getElementById("facebookSignup").addEventListener("click", async function() {
         try {
+          // First, try to get the current session to check if user exists
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session) {
+            showNotification("You're already logged in!", "error");
+            return;
+          }
+          
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'facebook',
             options: {
-              redirectTo: window.location.origin + "/index.html"
+              redirectTo: window.location.origin + "/auth-callback.html",
+              scopes: 'email,public_profile'
             }
           });
           
@@ -744,22 +875,46 @@
       // Welcome popup handlers
       document.getElementById("welcomeClose").addEventListener("click", () => {
         document.getElementById("welcomePopup").classList.remove("show");
-        window.location.href = "index.html";
+        // Don't redirect if email needs verification
+        const userNeedsVerification = document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent.includes("verify");
+        if (!userNeedsVerification) {
+          window.location.href = "index.html";
+        } else {
+          window.location.href = "login.html";
+        }
       });
 
       document.getElementById("exploreBtn").addEventListener("click", () => {
         document.getElementById("welcomePopup").classList.remove("show");
-        window.location.href = "index.html";
+        const userNeedsVerification = document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent.includes("verify");
+        if (!userNeedsVerification) {
+          window.location.href = "index.html";
+        } else {
+          window.location.href = "login.html";
+        }
       });
 
       document.getElementById("profileBtn").addEventListener("click", () => {
         document.getElementById("welcomePopup").classList.remove("show");
-        window.location.href = "profile.html";
+        const userNeedsVerification = document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent.includes("verify");
+        if (!userNeedsVerification) {
+          window.location.href = "profile.html";
+        } else {
+          window.location.href = "login.html";
+        }
       });
       
       // Listen for auth state changes
       supabase.auth.onAuthStateChange((event, session) => {
         console.log("Auth state changed:", event, session ? "User logged in" : "No user");
+        
+        // If user signs in via social, redirect to index
+        if (event === 'SIGNED_IN' && session) {
+          showNotification("✅ Signed in successfully!", "success");
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1000);
+        }
       });
     });
   </script>
