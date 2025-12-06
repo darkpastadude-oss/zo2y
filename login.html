@@ -340,7 +340,6 @@
     }
   </style>
   
-  
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 
@@ -387,7 +386,7 @@
           <label class="remember">
             <input type="checkbox" id="remember" /> Remember me
           </label>
-          <a href="#" class="forgot">Forgot password?</a>
+          <a href="#" class="forgot" id="forgotPassword">Forgot password?</a>
         </div>
 
         <button type="submit">
@@ -459,11 +458,37 @@
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Notification function
+    function showNotification(message, type) {
+      const notification = document.getElementById("customNotification");
+      const icon = notification.querySelector(".notification-icon");
+      const messageEl = notification.querySelector(".notification-message");
+      
+      notification.className = "custom-notification";
+      notification.classList.add(`notification-${type}`);
+      
+      if (type === "success") {
+        icon.className = "notification-icon fas fa-check-circle";
+      } else {
+        icon.className = "notification-icon fas fa-exclamation-circle";
+      }
+      
+      messageEl.textContent = message;
+      notification.classList.add("notification-show");
+      
+      setTimeout(() => {
+        notification.classList.remove("notification-show");
+      }, 5000);
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       // Auto redirect if already logged in
-      const { data: session } = await supabase.auth.getSession();
-      if (session.session) {
-        window.location.href = "index.html";
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        showNotification("✅ Already logged in!", "success");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1000);
         return;
       }
 
@@ -489,14 +514,16 @@
         }
       });
 
-      // Login form
-      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      // Login form - FIXED VERSION
+      const loginForm = document.getElementById("loginForm");
+      loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        e.stopPropagation();
         
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
         
-        const button = e.target.querySelector("button");
+        const button = loginForm.querySelector("button");
         const original = button.innerHTML;
 
         if (!email || !password) {
@@ -508,7 +535,10 @@
         button.disabled = true;
 
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          const { data, error } = await supabase.auth.signInWithPassword({ 
+            email: email, 
+            password: password 
+          });
           
           if (error) {
             showNotification("❌ " + error.message, "error");
@@ -516,7 +546,7 @@
             showNotification("✅ Logged in successfully!", "success");
             setTimeout(() => {
               window.location.href = "index.html";
-            }, 1000);
+            }, 1500);
           }
         } catch (error) {
           showNotification("❌ An unexpected error occurred", "error");
@@ -524,6 +554,27 @@
 
         button.innerHTML = original;
         button.disabled = false;
+      });
+
+      // Forgot password
+      document.getElementById("forgotPassword").addEventListener("click", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("email").value.trim();
+        
+        if (!email) {
+          showNotification("Please enter your email to reset password", "error");
+          return;
+        }
+        
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/update-password.html'
+        });
+        
+        if (error) {
+          showNotification("❌ " + error.message, "error");
+        } else {
+          showNotification("✅ Password reset email sent! Check your inbox", "success");
+        }
       });
 
       // Social login
@@ -543,27 +594,18 @@
         if (error) showNotification("Facebook login failed: " + error.message, "error");
       });
 
-      // Notification function
-      function showNotification(message, type) {
-        const notification = document.getElementById("customNotification");
-        const icon = notification.querySelector(".notification-icon");
-        const messageEl = notification.querySelector(".notification-message");
-        
-        notification.className = "custom-notification";
-        notification.classList.add(`notification-${type}`);
-        
-        if (type === "success") {
-          icon.className = "notification-icon fas fa-check-circle";
-        } else {
-          icon.className = "notification-icon fas fa-exclamation-circle";
-        }
-        
-        messageEl.textContent = message;
-        notification.classList.add("notification-show");
-        
-        setTimeout(() => {
-          notification.classList.remove("notification-show");
-        }, 5000);
+      // Check if there's an auth error in URL (for magic link, etc)
+      const urlParams = new URLSearchParams(window.location.search);
+      const error = urlParams.get('error');
+      const message = urlParams.get('message');
+      
+      if (error) {
+        showNotification(error + (message ? ": " + message : ""), "error");
+      }
+      
+      // Clear URL parameters after showing error
+      if (error || message) {
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     });
   </script>
