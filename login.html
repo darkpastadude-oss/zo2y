@@ -450,191 +450,262 @@
     <span class="notification-message"></span>
   </div>
 
-  <!-- Using older, more stable Supabase version -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1"></script>
+  <!-- Using Supabase v2 for consistency with signup page -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
   <script>
-    // Initialize Supabase with version 1 (more stable)
-const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+    // Initialize Supabase with version 2 (consistent with signup page)
+    const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // Notification function
+    function showNotification(message, type) {
+      const notification = document.getElementById("customNotification");
+      const icon = notification.querySelector(".notification-icon");
+      const messageEl = notification.querySelector(".notification-message");
+      
+      notification.className = "custom-notification";
+      notification.classList.add(`notification-${type}`);
+      
+      if (type === "success") {
+        icon.className = "notification-icon fas fa-check-circle";
+      } else {
+        icon.className = "notification-icon fas fa-exclamation-circle";
+      }
+      
+      messageEl.textContent = message;
+      notification.classList.add("notification-show");
+      
+      setTimeout(() => {
+        notification.classList.remove("notification-show");
+      }, 5000);
+    }
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-// Notification function
-function showNotification(message, type) {
-  const notification = document.getElementById("customNotification");
-  const icon = notification.querySelector(".notification-icon");
-  const messageEl = notification.querySelector(".notification-message");
-  
-  notification.className = "custom-notification";
-  notification.classList.add(`notification-${type}`);
-  
-  if (type === "success") {
-    icon.className = "notification-icon fas fa-check-circle";
-  } else {
-    icon.className = "notification-icon fas fa-exclamation-circle";
-  }
-  
-  messageEl.textContent = message;
-  notification.classList.add("notification-show");
-  
-  setTimeout(() => {
-    notification.classList.remove("notification-show");
-  }, 5000);
-}
-
-document.addEventListener("DOMContentLoaded", async function() {
-  console.log("DOM loaded, initializing login...");
-  
-  // Check if user is already logged in - FIXED FOR v1
-  const { data: { session }, error: sessionError } = await supabase.auth.session();
-  
-  if (sessionError) {
-    console.error("Session error:", sessionError);
-  }
-  
-  if (session) {
-    showNotification("✅ Already logged in! Redirecting...", "success");
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 1000);
-    return;
-  }
-  
-  // Theme toggle
-  const themeToggle = document.getElementById("themeToggle");
-  const themeIcon = themeToggle.querySelector("i");
-  const themeText = themeToggle.querySelector("span");
-  
-  document.body.classList.add("dark-theme");
-  themeIcon.className = "fas fa-sun";
-  themeText.textContent = "Light Mode";
-  
-  themeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark-theme");
-    if (document.body.classList.contains("dark-theme")) {
-      localStorage.setItem("theme", "dark");
+    document.addEventListener("DOMContentLoaded", async function() {
+      console.log("DOM loaded, initializing login...");
+      
+      // Check if user is already logged in - FIXED VERSION
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session error:", error);
+        }
+        
+        // Check if we have a valid session
+        if (data && data.session) {
+          showNotification("✅ Already logged in! Redirecting...", "success");
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1000);
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking session:", err);
+      }
+      
+      // Theme toggle
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = themeToggle.querySelector("i");
+      const themeText = themeToggle.querySelector("span");
+      
+      document.body.classList.add("dark-theme");
       themeIcon.className = "fas fa-sun";
       themeText.textContent = "Light Mode";
-    } else {
-      localStorage.setItem("theme", "light");
-      themeIcon.className = "fas fa-moon";
-      themeText.textContent = "Dark Mode";
-    }
-  });
+      
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-theme");
+        if (document.body.classList.contains("dark-theme")) {
+          localStorage.setItem("theme", "dark");
+          themeIcon.className = "fas fa-sun";
+          themeText.textContent = "Light Mode";
+        } else {
+          localStorage.setItem("theme", "light");
+          themeIcon.className = "fas fa-moon";
+          themeText.textContent = "Dark Mode";
+        }
+      });
 
-  // Login form handler
-  const loginForm = document.getElementById("loginForm");
-  const loginButton = document.getElementById("loginButton");
-  
-  loginForm.addEventListener("submit", async function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    
-    console.log("Attempting login for:", email);
-    
-    if (!email || !password) {
-      showNotification("Please enter both email and password", "error");
-      return;
-    }
-    
-    // Disable button and show loading
-    loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
-    loginButton.disabled = true;
-    
-    try {
-      // FIXED FOR v1 - use signIn method
-      const { user, error } = await supabase.auth.signIn({
-        email: email,
-        password: password
+      // Login form handler
+      const loginForm = document.getElementById("loginForm");
+      const loginButton = document.getElementById("loginButton");
+      
+      loginForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        
+        console.log("Attempting login for:", email);
+        
+        if (!email || !password) {
+          showNotification("Please enter both email and password", "error");
+          return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showNotification("Please enter a valid email address", "error");
+          return;
+        }
+        
+        // Disable button and show loading
+        const originalButtonText = loginButton.innerHTML;
+        loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+        loginButton.disabled = true;
+        
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+          
+          if (error) {
+            console.error("Login error:", error);
+            
+            // Check for specific error types
+            if (error.message.includes('Invalid login credentials')) {
+              showNotification("❌ Invalid email or password", "error");
+            } else if (error.message.includes('Email not confirmed')) {
+              showNotification("❌ Please verify your email first", "error");
+            } else if (error.message.includes('User not found')) {
+              showNotification("❌ No account found with this email", "error");
+            } else {
+              showNotification("❌ Login failed: " + error.message, "error");
+            }
+          } else {
+            console.log("Login successful:", data);
+            showNotification("✅ Logged in successfully!", "success");
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 1500);
+          }
+        } catch (error) {
+          console.error("Unexpected error:", error);
+          showNotification("❌ An unexpected error occurred", "error");
+        }
+        
+        // Re-enable button
+        loginButton.innerHTML = originalButtonText;
+        loginButton.disabled = false;
+      });
+
+      // Forgot password - UPDATED FOR v2
+      document.getElementById("forgotPassword").addEventListener("click", async function(e) {
+        e.preventDefault();
+        const email = document.getElementById("email").value.trim();
+        
+        if (!email) {
+          showNotification("Please enter your email to reset password", "error");
+          return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showNotification("Please enter a valid email address", "error");
+          return;
+        }
+        
+        // Show loading
+        const forgotBtn = document.getElementById("forgotPassword");
+        const originalText = forgotBtn.textContent;
+        forgotBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        
+        try {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/update-password.html'
+          });
+          
+          if (error) {
+            showNotification("❌ " + error.message, "error");
+          } else {
+            showNotification("✅ Password reset email sent! Check your inbox", "success");
+          }
+        } catch (error) {
+          console.error("Password reset error:", error);
+          showNotification("❌ Failed to send reset email", "error");
+        }
+        
+        // Restore button text
+        forgotBtn.innerHTML = originalText;
+      });
+
+      // Social login - Google - UPDATED FOR v2
+      document.getElementById("googleLogin").addEventListener("click", async function() {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: window.location.origin + "/auth-callback.html",
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
+            }
+          });
+          
+          if (error) {
+            showNotification("Google login failed: " + error.message, "error");
+          }
+        } catch (error) {
+          console.error("Google login error:", error);
+          showNotification("❌ Google login failed", "error");
+        }
+      });
+
+      // Social login - Facebook - UPDATED FOR v2
+      document.getElementById("facebookLogin").addEventListener("click", async function() {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'facebook',
+            options: {
+              redirectTo: window.location.origin + "/auth-callback.html",
+              scopes: 'email,public_profile'
+            }
+          });
+          
+          if (error) {
+            showNotification("Facebook login failed: " + error.message, "error");
+          }
+        } catch (error) {
+          console.error("Facebook login error:", error);
+          showNotification("❌ Facebook login failed", "error");
+        }
       });
       
-      if (error) {
-        console.error("Login error:", error);
-        showNotification("❌ Login failed: " + error.message, "error");
-      } else {
-        console.log("Login successful:", user);
-        showNotification("✅ Logged in successfully!", "success");
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1500);
+      // Test Supabase connection
+      console.log("Supabase initialized:", supabase !== undefined);
+      
+      // Quick connection test
+      supabase.auth.onAuthStateChange((event, session) => {
+        console.log("Auth state changed:", event, session ? "User logged in" : "No user");
+        
+        // If user signs in via social or otherwise, redirect to index
+        if (event === 'SIGNED_IN' && session) {
+          showNotification("✅ Signed in successfully!", "success");
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1000);
+        }
+        
+        // If user signs out
+        if (event === 'SIGNED_OUT') {
+          console.log("User signed out");
+        }
+      });
+      
+      // Check if there's a saved theme
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        document.body.classList.remove("dark-theme");
+        themeIcon.className = "fas fa-moon";
+        themeText.textContent = "Dark Mode";
       }
-    } catch (error) {
-      console.error("Unexpected error:", error);
-      showNotification("❌ An unexpected error occurred", "error");
-    }
-    
-    // Re-enable button
-    loginButton.innerHTML = '<span>Login</span><i class="fas fa-arrow-right"></i>';
-    loginButton.disabled = false;
-  });
-
-  // Forgot password - FIXED FOR v1
-  document.getElementById("forgotPassword").addEventListener("click", async function(e) {
-    e.preventDefault();
-    const email = document.getElementById("email").value.trim();
-    
-    if (!email) {
-      showNotification("Please enter your email to reset password", "error");
-      return;
-    }
-    
-    // In v1, the method is different
-    const { error } = await supabase.auth.api.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/update-password.html'
     });
-    
-    if (error) {
-      showNotification("❌ " + error.message, "error");
-    } else {
-      showNotification("✅ Password reset email sent! Check your inbox", "success");
-    }
-  });
-
-  // Social login - Google - FIXED FOR v1
-  document.getElementById("googleLogin").addEventListener("click", async function() {
-    try {
-      // In v1, OAuth uses signIn method with provider
-      const { user, error } = await supabase.auth.signIn({
-        provider: 'google'
-      });
-      
-      if (error) {
-        showNotification("Google login failed: " + error.message, "error");
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
-      showNotification("❌ Google login failed", "error");
-    }
-  });
-
-  // Social login - Facebook - FIXED FOR v1
-  document.getElementById("facebookLogin").addEventListener("click", async function() {
-    try {
-      // In v1, OAuth uses signIn method with provider
-      const { user, error } = await supabase.auth.signIn({
-        provider: 'facebook'
-      });
-      
-      if (error) {
-        showNotification("Facebook login failed: " + error.message, "error");
-      }
-    } catch (error) {
-      console.error("Facebook login error:", error);
-      showNotification("❌ Facebook login failed", "error");
-    }
-  });
-  
-  // Test Supabase connection
-  console.log("Supabase initialized:", supabase !== undefined);
-  
-  // Quick connection test - FIXED FOR v1
-  supabase.auth.onAuthStateChange((event, session) => {
-    console.log("Auth state changed:", event, session ? "User logged in" : "No user");
-  });
-});
   </script>
 </body>
 </html>
