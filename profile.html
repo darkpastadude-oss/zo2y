@@ -41,6 +41,7 @@
             color: var(--white);
             line-height: 1.6;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
         .container {
@@ -63,6 +64,10 @@
             transition: var(--transition);
             text-decoration: none;
             overflow: hidden;
+            background: var(--card);
+            border-radius: 50%;
+            padding: 8px;
+            border: 1px solid var(--border);
         }
 
         .home-button img {
@@ -75,6 +80,7 @@
         .home-button:hover {
             transform: scale(1.1) rotate(-2deg);
             filter: drop-shadow(0 6px 12px rgba(245,158,11,0.3));
+            border-color: var(--accent);
         }
 
         /* === PROFILE HEADER === */
@@ -168,6 +174,7 @@
             display: none;
             align-items: center;
             justify-content: space-between;
+            animation: fadeIn 0.3s ease;
         }
 
         .viewing-indicator {
@@ -190,6 +197,7 @@
             gap: 8px;
             text-decoration: none;
             font-size: 14px;
+            font-family: inherit;
         }
 
         .btn-primary {
@@ -312,6 +320,11 @@
             border: 1px solid var(--border);
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-tab {
@@ -325,6 +338,7 @@
             align-items: center;
             gap: 8px;
             flex-shrink: 0;
+            user-select: none;
         }
 
         .nav-tab:hover {
@@ -349,6 +363,7 @@
         /* === CONTENT SECTIONS === */
         .section {
             margin-bottom: 40px;
+            animation: fadeIn 0.3s ease;
         }
 
         .section-header {
@@ -459,6 +474,7 @@
             justify-content: center;
             font-size: 24px;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .restaurant-image img {
@@ -631,20 +647,28 @@
             justify-content: center;
             font-size: 20px;
             color: #0b1633;
+            flex-shrink: 0;
         }
 
         .community-info {
             flex: 1;
+            min-width: 0;
         }
 
         .community-name {
             font-weight: 600;
             margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .community-username {
             color: var(--muted);
             font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .community-stats {
@@ -655,6 +679,7 @@
 
         .community-stat {
             text-align: center;
+            flex: 1;
         }
 
         .community-stat-number {
@@ -700,6 +725,7 @@
             max-height: 90vh;
             overflow-y: auto;
             border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
         }
 
         .modal-header {
@@ -721,6 +747,13 @@
             font-size: 24px;
             cursor: pointer;
             color: var(--muted);
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-close:hover {
@@ -751,6 +784,7 @@
             border-radius: var(--radius-sm);
             color: var(--white);
             font-size: 14px;
+            font-family: inherit;
         }
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -805,6 +839,7 @@
             gap: 12px;
             margin-bottom: 12px;
             border: 1px solid var(--border);
+            animation: slideInRight 0.3s ease;
         }
 
         .toast.success { border-left-color: var(--success); }
@@ -839,6 +874,13 @@
             font-size: 18px;
             cursor: pointer;
             color: var(--muted);
+            line-height: 1;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .toast-close:hover {
@@ -944,6 +986,7 @@
             font-size: 14px;
             cursor: pointer;
             transition: var(--transition);
+            font-family: inherit;
         }
 
         .list-card-button:hover {
@@ -966,6 +1009,7 @@
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
 
         /* === LOADING STATES === */
@@ -988,6 +1032,21 @@
             to { transform: rotate(360deg); }
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         /* === SEARCH BOX === */
         .search-box {
             position: relative;
@@ -1008,6 +1067,7 @@
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             color: var(--white);
+            font-family: inherit;
         }
 
         .search-input:focus {
@@ -1081,6 +1141,7 @@
             cursor: pointer;
             transition: var(--transition);
             font-size: 20px;
+            border: 1px solid transparent;
         }
 
         .list-icon-option:hover {
@@ -1103,6 +1164,7 @@
             cursor: pointer;
             transition: var(--transition);
             font-size: 24px;
+            border: 2px solid transparent;
         }
 
         .avatar-icon-option:hover {
@@ -1112,6 +1174,45 @@
         .avatar-icon-option.selected {
             background: var(--accent);
             color: #0b1633;
+            border-color: var(--accent);
+        }
+
+        /* === FOOTER STYLES === */
+        .profile-footer {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 30px 0;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--accent);
+        }
+
+        .copyright {
+            color: var(--muted);
+            font-size: 14px;
         }
 
         /* === UTILITY CLASSES === */
@@ -1177,10 +1278,11 @@
             }
 
             .home-button {
-                width: 40px;
-                height: 40px;
-                top: 10px;
-                left: 10px;
+                width: 36px;
+                height: 36px;
+                top: 12px;
+                left: 12px;
+                padding: 6px;
             }
 
             .profile-header {
@@ -1195,9 +1297,9 @@
             }
 
             .profile-avatar {
-                width: 100px;
-                height: 100px;
-                font-size: 40px;
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
                 margin: 0 auto;
             }
 
@@ -1236,6 +1338,7 @@
                 justify-content: center;
                 min-width: 120px;
                 padding: 12px 16px;
+                font-size: 13px;
             }
 
             .stats-grid {
@@ -1322,6 +1425,17 @@
                 grid-template-columns: 1fr;
                 gap: 16px;
             }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+
+            .footer-links {
+                justify-content: center;
+                gap: 16px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1358,6 +1472,14 @@
             }
 
             .community-actions .btn {
+                width: 100%;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .btn {
                 width: 100%;
             }
         }
@@ -1424,7 +1546,7 @@
                     <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addEntryBtn">
                         <i class="fas fa-plus"></i> Add Journal
                     </button>
-                    <button class="btn btn-secondary" id="settingsBtn">
+                    <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
                         <i class="fas fa-cog"></i> Settings
                     </button>
                     <button class="btn btn-secondary d-none" id="followButton">
@@ -1460,20 +1582,20 @@
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
+        <!-- Navigation Tabs - Reordered with Achievements last -->
         <div class="nav-tabs">
             <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')">
-                <i class="fas fa-book"></i> Food Journal
+                <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
             </div>
             <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
                 <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
             </div>
-            <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
-                <i class="fas fa-trophy"></i> Achievements
-            </div>
             <div class="nav-tab" data-tab="community" onclick="showTab('community')">
                 <i class="fas fa-users"></i> Community
                 <span class="nav-tab-badge d-none" id="followersBadge">0</span>
+            </div>
+            <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
+                <i class="fas fa-trophy"></i> <span id="achievementsTabText">Achievements</span>
             </div>
         </div>
 
@@ -1519,7 +1641,7 @@
                         <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
                     </div>
                     <div class="section-actions">
-                        <button class="btn btn-secondary btn-sm" id="sortListsBtn">
+                        <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="toggleSortLists()">
                             <i class="fas fa-sort"></i> Sort
                         </button>
                         <button class="btn btn-primary btn-sm" onclick="showCreateListModal()" id="createListBtn">
@@ -1571,34 +1693,13 @@
             </div>
         </div>
 
-        <!-- Achievements Tab Content -->
-        <div class="tab-content" id="achievements-tab">
-            <div class="section">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title">Achievements</h2>
-                        <p class="section-subtitle">Track your food journey progress</p>
-                    </div>
-                    <div class="section-actions">
-                        <button class="btn btn-secondary">
-                            <i class="fas fa-trophy"></i> View All
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="achievements-grid" id="achievementsList">
-                    <!-- Achievements will be populated here -->
-                </div>
-            </div>
-        </div>
-
         <!-- Community Tab Content -->
         <div class="tab-content" id="community-tab">
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Community</h2>
-                        <p class="section-subtitle">Connect with other food lovers</p>
+                        <h2 class="section-title" id="communityTitle">Community</h2>
+                        <p class="section-subtitle" id="communitySubtitle">Connect with other food lovers</p>
                     </div>
                     <div class="section-actions">
                         <div class="d-flex gap-sm">
@@ -1618,7 +1719,7 @@
                 <!-- Followers Section -->
                 <div class="community-section active" id="followersSection">
                     <div class="section-header">
-                        <h3 class="section-title">Your Followers</h3>
+                        <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
                         <p class="section-subtitle">People who follow your food journey</p>
                     </div>
                     <div id="followersList">
@@ -1636,7 +1737,7 @@
                 <!-- Following Section -->
                 <div class="community-section" id="followingSection">
                     <div class="section-header">
-                        <h3 class="section-title">You're Following</h3>
+                        <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
                         <p class="section-subtitle">People whose food journey you follow</p>
                     </div>
                     <div id="followingList">
@@ -1652,6 +1753,27 @@
                 </div>
             </div>
         </div>
+
+        <!-- Achievements Tab Content - Now last -->
+        <div class="tab-content" id="achievements-tab">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title" id="achievementsTitle">Achievements</h2>
+                        <p class="section-subtitle" id="achievementsSubtitle">Track your food journey progress</p>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" onclick="refreshAchievements()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="achievements-grid" id="achievementsList">
+                    <!-- Achievements will be populated here -->
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Footer -->
@@ -1659,7 +1781,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-links">
-                    <a href="#" class="footer-link">Settings</a>
+                    <a href="#" class="footer-link" onclick="showModal('editProfileModal'); return false;">Settings</a>
                     <a href="#" class="footer-link">Privacy</a>
                     <a href="#" class="footer-link">Support</a>
                     <a href="#" class="footer-link">About</a>
@@ -1886,6 +2008,7 @@
         let currentActiveList = null;
         let selectedAvatarIcon = null;
         let currentEditingJournalEntry = null;
+        let loadedUserIds = new Set(); // Track loaded users to prevent duplicates
 
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -1920,18 +2043,26 @@
             
             toastContainer.appendChild(toast);
             
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => toast.remove());
+            
             setTimeout(() => {
                 if (toast.parentNode) toast.remove();
             }, duration);
-            
-            toast.querySelector('.toast-close').addEventListener('click', () => {
-                toast.remove();
-            });
         }
 
         // Initialize the profile page
         async function initProfilePage() {
             try {
+                // Check authentication
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error || !user) { 
+                    window.location.href = "login.html"; 
+                    return; 
+                }
+                
+                currentUser = user;
+                
                 // Load profile data
                 await loadProfile();
                 
@@ -1960,15 +2091,7 @@
         // Load user profile data
         async function loadProfile() {
             targetUserId = getUserIdFromUrl();
-            
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error || !user) { 
-                window.location.href = "login.html"; 
-                return; 
-            }
-
-            currentUser = user;
-            isViewingOwnProfile = !targetUserId || targetUserId === user.id;
+            isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
 
             if (isViewingOwnProfile) {
                 await loadOwnProfile();
@@ -1986,6 +2109,7 @@
             const viewingIndicator = document.getElementById('viewingOtherProfile');
             const addEntryBtn = document.getElementById('addEntryBtn');
             const createListBtn = document.getElementById('createListBtn');
+            const addJournalBtn = document.getElementById('addJournalBtn');
             
             if (editProfileBtn) editProfileBtn.style.display = 'flex';
             if (settingsBtn) settingsBtn.style.display = 'flex';
@@ -1994,6 +2118,7 @@
             if (viewingIndicator) viewingIndicator.style.display = 'none';
             if (addEntryBtn) addEntryBtn.style.display = 'flex';
             if (createListBtn) createListBtn.style.display = 'flex';
+            if (addJournalBtn) addJournalBtn.style.display = 'flex';
 
             await loadUserProfile();
             
@@ -2042,8 +2167,8 @@
                 .single();
 
             if (error || !profile) {
-                alert('User not found');
-                window.location.href = 'profile.html';
+                showToast('User not found', 'error');
+                setTimeout(() => window.location.href = 'profile.html', 1500);
                 return;
             }
 
@@ -2062,6 +2187,9 @@
                 avatar.textContent = profile.avatar_icon || "🍔";
             }
 
+            // Update tab titles for other user's profile
+            updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
+            
             // Load follow status
             await loadFollowStatus();
             await updateStats(targetUserId);
@@ -2096,8 +2224,54 @@
 
                 if (insertError) {
                     console.error('Error creating profile:', insertError);
+                } else {
+                    // Reload profile after creation
+                    const { data: newProfile } = await supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", currentUser.id)
+                        .single();
+                    
+                    userProfile = newProfile || {};
                 }
             }
+        }
+
+        // Update tab titles for other user's profile
+        function updateTabTitlesForOtherUser(userName) {
+            const journalTabText = document.getElementById('journalTabText');
+            const listsTabText = document.getElementById('listsTabText');
+            const achievementsTabText = document.getElementById('achievementsTabText');
+            
+            if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
+            if (listsTabText) listsTabText.textContent = `${userName}'s Lists`;
+            if (achievementsTabText) achievementsTabText.textContent = `${userName}'s Achievements`;
+            
+            // Update section titles
+            const journalTitle = document.getElementById('journalTitle');
+            const listsTitle = document.getElementById('listsTitle');
+            const communityTitle = document.getElementById('communityTitle');
+            const achievementsTitle = document.getElementById('achievementsTitle');
+            const followersSectionTitle = document.getElementById('followersSectionTitle');
+            const followingSectionTitle = document.getElementById('followingSectionTitle');
+            
+            if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
+            if (listsTitle) listsTitle.textContent = `${userName}'s Lists`;
+            if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
+            if (achievementsTitle) achievementsTitle.textContent = `${userName}'s Achievements`;
+            if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
+            if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
+            
+            // Update subtitles
+            const journalSubtitle = document.getElementById('journalSubtitle');
+            const listsSubtitle = document.getElementById('listsSubtitle');
+            const communitySubtitle = document.getElementById('communitySubtitle');
+            const achievementsSubtitle = document.getElementById('achievementsSubtitle');
+            
+            if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
+            if (listsSubtitle) listsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+            if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
+            if (achievementsSubtitle) achievementsSubtitle.textContent = `${userName}'s food journey progress`;
         }
 
         // Load restaurants dynamically like restaurants.html
@@ -2932,6 +3106,7 @@
         // Community System (formerly Follower System)
         const communitySystem = {
             currentSection: 'followers',
+            loadedUsersCache: new Set(), // Cache to prevent duplicate user loading
             
             async init() {
                 if (!currentUser) return;
@@ -2940,10 +3115,13 @@
                 // Add event listener for search
                 const userSearch = document.getElementById('userSearch');
                 if (userSearch) {
-                    userSearch.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') {
+                    // Debounce search input
+                    let debounceTimer;
+                    userSearch.addEventListener('input', () => {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => {
                             this.searchUsers();
-                        }
+                        }, 300);
                     });
                 }
             },
@@ -2970,9 +3148,11 @@
                     
                     if (followersCountBadge) {
                         followersCountBadge.textContent = followers ? followers.length : 0;
+                        followersCountBadge.style.display = followers && followers.length > 0 ? 'inline-block' : 'none';
                     }
                     if (followingCountBadge) {
                         followingCountBadge.textContent = following ? following.length : 0;
+                        followingCountBadge.style.display = following && following.length > 0 ? 'inline-block' : 'none';
                     }
 
                     // Update main stats
@@ -3020,11 +3200,17 @@
                         return;
                     }
 
+                    // Clear cache for fresh load
+                    this.loadedUsersCache.clear();
                     const followerIds = follows.map(f => f.follower_id);
+                    
+                    // Remove duplicates
+                    const uniqueFollowerIds = [...new Set(followerIds)];
+                    
                     const { data: users, error: usersError } = await supabase
                         .from('user_profiles')
                         .select('*')
-                        .in('id', followerIds);
+                        .in('id', uniqueFollowerIds);
 
                     if (!usersError) {
                         this.displayUsers(users, 'followersList');
@@ -3079,11 +3265,17 @@
                         return;
                     }
 
+                    // Clear cache for fresh load
+                    this.loadedUsersCache.clear();
                     const followingIds = follows.map(f => f.followed_id);
+                    
+                    // Remove duplicates
+                    const uniqueFollowingIds = [...new Set(followingIds)];
+                    
                     const { data: users, error: usersError } = await supabase
                         .from('user_profiles')
                         .select('*')
-                        .in('id', followingIds);
+                        .in('id', uniqueFollowingIds);
 
                     if (!usersError) {
                         this.displayUsers(users, 'followingList');
@@ -3110,11 +3302,23 @@
                 const searchTerm = userSearch.value.trim();
                 
                 if (!searchTerm) {
-                    showToast('Please enter a search term', 'error');
+                    const searchResults = document.getElementById('searchResults');
+                    if (searchResults) {
+                        searchResults.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">🔍</div>
+                                <h3 class="empty-title">Search for users</h3>
+                                <p class="empty-description">Enter a username or name to search</p>
+                            </div>
+                        `;
+                    }
                     return;
                 }
 
                 try {
+                    // Clear cache for search
+                    this.loadedUsersCache.clear();
+                    
                     const { data: users, error } = await supabase
                         .from('user_profiles')
                         .select('*')
@@ -3128,7 +3332,16 @@
                     
                 } catch (error) {
                     console.error('Error searching users:', error);
-                    showToast('Error searching users', 'error');
+                    const searchResults = document.getElementById('searchResults');
+                    if (searchResults) {
+                        searchResults.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">⚠️</div>
+                                <h3 class="empty-title">Search Error</h3>
+                                <p class="empty-description">Unable to search users at this time</p>
+                            </div>
+                        `;
+                    }
                 }
             },
 
@@ -3148,8 +3361,17 @@
                 }
 
                 container.innerHTML = '';
+                
+                // Filter out duplicates using cache
+                const uniqueUsers = users.filter(user => {
+                    if (this.loadedUsersCache.has(user.id)) {
+                        return false;
+                    }
+                    this.loadedUsersCache.add(user.id);
+                    return true;
+                });
 
-                for (const user of users) {
+                for (const user of uniqueUsers) {
                     const isPrivate = user.is_private === true;
                     const isCurrentUser = user.id === currentUser.id;
                     
@@ -3195,8 +3417,8 @@
                                 <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${user.id}')">
                                     <i class="fas fa-eye"></i> View Profile
                                 </button>
-                                <button class="btn ${isFollowing ? 'btn-success' : 'btn-primary'} btn-sm" onclick="communitySystem.toggleFollow('${user.id}')">
-                                    ${isFollowing ? '<i class="fas fa-check"></i> Following' : 'Follow'}
+                                <button class="btn ${isFollowing ? 'btn-success' : 'btn-primary'} btn-sm" onclick="communitySystem.toggleFollow('${user.id}', this)">
+                                    ${isFollowing ? '<i class="fas fa-check"></i> Following' : '<i class="fas fa-user-plus"></i> Follow'}
                                 </button>
                             ` : `
                                 <button class="btn btn-secondary btn-sm" disabled>
@@ -3210,7 +3432,7 @@
                 }
             },
 
-            async toggleFollow(targetUserId) {
+            async toggleFollow(targetUserId, buttonElement) {
                 try {
                     // Check if already following
                     const { data: existingFollow } = await supabase
@@ -3230,6 +3452,10 @@
 
                         if (error) throw error;
                         
+                        if (buttonElement) {
+                            buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                            buttonElement.className = 'btn btn-primary btn-sm';
+                        }
                         showToast('Unfollowed user', 'info');
                     } else {
                         // Follow
@@ -3243,6 +3469,10 @@
 
                         if (error) throw error;
                         
+                        if (buttonElement) {
+                            buttonElement.innerHTML = '<i class="fas fa-check"></i> Following';
+                            buttonElement.className = 'btn btn-success btn-sm';
+                        }
                         showToast('Started following user', 'success');
                     }
 
@@ -3308,7 +3538,7 @@
             }
         }
 
-        // Achievements System
+        // Achievements System - Now last tab
         const achievementsSystem = {
             async init() {
                 await this.loadAchievements();
@@ -3347,6 +3577,30 @@
                         icon: "📝", 
                         goal: 15,
                         points: 100
+                    },
+                    { 
+                        id: 4, 
+                        name: "Social Foodie", 
+                        description: "Get 10 followers", 
+                        icon: "👥", 
+                        goal: 10,
+                        points: 60
+                    },
+                    { 
+                        id: 5, 
+                        name: "List Creator", 
+                        description: "Create 5 lists", 
+                        icon: "📋", 
+                        goal: 5,
+                        points: 40
+                    },
+                    { 
+                        id: 6, 
+                        name: "Five Star Foodie", 
+                        description: "Give 5 five-star reviews", 
+                        icon: "⭐⭐⭐⭐⭐", 
+                        goal: 5,
+                        points: 80
                     }
                 ];
 
@@ -3476,17 +3730,20 @@
         }
 
         function showTab(tabName) {
+            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
                 tab.style.display = 'none';
             });
             
+            // Show selected tab
             const tabElement = document.getElementById(`${tabName}-tab`);
             if (tabElement) {
                 tabElement.classList.add('active');
                 tabElement.style.display = 'block';
             }
             
+            // Update active tab button
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -3496,33 +3753,80 @@
             
             currentTab = tabName;
             
-            if (tabName === 'community') {
-                showCommunitySection('followers');
-            } else if (tabName === 'journal') {
-                foodJournal.loadJournalEntries();
-            } else if (tabName === 'achievements') {
-                achievementsSystem.loadAchievements();
-            } else if (tabName === 'lists') {
-                listManager.renderListsGrid();
+            // Load tab-specific content
+            switch(tabName) {
+                case 'journal':
+                    foodJournal.loadJournalEntries();
+                    break;
+                case 'lists':
+                    listManager.renderListsGrid();
+                    break;
+                case 'community':
+                    showCommunitySection('followers');
+                    break;
+                case 'achievements':
+                    achievementsSystem.loadAchievements();
+                    break;
             }
         }
 
         function showModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('active');
-            
-            if (modalId === 'addEntryModal') {
-                const visitDate = document.getElementById('visitDate');
-                if (visitDate) {
-                    const today = new Date().toISOString().split('T')[0];
-                    visitDate.value = today;
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                
+                if (modalId === 'addEntryModal') {
+                    const visitDate = document.getElementById('visitDate');
+                    if (visitDate) {
+                        const today = new Date().toISOString().split('T')[0];
+                        visitDate.value = today;
+                        visitDate.max = today; // Can't select future dates
+                    }
+                }
+                
+                if (modalId === 'editProfileModal' && userProfile) {
+                    document.getElementById('editDisplayName').value = userProfile.full_name || '';
+                    document.getElementById('editUsername').value = userProfile.username || '';
+                    document.getElementById('editBio').value = userProfile.bio || '';
+                    document.getElementById('editLocation').value = userProfile.location || '';
+                    document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
                 }
             }
         }
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = ''; // Restore scrolling
+                
+                // Reset forms when closing
+                if (modalId === 'addEntryModal') {
+                    const form = document.getElementById('journalEntryForm');
+                    if (form) form.reset();
+                    foodJournal.setRating(0);
+                    currentEditingJournalEntry = null;
+                    
+                    const modalTitle = document.querySelector('#addEntryModal .modal-title');
+                    const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+                    
+                    if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
+                    if (submitButton) submitButton.textContent = 'Save Entry';
+                }
+                
+                if (modalId === 'createListModal') {
+                    const form = document.getElementById('createListForm');
+                    if (form) form.reset();
+                    document.getElementById('selectedIcon').value = '📋';
+                    
+                    // Reset icon selection
+                    document.querySelectorAll('.list-icon-option').forEach(icon => {
+                        icon.style.background = 'transparent';
+                        icon.style.border = '1px solid transparent';
+                    });
+                }
+            }
         }
 
         function showCreateListModal() {
@@ -3531,6 +3835,8 @@
 
         // Avatar functionality
         function showAvatarModal() {
+            if (!isViewingOwnProfile) return;
+            
             const avatarIconGrid = document.getElementById('avatarIconGrid');
             if (avatarIconGrid) {
                 avatarIconGrid.innerHTML = '';
@@ -3556,7 +3862,7 @@
         }
 
         async function saveAvatar() {
-            if (!selectedAvatarIcon) {
+            if (!selectedAvatarIcon || !isViewingOwnProfile) {
                 showToast('Please select an avatar', 'error');
                 return;
             }
@@ -3655,20 +3961,53 @@
                 });
             });
             
-            // Logout button
+            // Logout button - Fixed single click logout
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
+                // Remove any existing listeners
+                const newLogoutBtn = logoutBtn.cloneNode(true);
+                logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+                
+                // Add new listener
+                newLogoutBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     if (confirm('Are you sure you want to logout?')) {
                         showToast('Logging out...', 'info');
                         await supabase.auth.signOut();
                         setTimeout(() => {
                             window.location.href = 'login.html';
-                        }, 1500);
+                        }, 1000);
                     }
                 });
             }
+            
+            // Modal close buttons
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    if (modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+            
+            // Close modal when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeModal(this.id);
+                    }
+                });
+            });
+            
+            // Escape key to close modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.active').forEach(modal => {
+                        closeModal(modal.id);
+                    });
+                }
+            });
         }
 
         // Create custom list
@@ -3766,6 +4105,17 @@
             }
         }
 
+        // Toggle list sorting
+        function toggleSortLists() {
+            showToast('List sorting feature coming soon!', 'info');
+        }
+
+        // Refresh achievements
+        function refreshAchievements() {
+            achievementsSystem.loadAchievements();
+            showToast('Achievements refreshed!', 'success');
+        }
+
         // Initialize the page when DOM is loaded
         document.addEventListener('DOMContentLoaded', initProfilePage);
 
@@ -3781,6 +4131,8 @@
         window.showCommunitySection = showCommunitySection;
         window.viewUserProfile = viewUserProfile;
         window.showAvatarModal = showAvatarModal;
+        window.toggleSortLists = toggleSortLists;
+        window.refreshAchievements = refreshAchievements;
     </script>
 </body>
 </html>
