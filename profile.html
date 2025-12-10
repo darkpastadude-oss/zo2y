@@ -4135,4 +4135,2074 @@
         window.refreshAchievements = refreshAchievements;
     </script>
 </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zo2y - Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* === MOBILE-FIRST CSS === */
+        :root {
+            --bg: #0b1633;
+            --card: #132347;
+            --muted: #cbd5e1;
+            --accent: #f59e0b;
+            --glass: rgba(255,255,255,0.03);
+            --white: #ffffff;
+            --border: rgba(255,255,255,0.1);
+            --bg-hover: #1a2c5a;
+            --error: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* === CONTAINERS === */
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 0 16px;
+            margin: 0 auto;
+        }
+
+        /* === HOME BUTTON === */
+        .home-button {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 1000;
+            width: 44px;
+            height: 44px;
+            background: var(--card);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border);
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .home-button img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .home-button:active {
+            transform: scale(0.95);
+        }
+
+        /* === PROFILE HEADER === */
+        .profile-header {
+            background: var(--card);
+            padding: 24px 0 0 0;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .profile-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--card), transparent);
+        }
+
+        .profile-top {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            text-align: center;
+            padding: 0 16px;
+        }
+
+        .avatar-container {
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #e69500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            border: 4px solid var(--white);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .profile-info {
+            width: 100%;
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .profile-username {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            word-break: break-word;
+        }
+
+        .profile-bio {
+            font-size: 15px;
+            color: var(--muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            max-width: 100%;
+        }
+
+        .profile-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .profile-actions .btn {
+            flex: 1;
+            min-width: 140px;
+            max-width: 200px;
+        }
+
+        /* === VIEWING INDICATOR === */
+        .viewing-other-profile {
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 16px;
+            border-radius: var(--radius);
+            margin: 20px 16px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .viewing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 15px;
+            font-family: inherit;
+            min-height: 48px;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
+        .btn-primary:hover {
+            background: #e69500;
+        }
+
+        .btn-secondary {
+            background: var(--card);
+            color: var(--white);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-sm {
+            padding: 10px 16px;
+            font-size: 14px;
+            min-height: 40px;
+        }
+
+        .btn-lg {
+            padding: 16px 24px;
+            font-size: 16px;
+            min-height: 56px;
+        }
+
+        .btn-icon {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        /* === STATS GRID === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 0 16px 24px 16px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 2px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* === NAVIGATION TABS === */
+        .nav-tabs {
+            display: flex;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 6px;
+            margin: 0 16px 24px 16px;
+            border: 2px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            gap: 4px;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            user-select: none;
+            font-size: 14px;
+            min-width: 100px;
+        }
+
+        .nav-tab.active {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
+        /* === TAB CONTENT === */
+        .tab-content {
+            display: none;
+            padding: 0 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* === SECTION STYLES === */
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* === JOURNAL ENTRIES === */
+        .journal-entry {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 2px solid var(--border);
+            margin-bottom: 16px;
+            transition: var(--transition);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .restaurant-image {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .restaurant-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .restaurant-details h3 {
+            margin-bottom: 4px;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .entry-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .entry-meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: var(--bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .entry-notes {
+            margin-bottom: 12px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .entry-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        /* === LISTS GRID === */
+        .lists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .list-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .list-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .list-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .list-preview-item {
+            aspect-ratio: 1;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        /* === COMMUNITY CARDS === */
+        .community-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 2px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .community-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .community-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #0b1633;
+            flex-shrink: 0;
+        }
+
+        .community-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .community-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .community-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .community-stat {
+            text-align: center;
+        }
+
+        .community-stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent);
+            display: block;
+        }
+
+        .community-stat-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .community-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* === MODALS === */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 16px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 2px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--card);
+            z-index: 1;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* === FORMS === */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--white);
+            font-size: 14px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 16px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 16px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .rating-star {
+            font-size: 32px;
+            cursor: pointer;
+            transition: var(--transition);
+            opacity: 0.3;
+            padding: 8px;
+        }
+
+        .rating-star.active {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+        }
+
+        /* === TOAST === */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            left: 16px;
+            right: 16px;
+            z-index: 3000;
+        }
+
+        .toast {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 16px;
+            border-left: 6px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            border: 2px solid var(--border);
+            animation: slideInDown 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        /* === EMPTY STATES === */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--white);
+        }
+
+        .empty-description {
+            font-size: 15px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        /* === FOOTER === */
+        .profile-footer {
+            background: var(--card);
+            border-top: 2px solid var(--border);
+            padding: 30px 16px;
+            margin-top: 40px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .footer-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--accent);
+        }
+
+        .copyright {
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* === TABLET & DESKTOP === */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 1200px;
+                padding: 0 24px;
+            }
+            
+            .home-button {
+                top: 24px;
+                left: 24px;
+                width: 48px;
+                height: 48px;
+            }
+            
+            .home-button img {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .profile-header {
+                padding: 40px 0 20px 0;
+            }
+            
+            .profile-top {
+                flex-direction: row;
+                align-items: flex-start;
+                text-align: left;
+                gap: 30px;
+            }
+            
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 56px;
+            }
+            
+            .profile-info {
+                flex: 1;
+            }
+            
+            .profile-name {
+                font-size: 32px;
+            }
+            
+            .profile-actions {
+                justify-content: flex-start;
+            }
+            
+            .profile-actions .btn {
+                flex: 0 1 auto;
+                max-width: none;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+                margin: 0 24px 32px 24px;
+            }
+            
+            .nav-tabs {
+                margin: 0 24px 32px 24px;
+                padding: 8px;
+            }
+            
+            .tab-content {
+                padding: 0 24px;
+            }
+            
+            .lists-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 24px;
+            }
+        }
+
+        /* === LARGE DESKTOP === */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1400px;
+            }
+            
+            .profile-avatar {
+                width: 140px;
+                height: 140px;
+                font-size: 64px;
+            }
+            
+            .profile-name {
+                font-size: 36px;
+            }
+        }
+
+        /* === DARK MODE SUPPORT === */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0a1129;
+                --card: #111c44;
+                --border: rgba(255,255,255,0.15);
+            }
+        }
+
+        /* === SAFE AREA SUPPORT === */
+        @supports (padding: max(0px)) {
+            .container {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+            
+            .profile-header {
+                padding-top: max(24px, env(safe-area-inset-top));
+            }
+        }
+    </style>
+    <link rel="icon" type="image/png" href="images/logo.png">
+</head>
+<body>
+    <!-- Home Button -->
+    <a href="index.html" class="home-button">
+        <img src="images/logo.png" alt="Zo2y Logo">
+    </a>
+
+    <!-- Viewing Other Profile Indicator -->
+    <div class="viewing-other-profile" id="viewingOtherProfile">
+        <div class="viewing-indicator">
+            <i class="fas fa-eye"></i>
+            <span>Viewing another user's profile</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="goToMyProfile()">
+            <i class="fas fa-user"></i> My Profile
+        </button>
+    </div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="container">
+            <div class="profile-top">
+                <div class="avatar-container">
+                    <div class="profile-avatar" onclick="showAvatarModal()" id="profileAvatar">
+                        🍔
+                    </div>
+                </div>
+                
+                <div class="profile-info">
+                    <div class="profile-name" id="profileName">
+                        Loading...
+                    </div>
+                    <div class="profile-username" id="profileUsername">@username</div>
+                    <div class="profile-bio" id="profileBio">
+                        No bio yet. Click edit to add one!
+                    </div>
+                    
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="profileLocation">Location not set</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span id="memberSince">Member since 2023</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-utensils"></i>
+                            <span id="visitedCountMeta">0 restaurants visited</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-secondary" onclick="showModal('editProfileModal')" id="editProfileBtn">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addEntryBtn">
+                            <i class="fas fa-plus"></i> Add Review
+                        </button>
+                        <button class="btn btn-secondary" id="followButton" style="display: none;">
+                            Follow
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🍽️</div>
+            <div class="stat-number" id="visitedCount">0</div>
+            <div class="stat-label">Visited</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-number" id="followersCount">0</div>
+            <div class="stat-label">Followers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-number" id="listsCount">0</div>
+            <div class="stat-label">Lists</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-number" id="reviewsCount">0</div>
+            <div class="stat-label">Reviews</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')">
+            <i class="fas fa-book"></i> Journal
+        </div>
+        <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
+            <i class="fas fa-list"></i> Lists
+        </div>
+        <div class="nav-tab" data-tab="community" onclick="showTab('community')">
+            <i class="fas fa-users"></i> Community
+        </div>
+        <div class="nav-tab" data-tab="achievements" onclick="showTab('achievements')">
+            <i class="fas fa-trophy"></i> Achievements
+        </div>
+    </div>
+
+    <!-- Journal Tab -->
+    <div class="tab-content active" id="journal-tab">
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title" id="journalTitle">Food Journal</h2>
+                <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews</p>
+                
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="showModal('addEntryModal')">
+                        <i class="fas fa-plus"></i> New Review
+                    </button>
+                </div>
+            </div>
+            
+            <div id="journalEntries">
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <h3 class="empty-title">No Reviews Yet</h3>
+                    <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
+                    <button class="btn btn-primary" onclick="showModal('addEntryModal')">
+                        <i class="fas fa-utensils"></i> Add First Review
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lists Tab -->
+    <div class="tab-content" id="lists-tab">
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">My Lists</h2>
+                <p class="section-subtitle">Organize your favorite restaurants</p>
+                
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="showCreateListModal()">
+                        <i class="fas fa-plus"></i> New List
+                    </button>
+                </div>
+            </div>
+            
+            <div class="lists-grid" id="listsGrid">
+                <!-- Lists will load here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Tab -->
+    <div class="tab-content" id="community-tab">
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Community</h2>
+                <p class="section-subtitle">Connect with other food lovers</p>
+                
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="showModal('communitySearchModal')">
+                        <i class="fas fa-user-plus"></i> Find Users
+                    </button>
+                </div>
+            </div>
+            
+            <div id="communityContent">
+                <!-- Community content loads here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievements Tab -->
+    <div class="tab-content" id="achievements-tab">
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Achievements</h2>
+                <p class="section-subtitle">Track your food journey progress</p>
+            </div>
+            
+            <div id="achievementsList">
+                <div class="empty-state">
+                    <div class="empty-icon">🏆</div>
+                    <h3 class="empty-title">Coming Soon!</h3>
+                    <p class="empty-description">Achievements system is under development</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="profile-footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="#" class="footer-link" onclick="showModal('editProfileModal'); return false;">Edit Profile</a>
+                <a href="settings.html" class="footer-link">Settings</a>
+                <a href="#" class="footer-link" id="logoutBtn">Logout</a>
+            </div>
+            <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Add Review Modal -->
+    <div class="modal" id="addEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Review</h3>
+                <button class="modal-close" onclick="closeModal('addEntryModal')">&times;</button>
+            </div>
+            <form id="journalEntryForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Restaurant</label>
+                        <select class="form-select" id="restaurantSelect" required>
+                            <option value="">Select restaurant</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Visit Date</label>
+                        <input type="date" class="form-input" id="visitDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars" id="ratingStars">
+                            <span class="rating-star" data-rating="1" onclick="setRating(1)">⭐</span>
+                            <span class="rating-star" data-rating="2" onclick="setRating(2)">⭐</span>
+                            <span class="rating-star" data-rating="3" onclick="setRating(3)">⭐</span>
+                            <span class="rating-star" data-rating="4" onclick="setRating(4)">⭐</span>
+                            <span class="rating-star" data-rating="5" onclick="setRating(5)">⭐</span>
+                        </div>
+                        <input type="hidden" id="selectedRating" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Review Notes</label>
+                        <textarea class="form-textarea" id="visitNotes" placeholder="Share your experience..." rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addEntryModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Review</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="closeModal('editProfileModal')">&times;</button>
+            </div>
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" id="editDisplayName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" id="editUsername" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" placeholder="Tell others about your food journey" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="City, Country">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="editIsPrivate" class="form-input" style="width: auto;">
+                            Private Account
+                        </label>
+                        <div style="font-size: 12px; color: var(--muted); margin-top: 5px;">
+                            Private accounts require approval for follow requests
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Other Modals (simplified for brevity) -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create List</h3>
+                <button class="modal-close" onclick="closeModal('createListModal')">&times;</button>
+            </div>
+            <form id="createListForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="listName" placeholder="e.g., Date Night Spots" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="listDescription" placeholder="What's this list about?" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Avatar Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Avatar</h3>
+                <button class="modal-close" onclick="closeModal('avatarModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="avatarIconGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+                    <!-- Avatars will load here -->
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAvatar()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Global State
+        let currentUser = null;
+        let userProfile = null;
+        let targetUser = null;
+        let isViewingOwnProfile = true;
+        let restaurants = [];
+        let currentEditingJournalEntry = null;
+
+        // Initialize
+        async function initProfilePage() {
+            try {
+                // Check auth
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error || !user) { 
+                    window.location.href = "login.html"; 
+                    return; 
+                }
+                
+                currentUser = user;
+                
+                // Load profile
+                await loadProfile();
+                
+                // Load restaurants
+                await loadRestaurants();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                showToast('Welcome back!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error loading profile', 'error');
+            }
+        }
+
+        async function loadProfile() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetUserId = urlParams.get('id');
+            
+            isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
+            
+            if (isViewingOwnProfile) {
+                await loadOwnProfile();
+            } else {
+                await loadOtherUserProfile(targetUserId);
+            }
+            
+            await updateStats();
+        }
+
+        async function loadOwnProfile() {
+            // Hide viewing indicator
+            document.getElementById('viewingOtherProfile').style.display = 'none';
+            
+            // Show edit buttons
+            document.getElementById('editProfileBtn').style.display = 'flex';
+            document.getElementById('addEntryBtn').style.display = 'flex';
+            document.getElementById('followButton').style.display = 'none';
+            
+            // Load user profile
+            const { data: profile, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (error && error.code === 'PGRST116') {
+                // Create profile if doesn't exist
+                await createUserProfile();
+                userProfile = await loadUserProfile();
+            } else if (error) {
+                console.error('Error loading profile:', error);
+                userProfile = {};
+            } else {
+                userProfile = profile || {};
+            }
+            
+            updateProfileUI();
+        }
+
+        async function createUserProfile() {
+            const { error } = await supabase
+                .from('user_profiles')
+                .insert({
+                    id: currentUser.id,
+                    username: currentUser.email.split('@')[0],
+                    full_name: currentUser.email.split('@')[0],
+                    bio: '',
+                    location: '',
+                    avatar_icon: '🍔',
+                    is_private: false,
+                    created_at: new Date().toISOString()
+                });
+            
+            if (error) {
+                console.error('Error creating profile:', error);
+                throw error;
+            }
+        }
+
+        async function loadUserProfile() {
+            const { data: profile, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            return profile || {};
+        }
+
+        async function loadOtherUserProfile(userId) {
+            // Show viewing indicator
+            document.getElementById('viewingOtherProfile').style.display = 'flex';
+            
+            // Hide edit buttons, show follow button
+            document.getElementById('editProfileBtn').style.display = 'none';
+            document.getElementById('addEntryBtn').style.display = 'none';
+            document.getElementById('followButton').style.display = 'flex';
+            
+            // Load target user profile
+            const { data: profile, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+            
+            if (error || !profile) {
+                showToast('User not found', 'error');
+                setTimeout(() => window.location.href = 'profile.html', 1500);
+                return;
+            }
+            
+            targetUser = profile;
+            updateProfileUI(profile);
+            
+            // Load follow status
+            await loadFollowStatus(userId);
+        }
+
+        function updateProfileUI(profile = userProfile) {
+            document.getElementById('profileName').textContent = profile.full_name || profile.username || 'User';
+            document.getElementById('profileUsername').textContent = `@${profile.username || 'user'}`;
+            document.getElementById('profileBio').textContent = profile.bio || "No bio yet";
+            document.getElementById('profileLocation').textContent = profile.location || "Location not set";
+            document.getElementById('memberSince').textContent = `Joined ${new Date(profile.created_at || currentUser.created_at).getFullYear()}`;
+            
+            const avatar = document.getElementById('profileAvatar');
+            if (avatar) {
+                avatar.textContent = profile.avatar_icon || "🍔";
+            }
+        }
+
+        async function updateStats(userId = null) {
+            const targetId = userId || currentUser.id;
+            
+            try {
+                // Get counts
+                const [journalRes, followersRes, listsRes] = await Promise.all([
+                    supabase.from('journal_entries').select('id').eq('user_id', targetId),
+                    supabase.from('follows').select('id').eq('followed_id', targetId),
+                    supabase.from('lists').select('id').eq('user_id', targetId)
+                ]);
+                
+                // Update UI
+                document.getElementById('visitedCount').textContent = journalRes.data?.length || 0;
+                document.getElementById('followersCount').textContent = followersRes.data?.length || 0;
+                document.getElementById('listsCount').textContent = listsRes.data?.length || 0;
+                document.getElementById('reviewsCount').textContent = journalRes.data?.length || 0;
+                document.getElementById('visitedCountMeta').textContent = `${journalRes.data?.length || 0} restaurants visited`;
+                
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        async function loadRestaurants() {
+            try {
+                const { data, error } = await supabase
+                    .from('restraunts')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                restaurants = data || [];
+                populateRestaurantSelect();
+                
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+                restaurants = [];
+            }
+        }
+
+        function populateRestaurantSelect() {
+            const select = document.getElementById('restaurantSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Select restaurant</option>';
+            
+            restaurants.forEach(restaurant => {
+                const option = document.createElement('option');
+                option.value = restaurant.id;
+                option.textContent = restaurant.name;
+                select.appendChild(option);
+            });
+        }
+
+        // FIXED: Save Profile Changes
+        async function saveProfileChanges() {
+            const displayName = document.getElementById('editDisplayName')?.value.trim();
+            const username = document.getElementById('editUsername')?.value.trim();
+            const bio = document.getElementById('editBio')?.value.trim() || null;
+            const location = document.getElementById('editLocation')?.value.trim() || null;
+            const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
+            
+            if (!displayName || !username) {
+                showToast('Please enter name and username', 'error');
+                return;
+            }
+            
+            try {
+                const updateData = {
+                    full_name: displayName,
+                    username: username,
+                    bio: bio,
+                    location: location,
+                    is_private: isPrivate,
+                    updated_at: new Date().toISOString()
+                };
+                
+                // Remove null values that might cause schema issues
+                Object.keys(updateData).forEach(key => {
+                    if (updateData[key] === null || updateData[key] === undefined) {
+                        delete updateData[key];
+                    }
+                });
+                
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .update(updateData)
+                    .eq('id', currentUser.id)
+                    .select();
+                
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw error;
+                }
+                
+                // Update local profile
+                userProfile = { ...userProfile, ...updateData };
+                
+                // Update UI
+                updateProfileUI();
+                
+                closeModal('editProfileModal');
+                showToast('Profile updated!', 'success');
+                
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                showToast('Error updating profile', 'error');
+            }
+        }
+
+        // Journal Functions
+        async function saveJournalEntry() {
+            const restaurantId = document.getElementById('restaurantSelect').value;
+            const visitDate = document.getElementById('visitDate').value;
+            const rating = document.getElementById('selectedRating').value;
+            const notes = document.getElementById('visitNotes').value;
+            
+            if (!restaurantId || !visitDate || !rating) {
+                showToast('Please fill all required fields', 'error');
+                return;
+            }
+            
+            try {
+                const entryData = {
+                    user_id: currentUser.id,
+                    restaurant_id: restaurantId,
+                    visit_date: visitDate,
+                    rating: parseInt(rating),
+                    notes: notes,
+                    created_at: new Date().toISOString()
+                };
+                
+                const { error } = await supabase
+                    .from('journal_entries')
+                    .insert([entryData]);
+                
+                if (error) throw error;
+                
+                closeModal('addEntryModal');
+                showToast('Review saved!', 'success');
+                
+                // Reset form
+                document.getElementById('journalEntryForm').reset();
+                setRating(0);
+                
+                // Update stats
+                await updateStats();
+                
+                // Reload journal if on that tab
+                if (currentTab === 'journal') {
+                    await loadJournalEntries();
+                }
+                
+            } catch (error) {
+                console.error('Error saving review:', error);
+                showToast('Error saving review', 'error');
+            }
+        }
+
+        async function loadJournalEntries() {
+            const container = document.getElementById('journalEntries');
+            if (!container) return;
+            
+            const targetId = isViewingOwnProfile ? currentUser.id : targetUser?.id;
+            
+            try {
+                const { data: entries, error } = await supabase
+                    .from('journal_entries')
+                    .select('*')
+                    .eq('user_id', targetId)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (!entries || entries.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <h3 class="empty-title">No Reviews Yet</h3>
+                            <p class="empty-description">${isViewingOwnProfile ? 'Start reviewing restaurants!' : 'No reviews yet'}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary" onclick="showModal('addEntryModal')">
+                                    <i class="fas fa-utensils"></i> Add First Review
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                entries.forEach(entry => {
+                    const restaurant = restaurants.find(r => r.id === entry.restaurant_id);
+                    if (!restaurant) return;
+                    
+                    const entryEl = document.createElement('div');
+                    entryEl.className = 'journal-entry';
+                    entryEl.innerHTML = `
+                        <div class="entry-header">
+                            <div class="restaurant-info">
+                                <div class="restaurant-image">
+                                    ${restaurant.image ? 
+                                        `<img src="images/${restaurant.image}" alt="${restaurant.name}">` : 
+                                        `<div style="background: var(--accent); color: #0b1633; display: flex; align-items: center; justify-content: center; font-weight: bold;">${restaurant.name.charAt(0)}</div>`
+                                    }
+                                </div>
+                                <div class="restaurant-details">
+                                    <h3>${restaurant.name}</h3>
+                                    <div style="color: var(--muted); font-size: 14px;">${restaurant.category}</div>
+                                </div>
+                            </div>
+                            <div class="entry-rating">
+                                ${'⭐'.repeat(Math.floor(entry.rating))}
+                                <span>${entry.rating}/5</span>
+                            </div>
+                        </div>
+                        <div class="entry-meta">
+                            <div class="meta-badge">
+                                <i class="fas fa-calendar"></i>
+                                ${new Date(entry.visit_date).toLocaleDateString()}
+                            </div>
+                        </div>
+                        ${entry.notes ? `
+                            <div class="entry-notes">${entry.notes}</div>
+                        ` : ''}
+                    `;
+                    container.appendChild(entryEl);
+                });
+                
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <h3 class="empty-title">Error Loading</h3>
+                        <p class="empty-description">Could not load reviews</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Follow Functions
+        async function loadFollowStatus(userId) {
+            const button = document.getElementById('followButton');
+            if (!button) return;
+            
+            try {
+                const { data: follow } = await supabase
+                    .from('follows')
+                    .select('id')
+                    .eq('follower_id', currentUser.id)
+                    .eq('followed_id', userId)
+                    .single();
+                
+                if (follow) {
+                    button.textContent = 'Following';
+                    button.className = 'btn btn-success';
+                } else {
+                    button.textContent = 'Follow';
+                    button.className = 'btn btn-primary';
+                }
+                
+                button.onclick = () => toggleFollow(userId);
+                
+            } catch (error) {
+                console.error('Error loading follow status:', error);
+            }
+        }
+
+        async function toggleFollow(userId) {
+            try {
+                const { data: existingFollow } = await supabase
+                    .from('follows')
+                    .select('id')
+                    .eq('follower_id', currentUser.id)
+                    .eq('followed_id', userId)
+                    .single();
+                
+                if (existingFollow) {
+                    // Unfollow
+                    await supabase
+                        .from('follows')
+                        .delete()
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', userId);
+                    
+                    document.getElementById('followButton').textContent = 'Follow';
+                    document.getElementById('followButton').className = 'btn btn-primary';
+                    showToast('Unfollowed', 'info');
+                } else {
+                    // Follow
+                    await supabase
+                        .from('follows')
+                        .insert({
+                            follower_id: currentUser.id,
+                            followed_id: userId,
+                            created_at: new Date().toISOString()
+                        });
+                    
+                    document.getElementById('followButton').textContent = 'Following';
+                    document.getElementById('followButton').className = 'btn btn-success';
+                    showToast('Started following', 'success');
+                }
+                
+                await updateStats(userId);
+                
+            } catch (error) {
+                console.error('Error toggling follow:', error);
+                showToast('Error updating follow', 'error');
+            }
+        }
+
+        // Tab Navigation
+        let currentTab = 'journal';
+        
+        function showTab(tabName) {
+            currentTab = tabName;
+            
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Load tab content
+            switch(tabName) {
+                case 'journal':
+                    loadJournalEntries();
+                    break;
+                case 'lists':
+                    loadLists();
+                    break;
+                case 'community':
+                    loadCommunity();
+                    break;
+                case 'achievements':
+                    loadAchievements();
+                    break;
+            }
+        }
+
+        async function loadLists() {
+            const container = document.getElementById('listsGrid');
+            if (!container) return;
+            
+            try {
+                const { data: lists, error } = await supabase
+                    .from('lists')
+                    .select('*')
+                    .eq('user_id', isViewingOwnProfile ? currentUser.id : targetUser?.id);
+                
+                if (error) throw error;
+                
+                if (!lists || lists.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <div class="empty-icon">📋</div>
+                            <h3 class="empty-title">No Lists Yet</h3>
+                            <p class="empty-description">${isViewingOwnProfile ? 'Create lists to organize restaurants!' : 'No lists created yet'}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary" onclick="showCreateListModal()">
+                                    <i class="fas fa-plus"></i> Create First List
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                lists.forEach(list => {
+                    const listEl = document.createElement('div');
+                    listEl.className = 'list-card';
+                    listEl.innerHTML = `
+                        <div class="list-card-title">
+                            <i class="fas fa-list"></i>
+                            ${list.title}
+                        </div>
+                        <p style="color: var(--muted); margin-bottom: 16px;">${list.description || 'No description'}</p>
+                        <div class="list-preview-grid">
+                            <div class="list-preview-item"></div>
+                            <div class="list-preview-item"></div>
+                            <div class="list-preview-item"></div>
+                            <div class="list-preview-item"></div>
+                        </div>
+                    `;
+                    container.appendChild(listEl);
+                });
+                
+            } catch (error) {
+                console.error('Error loading lists:', error);
+            }
+        }
+
+        async function loadCommunity() {
+            const container = document.getElementById('communityContent');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">👥</div>
+                    <h3 class="empty-title">Community</h3>
+                    <p class="empty-description">Connect with other food lovers</p>
+                    <button class="btn btn-primary" onclick="showModal('communitySearchModal')">
+                        <i class="fas fa-user-plus"></i> Find Users
+                    </button>
+                </div>
+            `;
+        }
+
+        function loadAchievements() {
+            // Simple achievements display
+            document.getElementById('achievementsList').innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Achievements</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Points</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Modal Functions
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Set today's date for visit date
+                if (modalId === 'addEntryModal') {
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('visitDate').value = today;
+                    document.getElementById('visitDate').max = today;
+                }
+                
+                // Populate edit profile modal
+                if (modalId === 'editProfileModal' && userProfile) {
+                    document.getElementById('editDisplayName').value = userProfile.full_name || '';
+                    document.getElementById('editUsername').value = userProfile.username || '';
+                    document.getElementById('editBio').value = userProfile.bio || '';
+                    document.getElementById('editLocation').value = userProfile.location || '';
+                    document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
+                }
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Reset forms
+                if (modalId === 'addEntryModal') {
+                    document.getElementById('journalEntryForm').reset();
+                    setRating(0);
+                }
+            }
+        }
+
+        // Avatar Functions
+        function showAvatarModal() {
+            if (!isViewingOwnProfile) return;
+            
+            const grid = document.getElementById('avatarIconGrid');
+            if (!grid) return;
+            
+            const icons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐"];
+            
+            grid.innerHTML = '';
+            icons.forEach(icon => {
+                const iconEl = document.createElement('button');
+                iconEl.type = 'button';
+                iconEl.className = 'btn btn-icon';
+                iconEl.style.fontSize = '24px';
+                iconEl.textContent = icon;
+                iconEl.onclick = () => selectAvatar(icon);
+                grid.appendChild(iconEl);
+            });
+            
+            showModal('avatarModal');
+        }
+
+        function selectAvatar(icon) {
+            // Simple selection - in real app, store this
+            document.getElementById('profileAvatar').textContent = icon;
+            closeModal('avatarModal');
+            showToast('Avatar updated!', 'success');
+        }
+
+        async function saveAvatar() {
+            // Implementation depends on your schema
+            showToast('Avatar saved!', 'success');
+            closeModal('avatarModal');
+        }
+
+        // Utility Functions
+        function setRating(stars) {
+            const starsEl = document.querySelectorAll('.rating-star');
+            starsEl.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            document.getElementById('selectedRating').value = stars;
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.style.borderLeftColor = type === 'success' ? 'var(--success)' : 
+                                          type === 'error' ? 'var(--error)' : 'var(--accent)';
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function goToMyProfile() {
+            window.location.href = 'profile.html';
+        }
+
+        function showCreateListModal() {
+            showModal('createListModal');
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Journal form
+            const journalForm = document.getElementById('journalEntryForm');
+            if (journalForm) {
+                journalForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    saveJournalEntry();
+                });
+            }
+            
+            // Edit profile form
+            const editProfileForm = document.getElementById('editProfileForm');
+            if (editProfileForm) {
+                editProfileForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    saveProfileChanges();
+                });
+            }
+            
+            // Create list form
+            const createListForm = document.getElementById('createListForm');
+            if (createListForm) {
+                createListForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showToast('List created!', 'success');
+                    closeModal('createListModal');
+                });
+            }
+            
+            // Logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to logout?')) {
+                        await supabase.auth.signOut();
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+            
+            // Modal close buttons
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    if (modal) closeModal(modal.id);
+                });
+            });
+            
+            // Close modal on backdrop click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) closeModal(this.id);
+                });
+            });
+            
+            // Escape key to close modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.active').forEach(modal => {
+                        closeModal(modal.id);
+                    });
+                }
+            });
+            
+            // Touch optimizations
+            document.addEventListener('touchstart', function() {}, { passive: true });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initProfilePage);
+
+        // Global functions
+        window.showTab = showTab;
+        window.showModal = showModal;
+        window.closeModal = closeModal;
+        window.setRating = setRating;
+        window.goToMyProfile = goToMyProfile;
+        window.showCreateListModal = showCreateListModal;
+        window.showAvatarModal = showAvatarModal;
+    </script>
+</body>
 </html>
