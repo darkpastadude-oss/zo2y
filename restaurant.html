@@ -2241,7 +2241,7 @@ async function checkAuth() {
                 if (currentUser) {
                     reviewForm.style.display = 'block';
                     authPrompt.style.display = 'none';
-                    showNotification('Welcome back! You can now submit reviews.', 'success', 3000);
+                    xxshowNotification(, 3000);
                 } else {
                     reviewForm.style.display = 'none';
                     authPrompt.style.display = 'block';
