@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restaurant Details</title>
-<!-- FAVICON - Correct path for images/logo.png -->
+<!-- FAVICON -->
 <link rel="icon" type="image/png" href="images/logo.png">
 <link rel="apple-touch-icon" href="images/logo.png">
-<!-- Fallback for older browsers -->
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico">
 
 <!-- Preload critical assets -->
@@ -15,1346 +14,1714 @@
 <link rel="preload" href="images/logo.png" as="image">
 
 <style>
-/* Base styles remain the same... */
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-:root {
-  --bg: #1e2a4a;
-  --text: #fff;
-  --text2: #cbd5e1;
-  --nav-bg: #2d3748;
-  --nav-shadow: rgba(255,255,255,0.1);
-  --btn-bg: #ff944d;
-  --btn-text: #111;
-  --card: #2d3748;
-  --input-bg: #2d3748;
-  --input-text: #fff;
-  --accent: #ff944d;
-  --success: #22c55e;
-  --error: #ef4444;
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
-body{background-color:var(--bg);color:var(--text);transition:background-color 0.3s ease,color 0.3s ease;line-height:1.6;padding-top: 100px; /* Compensate for fixed header + nav */}
-.top-stripe{background:#FF9800;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:fixed;top:0;left:0;right:0;z-index:1000;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.back-btn{background:rgba(255,255,255,0.2);color:white;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:14px;transition:all 0.3s ease;display:flex;align-items:center;gap:6px}
-.back-btn:hover{background:rgba(255,255,255,0.3);transform:translateX(-3px)}
-.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,var(--card) 0%,var(--bg) 100%);position:relative;margin-top: 0;}
-.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(45deg, rgba(255,152,0,0.05) 0%, transparent 50%);pointer-events:none}
-.logo{width:150px;height:150px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;margin-bottom:30px;border:4px solid white;position:relative;z-index:1}
-.hero h1{font-size:2.5rem;margin-bottom:10px;font-weight:700;position:relative;z-index:1}
-.hero p{font-size:1rem;color:var(--text2);margin-bottom:10px;max-width:600px;margin:0 auto;position:relative;z-index:1}
-.rating{color:#FF9800;font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
-.btn{display:inline-block;padding:12px 24px;border-radius:8px;background:var(--btn-bg);color:var(--btn-text);text-decoration:none;font-weight:600;margin:6px 4px;transition:transform 0.2s ease,box-shadow 0.2s ease;border:none;cursor:pointer;font-size:1rem;position:relative;z-index:1}
-.btn.secondary{background:var(--nav-bg);color:var(--text);border:1px solid var(--text)}
-.btn:hover{transform:scale(1.03);box-shadow:0 6px 18px rgba(255,152,0,0.2)}
 
-/* FIXED SECTION NAVIGATION BAR - ALWAYS VISIBLE */
+:root {
+    --bg: #1e2a4a;
+    --text: #fff;
+    --text2: #cbd5e1;
+    --nav-bg: #2d3748;
+    --nav-shadow: rgba(255, 255, 255, 0.1);
+    --btn-bg: #ff944d;
+    --btn-text: #111;
+    --card: #2d3748;
+    --input-bg: #2d3748;
+    --input-text: #fff;
+    --accent: #ff944d;
+    --success: #22c55e;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    line-height: 1.6;
+    padding-top: 100px; /* Compensate for fixed header + nav */
+    min-height: 100vh;
+}
+
+/* Top Stripe */
+.top-stripe {
+    background: #FF9800;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-3px);
+}
+
+/* Hero Section */
+.hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    background: linear-gradient(135deg, var(--card) 0%, var(--bg) 100%);
+    position: relative;
+    margin-top: 0;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 152, 0, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.logo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    margin-bottom: 30px;
+    border: 4px solid white;
+    position: relative;
+    z-index: 1;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.hero p {
+    font-size: 1rem;
+    color: var(--text2);
+    margin-bottom: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    line-height: 1.6;
+}
+
+.rating {
+    color: #FF9800;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    text-decoration: none;
+    font-weight: 600;
+    margin: 6px 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    position: relative;
+    z-index: 1;
+    gap: 8px;
+    min-height: 44px;
+}
+
+.btn.secondary {
+    background: var(--nav-bg);
+    color: var(--text);
+    border: 1px solid var(--text);
+}
+
+.btn:hover:not(:disabled) {
+    transform: scale(1.03);
+    box-shadow: 0 6px 18px rgba(255, 152, 0, 0.2);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Section Navigation */
 .section-nav {
-  background: var(--nav-bg);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  position: fixed;
-  top: 50px; /* Below the top stripe */
-  left: 0;
-  right: 0;
-  z-index: 999;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+    background: var(--nav-bg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: fixed;
+    top: 50px;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
 }
 
 .section-nav-container {
-  max-width: 1200px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  height: 100%;
+    max-width: 1200px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 100%;
 }
 
 .section-nav-list {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  align-items: center;
-  gap: 0;
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    align-items: center;
+    gap: 0;
 }
 
 .section-nav-item {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
 }
 
 .section-nav-link {
-  color: var(--text2);
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  padding: 0 24px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  position: relative;
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    position: relative;
 }
 
 .section-nav-link:hover {
-  color: var(--text);
-  background: rgba(255, 152, 0, 0.15);
+    color: var(--text);
+    background: rgba(255, 152, 0, 0.15);
 }
 
 .section-nav-link.active {
-  color: var(--text);
-  font-weight: 600;
-  background: rgba(255, 152, 0, 0.1);
+    color: var(--text);
+    font-weight: 600;
+    background: rgba(255, 152, 0, 0.1);
 }
 
 .section-nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--btn-bg);
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--btn-bg);
 }
 
-/* Mobile navigation styles */
-@media (max-width: 768px) {
-  body {
-    padding-top: 94px; /* Adjust for mobile header + nav */
-  }
-  
-  .section-nav {
-    height: 44px;
-    top: 44px; /* Adjusted for mobile top stripe */
-  }
-  
-  .section-nav-container {
-    padding: 0 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  .section-nav-container::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
-  }
-  
-  .section-nav-list {
-    flex-wrap: nowrap;
-    min-width: max-content;
-    gap: 0;
-    padding: 0 10px;
-  }
-  
-  .section-nav-link {
-    padding: 0 18px;
-    font-size: 0.9rem;
-  }
-  
-  .top-stripe {
-    height: 44px;
-  }
-  
-  .hero {
-    padding-top: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  body {
-    padding-top: 92px; /* Adjust for small mobile */
-  }
-  
-  .section-nav {
-    height: 42px;
-  }
-  
-  .section-nav-link {
-    padding: 0 14px;
-    font-size: 0.85rem;
-  }
-}
-
-/* Add smooth scrolling for anchor links */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Add padding to sections for fixed nav */
+/* Sections */
 .section {
-  scroll-margin-top: 120px; /* Height of top stripe + nav bar + buffer */
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    scroll-margin-top: 120px;
 }
 
-.section:first-of-type {
-  padding-top: 20px;
+h2 {
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    position: relative;
+    padding-bottom: 10px;
 }
 
-/* END: SECTION NAVIGATION BAR */
+h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #FF9800;
+    border-radius: 2px;
+}
 
-.section{max-width:900px;margin:0 auto;padding:40px 20px}
-h2{margin-bottom:20px;font-size:1.6rem;position:relative;padding-bottom:10px}
-h2::after{content:'';position:absolute;bottom:0;left:0;width:60px;height:3px;background:#FF9800;border-radius:2px}
-.hotline{font-size:1.2rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.hotline a{color:var(--text);text-decoration:none;font-weight:700;background:var(--card);padding:8px 16px;border-radius:20px;transition:all 0.3s ease}
-.hotline a:hover{text-decoration:none;background:var(--btn-bg);color:var(--btn-text)}
-.branches{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
-.branch-card{flex:1 1 45%;border:1px solid var(--nav-shadow);border-radius:12px;padding:20px;background:var(--card);transition:all 0.3s ease;box-shadow:0 4px 6px rgba(0,0,0,0.05)}
-.branch-card:hover{transform:translateY(-5px);box-shadow:0 8px 15px rgba(0,0,0,0.1)}
-.branch-card h3{margin-bottom:10px;font-size:1.2rem}
-.branch-card p{font-size:0.95rem;color:var(--text2);margin-bottom:15px}
-.branch-card a{font-size:0.9rem;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:5px}
-.branch-card a:hover{text-decoration:underline}
+/* Contact Info */
+.hotline {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
-/* CLEAN TALABAT SECTION STYLES */
+.hotline a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 700;
+    background: var(--card);
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.hotline a:hover {
+    text-decoration: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+}
+
+/* Branches */
+.branches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.branch-card {
+    flex: 1 1 45%;
+    border: 1px solid var(--nav-shadow);
+    border-radius: 12px;
+    padding: 20px;
+    background: var(--card);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.branch-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.branch-card h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.branch-card p {
+    font-size: 0.95rem;
+    color: var(--text2);
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.branch-card a {
+    font-size: 0.9rem;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+}
+
+.branch-card a:hover {
+    text-decoration: underline;
+    color: var(--accent);
+}
+
+/* Talabat Section */
 .talabat-section {
-  margin: 40px auto;
-  max-width: 900px;
-  padding: 0 20px;
-}
-
-.talabat-section h2 {
-  margin-bottom: 25px;
-  position: relative;
+    margin: 40px auto;
+    max-width: 900px;
+    padding: 0 20px;
 }
 
 .talabat-card {
-  display: flex;
-  align-items: center;
-  background: var(--card);
-  border-radius: 16px;
-  padding: 25px;
-  border: 1px solid var(--nav-shadow);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-  gap: 20px;
-  position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 25px;
+    border: 1px solid var(--nav-shadow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 20px;
+    position: relative;
 }
 
 .talabat-icon-wrapper {
-  width: 60px;
-  height: 60px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--nav-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--nav-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .talabat-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .talabat-info {
-  flex: 1;
-  min-width: 200px;
+    flex: 1;
+    min-width: 200px;
 }
 
 .talabat-info h3 {
-  font-size: 1.4rem;
-  margin-bottom: 10px;
-  color: var(--text);
-  font-weight: 600;
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    color: var(--text);
+    font-weight: 600;
 }
 
 .availability-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-  min-height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    min-height: 24px;
 }
 
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .status-badge.available {
-  background: rgba(34, 197, 94, 0.2);
-  color: var(--success);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .status-badge.not-available {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--error);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .status-badge .checkmark {
-  font-size: 1rem;
+    font-size: 1rem;
 }
 
 .status-loading {
-  color: var(--text2);
-  font-style: italic;
-  font-size: 0.95rem;
+    color: var(--text2);
+    font-style: italic;
+    font-size: 0.95rem;
 }
 
 .availability-warning {
-  font-size: 0.85rem;
-  color: #f59e0b;
-  margin-top: 12px;
-  padding: 10px 14px;
-  background: rgba(245, 158, 11, 0.1);
-  border-radius: 8px;
-  border-left: 3px solid #f59e0b;
-  display: none;
+    font-size: 0.85rem;
+    color: #f59e0b;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #f59e0b;
+    display: none;
 }
 
 .availability-warning::before {
-  content: "⚠️ ";
-  margin-right: 6px;
+    content: "⚠️ ";
+    margin-right: 6px;
 }
 
 .other-platforms {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid var(--nav-shadow);
-  display: none;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--nav-shadow);
 }
 
 .other-platforms h3 {
-  font-size: 1.2rem;
-  margin-bottom: 15px;
-  color: var(--text2);
-  font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--text2);
+    font-weight: 600;
 }
 
 .website-card {
-  display: flex;
-  align-items: center;
-  background: var(--card);
-  border-radius: 16px;
-  padding: 25px;
-  border: 1px solid var(--nav-shadow);
-  gap: 20px;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 25px;
+    border: 1px solid var(--nav-shadow);
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .website-icon {
-  font-size: 2.5rem;
-  flex-shrink: 0;
+    font-size: 2.5rem;
+    flex-shrink: 0;
 }
 
 .website-info {
-  flex: 1;
-  min-width: 200px;
+    flex: 1;
+    min-width: 200px;
 }
 
 .website-info h4 {
-  font-size: 1.3rem;
-  margin-bottom: 8px;
-  color: var(--text);
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    color: var(--text);
 }
 
 .website-desc {
-  color: var(--text2);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin: 0;
+    color: var(--text2);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
 }
 
 .website-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: var(--nav-bg);
-  color: var(--text);
-  text-decoration: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  white-space: nowrap;
-  flex-shrink: 0;
-  border: 1px solid var(--nav-shadow);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--nav-bg);
+    color: var(--text);
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border: 1px solid var(--nav-shadow);
+    transition: all 0.3s ease;
 }
 
 .website-btn:hover {
-  background: var(--btn-bg);
-  color: var(--btn-text);
-  border-color: var(--btn-bg);
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-bg);
 }
 
-/* MOBILE OPTIMIZATIONS */
-@media (max-width: 768px) {
-  .talabat-section {
-    padding: 0 16px;
-    margin: 30px auto;
-  }
-  
-  .talabat-card, .website-card {
-    padding: 20px;
-    flex-direction: column;
-    text-align: center;
-    gap: 15px;
-    border-radius: 14px;
-  }
-  
-  .talabat-icon-wrapper {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .talabat-info, .website-info {
+/* Menu */
+.menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--nav-shadow);
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    flex-wrap: wrap;
+}
+
+.menu-item:hover {
+    background: var(--card);
+    border-radius: 8px;
+    padding-left: 15px;
+}
+
+.menu-item span {
+    color: var(--text2);
+}
+
+.menu-item span:last-child {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.menu-item-description {
+    font-size: 0.85rem;
+    color: var(--text2);
+    margin-top: 5px;
     width: 100%;
-  }
-  
-  .website-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 14px 24px;
-    min-height: 48px;
-  }
-  
-  .availability-status {
-    justify-content: center;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .status-badge {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .talabat-info h3 {
+    flex-basis: 100%;
+}
+
+.menu-category {
+    margin-top: 30px;
+}
+
+.menu-category h3 {
+    margin-bottom: 15px;
+    color: #FF9800;
     font-size: 1.3rem;
-  }
-  
-  .website-info h4 {
-    font-size: 1.2rem;
-  }
 }
 
-@media (max-width: 480px) {
-  .talabat-section {
-    padding: 0 12px;
-  }
-  
-  .talabat-card, .website-card {
-    padding: 16px;
-    border-radius: 12px;
-  }
-  
-  .talabat-icon-wrapper {
+/* Footer */
+footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--nav-shadow);
+    font-size: 0.9rem;
+    color: var(--text2);
+    margin-top: 20px;
+}
+
+/* Loading States */
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+.loading-spinner {
     width: 40px;
     height: 40px;
-  }
-  
-  .talabat-info h3, .website-info h4 {
-    font-size: 1.2rem;
-  }
-  
-  .status-badge {
-    font-size: 0.85rem;
-    padding: 8px 12px;
-  }
-  
-  .availability-warning {
-    font-size: 0.8rem;
-    padding: 8px 12px;
-  }
-  
-  .other-platforms h3 {
-    font-size: 1.1rem;
-  }
-}
-/* DARK MODE OPTIMIZATIONS */
-@media (prefers-color-scheme: dark) {
-  .talabat-card, .website-card {
-    background: #1a2332;
-    border-color: #2d3748;
-  }
-  
-  .website-btn {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
+    border: 4px solid var(--nav-shadow);
+    border-top: 4px solid #FF9800;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
 }
 
-/* REDUCED MOTION PREFERENCES */
-@media (prefers-reduced-motion: reduce) {
-  .talabat-card,
-  .website-card,
-  .website-btn,
-  .status-badge,
-  .talabat-icon {
-    transition: none;
-    animation: none;
-  }
-  
-  .talabat-card:hover,
-  .website-card:hover,
-  .website-btn:hover {
-    transform: none;
-  }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
-.menu-item{display:flex;justify-content:space-between;padding:15px 10px;border-bottom:1px solid var(--nav-shadow);margin-bottom:8px;transition:all 0.3s ease}
-.menu-item:hover{background:var(--card);border-radius:8px;padding-left:15px}
-.menu-item span{color:var(--text2)}
-.menu-item span:last-child{font-weight:600;color:var(--text)}
-.menu-item-description{font-size:0.85rem;color:var(--text2);margin-top:5px;width:100%;flex-basis:100%}
-footer{text-align:center;padding:40px 20px;border-top:1px solid var(--nav-shadow);font-size:0.9rem;color:var(--text2);margin-top:20px}
-.loading{text-align:center;padding:60px 20px;margin-top: 100px;}
-.loading-spinner{width:40px;height:40px;border:4px solid var(--nav-shadow);border-top:4px solid #FF9800;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
-@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-.error-message{text-align:center;padding:60px 20px;color:var(--text2);margin-top: 100px;}
-.no-data{text-align:center;padding:30px;color:var(--text2);font-style:italic;background:var(--card);border-radius:12px;margin:20px 0}
-.menu-category{margin-top:30px}
-.menu-category h3{margin-bottom:15px;color:#FF9800;font-size:1.3rem}
 
-/* Lazy loading classes */
+.error-message {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text2);
+    margin-top: 100px;
+}
+
+.no-data {
+    text-align: center;
+    padding: 30px;
+    color: var(--text2);
+    font-style: italic;
+    background: var(--card);
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+/* Lazy Loading */
 .lazy {
-  opacity: 0;
-  transition: opacity 0.3s ease;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .lazy.loaded {
-  opacity: 1;
+    opacity: 1;
 }
 
 .lazy-img {
-  background: linear-gradient(90deg, #2d3748 25%, #374151 50%, #2d3748 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
+    background: linear-gradient(90deg, #2d3748 25%, #374151 50%, #2d3748 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
 }
 
 @keyframes loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
-/* IMPROVED: Mobile Responsiveness */
-@media (max-width:768px){
-  .logo{width:120px;height:120px;margin-bottom:24px}
-  .hero{padding:40px 16px 30px}
-  .hero h1{font-size:2rem;line-height:1.2}
-  .hero p{font-size:0.95rem;line-height:1.5}
-  .btn{padding:10px 18px;font-size:0.95rem;margin:4px 2px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
-  .branch-card{flex:1 1 100%}
-  .section{padding:30px 16px}
-  h2{font-size:1.4rem;padding-bottom:8px}
-  h2::after{width:40px}
-  .branches{gap:15px}
-  .menu-item{padding:12px 8px;flex-wrap:wrap}
-  .menu-item span{font-size:0.95rem}
-  .top-stripe{height:44px;padding:0 12px}
-  .back-btn{padding:6px 12px;font-size:12px;min-height:32px}
-  .hotline{font-size:1rem;flex-direction:column;align-items:flex-start;gap:8px}
-  .hotline a{padding:6px 12px;font-size:0.9rem}
-  
-  /* Talabat Mobile */
-  .talabat-card, .website-card {
+/* Notification System */
+.notification {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    z-index: 10000;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background: var(--success);
+    color: white;
+}
+
+.notification.error {
+    background: var(--error);
+    color: white;
+}
+
+.notification.warning {
+    background: var(--warning);
+    color: white;
+}
+
+.notification.info {
+    background: var(--info);
+    color: white;
+}
+
+/* Review System Styles */
+.reviews-stats {
+    background: var(--card);
     padding: 20px;
-    flex-direction: column;
-    text-align: center;
-    gap: 15px;
-  }
-  
-  .talabat-icon {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .talabat-info, .website-info {
-    width: 100%;
-  }
-  
-  .website-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .availability-status {
-    justify-content: center;
-  }
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid var(--nav-shadow);
 }
 
-@media (max-width:480px){
-  body {
-    padding-top: 86px; /* Adjust for small mobile */
-  }
-  
-  .top-stripe{padding:0 10px}
-  .back-btn{padding:6px 12px;font-size:12px}
-  .hero h1{font-size:1.8rem}
-  .hero p{font-size:0.9rem}
-  .hotline{font-size:1rem}
-  .rating{font-size:1rem}
-  .btn-group{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-  .btn{flex:1;min-width:calc(50% - 4px);max-width:100%}
-  .logo{width:100px;height:100px}
-  .section{padding:25px 12px}
-  h2{font-size:1.3rem}
-  .branch-card{padding:15px}
-  .menu-item{padding:10px 6px;flex-direction:column;gap:4px}
-  .menu-item span:last-child{font-size:1rem}
-  
-  /* Talabat Mobile Small */
-  .talabat-card, .website-card {
-    padding: 16px;
-  }
-  
-  .talabat-icon {
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text2);
+    margin-top: 5px;
+}
+
+.rating-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rating-stars {
+    color: #FF9800;
+    font-size: 0.9rem;
+    width: 60px;
+}
+
+.rating-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--nav-shadow);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.rating-fill {
+    height: 100%;
+    background: #FF9800;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.rating-count {
+    font-size: 0.8rem;
+    color: var(--text2);
+    width: 30px;
+    text-align: right;
+}
+
+.reviews-container {
+    margin-bottom: 40px;
+}
+
+.review-card {
+    background: var(--card);
+    border: 1px solid var(--nav-shadow);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.review-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 15px;
+}
+
+.reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.reviewer-avatar {
     width: 40px;
     height: 40px;
-  }
-  
-  .talabat-info h3, .website-info h4 {
-    font-size: 1.2rem;
-  }
-  
-  .status-badge {
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #FF6F00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.reviewer-details {
+    flex: 1;
+}
+
+.reviewer-name {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.review-date {
     font-size: 0.8rem;
+    color: var(--text2);
+}
+
+.review-rating {
+    color: #FF9800;
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+.review-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.review-edit, .review-delete {
+    background: none;
+    border: 1px solid var(--nav-shadow);
     padding: 6px 12px;
-  }
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text2);
 }
 
-/* IMPROVED: Touch-friendly improvements */
-@media (hover: none) and (pointer: coarse){
-  .btn:hover{transform:none}
-  .branch-card:hover{transform:none}
-  .menu-item:hover{background:transparent;padding-left:10px}
-  .list-item:hover{background:transparent;transform:none}
-  .fab-main:hover{transform:none}
-  .review-card:hover{transform:none}
-  .talabat-card:hover{transform:none}
-  .website-btn:hover{transform:none}
-  .btn{min-height:44px}
-  .back-btn{min-height:32px}
-  input, textarea, select{font-size:16px !important} /* Prevents iOS zoom on focus */
+.review-edit:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
 }
 
-/* IMPROVED: Safe area insets for notch phones */
-@supports(padding: max(0px)){
-  .top-stripe{
-    padding-left: max(20px, env(safe-area-inset-left));
-    padding-right: max(20px, env(safe-area-inset-right));
-    padding-top: env(safe-area-inset-top);
-    height: calc(50px + env(safe-area-inset-top));
-  }
-  
-  .section-nav {
-    top: calc(50px + env(safe-area-inset-top));
-  }
-  
-  @media (max-width:768px){
-    .top-stripe{
-      padding-left: max(12px, env(safe-area-inset-left));
-      padding-right: max(12px, env(safe-area-inset-right));
-      height: calc(44px + env(safe-area-inset-top));
+.review-delete:hover {
+    background: var(--error);
+    color: white;
+    border-color: var(--error);
+}
+
+.review-comment {
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.review-form-section {
+    background: var(--card);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid var(--nav-shadow);
+}
+
+.rating-input {
+    margin-bottom: 20px;
+}
+
+.rating-input label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.stars-rating {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.star {
+    font-size: 2rem;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+    min-width: 40px;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.star:hover,
+.star.active {
+    color: #FF9800;
+    transform: scale(1.1);
+}
+
+.rating-text {
+    font-size: 0.9rem;
+    color: var(--text2);
+    font-style: italic;
+}
+
+.comment-input {
+    margin-bottom: 20px;
+}
+
+.comment-input textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--nav-shadow);
+    border-radius: 8px;
+    background: var(--input-bg);
+    color: var(--input-text);
+    font-size: 0.95rem;
+    resize: vertical;
+    transition: all 0.3s ease;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.comment-input textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+}
+
+.char-count {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--text2);
+    margin-top: 4px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.submit-review-btn {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    min-width: 120px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.submit-review-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
+}
+
+.cancel-edit-btn {
+    background: var(--nav-bg);
+    color: var(--text);
+    border: 1px solid var(--nav-shadow);
+    min-height: 44px;
+}
+
+.auth-prompt {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text2);
+}
+
+.auth-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+.auth-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.reviews-loading, .reviews-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text2);
+    font-style: italic;
+}
+
+.reviews-empty {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--nav-shadow);
+}
+
+/* List Manager Styles */
+.list-manager-fab {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    z-index: 10000 !important;
+    font-family: inherit !important;
+}
+
+.fab-main {
+    width: 60px !important;
+    height: 60px !important;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: none !important;
+    color: white !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fab-main:hover {
+    transform: scale(1.1) rotate(90deg) !important;
+    box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
+}
+
+.fab-main:active {
+    transform: scale(0.95) !important;
+}
+
+.list-dropdown {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 20px;
+    min-width: 320px;
+    max-width: 400px;
+    display: none;
+    z-index: 10000;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropdownSlide {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.list-dropdown.show {
+    display: block !important;
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #334155;
+}
+
+.dropdown-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f59e0b;
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #1e293b;
+    color: #f59e0b;
+}
+
+.list-section {
+    margin-bottom: 20px;
+}
+
+.list-section-title {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.list-item:hover {
+    background: rgba(245, 158, 11, 0.1);
+    transform: translateX(4px);
+}
+
+.list-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #475569;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.list-checkbox.checked {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    animation: checkPop 0.3s ease;
+}
+
+@keyframes checkPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.list-checkbox.checked::after {
+    content: "✓";
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.list-item-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+.new-list-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 10px;
+    color: white;
+    margin-bottom: 12px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.new-list-input:focus {
+    outline: none;
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.add-list-btn {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #0f172a;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.add-list-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.empty-custom-lists {
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    body {
+        padding-top: 94px;
     }
     
     .section-nav {
-      top: calc(44px + env(safe-area-inset-top));
+        height: 44px;
+        top: 44px;
     }
-  }
+    
+    .section-nav-container {
+        padding: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .section-nav-container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .section-nav-list {
+        flex-wrap: nowrap;
+        min-width: max-content;
+        gap: 0;
+        padding: 0 10px;
+    }
+    
+    .section-nav-link {
+        padding: 0 18px;
+        font-size: 0.9rem;
+    }
+    
+    .top-stripe {
+        height: 44px;
+        padding: 0 12px;
+    }
+    
+    .hero {
+        padding: 40px 16px 30px;
+    }
+    
+    .logo {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 24px;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    
+    .hero p {
+        font-size: 0.95rem;
+    }
+    
+    .btn {
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        min-height: 44px;
+    }
+    
+    .section {
+        padding: 30px 16px;
+    }
+    
+    h2 {
+        font-size: 1.4rem;
+    }
+    
+    h2::after {
+        width: 40px;
+    }
+    
+    .branch-card {
+        flex: 1 1 100%;
+    }
+    
+    .talabat-card,
+    .website-card {
+        padding: 20px;
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .talabat-icon-wrapper {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .website-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .list-manager-fab {
+        bottom: 20px !important;
+        right: 20px !important;
+    }
+    
+    .fab-main {
+        width: 56px !important;
+        height: 56px !important;
+    }
+    
+    .list-dropdown {
+        bottom: 80px;
+        right: 20px;
+        left: 20px;
+        max-width: none;
+    }
+    
+    .notification {
+        top: 94px;
+    }
 }
 
-/* IMPROVED: Prevent horizontal scroll */
-html, body{
-  overflow-x:hidden;
-  width:100%;
-  position:relative;
+@media (max-width: 480px) {
+    body {
+        padding-top: 86px;
+    }
+    
+    .section-nav {
+        height: 42px;
+    }
+    
+    .section-nav-link {
+        padding: 0 14px;
+        font-size: 0.85rem;
+    }
+    
+    .top-stripe {
+        padding: 0 10px;
+    }
+    
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+    
+    .hero p {
+        font-size: 0.9rem;
+    }
+    
+    .logo {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .btn {
+        flex: 1;
+        min-width: calc(50% - 4px);
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .talabat-card,
+    .website-card {
+        padding: 16px;
+    }
+    
+    .talabat-icon-wrapper {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .status-badge {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+    }
+    
+    .list-manager-fab {
+        bottom: 16px !important;
+        right: 16px !important;
+    }
+    
+    .fab-main {
+        width: 52px !important;
+        height: 52px !important;
+    }
+    
+    .list-dropdown {
+        padding: 16px;
+    }
+    
+    .notification {
+        top: 86px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
 }
 
-/* IMPROVED: Better touch targets */
-button, 
-a.btn, 
-.star, 
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .btn:hover,
+    .branch-card:hover,
+    .menu-item:hover,
+    .list-item:hover,
+    .fab-main:hover,
+    .review-card:hover,
+    .talabat-card:hover,
+    .website-btn:hover,
+    .star:hover {
+        transform: none !important;
+    }
+    
+    .btn,
+    .back-btn {
+        min-height: 44px;
+    }
+    
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+}
+
+/* Safe area insets for notch phones */
+@supports (padding: max(0px)) {
+    .top-stripe {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+        padding-top: env(safe-area-inset-top);
+        height: calc(50px + env(safe-area-inset-top));
+    }
+    
+    .section-nav {
+        top: calc(50px + env(safe-area-inset-top));
+    }
+    
+    @media (max-width: 768px) {
+        .top-stripe {
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
+            height: calc(44px + env(safe-area-inset-top));
+        }
+        
+        .section-nav {
+            top: calc(44px + env(safe-area-inset-top));
+        }
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+    .talabat-card,
+    .website-card {
+        background: #1a2332;
+        border-color: #2d3748;
+    }
+    
+    .website-btn {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+}
+
+/* Prevent horizontal scroll */
+html,
+body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Better touch targets */
+button,
+a.btn,
+.star,
 .list-item,
 .branch-card,
 .review-card,
 .talabat-card,
-.website-card{
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-
-/* IMPROVED: Loading state for mobile */
-.loading{
-  min-height:50vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
+.website-card {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 </style>
 </head>
 <body>
 
 <div class="top-stripe">
-  <!-- FIXED: Goes to restraunts.html -->
-  <button class="back-btn" onclick="window.location.href='restraunts.html'">← Back to Restaurants</button>
+    <button class="back-btn" onclick="window.location.href='restraunts.html'">
+        ← Back to Restaurants
+    </button>
 </div>
 
-<!-- FIXED SECTION NAVIGATION BAR -->
+<!-- Section Navigation -->
 <nav class="section-nav" id="sectionNav">
-  <div class="section-nav-container">
-    <ul class="section-nav-list" id="sectionNavList">
-      <!-- Navigation items will be inserted here dynamically -->
-    </ul>
-  </div>
+    <div class="section-nav-container">
+        <ul class="section-nav-list" id="sectionNavList"></ul>
+    </div>
 </nav>
 
 <!-- Loading State -->
 <div id="loading" class="loading">
-  <div class="loading-spinner"></div>
-  <p>Loading restaurant details...</p>
+    <div class="loading-spinner"></div>
+    <p>Loading restaurant details...</p>
 </div>
 
 <!-- Main Content -->
-<div id="main-content" style="display: none;">
-  <section class="hero">
-    <img id="restaurant-logo" alt="Restaurant Logo" class="logo lazy lazy-img" data-src="" onclick="window.location.href='restraunts.html'">
-    <h1 id="restaurant-name"></h1>
-    <p id="restaurant-description"></p>
-    <div class="rating" id="restaurant-rating"></div>
-    
-    <div class="btn-group">
-      <a id="call-hotline" class="btn" href="#">Call Hotline</a>
-      <a id="order-online" class="btn secondary" href="#" target="_blank">Order Online</a>
-      <a id="instagram-link" class="btn secondary" href="#" target="_blank" style="display:none;">Instagram</a>
-      <a id="facebook-link" class="btn secondary" href="#" target="_blank" style="display:none;">Facebook</a>
-    </div>
-  </section>
-
-  <!-- SECTIONS WITH IDS FOR ANCHOR LINKS -->
-  <section id="overview-section" class="section">
-    <h2>Overview</h2>
-    <div class="overview-content" id="overview-content">
-      <!-- Overview content will be inserted here -->
-    </div>
-  </section>
-
-  <section id="branches-section" class="section">
-    <h2>Contact & Branches</h2>
-    <div class="hotline" id="contact-info">
-      <strong>Hotline:</strong> <a id="hotline-link" href="#">Loading...</a>
-    </div>
-
-    <div id="branches-container" class="branches">
-      <!-- Branches loaded dynamically -->
-    </div>
-  </section>
-
-  <section id="ordering-section" class="talabat-section">
-    <h2>Ordering Options</h2>
-    
-    <div class="talabat-card" id="talabat-card">
-      <!-- Simple static image -->
-      <div class="talabat-icon-wrapper">
-        <img 
-          id="talabat-icon" 
-          alt="Talabat Logo" 
-          class="talabat-icon"
-          src="images/talabat.png"
-          width="60"
-          height="60"
-          loading="lazy"
-        >
-      </div>
-      <div class="talabat-info">
-        <h3>Talabat</h3>
-        <div class="availability-status" id="talabat-status">
-          <span class="status-loading">Checking availability...</span>
+<main id="main-content" style="display: none;">
+    <section class="hero">
+        <img id="restaurant-logo" alt="Restaurant Logo" class="logo lazy lazy-img" data-src="">
+        <h1 id="restaurant-name"></h1>
+        <p id="restaurant-description"></p>
+        <div class="rating" id="restaurant-rating"></div>
+        
+        <div class="btn-group">
+            <a id="call-hotline" class="btn" href="#">
+                <span>📞</span> Call Hotline
+            </a>
+            <a id="order-online" class="btn secondary" href="#" target="_blank" rel="noopener">
+                <span>🛒</span> Order Online
+            </a>
+            <a id="instagram-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
+                <span>📷</span> Instagram
+            </a>
+            <a id="facebook-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
+                <span>👍</span> Facebook
+            </a>
         </div>
-        <div class="availability-warning" id="availability-warning" style="display: none;">
-          Availability may vary based on your location
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview-section" class="section">
+        <h2>Overview</h2>
+        <div class="overview-content" id="overview-content"></div>
+    </section>
+
+    <!-- Branches Section -->
+    <section id="branches-section" class="section">
+        <h2>Contact & Branches</h2>
+        <div class="hotline" id="contact-info">
+            <strong>Hotline:</strong> <a id="hotline-link" href="#">Loading...</a>
         </div>
-      </div>
-    </div>
-    
-    <div id="other-platforms" class="other-platforms" style="display: none;">
-      <h3>Other Platforms</h3>
-      <div class="website-card">
-        <div class="website-icon">🌐</div>
-        <div class="website-info">
-          <h4>Website Ordering</h4>
-          <p class="website-desc">Order directly from their website</p>
+
+        <div id="branches-container" class="branches"></div>
+    </section>
+
+    <!-- Ordering Section -->
+    <section id="ordering-section" class="talabat-section">
+        <h2>Ordering Options</h2>
+        
+        <div class="talabat-card" id="talabat-card">
+            <div class="talabat-icon-wrapper">
+                <img id="talabat-icon" alt="Talabat Logo" class="talabat-icon" src="images/talabat.png" width="60" height="60" loading="lazy">
+            </div>
+            <div class="talabat-info">
+                <h3>Talabat</h3>
+                <div class="availability-status" id="talabat-status">
+                    <span class="status-loading">Checking availability...</span>
+                </div>
+                <div class="availability-warning" id="availability-warning" style="display: none;">
+                    Availability may vary based on your location
+                </div>
+            </div>
         </div>
-        <a id="website-order-link" class="website-btn" href="#" target="_blank" rel="noopener noreferrer">
-          Visit Website →
+        
+        <div id="other-platforms" class="other-platforms" style="display: none;">
+            <h3>Other Platforms</h3>
+            <div class="website-card">
+                <div class="website-icon">🌐</div>
+                <div class="website-info">
+                    <h4>Website Ordering</h4>
+                    <p class="website-desc">Order directly from their website</p>
+                </div>
+                <a id="website-order-link" class="website-btn" href="#" target="_blank" rel="noopener">
+                    Visit Website →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu-section" class="section menu">
+        <h2>Menu</h2>
+        <div id="menu-container"></div>
+        <a id="full-menu-link" class="btn secondary" style="margin-top: 20px; display: none;" href="#" target="_blank" rel="noopener">
+            <span>📋</span> View Full Menu
         </a>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="menu-section" class="section menu">
-    <h2>Menu</h2>
-    <div id="menu-container">
-      <!-- Menu items loaded dynamically -->
-    </div>
-    <a id="full-menu-link" class="btn secondary" style="margin-top: 20px; display: none;" href="#" target="_blank">View Full Menu</a>
-  </section>
-
-  <!-- ENHANCED REVIEW SYSTEM -->
-  <section id="reviews-section" class="section reviews">
-    <h2>Customer Reviews</h2>
-    
-    <!-- Reviews Stats -->
-    <div class="reviews-stats" id="reviewsStats">
-      <div class="reviews-loading">Loading reviews...</div>
-    </div>
-
-    <!-- Reviews List -->
-    <div class="reviews-container" id="reviewsList"></div>
-
-    <!-- Add Review Form -->
-    <div class="review-form-section">
-      <h3>Share Your Experience</h3>
-      <form id="review-form" style="display: none;">
-        <div class="rating-input">
-          <label>Your Rating:</label>
-          <div class="stars-rating">
-            <span class="star" data-rating="1">★</span>
-            <span class="star" data-rating="2">★</span>
-            <span class="star" data-rating="3">★</span>
-            <span class="star" data-rating="4">★</span>
-            <span class="star" data-rating="5">★</span>
-          </div>
-          <span class="rating-text" id="ratingText">Select your rating</span>
-        </div>
+    <!-- Reviews Section -->
+    <section id="reviews-section" class="section reviews">
+        <h2>Customer Reviews</h2>
         
-        <div class="comment-input">
-          <textarea 
-            id="review-comment" 
-            placeholder="Tell us about your experience... What did you like? What could be better?" 
-            rows="4" 
-            maxlength="500"
-          ></textarea>
-          <div class="char-count">
-            <span id="charCount">0</span>/500 characters
-          </div>
+        <div class="reviews-stats" id="reviewsStats">
+            <div class="reviews-loading">Loading reviews...</div>
         </div>
-        
-        <div class="form-actions">
-          <button type="submit" class="btn submit-review-btn">
-            <span class="btn-text">Submit Review</span>
-            <span class="btn-loading" style="display: none;">Posting...</span>
-          </button>
-          <button type="button" class="btn secondary cancel-edit-btn" style="display: none;">
-            Cancel Edit
-          </button>
-        </div>
-      </form>
-      
-      <div id="auth-prompt" class="auth-prompt">
-        <div class="auth-icon">🔐</div>
-        <p>Please <a href="login.html" class="auth-link">sign in</a> to share your experience</p>
-      </div>
-    </div>
-  </section>
 
-  <footer>
-    <p id="footer-copyright">© 2025 Zo2y. All rights reserved.</p>
-    <p id="footer-tagline" style="margin-top: 10px; font-size: 0.8rem;"></p>
-  </footer>
-</div>
+        <div class="reviews-container" id="reviewsList"></div>
+
+        <div class="review-form-section">
+            <h3>Share Your Experience</h3>
+            <form id="review-form" style="display: none;">
+                <div class="rating-input">
+                    <label>Your Rating:</label>
+                    <div class="stars-rating">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                    <span class="rating-text" id="ratingText">Select your rating</span>
+                </div>
+                
+                <div class="comment-input">
+                    <textarea id="review-comment" placeholder="Tell us about your experience... What did you like? What could be better?" rows="4" maxlength="500"></textarea>
+                    <div class="char-count">
+                        <span id="charCount">0</span>/500 characters
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn submit-review-btn">
+                        <span class="btn-text">Submit Review</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px;"></span>
+                            Posting...
+                        </span>
+                    </button>
+                    <button type="button" class="btn secondary cancel-edit-btn" style="display: none;">
+                        Cancel Edit
+                    </button>
+                </div>
+            </form>
+            
+            <div id="auth-prompt" class="auth-prompt">
+                <div class="auth-icon">🔐</div>
+                <p>Please <a href="login.html" class="auth-link">sign in</a> to share your experience</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p id="footer-copyright">© 2025 Zo2y. All rights reserved.</p>
+        <p id="footer-tagline" style="margin-top: 10px; font-size: 0.8rem;"></p>
+    </footer>
+</main>
 
 <!-- Error State -->
 <div id="error" class="error-message" style="display: none;">
-  <h2>Restaurant Not Found</h2>
-  <p>We couldn't find the restaurant you're looking for.</p>
-  <!-- FIXED: Goes to restraunts.html -->
-  <button class="btn" onclick="window.location.href='restraunts.html'">Back to Restaurants</button>
+    <h2>Restaurant Not Found</h2>
+    <p>We couldn't find the restaurant you're looking for.</p>
+    <button class="btn" onclick="window.location.href='restraunts.html'">
+        <span>←</span> Back to Restaurants
+    </button>
 </div>
-
-<!-- Enhanced Review System Styles -->
-<style>
-.reviews-stats {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  border: 1px solid var(--nav-shadow);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
-  margin-bottom: 15px;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: var(--text2);
-  margin-top: 5px;
-}
-
-.rating-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 15px;
-}
-
-.rating-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.rating-stars {
-  color: #FF9800;
-  font-size: 0.9rem;
-  width: 60px;
-}
-
-.rating-bar {
-  flex: 1;
-  height: 8px;
-  background: var(--nav-shadow);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.rating-fill {
-  height: 100%;
-  background: #FF9800;
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.rating-count {
-  font-size: 0.8rem;
-  color: var(--text2);
-  width: 30px;
-  text-align: right;
-}
-
-.reviews-container {
-  margin-bottom: 40px;
-}
-
-.review-card {
-  background: var(--card);
-  border: 1px solid var(--nav-shadow);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  transition: all 0.3s ease;
-}
-
-.review-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.review-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  gap: 15px;
-}
-
-.reviewer-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-}
-
-.reviewer-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #FF6F00);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.reviewer-details {
-  flex: 1;
-}
-
-.reviewer-name {
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-
-.review-date {
-  font-size: 0.8rem;
-  color: var(--text2);
-}
-
-.review-rating {
-  color: #FF9800;
-  font-size: 1.1rem;
-  white-space: nowrap;
-}
-
-.review-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.review-edit, .review-delete {
-  background: none;
-  border: 1px solid var(--nav-shadow);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--text2);
-}
-
-.review-edit:hover {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
-}
-
-.review-delete:hover {
-  background: #ef4444;
-  color: white;
-  border-color: #ef4444;
-}
-
-.review-comment {
-  color: var(--text);
-  line-height: 1.5;
-  margin-bottom: 0;
-}
-
-.review-form-section {
-  background: var(--card);
-  padding: 25px;
-  border-radius: 12px;
-  border: 1px solid var(--nav-shadow);
-}
-
-.rating-input {
-  margin-bottom: 20px;
-}
-
-.rating-input label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.stars-rating {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-
-.star {
-  font-size: 2rem;
-  color: #4a5568;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  line-height: 1;
-  min-width: 40px; /* IMPROVED: Better touch target */
-  text-align: center;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.star:hover,
-.star.active {
-  color: #FF9800;
-  transform: scale(1.1);
-}
-
-.rating-text {
-  font-size: 0.9rem;
-  color: var(--text2);
-  font-style: italic;
-}
-
-.comment-input {
-  margin-bottom: 20px;
-}
-
-.comment-input textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--nav-shadow);
-  border-radius: 8px;
-  background: var(--input-bg);
-  color: var(--input-text);
-  font-size: 0.95rem;
-  resize: vertical;
-  transition: all 0.3s ease;
-  min-height: 100px; /* IMPROVED: Better for mobile */
-}
-
-.comment-input textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
-}
-
-.char-count {
-  text-align: right;
-  font-size: 0.8rem;
-  color: var(--text2);
-  margin-top: 4px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.submit-review-btn {
-  background: var(--btn-bg);
-  color: var(--btn-text);
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  min-width: 120px;
-  min-height: 44px; /* IMPROVED: Better touch target */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.submit-review-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
-}
-
-.submit-review-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.cancel-edit-btn {
-  background: var(--nav-bg);
-  color: var(--text);
-  border: 1px solid var(--nav-shadow);
-  min-height: 44px; /* IMPROVED: Better touch target */
-}
-
-.auth-prompt {
-  text-align: center;
-  padding: 30px 20px;
-  color: var(--text2);
-}
-
-.auth-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
-  opacity: 0.7;
-}
-
-.auth-link {
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.auth-link:hover {
-  text-decoration: underline;
-}
-
-.reviews-loading, .reviews-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--text2);
-  font-style: italic;
-}
-
-.reviews-empty {
-  background: var(--card);
-  border-radius: 12px;
-  border: 1px solid var(--nav-shadow);
-}
-
-/* Notification System */
-.review-notification {
-  position: fixed;
-  top: 100px; /* Below the fixed nav */
-  right: 20px;
-  background: var(--btn-bg);
-  color: var(--btn-text);
-  padding: 16px 24px;
-  border-radius: 12px;
-  z-index: 10000;
-  font-weight: 600;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-  transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  max-width: 300px;
-}
-
-.review-notification.show {
-  transform: translateX(0);
-}
-
-.review-notification.success {
-  background: #10b981;
-}
-
-.review-notification.error {
-  background: #ef4444;
-}
-
-.review-notification.info {
-  background: #3b82f6;
-}
-
-/* IMPROVED: Responsive Design for Reviews */
-@media (max-width: 768px) {
-  .review-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .review-actions {
-    align-self: flex-end;
-    width: 100%;
-    justify-content: flex-end;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .submit-review-btn,
-  .cancel-edit-btn {
-    width: 100%;
-  }
-  
-  .rating-stars {
-    width: 50px;
-  }
-  
-  .reviewer-avatar {
-    width: 35px;
-    height: 35px;
-    font-size: 0.8rem;
-  }
-  
-  .review-rating {
-    font-size: 1rem;
-  }
-  
-  .review-notification {
-    top: 94px; /* Adjusted for mobile */
-  }
-}
-
-@media (max-width: 480px) {
-  .review-form-section {
-    padding: 20px 15px;
-  }
-  
-  .star {
-    font-size: 1.7rem;
-    min-width: 35px;
-  }
-  
-  .review-card {
-    padding: 15px;
-  }
-  
-  .review-edit, .review-delete {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-  
-  .rating-breakdown {
-    gap: 6px;
-  }
-  
-  .rating-row {
-    gap: 8px;
-  }
-  
-  .rating-stars {
-    font-size: 0.8rem;
-    width: 45px;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .review-notification {
-    top: 86px; /* Adjusted for small mobile */
-    right: 10px;
-    left: 10px;
-    max-width: none;
-  }
-}
-
-/* IMPROVED: Mobile-specific adjustments */
-@media (max-width: 360px) {
-  .star {
-    font-size: 1.5rem;
-    min-width: 30px;
-  }
-  
-  .hero h1 {
-    font-size: 1.6rem;
-  }
-  
-  .btn {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-  }
-  
-  .review-card {
-    padding: 12px;
-  }
-}
-</style>
 
 <!-- Load Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1365,490 +1732,493 @@ const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+// Global state
+let currentUser = null;
+let currentRating = 0;
+let editingReviewId = null;
+let authStateListener = null;
+
+// Utility Functions
+function showNotification(message, type = 'info', duration = 4000) {
+    // Remove existing notifications
+    const existing = document.querySelectorAll('.notification');
+    existing.forEach(n => n.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Animate in
+    requestAnimationFrame(() => {
+        notification.classList.add('show');
+    });
+
+    // Auto remove
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 400);
+    }, duration);
+
+    return notification;
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Lazy Loading Observer
 const lazyLoadObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const img = entry.target;
-      const src = img.getAttribute('data-src');
-      
-      if (src) {
-        img.src = src;
-        img.onload = () => {
-          img.classList.remove('lazy-img');
-          img.classList.add('loaded');
-        };
-        img.onerror = () => {
-          img.src = 'images/default-logo.jpg';
-          img.classList.remove('lazy-img');
-          img.classList.add('loaded');
-        };
-      }
-      
-      lazyLoadObserver.unobserve(img);
-    }
-  });
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const img = entry.target;
+            const src = img.getAttribute('data-src');
+            
+            if (src) {
+                img.src = src;
+                img.onload = () => {
+                    img.classList.remove('lazy-img');
+                    img.classList.add('loaded');
+                };
+                img.onerror = () => {
+                    img.src = 'images/default-logo.jpg';
+                    img.classList.remove('lazy-img');
+                    img.classList.add('loaded');
+                };
+            }
+            
+            lazyLoadObserver.unobserve(img);
+        }
+    });
 }, {
-  rootMargin: '50px',
-  threshold: 0.1
+    rootMargin: '50px',
+    threshold: 0.1
 });
 
-// Get restaurant slug from URL PARAMETER (not filename)
+// Get restaurant slug from URL
 function getRestaurantSlug() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const slug = urlParams.get('slug');
-  
-  // Fallback: If no parameter, try filename (for backward compatibility)
-  if (!slug) {
-    const path = window.location.pathname;
-    const filename = path.split('/').pop();
-    return filename.replace('.html', '').toLowerCase();
-  }
-  
-  return slug.toLowerCase();
-}
-
-// SECTION NAVIGATION FUNCTIONS
-function createSectionNavigation() {
-  const sections = [
-    { id: 'overview-section', label: 'Overview' },
-    { id: 'branches-section', label: 'Branches' },
-    { id: 'ordering-section', label: 'Ordering' },
-    { id: 'menu-section', label: 'Menu' },
-    { id: 'reviews-section', label: 'Reviews' }
-  ];
-  
-  const navList = document.getElementById('sectionNavList');
-  navList.innerHTML = '';
-  
-  sections.forEach((section, index) => {
-    const listItem = document.createElement('li');
-    listItem.className = 'section-nav-item';
+    const urlParams = new URLSearchParams(window.location.search);
+    const slug = urlParams.get('slug');
     
-    const link = document.createElement('a');
-    link.href = `#${section.id}`;
-    link.className = 'section-nav-link';
-    if (index === 0) link.classList.add('active');
-    link.textContent = section.label;
-    
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      scrollToSection(section.id);
-      setActiveNavLink(section.id);
-    });
-    
-    listItem.appendChild(link);
-    navList.appendChild(listItem);
-  });
-  
-  // Set up scroll spy
-  setupScrollSpy();
-}
-
-function scrollToSection(sectionId) {
-  const section = document.getElementById(sectionId);
-  if (section) {
-    const offset = 120; // Account for fixed headers (top stripe + nav)
-    const elementPosition = section.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.pageYOffset - offset;
-    
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: 'smooth'
-    });
-  }
-}
-
-function setActiveNavLink(activeSectionId) {
-  const links = document.querySelectorAll('.section-nav-link');
-  links.forEach(link => {
-    link.classList.remove('active');
-    if (link.getAttribute('href') === `#${activeSectionId}`) {
-      link.classList.add('active');
-    }
-  });
-}
-
-function setupScrollSpy() {
-  const sections = [
-    'overview-section',
-    'branches-section', 
-    'ordering-section',
-    'menu-section',
-    'reviews-section'
-  ];
-  
-  const observerOptions = {
-    root: null,
-    rootMargin: '-120px 0px -66% 0px', // Adjusted for fixed nav height
-    threshold: 0
-  };
-  
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        setActiveNavLink(entry.target.id);
-      }
-    });
-  }, observerOptions);
-  
-  sections.forEach(sectionId => {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      observer.observe(section);
-    }
-  });
-}
-
-// Load ALL restaurant data from Supabase
-async function loadRestaurantData() {
-  const slug = getRestaurantSlug();
-  
-  try {
-    console.log('Loading data for slug:', slug);
-    
-    // 1. Load restaurant info - FIXED TABLE NAME
-    const { data: restaurant, error: restaurantError } = await supabase
-      .from('restraunts')  // <- FIXED: 'restraunts' not 'restaraunts'
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
-    if (restaurantError || !restaurant) {
-      console.error('Restaurant not found:', restaurantError);
-      throw new Error('Restaurant not found');
-    }
-
-    // 2. Load menu items
-    const { data: menuItems, error: menuError } = await supabase
-      .from('menu_items')
-      .select('*')
-      .eq('restaurant_slug', slug)
-      .order('category');
-
-    if (menuError) console.error('Menu error:', menuError);
-
-    // 3. Load branches
-    const { data: branches, error: branchesError } = await supabase
-      .from('branches')
-      .select('*')
-      .eq('restaurant_slug', slug)
-      .order('branch_name');
-
-    if (branchesError) console.error('Branches error:', branchesError);
-
-    return { 
-      restaurant, 
-      menuItems: menuItems || [], 
-      branches: branches || [] 
-    };
-  } catch (error) {
-    console.error('Error loading restaurant data:', error);
-    throw error;
-  }
-}
-
-// UPDATED: Check Talabat availability
-async function checkTalabatAvailability(slug) {
-  try {
-    console.log('Checking Talabat availability for:', slug);
-    
-    const { data: restaurant, error } = await supabase
-      .from('restraunts')
-      .select('talabat')
-      .eq('slug', slug)
-      .single();
-
-    if (error) {
-      console.error('Error checking Talabat:', error);
-      return { available: false, error: true };
-    }
-
-    if (!restaurant) {
-      console.log('Restaurant not found in talabat check');
-      return { available: false, error: false };
-    }
-
-    // Check if talabat column exists and has value
-    const isAvailable = restaurant.talabat === 'yes';
-    
-    return {
-      available: isAvailable,
-      error: false
-    };
-  } catch (error) {
-    console.error('Error checking Talabat:', error);
-    return { available: false, error: true };
-  }
-}
-
-// UPDATED: Update Talabat display
-async function updateTalabatDisplay(slug) {
-  const statusElement = document.getElementById('talabat-status');
-  const iconElement = document.getElementById('talabat-icon');
-  const cardElement = document.getElementById('talabat-card');
-  const warningElement = document.getElementById('availability-warning');
-  
-  // Set Talabat icon
-  iconElement.style.backgroundImage = 'url("images/talabat.png")';
-  
-  try {
-    const result = await checkTalabatAvailability(slug);
-    
-    if (result.error) {
-      statusElement.innerHTML = '<span class="status-loading">Availability unknown</span>';
-      return;
+    if (!slug) {
+        const path = window.location.pathname;
+        const filename = path.split('/').pop();
+        return filename.replace('.html', '').toLowerCase();
     }
     
-    if (result.available) {
-      statusElement.innerHTML = `
-        <span class="status-badge available">
-          <span class="checkmark">✓</span>
-          Available on Talabat
-        </span>
-        <span style="color: var(--text2); font-size: 0.9rem;">Check the Talabat app for ordering</span>
-      `;
-      
-      // Show warning message
-      warningElement.style.display = 'block';
-      
-      // Add success animation
-      cardElement.style.animation = 'pulseSuccess 2s ease';
-    } else {
-      statusElement.innerHTML = `
-        <span class="status-badge not-available">
-          Not Available
-        </span>
-        <span style="color: var(--text2); font-size: 0.9rem;">Not currently on Talabat</span>
-      `;
-    }
-  } catch (error) {
-    statusElement.innerHTML = '<span class="status-loading">Error checking availability</span>';
-  }
+    return slug.toLowerCase();
 }
 
 // Get restaurant ID from slug
 function getRestaurantIdFromSlug() {
-  const slug = getRestaurantSlug();
-  const slugToId = {
-    'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
-    'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
-    'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
-    'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
-    'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
-    'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
-    'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46,
-    'caizo':47,'tabali':48,'panda':49,'pablo':50
-  };
-  return slugToId[slug] || null;
+    const slug = getRestaurantSlug();
+    const slugToId = {
+        'mori': 1, 'kilo': 2, 'hameed': 3, 'bazooka': 4, 'mexican': 5, 'chikin': 6, 'vasko': 7,
+        'secondcup': 8, 'station': 9, 'brgr': 10, 'country': 11, 'bayoki': 12, 'maine': 13,
+        'barbar': 14, 'labash': 15, 'pickl': 16, 'akleh': 17, 'howlin': 18, 'sauce': 19,
+        'papa': 20, 'qasr': 21, 'heart': 22, 'what': 23, 'buffalo': 24, 'mince': 25, '88': 26,
+        'kansas': 27, 'ward': 28, 'willys': 29, 'butchers': 30, 'hashville': 31, 'dawgs': 32,
+        'holmes': 33, 'ribs': 34, 'peking': 35, 'wok': 36, 'daddy': 37, 'husk': 38, 'crispy': 39,
+        'lord': 40, 'chez': 41, 'mario': 42, 'crumbs': 43, 'man': 44, 'pasta': 45, 'crave': 46,
+        'caizo': 47, 'tabali': 48, 'panda': 49, 'pablo': 50, 'dushka': 51, '900': 52,
+        'shawermer': 53, 'abou tarek': 54, 'kufta': 55, 'takosan': 56, 'manchow': 57, 'yaba': 58
+    };
+    
+    // Handle slugs with spaces
+    const normalizedSlug = slug.replace(/%20/g, ' ').toLowerCase();
+    return slugToId[normalizedSlug] || null;
 }
 
-// Render restaurant data with lazy loading
-function renderRestaurantData({ restaurant, menuItems, branches }) {
-  // Hide loading, show main content
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('main-content').style.display = 'block';
-  
-  // Set page title
-  document.title = `${restaurant.name} - Zo2y`;
-  
-  // Create section navigation
-  createSectionNavigation();
-  
-  // Hero section with lazy loading
-  const logoImg = document.getElementById('restaurant-logo');
-  logoImg.setAttribute('data-src', restaurant.logo_url || restaurant.image || 'images/default-logo.jpg');
-  logoImg.alt = `${restaurant.name} Logo`;
-  lazyLoadObserver.observe(logoImg);
-  
-  document.getElementById('restaurant-name').textContent = restaurant.name;
-  document.getElementById('restaurant-description').textContent = restaurant.description || 'Delicious food served with care';
-  
-  // Rating
-  const ratingElement = document.getElementById('restaurant-rating');
-  if (restaurant.rating) {
-    ratingElement.innerHTML = `⭐ ${restaurant.rating}/5`;
-  } else {
-    ratingElement.innerHTML = '⭐ Rating not available';
-  }
-  
-  // Contact buttons
-  const hotlineBtn = document.getElementById('call-hotline');
-  if (restaurant.hotline) {
-    hotlineBtn.href = `tel:${restaurant.hotline}`;
-    hotlineBtn.textContent = `Call Hotline: ${restaurant.hotline}`;
-  } else {
-    hotlineBtn.style.display = 'none';
-  }
-  
-  // Website link - Only show if website_url exists
-  const websiteBtn = document.getElementById('order-online');
-  if (restaurant.website_url) {
-    websiteBtn.href = restaurant.website_url;
-    websiteBtn.textContent = 'Order Online';
-    document.getElementById('website-order-link').href = restaurant.website_url;
-    document.getElementById('other-platforms').style.display = 'block';
-  } else {
-    websiteBtn.style.display = 'none';
-    document.getElementById('other-platforms').style.display = 'none';
-  }
-  
-  // Social links
-  const instagramBtn = document.getElementById('instagram-link');
-  if (restaurant.instagram_url) {
-    instagramBtn.href = restaurant.instagram_url;
-    instagramBtn.style.display = 'inline-block';
-  }
-  
-  const facebookBtn = document.getElementById('facebook-link');
-  if (restaurant.facebook_url) {
-    facebookBtn.href = restaurant.facebook_url;
-    facebookBtn.style.display = 'inline-block';
-  }
-  
-  // Overview section content
-  const overviewContent = document.getElementById('overview-content');
-  overviewContent.innerHTML = `
-    <div class="overview-summary">
-      <p>${restaurant.description || 'Delicious food served with care'}</p>
-      <div class="overview-details" style="margin-top: 20px;">
-        ${restaurant.rating ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-          <strong style="color: var(--text);">Rating:</strong>
-          <span class="rating" style="color: #FF9800;">⭐ ${restaurant.rating}/5</span>
-        </div>` : ''}
-        ${restaurant.hotline ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-          <strong style="color: var(--text);">Hotline:</strong>
-          <a href="tel:${restaurant.hotline}" style="color: var(--accent); text-decoration: none;">${restaurant.hotline}</a>
-        </div>` : ''}
-        ${restaurant.category ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-          <strong style="color: var(--text);">Category:</strong>
-          <span style="color: var(--text2);">${restaurant.category}</span>
-        </div>` : ''}
-      </div>
-    </div>
-  `;
-  
-  // Contact info
-  const hotlineLink = document.getElementById('hotline-link');
-  if (restaurant.hotline) {
-    hotlineLink.href = `tel:${restaurant.hotline}`;
-    hotlineLink.textContent = restaurant.hotline;
-  }
-  
-  // Branches with lazy loading
-  const branchesContainer = document.getElementById('branches-container');
-  if (branches.length > 0) {
-    branches.forEach(branch => {
-      const branchCard = document.createElement('div');
-      branchCard.className = 'branch-card';
-      branchCard.innerHTML = `
-        <h3>${branch.branch_name}</h3>
-        <p>${branch.details || 'Location details not available'}</p>
-        ${branch.directions_link ? `<a href="${branch.directions_link}" target="_blank">📍 Get Directions</a>` : ''}
-      `;
-      branchesContainer.appendChild(branchCard);
-    });
-  } else {
-    branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
-  }
-  
-  // Menu items with lazy loading
-  const menuContainer = document.getElementById('menu-container');
-  if (menuItems.length > 0) {
-    // Group by category
-    const groupedByCategory = {};
-    menuItems.forEach(item => {
-      if (!groupedByCategory[item.category]) {
-        groupedByCategory[item.category] = [];
-      }
-      groupedByCategory[item.category].push(item);
+// SECTION NAVIGATION
+function createSectionNavigation() {
+    const sections = [
+        { id: 'overview-section', label: 'Overview' },
+        { id: 'branches-section', label: 'Branches' },
+        { id: 'ordering-section', label: 'Ordering' },
+        { id: 'menu-section', label: 'Menu' },
+        { id: 'reviews-section', label: 'Reviews' }
+    ];
+    
+    const navList = document.getElementById('sectionNavList');
+    navList.innerHTML = '';
+    
+    sections.forEach((section, index) => {
+        const listItem = document.createElement('li');
+        listItem.className = 'section-nav-item';
+        
+        const link = document.createElement('a');
+        link.href = `#${section.id}`;
+        link.className = 'section-nav-link';
+        if (index === 0) link.classList.add('active');
+        link.textContent = section.label;
+        
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            scrollToSection(section.id);
+            setActiveNavLink(section.id);
+        });
+        
+        listItem.appendChild(link);
+        navList.appendChild(listItem);
     });
     
-    // Render each category
-    Object.keys(groupedByCategory).forEach(category => {
-      const categoryDiv = document.createElement('div');
-      categoryDiv.className = 'menu-category';
-      categoryDiv.innerHTML = `<h3>${category}</h3>`;
-      
-      groupedByCategory[category].forEach(item => {
-        const menuItem = document.createElement('div');
-        menuItem.className = 'menu-item';
-        menuItem.innerHTML = `
-          <span>${item.item_name}</span>
-          <span>${item.price}</span>
-        `;
-        categoryDiv.appendChild(menuItem);
-      });
-      
-      menuContainer.appendChild(categoryDiv);
+    setupScrollSpy();
+}
+
+function scrollToSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        const offset = 120;
+        const elementPosition = section.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+}
+
+function setActiveNavLink(activeSectionId) {
+    const links = document.querySelectorAll('.section-nav-link');
+    links.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${activeSectionId}`) {
+            link.classList.add('active');
+        }
     });
-  } else {
-    menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
-  }
-  
-  // Full menu link - Only show if website_url exists
-  const fullMenuLink = document.getElementById('full-menu-link');
-  if (restaurant.website_url) {
-    fullMenuLink.href = restaurant.website_url;
-    fullMenuLink.style.display = 'inline-block';
-  } else {
-    fullMenuLink.style.display = 'none';
-  }
-  
-  // Footer
-  document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
-  
-  // UPDATED: Update Talabat display
-  updateTalabatDisplay(restaurant.slug);
 }
 
-// Error handler
-function showError() {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('error').style.display = 'block';
+function setupScrollSpy() {
+    const sections = [
+        'overview-section',
+        'branches-section', 
+        'ordering-section',
+        'menu-section',
+        'reviews-section'
+    ];
+    
+    const observerOptions = {
+        root: null,
+        rootMargin: '-120px 0px -66% 0px',
+        threshold: 0
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                setActiveNavLink(entry.target.id);
+            }
+        });
+    }, observerOptions);
+    
+    sections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            observer.observe(section);
+        }
+    });
 }
 
-// Initialize page with lazy loading
-async function initPage() {
-  try {
-    const data = await loadRestaurantData();
-    renderRestaurantData(data);
-    // Initialize the review system after main content loads
-    initReviewSystem();
-  } catch (error) {
-    showError();
-  }
+// DATA LOADING FUNCTIONS
+async function loadRestaurantData() {
+    const slug = getRestaurantSlug();
+    
+    try {
+        console.log('Loading data for slug:', slug);
+        
+        // Load restaurant info
+        const { data: restaurant, error: restaurantError } = await supabase
+            .from('restraunts')
+            .select('*')
+            .eq('slug', slug)
+            .single();
+
+        if (restaurantError || !restaurant) {
+            console.error('Restaurant not found:', restaurantError);
+            throw new Error('Restaurant not found');
+        }
+
+        // Load menu items
+        const { data: menuItems, error: menuError } = await supabase
+            .from('menu_items')
+            .select('*')
+            .eq('restaurant_slug', slug)
+            .order('category');
+
+        if (menuError) console.error('Menu error:', menuError);
+
+        // Load branches
+        const { data: branches, error: branchesError } = await supabase
+            .from('branches')
+            .select('*')
+            .eq('restaurant_slug', slug)
+            .order('branch_name');
+
+        if (branchesError) console.error('Branches error:', branchesError);
+
+        return { 
+            restaurant, 
+            menuItems: menuItems || [], 
+            branches: branches || [] 
+        };
+    } catch (error) {
+        console.error('Error loading restaurant data:', error);
+        throw error;
+    }
 }
 
-// Start loading when page loads
-document.addEventListener('DOMContentLoaded', initPage);
-</script>
+// TALABAT FUNCTIONS
+async function checkTalabatAvailability(slug) {
+    try {
+        const { data: restaurant, error } = await supabase
+            .from('restraunts')
+            .select('talabat')
+            .eq('slug', slug)
+            .single();
 
-<!-- The rest of the code (Review System and List Manager) remains the same -->
-<!-- Enhanced Review System Script -->
-<script>
-// Enhanced Review System
-let currentUser = null;
-let currentRating = 0;
-let editingReviewId = null;
+        if (error || !restaurant) {
+            return { available: false, error: true };
+        }
 
-// Initialize the review system
-async function initReviewSystem() {
-    const restaurantId = getRestaurantIdFromSlug();
-    if (!restaurantId) {
-        console.error('Could not determine restaurant ID from slug');
-        return;
+        const isAvailable = restaurant.talabat === 'yes';
+        return { available: isAvailable, error: false };
+    } catch (error) {
+        return { available: false, error: true };
+    }
+}
+
+async function updateTalabatDisplay(slug) {
+    const statusElement = document.getElementById('talabat-status');
+    const warningElement = document.getElementById('availability-warning');
+    
+    try {
+        const result = await checkTalabatAvailability(slug);
+        
+        if (result.error) {
+            statusElement.innerHTML = '<span class="status-loading">Availability unknown</span>';
+            return;
+        }
+        
+        if (result.available) {
+            statusElement.innerHTML = `
+                <span class="status-badge available">
+                    <span class="checkmark">✓</span>
+                    Available on Talabat
+                </span>
+                <span style="color: var(--text2); font-size: 0.9rem;">Check the Talabat app for ordering</span>
+            `;
+            warningElement.style.display = 'block';
+        } else {
+            statusElement.innerHTML = `
+                <span class="status-badge not-available">
+                    Not Available
+                </span>
+                <span style="color: var(--text2); font-size: 0.9rem;">Not currently on Talabat</span>
+            `;
+        }
+    } catch (error) {
+        statusElement.innerHTML = '<span class="status-loading">Error checking availability</span>';
+    }
+}
+
+// RENDER FUNCTIONS
+function renderRestaurantData({ restaurant, menuItems, branches }) {
+    // Hide loading, show main content
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    
+    // Set page title
+    document.title = `${restaurant.name} - Zo2y`;
+    
+    // Create section navigation
+    createSectionNavigation();
+    
+    // Hero section
+    const logoImg = document.getElementById('restaurant-logo');
+    logoImg.setAttribute('data-src', restaurant.logo_url || restaurant.image || 'images/default-logo.jpg');
+    logoImg.alt = `${restaurant.name} Logo`;
+    lazyLoadObserver.observe(logoImg);
+    
+    document.getElementById('restaurant-name').textContent = restaurant.name;
+    document.getElementById('restaurant-description').textContent = restaurant.description || 'Delicious food served with care';
+    
+    // Rating
+    const ratingElement = document.getElementById('restaurant-rating');
+    if (restaurant.rating) {
+        ratingElement.innerHTML = `⭐ ${restaurant.rating}/5`;
+    } else {
+        ratingElement.innerHTML = '⭐ Rating not available';
     }
     
-    window.restaurantId = restaurantId;
+    // Contact buttons
+    const hotlineBtn = document.getElementById('call-hotline');
+    if (restaurant.hotline) {
+        hotlineBtn.href = `tel:${restaurant.hotline}`;
+        hotlineBtn.textContent = `Call: ${restaurant.hotline}`;
+    } else {
+        hotlineBtn.style.display = 'none';
+    }
     
-    await checkAuth();
-    await loadReviews();
-    setupEventListeners();
+    // Website link
+    const websiteBtn = document.getElementById('order-online');
+    const otherPlatforms = document.getElementById('other-platforms');
+    if (restaurant.website_url) {
+        websiteBtn.href = restaurant.website_url;
+        document.getElementById('website-order-link').href = restaurant.website_url;
+        otherPlatforms.style.display = 'block';
+    } else {
+        websiteBtn.style.display = 'none';
+        otherPlatforms.style.display = 'none';
+    }
+    
+    // Social links
+    const instagramBtn = document.getElementById('instagram-link');
+    if (restaurant.instagram_url) {
+        instagramBtn.href = restaurant.instagram_url;
+        instagramBtn.style.display = 'inline-flex';
+    }
+    
+    const facebookBtn = document.getElementById('facebook-link');
+    if (restaurant.facebook_url) {
+        facebookBtn.href = restaurant.facebook_url;
+        facebookBtn.style.display = 'inline-flex';
+    }
+    
+    // Overview section
+    const overviewContent = document.getElementById('overview-content');
+    overviewContent.innerHTML = `
+        <div class="overview-summary">
+            <p>${restaurant.description || 'Delicious food served with care'}</p>
+            <div class="overview-details" style="margin-top: 20px;">
+                ${restaurant.rating ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <strong style="color: var(--text);">Rating:</strong>
+                    <span class="rating" style="color: #FF9800;">⭐ ${restaurant.rating}/5</span>
+                </div>` : ''}
+                ${restaurant.hotline ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <strong style="color: var(--text);">Hotline:</strong>
+                    <a href="tel:${restaurant.hotline}" style="color: var(--accent); text-decoration: none;">${restaurant.hotline}</a>
+                </div>` : ''}
+                ${restaurant.category ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <strong style="color: var(--text);">Category:</strong>
+                    <span style="color: var(--text2);">${restaurant.category}</span>
+                </div>` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Contact info
+    const hotlineLink = document.getElementById('hotline-link');
+    if (restaurant.hotline) {
+        hotlineLink.href = `tel:${restaurant.hotline}`;
+        hotlineLink.textContent = restaurant.hotline;
+    }
+    
+    // Branches
+    const branchesContainer = document.getElementById('branches-container');
+    if (branches.length > 0) {
+        branches.forEach(branch => {
+            const branchCard = document.createElement('div');
+            branchCard.className = 'branch-card';
+            branchCard.innerHTML = `
+                <h3>${branch.branch_name}</h3>
+                <p>${branch.details || 'Location details not available'}</p>
+                ${branch.directions_link ? `<a href="${branch.directions_link}" target="_blank" rel="noopener">📍 Get Directions</a>` : ''}
+            `;
+            branchesContainer.appendChild(branchCard);
+        });
+    } else {
+        branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
+    }
+    
+    // Menu items
+    const menuContainer = document.getElementById('menu-container');
+    if (menuItems.length > 0) {
+        const groupedByCategory = {};
+        menuItems.forEach(item => {
+            if (!groupedByCategory[item.category]) {
+                groupedByCategory[item.category] = [];
+            }
+            groupedByCategory[item.category].push(item);
+        });
+        
+        Object.keys(groupedByCategory).forEach(category => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'menu-category';
+            categoryDiv.innerHTML = `<h3>${category}</h3>`;
+            
+            groupedByCategory[category].forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                menuItem.innerHTML = `
+                    <span>${item.item_name}</span>
+                    <span>${item.price}</span>
+                `;
+                categoryDiv.appendChild(menuItem);
+            });
+            
+            menuContainer.appendChild(categoryDiv);
+        });
+    } else {
+        menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
+    }
+    
+    // Full menu link
+    const fullMenuLink = document.getElementById('full-menu-link');
+    if (restaurant.website_url) {
+        fullMenuLink.href = restaurant.website_url;
+        fullMenuLink.style.display = 'inline-flex';
+    } else {
+        fullMenuLink.style.display = 'none';
+    }
+    
+    // Footer
+    document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
+    
+    // Update Talabat display
+    updateTalabatDisplay(restaurant.slug);
+}
+
+function showError() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+}
+
+// REVIEW SYSTEM
+async function initReviewSystem() {
+    try {
+        const restaurantId = getRestaurantIdFromSlug();
+        if (!restaurantId) {
+            console.error('Could not determine restaurant ID from slug:', getRestaurantSlug());
+            const reviewSection = document.getElementById('reviews-section');
+            if (reviewSection) {
+                reviewSection.style.display = 'none';
+            }
+            return;
+        }
+        
+        window.restaurantId = restaurantId;
+        
+        await checkAuth();
+        await loadReviews();
+        setupReviewEventListeners();
+    } catch (error) {
+        console.error('Error initializing review system:', error);
+        showNotification('Error setting up review system', 'error');
+    }
 }
 
 async function checkAuth() {
     try {
+        // Get current session
         const { data: { user } } = await supabase.auth.getUser();
         currentUser = user;
         
@@ -1861,6 +2231,24 @@ async function checkAuth() {
         } else {
             reviewForm.style.display = 'none';
             authPrompt.style.display = 'block';
+        }
+        
+        // Set up auth state listener
+        if (!authStateListener) {
+            authStateListener = supabase.auth.onAuthStateChange(async (event, session) => {
+                currentUser = session?.user || null;
+                
+                if (currentUser) {
+                    reviewForm.style.display = 'block';
+                    authPrompt.style.display = 'none';
+                    showNotification('Welcome back! You can now submit reviews.', 'success', 3000);
+                } else {
+                    reviewForm.style.display = 'none';
+                    authPrompt.style.display = 'block';
+                }
+                
+                await loadReviews();
+            });
         }
     } catch (error) {
         console.error('Auth error:', error);
@@ -1924,7 +2312,7 @@ async function loadReviews() {
             </div>
         `;
 
-        // Load user profiles for display names
+        // Load user profiles
         const userIds = [...new Set(reviews.map(review => review.user_id))];
         const { data: users } = await supabase
             .from('user_profiles')
@@ -1940,6 +2328,7 @@ async function loadReviews() {
             const displayName = user?.full_name || user?.username || 'Anonymous';
             const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             const canEditDelete = currentUser && currentUser.id === review.user_id;
+            const isEditing = editingReviewId === review.id;
 
             return `
                 <div class="review-card" id="review-${review.id}">
@@ -1960,8 +2349,12 @@ async function loadReviews() {
                     <p class="review-comment">${review.comment}</p>
                     ${canEditDelete ? `
                         <div class="review-actions">
-                            <button class="review-edit" onclick="editReview('${review.id}')">Edit</button>
-                            <button class="review-delete" onclick="deleteReview('${review.id}')">Delete</button>
+                            <button class="review-edit" onclick="editReview('${review.id}')">
+                                ${isEditing ? 'Editing...' : 'Edit'}
+                            </button>
+                            <button class="review-delete" onclick="deleteReview('${review.id}')">
+                                Delete
+                            </button>
                         </div>
                     ` : ''}
                 </div>
@@ -1975,7 +2368,7 @@ async function loadReviews() {
     }
 }
 
-function setupEventListeners() {
+function setupReviewEventListeners() {
     // Star rating
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('star')) {
@@ -2171,7 +2564,12 @@ function cancelEdit() {
 }
 
 async function deleteReview(reviewId) {
-    if (!currentUser || !confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+    if (!currentUser) {
+        showNotification('Please log in to delete reviews', 'error');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
         return;
     }
 
@@ -2193,801 +2591,324 @@ async function deleteReview(reviewId) {
     }
 }
 
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.review-notification');
-    existingNotifications.forEach(notification => notification.remove());
+// LIST MANAGER
+class RestaurantListManager {
+    constructor() {
+        this.supabase = supabase;
+        this.restaurantId = getRestaurantIdFromSlug();
+        this.userLists = [];
+        this.customLists = [];
+        this.init();
+    }
 
-    const notification = document.createElement('div');
-    notification.className = `review-notification ${type}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
+    async init() {
+        await this.checkAuth();
+        if (this.currentUser) {
+            await this.loadUserLists();
+        }
+        this.injectListMenu();
+    }
 
-    // Animate in
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
+    async checkAuth() {
+        try {
+            const { data: { session } } = await this.supabase.auth.getSession();
+            this.currentUser = session?.user || null;
+        } catch (error) {
+            console.error('Auth error:', error);
+            this.currentUser = null;
+        }
+    }
 
-    // Auto remove after 4 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
+    async loadUserLists() {
+        try {
+            const { data: { user } } = await this.supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: lists } = await this.supabase
+                .from('lists')
+                .select('*')
+                .eq('user_id', user.id);
+            
+            this.userLists = lists || [];
+            this.customLists = this.userLists.filter(list => 
+                !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+            );
+        } catch (error) {
+            console.error('Error loading lists:', error);
+            this.userLists = [];
+            this.customLists = [];
+        }
+    }
+
+    injectListMenu() {
+        // Create FAB
+        const fab = document.createElement('div');
+        fab.className = 'list-manager-fab';
+        fab.innerHTML = `
+            <div class="fab-main">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+            </div>
+        `;
+        
+        // Create dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'list-dropdown';
+        
+        // FAB click handler
+        fab.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+            if (dropdown.classList.contains('show')) {
+                this.updateDropdown(dropdown);
             }
-        }, 400);
-    }, 4000);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!fab.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+        
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+        
+        // Add to page
+        document.body.appendChild(fab);
+        document.body.appendChild(dropdown);
+    }
+
+    async updateDropdown(dropdown) {
+        dropdown.innerHTML = `
+            <div class="dropdown-header">
+                <h3 class="dropdown-title">💫 Save to Lists</h3>
+                <button class="close-btn" onclick="this.closest('.list-dropdown').classList.remove('show')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        if (!this.currentUser) {
+            dropdown.innerHTML += `
+                <div class="auth-prompt">
+                    <div class="icon">🔐</div>
+                    <div class="text">Sign in to save restaurants to your lists</div>
+                    <button class="login-btn" onclick="window.location.href='login.html'">
+                        Sign In
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        // Quick Actions Section
+        const quickSection = document.createElement('div');
+        quickSection.className = 'list-section';
+        quickSection.innerHTML = '<div class="list-section-title">🌟 Quick Actions</div>';
+        
+        const quickLists = [
+            { id: 'favorites', name: '❤️ Favorites' },
+            { id: 'wantToGo', name: '📍 Want to Go' },
+            { id: 'visited', name: '🍽️ Visited' }
+        ];
+
+        for (const list of quickLists) {
+            const isInList = await this.checkIfInList(list.id);
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.innerHTML = `
+                <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
+                <span class="list-item-text">${list.name}</span>
+            `;
+            item.onclick = () => this.toggleList(list.id);
+            quickSection.appendChild(item);
+        }
+        
+        dropdown.appendChild(quickSection);
+
+        // Custom Lists Section
+        if (this.customLists.length > 0) {
+            const divider = document.createElement('div');
+            divider.className = 'list-divider';
+            dropdown.appendChild(divider);
+
+            const customSection = document.createElement('div');
+            customSection.className = 'list-section';
+            customSection.innerHTML = '<div class="list-section-title">📁 Your Collections</div>';
+
+            for (const list of this.customLists) {
+                const isInList = await this.checkIfCustomList(list.id);
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
+                    <span class="list-item-text">${list.title}</span>
+                `;
+                item.onclick = () => this.toggleCustomList(list.id);
+                customSection.appendChild(item);
+            }
+            
+            dropdown.appendChild(customSection);
+        }
+
+        // Create New List Section
+        const newDiv = document.createElement('div');
+        newDiv.className = 'new-list-section';
+        newDiv.innerHTML = `
+            <div class="list-section-title">🆕 Create New</div>
+            <input type="text" class="new-list-input" placeholder="What should we call your new list?" id="newListName">
+            <button class="add-list-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Create Custom List
+            </button>
+        `;
+        
+        const input = newDiv.querySelector('input');
+        const button = newDiv.querySelector('button');
+        
+        button.onclick = () => this.createNewList();
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.createNewList();
+            }
+        });
+        
+        dropdown.appendChild(newDiv);
+    }
+
+    async checkIfInList(listType) {
+        if (!this.currentUser || !this.restaurantId) return false;
+        const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
+        const { data: list } = await this.supabase.from('lists').select('id')
+            .eq('user_id', this.currentUser.id).eq('title', title).single();
+        if (!list) return false;
+        const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+            .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
+        return !!listRestaurants;
+    }
+
+    async checkIfCustomList(listId) {
+        if (!this.currentUser || !this.restaurantId) return false;
+        const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+            .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
+        return !!listRestaurants;
+    }
+
+    async toggleList(listType) {
+        if (!this.currentUser || !this.restaurantId) {
+            showNotification('Please log in to use lists', 'warning');
+            return;
+        }
+        
+        const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
+        let { data: list } = await this.supabase.from('lists').select('id')
+            .eq('user_id', this.currentUser.id).eq('title', title).single();
+            
+        if (!list) {
+            const { data: newList } = await this.supabase.from('lists')
+                .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
+            list = newList;
+        }
+        
+        const isInList = await this.checkIfInList(listType);
+        if (isInList) {
+            await this.supabase.from('lists_restraunts').delete()
+                .match({ list_id: list.id, restraunt_id: this.restaurantId });
+            showNotification(`Removed from ${title}`, 'info');
+        } else {
+            await this.supabase.from('lists_restraunts').insert([
+                { list_id: list.id, restraunt_id: this.restaurantId }
+            ]);
+            showNotification(`Added to ${title} ✅`, 'success');
+        }
+        
+        this.updateDropdown(document.querySelector('.list-dropdown'));
+    }
+
+    async toggleCustomList(listId) {
+        if (!this.currentUser || !this.restaurantId) {
+            showNotification('Please log in to use lists', 'warning');
+            return;
+        }
+        
+        const list = this.customLists.find(l => l.id === listId);
+        const isInList = await this.checkIfCustomList(listId);
+        
+        if (isInList) {
+            await this.supabase.from('lists_restraunts').delete()
+                .match({ list_id: listId, restraunt_id: this.restaurantId });
+            showNotification(`Removed from ${list.title}`, 'info');
+        } else {
+            await this.supabase.from('lists_restraunts').insert([
+                { list_id: listId, restraunt_id: this.restaurantId }
+            ]);
+            showNotification(`Added to ${list.title} ✅`, 'success');
+        }
+        
+        this.updateDropdown(document.querySelector('.list-dropdown'));
+    }
+
+    async createNewList() {
+        const input = document.getElementById('newListName');
+        const name = input.value.trim();
+        
+        if (!name) {
+            showNotification('Please enter a list name', 'warning');
+            return;
+        }
+
+        if (!this.currentUser) {
+            showNotification('Please log in to create lists', 'warning');
+            return;
+        }
+
+        try {
+            const { data: newList } = await this.supabase.from('lists')
+                .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
+            
+            if (newList) {
+                this.customLists.push(newList);
+                input.value = '';
+                showNotification(`✨ "${name}" created!`, 'success');
+                this.updateDropdown(document.querySelector('.list-dropdown'));
+            }
+        } catch (error) {
+            showNotification('Error creating list: ' + error.message, 'error');
+        }
+    }
+}
+
+// INITIALIZATION
+async function initPage() {
+    try {
+        const data = await loadRestaurantData();
+        renderRestaurantData(data);
+        await initReviewSystem();
+        
+        // Initialize list manager after a short delay
+        setTimeout(() => {
+            new RestaurantListManager();
+        }, 1000);
+    } catch (error) {
+        showError();
+    }
+}
+
+// Start when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPage);
+} else {
+    initPage();
 }
 
 // Make functions globally available
 window.editReview = editReview;
 window.deleteReview = deleteReview;
-</script>
-
-<!-- List Manager Script -->
-<script>
-// Wait for page to load
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Page loaded, initializing list manager...');
-    
-    // List Manager Class
-    class RestaurantListManager {
-        constructor() {
-            this.supabase = supabase;
-            this.restaurantId = this.getRestaurantIdFromSlug();
-            this.userLists = [];
-            this.customLists = [];
-            this.init();
-        }
-
-        getRestaurantIdFromSlug() {
-            const slug = getRestaurantSlug();
-            const slugToId = {
-                'mori':1,'kilo':2,'hameed':3,'bazooka':4,'mexican':5,'chikin':6,'vasko':7,
-                'secondcup':8,'station':9,'brgr':10,'country':11,'bayoki':12,'maine':13,
-                'barbar':14,'labash':15,'pickl':16,'akleh':17,'howlin':18,'sauce':19,
-                'papa':20,'qasr':21,'heart':22,'what':23,'buffalo':24,'mince':25,'88':26,
-                'kansas':27,'ward':28,'willys':29,'butchers':30,'hashville':31,'dawgs':32,
-                'holmes':33,'ribs':34,'peking':35,'wok':36,'daddy':37,'husk':38,'crispy':39,
-                'lord':40,'chez':41,'mario':42,'crumbs':43,'man':44,'pasta':45,'crave':46
-            };
-            return slugToId[slug] || null;
-        }
-
-        async init() {
-            await this.checkAuth();
-            if (this.currentUser) {
-                await this.loadUserLists();
-            }
-            this.injectListMenu();
-        }
-
-        async checkAuth() {
-            try {
-                const { data: { session } } = await this.supabase.auth.getSession();
-                this.currentUser = session?.user || null;
-            } catch (error) {
-                console.error('Auth error:', error);
-                this.currentUser = null;
-            }
-        }
-
-        async loadUserLists() {
-            try {
-                const { data: { user } } = await this.supabase.auth.getUser();
-                if (!user) return;
-
-                const { data: lists } = await this.supabase
-                    .from('lists').select('*').eq('user_id', user.id);
-                this.userLists = lists || [];
-                
-                // Separate custom lists from default lists
-                this.customLists = this.userLists.filter(list => 
-                    !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-                );
-            } catch (error) {
-                console.error('Error loading lists:', error);
-                this.userLists = [];
-                this.customLists = [];
-            }
-        }
-
-        injectListMenu() {
-            // Create the floating action button
-            const fab = document.createElement('div');
-            fab.className = 'list-manager-fab';
-            fab.innerHTML = `
-                <div class="fab-main">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                </div>
-                <div class="fab-tooltip">Save to Lists</div>
-            `;
-            
-            // Add FAB styles
-            const styles = `
-                .list-manager-fab {
-                    position: fixed !important;
-                    bottom: 30px !important;
-                    right: 30px !important;
-                    z-index: 10000 !important;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-                }
-                
-                .fab-main {
-                    width: 60px !important;
-                    height: 60px !important;
-                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-                    border-radius: 50% !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    cursor: pointer !important;
-                    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4) !important;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                    border: none !important;
-                    color: white !important;
-                    position: relative !important;
-                    overflow: hidden !important;
-                }
-                
-                .fab-main::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                    transition: left 0.5s;
-                }
-                
-                .fab-main:hover::before {
-                    left: 100%;
-                }
-                
-                .fab-main:hover {
-                    transform: scale(1.1) rotate(90deg) !important;
-                    box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
-                }
-                
-                .fab-main:active {
-                    transform: scale(0.95) !important;
-                }
-                
-                .fab-tooltip {
-                    position: absolute !important;
-                    bottom: 70px !important;
-                    right: 0 !important;
-                    background: #1e293b !important;
-                    color: white !important;
-                    padding: 8px 12px !important;
-                    border-radius: 6px !important;
-                    font-size: 12px !important;
-                    font-weight: 500 !important;
-                    white-space: nowrap !important;
-                    opacity: 0 !important;
-                    transform: translateY(10px) !important;
-                    transition: all 0.3s ease !important;
-                    pointer-events: none !important;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-                }
-                
-                .fab-main:hover + .fab-tooltip {
-                    opacity: 1 !important;
-                    transform: translateY(0) !important;
-                }
-                
-                .list-dropdown {
-                    position: fixed;
-                    bottom: 100px;
-                    right: 30px;
-                    background: #0f172a;
-                    border: 1px solid #334155;
-                    border-radius: 16px;
-                    padding: 20px;
-                    min-width: 320px;
-                    max-width: 400px;
-                    display: none;
-                    z-index: 10000;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-                    backdrop-filter: blur(20px);
-                    transform-origin: bottom right;
-                    animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                
-                @keyframes dropdownSlide {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.8) translateY(20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1) translateY(0);
-                    }
-                }
-                
-                .list-dropdown.show {
-                    display: block !important;
-                }
-                
-                .dropdown-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                    padding-bottom: 15px;
-                    border-bottom: 1px solid #334155;
-                }
-                
-                .dropdown-title {
-                    font-size: 18px;
-                    font-weight: 700;
-                    color: #f59e0b;
-                    margin: 0;
-                }
-                
-                .close-btn {
-                    background: none;
-                    border: none;
-                    color: #64748b;
-                    cursor: pointer;
-                    padding: 8px;
-                    border-radius: 8px;
-                    transition: all 0.2s ease;
-                }
-                
-                .close-btn:hover {
-                    background: #1e293b;
-                    color: #f59e0b;
-                }
-                
-                .list-section {
-                    margin-bottom: 20px;
-                }
-                
-                .list-section-title {
-                    font-size: 11px;
-                    color: #94a3b8;
-                    text-transform: uppercase;
-                    font-weight: 600;
-                    margin-bottom: 12px;
-                    letter-spacing: 0.5px;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                
-                .list-section-title::after {
-                    content: '';
-                    flex: 1;
-                    height: 1px;
-                    background: #334155;
-                    margin-left: 8px;
-                }
-                
-                .list-item { 
-                    display: flex; 
-                    align-items: center; 
-                    gap: 12px; 
-                    padding: 12px 10px; 
-                    cursor: pointer; 
-                    border-radius: 10px;
-                    transition: all 0.2s ease;
-                    margin-bottom: 4px;
-                }
-                
-                .list-item:hover { 
-                    background: rgba(245, 158, 11, 0.1); 
-                    transform: translateX(4px);
-                }
-                
-                .list-checkbox { 
-                    width: 20px; 
-                    height: 20px; 
-                    border: 2px solid #475569;
-                    border-radius: 6px; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    flex-shrink: 0;
-                    transition: all 0.2s ease;
-                    position: relative;
-                }
-                
-                .list-checkbox.checked { 
-                    background: #f59e0b; 
-                    border-color: #f59e0b;
-                    animation: checkPop 0.3s ease;
-                }
-                
-                @keyframes checkPop {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.2); }
-                    100% { transform: scale(1); }
-                }
-                
-                .list-checkbox.checked::after { 
-                    content: "✓"; 
-                    color: #0f172a; 
-                    font-size: 12px; 
-                    font-weight: bold; 
-                }
-                
-                .list-item-text {
-                    flex: 1;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #e2e8f0;
-                }
-                
-                .list-item:hover .list-item-text {
-                    color: #f59e0b;
-                }
-                
-                .new-list-section {
-                    border-top: 1px solid #334155;
-                    padding-top: 20px;
-                    margin-top: 15px;
-                }
-                
-                .new-list-input { 
-                    width: 100%; 
-                    padding: 12px 16px; 
-                    background: #1e293b;
-                    border: 1px solid #475569; 
-                    border-radius: 10px; 
-                    color: white; 
-                    margin-bottom: 12px;
-                    font-size: 14px;
-                    transition: all 0.2s ease;
-                }
-                
-                .new-list-input:focus {
-                    outline: none;
-                    border-color: #f59e0b;
-                    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-                }
-                
-                .add-list-btn { 
-                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
-                    color: #0f172a; 
-                    border: none;
-                    padding: 12px 20px; 
-                    border-radius: 10px; 
-                    cursor: pointer; 
-                    font-weight: 600; 
-                    width: 100%; 
-                    font-size: 14px;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                }
-                
-                .add-list-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-                }
-                
-                .add-list-btn:active {
-                    transform: translateY(0);
-                }
-                
-                .list-divider {
-                    height: 1px;
-                    background: linear-gradient(90deg, transparent, #334155, transparent);
-                    margin: 16px 0;
-                }
-                
-                .empty-custom-lists {
-                    text-align: center;
-                    color: #64748b;
-                    font-size: 13px;
-                    padding: 20px;
-                    font-style: italic;
-                }
-                
-                .auth-prompt {
-                    text-align: center;
-                    padding: 30px 20px;
-                    color: #94a3b8;
-                }
-                
-                .auth-prompt .icon {
-                    font-size: 48px;
-                    margin-bottom: 12px;
-                    opacity: 0.5;
-                }
-                
-                .auth-prompt .text {
-                    font-size: 14px;
-                    margin-bottom: 16px;
-                }
-                
-                .login-btn {
-                    background: #f59e0b;
-                    color: #0f172a;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .login-btn:hover {
-                    background: #ffb84d;
-                }
-                
-                @keyframes pulseGlow {
-                    0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-                    70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-                }
-                
-                .pulse {
-                    animation: pulseGlow 2s infinite;
-                }
-                
-                /* IMPROVED: Mobile styles for list manager */
-                @media (max-width: 768px) {
-                    .list-manager-fab {
-                        bottom: 20px !important;
-                        right: 20px !important;
-                    }
-                    
-                    .fab-main {
-                        width: 56px !important;
-                        height: 56px !important;
-                    }
-                    
-                    .fab-tooltip {
-                        display: none !important;
-                    }
-                    
-                    .list-dropdown {
-                        bottom: 80px;
-                        right: 20px;
-                        left: 20px;
-                        max-width: none;
-                        min-width: auto;
-                    }
-                }
-                
-                @media (max-width: 480px) {
-                    .list-manager-fab {
-                        bottom: 16px !important;
-                        right: 16px !important;
-                    }
-                    
-                    .fab-main {
-                        width: 52px !important;
-                        height: 52px !important;
-                    }
-                    
-                    .list-dropdown {
-                        padding: 16px;
-                        border-radius: 12px;
-                    }
-                    
-                    .dropdown-title {
-                        font-size: 16px;
-                    }
-                    
-                    .list-item {
-                        padding: 10px 8px;
-                    }
-                    
-                    .new-list-input {
-                        padding: 10px 14px;
-                        font-size: 13px;
-                    }
-                    
-                    .add-list-btn {
-                        padding: 10px 16px;
-                        font-size: 13px;
-                    }
-                }
-            `;
-            
-            const styleSheet = document.createElement('style');
-            styleSheet.textContent = styles;
-            document.head.appendChild(styleSheet);
-            
-            // Create dropdown
-            const dropdown = document.createElement('div');
-            dropdown.className = 'list-dropdown';
-            
-            // FAB click handler
-            fab.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-                if (dropdown.classList.contains('show')) {
-                    this.updateDropdown(dropdown);
-                    fab.querySelector('.fab-main').classList.add('pulse');
-                } else {
-                    fab.querySelector('.fab-main').classList.remove('pulse');
-                }
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', () => {
-                dropdown.classList.remove('show');
-                fab.querySelector('.fab-main').classList.remove('pulse');
-            });
-            
-            dropdown.addEventListener('click', (e) => e.stopPropagation());
-            
-            // Add to page
-            document.body.appendChild(fab);
-            document.body.appendChild(dropdown);
-            
-            console.log('✅ List Manager FAB Added!');
-        }
-
-        async updateDropdown(dropdown) {
-            dropdown.innerHTML = `
-                <div class="dropdown-header">
-                    <h3 class="dropdown-title">💫 Save to Lists</h3>
-                    <button class="close-btn" onclick="this.closest('.list-dropdown').classList.remove('show')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            `;
-
-            if (!this.currentUser) {
-                dropdown.innerHTML += `
-                    <div class="auth-prompt">
-                        <div class="icon">🔐</div>
-                        <div class="text">Sign in to save restaurants to your lists</div>
-                        <button class="login-btn" onclick="window.location.href='login.html'">
-                            Sign In
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            // Quick Actions Section
-            const quickSection = document.createElement('div');
-            quickSection.className = 'list-section';
-            quickSection.innerHTML = '<div class="list-section-title">🌟 Quick Actions</div>';
-            
-            const quickLists = [
-                { id: 'favorites', name: '❤️ Favorites', icon: '❤️' },
-                { id: 'wantToGo', name: '📍 Want to Go', icon: '📍' },
-                { id: 'visited', name: '🍽️ Visited', icon: '🍽️' }
-            ];
-
-            for (const list of quickLists) {
-                const isInList = await this.checkIfInList(list.id);
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                    <span class="list-item-text">${list.name}</span>
-                `;
-                item.onclick = () => this.toggleList(list.id);
-                quickSection.appendChild(item);
-            }
-            
-            dropdown.appendChild(quickSection);
-
-            // Custom Lists Section
-            if (this.customLists.length > 0) {
-                const divider = document.createElement('div');
-                divider.className = 'list-divider';
-                dropdown.appendChild(divider);
-
-                const customSection = document.createElement('div');
-                customSection.className = 'list-section';
-                customSection.innerHTML = '<div class="list-section-title">📁 Your Collections</div>';
-
-                for (const list of this.customLists) {
-                    const isInList = await this.checkIfCustomList(list.id);
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    item.innerHTML = `
-                        <div class="list-checkbox ${isInList ? 'checked' : ''}"></div>
-                        <span class="list-item-text">${list.title}</span>
-                    `;
-                    item.onclick = () => this.toggleCustomList(list.id);
-                    customSection.appendChild(item);
-                }
-                
-                dropdown.appendChild(customSection);
-            } else {
-                const divider = document.createElement('div');
-                divider.className = 'list-divider';
-                dropdown.appendChild(divider);
-                
-                const emptySection = document.createElement('div');
-                emptySection.className = 'empty-custom-lists';
-                emptySection.innerHTML = 'No custom lists yet. Create your first one below! ✨';
-                dropdown.appendChild(emptySection);
-            }
-
-            // Create New List Section
-            const newDiv = document.createElement('div');
-            newDiv.className = 'new-list-section';
-            newDiv.innerHTML = `
-                <div class="list-section-title">🆕 Create New</div>
-                <input type="text" class="new-list-input" placeholder="What should we call your new list?" id="newListName">
-                <button class="add-list-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 5v14M5 12h14"/>
-                    </svg>
-                    Create Custom List
-                </button>
-            `;
-            
-            const input = newDiv.querySelector('input');
-            const button = newDiv.querySelector('button');
-            
-            button.onclick = () => this.createNewList();
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.createNewList();
-                }
-            });
-            
-            dropdown.appendChild(newDiv);
-        }
-
-        async checkIfInList(listType) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            const { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-            if (!list) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async checkIfCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) return false;
-            const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
-                .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
-            return !!listRestaurants;
-        }
-
-        async toggleList(listType) {
-            if (!this.currentUser || !this.restaurantId) {
-                this.showNotification('Please log in to use lists', 'warning');
-                return;
-            }
-            
-            const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-            let { data: list } = await this.supabase.from('lists').select('id')
-                .eq('user_id', this.currentUser.id).eq('title', title).single();
-                
-            if (!list) {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
-                list = newList;
-            }
-            
-            const isInList = await this.checkIfInList(listType);
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: list.id, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${title}`, 'info');
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: list.id, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${title} ✅`, 'success');
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async toggleCustomList(listId) {
-            if (!this.currentUser || !this.restaurantId) {
-                this.showNotification('Please log in to use lists', 'warning');
-                return;
-            }
-            
-            const list = this.customLists.find(l => l.id === listId);
-            const isInList = await this.checkIfCustomList(listId);
-            
-            if (isInList) {
-                await this.supabase.from('lists_restraunts').delete()
-                    .match({ list_id: listId, restraunt_id: this.restaurantId });
-                this.showNotification(`Removed from ${list.title}`, 'info');
-            } else {
-                await this.supabase.from('lists_restraunts').insert([
-                    { list_id: listId, restraunt_id: this.restaurantId }
-                ]);
-                this.showNotification(`Added to ${list.title} ✅`, 'success');
-            }
-            
-            this.updateDropdown(document.querySelector('.list-dropdown'));
-        }
-
-        async createNewList() {
-            const input = document.getElementById('newListName');
-            const name = input.value.trim();
-            
-            if (!name) {
-                this.showNotification('Please enter a list name', 'warning');
-                return;
-            }
-
-            if (!this.currentUser) {
-                this.showNotification('Please log in to create lists', 'warning');
-                return;
-            }
-
-            try {
-                const { data: newList } = await this.supabase.from('lists')
-                    .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
-                
-                if (newList) {
-                    this.customLists.push(newList);
-                    input.value = '';
-                    this.showNotification(`✨ "${name}" created!`, 'success');
-                    this.updateDropdown(document.querySelector('.list-dropdown'));
-                }
-            } catch (error) {
-                this.showNotification('Error creating list: ' + error.message, 'error');
-            }
-        }
-
-        showNotification(message, type = 'info') {
-            const colors = {
-                success: '#10b981',
-                error: '#ef4444',
-                warning: '#f59e0b',
-                info: '#3b82f6'
-            };
-            
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 100px; /* Below the fixed nav */
-                right: 20px;
-                background: ${colors[type] || colors.info};
-                color: white;
-                padding: 16px 24px;
-                border-radius: 12px;
-                z-index: 10001;
-                font-weight: 600;
-                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                transform: translateX(100%);
-                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                max-width: 300px;
-                word-wrap: break-word;
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 10);
-            
-            setTimeout(() => {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    notification.remove();
-                }, 400);
-            }, 3000);
-        }
-    }
-
-    // Initialize the list manager
-    setTimeout(() => {
-        new RestaurantListManager();
-    }, 1000);
-}); 
 </script>
 </body>
 </html>
