@@ -2234,22 +2234,21 @@ async function checkAuth() {
         }
         
         // Set up auth state listener
-if (!authStateListener) {
-    authStateListener = supabase.auth.onAuthStateChange(async (event, session) => {
-        currentUser = session?.user || null;
-        
-        if (currentUser) {
-            reviewForm.style.display = 'block';
-            authPrompt.style.display = 'none';
-            showNotification('Welcome back! You can now submit reviews.', 'success', 3000); // <-- REMOVE THIS LINE
-        } else {
-            reviewForm.style.display = 'none';
-            authPrompt.style.display = 'block';
-        }
-        
-        await loadReviews();
-    });
-}
+        if (!authStateListener) {
+            authStateListener = supabase.auth.onAuthStateChange(async (event, session) => {
+                currentUser = session?.user || null;
+                
+                if (currentUser) {
+                    reviewForm.style.display = 'block';
+                    authPrompt.style.display = 'none';
+                    showNotification('Welcome back! You can now submit reviews.', 'success', 3000);
+                } else {
+                    reviewForm.style.display = 'none';
+                    authPrompt.style.display = 'block';
+                }
+                
+                await loadReviews();
+            });
         }
     } catch (error) {
         console.error('Auth error:', error);
