@@ -2008,7 +2008,7 @@ let currentUser = null;
 let currentRating = 0;
 let editingReviewId = null;
 let authStateListener = null;
-let galleryImages = []; // Changed from const to let
+let galleryImages = [];
 let currentGalleryIndex = 0;
 let currentGalleryCategory = 'all';
 
@@ -2257,29 +2257,59 @@ async function loadRestaurantGallery() {
     const slug = getRestaurantSlug();
     
     try {
-        // Get restaurant ID first
-        const { data: restaurant } = await supabase
-            .from('restraunts')
-            .select('id')
-            .eq('slug', slug)
-            .single();
-            
-        if (!restaurant) {
-            document.getElementById('gallery-section').style.display = 'none';
+        console.log('Loading gallery for restaurant slug:', slug);
+        
+        // Get ALL gallery images first
+        const { data: allGalleryData, error } = await supabase
+            .from('restaurant_gallery')
+            .select('*')
+            .order('display_order', { ascending: true });
+        
+        if (error) {
+            console.error('Gallery query error:', error);
+            document.getElementById('gallery-empty').style.display = 'block';
             return;
         }
         
-        // Get gallery images - FIXED: use different variable name
-        const { data: galleryData } = await supabase
-            .from('restaurant_gallery')
-            .select('*')
-            .eq('restaurant_id', restaurant.id)
-            .order('display_order', { ascending: true });
+        // Filter images for the current restaurant based on URL pattern
+        galleryImages = allGalleryData.filter(image => {
+            if (!image.image_url) return false;
             
-        // Set global galleryImages variable
-        galleryImages = galleryData || [];
+            // Extract restaurant slug from image URL
+            // URL format: https://.../restaurant-images/MORI/morisush.png
+            try {
+                const url = new URL(image.image_url);
+                const pathParts = url.pathname.split('/');
+                
+                // Find the restaurant-images folder and get the restaurant folder
+                const restaurantImagesIndex = pathParts.indexOf('restaurant-images');
+                if (restaurantImagesIndex !== -1 && restaurantImagesIndex + 1 < pathParts.length) {
+                    const restaurantFolder = pathParts[restaurantImagesIndex + 1].toLowerCase();
+                    
+                    // Compare with current restaurant slug
+                    if (restaurantFolder === slug.toLowerCase()) {
+                        return true;
+                    }
+                }
+                
+                // Alternative: Check if slug appears in filename
+                const filename = pathParts[pathParts.length - 1].toLowerCase();
+                if (filename.includes(slug.toLowerCase())) {
+                    return true;
+                }
+                
+                return false;
+                
+            } catch (err) {
+                console.warn('Error parsing image URL:', image.image_url, err);
+                return false;
+            }
+        });
+        
+        console.log(`Found ${galleryImages.length} gallery images for ${slug}`);
         
         if (galleryImages.length === 0) {
+            console.log('No gallery images found for this restaurant');
             document.getElementById('gallery-empty').style.display = 'block';
             return;
         }
@@ -2288,7 +2318,7 @@ async function loadRestaurantGallery() {
         setupGalleryTabs();
         
     } catch (error) {
-        console.error('Gallery error:', error);
+        console.error('Gallery loading error:', error);
         document.getElementById('gallery-empty').style.display = 'block';
     }
 }
@@ -2300,7 +2330,7 @@ function renderGallery(images, category = 'all') {
     // Filter by category if not 'all'
     const filteredImages = category === 'all' 
         ? images 
-        : images.filter(img => img.category === category);
+        : images.filter(img => img.category && img.category.toLowerCase() === category.toLowerCase());
     
     if (!filteredImages || filteredImages.length === 0) {
         container.innerHTML = '';
@@ -2314,12 +2344,16 @@ function renderGallery(images, category = 'all') {
     filteredImages.forEach((image, index) => {
         const galleryItem = document.createElement('div');
         galleryItem.className = 'gallery-item';
+        
+        // Create a thumbnail-friendly URL (optional)
+        const imageUrl = image.image_url || '';
+        
         galleryItem.innerHTML = `
-            <img src="${image.image_url}" 
+            <img src="${imageUrl}" 
                  alt="${image.caption || 'Restaurant image'}" 
                  class="gallery-image lazy"
                  loading="lazy"
-                 data-src="${image.image_url}"
+                 data-src="${imageUrl}"
                  onclick="openLightbox(${index}, '${category}')">
             ${image.caption ? `<div class="gallery-caption">${image.caption}</div>` : ''}
         `;
@@ -2350,7 +2384,7 @@ function setupGalleryTabs() {
 function openLightbox(index, category = 'all') {
     const filteredImages = category === 'all' 
         ? galleryImages 
-        : galleryImages.filter(img => img.category === category);
+        : galleryImages.filter(img => img.category && img.category.toLowerCase() === category.toLowerCase());
     
     if (!filteredImages || filteredImages.length === 0) return;
     
@@ -2365,7 +2399,7 @@ function openLightbox(index, category = 'all') {
     const lightboxImage = document.getElementById('lightbox-image');
     const lightboxCaption = document.getElementById('lightbox-caption');
     
-    lightboxImage.src = image.image_url;
+    lightboxImage.src = image.image_url || '';
     lightboxCaption.textContent = image.caption || '';
     
     lightbox.classList.add('active');
@@ -2391,7 +2425,7 @@ function changeImage(direction) {
     const lightboxImage = document.getElementById('lightbox-image');
     const lightboxCaption = document.getElementById('lightbox-caption');
     
-    lightboxImage.src = image.image_url;
+    lightboxImage.src = image.image_url || '';
     lightboxCaption.textContent = image.caption || '';
 }
 
@@ -3060,7 +3094,7 @@ class RestaurantListManager {
             const { data: { user } } = await this.supabase.auth.getUser();
             if (!user) return;
 
-            const { data: lists } = await this.supabase
+            const { data: lists } = await supabase
                 .from('lists')
                 .select('*')
                 .eq('user_id', user.id);
@@ -3220,17 +3254,17 @@ class RestaurantListManager {
     async checkIfInList(listType) {
         if (!this.currentUser || !this.restaurantId) return false;
         const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-        const { data: list } = await this.supabase.from('lists').select('id')
+        const { data: list } = await supabase.from('lists').select('id')
             .eq('user_id', this.currentUser.id).eq('title', title).single();
         if (!list) return false;
-        const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+        const { data: listRestaurants } = await supabase.from('lists_restraunts')
             .select('id').eq('list_id', list.id).eq('restraunt_id', this.restaurantId).single();
         return !!listRestaurants;
     }
 
     async checkIfCustomList(listId) {
         if (!this.currentUser || !this.restaurantId) return false;
-        const { data: listRestaurants } = await this.supabase.from('lists_restraunts')
+        const { data: listRestaurants } = await supabase.from('lists_restraunts')
             .select('id').eq('list_id', listId).eq('restraunt_id', this.restaurantId).single();
         return !!listRestaurants;
     }
@@ -3242,22 +3276,22 @@ class RestaurantListManager {
         }
         
         const title = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' }[listType];
-        let { data: list } = await this.supabase.from('lists').select('id')
+        let { data: list } = await supabase.from('lists').select('id')
             .eq('user_id', this.currentUser.id).eq('title', title).single();
             
         if (!list) {
-            const { data: newList } = await this.supabase.from('lists')
+            const { data: newList } = await supabase.from('lists')
                 .insert([{ user_id: this.currentUser.id, title: title }]).select().single();
             list = newList;
         }
         
         const isInList = await this.checkIfInList(listType);
         if (isInList) {
-            await this.supabase.from('lists_restraunts').delete()
+            await supabase.from('lists_restraunts').delete()
                 .match({ list_id: list.id, restraunt_id: this.restaurantId });
             showNotification(`Removed from ${title}`, 'info');
         } else {
-            await this.supabase.from('lists_restraunts').insert([
+            await supabase.from('lists_restraunts').insert([
                 { list_id: list.id, restraunt_id: this.restaurantId }
             ]);
             showNotification(`Added to ${title} ✅`, 'success');
@@ -3276,11 +3310,11 @@ class RestaurantListManager {
         const isInList = await this.checkIfCustomList(listId);
         
         if (isInList) {
-            await this.supabase.from('lists_restraunts').delete()
+            await supabase.from('lists_restraunts').delete()
                 .match({ list_id: listId, restraunt_id: this.restaurantId });
             showNotification(`Removed from ${list.title}`, 'info');
         } else {
-            await this.supabase.from('lists_restraunts').insert([
+            await supabase.from('lists_restraunts').insert([
                 { list_id: listId, restraunt_id: this.restaurantId }
             ]);
             showNotification(`Added to ${list.title} ✅`, 'success');
@@ -3304,7 +3338,7 @@ class RestaurantListManager {
         }
 
         try {
-            const { data: newList } = await this.supabase.from('lists')
+            const { data: newList } = await supabase.from('lists')
                 .insert([{ user_id: this.currentUser.id, title: name }]).select().single();
             
             if (newList) {
