@@ -86,14 +86,13 @@ body {
     transform: translateX(-3px);
 }
 
-/* Hero Section - Updated */
+/* Hero Section */
 .hero {
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 20px 40px;
     background: linear-gradient(135deg, var(--card) 0%, var(--bg) 100%);
     position: relative;
     margin-top: 0;
-    overflow: hidden;
 }
 
 .hero::before {
@@ -107,61 +106,33 @@ body {
     pointer-events: none;
 }
 
-.restaurant-image-container {
-    position: relative;
-    margin: 0 auto 30px;
-    max-width: 900px;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    aspect-ratio: 16/9;
-    background: linear-gradient(45deg, #2d3748, #374151);
-}
-
-.restaurant-main-image {
-    width: 100%;
-    height: 100%;
+.logo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
     object-fit: cover;
-    transition: transform 0.5s ease;
-}
-
-.restaurant-main-image:hover {
-    transform: scale(1.05);
-}
-
-.restaurant-info {
-    max-width: 800px;
-    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    margin-bottom: 30px;
+    border: 4px solid white;
     position: relative;
     z-index: 1;
 }
 
 .hero h1 {
-    font-size: 2.8rem;
-    margin-bottom: 15px;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
     font-weight: 700;
     position: relative;
-    display: inline-block;
-}
-
-.hero h1::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 4px;
-    background: #FF9800;
-    border-radius: 2px;
+    z-index: 1;
 }
 
 .hero p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--text2);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     max-width: 600px;
-    margin: 20px auto;
+    margin: 0 auto;
     position: relative;
     z-index: 1;
     line-height: 1.6;
@@ -169,19 +140,14 @@ body {
 
 .rating {
     color: #FF9800;
-    font-size: 1.3rem;
-    margin-bottom: 25px;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     position: relative;
     z-index: 1;
-}
-
-.rating-stars {
-    font-size: 1.5rem;
-    letter-spacing: 2px;
 }
 
 /* Buttons */
@@ -1326,29 +1292,22 @@ footer {
     }
     
     .hero {
-        padding: 30px 16px 20px;
+        padding: 40px 16px 30px;
     }
     
-    .restaurant-image-container {
-        margin-bottom: 20px;
-        border-radius: 16px;
+    .logo {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 24px;
     }
     
     .hero h1 {
-        font-size: 2.2rem;
+        font-size: 2rem;
         line-height: 1.2;
     }
     
     .hero p {
-        font-size: 1rem;
-    }
-    
-    .rating {
-        font-size: 1.1rem;
-    }
-    
-    .rating-stars {
-        font-size: 1.3rem;
+        font-size: 0.95rem;
     }
     
     .btn {
@@ -1439,8 +1398,9 @@ footer {
         font-size: 0.9rem;
     }
     
-    .restaurant-image-container {
-        border-radius: 12px;
+    .logo {
+        width: 100px;
+        height: 100px;
     }
     
     .btn {
@@ -1615,31 +1575,24 @@ a.btn,
 <!-- Main Content -->
 <main id="main-content" style="display: none;">
     <section class="hero">
-        <div class="restaurant-image-container">
-            <img id="restaurant-main-image" alt="Restaurant Image" class="restaurant-main-image lazy lazy-img" data-src="">
-        </div>
-        <div class="restaurant-info">
-            <h1 id="restaurant-name"></h1>
-            <p id="restaurant-description"></p>
-            <div class="rating" id="restaurant-rating">
-                <span class="rating-stars"></span>
-                <span id="rating-text"></span>
-            </div>
-            
-            <div class="btn-group">
-                <a id="call-hotline" class="btn" href="#">
-                    <span>📞</span> Call Hotline
-                </a>
-                <a id="order-online" class="btn secondary" href="#" target="_blank" rel="noopener">
-                    <span>🛒</span> Order Online
-                </a>
-                <a id="instagram-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
-                    <span>📷</span> Instagram
-                </a>
-                <a id="facebook-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
-                    <span>👍</span> Facebook
-                </a>
-            </div>
+        <img id="restaurant-logo" alt="Restaurant Logo" class="logo lazy lazy-img" data-src="">
+        <h1 id="restaurant-name"></h1>
+        <p id="restaurant-description"></p>
+        <div class="rating" id="restaurant-rating"></div>
+        
+        <div class="btn-group">
+            <a id="call-hotline" class="btn" href="#">
+                <span>📞</span> Call Hotline
+            </a>
+            <a id="order-online" class="btn secondary" href="#" target="_blank" rel="noopener">
+                <span>🛒</span> Order Online
+            </a>
+            <a id="instagram-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
+                <span>📷</span> Instagram
+            </a>
+            <a id="facebook-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
+                <span>👍</span> Facebook
+            </a>
         </div>
     </section>
 
@@ -2089,34 +2042,28 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     // Create section navigation
     createSectionNavigation();
     
-    // Main restaurant image
-    const mainImage = document.getElementById('restaurant-main-image');
-    mainImage.setAttribute('data-src', restaurant.image || restaurant.logo_url || 'images/default-logo.jpg');
-    mainImage.alt = `${restaurant.name} Restaurant`;
-    lazyLoadObserver.observe(mainImage);
+    // Hero section
+    const logoImg = document.getElementById('restaurant-logo');
+    logoImg.setAttribute('data-src', restaurant.logo_url || restaurant.image || 'images/default-logo.jpg');
+    logoImg.alt = `${restaurant.name} Logo`;
+    lazyLoadObserver.observe(logoImg);
     
     document.getElementById('restaurant-name').textContent = restaurant.name;
     document.getElementById('restaurant-description').textContent = restaurant.description || 'Delicious food served with care';
     
-    // Rating display
+    // Rating
     const ratingElement = document.getElementById('restaurant-rating');
-    const ratingStars = ratingElement.querySelector('.rating-stars');
-    const ratingText = document.getElementById('rating-text');
-    
     if (restaurant.rating) {
-        const starsCount = Math.round(restaurant.rating);
-        ratingStars.textContent = '★'.repeat(starsCount) + '☆'.repeat(5 - starsCount);
-        ratingText.textContent = ` ${restaurant.rating}/5`;
+        ratingElement.innerHTML = `⭐ ${restaurant.rating}/5`;
     } else {
-        ratingStars.textContent = '☆☆☆☆☆';
-        ratingText.textContent = ' Rating not available';
+        ratingElement.innerHTML = '⭐ Rating not available';
     }
     
     // Contact buttons
     const hotlineBtn = document.getElementById('call-hotline');
     if (restaurant.hotline) {
         hotlineBtn.href = `tel:${restaurant.hotline}`;
-        hotlineBtn.innerHTML = `<span>📞</span> Call: ${restaurant.hotline}`;
+        hotlineBtn.textContent = `Call: ${restaurant.hotline}`;
     } else {
         hotlineBtn.style.display = 'none';
     }
@@ -2294,6 +2241,7 @@ if (!authStateListener) {
         if (currentUser) {
             reviewForm.style.display = 'block';
             authPrompt.style.display = 'none';
+            // Welcome notification removed
         } else {
             reviewForm.style.display = 'none';
             authPrompt.style.display = 'block';
