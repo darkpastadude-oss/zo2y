@@ -120,13 +120,13 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* Clean Hero Section */
+        /* Reduced Hero Section Height */
         .hero {
             position:relative; 
-            min-height:85vh; 
+            min-height:70vh; /* Reduced from 85vh */
             display:flex; 
             align-items:center; 
-            padding:80px 48px; 
+            padding:60px 40px; /* Reduced from 80px 48px */
             gap:60px; 
             overflow: hidden;
         } 
@@ -161,14 +161,14 @@
             letter-spacing:0.3px; 
             padding:8px 16px; 
             border-radius:999px; 
-            margin-bottom:24px; 
+            margin-bottom:20px; /* Reduced from 24px */
             border: 1px solid rgba(245,158,11,0.2);
             background: rgba(245,158,11,0.05);
         } 
         h1 {
             font-size:clamp(2.5rem, 5vw, 3.5rem); 
             line-height:1.1; 
-            margin:0 0 20px 0; 
+            margin:0 0 16px 0; /* Reduced from 20px */
             font-weight:700; 
             letter-spacing:-0.5px; 
             color:var(--white);
@@ -176,7 +176,7 @@
         .lead {
             color:var(--muted); 
             font-size:clamp(1rem, 2vw, 1.125rem); 
-            margin-bottom:32px; 
+            margin-bottom:28px; /* Reduced from 32px */
             max-width:600px; 
             line-height:1.6;
             font-weight: 400;
@@ -219,10 +219,10 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* Clean Spotlight Card */
+        /* Increased Spotlight Card Width */
         .hero-right {
-            width:400px; 
-            max-width:40%; 
+            width:450px; /* Increased from 400px */
+            max-width:45%; /* Adjusted */
             min-width:320px; 
             display:flex; 
             align-items:center; 
@@ -295,16 +295,17 @@
             font-size: 14px;
         } 
         
-        /* Clean Sections */
+        /* Reduced Section Padding */
         .section {
-            padding:80px 48px; 
+            padding:50px 32px; /* Reduced from 80px 48px */
             position: relative;
         } 
+        /* Reduced Section Header Margin */
         .section-header {
             display: flex; 
             justify-content: space-between; 
             align-items: flex-end; 
-            margin-bottom: 32px;
+            margin-bottom: 20px; /* Reduced from 32px */
         } 
         .section h2 {
             font-size:clamp(1.75rem, 3vw, 2.25rem); 
@@ -315,7 +316,7 @@
         .section-subtitle {
             color: var(--muted); 
             font-size: 16px; 
-            margin-top: 8px; 
+            margin-top: 6px; /* Reduced from 8px */
             max-width: 500px; 
             line-height: 1.5;
         } 
@@ -338,7 +339,7 @@
             display:flex; 
             gap:20px; 
             overflow-x:auto; 
-            padding:8px 0 32px 0; 
+            padding:8px 0 24px 0; /* Reduced bottom padding from 32px */
             scroll-snap-type:x mandatory; 
             scrollbar-width: none;
         } 
@@ -495,9 +496,9 @@
         .filter-bar {
             display: flex;
             gap: 8px;
-            margin-bottom: 32px;
+            margin-bottom: 24px; /* Reduced from 32px */
             overflow-x: auto;
-            padding: 4px 0 16px 0;
+            padding: 4px 0 12px 0; /* Reduced bottom padding from 16px */
             scrollbar-width: none;
         }
         
@@ -524,12 +525,12 @@
             border-color: var(--accent);
         }
         
-        /* Restaurant of the Day - Simplified */
+        /* Increased Restaurant of the Day Padding */
         .restaurant-of-day {
             background: var(--card);
             border-radius: 16px;
-            padding: 32px;
-            margin: 60px 0;
+            padding: 40px; /* Increased from 32px */
+            margin: 40px 0; /* Reduced from 60px */
             border: 1px solid var(--border);
             text-align: center;
         }
@@ -577,13 +578,13 @@
             font-size: 14px;
         }
         
-        /* App Download Section - Cleaner */
+        /* App Download Section - Reduced margins */
         .app-download {
             background: var(--card);
             border-radius: 16px;
-            padding: 48px;
+            padding: 40px; /* Reduced from 48px */
             text-align: center;
-            margin: 60px 0;
+            margin: 40px 0; /* Reduced from 60px */
             border: 1px solid var(--border);
         }
         
@@ -596,7 +597,7 @@
         .app-download p {
             font-size: 16px;
             color: var(--muted);
-            margin-bottom: 32px;
+            margin-bottom: 28px; /* Reduced from 32px */
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
@@ -653,7 +654,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 16px;
-            margin-top: 24px;
+            margin-top: 20px; /* Reduced from 24px */
         }
         
         .list-preview-card {
@@ -702,11 +703,11 @@
         
         /* Clean Footer */
         footer{
-            padding:60px 28px 24px; 
+            padding:50px 28px 24px; /* Reduced top padding from 60px */
             color:var(--muted); 
             text-align:center; 
             border-top:1px solid var(--border); 
-            margin-top:80px; 
+            margin-top:60px; /* Reduced from 80px */
             background: var(--card);
         } 
         .footer-content {
@@ -716,7 +717,7 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
             gap: 32px; 
             text-align: left; 
-            margin-bottom: 32px;
+            margin-bottom: 28px; /* Reduced from 32px */
         } 
         .footer-column h3 {
             color: var(--white); 
@@ -736,7 +737,7 @@
         } 
         .footer-bottom {
             border-top: 1px solid var(--border); 
-            padding-top: 24px; 
+            padding-top: 20px; /* Reduced from 24px */
             font-size: 13px;
             max-width: 1200px;
             margin: 0 auto;
@@ -790,13 +791,13 @@
             font-size: 1rem;
         }
 
-        /* Responsive Design */
+        /* Responsive Design - Updated for tighter mobile */
         @media (max-width: 1200px) {
             .hero-inner {
                 gap: 40px;
             }
             .hero-right {
-                width: 360px;
+                width: 400px; /* Adjusted */
             }
         }
 
@@ -814,31 +815,31 @@
             } 
             .spotlight{
                 grid-template-columns:100px 1fr;
-                max-width: 400px;
+                max-width: 450px; /* Increased */
                 margin: 0 auto;
             } 
             .hero { 
-                padding: 60px 24px; 
+                padding: 50px 32px; /* Updated for mobile */
                 min-height: auto;
             } 
             .section { 
-                padding: 60px 24px; 
+                padding: 40px 32px; /* Updated for mobile */
             }
             .app-download {
-                padding: 40px 24px;
-                margin: 40px 0;
+                padding: 32px 24px; /* Reduced */
+                margin: 32px 0; /* Reduced */
             }
         } 
         
         @media (max-width: 768px) {
             .hero {
-                padding: 40px 20px;
+                padding: 40px 24px; /* Tighter */
             }
             .section {
-                padding: 40px 20px;
+                padding: 32px 20px; /* Reduced from 40px 20px */
             }
             .filter-bar {
-                margin-bottom: 24px;
+                margin-bottom: 20px; /* Reduced */
             }
             .day-restaurant {
                 flex-direction: column;
@@ -848,7 +849,8 @@
                 text-align: center;
             }
             .app-download {
-                padding: 32px 20px;
+                padding: 28px 20px; /* Tighter */
+                margin: 32px 0; /* Reduced */
             }
             .app-buttons {
                 flex-direction: column;
@@ -884,10 +886,11 @@
                 padding: 12px 16px;
             } 
             .hero{
-                padding: 40px 16px;
+                padding: 32px 20px; /* Tighter mobile padding */
+                min-height: 60vh; /* Further reduced on mobile */
             } 
             .section { 
-                padding: 40px 16px; 
+                padding: 24px 16px; /* Tighter mobile padding */
             }
             .list-actions { 
                 opacity: 1; 
@@ -910,8 +913,8 @@
                 text-align: center;
             }
             .restaurant-of-day {
-                padding: 24px 16px;
-                margin: 40px 0;
+                padding: 32px 16px; /* Adjusted */
+                margin: 32px 0; /* Reduced */
             }
             .day-restaurant img {
                 width: 80px;
@@ -919,10 +922,14 @@
             }
             .app-download {
                 padding: 24px 16px;
-                margin: 32px 0;
+                margin: 24px 0; /* Reduced */
             }
             .app-download h2 {
                 font-size: 1.75rem;
+            }
+            footer {
+                padding: 40px 16px 20px; /* Tighter */
+                margin-top: 40px; /* Reduced */
             }
         }
         
@@ -1642,7 +1649,6 @@
       const iosAppButton = document.getElementById('iosAppButton');
       const androidAppButton = document.getElementById('androidAppButton');
       
-      // Simple alert for demo - in production, these would link to actual app stores
       iosAppButton.addEventListener('click', (e) => {
         e.preventDefault();
         showNotification('Zo2y iOS app coming soon!', 'info');
