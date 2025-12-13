@@ -546,7 +546,99 @@ h2::after {
     color: var(--btn-text);
     border-color: var(--btn-bg);
 }
+/* Menu Item Expand/Collapse Styles */
+.menu-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    cursor: pointer;
+    padding: 8px 0;
+}
 
+.menu-item-name {
+    flex: 1;
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 500;
+    text-align: left;
+}
+
+.menu-item-price {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0 10px;
+    white-space: nowrap;
+}
+
+.menu-expand-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 5px;
+    transition: transform 0.3s ease;
+    outline: none;
+    flex-shrink: 0;
+    min-width: 24px;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-item-description {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(255, 152, 0, 0.05);
+    border-radius: 8px;
+    color: var(--text2);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+    border-left: 3px solid var(--accent);
+}
+
+.menu-item.expanded .menu-item-description {
+    display: block;
+}
+
+.menu-item.expanded .menu-expand-btn {
+    transform: rotate(180deg);
+}
+
+.menu-item:hover .menu-item-header {
+    color: var(--accent);
+}
+
+/* Update existing .menu-item styles to work with new structure */
+.menu-item {
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--nav-shadow);
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.menu-item:hover {
+    background: var(--card);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.menu-item.expanded {
+    background: var(--card);
+    border: 1px solid var(--accent);
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.15);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 /* Menu */
 .menu-item {
     display: flex;
@@ -2675,7 +2767,7 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
         branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
     }
     
-   // Menu items with descriptions
+ // Menu items with descriptions and prices
 const menuContainer = document.getElementById('menu-container');
 if (menuItems.length > 0) {
     const groupedByCategory = {};
@@ -2699,46 +2791,34 @@ if (menuItems.length > 0) {
             const hasDescription = item.description && item.description.trim() !== '';
             
             menuItem.innerHTML = `
-                <div class="menu-item-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <span class="menu-item-name" style="flex: 1;">${item.item_name}</span>
-                    ${hasDescription ? `
-                        <button class="menu-expand-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 1.2rem; padding: 0 8px; transition: transform 0.3s ease; outline: none;">
-                            ▼
-                        </button>
-                    ` : ''}
+                <div class="menu-item-header">
+                    <span class="menu-item-name">${item.item_name}</span>
+                    ${item.price ? `<span class="menu-item-price">${item.price}</span>` : ''}
+                    ${hasDescription ? `<button class="menu-expand-btn">▼</button>` : ''}
                 </div>
-                ${hasDescription ? `
-                    <div class="menu-item-description" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--text2); color: var(--text2); font-size: 0.9rem; line-height: 1.5;">
-                        ${item.description}
-                    </div>
-                ` : ''}
+                ${hasDescription ? `<div class="menu-item-description">${item.description}</div>` : ''}
             `;
             
-            // Add click event for expand/collapse
+            // Add click event for expand/collapse if there's a description
             if (hasDescription) {
+                const menuItemHeader = menuItem.querySelector('.menu-item-header');
                 const expandBtn = menuItem.querySelector('.menu-expand-btn');
-                const descriptionDiv = menuItem.querySelector('.menu-item-description');
                 
-                expandBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isExpanded = descriptionDiv.style.display === 'block';
-                    descriptionDiv.style.display = isExpanded ? 'none' : 'block';
-                    expandBtn.textContent = isExpanded ? '▼' : '▲';
-                    expandBtn.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                menuItemHeader.addEventListener('click', (e) => {
+                    // Don't trigger if clicking the price or expand button
+                    if (e.target.classList.contains('menu-item-price') || e.target.classList.contains('menu-expand-btn')) {
+                        return;
+                    }
                     
-                    // Animate the menu item expansion
-                    menuItem.style.paddingBottom = isExpanded ? '15px' : '25px';
+                    menuItem.classList.toggle('expanded');
+                    expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
                 });
                 
-                // Also allow clicking the entire menu item (optional)
-                menuItem.addEventListener('click', (e) => {
-                    if (!e.target.classList.contains('menu-expand-btn')) {
-                        const isExpanded = descriptionDiv.style.display === 'block';
-                        descriptionDiv.style.display = isExpanded ? 'none' : 'block';
-                        expandBtn.textContent = isExpanded ? '▼' : '▲';
-                        expandBtn.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                        menuItem.style.paddingBottom = isExpanded ? '15px' : '25px';
-                    }
+                // Also handle click on expand button
+                expandBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    menuItem.classList.toggle('expanded');
+                    expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
                 });
             }
             
@@ -2747,19 +2827,18 @@ if (menuItems.length > 0) {
         
         menuContainer.appendChild(categoryDiv);
     });
+} else {
+    menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
 }
-    } else {
-        menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
-    }
-    
-    // Full menu link
-    const fullMenuLink = document.getElementById('full-menu-link');
-    if (restaurant.website_url) {
-        fullMenuLink.href = restaurant.website_url;
-        fullMenuLink.style.display = 'inline-flex';
-    } else {
-        fullMenuLink.style.display = 'none';
-    }
+
+// Full menu link
+const fullMenuLink = document.getElementById('full-menu-link');
+if (restaurant.website_url) {
+    fullMenuLink.href = restaurant.website_url;
+    fullMenuLink.style.display = 'inline-flex';
+} else {
+    fullMenuLink.style.display = 'none';
+}
     
     // Footer
     document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
