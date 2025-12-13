@@ -613,6 +613,65 @@ h2::after {
 .menu-item:hover .menu-item-header {
     color: var(--accent);
 }
+/* Menu Item Expand/Collapse Styles */
+.menu-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.menu-item-name {
+    flex: 1;
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 500;
+    text-align: left;
+}
+
+.menu-expand-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 5px;
+    transition: transform 0.3s ease;
+    outline: none;
+    flex-shrink: 0;
+    min-width: 24px;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-item-description {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(255, 152, 0, 0.05);
+    border-radius: 8px;
+    color: var(--text2);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+    border-left: 3px solid var(--accent);
+}
+
+.menu-item.expanded .menu-item-description {
+    display: block;
+}
+
+.menu-item.expanded .menu-expand-btn {
+    transform: rotate(180deg);
+}
+
+.menu-item:hover .menu-item-header {
+    color: var(--accent);
+}
 
 /* Update existing .menu-item styles to work with new structure */
 .menu-item {
@@ -2767,7 +2826,7 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
         branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
     }
     
- // Menu items with descriptions and prices
+ // Menu items with descriptions (without prices)
 const menuContainer = document.getElementById('menu-container');
 if (menuItems.length > 0) {
     const groupedByCategory = {};
@@ -2793,7 +2852,6 @@ if (menuItems.length > 0) {
             menuItem.innerHTML = `
                 <div class="menu-item-header">
                     <span class="menu-item-name">${item.item_name}</span>
-                    ${item.price ? `<span class="menu-item-price">${item.price}</span>` : ''}
                     ${hasDescription ? `<button class="menu-expand-btn">▼</button>` : ''}
                 </div>
                 ${hasDescription ? `<div class="menu-item-description">${item.description}</div>` : ''}
@@ -2805,11 +2863,6 @@ if (menuItems.length > 0) {
                 const expandBtn = menuItem.querySelector('.menu-expand-btn');
                 
                 menuItemHeader.addEventListener('click', (e) => {
-                    // Don't trigger if clicking the price or expand button
-                    if (e.target.classList.contains('menu-item-price') || e.target.classList.contains('menu-expand-btn')) {
-                        return;
-                    }
-                    
                     menuItem.classList.toggle('expanded');
                     expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
                 });
@@ -2830,6 +2883,15 @@ if (menuItems.length > 0) {
 } else {
     menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
 }
+
+// Full menu link
+const fullMenuLink = document.getElementById('full-menu-link');
+if (restaurant.website_url) {
+    fullMenuLink.href = restaurant.website_url;
+    fullMenuLink.style.display = 'inline-flex';
+} else {
+    fullMenuLink.style.display = 'none';
+}}
 
 // Full menu link
 const fullMenuLink = document.getElementById('full-menu-link');
