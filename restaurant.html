@@ -2675,33 +2675,79 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
         branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
     }
     
-    // Menu items - REMOVED PRICES
-    const menuContainer = document.getElementById('menu-container');
-    if (menuItems.length > 0) {
-        const groupedByCategory = {};
-        menuItems.forEach(item => {
-            if (!groupedByCategory[item.category]) {
-                groupedByCategory[item.category] = [];
+   // Menu items with descriptions
+const menuContainer = document.getElementById('menu-container');
+if (menuItems.length > 0) {
+    const groupedByCategory = {};
+    menuItems.forEach(item => {
+        if (!groupedByCategory[item.category]) {
+            groupedByCategory[item.category] = [];
+        }
+        groupedByCategory[item.category].push(item);
+    });
+    
+    Object.keys(groupedByCategory).forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'menu-category';
+        categoryDiv.innerHTML = `<h3>${category}</h3>`;
+        
+        groupedByCategory[category].forEach(item => {
+            const menuItem = document.createElement('div');
+            menuItem.className = 'menu-item';
+            
+            // Check if item has a description
+            const hasDescription = item.description && item.description.trim() !== '';
+            
+            menuItem.innerHTML = `
+                <div class="menu-item-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span class="menu-item-name" style="flex: 1;">${item.item_name}</span>
+                    ${hasDescription ? `
+                        <button class="menu-expand-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-size: 1.2rem; padding: 0 8px; transition: transform 0.3s ease; outline: none;">
+                            ▼
+                        </button>
+                    ` : ''}
+                </div>
+                ${hasDescription ? `
+                    <div class="menu-item-description" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--text2); color: var(--text2); font-size: 0.9rem; line-height: 1.5;">
+                        ${item.description}
+                    </div>
+                ` : ''}
+            `;
+            
+            // Add click event for expand/collapse
+            if (hasDescription) {
+                const expandBtn = menuItem.querySelector('.menu-expand-btn');
+                const descriptionDiv = menuItem.querySelector('.menu-item-description');
+                
+                expandBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isExpanded = descriptionDiv.style.display === 'block';
+                    descriptionDiv.style.display = isExpanded ? 'none' : 'block';
+                    expandBtn.textContent = isExpanded ? '▼' : '▲';
+                    expandBtn.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                    
+                    // Animate the menu item expansion
+                    menuItem.style.paddingBottom = isExpanded ? '15px' : '25px';
+                });
+                
+                // Also allow clicking the entire menu item (optional)
+                menuItem.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('menu-expand-btn')) {
+                        const isExpanded = descriptionDiv.style.display === 'block';
+                        descriptionDiv.style.display = isExpanded ? 'none' : 'block';
+                        expandBtn.textContent = isExpanded ? '▼' : '▲';
+                        expandBtn.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                        menuItem.style.paddingBottom = isExpanded ? '15px' : '25px';
+                    }
+                });
             }
-            groupedByCategory[item.category].push(item);
+            
+            categoryDiv.appendChild(menuItem);
         });
         
-        Object.keys(groupedByCategory).forEach(category => {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'menu-category';
-            categoryDiv.innerHTML = `<h3>${category}</h3>`;
-            
-            groupedByCategory[category].forEach(item => {
-                const menuItem = document.createElement('div');
-                menuItem.className = 'menu-item';
-                menuItem.innerHTML = `
-                    <span>${item.item_name}</span>
-                `;
-                categoryDiv.appendChild(menuItem);
-            });
-            
-            menuContainer.appendChild(categoryDiv);
-        });
+        menuContainer.appendChild(categoryDiv);
+    });
+}
     } else {
         menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
     }
