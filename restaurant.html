@@ -2882,32 +2882,6 @@ if (menuItems.length > 0) {
 } else {
     menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
 }
-
-// Full menu link
-const fullMenuLink = document.getElementById('full-menu-link');
-if (restaurant.website_url) {
-    fullMenuLink.href = restaurant.website_url;
-    fullMenuLink.style.display = 'inline-flex';
-} else {
-    fullMenuLink.style.display = 'none';
-}
-// Full menu link
-const fullMenuLink = document.getElementById('full-menu-link');
-if (restaurant.website_url) {
-    fullMenuLink.href = restaurant.website_url;
-    fullMenuLink.style.display = 'inline-flex';
-} else {
-    fullMenuLink.style.display = 'none';
-}}
-
-// Full menu link
-const fullMenuLink = document.getElementById('full-menu-link');
-if (restaurant.website_url) {
-    fullMenuLink.href = restaurant.website_url;
-    fullMenuLink.style.display = 'inline-flex';
-} else {
-    fullMenuLink.style.display = 'none';
-}
     
     // Footer
     document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
