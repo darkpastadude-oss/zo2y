@@ -120,7 +120,7 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* UPDATED: CARD IMAGE CONTAINER WITH LARGER LOGO OVERLAY */
+        /* UPDATED: CARD IMAGE CONTAINER - SIMPLIFIED LOGO */
         .card-img-container {
             height:180px; 
             overflow:hidden; 
@@ -141,29 +141,27 @@
         
         .card-logo-overlay {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 64px; /* Increased from 50px */
-            height: 64px; /* Increased from 50px */
-            background: rgba(11, 22, 51, 0.85);
-            border-radius: 14px; /* Slightly larger radius */
+            top: 16px;
+            right: 16px;
+            width: 70px; /* Increased size */
+            height: 70px; /* Increased size */
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 8px; /* Increased padding */
-            border: 2px solid var(--border);
-            backdrop-filter: blur(10px);
             z-index: 10;
             transition: all 0.3s ease;
+            /* Removed background, border, padding, and backdrop-filter */
         }
         
         .card-logo-overlay img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: contain; /* Changed from cover to contain */
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            transition: all 0.3s ease;
         }
         
-        /* UPDATED: SPOTLIGHT CARD - LARGER LOGO */
+        /* UPDATED: SPOTLIGHT CARD - SIMPLIFIED LOGO */
         .spotlight-img-container {
             width:100%; 
             height:100px; 
@@ -183,26 +181,24 @@
         
         .spotlight-logo-overlay {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 52px; /* Increased from 40px */
-            height: 52px; /* Increased from 40px */
-            background: rgba(11, 22, 51, 0.85);
-            border-radius: 10px; /* Slightly larger radius */
+            top: 12px;
+            right: 12px;
+            width: 60px; /* Increased size */
+            height: 60px; /* Increased size */
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6px; /* Increased padding */
-            border: 2px solid var(--border);
-            backdrop-filter: blur(10px);
             z-index: 10;
             transition: all 0.3s ease;
+            /* Removed background, border, padding, and backdrop-filter */
         }
         
         .spotlight-logo-overlay img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: contain; /* Changed from cover to contain */
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            transition: all 0.3s ease;
         }
         
         /* Rest of your existing CSS stays exactly the same */
@@ -336,10 +332,9 @@
         .spotlight:hover .spotlight-food-image {
             transform: scale(1.1);
         } 
-        .spotlight:hover .spotlight-logo-overlay {
-            background: rgba(245,158,11,0.9);
-            border-color: var(--accent);
-            transform: scale(1.05);
+        .spotlight:hover .spotlight-logo-overlay img {
+            transform: scale(1.1);
+            filter: drop-shadow(0 4px 8px rgba(245,158,11,0.4)) brightness(1.2);
         }
         .spotlight .meta {
             padding-right:8px;
@@ -369,7 +364,7 @@
             font-size: 14px;
         } 
         
-        /* RESTAURANT CARDS - UPDATED FOR LARGER LOGOS */
+        /* RESTAURANT CARDS - UPDATED */
         .card {
             flex:0 0 320px; 
             min-width:320px; 
@@ -405,10 +400,9 @@
         .card:hover .card-food-image {
             transform: scale(1.15);
         }
-        .card:hover .card-logo-overlay {
+        .card:hover .card-logo-overlay img {
             transform: scale(1.1);
-            border-color: var(--accent);
-            background: rgba(245,158,11,0.9);
+            filter: drop-shadow(0 4px 8px rgba(245,158,11,0.4)) brightness(1.2);
         }
         
         .card .body{
@@ -454,7 +448,7 @@
         .list-actions { 
             position: absolute; 
             top: 16px; 
-            left: 16px; /* Changed from right to left */
+            left: 16px; 
             display: flex; 
             flex-direction: column; 
             gap: 10px; 
@@ -1004,14 +998,16 @@
                 gap: 8px; 
             }
             .card-logo-overlay {
-                width: 56px;
-                height: 56px;
-                top: 10px;
-                right: 10px;
+                width: 60px;
+                height: 60px;
+                top: 12px;
+                right: 12px;
             }
             .spotlight-logo-overlay {
-                width: 48px;
-                height: 48px;
+                width: 50px;
+                height: 50px;
+                top: 10px;
+                right: 10px;
             }
         }
         
@@ -1076,16 +1072,16 @@
                 margin-top: 40px;
             }
             .card-logo-overlay {
-                width: 52px;
-                height: 52px;
-                top: 8px;
-                right: 8px;
-                padding: 6px;
+                width: 55px;
+                height: 55px;
+                top: 10px;
+                right: 10px;
             }
             .spotlight-logo-overlay {
-                width: 44px;
-                height: 44px;
-                padding: 5px;
+                width: 45px;
+                height: 45px;
+                top: 8px;
+                right: 8px;
             }
         }
         
