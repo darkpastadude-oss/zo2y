@@ -2295,37 +2295,64 @@ const lazyLoadObserver = new IntersectionObserver((entries) => {
 // Get restaurant slug from URL
 function getRestaurantSlug() {
     const urlParams = new URLSearchParams(window.location.search);
-    const slug = urlParams.get('slug');
+    let slug = urlParams.get('slug');
     
     if (!slug) {
         const path = window.location.pathname;
         const filename = path.split('/').pop();
-        return filename.replace('.html', '').toLowerCase();
+        slug = filename.replace('.html', '').toLowerCase();
     }
     
-    return slug.toLowerCase();
+    // Return as-is, let getRestaurantIdFromSlug handle decoding
+    return slug;
 }
-
 // Get restaurant ID from slug
 function getRestaurantIdFromSlug() {
     const slug = getRestaurantSlug();
     const slugToId = {
-        'mori': 1, 'kilo': 2, 'hameed': 3, 'bazooka': 4, 'mexican': 5, 'chikin': 6, 'vasko': 7,
-        'secondcup': 8, 'station': 9, 'brgr': 10, 'country': 11, 'bayoki': 12, 'maine': 13,
-        'barbar': 14, 'labash': 15, 'pickl': 16, 'akleh': 17, 'howlin': 18, 'sauce': 19,
-        'papa': 20, 'qasr': 21, 'heart': 22, 'what': 23, 'buffalo': 24, 'mince': 25, '88': 26,
-        'kansas': 27, 'ward': 28, 'willys': 29, 'butchers': 30, 'hashville': 31, 'dawgs': 32,
-        'holmes': 33, 'ribs': 34, 'peking': 35, 'wok': 36, 'daddy': 37, 'husk': 38, 'crispy': 39,
-        'lord': 40, 'chez': 41, 'mario': 42, 'crumbs': 43, 'man': 44, 'pasta': 45, 'crave': 46,
-        'caizo': 47, 'tabali': 48, 'panda': 49, 'pablo': 50, 'dushka': 51, '900': 52,
-        'shawermer': 53, 'abou-tarek': 54, 'kufta': 55, 'takosan': 56, 'manchow': 57, 'yaba': 58
+        'mori': 1, 'kilo': 2, 'hameed': 3, 'bazooka': 4, 'mexican': 5,
+        'chikin': 6, 'vasko': 7, 'secondcup': 8, 'station': 9, 'brgr': 10,
+        'country': 11, 'bayoki': 12, 'maine': 13, 'barbar': 14, 'labash': 15,
+        'pickl': 16, 'akleh': 17, 'howlin': 18, 'sauce': 19, 'papa': 20,
+        'qasr': 21, 'heart': 22, 'what': 23, 'buffalo': 24, 'mince': 25,
+        '88': 26, 'kansas': 27, 'ward': 28, 'willys': 29, 'butchers': 30,
+        'hashville': 31, 'dawgs': 32, 'holmes': 33, 'ribs': 34, 'peking': 35,
+        'wok': 36, 'daddy': 37, 'husk': 38, 'crispy': 39, 'lord': 40,
+        'chez': 41, 'mario': 42, 'crumbs': 43, 'man': 44, 'pasta': 45,
+        'crave': 46, 'caizo': 47, 'tabali': 48, 'panda': 49, 'pablo': 50,
+        'dushka': 51, '900': 52, 'shawermer': 53, 
+        'abou tarek': 54,  // space version
+        'abou-tarek': 54,  // hyphen version  
+        'abou%20tarek': 54, // URL-encoded version
+        'kufta': 55,
+        'takosan': 56,
+        'manchow': 57,
+        'yaba': 58
     };
     
-    // Handle slugs with spaces
-    const normalizedSlug = slug.replace(/%20/g, ' ').toLowerCase();
-    return slugToId[normalizedSlug] || null;
+    // Handle slugs with spaces or encoding
+    const normalizedSlug = slug.toLowerCase();
+    
+    // First try direct match
+    if (slugToId[normalizedSlug]) {
+        return slugToId[normalizedSlug];
+    }
+    
+    // If not found, try decoding URL encoding
+    const decodedSlug = decodeURIComponent(normalizedSlug);
+    if (slugToId[decodedSlug]) {
+        return slugToId[decodedSlug];
+    }
+    
+    // Try replacing spaces with hyphens
+    const hyphenSlug = normalizedSlug.replace(/ /g, '-');
+    if (slugToId[hyphenSlug]) {
+        return slugToId[hyphenSlug];
+    }
+    
+    console.error('Could not determine restaurant ID from slug:', slug);
+    return null;
 }
-
 // SECTION NAVIGATION
 function createSectionNavigation() {
     // Updated order with Gallery before Menu
