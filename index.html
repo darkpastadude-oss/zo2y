@@ -453,56 +453,6 @@
             font-weight: 700;
         } 
         
-        /* List Actions */
-        .list-actions { 
-            position: absolute; 
-            top: 16px; 
-            left: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-            opacity: 0; 
-            z-index: 20;
-            pointer-events: auto;
-            transition: all 0.4s ease;
-        } 
-        .card:hover .list-actions { 
-            opacity: 1;
-            transform: translateX(0);
-        } 
-        .list-btn { 
-            background: rgba(11, 22, 51, 0.9); 
-            border: 2px solid var(--border); 
-            color: var(--white); 
-            padding: 10px; 
-            border-radius: 14px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 6px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            backdrop-filter: blur(20px); 
-            width: 48px; 
-            height: 48px; 
-            pointer-events: auto;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        } 
-        .list-btn:hover { 
-            transform: scale(1.15) rotate(5deg); 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent);
-            box-shadow: 0 8px 20px rgba(245,158,11,0.4);
-        } 
-        .list-btn.active { 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent);
-            transform: scale(1.1);
-        } 
-        .list-btn .btn-text { display: none; }
-
         /* Filter Bar */
         .filter-bar {
             display: flex;
@@ -705,6 +655,83 @@
             font-weight: 600;
         }
         
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11, 22, 51, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: var(--white);
+        }
+        
+        .modal-message {
+            color: var(--muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        
+        .modal-close-btn {
+            background: var(--accent);
+            color: #111;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .modal-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245,158,11,0.3);
+        }
+        
         /* Footer */
         footer{
             padding:50px 28px 24px;
@@ -792,6 +819,9 @@
             }
             .day-restaurant-info {
                 text-align: center;
+            }
+            .modal-content {
+                padding: 30px 20px;
             }
         }
         
