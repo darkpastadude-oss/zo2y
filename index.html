@@ -516,7 +516,7 @@
             display: flex; 
             align-items: center; 
             gap: 6px; 
-            transition: all 0.3s ease;
+transition: all 0.3s ease;
             font-size: 14px;
         } 
         .view-all:hover {
@@ -1000,7 +1000,7 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // ---------- HARDCODED IMAGE URLs ----------
+      // ---------- HARDCODED FOOD IMAGE URLs (These should eventually come from Supabase too) ----------
       const restaurantFoodImages = {
         'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png',
         'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png',
@@ -1030,47 +1030,30 @@
         'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
       };
 
-      const restaurantLogos = {
-        'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mori.jpg',
-        'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/kilo.jpg',
-        'hameed': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/hameed.jpg',
-        'bazooka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/bazooka.jpg',
-        'mexican': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mexican.jpg',
-        'station': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/station.jpg',
-        'brgr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/brgr.jpg',
-        'bayoki': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/bayoki.jpg',
-        'maine': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/maine.jpg',
-        'barbar': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/barbar.jpg',
-        'qasr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/qasr.jpg',
-        'ward': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/ward.jpg',
-        'dushka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/dushka.jpg',
-        'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/yaba.jpg',
-        'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/caizo.jpg',
-        'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/abou.jpg',
-        'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/holmes.jpg',
-        'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/husk.jpg',
-        'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/pasta.jpg',
-        'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/panda.jpg',
-        'ribs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/ribs.jpg',
-        'manchow': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/manchow.jpg',
-        'hashville': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/hashville.jpg',
-        'dawgs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/dawgs.jpg',
-        'chikin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/chikin.jpg',
-        'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
-      };
+      // Default fallback logo if none is found in database
+      const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
 
       // ---------- RESTAURANT DATA ----------
       let restaurants = [];
       let categories = new Set();
 
-      // Function to get food image URL
+      // Function to get food image URL (temporary - should eventually come from Supabase)
       function getFoodImageUrl(slug) {
         return restaurantFoodImages[slug] || restaurantFoodImages['default'];
       }
 
-      // Function to get logo URL
-      function getLogoUrl(slug) {
-        return restaurantLogos[slug] || restaurantLogos['default'];
+      // Function to get logo URL from Supabase data
+      function getLogoUrl(restaurant) {
+        // Use logo_url from Supabase if available
+        if (restaurant.logo_url) {
+          return restaurant.logo_url;
+        }
+        // Use image field as fallback
+        if (restaurant.image) {
+          return restaurant.image;
+        }
+        // Use default logo as last resort
+        return DEFAULT_LOGO_URL;
       }
 
       async function loadRestaurantsFromSupabase() {
@@ -1079,16 +1062,18 @@
           
           const { data, error } = await supabase
             .from('restraunts')
-            .select('id, slug, name, category, description, rating, logo_url')
+            .select('id, slug, name, category, description, rating, logo_url, image')
             .order('rating', { ascending: false });
           
           if (error) throw error;
           
-          console.log(`✅ Loaded ${data?.length || 0} restaurants`);
+          console.log(`✅ Loaded ${data?.length || 0} restaurants from Supabase`);
           
           if (!data || data.length === 0) {
+            console.log('No restaurants found in Supabase, using fallback data');
             restaurants = getFallbackRestaurants();
           } else {
+            // Process restaurants from Supabase
             restaurants = data.map(restaurant => ({
               id: restaurant.id,
               slug: restaurant.slug,
@@ -1096,14 +1081,20 @@
               category: restaurant.category,
               desc: restaurant.description,
               rating: restaurant.rating,
-              logo_url: getLogoUrl(restaurant.slug),
-              food_image: getFoodImageUrl(restaurant.slug),
+              logo_url: getLogoUrl(restaurant), // Get logo from Supabase data
+              food_image: getFoodImageUrl(restaurant.slug), // Temporary - from hardcoded list
               nearby: Math.random() > 0.3,
               trending: restaurant.rating >= 4.5
             }));
+            
+            console.log('First restaurant logo URL:', restaurants[0]?.logo_url);
           }
           
+          // Extract categories from restaurants
           categories = new Set(restaurants.map(r => r.category).filter(Boolean));
+          console.log('Categories found:', Array.from(categories));
+          
+          // Populate UI
           populateFilterBar();
           initCards();
           
@@ -1112,7 +1103,8 @@
           }
           
         } catch (error) {
-          console.error('❌ Error loading restaurants:', error);
+          console.error('❌ Error loading restaurants from Supabase:', error);
+          // Use fallback data
           restaurants = getFallbackRestaurants();
           categories = new Set(restaurants.map(r => r.category).filter(Boolean));
           populateFilterBar();
@@ -1124,34 +1116,53 @@
       }
 
       function getFallbackRestaurants() {
+        // Fallback data that matches what's in Supabase
         return [
-          { id: 1, slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, logo_url: getLogoUrl('mori'), food_image: getFoodImageUrl('mori'), nearby: true, trending: true},
-          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, logo_url: getLogoUrl('kilo'), food_image: getFoodImageUrl('kilo'), nearby: true},
-          { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, logo_url: getLogoUrl('hameed'), food_image: getFoodImageUrl('hameed'), nearby: true},
-          { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, logo_url: getLogoUrl('bazooka'), food_image: getFoodImageUrl('bazooka'), trending: true},
-          { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, logo_url: getLogoUrl('mexican'), food_image: getFoodImageUrl('mexican')},
-          { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, logo_url: getLogoUrl('chikin'), food_image: getFoodImageUrl('chikin'), nearby: true},
-          { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, logo_url: getLogoUrl('vasko'), food_image: getFoodImageUrl('vasko'), trending: true},
-          { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, logo_url: getLogoUrl('secondcup'), food_image: getFoodImageUrl('secondcup'), nearby: true},
-          { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, logo_url: getLogoUrl('station'), food_image: getFoodImageUrl('station')},
-          { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, logo_url: getLogoUrl('brgr'), food_image: getFoodImageUrl('brgr'), trending: true},
-          { id: 11, slug:'bayoki', name:'Bayouki Rotisserie', category:'Middle Eastern', desc:'Rotisserie chicken and Middle Eastern dishes.', rating:4.3, logo_url: getLogoUrl('bayoki'), food_image: getFoodImageUrl('bayoki'), nearby: true},
-          { id: 12, slug:'barbar', name:'Barbar Shawarma', category:'Fast Food', desc:'Shawarma sandwiches and wraps.', rating:4.2, logo_url: getLogoUrl('barbar'), food_image: getFoodImageUrl('barbar')},
-          { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Gourmet burgers with unique toppings.', rating:4.4, logo_url: getLogoUrl('maine'), food_image: getFoodImageUrl('maine'), trending: true},
-          { id: 14, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Traditional kebab restaurant.', rating:4.5, logo_url: getLogoUrl('qasr'), food_image: getFoodImageUrl('qasr'), nearby: true},
-          { id: 15, slug:'ward', name:'Koshary Ward', category:'Egyptian', desc:'Traditional Egyptian koshary.', rating:4.3, logo_url: getLogoUrl('ward'), food_image: getFoodImageUrl('ward')},
-          { id: 16, slug:'dushka', name:'Dushka burger', category:'Burgers', desc:'Unique burger creations.', rating:4.2, logo_url: getLogoUrl('dushka'), food_image: getFoodImageUrl('dushka')},
-          { id: 17, slug:'yaba', name:'Yaba', category:'Fast Food', desc:'Sandwiches and quick bites.', rating:4.1, logo_url: getLogoUrl('yaba'), food_image: getFoodImageUrl('yaba')},
-          { id: 18, slug:'caizo', name:'Caizo', category:'Egyptian', desc:'Egyptian street food.', rating:4.0, logo_url: getLogoUrl('caizo'), food_image: getFoodImageUrl('caizo')},
-          { id: 19, slug:'abou tarek', name:'Koshary Abou Tarek', category:'Egyptian', desc:'Famous koshary restaurant.', rating:4.6, logo_url: getLogoUrl('abou tarek'), food_image: getFoodImageUrl('abou tarek'), trending: true},
-          { id: 20, slug:'husk', name:'Husk', category:'American', desc:'Southern cuisine with a modern twist.', rating:4.4, logo_url: getLogoUrl('husk'), food_image: getFoodImageUrl('husk'), trending: true},
-          { id: 21, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Fresh pasta dishes for takeaway.', rating:4.3, logo_url: getLogoUrl('pasta'), food_image: getFoodImageUrl('pasta'), nearby: true},
-          { id: 22, slug:'panda', name:'Panda House', category:'Chinese', desc:'Authentic Chinese cuisine with traditional flavors.', rating:4.5, logo_url: getLogoUrl('panda'), food_image: getFoodImageUrl('panda'), trending: true},
-          { id: 23, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burgers with creative combinations in a stylish setting.', rating:4.7, logo_url: getLogoUrl('holmes'), food_image: getFoodImageUrl('holmes'), trending: true, nearby: true},
-          { id: 24, slug:'ribs', name:'Chicken n Ribs', category:'American', desc:'Juicy chicken and ribs with signature sauces.', rating:4.3, logo_url: getLogoUrl('ribs'), food_image: getFoodImageUrl('ribs'), nearby: true},
-          { id: 25, slug:'manchow', name:'Manchow Wok', category:'Chinese', desc:'Authentic Chinese wok dishes and soups.', rating:4.4, logo_url: getLogoUrl('manchow'), food_image: getFoodImageUrl('manchow'), trending: true},
-          { id: 26, slug:'hashville', name:'Hashville', category:'American', desc:'Nashville-style hot chicken and comfort food.', rating:4.6, logo_url: getLogoUrl('hashville'), food_image: getFoodImageUrl('hashville'), trending: true},
-          { id: 27, slug:'dawgs', name:'Dawgs n Shakes', category:'Fast Food', desc:'Gourmet hot dogs and handcrafted shakes.', rating:4.2, logo_url: getLogoUrl('dawgs'), food_image: getFoodImageUrl('dawgs'), nearby: true}
+          { 
+            id: 1, 
+            slug:'mori', 
+            name:'Mori Sushi', 
+            category:'Japanese', 
+            desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', 
+            rating:4.7, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mori.jpg', 
+            food_image: getFoodImageUrl('mori'), 
+            nearby: true, 
+            trending: true
+          },
+          { 
+            id: 2, 
+            slug:'kilo', 
+            name:'Kilo Kebab', 
+            category:'Middle Eastern', 
+            desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
+            rating:4.5, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/kilo.jpg', 
+            food_image: getFoodImageUrl('kilo'), 
+            nearby: true
+          },
+          { 
+            id: 3, 
+            slug:'hameed', 
+            name:'Hameed', 
+            category:'Fast Food', 
+            desc:'Local favorite for sandwiches & quick bites.', 
+            rating:4.3, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/hameed.jpg', 
+            food_image: getFoodImageUrl('hameed'), 
+            nearby: true
+          },
+          { 
+            id: 4, 
+            slug:'bazooka', 
+            name:'Bazooka', 
+            category:'Burgers', 
+            desc:'Loaded burgers & crispy fried chicken combos.', 
+            rating:4.2, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/bazooka.jpg', 
+            food_image: getFoodImageUrl('bazooka'), 
+            trending: true
+          }
         ];
       }
 
@@ -1159,10 +1170,12 @@
         const filterBar = document.querySelector('.filter-bar');
         if (!filterBar) return;
         
+        // Clear existing filters except "All"
         const allFilter = filterBar.querySelector('.filter-btn.active');
         filterBar.innerHTML = '';
         filterBar.appendChild(allFilter);
         
+        // Add trending tags
         const trendingTags = ['Top Rated', 'New', 'Burgers', 'Sushi', 'Cafés', 'Pizza'];
         trendingTags.forEach(tag => {
           const filter = document.createElement('div');
@@ -1171,6 +1184,7 @@
           filterBar.appendChild(filter);
         });
         
+        // Add categories from Supabase data
         const sortedCategories = Array.from(categories).sort();
         sortedCategories.forEach(category => {
           const filter = document.createElement('div');
@@ -1179,6 +1193,7 @@
           filterBar.appendChild(filter);
         });
         
+        // Add click handlers
         document.querySelectorAll('.filter-btn').forEach(filter => {
           filter.addEventListener('click', function() {
             document.querySelectorAll('.filter-btn').forEach(f => f.classList.remove('active'));
@@ -1217,12 +1232,12 @@
       }
 
       // ---------- CARD CREATION ----------
-      function makeCard(r){
+      function makeCard(restaurant){
         const el = document.createElement('div'); 
         el.className = 'card'; 
         
         const clickableContent = document.createElement('a');
-        clickableContent.href = `restaurant.html?slug=${r.slug}`;
+        clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
         clickableContent.style.textDecoration = 'none';
         clickableContent.style.color = 'inherit';
         clickableContent.style.display = 'block';
@@ -1230,19 +1245,22 @@
         clickableContent.style.position = 'relative';
         clickableContent.style.zIndex = '10';
         
+        // Use the logo_url from Supabase data
+        const logoUrl = restaurant.logo_url || DEFAULT_LOGO_URL;
+        
         clickableContent.innerHTML = `
           <div class="card-img-container">
-            <img class="card-food-image" src="${r.food_image}" alt="${r.name} food" loading="lazy">
+            <img class="card-food-image" src="${restaurant.food_image}" alt="${restaurant.name} food" loading="lazy">
             <div class="card-logo-overlay">
-              <img src="${r.logo_url}" alt="${r.name} logo">
+              <img src="${logoUrl}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">
             </div>
           </div>
           <div class="body">
-            <h3>${r.name}</h3>
-            <p>${r.desc}</p>
+            <h3>${restaurant.name}</h3>
+            <p>${restaurant.desc}</p>
             <div class="meta">
-              <div class="card-rating">⭐ ${r.rating}</div>
-              <div class="card-category">${r.category || 'Restaurant'}</div>
+              <div class="card-rating">⭐ ${restaurant.rating}</div>
+              <div class="card-category">${restaurant.category || 'Restaurant'}</div>
             </div>
           </div>
         `;
@@ -1260,12 +1278,12 @@
         featuredSlider.innerHTML = ''; 
         nearbySlider.innerHTML = '';
         
-        restaurants.forEach(r => { 
-          const card = makeCard(r);
+        restaurants.forEach(restaurant => { 
+          const card = makeCard(restaurant);
           featuredSlider.appendChild(card); 
           
-          if (r.nearby) {
-            const nearbyCard = makeCard(r);
+          if (restaurant.nearby) {
+            const nearbyCard = makeCard(restaurant);
             nearbySlider.appendChild(nearbyCard);
           }
         });
@@ -1280,18 +1298,22 @@
       const spotAction = document.getElementById('spotAction');
       
       let currentSpotlightIndex = 0;
+      
       function renderSpotlight(index){
-        const r = restaurants[index];
-        if (!r) return;
+        const restaurant = restaurants[index];
+        if (!restaurant) return;
         
-        spotFoodImage.src = r.food_image;
-        spotFoodImage.alt = `${r.name} food`;
+        spotFoodImage.src = restaurant.food_image;
+        spotFoodImage.alt = `${restaurant.name} food`;
         
-        spotLogo.innerHTML = `<img src="${r.logo_url}" alt="${r.name} logo">`;
-        spotName.textContent = r.name;
-        spotDesc.textContent = r.desc;
-        spotRating.textContent = `⭐ ${r.rating}`;
-        spotAction.onclick = () => location.href = `restaurant.html?slug=${r.slug}`;
+        // Use the logo_url from Supabase data
+        const logoUrl = restaurant.logo_url || DEFAULT_LOGO_URL;
+        spotLogo.innerHTML = `<img src="${logoUrl}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">`;
+        
+        spotName.textContent = restaurant.name;
+        spotDesc.textContent = restaurant.desc;
+        spotRating.textContent = `⭐ ${restaurant.rating}`;
+        spotAction.onclick = () => location.href = `restaurant.html?slug=${restaurant.slug}`;
       }
       
       function initSpotlight(){ 
