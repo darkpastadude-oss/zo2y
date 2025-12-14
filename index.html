@@ -120,7 +120,7 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* UPDATED: CARD IMAGE CONTAINER - SIMPLIFIED LOGO */
+        /* UPDATED: CARD IMAGE CONTAINER - ORANGE OUTLINE BOTTOM LEFT */
         .card-img-container {
             height:180px; 
             overflow:hidden; 
@@ -141,27 +141,30 @@
         
         .card-logo-overlay {
             position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 70px; /* Increased size */
-            height: 70px; /* Increased size */
+            bottom: 16px; /* Changed from top to bottom */
+            left: 16px; /* Changed from right to left */
+            width: 50px; /* Smaller size */
+            height: 50px; /* Smaller size */
+            background: rgba(11, 22, 51, 0.85);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 5px;
+            border: 2px solid var(--accent); /* Orange outline */
+            backdrop-filter: blur(10px);
             z-index: 10;
             transition: all 0.3s ease;
-            /* Removed background, border, padding, and backdrop-filter */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         
         .card-logo-overlay img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Changed from cover to contain */
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-            transition: all 0.3s ease;
+            object-fit: contain;
         }
         
-        /* UPDATED: SPOTLIGHT CARD - SIMPLIFIED LOGO */
+        /* UPDATED: SPOTLIGHT CARD - ORANGE OUTLINE BOTTOM LEFT */
         .spotlight-img-container {
             width:100%; 
             height:100px; 
@@ -181,24 +184,27 @@
         
         .spotlight-logo-overlay {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 60px; /* Increased size */
-            height: 60px; /* Increased size */
+            bottom: 8px; /* Changed from top to bottom */
+            left: 8px; /* Changed from right to left */
+            width: 40px; /* Smaller size */
+            height: 40px; /* Smaller size */
+            background: rgba(11, 22, 51, 0.85);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 4px;
+            border: 2px solid var(--accent); /* Orange outline */
+            backdrop-filter: blur(10px);
             z-index: 10;
             transition: all 0.3s ease;
-            /* Removed background, border, padding, and backdrop-filter */
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
         }
         
         .spotlight-logo-overlay img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Changed from cover to contain */
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-            transition: all 0.3s ease;
+            object-fit: contain;
         }
         
         /* Rest of your existing CSS stays exactly the same */
@@ -332,9 +338,11 @@
         .spotlight:hover .spotlight-food-image {
             transform: scale(1.1);
         } 
-        .spotlight:hover .spotlight-logo-overlay img {
+        .spotlight:hover .spotlight-logo-overlay {
             transform: scale(1.1);
-            filter: drop-shadow(0 4px 8px rgba(245,158,11,0.4)) brightness(1.2);
+            border-color: var(--accent);
+            background: rgba(245,158,11,0.9);
+            box-shadow: 0 6px 16px rgba(245,158,11,0.4);
         }
         .spotlight .meta {
             padding-right:8px;
@@ -400,9 +408,11 @@
         .card:hover .card-food-image {
             transform: scale(1.15);
         }
-        .card:hover .card-logo-overlay img {
+        .card:hover .card-logo-overlay {
             transform: scale(1.1);
-            filter: drop-shadow(0 4px 8px rgba(245,158,11,0.4)) brightness(1.2);
+            border-color: var(--accent);
+            background: rgba(245,158,11,0.9);
+            box-shadow: 0 8px 20px rgba(245,158,11,0.4);
         }
         
         .card .body{
@@ -998,16 +1008,16 @@
                 gap: 8px; 
             }
             .card-logo-overlay {
-                width: 60px;
-                height: 60px;
-                top: 12px;
-                right: 12px;
+                width: 45px;
+                height: 45px;
+                bottom: 12px;
+                left: 12px;
             }
             .spotlight-logo-overlay {
-                width: 50px;
-                height: 50px;
-                top: 10px;
-                right: 10px;
+                width: 35px;
+                height: 35px;
+                bottom: 6px;
+                left: 6px;
             }
         }
         
@@ -1072,16 +1082,16 @@
                 margin-top: 40px;
             }
             .card-logo-overlay {
-                width: 55px;
-                height: 55px;
-                top: 10px;
-                right: 10px;
+                width: 40px;
+                height: 40px;
+                bottom: 10px;
+                left: 10px;
             }
             .spotlight-logo-overlay {
-                width: 45px;
-                height: 45px;
-                top: 8px;
-                right: 8px;
+                width: 30px;
+                height: 30px;
+                bottom: 5px;
+                left: 5px;
             }
         }
         
@@ -1184,7 +1194,7 @@
                 <div class="day-restaurant">
                     <div style="position:relative; display:inline-block;">
                         <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Holmes Burger food" onerror="this.src='images/holmes.png'">
-                        <div style="position:absolute; top:8px; right:8px; width:30px; height:30px; background:rgba(11,22,51,0.85); border-radius:6px; padding:3px; border:1px solid var(--border);">
+                        <div style="position:absolute; bottom:8px; left:8px; width:30px; height:30px; background:rgba(11,22,51,0.85); border-radius:6px; padding:3px; border:2px solid var(--accent);">
                             <img src="images/holmes.png" alt="Holmes Burger logo" onerror="this.src='images/default-logo.jpg'">
                         </div>
                     </div>
