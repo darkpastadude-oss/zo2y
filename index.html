@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* [ALL YOUR EXISTING CSS STYLES REMAIN EXACTLY THE SAME - DO NOT CHANGE] */
         :root {
             --bg: #0b1633; --card: #132347; --muted: #cbd5e1; --accent: #f59e0b; --accent-light: #3a2a1a;
             --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.08); --shadow: rgba(0,0,0,0.3);
@@ -30,7 +29,7 @@
         a{color:inherit; text-decoration:none} 
         img{display:block; max-width:100%; height:auto}
         
-        /* Enhanced Navigation - Cleaner */
+        /* Navigation */
         .nav{
             position:sticky; 
             top:0; 
@@ -121,7 +120,7 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* UPDATED: CARD IMAGE CONTAINER - ORANGE OUTLINE BOTTOM LEFT */
+        /* Card Image Container */
         .card-img-container {
             height:180px; 
             overflow:hidden; 
@@ -165,7 +164,7 @@
             object-fit: contain;
         }
         
-        /* UPDATED: SPOTLIGHT CARD - ORANGE OUTLINE BOTTOM LEFT */
+        /* Spotlight Card */
         .spotlight-img-container {
             width:100%; 
             height:100px; 
@@ -372,7 +371,7 @@
             font-size: 14px;
         } 
         
-        /* RESTAURANT CARDS - UPDATED */
+        /* Restaurant Cards */
         .card {
             flex:0 0 320px; 
             min-width:320px; 
@@ -454,7 +453,7 @@
             font-weight: 700;
         } 
         
-        /* LIST ACTIONS */
+        /* List Actions */
         .list-actions { 
             position: absolute; 
             top: 16px; 
@@ -504,7 +503,7 @@
         } 
         .list-btn .btn-text { display: none; }
 
-        /* Clean Unified Filter Bar */
+        /* Filter Bar */
         .filter-bar {
             display: flex;
             gap: 8px;
@@ -588,7 +587,7 @@
             display: none;
         }
         
-        /* Restaurant of the Day Section */
+        /* Restaurant of the Day Section - SIMPLIFIED */
         .restaurant-of-day {
             background: var(--card);
             border-radius: 16px;
@@ -616,13 +615,6 @@
             gap: 24px;
             justify-content: center;
             flex-wrap: wrap;
-        }
-        
-        .day-restaurant img {
-            width: 100px;
-            height: 100px;
-            border-radius: 12px;
-            object-fit: cover;
         }
         
         .day-restaurant-info {
@@ -713,59 +705,7 @@
             font-weight: 600;
         }
         
-        /* Your Lists Preview for Logged-in Users */
-        .lists-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-        
-        .list-preview-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .list-preview-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent);
-        }
-        
-        .list-preview-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        
-        .list-preview-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #111;
-            font-weight: bold;
-        }
-        
-        .list-preview-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--white);
-        }
-        
-        .list-preview-count {
-            font-size: 13px;
-            color: var(--muted);
-        }
-        
-        /* Clean Footer */
+        /* Footer */
         footer{
             padding:50px 28px 24px;
             color:var(--muted); 
@@ -807,138 +747,12 @@
             margin: 0 auto;
         }
 
-        /* Hidden class for Join Community button */
+        /* Hidden class */
         .hidden {
             display: none !important;
         }
 
-        /* Custom Notification */
-        .custom-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            max-width: 300px;
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            font-size: 14px;
-        }
-        
-        .notification-success {
-            background: rgba(16, 185, 129, 0.9);
-            color: white;
-        }
-        
-        .notification-error {
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
-        }
-        
-        .notification-info {
-            background: rgba(59, 130, 246, 0.9);
-            color: white;
-        }
-        
-        .notification-show {
-            transform: translateX(0);
-        }
-        
-        .notification-icon {
-            margin-right: 8px;
-            font-size: 1rem;
-        }
-
-        /* App Coming Soon Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(11, 22, 51, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .modal-content {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-        }
-        
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-        
-        .modal-icon {
-            font-size: 48px;
-            color: var(--accent);
-            margin-bottom: 16px;
-        }
-        
-        .modal-title {
-            font-size: 24px;
-            color: var(--white);
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-        
-        .modal-message {
-            color: var(--muted);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-        
-        .modal-close-btn {
-            background: var(--accent);
-            color: #111;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .modal-close-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(245,158,11,0.25);
-        }
-
         /* Responsive Design */
-        @media (max-width: 1200px) {
-            .hero-inner {
-                gap: 40px;
-            }
-            .hero-right {
-                width: 400px;
-            }
-        }
-
         @media (max-width: 980px){
             .search{display:none} 
             .hero-inner{
@@ -963,10 +777,6 @@
             .section { 
                 padding: 40px 32px;
             }
-            .app-download {
-                padding: 32px 24px;
-                margin: 32px 0;
-            }
         } 
         
         @media (max-width: 768px) {
@@ -976,48 +786,12 @@
             .section {
                 padding: 32px 20px;
             }
-            .filter-bar {
-                margin-bottom: 20px;
-            }
             .day-restaurant {
                 flex-direction: column;
                 text-align: center;
             }
             .day-restaurant-info {
                 text-align: center;
-            }
-            .app-download {
-                padding: 28px 20px;
-                margin: 32px 0;
-            }
-            .app-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            .app-button {
-                width: 100%;
-                max-width: 250px;
-            }
-            .footer-content {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .list-actions { 
-                opacity: 1; 
-                top: 12px; 
-                left: 12px;
-                gap: 8px; 
-            }
-            .card-logo-overlay {
-                width: 45px;
-                height: 45px;
-                bottom: 12px;
-                left: 12px;
-            }
-            .spotlight-logo-overlay {
-                width: 35px;
-                height: 35px;
-                bottom: 6px;
-                left: 6px;
             }
         }
         
@@ -1035,9 +809,6 @@
                 min-width:280px; 
                 flex:0 0 280px;
             } 
-            .spotlight .thumb{
-                height:80px;
-            } 
             .nav{
                 padding: 12px 16px;
             } 
@@ -1048,58 +819,9 @@
             .section { 
                 padding: 24px 16px;
             }
-            .list-btn { 
-                width: 44px; 
-                height: 44px; 
-                font-size: 16px; 
-                background: rgba(11, 22, 51, 0.95); 
-                border: 2px solid var(--border); 
-            } 
-            .list-btn.active { 
-                background: var(--accent); 
-            }
-            .footer-content {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
             .restaurant-of-day {
                 padding: 32px 16px;
                 margin: 32px 0;
-            }
-            .day-restaurant img {
-                width: 80px;
-                height: 80px;
-            }
-            .app-download {
-                padding: 24px 16px;
-                margin: 24px 0;
-            }
-            .app-download h2 {
-                font-size: 1.75rem;
-            }
-            footer {
-                padding: 40px 16px 20px;
-                margin-top: 40px;
-            }
-            .card-logo-overlay {
-                width: 40px;
-                height: 40px;
-                bottom: 10px;
-                left: 10px;
-            }
-            .spotlight-logo-overlay {
-                width: 30px;
-                height: 30px;
-                bottom: 5px;
-                left: 5px;
-            }
-        }
-        
-        @media (hover: none) and (pointer: coarse) { 
-            .list-actions { opacity: 1; } 
-            .list-btn:hover { transform: none; } 
-            .card:hover {
-                transform: none;
             }
         }
     </style>
@@ -1187,36 +909,19 @@
             </div>
         </section>
 
-        <!-- Restaurant of the Day Section -->
+        <!-- Restaurant of the Day Section - FIXED -->
         <section class="section">
             <div class="restaurant-of-day">
                 <div class="day-badge">Restaurant of the Day</div>
                 <div class="day-restaurant">
-                    <!-- FIXED: Simplified image structure -->
-                    <div style="position:relative; display:inline-block;">
-                        <img id="dayFoodImage" src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Restaurant of the Day food" style="width:100px; height:100px; border-radius:12px; object-fit:cover;">
-                        <div class="card-logo-overlay" style="width:30px; height:30px; bottom:8px; left:8px; border-radius:6px; padding:3px;">
-                            <img id="dayLogo" src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/holmes.jpg" alt="Restaurant of the Day logo">
-                        </div>
-                    </div>
+                    <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Holmes Burger food" style="width:100px; height:100px; border-radius:12px; object-fit:cover;">
                     <div class="day-restaurant-info">
-                        <h3 id="dayName">Holmes Burger</h3>
-                        <p id="dayDesc">Gourmet burgers with creative combinations in a stylish setting</p>
-                        <div class="rating" id="dayRating">⭐ 4.7 • 🍔 Burgers</div>
+                        <h3>Holmes Burger</h3>
+                        <p>Gourmet burgers with creative combinations in a stylish setting</p>
+                        <div class="rating">⭐ 4.7 • 🍔 Burgers</div>
                     </div>
-                    <button class="btn-outline" id="dayAction" onclick="location.href='cards/holmes.html'">View Details</button>
+                    <button class="btn-outline" onclick="location.href='cards/holmes.html'">View Details</button>
                 </div>
-            </div>
-        </section>
-
-        <!-- Your Lists Preview (for logged-in users) -->
-        <section class="section" id="listsPreviewSection" style="display: none;">
-            <div class="section-header">
-                <div><h2>Your Lists</h2><p class="section-subtitle">Quick access to your saved restaurants</p></div>
-                <a href="profile.html" class="view-all">View All <span>→</span></a>
-            </div>
-            <div class="lists-preview" id="listsPreview">
-                <!-- Lists will be populated dynamically -->
             </div>
         </section>
 
@@ -1258,12 +963,6 @@
         </div>
     </footer>
 
-    <!-- Custom Notification -->
-    <div id="customNotification" class="custom-notification">
-        <i class="notification-icon"></i>
-        <span class="notification-message"></span>
-    </div>
-
     <script>
     (function(){
       // ---------- CONFIG ----------
@@ -1271,91 +970,78 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // ---------- APP COMING SOON MODAL ----------
-      const appComingSoonModal = document.getElementById('appComingSoonModal');
-      const closeModalBtn = document.getElementById('closeModal');
-      const iosAppButton = document.getElementById('iosAppButton');
-      const androidAppButton = document.getElementById('androidAppButton');
-      
-      function showAppComingSoonModal() {
-        appComingSoonModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-      
-      function hideAppComingSoonModal() {
-        appComingSoonModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      }
-      
-      iosAppButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        showAppComingSoonModal();
-      });
-      
-      androidAppButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        showAppComingSoonModal();
-      });
-      
-      closeModalBtn.addEventListener('click', hideAppComingSoonModal);
-      
-      // Close modal when clicking outside
-      appComingSoonModal.addEventListener('click', function(e) {
-        if (e.target === appComingSoonModal) {
-          hideAppComingSoonModal();
-        }
-      });
-      
-      // Close modal with Escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && appComingSoonModal.classList.contains('active')) {
-          hideAppComingSoonModal();
-        }
-      });
+      // ---------- HARDCODED IMAGE URLs ----------
+      const restaurantFoodImages = {
+        'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png',
+        'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png',
+        'hameed': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hameed/hameed2.png',
+        'bazooka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bazooka/bazookaburg.png',
+        'mexican': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mexican/mexcorn.png',
+        'station': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/station/pizzast.png',
+        'brgr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/brgr/brgrburg.png',
+        'bayoki': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bayoki/bayokirot.png',
+        'maine': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/maine/maineburg.png',
+        'barbar': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/barbar/barbarsand.png',
+        'qasr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/qasr/qasrkebab.png',
+        'ward': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ward/koshward.png',
+        'dushka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dushka/duskaburg.png',
+        'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/yaba/yabasand.png',
+        'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/caizo/caizoeg.png',
+        'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/abou/koshary.png',
+        'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/husk/husks.png',
+        'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pasta/pasta222.jpg',
+        'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/panda/pandah.png',
+        'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg',
+        'ribs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ribs/ribsss.png',
+        'manchow': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/manchow/manchowww.jpg',
+        'hashville': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hashville/hashvilleee.jpg',
+        'dawgs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dawgs/dawgss.png',
+        'chikin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/chikin/worx.png',
+        'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
+      };
 
-      // ---------- DYNAMIC IMAGE URL GENERATORS ----------
-      // Function to get food image URL from Supabase Storage
-      function getFoodImageUrl(slug) {
-        if (!slug) return 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
-        
-        // Try multiple possible image extensions
-        const extensions = ['.png', '.jpg', '.jpeg', '.webp'];
-        const baseUrl = `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/${slug}`;
-        
-        // First try the main image in the restaurant folder
-        for (const ext of extensions) {
-          const url = `${baseUrl}/${slug}${ext}`;
-          // In production, you would need to check if the image exists
-          // For now, we'll return the most likely URL
-          if (ext === '.png') return url;
-        }
-        
-        // Fallback to default
-        return 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
-      }
-
-      // Function to get logo URL from Supabase Storage
-      function getLogoUrl(slug) {
-        if (!slug) return 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
-        
-        // Try multiple possible image extensions for logos
-        const extensions = ['.jpg', '.png', '.jpeg', '.webp'];
-        const baseUrl = `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos`;
-        
-        for (const ext of extensions) {
-          const url = `${baseUrl}/${slug}${ext}`;
-          // In production, you would need to check if the image exists
-          // For now, we'll return the most likely URL
-          if (ext === '.jpg') return url;
-        }
-        
-        // Fallback to default
-        return 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
-      }
+      const restaurantLogos = {
+        'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mori.jpg',
+        'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/kilo.jpg',
+        'hameed': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/hameed.jpg',
+        'bazooka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/bazooka.jpg',
+        'mexican': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mexican.jpg',
+        'station': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/station.jpg',
+        'brgr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/brgr.jpg',
+        'bayoki': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/bayoki.jpg',
+        'maine': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/maine.jpg',
+        'barbar': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/barbar.jpg',
+        'qasr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/qasr.jpg',
+        'ward': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/ward.jpg',
+        'dushka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/dushka.jpg',
+        'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/yaba.jpg',
+        'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/caizo.jpg',
+        'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/abou.jpg',
+        'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/holmes.jpg',
+        'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/husk.jpg',
+        'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/pasta.jpg',
+        'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/panda.jpg',
+        'ribs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/ribs.jpg',
+        'manchow': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/manchow.jpg',
+        'hashville': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/hashville.jpg',
+        'dawgs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/dawgs.jpg',
+        'chikin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/chikin.jpg',
+        'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
+      };
 
       // ---------- RESTAURANT DATA ----------
       let restaurants = [];
       let categories = new Set();
+
+      // Function to get food image URL
+      function getFoodImageUrl(slug) {
+        return restaurantFoodImages[slug] || restaurantFoodImages['default'];
+      }
+
+      // Function to get logo URL
+      function getLogoUrl(slug) {
+        return restaurantLogos[slug] || restaurantLogos['default'];
+      }
 
       async function loadRestaurantsFromSupabase() {
         try {
@@ -1380,8 +1066,8 @@
               category: restaurant.category,
               desc: restaurant.description,
               rating: restaurant.rating,
-              logo_url: getLogoUrl(restaurant.slug), // Use dynamic URL generator
-              food_image: getFoodImageUrl(restaurant.slug), // Use dynamic URL generator
+              logo_url: getLogoUrl(restaurant.slug),
+              food_image: getFoodImageUrl(restaurant.slug),
               nearby: Math.random() > 0.3,
               trending: restaurant.rating >= 4.5
             }));
@@ -1393,7 +1079,6 @@
           
           if (restaurants.length > 0) {
             initSpotlight();
-            initRestaurantOfTheDay();
           }
           
         } catch (error) {
@@ -1404,7 +1089,6 @@
           initCards();
           if (restaurants.length > 0) {
             initSpotlight();
-            initRestaurantOfTheDay();
           }
         }
       }
@@ -1430,20 +1114,14 @@
           { id: 17, slug:'yaba', name:'Yaba', category:'Fast Food', desc:'Sandwiches and quick bites.', rating:4.1, logo_url: getLogoUrl('yaba'), food_image: getFoodImageUrl('yaba')},
           { id: 18, slug:'caizo', name:'Caizo', category:'Egyptian', desc:'Egyptian street food.', rating:4.0, logo_url: getLogoUrl('caizo'), food_image: getFoodImageUrl('caizo')},
           { id: 19, slug:'abou tarek', name:'Koshary Abou Tarek', category:'Egyptian', desc:'Famous koshary restaurant.', rating:4.6, logo_url: getLogoUrl('abou tarek'), food_image: getFoodImageUrl('abou tarek'), trending: true},
-          
-          // New restaurants
           { id: 20, slug:'husk', name:'Husk', category:'American', desc:'Southern cuisine with a modern twist.', rating:4.4, logo_url: getLogoUrl('husk'), food_image: getFoodImageUrl('husk'), trending: true},
           { id: 21, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Fresh pasta dishes for takeaway.', rating:4.3, logo_url: getLogoUrl('pasta'), food_image: getFoodImageUrl('pasta'), nearby: true},
           { id: 22, slug:'panda', name:'Panda House', category:'Chinese', desc:'Authentic Chinese cuisine with traditional flavors.', rating:4.5, logo_url: getLogoUrl('panda'), food_image: getFoodImageUrl('panda'), trending: true},
-          
-          // Holmes Burger
           { id: 23, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burgers with creative combinations in a stylish setting.', rating:4.7, logo_url: getLogoUrl('holmes'), food_image: getFoodImageUrl('holmes'), trending: true, nearby: true},
-          
-          // Additional new restaurants
           { id: 24, slug:'ribs', name:'Chicken n Ribs', category:'American', desc:'Juicy chicken and ribs with signature sauces.', rating:4.3, logo_url: getLogoUrl('ribs'), food_image: getFoodImageUrl('ribs'), nearby: true},
           { id: 25, slug:'manchow', name:'Manchow Wok', category:'Chinese', desc:'Authentic Chinese wok dishes and soups.', rating:4.4, logo_url: getLogoUrl('manchow'), food_image: getFoodImageUrl('manchow'), trending: true},
           { id: 26, slug:'hashville', name:'Hashville', category:'American', desc:'Nashville-style hot chicken and comfort food.', rating:4.6, logo_url: getLogoUrl('hashville'), food_image: getFoodImageUrl('hashville'), trending: true},
-          { id: 27, slug:'dawgs', name:'Dawgs n Shakes', category:'Fast Food', desc:'Gourmet hot dogs and handcrafted shakes.', rating:4.2, logo_url: getLogoUrl('dawgs'), food_image: getFoodImageUrl('dawgs'), nearby: true},
+          { id: 27, slug:'dawgs', name:'Dawgs n Shakes', category:'Fast Food', desc:'Gourmet hot dogs and handcrafted shakes.', rating:4.2, logo_url: getLogoUrl('dawgs'), food_image: getFoodImageUrl('dawgs'), nearby: true}
         ];
       }
 
@@ -1524,9 +1202,9 @@
         
         clickableContent.innerHTML = `
           <div class="card-img-container">
-            <img class="card-food-image" src="${r.food_image}" alt="${r.name} food" loading="lazy" onerror="this.onerror=null; this.src='${r.logo_url}'">
+            <img class="card-food-image" src="${r.food_image}" alt="${r.name} food" loading="lazy">
             <div class="card-logo-overlay">
-              <img src="${r.logo_url}" alt="${r.name} logo" onerror="this.src='https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'">
+              <img src="${r.logo_url}" alt="${r.name} logo">
             </div>
           </div>
           <div class="body">
@@ -1578,12 +1256,8 @@
         
         spotFoodImage.src = r.food_image;
         spotFoodImage.alt = `${r.name} food`;
-        spotFoodImage.onerror = function() { 
-          this.onerror = null; 
-          this.src = r.logo_url; 
-        };
         
-        spotLogo.innerHTML = `<img src="${r.logo_url}" alt="${r.name} logo" onerror="this.src='https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'">`;
+        spotLogo.innerHTML = `<img src="${r.logo_url}" alt="${r.name} logo">`;
         spotName.textContent = r.name;
         spotDesc.textContent = r.desc;
         spotRating.textContent = `⭐ ${r.rating}`;
@@ -1599,54 +1273,6 @@
         }, 5000); 
       }
 
-      // ---------- RESTAURANT OF THE DAY ----------
-      function initRestaurantOfTheDay() {
-        if (restaurants.length === 0) return;
-        
-        // Pick a random restaurant for "Restaurant of the Day"
-        const randomIndex = Math.floor(Math.random() * restaurants.length);
-        const dayRestaurant = restaurants[randomIndex];
-        
-        // Update the DOM elements
-        document.getElementById('dayFoodImage').src = dayRestaurant.food_image;
-        document.getElementById('dayFoodImage').alt = `${dayRestaurant.name} food`;
-        document.getElementById('dayLogo').src = dayRestaurant.logo_url;
-        document.getElementById('dayLogo').alt = `${dayRestaurant.name} logo`;
-        document.getElementById('dayName').textContent = dayRestaurant.name;
-        document.getElementById('dayDesc').textContent = dayRestaurant.desc;
-        document.getElementById('dayRating').textContent = `⭐ ${dayRestaurant.rating} • ${getCategoryEmoji(dayRestaurant.category)} ${dayRestaurant.category}`;
-        document.getElementById('dayAction').onclick = () => location.href = `restaurant.html?slug=${dayRestaurant.slug}`;
-        
-        // Add error handling for images
-        document.getElementById('dayFoodImage').onerror = function() {
-          this.onerror = null;
-          this.src = dayRestaurant.logo_url;
-        };
-        
-        document.getElementById('dayLogo').onerror = function() {
-          this.onerror = null;
-          this.src = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
-        };
-      }
-      
-      function getCategoryEmoji(category) {
-        const emojiMap = {
-          'Japanese': '🍣',
-          'Middle Eastern': '🥙',
-          'Fast Food': '🍔',
-          'Burgers': '🍔',
-          'Mexican': '🌮',
-          'Chicken': '🍗',
-          'Cafe & Bakery': '☕',
-          'Pizza': '🍕',
-          'American': '🇺🇸',
-          'Italian': '🍝',
-          'Chinese': '🥡',
-          'Egyptian': '🇪🇬'
-        };
-        return emojiMap[category] || '🍽️';
-      }
-
       // ---------- SEARCH ----------
       const globalSearch = document.getElementById('globalSearch');
       if (globalSearch) {
@@ -1658,6 +1284,46 @@
           } 
         });
       }
+
+      // ---------- APP COMING SOON MODAL ----------
+      const appComingSoonModal = document.getElementById('appComingSoonModal');
+      const closeModalBtn = document.getElementById('closeModal');
+      const iosAppButton = document.getElementById('iosAppButton');
+      const androidAppButton = document.getElementById('androidAppButton');
+      
+      function showAppComingSoonModal() {
+        appComingSoonModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function hideAppComingSoonModal() {
+        appComingSoonModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+      
+      iosAppButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        showAppComingSoonModal();
+      });
+      
+      androidAppButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        showAppComingSoonModal();
+      });
+      
+      closeModalBtn.addEventListener('click', hideAppComingSoonModal);
+      
+      appComingSoonModal.addEventListener('click', function(e) {
+        if (e.target === appComingSoonModal) {
+          hideAppComingSoonModal();
+        }
+      });
+      
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && appComingSoonModal.classList.contains('active')) {
+          hideAppComingSoonModal();
+        }
+      });
 
       // ---------- INITIALIZE ----------
       document.addEventListener('DOMContentLoaded', async function() {
