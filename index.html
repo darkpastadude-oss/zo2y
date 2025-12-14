@@ -1193,7 +1193,8 @@
                 <div class="day-badge">Restaurant of the Day</div>
                 <div class="day-restaurant">
                     <div style="position:relative; display:inline-block;">
-                        <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Holmes Burger food" onerror="this.src='images/holmes.png'">
+                        <!-- FIXED: Changed .jpg to .png for Holmes image -->
+                        <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.png" alt="Holmes Burger food" onerror="this.src='images/holmes.png'">
                         <div style="position:absolute; bottom:8px; left:8px; width:30px; height:30px; background:rgba(11,22,51,0.85); border-radius:6px; padding:3px; border:2px solid var(--accent);">
                             <img src="images/holmes.png" alt="Holmes Burger logo" onerror="this.src='images/default-logo.jpg'">
                         </div>
@@ -1312,7 +1313,7 @@
         }
       });
 
-      // ---------- YOUR ACTUAL FOOD IMAGES ----------
+      // ---------- UPDATED FOOD IMAGES WITH NEW ADDITIONS ----------
       const restaurantFoodImages = {
         // From your gallery
         'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png',
@@ -1331,11 +1332,19 @@
         'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/yaba/yabasand.png',
         'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/caizo/caizoeg.png',
         'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/abou/koshary.png',
+        
+        // NEW: Added your requested images
+        'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/husk/husks.png',
+        'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pasta/pasta222.jpg',
+        'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/panda/pandah.png',
+        
+        // FIXED: Holmes image (was .jpg, should be .png)
+        'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.png',
+        
         // Restaurant logos (will be used as fallback)
         'chikin': 'images/chikin.png',
         'vasko': 'images/vasko.jpg',
         'secondcup': 'images/secondcup.png',
-        'holmes': 'images/holmes.png',
         'buffalo': 'images/buffalo.png',
         'butchers': 'images/butchers.png',
         'chez': 'images/chez.png',
@@ -1349,7 +1358,6 @@
         'hashville': 'images/hashville.png',
         'heart': 'images/heart.png',
         'howlin': 'images/howlin.png',
-        'husk': 'images/husk.png',
         'kansas': 'images/kansas.png',
         'kufta': 'images/kufta.png',
         'labash': 'images/labash.png',
@@ -1359,9 +1367,7 @@
         'mario': 'images/mario.png',
         'mince': 'images/mince.png',
         'pablo': 'images/pablo.png',
-        'panda': 'images/panda.png',
         'papa': 'images/papa.png',
-        'pasta': 'images/pasta.png',
         'peking': 'images/peking.png',
         'pickl': 'images/pickl.png',
         '88': 'images/88.png',
@@ -1381,7 +1387,8 @@
       // Function to get image URL - returns logo if food image doesn't exist
       function getImageUrl(slug) {
         const foodImage = restaurantFoodImages[slug];
-        if (foodImage && !foodImage.includes('default-logo.jpg')) {
+        // Check if we have a food image for this slug
+        if (foodImage) {
           return foodImage;
         }
         // Return logo instead of default-logo.jpg
@@ -1459,6 +1466,12 @@
           { id: 17, slug:'yaba', name:'Yaba', category:'Fast Food', desc:'Sandwiches and quick bites.', rating:4.1, logo_url: 'images/yaba.png', food_image: getImageUrl('yaba')},
           { id: 18, slug:'caizo', name:'Caizo', category:'Egyptian', desc:'Egyptian street food.', rating:4.0, logo_url: 'images/caizo.png', food_image: getImageUrl('caizo')},
           { id: 19, slug:'abou tarek', name:'Koshary Abou Tarek', category:'Egyptian', desc:'Famous koshary restaurant.', rating:4.6, logo_url: 'images/abou.png', food_image: getImageUrl('abou tarek'), trending: true},
+          { id: 20, slug:'husk', name:'Husk', category:'American', desc:'Southern cuisine with a modern twist.', rating:4.4, logo_url: 'images/husk.png', food_image: getImageUrl('husk'), trending: true},
+          { id: 21, slug:'pasta', name:'Pasta2Go', category:'Italian', desc:'Fresh pasta dishes for takeaway.', rating:4.3, logo_url: 'images/pasta.png', food_image: getImageUrl('pasta'), nearby: true},
+          // UPDATED: Changed from "Panda" to "Panda House"
+          { id: 22, slug:'panda', name:'Panda House', category:'Chinese', desc:'Authentic Chinese cuisine with traditional flavors.', rating:4.5, logo_url: 'images/panda.png', food_image: getImageUrl('panda'), trending: true},
+          // FIXED: Holmes with correct image
+          { id: 23, slug:'holmes', name:'Holmes Burger', category:'Burgers', desc:'Gourmet burgers with creative combinations in a stylish setting.', rating:4.7, logo_url: 'images/holmes.png', food_image: getImageUrl('holmes'), trending: true, nearby: true},
         ];
       }
 
