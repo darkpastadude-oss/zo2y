@@ -120,7 +120,7 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* NEW: CARD IMAGE CONTAINER WITH LOGO OVERLAY */
+        /* UPDATED: CARD IMAGE CONTAINER WITH LARGER LOGO OVERLAY */
         .card-img-container {
             height:180px; 
             overflow:hidden; 
@@ -143,14 +143,14 @@
             position: absolute;
             top: 12px;
             right: 12px;
-            width: 50px;
-            height: 50px;
+            width: 64px; /* Increased from 50px */
+            height: 64px; /* Increased from 50px */
             background: rgba(11, 22, 51, 0.85);
-            border-radius: 12px;
+            border-radius: 14px; /* Slightly larger radius */
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6px;
+            padding: 8px; /* Increased padding */
             border: 2px solid var(--border);
             backdrop-filter: blur(10px);
             z-index: 10;
@@ -163,7 +163,7 @@
             object-fit: contain;
         }
         
-        /* SPOTLIGHT CARD - UPDATED FOR LOGO + FOOD */
+        /* UPDATED: SPOTLIGHT CARD - LARGER LOGO */
         .spotlight-img-container {
             width:100%; 
             height:100px; 
@@ -185,17 +185,18 @@
             position: absolute;
             top: 8px;
             right: 8px;
-            width: 40px;
-            height: 40px;
+            width: 52px; /* Increased from 40px */
+            height: 52px; /* Increased from 40px */
             background: rgba(11, 22, 51, 0.85);
-            border-radius: 8px;
+            border-radius: 10px; /* Slightly larger radius */
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 4px;
+            padding: 6px; /* Increased padding */
             border: 2px solid var(--border);
             backdrop-filter: blur(10px);
             z-index: 10;
+            transition: all 0.3s ease;
         }
         
         .spotlight-logo-overlay img {
@@ -335,6 +336,11 @@
         .spotlight:hover .spotlight-food-image {
             transform: scale(1.1);
         } 
+        .spotlight:hover .spotlight-logo-overlay {
+            background: rgba(245,158,11,0.9);
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
         .spotlight .meta {
             padding-right:8px;
             display: flex;
@@ -363,7 +369,7 @@
             font-size: 14px;
         } 
         
-        /* RESTAURANT CARDS - UPDATED */
+        /* RESTAURANT CARDS - UPDATED FOR LARGER LOGOS */
         .card {
             flex:0 0 320px; 
             min-width:320px; 
@@ -674,6 +680,7 @@
             color: var(--white);
             text-decoration: none;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         .app-button:hover {
@@ -844,6 +851,80 @@
             font-size: 1rem;
         }
 
+        /* App Coming Soon Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11, 22, 51, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-icon {
+            font-size: 48px;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            color: var(--white);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .modal-message {
+            color: var(--muted);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .modal-close-btn {
+            background: var(--accent);
+            color: #111;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(245,158,11,0.25);
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .hero-inner {
@@ -921,7 +1002,17 @@
                 top: 12px; 
                 left: 12px;
                 gap: 8px; 
-            } 
+            }
+            .card-logo-overlay {
+                width: 56px;
+                height: 56px;
+                top: 10px;
+                right: 10px;
+            }
+            .spotlight-logo-overlay {
+                width: 48px;
+                height: 48px;
+            }
         }
         
         @media (max-width:560px){
@@ -984,6 +1075,18 @@
                 padding: 40px 16px 20px;
                 margin-top: 40px;
             }
+            .card-logo-overlay {
+                width: 52px;
+                height: 52px;
+                top: 8px;
+                right: 8px;
+                padding: 6px;
+            }
+            .spotlight-logo-overlay {
+                width: 44px;
+                height: 44px;
+                padding: 5px;
+            }
         }
         
         @media (hover: none) and (pointer: coarse) { 
@@ -998,6 +1101,16 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
+    <!-- App Coming Soon Modal -->
+    <div class="modal-overlay" id="appComingSoonModal">
+        <div class="modal-content">
+            <div class="modal-icon">📱</div>
+            <h2 class="modal-title">Coming Soon!</h2>
+            <p class="modal-message">Our mobile app is currently in development and will be available for download soon. Stay tuned for updates!</p>
+            <button class="modal-close-btn" id="closeModal">Got it!</button>
+        </div>
+    </div>
+
     <header class="nav" role="banner">
         <div class="left">
             <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
@@ -1074,7 +1187,7 @@
                 <div class="day-badge">Restaurant of the Day</div>
                 <div class="day-restaurant">
                     <div style="position:relative; display:inline-block;">
-                        <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Holmes Burger food" onerror="this.src='images/default-logo.jpg'">
+                        <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Holmes Burger food" onerror="this.src='images/holmes.png'">
                         <div style="position:absolute; top:8px; right:8px; width:30px; height:30px; background:rgba(11,22,51,0.85); border-radius:6px; padding:3px; border:1px solid var(--border);">
                             <img src="images/holmes.png" alt="Holmes Burger logo" onerror="this.src='images/default-logo.jpg'">
                         </div>
@@ -1151,6 +1264,48 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+      // ---------- APP COMING SOON MODAL ----------
+      const appComingSoonModal = document.getElementById('appComingSoonModal');
+      const closeModalBtn = document.getElementById('closeModal');
+      const iosAppButton = document.getElementById('iosAppButton');
+      const androidAppButton = document.getElementById('androidAppButton');
+      
+      function showAppComingSoonModal() {
+        appComingSoonModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function hideAppComingSoonModal() {
+        appComingSoonModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+      
+      iosAppButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        showAppComingSoonModal();
+      });
+      
+      androidAppButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        showAppComingSoonModal();
+      });
+      
+      closeModalBtn.addEventListener('click', hideAppComingSoonModal);
+      
+      // Close modal when clicking outside
+      appComingSoonModal.addEventListener('click', function(e) {
+        if (e.target === appComingSoonModal) {
+          hideAppComingSoonModal();
+        }
+      });
+      
+      // Close modal with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && appComingSoonModal.classList.contains('active')) {
+          hideAppComingSoonModal();
+        }
+      });
+
       // ---------- YOUR ACTUAL FOOD IMAGES ----------
       const restaurantFoodImages = {
         // From your gallery
@@ -1170,52 +1325,62 @@
         'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/yaba/yabasand.png',
         'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/caizo/caizoeg.png',
         'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/abou/koshary.png',
-        // Fallback images for other restaurants
+        // Restaurant logos (will be used as fallback)
         'chikin': 'images/chikin.png',
         'vasko': 'images/vasko.jpg',
         'secondcup': 'images/secondcup.png',
-        'holmes': 'images/holmes.jpg',
-        'buffalo': 'images/default-logo.jpg',
-        'butchers': 'images/default-logo.jpg',
-        'chez': 'images/default-logo.jpg',
-        'ribs': 'images/default-logo.jpg',
-        'country': 'images/default-logo.jpg',
-        'crave': 'images/default-logo.jpg',
-        'crispy': 'images/default-logo.jpg',
-        'crumbs': 'images/default-logo.jpg',
-        'daddy': 'images/default-logo.jpg',
-        'dawgs': 'images/default-logo.jpg',
-        'hashville': 'images/default-logo.jpg',
-        'heart': 'images/default-logo.jpg',
-        'howlin': 'images/default-logo.jpg',
-        'husk': 'images/default-logo.jpg',
-        'kansas': 'images/default-logo.jpg',
-        'kufta': 'images/default-logo.jpg',
-        'labash': 'images/default-logo.jpg',
-        'lord': 'images/default-logo.jpg',
-        'man': 'images/default-logo.jpg',
-        'manchow': 'images/default-logo.jpg',
-        'mario': 'images/default-logo.jpg',
-        'mince': 'images/default-logo.jpg',
-        'pablo': 'images/default-logo.jpg',
-        'panda': 'images/default-logo.jpg',
-        'papa': 'images/default-logo.jpg',
-        'pasta': 'images/default-logo.jpg',
-        'peking': 'images/default-logo.jpg',
-        'pickl': 'images/default-logo.jpg',
-        '88': 'images/default-logo.jpg',
-        'sauce': 'images/default-logo.jpg',
-        'shawermer': 'images/default-logo.jpg',
-        'tabali': 'images/default-logo.jpg',
-        'takosan': 'images/default-logo.jpg',
-        'what': 'images/default-logo.jpg',
-        'willys': 'images/default-logo.jpg',
-        'wok': 'images/default-logo.jpg'
+        'holmes': 'images/holmes.png',
+        'buffalo': 'images/buffalo.png',
+        'butchers': 'images/butchers.png',
+        'chez': 'images/chez.png',
+        'ribs': 'images/ribs.png',
+        'country': 'images/country.png',
+        'crave': 'images/crave.png',
+        'crispy': 'images/crispy.png',
+        'crumbs': 'images/crumbs.png',
+        'daddy': 'images/daddy.png',
+        'dawgs': 'images/dawgs.png',
+        'hashville': 'images/hashville.png',
+        'heart': 'images/heart.png',
+        'howlin': 'images/howlin.png',
+        'husk': 'images/husk.png',
+        'kansas': 'images/kansas.png',
+        'kufta': 'images/kufta.png',
+        'labash': 'images/labash.png',
+        'lord': 'images/lord.png',
+        'man': 'images/man.png',
+        'manchow': 'images/manchow.png',
+        'mario': 'images/mario.png',
+        'mince': 'images/mince.png',
+        'pablo': 'images/pablo.png',
+        'panda': 'images/panda.png',
+        'papa': 'images/papa.png',
+        'pasta': 'images/pasta.png',
+        'peking': 'images/peking.png',
+        'pickl': 'images/pickl.png',
+        '88': 'images/88.png',
+        'sauce': 'images/sauce.png',
+        'shawermer': 'images/shawermer.png',
+        'tabali': 'images/tabali.png',
+        'takosan': 'images/takosan.png',
+        'what': 'images/what.png',
+        'willys': 'images/willys.png',
+        'wok': 'images/wok.png'
       };
 
       // ---------- RESTAURANT DATA ----------
       let restaurants = [];
       let categories = new Set();
+
+      // Function to get image URL - returns logo if food image doesn't exist
+      function getImageUrl(slug) {
+        const foodImage = restaurantFoodImages[slug];
+        if (foodImage && !foodImage.includes('default-logo.jpg')) {
+          return foodImage;
+        }
+        // Return logo instead of default-logo.jpg
+        return `images/${slug}.png` || 'images/default-logo.jpg';
+      }
 
       async function loadRestaurantsFromSupabase() {
         try {
@@ -1240,8 +1405,8 @@
               category: restaurant.category,
               desc: restaurant.description,
               rating: restaurant.rating,
-              logo_url: restaurant.logo_url || 'images/default-logo.jpg',
-              food_image: restaurantFoodImages[restaurant.slug] || 'images/default-logo.jpg',
+              logo_url: restaurant.logo_url || `images/${restaurant.slug}.png` || 'images/default-logo.jpg',
+              food_image: getImageUrl(restaurant.slug),
               nearby: Math.random() > 0.3,
               trending: restaurant.rating >= 4.5
             }));
@@ -1269,25 +1434,25 @@
 
       function getFallbackRestaurants() {
         return [
-          { id: 1, slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, logo_url: 'images/mori.png', food_image: restaurantFoodImages['mori'], nearby: true, trending: true},
-          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, logo_url: 'images/kilo.png', food_image: restaurantFoodImages['kilo'], nearby: true},
-          { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, logo_url: 'images/hameed.png', food_image: restaurantFoodImages['hameed'], nearby: true},
-          { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, logo_url: 'images/bazooka.jpg', food_image: restaurantFoodImages['bazooka'], trending: true},
-          { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, logo_url: 'images/mexican.jpg', food_image: restaurantFoodImages['mexican']},
-          { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, logo_url: 'images/chikin.png', food_image: restaurantFoodImages['chikin'], nearby: true},
-          { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, logo_url: 'images/vasko.jpg', food_image: restaurantFoodImages['vasko'], trending: true},
-          { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, logo_url: 'images/secondcup.png', food_image: restaurantFoodImages['secondcup'], nearby: true},
-          { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, logo_url: 'images/station.png', food_image: restaurantFoodImages['station']},
-          { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, logo_url: 'images/brgr.jpg', food_image: restaurantFoodImages['brgr'], trending: true},
-          { id: 11, slug:'bayoki', name:'Bayouki Rotisserie', category:'Middle Eastern', desc:'Rotisserie chicken and Middle Eastern dishes.', rating:4.3, logo_url: 'images/bayoki.png', food_image: restaurantFoodImages['bayoki'], nearby: true},
-          { id: 12, slug:'barbar', name:'Barbar Shawarma', category:'Fast Food', desc:'Shawarma sandwiches and wraps.', rating:4.2, logo_url: 'images/barbar.png', food_image: restaurantFoodImages['barbar']},
-          { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Gourmet burgers with unique toppings.', rating:4.4, logo_url: 'images/maine.png', food_image: restaurantFoodImages['maine'], trending: true},
-          { id: 14, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Traditional kebab restaurant.', rating:4.5, logo_url: 'images/qasr.png', food_image: restaurantFoodImages['qasr'], nearby: true},
-          { id: 15, slug:'ward', name:'Koshary Ward', category:'Egyptian', desc:'Traditional Egyptian koshary.', rating:4.3, logo_url: 'images/ward.png', food_image: restaurantFoodImages['ward']},
-          { id: 16, slug:'dushka', name:'Dushka burger', category:'Burgers', desc:'Unique burger creations.', rating:4.2, logo_url: 'images/dushka.png', food_image: restaurantFoodImages['dushka']},
-          { id: 17, slug:'yaba', name:'Yaba', category:'Fast Food', desc:'Sandwiches and quick bites.', rating:4.1, logo_url: 'images/yaba.png', food_image: restaurantFoodImages['yaba']},
-          { id: 18, slug:'caizo', name:'Caizo', category:'Egyptian', desc:'Egyptian street food.', rating:4.0, logo_url: 'images/caizo.png', food_image: restaurantFoodImages['caizo']},
-          { id: 19, slug:'abou tarek', name:'Koshary Abou Tarek', category:'Egyptian', desc:'Famous koshary restaurant.', rating:4.6, logo_url: 'images/abou.png', food_image: restaurantFoodImages['abou tarek'], trending: true},
+          { id: 1, slug:'mori', name:'Mori Sushi', category:'Japanese', desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', rating:4.7, logo_url: 'images/mori.png', food_image: getImageUrl('mori'), nearby: true, trending: true},
+          { id: 2, slug:'kilo', name:'Kilo Kebab', category:'Middle Eastern', desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', rating:4.5, logo_url: 'images/kilo.png', food_image: getImageUrl('kilo'), nearby: true},
+          { id: 3, slug:'hameed', name:'Hameed', category:'Fast Food', desc:'Local favorite for sandwiches & quick bites.', rating:4.3, logo_url: 'images/hameed.png', food_image: getImageUrl('hameed'), nearby: true},
+          { id: 4, slug:'bazooka', name:'Bazooka', category:'Burgers', desc:'Loaded burgers & crispy fried chicken combos.', rating:4.2, logo_url: 'images/bazooka.jpg', food_image: getImageUrl('bazooka'), trending: true},
+          { id: 5, slug:'mexican', name:'Mexican Corn', category:'Mexican', desc:'Elote, tacos & cheesy Mexican street snacks.', rating:4.0, logo_url: 'images/mexican.jpg', food_image: getImageUrl('mexican')},
+          { id: 6, slug:'chikin', name:'Chikin Worx', category:'Chicken', desc:'Crunchy chicken, sandwiches & family buckets.', rating:4.5, logo_url: 'images/chikin.png', food_image: getImageUrl('chikin'), nearby: true},
+          { id: 7, slug:'vasko', name:'Vasko', category:'Cafe & Bakery', desc:'Artisanal coffee and pastries in a modern European-style cafe.', rating:4.6, logo_url: 'images/vasko.jpg', food_image: getImageUrl('vasko'), trending: true},
+          { id: 8, slug:'secondcup', name:'Second Cup', category:'Cafe & Bakery', desc:'Canadian coffeehouse serving espresso, lattes & pastries.', rating:4.4, logo_url: 'images/secondcup.png', food_image: getImageUrl('secondcup'), nearby: true},
+          { id: 9, slug:'station', name:'Pizza Station', category:'Pizza', desc:'Classic pizzas & comfort food.', rating:4.3, logo_url: 'images/station.png', food_image: getImageUrl('station')},
+          { id: 10, slug:'brgr', name:'BRGR', category:'Burgers', desc:'Gourmet burgers with premium toppings & sides.', rating:4.4, logo_url: 'images/brgr.jpg', food_image: getImageUrl('brgr'), trending: true},
+          { id: 11, slug:'bayoki', name:'Bayouki Rotisserie', category:'Middle Eastern', desc:'Rotisserie chicken and Middle Eastern dishes.', rating:4.3, logo_url: 'images/bayoki.png', food_image: getImageUrl('bayoki'), nearby: true},
+          { id: 12, slug:'barbar', name:'Barbar Shawarma', category:'Fast Food', desc:'Shawarma sandwiches and wraps.', rating:4.2, logo_url: 'images/barbar.png', food_image: getImageUrl('barbar')},
+          { id: 13, slug:'maine', name:'Maine', category:'Burgers', desc:'Gourmet burgers with unique toppings.', rating:4.4, logo_url: 'images/maine.png', food_image: getImageUrl('maine'), trending: true},
+          { id: 14, slug:'qasr', name:'Qasr El Kababgy', category:'Middle Eastern', desc:'Traditional kebab restaurant.', rating:4.5, logo_url: 'images/qasr.png', food_image: getImageUrl('qasr'), nearby: true},
+          { id: 15, slug:'ward', name:'Koshary Ward', category:'Egyptian', desc:'Traditional Egyptian koshary.', rating:4.3, logo_url: 'images/ward.png', food_image: getImageUrl('ward')},
+          { id: 16, slug:'dushka', name:'Dushka burger', category:'Burgers', desc:'Unique burger creations.', rating:4.2, logo_url: 'images/dushka.png', food_image: getImageUrl('dushka')},
+          { id: 17, slug:'yaba', name:'Yaba', category:'Fast Food', desc:'Sandwiches and quick bites.', rating:4.1, logo_url: 'images/yaba.png', food_image: getImageUrl('yaba')},
+          { id: 18, slug:'caizo', name:'Caizo', category:'Egyptian', desc:'Egyptian street food.', rating:4.0, logo_url: 'images/caizo.png', food_image: getImageUrl('caizo')},
+          { id: 19, slug:'abou tarek', name:'Koshary Abou Tarek', category:'Egyptian', desc:'Famous koshary restaurant.', rating:4.6, logo_url: 'images/abou.png', food_image: getImageUrl('abou tarek'), trending: true},
         ];
       }
 
@@ -1368,7 +1533,7 @@
         
         clickableContent.innerHTML = `
           <div class="card-img-container">
-            <img class="card-food-image" src="${r.food_image}" alt="${r.name} food" loading="lazy" onerror="this.src='images/default-logo.jpg'">
+            <img class="card-food-image" src="${r.food_image}" alt="${r.name} food" loading="lazy" onerror="this.onerror=null; this.src='${r.logo_url}'">
             <div class="card-logo-overlay">
               <img src="${r.logo_url}" alt="${r.name} logo" onerror="this.src='images/default-logo.jpg'">
             </div>
@@ -1422,7 +1587,10 @@
         
         spotFoodImage.src = r.food_image;
         spotFoodImage.alt = `${r.name} food`;
-        spotFoodImage.onerror = function() { this.src = 'images/default-logo.jpg'; };
+        spotFoodImage.onerror = function() { 
+          this.onerror = null; 
+          this.src = r.logo_url; 
+        };
         
         spotLogo.innerHTML = `<img src="${r.logo_url}" alt="${r.name} logo" onerror="this.src='images/default-logo.jpg'">`;
         spotName.textContent = r.name;
