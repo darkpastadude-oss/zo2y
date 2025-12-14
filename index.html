@@ -1000,36 +1000,39 @@ transition: all 0.3s ease;
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // ---------- HARDCODED FOOD IMAGE URLs (These should eventually come from Supabase too) ----------
-      const restaurantFoodImages = {
-        'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png',
-        'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png',
-        'hameed': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hameed/hameed2.png',
-        'bazooka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bazooka/bazookaburg.png',
-        'mexican': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mexican/mexcorn.png',
-        'station': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/station/pizzast.png',
-        'brgr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/brgr/brgrburg.png',
-        'bayoki': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bayoki/bayokirot.png',
-        'maine': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/maine/maineburg.png',
-        'barbar': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/barbar/barbarsand.png',
-        'qasr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/qasr/qasrkebab.png',
-        'ward': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ward/koshward.png',
-        'dushka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dushka/duskaburg.png',
-        'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/yaba/yabasand.png',
-        'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/caizo/caizoeg.png',
-        'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/abou/koshary.png',
-        'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/husk/husks.png',
-        'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pasta/pasta222.jpg',
-        'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/panda/pandah.png',
-        'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg',
-        'ribs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ribs/ribsss.png',
-        'manchow': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/manchow/manchowww.jpg',
-        'hashville': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hashville/hashvilleee.jpg',
-        'dawgs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dawgs/dawgss.png',
-        'chikin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/chikin/worx.png',
-        'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
-      };
-
+ // ---------- HARDCODED FOOD IMAGE URLs ----------
+const restaurantFoodImages = {
+    'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png',
+    'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png',
+    'hameed': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hameed/hameed2.png',
+    'bazooka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bazooka/bazookaburg.png',
+    'mexican': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mexican/mexcorn.png',
+    'station': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/station/pizzast.png',
+    'brgr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/brgr/brgrburg.png',
+    'bayoki': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bayoki/bayokirot.png',
+    'maine': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/maine/maineburg.png',
+    'barbar': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/barbar/barbarsand.png',
+    'qasr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/qasr/qasrkebab.png',
+    'ward': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ward/koshward.png',
+    'dushka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dushka/duskaburg.png',
+    'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/yaba/yabasand.png',
+    'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/caizo/caizoeg.png',
+    'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/abou/koshary.png',
+    'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/husk/husks.png',
+    'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pasta/pasta222.jpg',
+    'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/panda/pandah.png',
+    'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmess.png', // UPDATED
+    'ribs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ribs/ribsss.png',
+    'manchow': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/manchow/manchowww.jpg',
+    'hashville': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hashville/hashvilleee.jpg',
+    'dawgs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dawgs/dawgss.png',
+    'chikin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/chikin/worx.png',
+    // NEW ENTRIES ADDED BELOW
+    'mario': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mario/marioseg.jpg',
+    'kufta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kufta/kuftaa.png',
+    'pablo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pablo/pablooo.png',
+    'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
+};
       // Default fallback logo if none is found in database
       const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
 
