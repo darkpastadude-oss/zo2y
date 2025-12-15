@@ -611,6 +611,13 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    // Default fallback images
+    const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
+    const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
+
+    // Cache for restaurant images
+    const restaurantImages = {};
+
     // Performance optimization: Debounce function
     function debounce(func, wait) {
       let timeout;
@@ -624,6 +631,78 @@
       };
     }
 
+    // Function to load ALL images from gallery at once (more efficient)
+    async function loadAllRestaurantImages() {
+      try {
+        console.log("🔄 Loading all restaurant images from gallery...");
+        
+        const { data, error } = await supabase
+          .from('restaurant_gallery')
+          .select('restaurant_slug, image_url, image_type, is_primary')
+          .order('sort_order', { ascending: true });
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          // Organize images by restaurant slug
+          data.forEach(item => {
+            if (!restaurantImages[item.restaurant_slug]) {
+              restaurantImages[item.restaurant_slug] = {
+                cover: DEFAULT_COVER_URL,
+                logo: DEFAULT_LOGO_URL
+              };
+            }
+            
+            // Set cover image (primary first, then first found)
+            if (item.image_type === 'cover') {
+              if (item.is_primary || restaurantImages[item.restaurant_slug].cover === DEFAULT_COVER_URL) {
+                restaurantImages[item.restaurant_slug].cover = item.image_url;
+              }
+            }
+            
+            // Set logo image
+            if (item.image_type === 'logo') {
+              if (item.is_primary || restaurantImages[item.restaurant_slug].logo === DEFAULT_LOGO_URL) {
+                restaurantImages[item.restaurant_slug].logo = item.image_url;
+              }
+            }
+          });
+          
+          console.log(`✅ Loaded images for ${Object.keys(restaurantImages).length} restaurants`);
+        } else {
+          console.log('No images found in gallery table');
+        }
+      } catch (error) {
+        console.error('Error loading restaurant images:', error);
+      }
+    }
+
+    // Function to get cover image URL
+    function getCoverImageUrl(restaurantSlug) {
+      return restaurantImages[restaurantSlug]?.cover || DEFAULT_COVER_URL;
+    }
+
+    // Function to get logo URL
+    function getLogoUrl(restaurant) {
+      // First try from cached gallery images
+      if (restaurantImages[restaurant.slug]?.logo && restaurantImages[restaurant.slug].logo !== DEFAULT_LOGO_URL) {
+        return restaurantImages[restaurant.slug].logo;
+      }
+      
+      // Then try from restaurant data
+      if (restaurant.logo_url) {
+        return restaurant.logo_url;
+      }
+      
+      // Then try image field
+      if (restaurant.image) {
+        return restaurant.image;
+      }
+      
+      // Default fallback
+      return DEFAULT_LOGO_URL;
+    }
+
     // Lazy loading for images
     const imageObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -635,7 +714,8 @@
             imageObserver.unobserve(img);
           };
           img.onerror = () => {
-            img.src = 'images/default-logo.jpg';
+            // Fallback to default logo if image fails to load
+            img.src = DEFAULT_LOGO_URL;
             img.classList.add('loaded');
             imageObserver.unobserve(img);
           };
@@ -1039,9 +1119,13 @@
         
         console.log("🔄 Loading restaurants from Supabase...");
         
+        // Load images first
+        await loadAllRestaurantImages();
+        
+        // Then load restaurants
         const { data, error } = await supabase
           .from('restraunts')
-          .select('id, slug, name, category, description, rating, image')
+          .select('id, slug, name, category, description, rating, logo_url, image')
           .order('rating', { ascending: false });
         
         if (error) {
@@ -1064,6 +1148,7 @@
           return;
         }
         
+        // Process restaurants with dynamic images from gallery
         restaurants = data.map(restaurant => ({
           id: restaurant.id,
           slug: restaurant.slug,
@@ -1071,8 +1156,11 @@
           category: restaurant.category,
           desc: restaurant.description,
           rating: restaurant.rating,
-          image: restaurant.image || 'default-logo.jpg'
+          logo_url: getLogoUrl(restaurant),
+          food_image: getCoverImageUrl(restaurant.slug)
         }));
+        
+        console.log('First restaurant with dynamic images:', restaurants[0]);
         
         // Extract unique categories
         categories = new Set(restaurants.map(r => r.category).filter(Boolean));
@@ -1221,7 +1309,7 @@
           
           clickableContent.innerHTML = `
             <div class="media">
-              <img data-src="images/${r.image}" alt="${r.name}" loading="lazy">
+              <img data-src="${r.food_image}" alt="${r.name}" loading="lazy">
             </div>
             <div class="inner">
               <h3>${r.name}</h3>
@@ -1355,6 +1443,6 @@
       const logo = new Image();
       logo.src = 'images/logo.png';
     });
-  </script>
+</script>
 </body>
 </html>
