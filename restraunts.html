@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -179,78 +179,175 @@
       grid-template-columns: repeat(var(--grid-columns), 1fr);
     }
     
+    /* Enhanced Image Container for Logo + Food Display */
+    .tile .media {
+      height: 160px;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(19, 35, 71, 0.8), rgba(11, 22, 51, 0.9));
+      position: relative;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    
+    .tile .food-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    
+    .tile .logo-overlay {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
+      background: rgba(11, 22, 51, 0.85);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border: 2px solid var(--accent);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      pointer-events: none; /* Don't interfere with touch events */
+    }
+    
+    .tile .logo-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    
+    .tile:hover .food-image {
+      transform: scale(1.1);
+    }
+    
+    .tile:hover .logo-overlay {
+      transform: scale(1.1);
+      border-color: var(--accent);
+      background: rgba(245,158,11,0.9);
+      box-shadow: 0 6px 16px rgba(245,158,11,0.4);
+    }
+    
+    /* Mobile Touch Actions */
+    .mobile-actions-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      border-radius: inherit;
+      z-index: 30;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .mobile-actions-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .mobile-action-btn {
+      background: var(--accent);
+      color: #0b1633;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      max-width: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+    
+    .mobile-action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(245,158,11,0.4);
+    }
+    
+    .mobile-action-btn i {
+      font-size: 18px;
+    }
+    
+    .mobile-cancel-btn {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid var(--border);
+      padding: 12px 24px;
+      border-radius: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      max-width: 200px;
+    }
+    
+    .mobile-cancel-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .mobile-actions-overlay .action-title {
+      color: var(--white);
+      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    
+    .mobile-actions-overlay .action-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+      max-width: 300px;
+    }
+    
+    /* Grid view adjustments */
     .grid-compact .tile .media {
       height: 120px;
+    }
+    
+    .grid-compact .tile .logo-overlay {
+      width: 40px;
+      height: 40px;
+      bottom: 8px;
+      left: 8px;
     }
     
     .grid-dense .tile .media {
       height: 100px;
     }
     
-    .grid-dense .tile .desc {
-      display: none;
-    }
-    
-    .grid-dense .tile h3 {
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    
-    .grid-dense .tile .category {
-      font-size: 11px;
-    }
-    
-    .grid-dense .list-actions {
-      top: 8px;
-      right: 8px;
-      gap: 4px;
-    }
-    
-    .grid-dense .list-btn {
+    .grid-dense .tile .logo-overlay {
       width: 32px;
       height: 32px;
-      font-size: 12px;
+      bottom: 6px;
+      left: 6px;
+      border-width: 1.5px;
     }
     
-    .tile { 
-      background: var(--card); border-radius: 16px; overflow: hidden; 
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 1px solid var(--border); 
-      cursor: pointer; position: relative; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      will-change: transform;
-    } 
-    .tile:hover { 
-      transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.2);
-      border-color: var(--accent);
-    } 
-    .tile .media { 
-      height: 160px; overflow: hidden; background: var(--glass); 
-      display: flex; align-items: center; justify-content: center; padding: 16px; 
-      position: relative;
-    } 
-    .tile img { 
-      width: auto; height: auto; max-width: 100%; max-height: 100%; 
-      object-fit: contain; transition: transform 0.6s ease;
-    }
-    .tile:hover img {
-      transform: scale(1.1);
-    }
-    .tile .inner { padding: 16px; } 
-    .tile h3 { 
-      margin: 0 0 8px 0; font-size: 16px; font-weight: 700; 
-      line-height: 1.3;
-    } 
-    .tile .category { 
-      color: var(--muted); font-size: 12px; margin: 0 0 8px 0; 
-      display: flex; align-items: center; gap: 6px;
-    } 
-    .tile .rating { color: var(--accent); font-weight: 700; } 
-    .tile .desc { 
-      color: var(--muted); font-size: 13px; margin: 8px 0 0 0; 
-      line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; 
-      -webkit-box-orient: vertical; overflow: hidden; 
-    }
-    
-    /* Enhanced List Actions */
+    /* Enhanced List Actions (desktop only) */
     .list-actions { 
       position: absolute; top: 12px; right: 12px; display: flex; 
       flex-direction: column; gap: 8px; opacity: 0; z-index: 10; 
@@ -274,6 +371,22 @@
       transform: scale(1.1);
     } 
     .list-btn .btn-text { display: none; }
+    
+    .tile .inner { padding: 16px; } 
+    .tile h3 { 
+      margin: 0 0 8px 0; font-size: 16px; font-weight: 700; 
+      line-height: 1.3;
+    } 
+    .tile .category { 
+      color: var(--muted); font-size: 12px; margin: 0 0 8px 0; 
+      display: flex; align-items: center; gap: 6px;
+    } 
+    .tile .rating { color: var(--accent); font-weight: 700; } 
+    .tile .desc { 
+      color: var(--muted); font-size: 13px; margin: 8px 0 0 0; 
+      line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; 
+      -webkit-box-orient: vertical; overflow: hidden; 
+    }
     
     /* Enhanced Empty State */
     .empty { 
@@ -386,9 +499,15 @@
       opacity: 1;
     }
     
+    /* Mobile-only features */
+    .mobile-only {
+      display: none;
+    }
+    
     /* Performance: Reduced motion */
     @media (prefers-reduced-motion: reduce) {
-      .tile, .list-btn, .btn, .auth-btn, .user-welcome, .notification-show {
+      .tile, .list-btn, .btn, .auth-btn, .user-welcome, .notification-show,
+      .food-image, .logo-overlay, .mobile-actions-overlay {
         transition: none !important;
         animation: none !important;
       }
@@ -408,6 +527,19 @@
     }
     
     @media (max-width: 768px) { 
+      /* Mobile-specific adjustments */
+      .mobile-only {
+        display: block;
+      }
+      
+      .desktop-only {
+        display: none !important;
+      }
+      
+      .list-actions {
+        display: none !important;
+      }
+      
       header { padding: 12px 16px; flex-wrap: wrap; gap: 12px; } 
       .toolbar { margin-left: 0; width: 100%; justify-content: space-between; } 
       .search { width: 200px; } 
@@ -430,11 +562,10 @@
       }
       .grid-compact .tile .media { height: 100px; } 
       .grid-dense .tile .media { height: 80px; } 
-      .tile .media { height: 120px; padding: 12px; } 
+      .tile .media { height: 120px; } 
       .tile .inner { padding: 12px; } 
       .tile h3 { font-size: 15px; } 
       .tile .desc { font-size: 12px; -webkit-line-clamp: 2; } 
-      .list-actions { opacity: 1; top: 8px; right: 8px; gap: 6px; } 
       .list-btn { 
         width: 40px; height: 40px; font-size: 16px; 
         background: rgba(11, 22, 51, 0.95); border: 1.5px solid var(--border); 
@@ -442,6 +573,12 @@
       .list-btn.active { background: var(--accent); } 
       .user-welcome { padding: 6px 10px; font-size: 12px; } 
       .user-avatar { width: 28px; height: 28px; font-size: 12px; } 
+      
+      /* Mobile touch optimization */
+      .tile .media {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
     }
     
     @media (max-width: 480px) { 
@@ -454,8 +591,8 @@
       .grid-dense {
         grid-template-columns: repeat(4, 1fr);
       }
-      .grid-compact .tile .media { height: 80px; padding: 8px; }
-      .grid-dense .tile .media { height: 60px; padding: 8px; }
+      .grid-compact .tile .media { height: 80px; }
+      .grid-dense .tile .media { height: 60px; }
       .grid-dense .tile h3 { font-size: 12px; }
       .grid-dense .tile .category { font-size: 10px; }
       .search { width: 160px; } 
@@ -488,10 +625,13 @@
       }
     }
     
+    /* Mobile hover handling */
     @media (hover: none) and (pointer: coarse) { 
-      .list-actions { opacity: 1; } 
+      .list-actions { display: none !important; } 
       .list-btn:hover { transform: none; } 
       .tile:hover { transform: none; }
+      .tile:hover .food-image { transform: none; }
+      .tile:hover .logo-overlay { transform: none; }
     }
   </style>
   
@@ -618,6 +758,12 @@
     // Cache for restaurant images
     const restaurantImages = {};
 
+    // Mobile detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    let touchStartTime = 0;
+    let touchTimer = null;
+    let activeTouchRestaurant = null;
+
     // Performance optimization: Debounce function
     function debounce(func, wait) {
       let timeout;
@@ -724,6 +870,160 @@
     }, {
       rootMargin: '100px 0px',
       threshold: 0.01
+    });
+
+    // ---------- MOBILE TOUCH GESTURES ----------
+    function setupMobileTouchGestures() {
+      if (!isMobile) return;
+      
+      console.log("📱 Setting up mobile touch gestures...");
+      
+      // Long press detection
+      document.addEventListener('touchstart', function(e) {
+        const mediaElement = e.target.closest('.tile .media');
+        if (mediaElement) {
+          const tile = mediaElement.closest('.tile');
+          if (tile) {
+            touchStartTime = Date.now();
+            activeTouchRestaurant = {
+              tile: tile,
+              restaurantId: tile.dataset.restaurantId,
+              restaurantName: tile.dataset.restaurantName
+            };
+            
+            // Start timer for long press
+            touchTimer = setTimeout(() => {
+              if (activeTouchRestaurant) {
+                showMobileActions(activeTouchRestaurant);
+              }
+            }, 800); // 800ms for long press
+          }
+        }
+      }, { passive: true });
+      
+      // Cancel long press on touch end/move
+      document.addEventListener('touchend', function(e) {
+        clearTimeout(touchTimer);
+        if (touchStartTime && Date.now() - touchStartTime < 800) {
+          // Short tap - navigate to restaurant
+          const mediaElement = e.target.closest('.tile .media');
+          if (mediaElement) {
+            const tile = mediaElement.closest('.tile');
+            if (tile) {
+              const link = tile.querySelector('a');
+              if (link) {
+                window.location.href = link.href;
+              }
+            }
+          }
+        }
+        touchStartTime = 0;
+        activeTouchRestaurant = null;
+      }, { passive: true });
+      
+      document.addEventListener('touchmove', function(e) {
+        clearTimeout(touchTimer);
+        activeTouchRestaurant = null;
+      }, { passive: true });
+    }
+
+    // Show mobile actions overlay
+    function showMobileActions(restaurantData) {
+      if (!restaurantData) return;
+      
+      const overlay = restaurantData.tile.querySelector('.mobile-actions-overlay');
+      if (!overlay) return;
+      
+      // Update overlay content
+      const favoritesActive = listManager.isInList('favorites', parseInt(restaurantData.restaurantId));
+      const wantToGoActive = listManager.isInList('wantToGo', parseInt(restaurantData.restaurantId));
+      const visitedActive = listManager.isInList('visited', parseInt(restaurantData.restaurantId));
+      
+      overlay.innerHTML = `
+        <div class="action-title">${restaurantData.restaurantName}</div>
+        <div class="action-subtitle">Add to your lists</div>
+        <button class="mobile-action-btn" data-action="favorites">
+          <i class="fas ${favoritesActive ? 'fa-heart' : 'fa-heart'}"></i>
+          ${favoritesActive ? 'Remove from Favorites' : 'Add to Favorites'}
+        </button>
+        <button class="mobile-action-btn" data-action="wantToGo">
+          <i class="fas fa-map-marker-alt"></i>
+          ${wantToGoActive ? 'Remove from Want to Go' : 'Add to Want to Go'}
+        </button>
+        <button class="mobile-action-btn" data-action="visited">
+          <i class="fas fa-utensils"></i>
+          ${visitedActive ? 'Remove from Visited' : 'Add to Visited'}
+        </button>
+        <button class="mobile-cancel-btn" data-action="cancel">Cancel</button>
+      `;
+      
+      overlay.classList.add('active');
+      
+      // Add event listeners to action buttons
+      overlay.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const action = this.dataset.action;
+          
+          if (action === 'cancel') {
+            hideMobileActions();
+            return;
+          }
+          
+          handleMobileAction(action, restaurantData);
+        });
+      });
+    }
+
+    // Hide mobile actions overlay
+    function hideMobileActions() {
+      document.querySelectorAll('.mobile-actions-overlay.active').forEach(overlay => {
+        overlay.classList.remove('active');
+      });
+    }
+
+    // Handle mobile action
+    async function handleMobileAction(action, restaurantData) {
+      const restaurantId = parseInt(restaurantData.restaurantId);
+      let listType = '';
+      let successMessage = '';
+      
+      switch (action) {
+        case 'favorites':
+          listType = 'favorites';
+          successMessage = listManager.isInList('favorites', restaurantId) ? 'Removed from Favorites' : 'Added to Favorites';
+          break;
+        case 'wantToGo':
+          listType = 'wantToGo';
+          successMessage = listManager.isInList('wantToGo', restaurantId) ? 'Removed from Want to Go' : 'Added to Want to Go';
+          break;
+        case 'visited':
+          listType = 'visited';
+          successMessage = listManager.isInList('visited', restaurantId) ? 'Removed from Visited' : 'Added to Visited';
+          break;
+      }
+      
+      if (listType) {
+        const wasAdded = await listManager.toggleInList(listType, restaurantId);
+        showNotification(successMessage, wasAdded ? 'success' : 'info');
+        
+        // Update list counts
+        listManager.updateListCounts();
+        
+        // If we're viewing a specific list, refresh
+        if (currentList !== 'all') {
+          await filterAndRender();
+        }
+      }
+      
+      hideMobileActions();
+    }
+
+    // Close mobile actions when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.mobile-actions-overlay') && !e.target.closest('.tile .media')) {
+        hideMobileActions();
+      }
     });
 
     // ---------- WORKING ACCOUNT SYSTEM ----------
@@ -1286,6 +1586,7 @@
       
       const { data: { session } } = await supabase.auth.getSession();
       const isLoggedIn = !!session;
+      const isMobileDevice = isMobile || window.innerWidth <= 768;
       
       // Performance: Render in batches for large lists
       const batchSize = 20;
@@ -1298,6 +1599,8 @@
           const r = list[i];
           const tile = document.createElement('div');
           tile.className = 'tile';
+          tile.dataset.restaurantId = r.id;
+          tile.dataset.restaurantName = r.name;
           
           // Create clickable content
           const clickableContent = document.createElement('a');
@@ -1309,7 +1612,12 @@
           
           clickableContent.innerHTML = `
             <div class="media">
-              <img data-src="${r.food_image}" alt="${r.name}" loading="lazy">
+              <img class="food-image" data-src="${r.food_image}" alt="${r.name} food" loading="lazy">
+              <div class="logo-overlay">
+                <img data-src="${r.logo_url}" alt="${r.name} logo" loading="lazy">
+              </div>
+              <!-- Mobile actions overlay -->
+              <div class="mobile-actions-overlay"></div>
             </div>
             <div class="inner">
               <h3>${r.name}</h3>
@@ -1320,10 +1628,10 @@
           
           tile.appendChild(clickableContent);
           
-          // Add list buttons that don't navigate
-          if (isLoggedIn) {
+          // Add list buttons that don't navigate (desktop only)
+          if (isLoggedIn && !isMobileDevice) {
             const listActions = document.createElement('div');
-            listActions.className = 'list-actions';
+            listActions.className = 'list-actions desktop-only';
             listActions.innerHTML = `
               <button class="list-btn favorite ${listManager.isInList('favorites', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="favorites" title="Add to Favorites">❤️</button>
               <button class="list-btn want-to-go ${listManager.isInList('wantToGo', r.id) ? 'active' : ''}" data-id="${r.id}" data-list="wantToGo" title="Want to Go">📍</button>
@@ -1335,16 +1643,16 @@
           grid.appendChild(tile);
           
           // Observe images for lazy loading
-          const img = tile.querySelector('img');
-          if (img) {
+          const images = tile.querySelectorAll('img');
+          images.forEach(img => {
             imageObserver.observe(img);
-          }
+          });
           
           renderedCount++;
         }
         
-        // Add event listeners for list buttons
-        if (isLoggedIn) {
+        // Add event listeners for list buttons (desktop only)
+        if (isLoggedIn && !isMobileDevice) {
           document.querySelectorAll('.list-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
               e.preventDefault(); 
@@ -1429,6 +1737,7 @@
       listManager.init();
       loadRestaurantsFromSupabase();
       initializeViewControls();
+      setupMobileTouchGestures();
       
       // Performance: Preload critical images
       if ('connection' in navigator) {
@@ -1443,6 +1752,6 @@
       const logo = new Image();
       logo.src = 'images/logo.png';
     });
-</script>
+  </script>
 </body>
 </html>
