@@ -706,7 +706,7 @@
             display: flex; 
             align-items: center; 
             gap: 6px; 
-transition: all 0.3s ease;
+            transition: all 0.3s ease;
             font-size: 14px;
         } 
         .view-all:hover {
@@ -1234,7 +1234,27 @@ transition: all 0.3s ease;
       // ---------- CONFIG ----------
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      
+      // Initialize Supabase outside the try-catch
+      let supabase;
+      try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (error) {
+          console.error('❌ Failed to initialize Supabase client:', error);
+          // Create a dummy supabase object to prevent further errors
+          supabase = {
+              auth: {
+                  getSession: () => ({ data: { session: null } }),
+                  getUser: () => ({ data: { user: null } }),
+                  onAuthStateChange: () => {}
+              },
+              from: () => ({
+                  select: () => ({
+                      order: () => Promise.reject(new Error('Supabase not initialized'))
+                  })
+              })
+          };
+      }
 
       // Default fallback images
       const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
@@ -1260,10 +1280,14 @@ transition: all 0.3s ease;
           },
           
           async init() { 
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) return;
-              
-              await this.loadUserLists();
+              try {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  
+                  await this.loadUserLists();
+              } catch (error) {
+                  console.error('List manager init error:', error);
+              }
           },
           
           async loadUserLists() {
@@ -1288,72 +1312,87 @@ transition: all 0.3s ease;
           },
           
           async setupDefaultLists() {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-              this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-              this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-              
-              if (!this.currentLists.favorites) {
-                  this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-              }
-              if (!this.currentLists.visited) {
-                  this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-              }
-              if (!this.currentLists.wantToGo) {
-                  this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+              try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) return;
+                  
+                  this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+                  this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+                  this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                  
+                  if (!this.currentLists.favorites) {
+                      this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+                  }
+                  if (!this.currentLists.visited) {
+                      this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+                  }
+                  if (!this.currentLists.wantToGo) {
+                      this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+                  }
+              } catch (error) {
+                  console.error('Setup default lists error:', error);
               }
           },
           
           async createList(title, description) {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              const { data: newList, error } = await supabase
-                  .from('lists')
-                  .insert([
-                      {
-                          user_id: user.id,
-                          title: title,
-                          description: description
-                      }
-                  ])
-                  .select()
-                  .single();
-              
-              if (error) {
-                  console.error('Error creating list:', error);
+              try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) return null;
+                  
+                  const { data: newList, error } = await supabase
+                      .from('lists')
+                      .insert([
+                          {
+                              user_id: user.id,
+                              title: title,
+                              description: description
+                          }
+                      ])
+                      .select()
+                      .single();
+                  
+                  if (error) {
+                      console.error('Error creating list:', error);
+                      return null;
+                  }
+                  
+                  this.userLists.push(newList);
+                  return newList;
+              } catch (error) {
+                  console.error('Create list error:', error);
                   return null;
               }
-              
-              this.userLists.push(newList);
-              return newList;
           },
           
           async loadListRestaurants() {
-              for (const listType in this.currentLists) {
-                  const list = this.currentLists[listType];
-                  if (list) {
-                      const { data: listRestaurants, error } = await supabase
-                          .from('lists_restraunts')
-                          .select('restraunt_id')
-                          .eq('list_id', list.id);
-                      
-                      if (!error && listRestaurants) {
-                          list.restaurants = listRestaurants.map(item => item.restraunt_id);
-                      } else {
-                          list.restaurants = [];
+              try {
+                  for (const listType in this.currentLists) {
+                      const list = this.currentLists[listType];
+                      if (list) {
+                          const { data: listRestaurants, error } = await supabase
+                              .from('lists_restraunts')
+                              .select('restraunt_id')
+                              .eq('list_id', list.id);
+                          
+                          if (!error && listRestaurants) {
+                              list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                          } else {
+                              list.restaurants = [];
+                          }
                       }
                   }
+              } catch (error) {
+                  console.error('Load list restaurants error:', error);
               }
           },
           
           async toggleInList(listType, restaurantId) {
-              const list = this.currentLists[listType];
-              if (!list) return false;
-              
-              const isInList = list.restaurants?.includes(restaurantId);
-              
               try {
+                  const list = this.currentLists[listType];
+                  if (!list) return false;
+                  
+                  const isInList = list.restaurants?.includes(restaurantId);
+                  
                   if (isInList) {
                       const { error } = await supabase
                           .from('lists_restraunts')
@@ -1391,7 +1430,7 @@ transition: all 0.3s ease;
               } catch (error) {
                   console.error('Error updating list:', error);
                   showNotification('Error saving changes', 'error');
-                  return isInList;
+                  return false;
               }
           },
           
@@ -1728,6 +1767,29 @@ transition: all 0.3s ease;
                   logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/kilo.jpg', 
                   food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png', 
                   nearby: true
+              },
+              { 
+                  id: 3, 
+                  slug:'holmes', 
+                  name:'Holmes Burger', 
+                  category:'Burgers', 
+                  desc:'Gourmet burgers with creative combinations in a stylish setting.', 
+                  rating:4.7, 
+                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/holmes.jpg', 
+                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg', 
+                  nearby: false, 
+                  trending: true
+              },
+              { 
+                  id: 4, 
+                  slug:'pizza-napoli', 
+                  name:'Pizza Napoli', 
+                  category:'Italian', 
+                  desc:'Authentic Neapolitan pizza cooked in wood-fired oven.', 
+                  rating:4.4, 
+                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/napoli.jpg', 
+                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/napoli/pizza.jpg', 
+                  nearby: true
               }
           ];
       }
@@ -1802,9 +1864,20 @@ transition: all 0.3s ease;
           const el = document.createElement('div'); 
           el.className = 'card'; 
           
-          const { data: { session } } = supabase.auth.getSession();
-          const isLoggedIn = !!session;
-          const isMobile = window.innerWidth <= 768;
+          // Check if user is logged in safely
+          let isLoggedIn = false;
+          let isMobile = window.innerWidth <= 768;
+          
+          try {
+              // Safely get session
+              const sessionResult = supabase.auth.getSession();
+              if (sessionResult && sessionResult.data && sessionResult.data.session) {
+                  isLoggedIn = true;
+              }
+          } catch (error) {
+              console.error('Error checking session:', error);
+              isLoggedIn = false;
+          }
           
           const clickableContent = document.createElement('a');
           clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
@@ -1840,9 +1913,9 @@ transition: all 0.3s ease;
               const listActions = document.createElement('div');
               listActions.className = 'list-actions';
               listActions.innerHTML = `
-                  <button class="list-btn favorite ${listManager.isInList('favorites', restaurant.id) ? 'active' : ''}" data-id="${restaurant.id}" data-list="favorites" title="Add to Favorites">❤️</button>
-                  <button class="list-btn want-to-go ${listManager.isInList('wantToGo', restaurant.id) ? 'active' : ''}" data-id="${restaurant.id}" data-list="wantToGo" title="Want to Go">📍</button>
-                  <button class="list-btn visited ${listManager.isInList('visited', restaurant.id) ? 'active' : ''}" data-id="${restaurant.id}" data-list="visited" title="Mark as Visited">🍽️</button>
+                  <button class="list-btn favorite" data-id="${restaurant.id}" data-list="favorites" title="Add to Favorites">❤️</button>
+                  <button class="list-btn want-to-go" data-id="${restaurant.id}" data-list="wantToGo" title="Want to Go">📍</button>
+                  <button class="list-btn visited" data-id="${restaurant.id}" data-list="visited" title="Mark as Visited">🍽️</button>
               `;
               el.appendChild(listActions);
           }
@@ -1897,15 +1970,29 @@ transition: all 0.3s ease;
           featuredSlider.innerHTML = ''; 
           nearbySlider.innerHTML = '';
           
-          restaurants.forEach(restaurant => { 
-              const card = makeCard(restaurant);
-              featuredSlider.appendChild(card); 
-              
-              if (restaurant.nearby) {
-                  const nearbyCard = makeCard(restaurant);
-                  nearbySlider.appendChild(nearbyCard);
-              }
-          });
+          if (restaurants.length === 0) {
+              // Show fallback cards if no restaurants loaded
+              const fallbackCards = getFallbackRestaurants();
+              fallbackCards.forEach(restaurant => { 
+                  const card = makeCard(restaurant);
+                  featuredSlider.appendChild(card); 
+                  
+                  if (restaurant.nearby) {
+                      const nearbyCard = makeCard(restaurant);
+                      nearbySlider.appendChild(nearbyCard);
+                  }
+              });
+          } else {
+              restaurants.forEach(restaurant => { 
+                  const card = makeCard(restaurant);
+                  featuredSlider.appendChild(card); 
+                  
+                  if (restaurant.nearby) {
+                      const nearbyCard = makeCard(restaurant);
+                      nearbySlider.appendChild(nearbyCard);
+                  }
+              });
+          }
       }
 
       // ---------- SPOTLIGHT ----------
@@ -1934,7 +2021,22 @@ transition: all 0.3s ease;
       }
       
       function initSpotlight(){ 
-          if (restaurants.length === 0) return;
+          if (restaurants.length === 0) {
+              // Use fallback restaurant for spotlight
+              const fallbackRestaurants = getFallbackRestaurants();
+              if (fallbackRestaurants.length > 0) {
+                  const restaurant = fallbackRestaurants[0];
+                  spotFoodImage.src = restaurant.food_image;
+                  spotFoodImage.alt = `${restaurant.name} food`;
+                  spotLogo.innerHTML = `<img src="${restaurant.logo_url}" alt="${restaurant.name} logo">`;
+                  spotName.textContent = restaurant.name;
+                  spotDesc.textContent = restaurant.desc;
+                  spotRating.textContent = `⭐ ${restaurant.rating}`;
+                  spotAction.onclick = () => location.href = `restaurant.html?slug=${restaurant.slug}`;
+              }
+              return;
+          }
+          
           renderSpotlight(0); 
           setInterval(() => { 
               currentSpotlightIndex = (currentSpotlightIndex + 1) % restaurants.length; 
@@ -2014,16 +2116,26 @@ transition: all 0.3s ease;
       }
 
       // Listen for auth changes
-      if (supabase) {
-          supabase.auth.onAuthStateChange((event, session) => {
-              setTimeout(updateAuthUI, 50);
-          });
+      if (supabase && supabase.auth) {
+          try {
+              supabase.auth.onAuthStateChange((event, session) => {
+                  setTimeout(updateAuthUI, 50);
+              });
+          } catch (error) {
+              console.error('Auth state change listener error:', error);
+          }
       }
 
       // ---------- INITIALIZE ----------
       document.addEventListener('DOMContentLoaded', async function() {
+          // Initialize auth UI first
           updateAuthUI();
+          
+          // Load restaurants
           await loadRestaurantsFromSupabase();
+          
+          // Initialize spotlight
+          initSpotlight();
       });
 
     })();
