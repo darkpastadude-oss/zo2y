@@ -27,8 +27,7 @@
             line-height: 1.6;
         } 
         a{color:inherit; text-decoration:none} 
-        img{display:block; max-width:100%; height:auto; opacity: 0; transition: opacity 0.3s ease;}
-        img.loaded { opacity: 1; }
+        img{display:block; max-width:100%; height:auto}
         
         /* Navigation */
         .nav{
@@ -121,260 +120,48 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* Enhanced Card Image Container */
-        .card .media {
-            height: 180px;
-            overflow: hidden;
-            background: linear-gradient(135deg, rgba(19, 35, 71, 0.8), rgba(11, 22, 51, 0.9));
-            position: relative;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+        /* Card Image Container */
+        .card-img-container {
+            height:180px; 
+            overflow:hidden; 
+            background:var(--glass); 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
         }
         
-        .card .food-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .card-food-image {
+            width:100%; 
+            height:100%; 
+            object-fit: cover; 
+            display:block; 
             transition: transform 0.6s ease;
         }
         
-        /* PC: Larger logo overlay */
-        .card .logo-overlay {
+        .card-logo-overlay {
             position: absolute;
             bottom: 16px;
             left: 16px;
-            width: 64px;
-            height: 64px;
-            background: rgba(11, 22, 51, 0.9);
-            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            background: rgba(11, 22, 51, 0.85);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6px;
+            padding: 5px;
             border: 2px solid var(--accent);
             backdrop-filter: blur(10px);
-            z-index: 20;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-            pointer-events: none;
-        }
-        
-        .card .logo-overlay img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            pointer-events: none;
-        }
-        
-        /* Mobile: Three dots menu button (always visible on mobile) */
-        .mobile-menu-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 40px;
-            height: 40px;
-            background: rgba(11, 22, 51, 0.9);
-            border: 2px solid var(--accent);
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 25;
-            backdrop-filter: blur(10px);
+            z-index: 10;
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         
-        .mobile-menu-btn:hover {
-            background: var(--accent);
-            transform: scale(1.1);
-        }
-        
-        .mobile-menu-btn i {
-            color: var(--white);
-            font-size: 18px;
-        }
-        
-        .mobile-menu-btn:hover i {
-            color: #0b1633;
-        }
-        
-        /* Mobile Actions Modal */
-        .mobile-actions-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(11, 22, 51, 0.95);
-            backdrop-filter: blur(20px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .mobile-actions-modal.active {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .mobile-actions-content {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 400px;
+        .card-logo-overlay img {
             width: 100%;
-            border: 2px solid var(--accent);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-            animation: modalSlideIn 0.3s ease-out;
-            text-align: center;
-        }
-        
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .mobile-actions-header {
-            margin-bottom: 24px;
-        }
-        
-        .mobile-actions-header h3 {
-            font-size: 22px;
-            margin-bottom: 8px;
-            color: var(--white);
-            font-weight: 600;
-        }
-        
-        .mobile-actions-header p {
-            color: var(--muted);
-            font-size: 14px;
-        }
-        
-        .mobile-action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        
-        .mobile-action-btn {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            color: var(--white);
-            padding: 16px 20px;
-            border-radius: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-align: left;
-            font-size: 15px;
-        }
-        
-        .mobile-action-btn:hover {
-            background: var(--accent);
-            color: #0b1633;
-            transform: translateY(-2px);
-            border-color: var(--accent);
-            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-        }
-        
-        .mobile-action-btn.active {
-            background: var(--accent);
-            color: #0b1633;
-            border-color: var(--accent);
-        }
-        
-        .mobile-action-btn i {
-            font-size: 18px;
-            width: 24px;
-        }
-        
-        .mobile-cancel-btn {
-            background: transparent;
-            color: var(--muted);
-            border: 1px solid var(--border);
-            padding: 14px 20px;
-            border-radius: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .mobile-cancel-btn:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--white);
-        }
-        
-        /* PC: List Actions (hover to show) */
-        .list-actions { 
-            position: absolute; top: 16px; right: 16px; display: flex; 
-            flex-direction: column; gap: 10px; opacity: 0; z-index: 10; 
-            transition: all 0.3s ease;
-        } 
-        
-        .card:hover .list-actions { 
-            opacity: 1; 
-        } 
-        
-        .list-btn { 
-            background: rgba(11, 22, 51, 0.95); 
-            border: 2px solid var(--accent); 
-            color: var(--white); 
-            padding: 10px; 
-            border-radius: 14px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            font-size: 16px; 
-            backdrop-filter: blur(10px); 
-            width: 50px; 
-            height: 50px; 
-            transition: all 0.3s ease;
-        } 
-        
-        .list-btn:hover { 
-            transform: scale(1.15); 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent); 
-            box-shadow: 0 6px 16px rgba(245,158,11,0.4);
-        } 
-        
-        .list-btn.active { 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent);
-            transform: scale(1.1);
-        } 
-        
-        /* Card hover effects */
-        .card:hover .food-image {
-            transform: scale(1.1);
-        }
-        
-        .card:hover .logo-overlay {
-            transform: scale(1.1);
-            border-color: var(--accent);
-            background: rgba(245,158,11,0.9);
-            box-shadow: 0 8px 20px rgba(245,158,11,0.4);
+            height: 100%;
+            object-fit: contain;
         }
         
         /* Spotlight Card */
@@ -593,16 +380,39 @@
             overflow:hidden; 
             scroll-snap-align:start; 
             box-shadow:0 12px 40px var(--shadow); 
-            border:2px solid transparent;
+            border:1px solid var(--border); 
             cursor:pointer; 
             position: relative; 
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         } 
+        .card::before {
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: var(--gradient); 
+            opacity: 0; 
+            z-index: 1; 
+            transition: opacity 0.4s ease;
+        } 
         .card:hover{
             transform:translateY(-12px) scale(1.03); 
             box-shadow: 0 30px 60px var(--shadow);
-            border-color: var(--accent);
         } 
+        .card:hover::before {
+            opacity: 0.08;
+        } 
+        .card:hover .card-food-image {
+            transform: scale(1.15);
+        }
+        .card:hover .card-logo-overlay {
+            transform: scale(1.1);
+            border-color: var(--accent);
+            background: rgba(245,158,11,0.9);
+            box-shadow: 0 8px 20px rgba(245,158,11,0.4);
+        }
         
         .card .body{
             padding:24px; 
@@ -706,7 +516,7 @@
             display: flex; 
             align-items: center; 
             gap: 6px; 
-            transition: all 0.3s ease;
+transition: all 0.3s ease;
             font-size: 14px;
         } 
         .view-all:hover {
@@ -727,7 +537,7 @@
             display: none;
         }
         
-        /* Restaurant of the Day Section */
+        /* Restaurant of the Day Section - SIMPLIFIED */
         .restaurant-of-day {
             background: var(--card);
             border-radius: 16px;
@@ -845,67 +655,81 @@
             font-weight: 600;
         }
         
-        /* Enhanced Custom Notification */
-        .notification-container {
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
             position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 400px;
-        }
-        
-        .custom-notification {
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            transform: translateX(120%);
-            transition: transform 0.4s ease;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11, 22, 51, 0.95);
             backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
             border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: modalSlideIn 0.3s ease-out;
         }
         
-        .notification-success {
-            background: rgba(16, 185, 129, 0.9);
-            color: white;
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        .notification-error {
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
         }
         
-        .notification-info {
-            background: rgba(59, 130, 246, 0.9);
-            color: white;
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: var(--white);
         }
         
-        .notification-show {
-            transform: translateY(0);
+        .modal-message {
+            color: var(--muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
         }
         
-        .notification-icon {
-            margin-right: 12px;
-            font-size: 1.2rem;
-        }
-        
-        .notification-close {
-            margin-left: auto;
-            background: none;
+        .modal-close-btn {
+            background: var(--accent);
+            color: #111;
             border: none;
-            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 1rem;
-            opacity: 0.7;
-            transition: opacity 0.2s;
+            transition: all 0.3s ease;
+            width: 100%;
         }
         
-        .notification-close:hover {
-            opacity: 1;
+        .modal-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245,158,11,0.3);
         }
         
         /* Footer */
@@ -982,27 +806,7 @@
             }
         } 
         
-        /* MOBILE STYLES (768px and below) */
-        @media (max-width: 768px) { 
-            /* Show mobile menu button */
-            .mobile-menu-btn {
-                display: flex;
-            }
-            
-            /* Hide PC list actions on mobile */
-            .list-actions {
-                display: none !important;
-            }
-            
-            /* Smaller logo overlay on mobile */
-            .card .logo-overlay {
-                width: 48px;
-                height: 48px;
-                bottom: 12px;
-                left: 12px;
-                border-radius: 10px;
-            }
-            
+        @media (max-width: 768px) {
             .hero {
                 padding: 40px 24px;
             }
@@ -1015,6 +819,9 @@
             }
             .day-restaurant-info {
                 text-align: center;
+            }
+            .modal-content {
+                padding: 30px 20px;
             }
         }
         
@@ -1046,64 +853,21 @@
                 padding: 32px 16px;
                 margin: 32px 0;
             }
-            
-            /* Even smaller logo on very small screens */
-            .card .logo-overlay {
-                width: 40px;
-                height: 40px;
-                bottom: 10px;
-                left: 10px;
-                border-radius: 8px;
-            }
-            
-            .mobile-menu-btn {
-                width: 36px;
-                height: 36px;
-                top: 10px;
-                right: 10px;
-            }
-        }
-        
-        /* Mobile hover handling */
-        @media (hover: none) and (pointer: coarse) { 
-            .list-actions { display: none !important; } 
-            .list-btn:hover { transform: none; } 
-            .card:hover { transform: none; }
-            .card:hover .food-image { transform: none; }
-            .card:hover .logo-overlay { transform: none; }
         }
     </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-    <!-- Mobile Actions Modal -->
-    <div id="mobileActionsModal" class="mobile-actions-modal">
-        <div class="mobile-actions-content">
-            <div class="mobile-actions-header">
-                <h3 id="modalRestaurantName">Restaurant Name</h3>
-                <p>Add this restaurant to your lists</p>
-            </div>
-            <div class="mobile-action-buttons">
-                <button class="mobile-action-btn" data-action="favorites" id="modalFavoritesBtn">
-                    <i class="fas fa-heart"></i>
-                    <span>Add to Favorites</span>
-                </button>
-                <button class="mobile-action-btn" data-action="wantToGo" id="modalWantToGoBtn">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>Want to Go</span>
-                </button>
-                <button class="mobile-action-btn" data-action="visited" id="modalVisitedBtn">
-                    <i class="fas fa-utensils"></i>
-                    <span>Mark as Visited</span>
-                </button>
-            </div>
-            <button class="mobile-cancel-btn" id="modalCancelBtn">Cancel</button>
+    <!-- App Coming Soon Modal -->
+    <div class="modal-overlay" id="appComingSoonModal">
+        <div class="modal-content">
+            <div class="modal-icon">📱</div>
+            <h2 class="modal-title">Coming Soon!</h2>
+            <p class="modal-message">Our mobile app is currently in development and will be available for download soon. Stay tuned for updates!</p>
+            <button class="modal-close-btn" id="closeModal">Got it!</button>
         </div>
     </div>
-
-    <!-- Notification Container -->
-    <div id="notificationContainer" class="notification-container"></div>
 
     <header class="nav" role="banner">
         <div class="left">
@@ -1175,7 +939,7 @@
             </div>
         </section>
 
-        <!-- Restaurant of the Day Section -->
+        <!-- Restaurant of the Day Section - FIXED -->
         <section class="section">
             <div class="restaurant-of-day">
                 <div class="day-badge">Restaurant of the Day</div>
@@ -1234,941 +998,496 @@
       // ---------- CONFIG ----------
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      
-      // Initialize Supabase
-      let supabase;
-      try {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      } catch (error) {
-          console.error('❌ Failed to initialize Supabase client:', error);
-          supabase = {
-              auth: {
-                  getSession: async () => ({ data: { session: null }, error: null }),
-                  getUser: async () => ({ data: { user: null }, error: null }),
-                  onAuthStateChange: () => {}
-              }
-          };
-      }
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // Default fallback images
-      const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
+ // ---------- HARDCODED FOOD IMAGE URLs ----------
+const restaurantFoodImages = {
+    'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png',
+    'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png',
+    'hameed': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hameed/hameeed.png',
+    'bazooka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bazooka/bazookaburg.png',
+    'mexican': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mexican/mexcorn.png',
+    'station': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/station/pizzastt.png',
+    'brgr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/brgr/brgrburg.png',
+    'bayoki': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bayoki/bayokirot.png',
+    'maine': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/maine/maineburg.png',
+    'barbar': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/barbar/barbarsand.png',
+    'qasr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/qasr/qasrkebab.png',
+    'ward': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ward/koshward.png',
+    'dushka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dushka/duskaburg.png',
+    'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/yaba/yabasand.png',
+    'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/caizo/caizoeg.png',
+    'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/abou%20tarek/koshary.png',
+    'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/husk/husks.png',
+    'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pasta/pasta222.jpg',
+    'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/panda/pandah.png',
+    'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmess.png', // UPDATED
+    'ribs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ribs/ribsss.png',
+    'manchow': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/manchow/manchowww.jpg',
+    'hashville': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hashville/hashvilleee.jpg',
+    'dawgs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dawgs/dawgss.png',
+    'chikin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/chikin/worx.png',
+    'mario': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mario/marioos.png',
+    'kufta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kufta/kuftaa.png',
+    'pablo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pablo/pablooo.png',
+    'butchers': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/butchers/butcherss.png',
+    'pickl': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pickl/pickll.png',
+    '88': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/88/888.png',
+    'what': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/what/wtcc.png',
+    '900': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/900/9000.png',
+    'country': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/country/briskett.png',
+    'howlin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/howlin/howlinn.png',
+    'mince': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mince/mincee.png',
+    'daddy': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/daddy/daddd.png',
+    'willys':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/willys/willys.png',
+    'buffalo':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/buffalo/buffaloooooooo.png',
+    'sauce':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/sauce/saucee.png',
+    'peking':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/peking/pekking.png',
+    'wok':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/wok/wokk.png',
+    'crispy':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/crispy/crispyy.png',
+    'chez':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/chez/chezzz.png',
+    'willys':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/willys/wwwilly.png',
+    'tabali':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/tabali/tabb.png',
+    'lord':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/lord/lordd.png',
+    'crave':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/crave/cravee.png',
+    'kansas':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kansas/kansass.png',
+    'crumbs':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/crumbs/crummb.png',
+    'man':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/man/mann.png',
+    'heart':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/heart/heartt.png',
+    'shawermer':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/shawermer/shawermerr.png',
+    'takosan':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/takosan/takosann.png',
+    'secondcup':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/secondcup/secondcupp.png',
+    'akleh':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/akleh/aklehh.png',
+    'vasko':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/vasko/vaskoo.png',
+    'papa':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/papa/papaa.png',
+    'labash':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/labsh/labshh.png',
+
+    'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
+};
+      // Default fallback logo if none is found in database
       const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
 
-      // ---------- GLOBAL VARIABLES ----------
+      // ---------- RESTAURANT DATA ----------
       let restaurants = [];
       let categories = new Set();
-      let restaurantImages = {};
-      let currentMobileRestaurant = null;
-      
-      // Mobile detection
-      const isMobileDevice = window.innerWidth <= 768;
-      
-      // ---------- LIST MANAGEMENT (EXACT COPY FROM RESTAURANTS.HTML) ----------
-      const listManager = {
-          userLists: [],
-          currentLists: {
-              favorites: null,
-              visited: null,
-              wantToGo: null
-          },
-          
-          async init() { 
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) return;
-              
-              await this.loadUserLists();
-          },
-          
-          async loadUserLists() {
-              try {
-                  const { data: { user } } = await supabase.auth.getUser();
-                  if (!user) return;
 
-                  const { data: lists, error } = await supabase
-                      .from('lists')
-                      .select('*')
-                      .eq('user_id', user.id);
-                  
-                  if (error) throw error;
-                  
-                  this.userLists = lists || [];
-                  await this.setupDefaultLists();
-                  await this.loadListRestaurants();
-                  
-              } catch (error) {
-                  console.error('Error loading lists:', error);
-              }
-          },
-          
-          async setupDefaultLists() {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-              this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-              this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-              
-              if (!this.currentLists.favorites) {
-                  this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-              }
-              if (!this.currentLists.visited) {
-                  this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-              }
-              if (!this.currentLists.wantToGo) {
-                  this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-              }
-          },
-          
-          async createList(title, description) {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              const { data: newList, error } = await supabase
-                  .from('lists')
-                  .insert([
-                      {
-                          user_id: user.id,
-                          title: title,
-                          description: description
-                      }
-                  ])
-                  .select()
-                  .single();
-              
-              if (error) {
-                  console.error('Error creating list:', error);
-                  return null;
-              }
-              
-              this.userLists.push(newList);
-              return newList;
-          },
-          
-          async loadListRestaurants() {
-              for (const listType in this.currentLists) {
-                  const list = this.currentLists[listType];
-                  if (list) {
-                      const { data: listRestaurants, error } = await supabase
-                          .from('lists_restraunts')
-                          .select('restraunt_id')
-                          .eq('list_id', list.id);
-                      
-                      if (!error && listRestaurants) {
-                          list.restaurants = listRestaurants.map(item => item.restraunt_id);
-                      } else {
-                          list.restaurants = [];
-                      }
-                  }
-              }
-          },
-          
-          async toggleInList(listType, restaurantId) {
-              const list = this.currentLists[listType];
-              if (!list) return false;
-              
-              const isInList = list.restaurants?.includes(restaurantId);
-              
-              try {
-                  if (isInList) {
-                      const { error } = await supabase
-                          .from('lists_restraunts')
-                          .delete()
-                          .match({
-                              list_id: list.id,
-                              restraunt_id: restaurantId
-                          });
-                      
-                      if (error) throw error;
-                      
-                      list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                      showNotification(`Removed from ${list.title}`, "info");
-                      
-                  } else {
-                      const { error } = await supabase
-                          .from('lists_restraunts')
-                          .insert([
-                              {
-                                  list_id: list.id,
-                                  restraunt_id: restaurantId,
-                                  added_at: new Date().toISOString()
-                              }
-                          ]);
-                      
-                      if (error) throw error;
-                      
-                      if (!list.restaurants) list.restaurants = [];
-                      list.restaurants.push(restaurantId);
-                      showNotification(`Added to ${list.title}`, "success");
-                  }
-                  
-                  return !isInList;
-                  
-              } catch (error) {
-                  console.error('Error updating list:', error);
-                  showNotification('Error saving changes', 'error');
-                  return isInList;
-              }
-          },
-          
-          isInList(listType, restaurantId) {
-              const list = this.currentLists[listType];
-              return list?.restaurants?.includes(restaurantId) || false;
-          }
-      };
-
-      // ---------- MOBILE MODAL FUNCTIONS (EXACT COPY FROM RESTAURANTS.HTML) ----------
-      const mobileActionsModal = document.getElementById('mobileActionsModal');
-      const modalRestaurantName = document.getElementById('modalRestaurantName');
-      const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
-      const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
-      const modalVisitedBtn = document.getElementById('modalVisitedBtn');
-      const modalCancelBtn = document.getElementById('modalCancelBtn');
-
-      function showMobileModal(restaurantData) {
-          if (!restaurantData) return;
-          
-          currentMobileRestaurant = restaurantData;
-          modalRestaurantName.textContent = restaurantData.name;
-          
-          // Update button states
-          updateMobileModalButtons(restaurantData.id);
-          
-          // Show modal
-          mobileActionsModal.classList.add('active');
-          document.body.style.overflow = 'hidden';
+      // Function to get food image URL (temporary - should eventually come from Supabase)
+      function getFoodImageUrl(slug) {
+        return restaurantFoodImages[slug] || restaurantFoodImages['default'];
       }
 
-      function hideMobileModal() {
-          mobileActionsModal.classList.remove('active');
-          document.body.style.overflow = 'auto';
-          currentMobileRestaurant = null;
-      }
-
-      function updateMobileModalButtons(restaurantId) {
-          // Update button text and active state
-          const isFavorite = listManager.isInList('favorites', restaurantId);
-          const isWantToGo = listManager.isInList('wantToGo', restaurantId);
-          const isVisited = listManager.isInList('visited', restaurantId);
-          
-          modalFavoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
-          modalFavoritesBtn.classList.toggle('active', isFavorite);
-          
-          modalWantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${isWantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
-          modalWantToGoBtn.classList.toggle('active', isWantToGo);
-          
-          modalVisitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${isVisited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
-          modalVisitedBtn.classList.toggle('active', isVisited);
-      }
-
-      // Modal event listeners
-      modalFavoritesBtn.addEventListener('click', async () => {
-          if (!currentMobileRestaurant) return;
-          const wasAdded = await listManager.toggleInList('favorites', currentMobileRestaurant.id);
-          updateMobileModalButtons(currentMobileRestaurant.id);
-          showNotification(wasAdded ? 'Added to Favorites' : 'Removed from Favorites', wasAdded ? 'success' : 'info');
-      });
-
-      modalWantToGoBtn.addEventListener('click', async () => {
-          if (!currentMobileRestaurant) return;
-          const wasAdded = await listManager.toggleInList('wantToGo', currentMobileRestaurant.id);
-          updateMobileModalButtons(currentMobileRestaurant.id);
-          showNotification(wasAdded ? 'Added to Want to Go' : 'Removed from Want to Go', wasAdded ? 'success' : 'info');
-      });
-
-      modalVisitedBtn.addEventListener('click', async () => {
-          if (!currentMobileRestaurant) return;
-          const wasAdded = await listManager.toggleInList('visited', currentMobileRestaurant.id);
-          updateMobileModalButtons(currentMobileRestaurant.id);
-          showNotification(wasAdded ? 'Added to Visited' : 'Removed from Visited', wasAdded ? 'success' : 'info');
-      });
-
-      modalCancelBtn.addEventListener('click', hideMobileModal);
-
-      // Close modal when clicking outside
-      mobileActionsModal.addEventListener('click', (e) => {
-          if (e.target === mobileActionsModal) {
-              hideMobileModal();
-          }
-      });
-
-      // Close modal with Escape key
-      document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && mobileActionsModal.classList.contains('active')) {
-              hideMobileModal();
-          }
-      });
-
-      // ---------- ENHANCED NOTIFICATION SYSTEM (EXACT COPY FROM RESTAURANTS.HTML) ----------
-      const notificationQueue = [];
-      let isShowingNotification = false;
-
-      function showNotification(message, type = "info", duration = 2500) {
-          notificationQueue.push({ message, type, duration });
-          processNotificationQueue();
-      }
-
-      function processNotificationQueue() {
-          if (isShowingNotification || notificationQueue.length === 0) return;
-          
-          isShowingNotification = true;
-          const { message, type, duration } = notificationQueue.shift();
-          
-          const notificationContainer = document.getElementById("notificationContainer");
-          const notification = document.createElement("div");
-          notification.className = `custom-notification notification-${type}`;
-          
-          let iconClass;
-          if (type === "success") {
-              iconClass = "fas fa-check-circle";
-          } else if (type === "error") {
-              iconClass = "fas fa-exclamation-circle";
-          } else {
-              iconClass = "fas fa-info-circle";
-          }
-          
-          notification.innerHTML = `
-              <i class="notification-icon ${iconClass}"></i>
-              <span class="notification-message">${message}</span>
-              <button class="notification-close" aria-label="Close notification">×</button>
-          `;
-          
-          notificationContainer.appendChild(notification);
-          
-          // Show notification
-          setTimeout(() => {
-              notification.classList.add("notification-show");
-          }, 10);
-          
-          // Close button handler
-          notification.querySelector('.notification-close').addEventListener('click', () => {
-              hideNotification(notification);
-          });
-          
-          // Auto-hide after duration
-          setTimeout(() => {
-              if (notification.parentNode) {
-                  hideNotification(notification);
-              }
-          }, duration);
-      }
-
-      function hideNotification(notification) {
-          notification.classList.remove("notification-show");
-          setTimeout(() => {
-              if (notification.parentNode) {
-                  notification.parentNode.removeChild(notification);
-              }
-              isShowingNotification = false;
-              processNotificationQueue();
-          }, 400);
-      }
-
-      // ---------- Lazy loading for images ----------
-      const imageObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                  const img = entry.target;
-                  img.src = img.dataset.src;
-                  img.onload = () => {
-                      img.classList.add('loaded');
-                      imageObserver.unobserve(img);
-                  };
-                  img.onerror = () => {
-                      // Fallback to default logo if image fails to load
-                      img.src = DEFAULT_LOGO_URL;
-                      img.classList.add('loaded');
-                      imageObserver.unobserve(img);
-                  };
-              }
-          });
-      }, {
-          rootMargin: '100px 0px',
-          threshold: 0.01
-      });
-
-      // ---------- IMAGE LOADING FUNCTIONS ----------
-      async function loadAllRestaurantImages() {
-          try {
-              console.log("🔄 Loading all restaurant images from gallery...");
-              
-              const { data, error } = await supabase
-                  .from('restaurant_gallery')
-                  .select('restaurant_slug, image_url, image_type, is_primary')
-                  .order('sort_order', { ascending: true });
-              
-              if (error) throw error;
-              
-              if (data && data.length > 0) {
-                  // Organize images by restaurant slug
-                  data.forEach(item => {
-                      if (!restaurantImages[item.restaurant_slug]) {
-                          restaurantImages[item.restaurant_slug] = {
-                              cover: DEFAULT_COVER_URL,
-                              logo: DEFAULT_LOGO_URL
-                          };
-                      }
-                      
-                      // Set cover image (primary first, then first found)
-                      if (item.image_type === 'cover') {
-                          if (item.is_primary || restaurantImages[item.restaurant_slug].cover === DEFAULT_COVER_URL) {
-                              restaurantImages[item.restaurant_slug].cover = item.image_url;
-                          }
-                      }
-                      
-                      // Set logo image
-                      if (item.image_type === 'logo') {
-                          if (item.is_primary || restaurantImages[item.restaurant_slug].logo === DEFAULT_LOGO_URL) {
-                              restaurantImages[item.restaurant_slug].logo = item.image_url;
-                          }
-                      }
-                  });
-                  
-                  console.log(`✅ Loaded images for ${Object.keys(restaurantImages).length} restaurants`);
-              } else {
-                  console.log('No images found in gallery table');
-              }
-          } catch (error) {
-              console.error('Error loading restaurant images:', error);
-          }
-      }
-
-      function getCoverImageUrl(restaurantSlug) {
-          return restaurantImages[restaurantSlug]?.cover || DEFAULT_COVER_URL;
-      }
-
+      // Function to get logo URL from Supabase data
       function getLogoUrl(restaurant) {
-          // First try from cached gallery images
-          if (restaurantImages[restaurant.slug]?.logo && restaurantImages[restaurant.slug].logo !== DEFAULT_LOGO_URL) {
-              return restaurantImages[restaurant.slug].logo;
-          }
-          
-          // Then try from restaurant data
-          if (restaurant.logo_url) {
-              return restaurant.logo_url;
-          }
-          
-          // Then try image field
-          if (restaurant.image) {
-              return restaurant.image;
-          }
-          
-          // Default fallback
-          return DEFAULT_LOGO_URL;
+        // Use logo_url from Supabase if available
+        if (restaurant.logo_url) {
+          return restaurant.logo_url;
+        }
+        // Use image field as fallback
+        if (restaurant.image) {
+          return restaurant.image;
+        }
+        // Use default logo as last resort
+        return DEFAULT_LOGO_URL;
       }
 
-      // ---------- RESTAURANT DATA LOADING ----------
       async function loadRestaurantsFromSupabase() {
-          try {
-              console.log("🔄 Loading restaurants from Supabase...");
-              
-              // Load images first
-              await loadAllRestaurantImages();
-              
-              // Then load restaurants
-              const { data, error } = await supabase
-                  .from('restraunts')
-                  .select('id, slug, name, category, description, rating, logo_url, image')
-                  .order('rating', { ascending: false })
-                  .limit(12); // Limit for homepage
-              
-              if (error) throw error;
-              
-              console.log(`✅ Loaded ${data?.length || 0} restaurants from Supabase`);
-              
-              if (!data || data.length === 0) {
-                  console.log('No restaurants found in Supabase, using fallback data');
-                  restaurants = getFallbackRestaurants();
-              } else {
-                  // Process restaurants from Supabase
-                  restaurants = data.map(restaurant => ({
-                      id: restaurant.id,
-                      slug: restaurant.slug,
-                      name: restaurant.name,
-                      category: restaurant.category,
-                      desc: restaurant.description,
-                      rating: restaurant.rating,
-                      logo_url: getLogoUrl(restaurant),
-                      food_image: getCoverImageUrl(restaurant.slug),
-                      nearby: Math.random() > 0.3,
-                      trending: restaurant.rating >= 4.5
-                  }));
-                  
-                  console.log('First restaurant:', restaurants[0]);
-              }
-              
-              // Extract categories from restaurants
-              categories = new Set(restaurants.map(r => r.category).filter(Boolean));
-              console.log('Categories found:', Array.from(categories));
-              
-              // Populate UI
-              populateFilterBar();
-              initCards();
-              
-              if (restaurants.length > 0) {
-                  initSpotlight();
-              }
-              
-          } catch (error) {
-              console.error('❌ Error loading restaurants from Supabase:', error);
-              // Use fallback data
-              restaurants = getFallbackRestaurants();
-              categories = new Set(restaurants.map(r => r.category).filter(Boolean));
-              populateFilterBar();
-              initCards();
-              if (restaurants.length > 0) {
-                  initSpotlight();
-              }
+        try {
+          console.log("🔄 Loading restaurants from Supabase...");
+          
+          const { data, error } = await supabase
+            .from('restraunts')
+            .select('id, slug, name, category, description, rating, logo_url, image')
+            .order('rating', { ascending: false });
+          
+          if (error) throw error;
+          
+          console.log(`✅ Loaded ${data?.length || 0} restaurants from Supabase`);
+          
+          if (!data || data.length === 0) {
+            console.log('No restaurants found in Supabase, using fallback data');
+            restaurants = getFallbackRestaurants();
+          } else {
+            // Process restaurants from Supabase
+            restaurants = data.map(restaurant => ({
+              id: restaurant.id,
+              slug: restaurant.slug,
+              name: restaurant.name,
+              category: restaurant.category,
+              desc: restaurant.description,
+              rating: restaurant.rating,
+              logo_url: getLogoUrl(restaurant), // Get logo from Supabase data
+              food_image: getFoodImageUrl(restaurant.slug), // Temporary - from hardcoded list
+              nearby: Math.random() > 0.3,
+              trending: restaurant.rating >= 4.5
+            }));
+            
+            console.log('First restaurant logo URL:', restaurants[0]?.logo_url);
           }
+          
+          // Extract categories from restaurants
+          categories = new Set(restaurants.map(r => r.category).filter(Boolean));
+          console.log('Categories found:', Array.from(categories));
+          
+          // Populate UI
+          populateFilterBar();
+          initCards();
+          
+          if (restaurants.length > 0) {
+            initSpotlight();
+          }
+          
+        } catch (error) {
+          console.error('❌ Error loading restaurants from Supabase:', error);
+          // Use fallback data
+          restaurants = getFallbackRestaurants();
+          categories = new Set(restaurants.map(r => r.category).filter(Boolean));
+          populateFilterBar();
+          initCards();
+          if (restaurants.length > 0) {
+            initSpotlight();
+          }
+        }
       }
 
       function getFallbackRestaurants() {
-          // Fallback data in case Supabase fails
-          return [
-              { 
-                  id: 1, 
-                  slug:'mori', 
-                  name:'Mori Sushi', 
-                  category:'Japanese', 
-                  desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', 
-                  rating:4.7, 
-                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mori.jpg', 
-                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png', 
-                  nearby: true, 
-                  trending: true
-              },
-              { 
-                  id: 2, 
-                  slug:'kilo', 
-                  name:'Kilo Kebab', 
-                  category:'Middle Eastern', 
-                  desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
-                  rating:4.5, 
-                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/kilo.jpg', 
-                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png', 
-                  nearby: true,
-                  trending: false
-              },
-              { 
-                  id: 3, 
-                  slug:'holmes', 
-                  name:'Holmes Burger', 
-                  category:'Burgers', 
-                  desc:'Gourmet burgers with creative combinations in a stylish setting.', 
-                  rating:4.7, 
-                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/holmes.jpg', 
-                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg', 
-                  nearby: false, 
-                  trending: true
-              },
-              { 
-                  id: 4, 
-                  slug:'pizza-napoli', 
-                  name:'Pizza Napoli', 
-                  category:'Italian', 
-                  desc:'Authentic Neapolitan pizza cooked in wood-fired oven.', 
-                  rating:4.4, 
-                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/napoli.jpg', 
-                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/napoli/pizza.jpg', 
-                  nearby: true,
-                  trending: false
-              },
-              { 
-                  id: 5, 
-                  slug:'green-bowl', 
-                  name:'Green Bowl', 
-                  category:'Healthy', 
-                  desc:'Fresh salads, grain bowls, and healthy vegan options.', 
-                  rating:4.6, 
-                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/greenbowl.jpg', 
-                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/greenbowl/bowl.jpg', 
-                  nearby: true,
-                  trending: true
-              },
-              { 
-                  id: 6, 
-                  slug:'dolce-vita', 
-                  name:'Dolce Vita', 
-                  category:'Desserts', 
-                  desc:'Artisan gelato and Italian desserts in a cozy setting.', 
-                  rating:4.8, 
-                  logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/dolce.jpg', 
-                  food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dolce/gelato.jpg', 
-                  nearby: false,
-                  trending: false
-              }
-          ];
+        // Fallback data that matches what's in Supabase
+        return [
+          { 
+            id: 1, 
+            slug:'mori', 
+            name:'Mori Sushi', 
+            category:'Japanese', 
+            desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', 
+            rating:4.7, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mori.jpg', 
+            food_image: getFoodImageUrl('mori'), 
+            nearby: true, 
+            trending: true
+          },
+          { 
+            id: 2, 
+            slug:'kilo', 
+            name:'Kilo Kebab', 
+            category:'Middle Eastern', 
+            desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
+            rating:4.5, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/kilo.jpg', 
+            food_image: getFoodImageUrl('kilo'), 
+            nearby: true
+          },
+          { 
+            id: 3, 
+            slug:'hameed', 
+            name:'Hameed', 
+            category:'Fast Food', 
+            desc:'Local favorite for sandwiches & quick bites.', 
+            rating:4.3, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/hameed.jpg', 
+            food_image: getFoodImageUrl('hameed'), 
+            nearby: true
+          },
+          { 
+            id: 4, 
+            slug:'bazooka', 
+            name:'Bazooka', 
+            category:'Burgers', 
+            desc:'Loaded burgers & crispy fried chicken combos.', 
+            rating:4.2, 
+            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/bazooka.jpg', 
+            food_image: getFoodImageUrl('bazooka'), 
+            trending: true
+          }
+        ];
       }
 
       function populateFilterBar() {
-          const filterBar = document.querySelector('.filter-bar');
-          if (!filterBar) return;
-          
-          // Clear existing filters except "All"
-          const allFilter = filterBar.querySelector('.filter-btn.active');
-          filterBar.innerHTML = '';
-          filterBar.appendChild(allFilter);
-          
-          // Add trending tags
-          const trendingTags = ['Top Rated', 'New', 'Burgers', 'Sushi', 'Cafés', 'Pizza'];
-          trendingTags.forEach(tag => {
-              const filter = document.createElement('div');
-              filter.className = 'filter-btn';
-              filter.textContent = tag;
-              filterBar.appendChild(filter);
+        const filterBar = document.querySelector('.filter-bar');
+        if (!filterBar) return;
+        
+        // Clear existing filters except "All"
+        const allFilter = filterBar.querySelector('.filter-btn.active');
+        filterBar.innerHTML = '';
+        filterBar.appendChild(allFilter);
+        
+        // Add trending tags
+        const trendingTags = ['Top Rated', 'New', 'Burgers', 'Sushi', 'Cafés', 'Pizza'];
+        trendingTags.forEach(tag => {
+          const filter = document.createElement('div');
+          filter.className = 'filter-btn';
+          filter.textContent = tag;
+          filterBar.appendChild(filter);
+        });
+        
+        // Add categories from Supabase data
+        const sortedCategories = Array.from(categories).sort();
+        sortedCategories.forEach(category => {
+          const filter = document.createElement('div');
+          filter.className = 'filter-btn';
+          filter.textContent = category;
+          filterBar.appendChild(filter);
+        });
+        
+        // Add click handlers
+        document.querySelectorAll('.filter-btn').forEach(filter => {
+          filter.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(f => f.classList.remove('active'));
+            this.classList.add('active');
+            const filterText = this.textContent;
+            filterRestaurants(filterText);
           });
-          
-          // Add categories from Supabase data
-          const sortedCategories = Array.from(categories).sort();
-          sortedCategories.forEach(category => {
-              const filter = document.createElement('div');
-              filter.className = 'filter-btn';
-              filter.textContent = category;
-              filterBar.appendChild(filter);
-          });
-          
-          // Add click handlers
-          document.querySelectorAll('.filter-btn').forEach(filter => {
-              filter.addEventListener('click', function() {
-                  document.querySelectorAll('.filter-btn').forEach(f => f.classList.remove('active'));
-                  this.classList.add('active');
-                  const filterText = this.textContent;
-                  filterRestaurants(filterText);
-              });
-          });
+        });
       }
 
       function filterRestaurants(filterText) {
-          const cards = document.querySelectorAll('#featuredSlider .card');
+        const cards = document.querySelectorAll('#featuredSlider .card');
+        
+        if (filterText === 'All') {
+          cards.forEach(card => card.style.display = 'block');
+          return;
+        }
+        
+        cards.forEach(card => {
+          const category = card.querySelector('.card-category').textContent;
+          const rating = parseFloat(card.querySelector('.card-rating').textContent.split(' ')[1]);
+          const isTopRated = rating >= 4.5;
           
-          if (filterText === 'All') {
-              cards.forEach(card => card.style.display = 'block');
-              return;
+          let shouldShow = false;
+          
+          if (filterText === 'Top Rated' && isTopRated) {
+            shouldShow = true;
+          } else if (filterText === 'New') {
+            shouldShow = Math.random() > 0.5;
+          } else if (filterText === category) {
+            shouldShow = true;
           }
           
-          cards.forEach(card => {
-              const category = card.querySelector('.card-category').textContent;
-              const rating = parseFloat(card.querySelector('.card-rating').textContent.split(' ')[1]);
-              const isTopRated = rating >= 4.5;
-              
-              let shouldShow = false;
-              
-              if (filterText === 'Top Rated' && isTopRated) {
-                  shouldShow = true;
-              } else if (filterText === 'New') {
-                  shouldShow = Math.random() > 0.5;
-              } else if (filterText === category) {
-                  shouldShow = true;
-              }
-              
-              card.style.display = shouldShow ? 'block' : 'none';
-          });
+          card.style.display = shouldShow ? 'block' : 'none';
+        });
       }
 
-      // ---------- CARD CREATION FUNCTION (INTEGRATED LIST FUNCTIONALITY) ----------
-      async function makeCard(restaurant){
-          const el = document.createElement('div'); 
-          el.className = 'card'; 
-          
-          // Check if user is logged in
-          let isLoggedIn = false;
-          try {
-              const { data: { session } } = await supabase.auth.getSession();
-              isLoggedIn = !!session;
-          } catch (error) {
-              console.error('Error checking session:', error);
-              isLoggedIn = false;
-          }
-          
-          const isMobile = window.innerWidth <= 768;
-          
-          const clickableContent = document.createElement('a');
-          clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
-          clickableContent.style.textDecoration = 'none';
-          clickableContent.style.color = 'inherit';
-          clickableContent.style.display = 'block';
-          clickableContent.style.height = '100%';
-          
-          clickableContent.innerHTML = `
-              <div class="media">
-                  <img class="food-image" data-src="${restaurant.food_image}" alt="${restaurant.name} food" loading="lazy">
-                  <div class="logo-overlay">
-                      <img data-src="${restaurant.logo_url}" alt="${restaurant.name} logo" loading="lazy">
-                  </div>
-                  ${isMobile && isLoggedIn ? '<div class="mobile-menu-btn"><i class="fas fa-ellipsis-h"></i></div>' : ''}
-              </div>
-              <div class="body">
-                  <h3>${restaurant.name}</h3>
-                  <p>${restaurant.desc}</p>
-                  <div class="meta">
-                      <div class="card-rating">⭐ ${restaurant.rating}</div>
-                      <div class="card-category">${restaurant.category || 'Restaurant'}</div>
-                  </div>
-              </div>
-          `;
-          
-          el.appendChild(clickableContent);
-          el.dataset.restaurantId = restaurant.id;
-          el.dataset.restaurantName = restaurant.name;
-          
-          // Add list buttons that don't navigate (PC only) - EXACT COPY FROM RESTAURANTS.HTML
-          if (isLoggedIn && !isMobile) {
-              const listActions = document.createElement('div');
-              listActions.className = 'list-actions';
-              
-              // Get current list status
-              const isFavorite = listManager.isInList('favorites', restaurant.id);
-              const isWantToGo = listManager.isInList('wantToGo', restaurant.id);
-              const isVisited = listManager.isInList('visited', restaurant.id);
-              
-              listActions.innerHTML = `
-                  <button class="list-btn favorite ${isFavorite ? 'active' : ''}" data-id="${restaurant.id}" data-list="favorites" title="${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}">❤️</button>
-                  <button class="list-btn want-to-go ${isWantToGo ? 'active' : ''}" data-id="${restaurant.id}" data-list="wantToGo" title="${isWantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}">📍</button>
-                  <button class="list-btn visited ${isVisited ? 'active' : ''}" data-id="${restaurant.id}" data-list="visited" title="${isVisited ? 'Remove from Visited' : 'Mark as Visited'}">🍽️</button>
-              `;
-              el.appendChild(listActions);
-              
-              // Add event listeners for list buttons
-              setTimeout(() => {
-                  const listBtns = listActions.querySelectorAll('.list-btn');
-                  listBtns.forEach(btn => {
-                      btn.addEventListener('click', async (e) => {
-                          e.preventDefault(); 
-                          e.stopPropagation();
-                          const restaurantId = parseInt(btn.dataset.id);
-                          const listType = btn.dataset.list;
-                          const wasAdded = await listManager.toggleInList(listType, restaurantId);
-                          btn.classList.toggle('active', wasAdded);
-                          
-                          // Update button title
-                          const newTitle = wasAdded ? 
-                              `Remove from ${listType === 'favorites' ? 'Favorites' : listType === 'wantToGo' ? 'Want to Go' : 'Visited'}` :
-                              `Add to ${listType === 'favorites' ? 'Favorites' : listType === 'wantToGo' ? 'Want to Go' : 'Visited'}`;
-                          btn.title = newTitle;
-                      });
-                  });
-              }, 0);
-          }
-          
-          // Observe images for lazy loading
-          const images = el.querySelectorAll('img');
-          images.forEach(img => {
-              imageObserver.observe(img);
-          });
-          
-          // Add mobile menu button event listener
-          if (isMobile && isLoggedIn) {
-              const menuBtn = el.querySelector('.mobile-menu-btn');
-              if (menuBtn) {
-                  menuBtn.addEventListener('click', (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showMobileModal({
-                          id: restaurant.id,
-                          name: restaurant.name,
-                          slug: restaurant.slug
-                      });
-                  });
-              }
-          }
-          
-          return el;
+      // ---------- CARD CREATION ----------
+      function makeCard(restaurant){
+        const el = document.createElement('div'); 
+        el.className = 'card'; 
+        
+        const clickableContent = document.createElement('a');
+        clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
+        clickableContent.style.textDecoration = 'none';
+        clickableContent.style.color = 'inherit';
+        clickableContent.style.display = 'block';
+        clickableContent.style.height = '100%';
+        clickableContent.style.position = 'relative';
+        clickableContent.style.zIndex = '10';
+        
+        // Use the logo_url from Supabase data
+        const logoUrl = restaurant.logo_url || DEFAULT_LOGO_URL;
+        
+        clickableContent.innerHTML = `
+          <div class="card-img-container">
+            <img class="card-food-image" src="${restaurant.food_image}" alt="${restaurant.name} food" loading="lazy">
+            <div class="card-logo-overlay">
+              <img src="${logoUrl}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">
+            </div>
+          </div>
+          <div class="body">
+            <h3>${restaurant.name}</h3>
+            <p>${restaurant.desc}</p>
+            <div class="meta">
+              <div class="card-rating">⭐ ${restaurant.rating}</div>
+              <div class="card-category">${restaurant.category || 'Restaurant'}</div>
+            </div>
+          </div>
+        `;
+        
+        el.appendChild(clickableContent);
+        return el;
       }
 
-      async function initCards(){
-          const featuredSlider = document.getElementById('featuredSlider');
-          const nearbySlider = document.getElementById('nearbySlider');
+      function initCards(){
+        const featuredSlider = document.getElementById('featuredSlider');
+        const nearbySlider = document.getElementById('nearbySlider');
+        
+        if (!featuredSlider || !nearbySlider) return;
+        
+        featuredSlider.innerHTML = ''; 
+        nearbySlider.innerHTML = '';
+        
+        restaurants.forEach(restaurant => { 
+          const card = makeCard(restaurant);
+          featuredSlider.appendChild(card); 
           
-          if (!featuredSlider || !nearbySlider) return;
-          
-          featuredSlider.innerHTML = ''; 
-          nearbySlider.innerHTML = '';
-          
-          // Initialize list manager if user is logged in
-          await listManager.init();
-          
-          if (restaurants.length === 0) {
-              // Show fallback cards if no restaurants loaded
-              const fallbackCards = getFallbackRestaurants();
-              for (const restaurant of fallbackCards) { 
-                  const card = await makeCard(restaurant);
-                  featuredSlider.appendChild(card); 
-                  
-                  if (restaurant.nearby) {
-                      const nearbyCard = await makeCard(restaurant);
-                      nearbySlider.appendChild(nearbyCard);
-                  }
-              }
-          } else {
-              for (const restaurant of restaurants) { 
-                  const card = await makeCard(restaurant);
-                  featuredSlider.appendChild(card); 
-                  
-                  if (restaurant.nearby) {
-                      const nearbyCard = await makeCard(restaurant);
-                      nearbySlider.appendChild(nearbyCard);
-                  }
-              }
+          if (restaurant.nearby) {
+            const nearbyCard = makeCard(restaurant);
+            nearbySlider.appendChild(nearbyCard);
           }
+        });
       }
+// ---------- SPOTLIGHT ----------
+const spotFoodImage = document.getElementById('spotFoodImage');
+const spotLogo = document.getElementById('spotLogo');
+const spotName = document.getElementById('spotName');
+const spotDesc = document.getElementById('spotDesc');
+const spotRating = document.getElementById('spotRating');
+const spotAction = document.getElementById('spotAction');
 
-      // ---------- SPOTLIGHT ----------
-      const spotFoodImage = document.getElementById('spotFoodImage');
-      const spotLogo = document.getElementById('spotLogo');
-      const spotName = document.getElementById('spotName');
-      const spotDesc = document.getElementById('spotDesc');
-      const spotRating = document.getElementById('spotRating');
-      const spotAction = document.getElementById('spotAction');
-      
-      let currentSpotlightIndex = 0;
-      
-      function renderSpotlight(index){
-          const restaurant = restaurants[index];
-          if (!restaurant) return;
-          
-          spotFoodImage.src = restaurant.food_image;
-          spotFoodImage.alt = `${restaurant.name} food`;
-          
-          spotLogo.innerHTML = `<img src="${restaurant.logo_url}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">`;
-          
-          spotName.textContent = restaurant.name;
-          spotDesc.textContent = restaurant.desc;
-          spotRating.textContent = `⭐ ${restaurant.rating}`;
-          spotAction.onclick = () => location.href = `restaurant.html?slug=${restaurant.slug}`;
-      }
-      
-      function initSpotlight(){ 
-          if (restaurants.length === 0) {
-              // Use fallback restaurant for spotlight
-              const fallbackRestaurants = getFallbackRestaurants();
-              if (fallbackRestaurants.length > 0) {
-                  const restaurant = fallbackRestaurants[0];
-                  spotFoodImage.src = restaurant.food_image;
-                  spotFoodImage.alt = `${restaurant.name} food`;
-                  spotLogo.innerHTML = `<img src="${restaurant.logo_url}" alt="${restaurant.name} logo">`;
-                  spotName.textContent = restaurant.name;
-                  spotDesc.textContent = restaurant.desc;
-                  spotRating.textContent = `⭐ ${restaurant.rating}`;
-                  spotAction.onclick = () => location.href = `restaurant.html?slug=${restaurant.slug}`;
-              }
-              return;
-          }
-          
-          renderSpotlight(0); 
-          setInterval(() => { 
-              currentSpotlightIndex = (currentSpotlightIndex + 1) % restaurants.length; 
-              renderSpotlight(currentSpotlightIndex); 
-          }, 5000); 
-      }
+let currentSpotlightIndex = 0;
+
+function renderSpotlight(index) {
+    const restaurant = restaurants[index];
+    if (!restaurant) return;
+    
+    // Set food image with error handling
+    spotFoodImage.style.opacity = '0'; // Start hidden
+    spotFoodImage.src = restaurant.food_image;
+    spotFoodImage.alt = `${restaurant.name} food`;
+    
+    // Add error handling for food image
+    spotFoodImage.onload = () => {
+        spotFoodImage.classList.add('loaded');
+        spotFoodImage.style.opacity = '1';
+    };
+    spotFoodImage.onerror = () => {
+        console.warn(`Failed to load spotlight food image for ${restaurant.name}`);
+        spotFoodImage.src = DEFAULT_COVER_URL;
+        spotFoodImage.classList.add('loaded');
+        spotFoodImage.style.opacity = '1';
+    };
+    
+    // Clear previous logo
+    spotLogo.innerHTML = '';
+    
+    // Create and add logo image with error handling
+    const logoImg = document.createElement('img');
+    logoImg.src = restaurant.logo_url;
+    logoImg.alt = `${restaurant.name} logo`;
+    
+    logoImg.onload = () => {
+        logoImg.classList.add('loaded');
+    };
+    logoImg.onerror = () => {
+        console.warn(`Failed to load spotlight logo for ${restaurant.name}`);
+        logoImg.src = DEFAULT_LOGO_URL;
+        logoImg.classList.add('loaded');
+    };
+    
+    spotLogo.appendChild(logoImg);
+    
+    // Update text content
+    spotName.textContent = restaurant.name;
+    spotDesc.textContent = restaurant.desc;
+    spotRating.textContent = `⭐ ${restaurant.rating}`;
+    spotAction.onclick = () => location.href = `restaurant.html?slug=${restaurant.slug}`;
+}
+
+function initSpotlight() { 
+    if (restaurants.length === 0) {
+        // Use fallback restaurant for spotlight
+        const fallbackRestaurants = getFallbackRestaurants();
+        if (fallbackRestaurants.length > 0) {
+            const restaurant = fallbackRestaurants[0];
+            
+            // Set images with error handling
+            spotFoodImage.style.opacity = '0';
+            spotFoodImage.src = restaurant.food_image;
+            spotFoodImage.alt = `${restaurant.name} food`;
+            spotFoodImage.onload = () => {
+                spotFoodImage.classList.add('loaded');
+                spotFoodImage.style.opacity = '1';
+            };
+            spotFoodImage.onerror = () => {
+                spotFoodImage.src = DEFAULT_COVER_URL;
+                spotFoodImage.classList.add('loaded');
+                spotFoodImage.style.opacity = '1';
+            };
+            
+            // Clear and set logo
+            spotLogo.innerHTML = '';
+            const logoImg = document.createElement('img');
+            logoImg.src = restaurant.logo_url;
+            logoImg.alt = `${restaurant.name} logo`;
+            logoImg.onload = () => logoImg.classList.add('loaded');
+            logoImg.onerror = () => {
+                logoImg.src = DEFAULT_LOGO_URL;
+                logoImg.classList.add('loaded');
+            };
+            spotLogo.appendChild(logoImg);
+            
+            // Update text
+            spotName.textContent = restaurant.name;
+            spotDesc.textContent = restaurant.desc;
+            spotRating.textContent = `⭐ ${restaurant.rating}`;
+            spotAction.onclick = () => location.href = `restaurant.html?slug=${restaurant.slug}`;
+        }
+        return;
+    }
+    
+    renderSpotlight(0); 
+    
+    // Start slideshow interval
+    setInterval(() => { 
+        currentSpotlightIndex = (currentSpotlightIndex + 1) % restaurants.length; 
+        renderSpotlight(currentSpotlightIndex); 
+    }, 5000); 
+}
 
       // ---------- SEARCH ----------
       const globalSearch = document.getElementById('globalSearch');
       if (globalSearch) {
-          globalSearch.addEventListener('keydown', (e) => { 
-              if(e.key === 'Enter'){ 
-                  const q = e.target.value.trim(); 
-                  const url = q ? `restraunts.html?q=${encodeURIComponent(q)}` : 'restraunts.html'; 
-                  location.href = url; 
-              } 
-          });
-      }
-
-      // ---------- AUTH UI ----------
-      const userAccountBtn = document.getElementById('userAccountBtn');
-      
-      async function updateAuthUI() {
-          try {
-              const { data: { session }, error } = await supabase.auth.getSession();
-              if (error) {
-                  console.warn('supabase getSession err', error);
-              }
-
-              if (session && session.user) {
-                  // User is logged in
-                  const userId = session.user.id;
-
-                  // Fetch profile from user_profiles table
-                  let username = null;
-                  try {
-                      const { data: profile, error: profileError } = await supabase
-                          .from('user_profiles')
-                          .select('username, full_name, avatar_url')
-                          .eq('id', userId)
-                          .limit(1)
-                          .maybeSingle();
-
-                      if (profileError) {
-                          console.warn('profile fetch err', profileError);
-                      } else if (profile) {
-                          username = profile.username || profile.full_name || null;
-                      }
-                  } catch (err) {
-                      console.warn('profile fetch catch', err);
-                  }
-
-                  // Fallback display name
-                  const displayName = username || session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User';
-
-                  // Set UI elements
-                  userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
-                  userAccountBtn.onclick = (e) => {
-                      e.preventDefault();
-                      location.href = 'profile.html';
-                  };
-                  
-              } else {
-                  // Not logged in
-                  userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>Account</span>`;
-                  userAccountBtn.onclick = () => location.href = 'login.html';
-              }
-          } catch (e) {
-              console.error('updateAuthUI error', e);
-              // Fallback to logged out state
-              userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>Account</span>`;
-              userAccountBtn.onclick = () => location.href = 'login.html';
-          }
-      }
-
-      // Listen for auth changes
-      if (supabase && supabase.auth) {
-          try {
-              supabase.auth.onAuthStateChange((event, session) => {
-                  setTimeout(updateAuthUI, 50);
-                  // Reinitialize cards when auth state changes
-                  if (restaurants.length > 0) {
-                      initCards();
-                  }
-              });
-          } catch (error) {
-              console.error('Auth state change listener error:', error);
-          }
+        globalSearch.addEventListener('keydown', (e) => { 
+          if(e.key === 'Enter'){ 
+            const q = e.target.value.trim(); 
+            const url = q ? `restraunts.html?q=${encodeURIComponent(q)}` : 'restraunts.html'; 
+            location.href = url; 
+          } 
+        });
       }
 
       // ---------- APP COMING SOON MODAL ----------
+      const appComingSoonModal = document.getElementById('appComingSoonModal');
+      const closeModalBtn = document.getElementById('closeModal');
       const iosAppButton = document.getElementById('iosAppButton');
       const androidAppButton = document.getElementById('androidAppButton');
       
       function showAppComingSoonModal() {
-          showNotification('Our mobile app is coming soon! Stay tuned for updates.', 'info');
+        appComingSoonModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function hideAppComingSoonModal() {
+        appComingSoonModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
       }
       
       iosAppButton.addEventListener('click', function(e) {
-          e.preventDefault();
-          showAppComingSoonModal();
+        e.preventDefault();
+        showAppComingSoonModal();
       });
       
       androidAppButton.addEventListener('click', function(e) {
-          e.preventDefault();
-          showAppComingSoonModal();
+        e.preventDefault();
+        showAppComingSoonModal();
+      });
+      
+      closeModalBtn.addEventListener('click', hideAppComingSoonModal);
+      
+      appComingSoonModal.addEventListener('click', function(e) {
+        if (e.target === appComingSoonModal) {
+          hideAppComingSoonModal();
+        }
+      });
+      
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && appComingSoonModal.classList.contains('active')) {
+          hideAppComingSoonModal();
+        }
       });
 
       // ---------- INITIALIZE ----------
       document.addEventListener('DOMContentLoaded', async function() {
-          // Initialize auth UI first
-          updateAuthUI();
-          
-          // Load restaurants
-          await loadRestaurantsFromSupabase();
+        await loadRestaurantsFromSupabase();
       });
 
     })();
-</script>
+    </script>
 </body>
 </html>
