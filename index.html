@@ -1000,93 +1000,84 @@ transition: all 0.3s ease;
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
- // ---------- HARDCODED FOOD IMAGE URLs ----------
-const restaurantFoodImages = {
-    'mori': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png',
-    'kilo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png',
-    'hameed': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hameed/hameeed.png',
-    'bazooka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bazooka/bazookaburg.png',
-    'mexican': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mexican/mexcorn.png',
-    'station': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/station/pizzastt.png',
-    'brgr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/brgr/brgrburg.png',
-    'bayoki': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/bayoki/bayokirot.png',
-    'maine': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/maine/maineburg.png',
-    'barbar': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/barbar/barbarsand.png',
-    'qasr': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/qasr/qasrkebab.png',
-    'ward': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ward/koshward.png',
-    'dushka': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dushka/duskaburg.png',
-    'yaba': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/yaba/yabasand.png',
-    'caizo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/caizo/caizoeg.png',
-    'abou tarek': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/abou%20tarek/koshary.png',
-    'husk': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/husk/husks.png',
-    'pasta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pasta/pasta222.jpg',
-    'panda': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/panda/pandah.png',
-    'holmes': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmess.png', // UPDATED
-    'ribs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/ribs/ribsss.png',
-    'manchow': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/manchow/manchowww.jpg',
-    'hashville': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/hashville/hashvilleee.jpg',
-    'dawgs': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/dawgs/dawgss.png',
-    'chikin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/chikin/worx.png',
-    'mario': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mario/marioooo.png',
-    'kufta': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kufta/kuftaa.png',
-    'pablo': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pablo/pablooo.png',
-    'butchers': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/butchers/butcherss.png',
-    'pickl': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/pickl/pickll.png',
-    '88': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/88/888.png',
-    'what': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/what/wtcc.png',
-    '900': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/900/9000.png',
-    'country': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/country/briskett.png',
-    'howlin': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/howlin/howlinn.png',
-    'mince': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mince/mincee.png',
-    'daddy': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/daddy/daddd.png',
-    'willys':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/willys/willys.png',
-    'buffalo':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/buffalo/buffaloooooooo.png',
-    'sauce':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/sauce/saucee.png',
-    'peking':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/peking/pekking.png',
-    'wok':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/wok/wokk.png',
-    'crispy':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/crispy/crispyy.png',
-    'chez':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/chez/chezzz.png',
-    'willys':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/willys/wwwilly.png',
-    'tabali':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/tabali/tabb.png',
-    'lord':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/lord/lordd.png',
-    'crave':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/crave/cravee.png',
-    'kansas':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kansas/kansass.png',
-    'crumbs':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/crumbs/crummb.png',
-    'man':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/man/mann.png',
-    'heart':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/heart/heartt.png',
-    'shawermer':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/shawermer/shawermerr.png',
-    'takosan':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/takosan/takosann.png',
-    'secondcup':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/secondcup/secondcupp.png',
-    'akleh':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/akleh/aklehh.png',
-    'vasko':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/vasko/vaskoo.png',
-    'papa':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/papa/papaa.png',
-    'labash':'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/labsh/labshh.png',
-
-    'default': 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
-};
-      // Default fallback logo if none is found in database
+      // Default fallback images
+      const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
       const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
 
       // ---------- RESTAURANT DATA ----------
       let restaurants = [];
       let categories = new Set();
+      let restaurantImages = {}; // Cache for images: { slug: { cover: url, logo: url } }
 
-      // Function to get food image URL (temporary - should eventually come from Supabase)
-      function getFoodImageUrl(slug) {
-        return restaurantFoodImages[slug] || restaurantFoodImages['default'];
+      // Function to load ALL images from gallery at once (more efficient)
+      async function loadAllRestaurantImages() {
+        try {
+          console.log("🔄 Loading all restaurant images from gallery...");
+          
+          const { data, error } = await supabase
+            .from('restaurant_gallery')
+            .select('restaurant_slug, image_url, image_type, is_primary')
+            .order('sort_order', { ascending: true });
+          
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            // Organize images by restaurant slug
+            data.forEach(item => {
+              if (!restaurantImages[item.restaurant_slug]) {
+                restaurantImages[item.restaurant_slug] = {
+                  cover: DEFAULT_COVER_URL,
+                  logo: DEFAULT_LOGO_URL
+                };
+              }
+              
+              // Set cover image (primary first, then first found)
+              if (item.image_type === 'cover') {
+                if (item.is_primary || restaurantImages[item.restaurant_slug].cover === DEFAULT_COVER_URL) {
+                  restaurantImages[item.restaurant_slug].cover = item.image_url;
+                }
+              }
+              
+              // Set logo image
+              if (item.image_type === 'logo') {
+                if (item.is_primary || restaurantImages[item.restaurant_slug].logo === DEFAULT_LOGO_URL) {
+                  restaurantImages[item.restaurant_slug].logo = item.image_url;
+                }
+              }
+            });
+            
+            console.log(`✅ Loaded images for ${Object.keys(restaurantImages).length} restaurants`);
+          } else {
+            console.log('No images found in gallery table');
+          }
+        } catch (error) {
+          console.error('Error loading restaurant images:', error);
+        }
       }
 
-      // Function to get logo URL from Supabase data
+      // Function to get cover image URL
+      function getCoverImageUrl(restaurantSlug) {
+        return restaurantImages[restaurantSlug]?.cover || DEFAULT_COVER_URL;
+      }
+
+      // Function to get logo URL
       function getLogoUrl(restaurant) {
-        // Use logo_url from Supabase if available
+        // First try from cached gallery images
+        if (restaurantImages[restaurant.slug]?.logo && restaurantImages[restaurant.slug].logo !== DEFAULT_LOGO_URL) {
+          return restaurantImages[restaurant.slug].logo;
+        }
+        
+        // Then try from restaurant data
         if (restaurant.logo_url) {
           return restaurant.logo_url;
         }
-        // Use image field as fallback
+        
+        // Then try image field
         if (restaurant.image) {
           return restaurant.image;
         }
-        // Use default logo as last resort
+        
+        // Default fallback
         return DEFAULT_LOGO_URL;
       }
 
@@ -1094,6 +1085,10 @@ const restaurantFoodImages = {
         try {
           console.log("🔄 Loading restaurants from Supabase...");
           
+          // Load images first
+          await loadAllRestaurantImages();
+          
+          // Then load restaurants
           const { data, error } = await supabase
             .from('restraunts')
             .select('id, slug, name, category, description, rating, logo_url, image')
@@ -1115,13 +1110,13 @@ const restaurantFoodImages = {
               category: restaurant.category,
               desc: restaurant.description,
               rating: restaurant.rating,
-              logo_url: getLogoUrl(restaurant), // Get logo from Supabase data
-              food_image: getFoodImageUrl(restaurant.slug), // Temporary - from hardcoded list
+              logo_url: getLogoUrl(restaurant),
+              food_image: getCoverImageUrl(restaurant.slug),
               nearby: Math.random() > 0.3,
               trending: restaurant.rating >= 4.5
             }));
             
-            console.log('First restaurant logo URL:', restaurants[0]?.logo_url);
+            console.log('First restaurant:', restaurants[0]);
           }
           
           // Extract categories from restaurants
@@ -1150,7 +1145,7 @@ const restaurantFoodImages = {
       }
 
       function getFallbackRestaurants() {
-        // Fallback data that matches what's in Supabase
+        // Fallback data in case Supabase fails
         return [
           { 
             id: 1, 
@@ -1160,7 +1155,7 @@ const restaurantFoodImages = {
             desc:'Modern sushi chain serving rolls, sashimi & Japanese bites.', 
             rating:4.7, 
             logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/mori.jpg', 
-            food_image: getFoodImageUrl('mori'), 
+            food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png', 
             nearby: true, 
             trending: true
           },
@@ -1172,30 +1167,8 @@ const restaurantFoodImages = {
             desc:'Charcoal-grilled kebabs & hearty Middle Eastern plates.', 
             rating:4.5, 
             logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/kilo.jpg', 
-            food_image: getFoodImageUrl('kilo'), 
+            food_image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/kilo/kilokofta.png', 
             nearby: true
-          },
-          { 
-            id: 3, 
-            slug:'hameed', 
-            name:'Hameed', 
-            category:'Fast Food', 
-            desc:'Local favorite for sandwiches & quick bites.', 
-            rating:4.3, 
-            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/hameed.jpg', 
-            food_image: getFoodImageUrl('hameed'), 
-            nearby: true
-          },
-          { 
-            id: 4, 
-            slug:'bazooka', 
-            name:'Bazooka', 
-            category:'Burgers', 
-            desc:'Loaded burgers & crispy fried chicken combos.', 
-            rating:4.2, 
-            logo_url: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-logos/bazooka.jpg', 
-            food_image: getFoodImageUrl('bazooka'), 
-            trending: true
           }
         ];
       }
@@ -1279,14 +1252,11 @@ const restaurantFoodImages = {
         clickableContent.style.position = 'relative';
         clickableContent.style.zIndex = '10';
         
-        // Use the logo_url from Supabase data
-        const logoUrl = restaurant.logo_url || DEFAULT_LOGO_URL;
-        
         clickableContent.innerHTML = `
           <div class="card-img-container">
             <img class="card-food-image" src="${restaurant.food_image}" alt="${restaurant.name} food" loading="lazy">
             <div class="card-logo-overlay">
-              <img src="${logoUrl}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">
+              <img src="${restaurant.logo_url}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">
             </div>
           </div>
           <div class="body">
@@ -1340,9 +1310,7 @@ const restaurantFoodImages = {
         spotFoodImage.src = restaurant.food_image;
         spotFoodImage.alt = `${restaurant.name} food`;
         
-        // Use the logo_url from Supabase data
-        const logoUrl = restaurant.logo_url || DEFAULT_LOGO_URL;
-        spotLogo.innerHTML = `<img src="${logoUrl}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">`;
+        spotLogo.innerHTML = `<img src="${restaurant.logo_url}" alt="${restaurant.name} logo" onerror="this.src='${DEFAULT_LOGO_URL}'">`;
         
         spotName.textContent = restaurant.name;
         spotDesc.textContent = restaurant.desc;
@@ -1417,6 +1385,6 @@ const restaurantFoodImages = {
       });
 
     })();
-    </script>
+</script>
 </body>
 </html>
