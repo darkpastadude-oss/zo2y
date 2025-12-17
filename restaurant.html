@@ -2145,27 +2145,7 @@ a.btn,
 <!-- Load Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-// Initialize Supabase (ONLY ONCE)
-let supabase;
-try {
-    // Check if Supabase is already initialized globally
-    if (typeof window.supabaseClient !== 'undefined') {
-        supabase = window.supabaseClient;
-        console.log('Using existing Supabase client');
-    } else {
-        const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-        
-        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        window.supabaseClient = supabase; // Store globally for other pages
-        console.log('Created new Supabase client');
-    }
-} catch (error) {
-    console.error('Failed to initialize Supabase:', error);
-    supabase = null;
-    showNotification('Error connecting to database', 'error');
-}
+
 // Global state
 let currentUser = null;
 let currentRating = 0;
