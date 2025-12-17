@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -547,73 +546,7 @@ h2::after {
     color: var(--btn-text);
     border-color: var(--btn-bg);
 }
-/* Menu Item Expand/Collapse Styles */
-.menu-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    cursor: pointer;
-    padding: 8px 0;
-}
 
-.menu-item-name {
-    flex: 1;
-    font-size: 1rem;
-    color: var(--text);
-    font-weight: 500;
-    text-align: left;
-}
-
-.menu-item-price {
-    color: var(--accent);
-    font-weight: 600;
-    font-size: 1rem;
-    margin: 0 10px;
-    white-space: nowrap;
-}
-
-.menu-expand-btn {
-    background: none;
-    border: none;
-    color: var(--accent);
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0 5px;
-    transition: transform 0.3s ease;
-    outline: none;
-    flex-shrink: 0;
-    min-width: 24px;
-    min-height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.menu-item-description {
-    display: none;
-    margin-top: 10px;
-    padding: 12px;
-    background: rgba(255, 152, 0, 0.05);
-    border-radius: 8px;
-    color: var(--text2);
-    font-size: 0.9rem;
-    line-height: 1.5;
-    animation: fadeIn 0.3s ease;
-    border-left: 3px solid var(--accent);
-}
-
-.menu-item.expanded .menu-item-description {
-    display: block;
-}
-
-.menu-item.expanded .menu-expand-btn {
-    transform: rotate(180deg);
-}
-
-.menu-item:hover .menu-item-header {
-    color: var(--accent);
-}
 /* Menu Item Expand/Collapse Styles */
 .menu-item-header {
     display: flex;
@@ -699,6 +632,7 @@ h2::after {
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
 /* Menu */
 .menu-item {
     display: flex;
@@ -2212,7 +2146,7 @@ a.btn,
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// Initialize Supabase
+// Initialize Supabase (ONLY ONCE)
 const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -2227,10 +2161,10 @@ let currentGalleryIndex = 0;
 let currentGalleryCategory = 'all';
 let reviews = [];
 let currentSort = 'latest';
+let imageCache = new Map(); // Cache for optimized image loading
 
 // Utility Functions
 function showNotification(message, type = 'info', duration = 4000) {
-    // Remove existing notifications
     const existing = document.querySelectorAll('.notification');
     existing.forEach(n => n.remove());
 
@@ -2239,12 +2173,10 @@ function showNotification(message, type = 'info', duration = 4000) {
     notification.textContent = message;
     document.body.appendChild(notification);
 
-    // Animate in
     requestAnimationFrame(() => {
         notification.classList.add('show');
     });
 
-    // Auto remove
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 400);
@@ -2253,19 +2185,7 @@ function showNotification(message, type = 'info', duration = 4000) {
     return notification;
 }
 
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Lazy Loading Observer
+// Optimized Lazy Loading with IntersectionObserver
 const lazyLoadObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -2273,12 +2193,28 @@ const lazyLoadObserver = new IntersectionObserver((entries) => {
             const src = img.getAttribute('data-src');
             
             if (src) {
-                img.src = src;
-                img.onload = () => {
+                // Check cache first
+                if (imageCache.has(src)) {
+                    const cachedImg = imageCache.get(src);
+                    if (cachedImg.complete) {
+                        img.src = src;
+                        img.classList.remove('lazy-img');
+                        img.classList.add('loaded');
+                        lazyLoadObserver.unobserve(img);
+                        return;
+                    }
+                }
+                
+                // Preload image
+                const preloadImg = new Image();
+                preloadImg.src = src;
+                preloadImg.onload = () => {
+                    img.src = src;
                     img.classList.remove('lazy-img');
                     img.classList.add('loaded');
+                    imageCache.set(src, preloadImg);
                 };
-                img.onerror = () => {
+                preloadImg.onerror = () => {
                     img.src = 'images/default-logo.jpg';
                     img.classList.remove('lazy-img');
                     img.classList.add('loaded');
@@ -2289,8 +2225,8 @@ const lazyLoadObserver = new IntersectionObserver((entries) => {
         }
     });
 }, {
-    rootMargin: '50px',
-    threshold: 0.1
+    rootMargin: '100px', // Load images earlier
+    threshold: 0.01
 });
 
 // Get restaurant slug from URL
@@ -2304,9 +2240,9 @@ function getRestaurantSlug() {
         slug = filename.replace('.html', '').toLowerCase();
     }
     
-    // Return as-is, let getRestaurantIdFromSlug handle decoding
     return slug;
 }
+
 // Get restaurant ID from slug
 function getRestaurantIdFromSlug() {
     const slug = getRestaurantSlug();
@@ -2325,21 +2261,17 @@ function getRestaurantIdFromSlug() {
         'yaba': 58, 'smash':59, 'nude':60, 'fati':61, 'clams':62, 'nations':63
     };
     
-    // Handle slugs with spaces or encoding
     const normalizedSlug = slug.toLowerCase();
     
-    // First try direct match
     if (slugToId[normalizedSlug]) {
         return slugToId[normalizedSlug];
     }
     
-    // If not found, try decoding URL encoding
     const decodedSlug = decodeURIComponent(normalizedSlug);
     if (slugToId[decodedSlug]) {
         return slugToId[decodedSlug];
     }
     
-    // Try replacing spaces with hyphens
     const hyphenSlug = normalizedSlug.replace(/ /g, '-');
     if (slugToId[hyphenSlug]) {
         return slugToId[hyphenSlug];
@@ -2348,14 +2280,14 @@ function getRestaurantIdFromSlug() {
     console.error('Could not determine restaurant ID from slug:', slug);
     return null;
 }
+
 // SECTION NAVIGATION
 function createSectionNavigation() {
-    // Updated order with Gallery before Menu
     const sections = [
         { id: 'overview-section', label: 'Overview' },
         { id: 'branches-section', label: 'Branches' },
         { id: 'ordering-section', label: 'Ordering' },
-        { id: 'gallery-section', label: 'Gallery' }, // MOVED HERE
+        { id: 'gallery-section', label: 'Gallery' },
         { id: 'menu-section', label: 'Menu' },
         { id: 'reviews-section', label: 'Reviews' }
     ];
@@ -2415,7 +2347,7 @@ function setupScrollSpy() {
         'overview-section',
         'branches-section', 
         'ordering-section',
-        'gallery-section', // MOVED HERE
+        'gallery-section',
         'menu-section',
         'reviews-section'
     ];
@@ -2442,47 +2374,30 @@ function setupScrollSpy() {
     });
 }
 
-// DATA LOADING FUNCTIONS
+// DATA LOADING FUNCTIONS with parallel loading
 async function loadRestaurantData() {
     const slug = getRestaurantSlug();
     
     try {
         console.log('Loading data for slug:', slug);
         
-        // Load restaurant info
-        const { data: restaurant, error: restaurantError } = await supabase
-            .from('restraunts')
-            .select('*')
-            .eq('slug', slug)
-            .single();
-
-        if (restaurantError || !restaurant) {
-            console.error('Restaurant not found:', restaurantError);
+        // Load all data in parallel for faster loading
+        const [restaurantData, menuData, branchesData, galleryData] = await Promise.all([
+            supabase.from('restraunts').select('*').eq('slug', slug).single(),
+            supabase.from('menu_items').select('*').eq('restaurant_slug', slug).order('category'),
+            supabase.from('branches').select('*').eq('restaurant_slug', slug).order('branch_name'),
+            supabase.from('restaurant_gallery').select('*').order('display_order', { ascending: true })
+        ]);
+        
+        if (restaurantData.error || !restaurantData.data) {
             throw new Error('Restaurant not found');
         }
 
-        // Load menu items
-        const { data: menuItems, error: menuError } = await supabase
-            .from('menu_items')
-            .select('*')
-            .eq('restaurant_slug', slug)
-            .order('category');
-
-        if (menuError) console.error('Menu error:', menuError);
-
-        // Load branches
-        const { data: branches, error: branchesError } = await supabase
-            .from('branches')
-            .select('*')
-            .eq('restaurant_slug', slug)
-            .order('branch_name');
-
-        if (branchesError) console.error('Branches error:', branchesError);
-
         return { 
-            restaurant, 
-            menuItems: menuItems || [], 
-            branches: branches || [] 
+            restaurant: restaurantData.data, 
+            menuItems: menuData.data || [], 
+            branches: branchesData.data || [],
+            galleryImages: galleryData.data || []
         };
     } catch (error) {
         console.error('Error loading restaurant data:', error);
@@ -2490,74 +2405,68 @@ async function loadRestaurantData() {
     }
 }
 
-// GALLERY FUNCTIONS - FIXED VERSION
-async function loadRestaurantGallery() {
+// OPTIMIZED GALLERY FUNCTIONS with image preloading
+async function loadRestaurantGallery(galleryData) {
     const slug = getRestaurantSlug();
     
     try {
         console.log('Loading gallery for restaurant slug:', slug);
         
-        // Get ALL gallery images first
-        const { data: allGalleryData, error } = await supabase
-            .from('restaurant_gallery')
-            .select('*')
-            .order('display_order', { ascending: true });
-        
-        if (error) {
-            console.error('Gallery query error:', error);
+        if (!galleryData || galleryData.length === 0) {
             document.getElementById('gallery-empty').style.display = 'block';
-            return;
+            return [];
         }
         
-        // Filter images for the current restaurant based on URL pattern
-        galleryImages = allGalleryData.filter(image => {
+        // Filter images for the current restaurant
+        const filteredImages = galleryData.filter(image => {
             if (!image.image_url) return false;
             
-            // Extract restaurant slug from image URL
-            // URL format: https://.../restaurant-images/MORI/morisush.png
             try {
                 const url = new URL(image.image_url);
                 const pathParts = url.pathname.split('/');
                 
-                // Find the restaurant-images folder and get the restaurant folder
                 const restaurantImagesIndex = pathParts.indexOf('restaurant-images');
                 if (restaurantImagesIndex !== -1 && restaurantImagesIndex + 1 < pathParts.length) {
                     const restaurantFolder = pathParts[restaurantImagesIndex + 1].toLowerCase();
-                    
-                    // Compare with current restaurant slug
                     if (restaurantFolder === slug.toLowerCase()) {
                         return true;
                     }
                 }
                 
-                // Alternative: Check if slug appears in filename
                 const filename = pathParts[pathParts.length - 1].toLowerCase();
                 if (filename.includes(slug.toLowerCase())) {
                     return true;
                 }
                 
                 return false;
-                
             } catch (err) {
                 console.warn('Error parsing image URL:', image.image_url, err);
                 return false;
             }
         });
         
-        console.log(`Found ${galleryImages.length} gallery images for ${slug}`);
+        console.log(`Found ${filteredImages.length} gallery images for ${slug}`);
         
-        if (galleryImages.length === 0) {
-            console.log('No gallery images found for this restaurant');
+        if (filteredImages.length === 0) {
             document.getElementById('gallery-empty').style.display = 'block';
-            return;
+            return [];
         }
         
-        renderGallery(galleryImages, 'all');
-        setupGalleryTabs();
+        // Preload first few images immediately
+        const imagesToPreload = filteredImages.slice(0, 3);
+        imagesToPreload.forEach(image => {
+            if (image.image_url && !imageCache.has(image.image_url)) {
+                const img = new Image();
+                img.src = image.image_url;
+                imageCache.set(image.image_url, img);
+            }
+        });
         
+        return filteredImages;
     } catch (error) {
         console.error('Gallery loading error:', error);
         document.getElementById('gallery-empty').style.display = 'block';
+        return [];
     }
 }
 
@@ -2565,7 +2474,6 @@ function renderGallery(images, category = 'all') {
     const container = document.getElementById('gallery-container');
     const emptyMsg = document.getElementById('gallery-empty');
     
-    // Filter by category if not 'all'
     const filteredImages = category === 'all' 
         ? images 
         : images.filter(img => img.category && img.category.toLowerCase() === category.toLowerCase());
@@ -2583,11 +2491,11 @@ function renderGallery(images, category = 'all') {
         const galleryItem = document.createElement('div');
         galleryItem.className = 'gallery-item';
         
-        // Create a thumbnail-friendly URL (optional)
         const imageUrl = image.image_url || '';
+        const thumbnailUrl = image.thumbnail_url || imageUrl; // Use thumbnail if available
         
         galleryItem.innerHTML = `
-            <img src="${imageUrl}" 
+            <img src="" 
                  alt="${image.caption || 'Restaurant image'}" 
                  class="gallery-image lazy"
                  loading="lazy"
@@ -2597,9 +2505,17 @@ function renderGallery(images, category = 'all') {
         `;
         container.appendChild(galleryItem);
         
-        // Lazy load
+        // Load thumbnail immediately, then high-res
         const img = galleryItem.querySelector('img');
-        lazyLoadObserver.observe(img);
+        
+        // Start loading immediately for first few images
+        if (index < 3) {
+            img.src = imageUrl;
+            img.classList.remove('lazy-img');
+            img.classList.add('loaded');
+        } else {
+            lazyLoadObserver.observe(img);
+        }
     });
 }
 
@@ -2607,11 +2523,9 @@ function setupGalleryTabs() {
     const tabs = document.querySelectorAll('.gallery-tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Update active tab
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             
-            // Filter gallery
             const category = tab.dataset.category;
             currentGalleryCategory = category;
             renderGallery(galleryImages, category);
@@ -2626,7 +2540,6 @@ function openLightbox(index, category = 'all') {
     
     if (!filteredImages || filteredImages.length === 0) return;
     
-    // Find actual index in original array
     const image = filteredImages[index];
     const actualIndex = galleryImages.findIndex(img => img.id === image.id);
     
@@ -2636,6 +2549,18 @@ function openLightbox(index, category = 'all') {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightbox-image');
     const lightboxCaption = document.getElementById('lightbox-caption');
+    
+    // Preload next and previous images for smooth navigation
+    const prevIndex = (currentGalleryIndex - 1 + galleryImages.length) % galleryImages.length;
+    const nextIndex = (currentGalleryIndex + 1) % galleryImages.length;
+    
+    [prevIndex, nextIndex].forEach(idx => {
+        if (!imageCache.has(galleryImages[idx].image_url)) {
+            const img = new Image();
+            img.src = galleryImages[idx].image_url;
+            imageCache.set(galleryImages[idx].image_url, img);
+        }
+    });
     
     lightboxImage.src = image.image_url || '';
     lightboxCaption.textContent = image.caption || '';
@@ -2653,7 +2578,6 @@ function closeLightbox() {
 function changeImage(direction) {
     let newIndex = currentGalleryIndex + direction;
     
-    // Wrap around
     if (newIndex < 0) newIndex = galleryImages.length - 1;
     if (newIndex >= galleryImages.length) newIndex = 0;
     
@@ -2666,24 +2590,6 @@ function changeImage(direction) {
     lightboxImage.src = image.image_url || '';
     lightboxCaption.textContent = image.caption || '';
 }
-
-// Close lightbox on ESC key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeLightbox();
-    } else if (e.key === 'ArrowLeft') {
-        changeImage(-1);
-    } else if (e.key === 'ArrowRight') {
-        changeImage(1);
-    }
-});
-
-// Close lightbox when clicking on background
-document.getElementById('lightbox').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) {
-        closeLightbox();
-    }
-});
 
 // TALABAT FUNCTIONS
 async function checkTalabatAvailability(slug) {
@@ -2739,7 +2645,7 @@ async function updateTalabatDisplay(slug) {
     }
 }
 
-// RENDER FUNCTIONS
+// OPTIMIZED RENDER FUNCTIONS
 function renderRestaurantData({ restaurant, menuItems, branches }) {
     // Hide loading, show main content
     document.getElementById('loading').style.display = 'none';
@@ -2748,14 +2654,16 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     // Set page title
     document.title = `${restaurant.name} - Zo2y`;
     
-    // Create section navigation (Gallery before Menu)
+    // Create section navigation
     createSectionNavigation();
     
-    // Hero section
+    // Hero section - load logo immediately
     const logoImg = document.getElementById('restaurant-logo');
-    logoImg.setAttribute('data-src', restaurant.logo_url || restaurant.image || 'images/default-logo.jpg');
+    const logoUrl = restaurant.logo_url || restaurant.image || 'images/default-logo.jpg';
+    logoImg.src = logoUrl;
     logoImg.alt = `${restaurant.name} Logo`;
-    lazyLoadObserver.observe(logoImg);
+    logoImg.classList.remove('lazy-img');
+    logoImg.classList.add('loaded');
     
     document.getElementById('restaurant-name').textContent = restaurant.name;
     document.getElementById('restaurant-description').textContent = restaurant.description || 'Delicious food served with care';
@@ -2847,72 +2755,71 @@ function renderRestaurantData({ restaurant, menuItems, branches }) {
     } else {
         branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
     }
-// Menu items with descriptions (without prices)
-const menuContainer = document.getElementById('menu-container');
-if (menuItems.length > 0) {
-    const groupedByCategory = {};
-    menuItems.forEach(item => {
-        if (!groupedByCategory[item.category]) {
-            groupedByCategory[item.category] = [];
-        }
-        groupedByCategory[item.category].push(item);
-    });
     
-    Object.keys(groupedByCategory).forEach(category => {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'menu-category';
-        categoryDiv.innerHTML = `<h3>${category}</h3>`;
-        
-        groupedByCategory[category].forEach(item => {
-            const menuItem = document.createElement('div');
-            menuItem.className = 'menu-item';
-            
-            // Check if item has a description
-            const hasDescription = item.description && item.description.trim() !== '';
-            
-            menuItem.innerHTML = `
-                <div class="menu-item-header">
-                    <span class="menu-item-name">${item.item_name}</span>
-                    ${hasDescription ? `<button class="menu-expand-btn">▼</button>` : ''}
-                </div>
-                ${hasDescription ? `<div class="menu-item-description">${item.description}</div>` : ''}
-            `;
-            
-            // Add click event for expand/collapse if there's a description
-            if (hasDescription) {
-                const menuItemHeader = menuItem.querySelector('.menu-item-header');
-                const expandBtn = menuItem.querySelector('.menu-expand-btn');
-                
-                menuItemHeader.addEventListener('click', (e) => {
-                    menuItem.classList.toggle('expanded');
-                    expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
-                });
-                
-                // Also handle click on expand button
-                expandBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    menuItem.classList.toggle('expanded');
-                    expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
-                });
+    // Menu items with descriptions (without prices)
+    const menuContainer = document.getElementById('menu-container');
+    if (menuItems.length > 0) {
+        const groupedByCategory = {};
+        menuItems.forEach(item => {
+            if (!groupedByCategory[item.category]) {
+                groupedByCategory[item.category] = [];
             }
-            
-            categoryDiv.appendChild(menuItem);
+            groupedByCategory[item.category].push(item);
         });
         
-        menuContainer.appendChild(categoryDiv);
-    });
-} else {
-    menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
-}
+        Object.keys(groupedByCategory).forEach(category => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'menu-category';
+            categoryDiv.innerHTML = `<h3>${category}</h3>`;
+            
+            groupedByCategory[category].forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                
+                const hasDescription = item.description && item.description.trim() !== '';
+                
+                menuItem.innerHTML = `
+                    <div class="menu-item-header">
+                        <span class="menu-item-name">${item.item_name}</span>
+                        ${hasDescription ? `<button class="menu-expand-btn">▼</button>` : ''}
+                    </div>
+                    ${hasDescription ? `<div class="menu-item-description">${item.description}</div>` : ''}
+                `;
+                
+                if (hasDescription) {
+                    const menuItemHeader = menuItem.querySelector('.menu-item-header');
+                    const expandBtn = menuItem.querySelector('.menu-expand-btn');
+                    
+                    menuItemHeader.addEventListener('click', (e) => {
+                        menuItem.classList.toggle('expanded');
+                        expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
+                    });
+                    
+                    expandBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        menuItem.classList.toggle('expanded');
+                        expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
+                    });
+                }
+                
+                categoryDiv.appendChild(menuItem);
+            });
+            
+            menuContainer.appendChild(categoryDiv);
+        });
+    } else {
+        menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
+    }
     
-// Full menu link button (this goes AFTER the menu items)
-const fullMenuLink = document.getElementById('full-menu-link');
-if (restaurant.website_url) {
-    fullMenuLink.href = restaurant.website_url;
-    fullMenuLink.style.display = 'inline-flex';
-} else {
-    fullMenuLink.style.display = 'none';
-} 
+    // Full menu link button
+    const fullMenuLink = document.getElementById('full-menu-link');
+    if (restaurant.website_url) {
+        fullMenuLink.href = restaurant.website_url;
+        fullMenuLink.style.display = 'inline-flex';
+    } else {
+        fullMenuLink.style.display = 'none';
+    }
+    
     // Footer
     document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
     
@@ -2958,7 +2865,6 @@ function setupSortControls() {
             sortAndDisplayReviews();
         });
         
-        // Show sort controls
         document.getElementById('reviewsSortControls').style.display = 'flex';
     }
 }
@@ -3110,7 +3016,6 @@ async function displayReviews(reviewsToDisplay) {
 
 async function checkAuth() {
     try {
-        // Get current session
         const { data: { user } } = await supabase.auth.getUser();
         currentUser = user;
         
@@ -3125,7 +3030,6 @@ async function checkAuth() {
             authPrompt.style.display = 'block';
         }
         
-       // Set up auth state listener
         if (!authStateListener) {
             authStateListener = supabase.auth.onAuthStateChange(async (event, session) => {
                 currentUser = session?.user || null;
@@ -3373,7 +3277,6 @@ async function deleteReview(reviewId) {
 // LIST MANAGER
 class RestaurantListManager {
     constructor() {
-        this.supabase = supabase;
         this.restaurantId = getRestaurantIdFromSlug();
         this.userLists = [];
         this.customLists = [];
@@ -3390,7 +3293,7 @@ class RestaurantListManager {
 
     async checkAuth() {
         try {
-            const { data: { session } } = await this.supabase.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
             this.currentUser = session?.user || null;
         } catch (error) {
             console.error('Auth error:', error);
@@ -3400,7 +3303,7 @@ class RestaurantListManager {
 
     async loadUserLists() {
         try {
-            const { data: { user } } = await this.supabase.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
             const { data: lists } = await supabase
@@ -3662,13 +3565,30 @@ class RestaurantListManager {
     }
 }
 
-// INITIALIZATION
+// OPTIMIZED INITIALIZATION
 async function initPage() {
     try {
+        // Load all data in parallel
         const data = await loadRestaurantData();
+        
+        // Render restaurant data immediately
         renderRestaurantData(data);
+        
+        // Load gallery in parallel with review system
+        const [galleryResult] = await Promise.allSettled([
+            loadRestaurantGallery(data.galleryImages)
+        ]);
+        
+        if (galleryResult.status === 'fulfilled') {
+            galleryImages = galleryResult.value;
+            if (galleryImages.length > 0) {
+                renderGallery(galleryImages, 'all');
+                setupGalleryTabs();
+            }
+        }
+        
+        // Initialize review system
         await initReviewSystem();
-        await loadRestaurantGallery();
         
         // Initialize list manager after a short delay
         setTimeout(() => {
@@ -3678,6 +3598,24 @@ async function initPage() {
         showError();
     }
 }
+
+// Keyboard shortcuts for lightbox
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeLightbox();
+    } else if (e.key === 'ArrowLeft') {
+        changeImage(-1);
+    } else if (e.key === 'ArrowRight') {
+        changeImage(1);
+    }
+});
+
+// Close lightbox when clicking on background
+document.getElementById('lightbox').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+        closeLightbox();
+    }
+});
 
 // Start when DOM is loaded
 if (document.readyState === 'loading') {
