@@ -2143,25 +2143,63 @@ a.btn,
 </div>
 
 <script>
-      // ---------- CONFIG ----------
-      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      
-      // Initialize Supabase
-      let supabase;
-      try {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      } catch (error) {
-          console.error('❌ Failed to initialize Supabase client:', error);
-          supabase = {
-              auth: {
-                  getSession: async () => ({ data: { session: null }, error: null }),
-                  getUser: async () => ({ data: { user: null }, error: null }),
-                  onAuthStateChange: () => {}
-              }
-          };
-      }
 // Global state
+let supabase = null;
+let supabaseLoading = true;
+
+// Function to initialize Supabase
+async function initSupabase() {
+    if (supabase) return supabase;
+    
+    try {
+        // Check if Supabase library is loaded
+        if (!window.supabase) {
+            console.warn('Supabase library not loaded yet, waiting...');
+            
+            // Try to load it dynamically
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        // Now initialize the client
+        const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+        
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        supabaseLoading = false;
+        console.log('✅ Supabase initialized successfully');
+        return supabase;
+    } catch (error) {
+        console.error('❌ Failed to initialize Supabase:', error);
+        supabaseLoading = false;
+        
+        // Create a mock client to prevent crashes
+        supabase = {
+            from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: new Error('Supabase not initialized') }) }) }) }),
+            auth: {
+                getSession: async () => ({ data: { session: null }, error: null }),
+                getUser: async () => ({ data: { user: null }, error: null }),
+                onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+            }
+        };
+        return supabase;
+    }
+}
+
+// Initialize immediately
+initSupabase().then(client => {
+    supabase = client;
+    // You can also trigger your page initialization here if needed
+}).catch(error => {
+    console.error('Failed to initialize Supabase:', error);
+});
+
+// Rest of your global variables
 let currentUser = null;
 let currentRating = 0;
 let editingReviewId = null;
@@ -2171,8 +2209,102 @@ let currentGalleryIndex = 0;
 let currentGalleryCategory = 'all';
 let reviews = [];
 let currentSort = 'latest';
-let imageCache = new Map(); // Cache for optimized image loading
+let imageCache = new Map();
 
+// Modified initPage function to wait for Supabase
+async function initPage() {
+    try {
+        // Wait for Supabase to initialize
+        if (!supabase) {
+            console.log('Waiting for Supabase to initialize...');
+            supabase = await initSupabase();
+        }
+        
+        // Check if Supabase is properly initialized
+        if (!supabase || !supabase.from) {
+            throw new Error('Supabase not initialized properly');
+        }
+        
+        // Load all data in parallel
+        const data = await loadRestaurantData();
+        
+        // Render restaurant data immediately
+        renderRestaurantData(data);
+        
+        // Load gallery in parallel with review system
+        const [galleryResult] = await Promise.allSettled([
+            loadRestaurantGallery(data.galleryImages)
+        ]);
+        
+        if (galleryResult.status === 'fulfilled') {
+            galleryImages = galleryResult.value;
+            if (galleryImages.length > 0) {
+                renderGallery(galleryImages, 'all');
+                setupGalleryTabs();
+            }
+        }
+        
+        // Initialize review system
+        await initReviewSystem();
+        
+        // Initialize list manager after a short delay
+        setTimeout(() => {
+            try {
+                new RestaurantListManager();
+            } catch (error) {
+                console.error('Error initializing list manager:', error);
+            }
+        }, 1000);
+    } catch (error) {
+        console.error('Page initialization error:', error);
+        showError();
+    }
+}
+
+// Also update the loadRestaurantData function to handle Supabase errors
+async function loadRestaurantData() {
+    const slug = getRestaurantSlug();
+    
+    try {
+        console.log('Loading data for slug:', slug);
+        
+        if (!supabase || !supabase.from) {
+            throw new Error('Database not available');
+        }
+        
+        // Load all data in parallel for faster loading
+        const [restaurantData, menuData, branchesData, galleryData] = await Promise.all([
+            supabase.from('restraunts').select('*').eq('slug', slug).single(),
+            supabase.from('menu_items').select('*').eq('restaurant_slug', slug).order('category'),
+            supabase.from('branches').select('*').eq('restaurant_slug', slug).order('branch_name'),
+            supabase.from('restaurant_gallery').select('*').order('display_order', { ascending: true })
+        ]);
+        
+        if (restaurantData.error || !restaurantData.data) {
+            throw new Error('Restaurant not found');
+        }
+
+        return { 
+            restaurant: restaurantData.data, 
+            menuItems: menuData.data || [], 
+            branches: branchesData.data || [],
+            galleryImages: galleryData.data || []
+        };
+    } catch (error) {
+        console.error('Error loading restaurant data:', error);
+        throw error;
+    }
+}
+
+// Update the DOMContentLoaded listener
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Wait a bit for Supabase to initialize
+        setTimeout(initPage, 100);
+    });
+} else {
+    setTimeout(initPage, 100);
+}
 // Utility Functions
 function showNotification(message, type = 'info', duration = 4000) {
     const existing = document.querySelectorAll('.notification');
