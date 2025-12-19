@@ -2404,44 +2404,51 @@ function getRestaurantSlug() {
     return slug;
 }
 
-// Get restaurant ID from slug
-function getRestaurantIdFromSlug() {
+// Get restaurant ID from slug by querying the database
+async function getRestaurantIdFromSlug() {
     const slug = getRestaurantSlug();
-    const slugToId = {
-        'mori': 1, 'kilo': 2, 'hameed': 3, 'bazooka': 4, 'mexican': 5,
-        'chikin': 6, 'vasko': 7, 'secondcup': 8, 'station': 9, 'brgr': 10,
-        'country': 11, 'bayoki': 12, 'maine': 13, 'barbar': 14, 'labash': 15,
-        'pickl': 16, 'akleh': 17, 'howlin': 18, 'sauce': 19, 'papa': 20,
-        'qasr': 21, 'heart': 22, 'what': 23, 'buffalo': 24, 'mince': 25,
-        '88': 26, 'kansas': 27, 'ward': 28, 'willys': 29, 'butchers': 30,
-        'hashville': 31, 'dawgs': 32, 'holmes': 33, 'ribs': 34, 'peking': 35,
-        'wok': 36, 'daddy': 37, 'husk': 38, 'crispy': 39, 'lord': 40,
-        'chez': 41, 'mario': 42, 'crumbs': 43, 'man': 44, 'pasta': 45,
-        'crave': 46, 'caizo': 47, 'tabali': 48, 'panda': 49, 'pablo': 50,
-        'dushka': 51, '900': 52, 'shawermer': 53, 'abou tarek': 54,'kufta': 55,'takosan': 56,'manchow': 57,
-        'yaba': 58, 'smash':59, 'nude':60, 'fati':61, 'clams':62, 'nations':63
-    };
     
-    const normalizedSlug = slug.toLowerCase();
-    
-    if (slugToId[normalizedSlug]) {
-        return slugToId[normalizedSlug];
+    if (!slug) {
+        console.error('No slug found in URL');
+        return null;
     }
     
-    const decodedSlug = decodeURIComponent(normalizedSlug);
-    if (slugToId[decodedSlug]) {
-        return slugToId[decodedSlug];
+    try {
+        // Query the database for the restaurant with this slug
+        const { data: restaurant, error } = await supabase
+            .from('restraunts')
+            .select('id')
+            .eq('slug', slug)
+            .single();
+            
+        if (error) {
+            console.error('Error fetching restaurant ID:', error);
+            
+            // Try case-insensitive search as fallback
+            const { data: restaurants } = await supabase
+                .from('restraunts')
+                .select('id, slug')
+                .ilike('slug', `%${slug}%`);
+                
+            if (restaurants && restaurants.length > 0) {
+                console.log(`Found restaurant with similar slug: ${restaurants[0].slug}`);
+                return restaurants[0].id;
+            }
+            
+            return null;
+        }
+        
+        if (restaurant) {
+            console.log(`Found restaurant ID ${restaurant.id} for slug: ${slug}`);
+            return restaurant.id;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Error in getRestaurantIdFromSlug:', error);
+        return null;
     }
-    
-    const hyphenSlug = normalizedSlug.replace(/ /g, '-');
-    if (slugToId[hyphenSlug]) {
-        return slugToId[hyphenSlug];
-    }
-    
-    console.error('Could not determine restaurant ID from slug:', slug);
-    return null;
 }
-
 // SECTION NAVIGATION
 function createSectionNavigation() {
     const sections = [
@@ -3438,11 +3445,12 @@ async function deleteReview(reviewId) {
 // LIST MANAGER
 class RestaurantListManager {
     constructor() {
-        this.restaurantId = getRestaurantIdFromSlug();
+        this.restaurantId = window.restaurantId; // Use the already fetched ID
         this.userLists = [];
         this.customLists = [];
         this.init();
     }
+
 
     async init() {
         await this.checkAuth();
@@ -3733,6 +3741,17 @@ async function initPage() {
             throw new Error('Supabase not initialized');
         }
         
+        // Get restaurant ID FIRST before loading other data
+        window.restaurantId = await getRestaurantIdFromSlug();
+        
+        if (!window.restaurantId) {
+            console.error('Could not find restaurant with slug:', getRestaurantSlug());
+            showError();
+            return;
+        }
+        
+        console.log(`Initializing page for restaurant ID: ${window.restaurantId}`);
+        
         // Load all data in parallel
         const data = await loadRestaurantData();
         
@@ -3752,7 +3771,7 @@ async function initPage() {
             }
         }
         
-        // Initialize review system
+        // Initialize review system (now we have restaurantId)
         await initReviewSystem();
         
         // Initialize list manager after a short delay
@@ -3768,7 +3787,6 @@ async function initPage() {
         showError();
     }
 }
-
 // Keyboard shortcuts for lightbox
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
