@@ -1273,6 +1273,10 @@
 
         /* === MOBILE RESPONSIVE === */
         @media (max-width: 768px) {
+            body {
+                padding-top: 70px; /* Space for home button */
+            }
+            
             .container {
                 padding: 0 16px;
             }
@@ -1296,15 +1300,24 @@
                 gap: 16px;
             }
 
+            /* MOBILE AVATAR CENTERING FIX */
+            .avatar-container {
+                margin: 0 auto !important; /* Force center on mobile */
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
+
             .profile-avatar {
-                width: 80px;
-                height: 80px;
-                font-size: 32px;
-                margin: 0 auto;
+                width: 100px; /* Slightly larger on mobile */
+                height: 100px;
+                font-size: 42px;
+                margin: 0 auto; /* Center the avatar */
             }
 
             .profile-info {
                 width: 100%;
+                text-align: center;
             }
 
             .profile-name {
@@ -1318,6 +1331,7 @@
             .profile-bio {
                 font-size: 15px;
                 margin-bottom: 20px;
+                padding: 0 10px;
             }
 
             .profile-meta {
@@ -1989,10 +2003,21 @@
     </div>
 
     <script>
+        // ===== SUPABASE INITIALIZATION =====
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the page
+            initProfilePage();
+        });
+
         // === PERFORMANCE-OPTIMIZED PROFILE CODE ===
         // Supabase configuration
-        const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+        const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+
+        // Initialize Supabase client
+        let supabase = null;
+
         // Global state
         let currentUser = null;
         let userProfile = null;
@@ -2006,7 +2031,7 @@
         let currentActiveList = null;
         let selectedAvatarIcon = null;
         let currentEditingJournalEntry = null;
-        let loadedUserIds = new Set(); // Track loaded users to prevent duplicates
+        let loadedUserIds = new Set();
 
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -3104,7 +3129,7 @@
         // Community System (formerly Follower System)
         const communitySystem = {
             currentSection: 'followers',
-            loadedUsersCache: new Set(), // Cache to prevent duplicate user loading
+            loadedUsersCache: new Set(),
             
             async init() {
                 if (!currentUser) return;
@@ -3113,7 +3138,6 @@
                 // Add event listener for search
                 const userSearch = document.getElementById('userSearch');
                 if (userSearch) {
-                    // Debounce search input
                     let debounceTimer;
                     userSearch.addEventListener('input', () => {
                         clearTimeout(debounceTimer);
@@ -3128,19 +3152,16 @@
                 try {
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     
-                    // Get followers count (people who follow the target user)
                     const { data: followers, error: followersError } = await supabase
                         .from('follows')
                         .select('follower_id')
                         .eq('followed_id', targetId);
 
-                    // Get following count (people the target user follows)
                     const { data: following, error: followingError } = await supabase
                         .from('follows')
                         .select('followed_id')
                         .eq('follower_id', targetId);
 
-                    // Update section badges
                     const followersCountBadge = document.getElementById('followersCountBadge');
                     const followingCountBadge = document.getElementById('followingCountBadge');
                     
@@ -3153,7 +3174,6 @@
                         followingCountBadge.style.display = following && following.length > 0 ? 'inline-block' : 'none';
                     }
 
-                    // Update main stats
                     if (isViewingOwnProfile) {
                         document.getElementById('followersCount').textContent = followers ? followers.length : 0;
                     }
@@ -3167,7 +3187,6 @@
                 try {
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     
-                    // Get users that follow the target user
                     const { data: follows, error } = await supabase
                         .from('follows')
                         .select('follower_id')
@@ -3198,11 +3217,8 @@
                         return;
                     }
 
-                    // Clear cache for fresh load
                     this.loadedUsersCache.clear();
                     const followerIds = follows.map(f => f.follower_id);
-                    
-                    // Remove duplicates
                     const uniqueFollowerIds = [...new Set(followerIds)];
                     
                     const { data: users, error: usersError } = await supabase
@@ -3232,7 +3248,6 @@
                 try {
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     
-                    // Get users that the target user is following
                     const { data: follows, error } = await supabase
                         .from('follows')
                         .select('followed_id')
@@ -3263,11 +3278,8 @@
                         return;
                     }
 
-                    // Clear cache for fresh load
                     this.loadedUsersCache.clear();
                     const followingIds = follows.map(f => f.followed_id);
-                    
-                    // Remove duplicates
                     const uniqueFollowingIds = [...new Set(followingIds)];
                     
                     const { data: users, error: usersError } = await supabase
@@ -3314,7 +3326,6 @@
                 }
 
                 try {
-                    // Clear cache for search
                     this.loadedUsersCache.clear();
                     
                     const { data: users, error } = await supabase
@@ -3360,7 +3371,6 @@
 
                 container.innerHTML = '';
                 
-                // Filter out duplicates using cache
                 const uniqueUsers = users.filter(user => {
                     if (this.loadedUsersCache.has(user.id)) {
                         return false;
@@ -3373,7 +3383,6 @@
                     const isPrivate = user.is_private === true;
                     const isCurrentUser = user.id === currentUser.id;
                     
-                    // Check if current user is following this user
                     let isFollowing = false;
                     if (!isCurrentUser) {
                         const { data: follow } = await supabase
@@ -3432,7 +3441,6 @@
 
             async toggleFollow(targetUserId, buttonElement) {
                 try {
-                    // Check if already following
                     const { data: existingFollow } = await supabase
                         .from('follows')
                         .select('id')
@@ -3441,7 +3449,6 @@
                         .single();
 
                     if (existingFollow) {
-                        // Unfollow
                         const { error } = await supabase
                             .from('follows')
                             .delete()
@@ -3456,7 +3463,6 @@
                         }
                         showToast('Unfollowed user', 'info');
                     } else {
-                        // Follow
                         const { error } = await supabase
                             .from('follows')
                             .insert({
@@ -3488,7 +3494,6 @@
                 if (userSearch && userSearch.value) {
                     this.searchUsers();
                 } else {
-                    // Load current section
                     if (this.currentSection === 'followers') {
                         this.loadFollowers();
                     } else {
@@ -3505,29 +3510,24 @@
 
         // Function to show community section
         function showCommunitySection(section) {
-            // Update active buttons
             const followersBtn = document.getElementById('showFollowersBtn');
             const followingBtn = document.getElementById('showFollowingBtn');
             
             if (followersBtn) followersBtn.classList.remove('active');
             if (followingBtn) followingBtn.classList.remove('active');
             
-            // Hide all sections
             document.querySelectorAll('.community-section').forEach(section => {
                 section.classList.remove('active');
             });
             
-            // Show selected section
             const targetSection = document.getElementById(`${section}Section`);
             if (targetSection) {
                 targetSection.classList.add('active');
             }
             
-            // Update active button
             const activeBtn = document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`);
             if (activeBtn) activeBtn.classList.add('active');
             
-            // Load data
             communitySystem.currentSection = section;
             if (section === 'followers') {
                 communitySystem.loadFollowers();
@@ -3546,7 +3546,6 @@
                 const achievementsList = document.getElementById('achievementsList');
                 if (!achievementsList) return;
 
-                // For now, show sample achievements
                 this.displaySampleAchievements();
             },
 
@@ -3643,7 +3642,6 @@
             followButton.style.display = 'block';
 
             try {
-                // Check if already following
                 const { data: follow } = await supabase
                     .from('follows')
                     .select('id')
@@ -3677,7 +3675,6 @@
                 const followButton = document.getElementById('followButton');
                 
                 if (existingFollow) {
-                    // Unfollow
                     const { error } = await supabase
                         .from('follows')
                         .delete()
@@ -3693,7 +3690,6 @@
                     showToast(`Unfollowed ${targetUser.username}`, 'info');
                     
                 } else {
-                    // Follow
                     const { error } = await supabase
                         .from('follows')
                         .insert({
@@ -3728,20 +3724,17 @@
         }
 
         function showTab(tabName) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
                 tab.style.display = 'none';
             });
             
-            // Show selected tab
             const tabElement = document.getElementById(`${tabName}-tab`);
             if (tabElement) {
                 tabElement.classList.add('active');
                 tabElement.style.display = 'block';
             }
             
-            // Update active tab button
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -3751,7 +3744,6 @@
             
             currentTab = tabName;
             
-            // Load tab-specific content
             switch(tabName) {
                 case 'journal':
                     foodJournal.loadJournalEntries();
@@ -3772,14 +3764,14 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
                 
                 if (modalId === 'addEntryModal') {
                     const visitDate = document.getElementById('visitDate');
                     if (visitDate) {
                         const today = new Date().toISOString().split('T')[0];
                         visitDate.value = today;
-                        visitDate.max = today; // Can't select future dates
+                        visitDate.max = today;
                     }
                 }
                 
@@ -3797,9 +3789,8 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
-                document.body.style.overflow = ''; // Restore scrolling
+                document.body.style.overflow = '';
                 
-                // Reset forms when closing
                 if (modalId === 'addEntryModal') {
                     const form = document.getElementById('journalEntryForm');
                     if (form) form.reset();
@@ -3818,7 +3809,6 @@
                     if (form) form.reset();
                     document.getElementById('selectedIcon').value = '📋';
                     
-                    // Reset icon selection
                     document.querySelectorAll('.list-icon-option').forEach(icon => {
                         icon.style.background = 'transparent';
                         icon.style.border = '1px solid transparent';
@@ -3873,7 +3863,6 @@
 
                 if (error) throw error;
 
-                // Update UI
                 const avatar = document.getElementById('profileAvatar');
                 if (avatar) {
                     avatar.textContent = selectedAvatarIcon;
@@ -3962,11 +3951,9 @@
             // Logout button - Fixed single click logout
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
-                // Remove any existing listeners
                 const newLogoutBtn = logoutBtn.cloneNode(true);
                 logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
                 
-                // Add new listener
                 newLogoutBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     if (confirm('Are you sure you want to logout?')) {
@@ -4041,7 +4028,6 @@
                 closeModal('createListModal');
                 showToast(`Created list "${listName}"`, 'success');
                 
-                // Reset form
                 const createListForm = document.getElementById('createListForm');
                 if (createListForm) createListForm.reset();
                 
@@ -4079,7 +4065,6 @@
                 
                 if (error) throw error;
                 
-                // Update UI
                 document.getElementById('profileName').textContent = displayName;
                 document.getElementById('profileUsername').textContent = `@${username}`;
                 document.getElementById('profileBio').textContent = bio || "No bio yet. Click edit to add one!";
@@ -4115,7 +4100,24 @@
         }
 
         // Initialize the page when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initProfilePage);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Supabase client first
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('Supabase initialized successfully');
+                initProfilePage();
+            } else {
+                // Wait for Supabase to load
+                const checkSupabase = setInterval(() => {
+                    if (window.supabase) {
+                        clearInterval(checkSupabase);
+                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                        console.log('Supabase initialized after wait');
+                        initProfilePage();
+                    }
+                }, 100);
+            }
+        });
 
         // Export functions for global access
         window.showTab = showTab;
