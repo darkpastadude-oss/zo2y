@@ -1993,8 +1993,6 @@
         // Supabase configuration
         const supabaseUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
         // Global state
         let currentUser = null;
         let userProfile = null;
@@ -3339,7 +3337,7 @@
                                 <div class="empty-icon">⚠️</div>
                                 <h3 class="empty-title">Search Error</h3>
                                 <p class="empty-description">Unable to search users at this time</p>
-                        </div>
+                            </div>
                         `;
                     }
                 }
@@ -3930,12 +3928,12 @@
                 });
             }
             
-            // Edit profile form - FIXED with improved saveProfileChanges from first code
+            // Edit profile form
             const editProfileForm = document.getElementById('editProfileForm');
             if (editProfileForm) {
-                editProfileForm.addEventListener('submit', (e) => {
+                editProfileForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    saveProfileChanges();
+                    await saveProfileChanges();
                 });
             }
             
@@ -4053,49 +4051,33 @@
             }
         }
 
-        // =============================================
-        // IMPORTANT: Profile updating function from first code
-        // =============================================
+        // Save profile changes
         async function saveProfileChanges() {
-            const displayName = document.getElementById('editDisplayName')?.value.trim();
-            const username = document.getElementById('editUsername')?.value.trim();
-            const bio = document.getElementById('editBio')?.value.trim();
-            const location = document.getElementById('editLocation')?.value.trim();
+            const displayName = document.getElementById('editDisplayName')?.value;
+            const username = document.getElementById('editUsername')?.value;
+            const bio = document.getElementById('editBio')?.value;
+            const location = document.getElementById('editLocation')?.value;
             const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
             
             if (!displayName || !username) {
-                showToast('Please enter name and username', 'error');
+                showToast('Please enter display name and username', 'error');
                 return;
             }
             
             try {
-                // Prepare update data - only include fields that have values
-                const updateData = {
-                    full_name: displayName,
-                    username: username,
-                    updated_at: new Date().toISOString()
-                };
-                
-                // Only add optional fields if they have values
-                if (bio) updateData.bio = bio;
-                if (location) updateData.location = location;
-                updateData.is_private = isPrivate;
-                
-                console.log('Updating profile with:', updateData);
-                
-                const { data, error } = await supabase
+                const { error } = await supabase
                     .from('user_profiles')
-                    .update(updateData)
-                    .eq('id', currentUser.id)
-                    .select();
+                    .update({
+                        full_name: displayName,
+                        username: username,
+                        bio: bio,
+                        location: location,
+                        is_private: isPrivate,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id);
                 
-                if (error) {
-                    console.error('Supabase error:', error);
-                    throw error;
-                }
-                
-                // Update local profile
-                userProfile = { ...userProfile, ...updateData };
+                if (error) throw error;
                 
                 // Update UI
                 document.getElementById('profileName').textContent = displayName;
@@ -4103,11 +4085,20 @@
                 document.getElementById('profileBio').textContent = bio || "No bio yet. Click edit to add one!";
                 document.getElementById('profileLocation').textContent = location || "Location not set";
                 
+                userProfile = {
+                    ...userProfile,
+                    full_name: displayName,
+                    username: username,
+                    bio: bio,
+                    location: location,
+                    is_private: isPrivate
+                };
+                
                 closeModal('editProfileModal');
                 showToast('Profile updated successfully!', 'success');
                 
             } catch (error) {
-                console.error('Error saving profile:', error);
+                console.error('Error updating profile:', error);
                 showToast('Error updating profile', 'error');
             }
         }
