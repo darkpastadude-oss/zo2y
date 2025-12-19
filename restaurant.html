@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restaurant Details</title>
@@ -2146,12 +2145,15 @@ a.btn,
 
 <script>
 // Global state
-let supabase = null;
 let supabaseLoading = true;
 
 // Function to initialize Supabase
+// Replace your initSupabase function with this optimized version:
 async function initSupabase() {
-    if (supabase) return supabase;
+    // If already initialized, return it
+    if (supabase && supabase.from) {
+        return supabase;
+    }
     
     try {
         // Check if Supabase library is loaded
@@ -2168,21 +2170,25 @@ async function initSupabase() {
             });
         }
         
-        // Now initialize the client
+        // Initialize the client
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        supabaseLoading = false;
         console.log('✅ Supabase initialized successfully');
         return supabase;
     } catch (error) {
         console.error('❌ Failed to initialize Supabase:', error);
-        supabaseLoading = false;
         
-        // Create a mock client to prevent crashes
+        // Create a minimal mock client to prevent crashes
         supabase = {
-            from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: new Error('Supabase not initialized') }) }) }) }),
+            from: () => ({ 
+                select: () => ({ 
+                    eq: () => ({ 
+                        single: async () => ({ data: null, error: new Error('Supabase not initialized') }) 
+                    }) 
+                }) 
+            }),
             auth: {
                 getSession: async () => ({ data: { session: null }, error: null }),
                 getUser: async () => ({ data: { user: null }, error: null }),
@@ -2298,14 +2304,25 @@ async function loadRestaurantData() {
     }
 }
 
-// Update the DOMContentLoaded listener
+// Replace your DOMContentLoaded handler with this:
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        // Wait a bit for Supabase to initialize
-        setTimeout(initPage, 100);
+        // Initialize Supabase first, then the page
+        initSupabase().then(() => {
+            initPage();
+        }).catch(error => {
+            console.error('Failed to initialize Supabase:', error);
+            showError();
+        });
     });
 } else {
-    setTimeout(initPage, 100);
+    // If DOM is already loaded
+    initSupabase().then(() => {
+        initPage();
+    }).catch(error => {
+        console.error('Failed to initialize Supabase:', error);
+        showError();
+    });
 }
 // Utility Functions
 function showNotification(message, type = 'info', duration = 4000) {
