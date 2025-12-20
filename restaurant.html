@@ -2145,57 +2145,43 @@ a.btn,
 
 <script>
 // ========== GLOBAL STATE ==========
-// ========== GLOBAL STATE ==========
-// Use window object to avoid duplicate declaration issues
-if (!window.supabaseClient) {
-    window.supabaseClient = null;
-}
-
 let currentUser = null;
 let currentRating = 0;
 let editingReviewId = null;
-let authStateListener = null;
 let galleryImages = [];
 let currentGalleryIndex = 0;
 let currentGalleryCategory = 'all';
 let reviews = [];
 let currentSort = 'latest';
 let imageCache = new Map();
+let lazyLoadObserver = null;
+let supabaseClient = null;
+let restaurantId = null;
 
-// ========== SUPABASE INITIALIZATION (IMPROVED) ==========
+// ========== SUPABASE INITIALIZATION ==========
 async function initSupabase() {
-    // If already initialized and valid, return it
-    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') {
-        console.log('Supabase already initialized, using existing client');
-        return window.supabaseClient;
-    }
-    
     try {
-        // Check if Supabase JS library is loaded
-        if (!window.supabase || !window.supabase.createClient) {
-            console.warn('Supabase JS library not loaded, waiting...');
+        // Check if Supabase is already loaded
+        if (typeof supabase === 'undefined') {
+            console.warn('Supabase library not loaded yet, waiting...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Wait a bit for it to load (it should already be in the <head>)
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Double check
-            if (!window.supabase || !window.supabase.createClient) {
-                throw new Error('Supabase JS library failed to load');
+            if (typeof supabase === 'undefined') {
+                throw new Error('Supabase library failed to load');
             }
         }
         
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         
-        // Initialize the client
-        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         console.log('✅ Supabase initialized successfully');
-        return window.supabaseClient;
+        return supabaseClient;
     } catch (error) {
         console.error('❌ Failed to initialize Supabase:', error);
         
         // Create a mock client to prevent crashes
-        window.supabaseClient = {
+        supabaseClient = {
             from: () => ({ 
                 select: () => ({ 
                     eq: () => ({ 
@@ -2209,10 +2195,11 @@ async function initSupabase() {
                 onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
             }
         };
-        return window.supabaseClient;
+        return supabaseClient;
     }
 }
-// Get restaurant slug from URL
+
+// ========== UTILITY FUNCTIONS ==========
 function getRestaurantSlug() {
     const urlParams = new URLSearchParams(window.location.search);
     let slug = urlParams.get('slug');
@@ -2225,7 +2212,7 @@ function getRestaurantSlug() {
     
     return slug ? decodeURIComponent(slug).toLowerCase().trim() : null;
 }
-// Get restaurant ID from slug dynamically
+
 async function getRestaurantIdFromSlug() {
     const slug = getRestaurantSlug();
     
@@ -2235,10 +2222,7 @@ async function getRestaurantIdFromSlug() {
     }
     
     try {
-        const supabase = window.supabaseClient;
-        if (!supabase) return null;
-        
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('restraunts')
             .select('id')
             .eq('slug', slug)
@@ -2261,39 +2245,29 @@ async function getRestaurantIdFromSlug() {
     }
 }
 
-// Initialize Supabase immediately
-initSupabase().then(client => {
-    console.log('Supabase initialization complete');
-}).catch(error => {
-    console.error('Supabase initialization failed:', error);
-});
-// ========== LAZY LOADING INITIALIZATION ==========
 function initLazyLoading() {
-    // Check if observer already exists
-    if (window.lazyLoadObserver) {
-        return window.lazyLoadObserver;
+    if (lazyLoadObserver) {
+        return lazyLoadObserver;
     }
     
-    window.lazyLoadObserver = new IntersectionObserver((entries) => {
+    lazyLoadObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const img = entry.target;
                 const src = img.getAttribute('data-src');
                 
                 if (src) {
-                    // Check cache first
                     if (imageCache.has(src)) {
                         const cachedImg = imageCache.get(src);
                         if (cachedImg.complete) {
                             img.src = src;
                             img.classList.remove('lazy-img');
                             img.classList.add('loaded');
-                            window.lazyLoadObserver.unobserve(img);
+                            lazyLoadObserver.unobserve(img);
                             return;
                         }
                     }
                     
-                    // Preload image
                     const preloadImg = new Image();
                     preloadImg.src = src;
                     preloadImg.onload = () => {
@@ -2309,7 +2283,7 @@ function initLazyLoading() {
                     };
                 }
                 
-                window.lazyLoadObserver.unobserve(img);
+                lazyLoadObserver.unobserve(img);
             }
         });
     }, {
@@ -2318,11 +2292,10 @@ function initLazyLoading() {
     });
     
     console.log('Lazy loading initialized');
-    return window.lazyLoadObserver;
+    return lazyLoadObserver;
 }
-// ========== UTILITY FUNCTIONS ==========
+
 function showNotification(message, type = 'info', duration = 4000) {
-    // Your existing notification code...
     const existing = document.querySelectorAll('.notification');
     existing.forEach(n => n.remove());
 
@@ -2343,72 +2316,106 @@ function showNotification(message, type = 'info', duration = 4000) {
     return notification;
 }
 
-// ========== OPTIMIZED INITIALIZATION ==========
-async function initPage() {
-    try {
-        // Make sure Supabase is initialized
-        if (!window.supabaseClient || !window.supabaseClient.from) {
-            console.log('Waiting for Supabase to initialize...');
-            await initSupabase();
-        }
-        
-        // Use window.supabaseClient for all operations
-        const supabase = window.supabaseClient;
-        
-        if (!supabase || !supabase.from) {
-            throw new Error('Supabase not initialized properly');
-        }
-        
-        // Load restaurant data
-        const data = await loadRestaurantData();
-        
-        // Render restaurant data
-        renderRestaurantData(data);
-        
-        // Load gallery
-        galleryImages = data.galleryImages || [];
-        if (galleryImages.length > 0) {
-            renderGallery(galleryImages, 'all');
-            setupGalleryTabs();
-        }
-        
-        // Initialize review system
-        await initReviewSystem();
-        
-        // Initialize list manager after a short delay
-        setTimeout(() => {
-            try {
-                new RestaurantListManager();
-            } catch (error) {
-                console.error('Error initializing list manager:', error);
-            }
-        }, 1000);
-        
-    } catch (error) {
-        console.error('Page initialization error:', error);
-        showError();
-    }
+function showError() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
 }
 
-// ========== MODIFIED LOAD FUNCTIONS ==========
+// ========== SECTION NAVIGATION ==========
+function createSectionNavigation() {
+    const navList = document.getElementById('sectionNavList');
+    if (!navList) return;
+    
+    const sections = [
+        { id: 'overview-section', label: 'Overview' },
+        { id: 'branches-section', label: 'Contact & Branches' },
+        { id: 'ordering-section', label: 'Ordering' },
+        { id: 'gallery-section', label: 'Gallery' },
+        { id: 'menu-section', label: 'Menu' },
+        { id: 'reviews-section', label: 'Reviews' }
+    ];
+    
+    navList.innerHTML = '';
+    
+    sections.forEach(section => {
+        const navItem = document.createElement('li');
+        navItem.className = 'section-nav-item';
+        
+        const navLink = document.createElement('a');
+        navLink.href = `#${section.id}`;
+        navLink.className = 'section-nav-link';
+        navLink.textContent = section.label;
+        navLink.onclick = (e) => {
+            e.preventDefault();
+            document.getElementById(section.id).scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+            
+            document.querySelectorAll('.section-nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            navLink.classList.add('active');
+        };
+        
+        navItem.appendChild(navLink);
+        navList.appendChild(navItem);
+    });
+    
+    const firstLink = navList.querySelector('.section-nav-link');
+    if (firstLink) {
+        firstLink.classList.add('active');
+    }
+    
+    let ticking = false;
+    
+    function updateActiveNavOnScroll() {
+        const scrollPosition = window.scrollY + 150;
+        
+        sections.forEach(section => {
+            const sectionElement = document.getElementById(section.id);
+            if (sectionElement) {
+                const sectionTop = sectionElement.offsetTop;
+                const sectionBottom = sectionTop + sectionElement.offsetHeight;
+                
+                if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                    document.querySelectorAll('.section-nav-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    
+                    const currentLink = document.querySelector(`.section-nav-link[href="#${section.id}"]`);
+                    if (currentLink) {
+                        currentLink.classList.add('active');
+                    }
+                }
+            }
+        });
+        
+        ticking = false;
+    }
+    
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                updateActiveNavOnScroll();
+            });
+            ticking = true;
+        }
+    });
+}
+
+// ========== LOAD RESTAURANT DATA ==========
 async function loadRestaurantData() {
     const slug = getRestaurantSlug();
     
     try {
         console.log('Loading data for slug:', slug);
         
-        // Use window.supabaseClient
-        const supabase = window.supabaseClient;
-        if (!supabase || !supabase.from) {
-            throw new Error('Database not available');
-        }
-        
-        // Load all data in parallel
         const [restaurantData, menuData, branchesData, galleryData] = await Promise.all([
-            supabase.from('restraunts').select('*').eq('slug', slug).single(),
-            supabase.from('menu_items').select('*').eq('restaurant_slug', slug).order('category'),
-            supabase.from('branches').select('*').eq('restaurant_slug', slug).order('branch_name'),
-            supabase.from('restaurant_gallery').select('*').order('display_order', { ascending: true })
+            supabaseClient.from('restraunts').select('*').eq('slug', slug).single(),
+            supabaseClient.from('menu_items').select('*').eq('restaurant_slug', slug).order('category'),
+            supabaseClient.from('branches').select('*').eq('restaurant_slug', slug).order('branch_name'),
+            supabaseClient.from('restaurant_gallery').select('*').eq('restaurant_slug', slug).order('display_order', { ascending: true })
         ]);
         
         if (restaurantData.error || !restaurantData.data) {
@@ -2427,24 +2434,17 @@ async function loadRestaurantData() {
     }
 }
 
-// Then continue with the rest of your functions...
-// Make sure to use window.supabaseClient instead of just supabase in all functions
-
 // ========== RENDER FUNCTIONS ==========
 function renderRestaurantData(data) {
-    // Hide loading, show main content
     document.getElementById('loading').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     
     const { restaurant, menuItems, branches } = data;
     
-    // Set page title
     document.title = `${restaurant.name} - Zo2y`;
     
-    // Create section navigation
     createSectionNavigation();
     
-    // Hero section
     const logoImg = document.getElementById('restaurant-logo');
     const logoUrl = restaurant.logo_url || restaurant.image || 'images/default-logo.jpg';
     logoImg.src = logoUrl;
@@ -2455,7 +2455,6 @@ function renderRestaurantData(data) {
     document.getElementById('restaurant-name').textContent = restaurant.name;
     document.getElementById('restaurant-description').textContent = restaurant.description || 'Delicious food served with care';
     
-    // Rating
     const ratingElement = document.getElementById('restaurant-rating');
     if (restaurant.rating) {
         ratingElement.innerHTML = `⭐ ${restaurant.rating}/5`;
@@ -2463,16 +2462,14 @@ function renderRestaurantData(data) {
         ratingElement.innerHTML = '⭐ Rating not available';
     }
     
-    // Contact buttons
     const hotlineBtn = document.getElementById('call-hotline');
     if (restaurant.hotline) {
         hotlineBtn.href = `tel:${restaurant.hotline}`;
-        hotlineBtn.textContent = `Call: ${restaurant.hotline}`;
+        hotlineBtn.innerHTML = `<span>📞</span> Call: ${restaurant.hotline}`;
     } else {
         hotlineBtn.style.display = 'none';
     }
     
-    // Website link
     const websiteBtn = document.getElementById('order-online');
     const otherPlatforms = document.getElementById('other-platforms');
     if (restaurant.website_url) {
@@ -2484,7 +2481,6 @@ function renderRestaurantData(data) {
         otherPlatforms.style.display = 'none';
     }
     
-    // Social links
     const instagramBtn = document.getElementById('instagram-link');
     if (restaurant.instagram_url) {
         instagramBtn.href = restaurant.instagram_url;
@@ -2497,7 +2493,6 @@ function renderRestaurantData(data) {
         facebookBtn.style.display = 'inline-flex';
     }
     
-    // Overview section
     const overviewContent = document.getElementById('overview-content');
     overviewContent.innerHTML = `
         <div class="overview-summary">
@@ -2519,14 +2514,12 @@ function renderRestaurantData(data) {
         </div>
     `;
     
-    // Contact info
     const hotlineLink = document.getElementById('hotline-link');
     if (restaurant.hotline) {
         hotlineLink.href = `tel:${restaurant.hotline}`;
         hotlineLink.textContent = restaurant.hotline;
     }
     
-    // Branches
     const branchesContainer = document.getElementById('branches-container');
     if (branches.length > 0) {
         branchesContainer.innerHTML = '';
@@ -2544,7 +2537,6 @@ function renderRestaurantData(data) {
         branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
     }
     
-    // Menu items
     const menuContainer = document.getElementById('menu-container');
     if (menuItems.length > 0) {
         const groupedByCategory = {};
@@ -2600,7 +2592,6 @@ function renderRestaurantData(data) {
         menuContainer.innerHTML = '<p class="no-data">Menu items not available</p>';
     }
     
-    // Full menu link
     const fullMenuLink = document.getElementById('full-menu-link');
     if (restaurant.website_url) {
         fullMenuLink.href = restaurant.website_url;
@@ -2609,10 +2600,8 @@ function renderRestaurantData(data) {
         fullMenuLink.style.display = 'none';
     }
     
-    // Footer
     document.getElementById('footer-tagline').textContent = `${restaurant.name} - ${restaurant.category || 'Restaurant'}`;
     
-    // Update Talabat display
     updateTalabatDisplay(restaurant.slug);
 }
 
@@ -2652,7 +2641,7 @@ function renderGallery(images, category = 'all') {
         container.appendChild(galleryItem);
         
         const img = galleryItem.querySelector('img');
-        window.lazyLoadObserver.observe(img);
+        lazyLoadObserver.observe(img);
     });
 }
 
@@ -2722,7 +2711,7 @@ async function updateTalabatDisplay(slug) {
     const warningElement = document.getElementById('availability-warning');
     
     try {
-        const { data: restaurant, error } = await supabase
+        const { data: restaurant, error } = await supabaseClient
             .from('restraunts')
             .select('talabat')
             .eq('slug', slug)
@@ -2760,8 +2749,8 @@ async function updateTalabatDisplay(slug) {
 // ========== REVIEW SYSTEM ==========
 async function initReviewSystem() {
     try {
-        const restaurantId = await getRestaurantIdFromSlug();
-        if (!restaurantId) {
+        const id = await getRestaurantIdFromSlug();
+        if (!id) {
             console.error('Could not determine restaurant ID from slug:', getRestaurantSlug());
             const reviewSection = document.getElementById('reviews-section');
             if (reviewSection) {
@@ -2770,7 +2759,7 @@ async function initReviewSystem() {
             return;
         }
         
-        window.restaurantId = restaurantId;
+        restaurantId = id;
         
         await checkAuth();
         await loadReviews();
@@ -2789,10 +2778,10 @@ async function loadReviews() {
     try {
         container.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
         
-        const { data: reviewsData, error } = await supabase
+        const { data: reviewsData, error } = await supabaseClient
             .from('reviews')
             .select('*')
-            .eq('restaurant_id', window.restaurantId)
+            .eq('restaurant_id', restaurantId)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -2805,13 +2794,11 @@ async function loadReviews() {
             return;
         }
 
-        // Calculate stats
         const totalReviews = reviews.length;
         const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
         const ratingDistribution = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
         reviews.forEach(review => ratingDistribution[review.rating]++);
 
-        // Update stats display
         statsContainer.innerHTML = `
             <div class="stats-grid">
                 <div class="stat-item">
@@ -2877,9 +2864,8 @@ async function displayReviews(reviewsToDisplay) {
         return;
     }
 
-    // Load user profiles
     const userIds = [...new Set(reviewsToDisplay.map(review => review.user_id))];
-    const { data: users } = await supabase
+    const { data: users } = await supabaseClient
         .from('user_profiles')
         .select('id, username, full_name')
         .in('id', userIds);
@@ -2887,7 +2873,6 @@ async function displayReviews(reviewsToDisplay) {
     const userMap = {};
     users?.forEach(user => userMap[user.id] = user);
 
-    // Display reviews
     container.innerHTML = reviewsToDisplay.map(review => {
         const user = userMap[review.user_id];
         const displayName = user?.full_name || user?.username || 'Anonymous';
@@ -2929,7 +2914,7 @@ async function displayReviews(reviewsToDisplay) {
 
 async function checkAuth() {
     try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         currentUser = user;
         
         const reviewForm = document.getElementById('review-form');
@@ -2943,7 +2928,7 @@ async function checkAuth() {
             authPrompt.style.display = 'block';
         }
         
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
             currentUser = session?.user || null;
             
             if (currentUser) {
@@ -2963,7 +2948,6 @@ async function checkAuth() {
 }
 
 function setupReviewEventListeners() {
-    // Star rating
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('star')) {
             currentRating = parseInt(e.target.dataset.rating);
@@ -2971,19 +2955,16 @@ function setupReviewEventListeners() {
         }
     });
 
-    // Review form submission
     const reviewForm = document.getElementById('review-form');
     if (reviewForm) {
         reviewForm.addEventListener('submit', submitReview);
     }
 
-    // Character count
     const commentTextarea = document.getElementById('review-comment');
     if (commentTextarea) {
         commentTextarea.addEventListener('input', updateCharCount);
     }
 
-    // Cancel edit button
     const cancelEditBtn = document.querySelector('.cancel-edit-btn');
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', cancelEdit);
@@ -3042,15 +3023,13 @@ async function submitReview(e) {
     const btnText = submitBtn.querySelector('.btn-text');
     const btnLoading = submitBtn.querySelector('.btn-loading');
     
-    // Show loading state
     submitBtn.disabled = true;
     btnText.style.display = 'none';
     btnLoading.style.display = 'inline';
 
     try {
         if (editingReviewId) {
-            // Update existing review
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('reviews')
                 .update({ 
                     rating: currentRating, 
@@ -3065,8 +3044,7 @@ async function submitReview(e) {
             showNotification('Review updated successfully!', 'success');
             cancelEdit();
         } else {
-            // Create new review
-            const { data: profile } = await supabase
+            const { data: profile } = await supabaseClient
                 .from('user_profiles')
                 .select('username, full_name')
                 .eq('id', currentUser.id)
@@ -3074,10 +3052,10 @@ async function submitReview(e) {
 
             const displayName = profile?.full_name || profile?.username || 'User';
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('reviews')
                 .insert({
-                    restaurant_id: window.restaurantId,
+                    restaurant_id: restaurantId,
                     user_id: currentUser.id,
                     user_name: displayName,
                     rating: currentRating,
@@ -3089,20 +3067,17 @@ async function submitReview(e) {
             showNotification('Review submitted successfully!', 'success');
         }
 
-        // Reset form
         document.getElementById('review-form').reset();
         currentRating = 0;
         updateStars();
         updateCharCount();
         
-        // Reload reviews
         await loadReviews();
 
     } catch (error) {
         console.error('Error submitting review:', error);
         showNotification('Error submitting review. Please try again.', 'error');
     } finally {
-        // Reset button state
         submitBtn.disabled = false;
         btnText.style.display = 'inline';
         btnLoading.style.display = 'none';
@@ -3111,7 +3086,7 @@ async function submitReview(e) {
 
 async function editReview(reviewId) {
     try {
-        const { data: review } = await supabase
+        const { data: review } = await supabaseClient
             .from('reviews')
             .select('*')
             .eq('id', reviewId)
@@ -3133,7 +3108,6 @@ async function editReview(reviewId) {
         document.querySelector('.submit-review-btn .btn-text').textContent = 'Update Review';
         document.querySelector('.cancel-edit-btn').style.display = 'inline-block';
         
-        // Scroll to form
         document.getElementById('review-form').scrollIntoView({ 
             behavior: 'smooth',
             block: 'center'
@@ -3168,7 +3142,7 @@ async function deleteReview(reviewId) {
     }
 
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('reviews')
             .delete()
             .eq('id', reviewId)
@@ -3197,7 +3171,7 @@ function setupSortControls() {
     }
 }
 
-// ========== LIST MANAGER (FIXED VERSION) ==========
+// ========== LIST MANAGER ==========
 class RestaurantListManager {
     constructor() {
         this.restaurantId = null;
@@ -3208,6 +3182,7 @@ class RestaurantListManager {
             visited: null,
             wantToGo: null
         };
+        this.currentUser = null;
         this.init();
     }
 
@@ -3222,7 +3197,7 @@ class RestaurantListManager {
 
     async checkAuth() {
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             this.currentUser = session?.user || null;
         } catch (error) {
             console.error('Auth error:', error);
@@ -3232,10 +3207,10 @@ class RestaurantListManager {
 
     async loadUserLists() {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
 
-            const { data: lists, error } = await supabase
+            const { data: lists, error } = await supabaseClient
                 .from('lists')
                 .select('*')
                 .eq('user_id', user.id);
@@ -3254,15 +3229,13 @@ class RestaurantListManager {
     }
     
     async setupDefaultLists() {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return;
         
-        // Find existing lists
         this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
         this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
         this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
         
-        // Create missing lists
         if (!this.currentLists.favorites) {
             this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
         }
@@ -3275,10 +3248,10 @@ class RestaurantListManager {
     }
     
     async createList(title, description) {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return null;
         
-        const { data: newList, error } = await supabase
+        const { data: newList, error } = await supabaseClient
             .from('lists')
             .insert([
                 {
@@ -3303,7 +3276,7 @@ class RestaurantListManager {
         for (const listType in this.currentLists) {
             const list = this.currentLists[listType];
             if (list) {
-                const { data: listRestaurants, error } = await supabase
+                const { data: listRestaurants, error } = await supabaseClient
                     .from('lists_restraunts')
                     .select('restraunt_id')
                     .eq('list_id', list.id);
@@ -3317,7 +3290,6 @@ class RestaurantListManager {
         }
     }
     
-    // FIXED: Properly check if restaurant is in list
     async checkIfInList(listType) {
         if (!this.currentUser || !this.restaurantId) return false;
         
@@ -3327,7 +3299,6 @@ class RestaurantListManager {
         return list.restaurants.includes(this.restaurantId);
     }
     
-    // FIXED: Toggle list with proper state management
     async toggleInList(listType) {
         if (!this.currentUser || !this.restaurantId) {
             showNotification('Please log in to use lists', 'warning');
@@ -3344,8 +3315,7 @@ class RestaurantListManager {
             const isInList = await this.checkIfInList(listType);
             
             if (isInList) {
-                // Remove from list
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('lists_restraunts')
                     .delete()
                     .match({
@@ -3355,15 +3325,13 @@ class RestaurantListManager {
                 
                 if (error) throw error;
                 
-                // Update local state
                 if (list.restaurants) {
                     list.restaurants = list.restaurants.filter(id => id !== this.restaurantId);
                 }
                 
-                return false; // Now removed
+                return false;
             } else {
-                // Add to list
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('lists_restraunts')
                     .insert([
                         {
@@ -3375,11 +3343,10 @@ class RestaurantListManager {
                 
                 if (error) throw error;
                 
-                // Update local state
                 if (!list.restaurants) list.restaurants = [];
                 list.restaurants.push(this.restaurantId);
                 
-                return true; // Now added
+                return true;
             }
             
         } catch (error) {
@@ -3389,7 +3356,6 @@ class RestaurantListManager {
         }
     }
     
-    // FIXED: Update dropdown with current state
     async updateDropdown(dropdown) {
         if (!this.currentUser) {
             dropdown.innerHTML = `
@@ -3408,7 +3374,6 @@ class RestaurantListManager {
             return;
         }
         
-        // Load current list states
         await this.loadListRestaurants();
         
         const isFavorite = await this.checkIfInList('favorites');
@@ -3444,13 +3409,11 @@ class RestaurantListManager {
             </div>
         `;
         
-        // Add event listeners
         dropdown.querySelectorAll('.list-item').forEach(item => {
             item.addEventListener('click', async () => {
                 const listType = item.dataset.list;
                 const wasAdded = await this.toggleInList(listType);
                 
-                // Update UI immediately
                 const checkbox = item.querySelector('.list-checkbox');
                 if (checkbox) {
                     checkbox.classList.toggle('checked', wasAdded);
@@ -3463,7 +3426,6 @@ class RestaurantListManager {
             });
         });
         
-        // Create list button
         const createBtn = dropdown.querySelector('#createListBtn');
         const nameInput = dropdown.querySelector('#newListName');
         
@@ -3485,7 +3447,6 @@ class RestaurantListManager {
     }
     
     injectListMenu() {
-        // Create FAB
         const fab = document.createElement('div');
         fab.className = 'list-manager-fab';
         fab.innerHTML = `
@@ -3496,20 +3457,18 @@ class RestaurantListManager {
             </div>
         `;
         
-        // Create dropdown
         const dropdown = document.createElement('div');
         dropdown.className = 'list-dropdown';
         
-        // FAB click handler
+        const manager = this;
         fab.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdown.classList.toggle('show');
             if (dropdown.classList.contains('show')) {
-                this.updateDropdown(dropdown);
+                manager.updateDropdown(dropdown);
             }
         });
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!fab.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.classList.remove('show');
@@ -3518,38 +3477,28 @@ class RestaurantListManager {
         
         dropdown.addEventListener('click', (e) => e.stopPropagation());
         
-        // Add to page
         document.body.appendChild(fab);
         document.body.appendChild(dropdown);
     }
 }
 
-// ========== PAGE INITIALIZATION ==========
+// ========== MAIN INITIALIZATION ==========
 async function initPage() {
     try {
-        // Initialize Supabase first
         await initSupabase();
-        
-        // Initialize lazy loading
         initLazyLoading();
         
-        // Load restaurant data
-        restaurantData = await loadRestaurantData();
+        const data = await loadRestaurantData();
+        renderRestaurantData(data);
         
-        // Render restaurant data immediately
-        renderRestaurantData(restaurantData);
-        
-        // Load gallery
-        galleryImages = restaurantData.galleryImages || [];
+        galleryImages = data.galleryImages || [];
         if (galleryImages.length > 0) {
             renderGallery(galleryImages, 'all');
             setupGalleryTabs();
         }
         
-        // Initialize review system
         await initReviewSystem();
         
-        // Initialize list manager
         setTimeout(() => {
             try {
                 new RestaurantListManager();
@@ -3562,11 +3511,6 @@ async function initPage() {
         console.error('Page initialization error:', error);
         showError();
     }
-}
-
-function showError() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error').style.display = 'block';
 }
 
 // ========== EVENT LISTENERS ==========
@@ -3586,26 +3530,16 @@ document.getElementById('lightbox').addEventListener('click', (e) => {
     }
 });
 
-// Start when DOM is loaded
+// ========== START APPLICATION ==========
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        initSupabase().then(() => {
-            initPage();
-        }).catch(error => {
-            console.error('Failed to initialize Supabase:', error);
-            showError();
-        });
+        initPage();
     });
 } else {
-    initSupabase().then(() => {
-        initPage();
-    }).catch(error => {
-        console.error('Failed to initialize Supabase:', error);
-        showError();
-    });
+    initPage();
 }
 
-// ========== GLOBAL FUNCTIONS ==========
+// ========== EXPOSE FUNCTIONS TO GLOBAL SCOPE ==========
 window.editReview = editReview;
 window.deleteReview = deleteReview;
 window.openLightbox = openLightbox;
