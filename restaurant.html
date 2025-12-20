@@ -2212,6 +2212,54 @@ async function initSupabase() {
         return window.supabaseClient;
     }
 }
+// Get restaurant slug from URL
+function getRestaurantSlug() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let slug = urlParams.get('slug');
+    
+    if (!slug) {
+        const path = window.location.pathname;
+        const filename = path.split('/').pop();
+        slug = filename.replace('.html', '').toLowerCase();
+    }
+    
+    return slug ? decodeURIComponent(slug).toLowerCase().trim() : null;
+}
+// Get restaurant ID from slug dynamically
+async function getRestaurantIdFromSlug() {
+    const slug = getRestaurantSlug();
+    
+    if (!slug) {
+        console.error('No slug found in URL');
+        return null;
+    }
+    
+    try {
+        const supabase = window.supabaseClient;
+        if (!supabase) return null;
+        
+        const { data, error } = await supabase
+            .from('restraunts')
+            .select('id')
+            .eq('slug', slug)
+            .single();
+        
+        if (error) {
+            console.error('Error fetching restaurant ID:', error);
+            return null;
+        }
+        
+        if (data && data.id) {
+            console.log(`Found restaurant ID: ${data.id} for slug: ${slug}`);
+            return data.id;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Error in getRestaurantIdFromSlug:', error);
+        return null;
+    }
+}
 
 // Initialize Supabase immediately
 initSupabase().then(client => {
