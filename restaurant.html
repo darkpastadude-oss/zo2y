@@ -2145,19 +2145,21 @@ a.btn,
 
 <script>
 // ========== GLOBAL STATE ==========
-let supabase = null;
-let currentUser = null;
-let currentRating = 0;
-let editingReviewId = null;
-let galleryImages = [];
-let currentGalleryIndex = 0;
-let currentGalleryCategory = 'all';
-let reviews = [];
-let currentSort = 'latest';
-let imageCache = new Map();
-let restaurantData = null;
-let lazyLoadObserver = null;
-
+// Check if supabase is already declared (from other scripts)
+if (typeof supabase === 'undefined') {
+    var supabase = null;
+}
+var currentUser = null;
+var currentRating = 0;
+var editingReviewId = null;
+var galleryImages = [];
+var currentGalleryIndex = 0;
+var currentGalleryCategory = 'all';
+var reviews = [];
+var currentSort = 'latest';
+var imageCache = new Map();
+var restaurantData = null;
+var lazyLoadObserver = null;
 // ========== PERFORMANCE OPTIMIZATION ==========
 // Debounce function for performance
 function debounce(func, wait) {
@@ -2173,15 +2175,16 @@ function debounce(func, wait) {
 }
 
 // ========== SUPABASE INITIALIZATION ==========
+// ========== SUPABASE INITIALIZATION ==========
 async function initSupabase() {
-    // Already initialized
+    // Return if already initialized
     if (supabase) return supabase;
     
     try {
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         
-        // Initialize the global supabase variable
+        // Initialize Supabase client
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         console.log('✅ Supabase initialized successfully');
         return supabase;
