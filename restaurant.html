@@ -2219,7 +2219,59 @@ initSupabase().then(client => {
 }).catch(error => {
     console.error('Supabase initialization failed:', error);
 });
-
+// ========== LAZY LOADING INITIALIZATION ==========
+function initLazyLoading() {
+    // Check if observer already exists
+    if (window.lazyLoadObserver) {
+        return window.lazyLoadObserver;
+    }
+    
+    window.lazyLoadObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.getAttribute('data-src');
+                
+                if (src) {
+                    // Check cache first
+                    if (imageCache.has(src)) {
+                        const cachedImg = imageCache.get(src);
+                        if (cachedImg.complete) {
+                            img.src = src;
+                            img.classList.remove('lazy-img');
+                            img.classList.add('loaded');
+                            window.lazyLoadObserver.unobserve(img);
+                            return;
+                        }
+                    }
+                    
+                    // Preload image
+                    const preloadImg = new Image();
+                    preloadImg.src = src;
+                    preloadImg.onload = () => {
+                        img.src = src;
+                        img.classList.remove('lazy-img');
+                        img.classList.add('loaded');
+                        imageCache.set(src, preloadImg);
+                    };
+                    preloadImg.onerror = () => {
+                        img.src = 'images/default-logo.jpg';
+                        img.classList.remove('lazy-img');
+                        img.classList.add('loaded');
+                    };
+                }
+                
+                window.lazyLoadObserver.unobserve(img);
+            }
+        });
+    }, {
+        rootMargin: '100px',
+        threshold: 0.01
+    });
+    
+    console.log('Lazy loading initialized');
+    return window.lazyLoadObserver;
+}
 // ========== UTILITY FUNCTIONS ==========
 function showNotification(message, type = 'info', duration = 4000) {
     // Your existing notification code...
@@ -2552,7 +2604,7 @@ function renderGallery(images, category = 'all') {
         container.appendChild(galleryItem);
         
         const img = galleryItem.querySelector('img');
-        lazyLoadObserver.observe(img);
+        window.lazyLoadObserver.observe(img);
     });
 }
 
