@@ -2174,12 +2174,14 @@ function debounce(func, wait) {
 
 // ========== SUPABASE INITIALIZATION ==========
 async function initSupabase() {
+    // Already initialized
     if (supabase) return supabase;
     
     try {
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         
+        // Initialize the global supabase variable
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         console.log('✅ Supabase initialized successfully');
         return supabase;
@@ -2188,7 +2190,6 @@ async function initSupabase() {
         throw error;
     }
 }
-
 // ========== UTILITY FUNCTIONS ==========
 function showNotification(message, type = 'info', duration = 4000) {
     const existing = document.querySelectorAll('.notification');
