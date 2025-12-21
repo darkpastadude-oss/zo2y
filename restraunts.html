@@ -96,17 +96,13 @@
       width: 100%;
       height: 200px;
       object-fit: cover;
-      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.3s ease;
+      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
     .restaurant-image.loaded {
       opacity: 1;
-    }
-    
-    .restaurant-image.error {
-      background: linear-gradient(135deg, #2d1a5f 0%, #1a1033 100%);
     }
     
     /* Logo overlay image */
@@ -116,15 +112,11 @@
       object-fit: contain;
       border-radius: 8px;
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.3s ease;
     }
     
     .logo-overlay img.loaded {
       opacity: 1;
-    }
-    
-    .logo-overlay img.error {
-      display: none;
     }
     
     /* Enhanced Header */
@@ -1241,17 +1233,6 @@
         font-size: 22px;
       }
     }
-    
-    /* Performance optimizations */
-    @media (prefers-reduced-motion: reduce) {
-      .restaurant-card,
-      .menu-btn,
-      .btn,
-      .filter-chip,
-      .grid-btn {
-        transition: none !important;
-      }
-    }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
@@ -1439,91 +1420,35 @@
         currentUser: null,
         isLoggedIn: false,
         authChecked: false,
-        // Image cache
-        imageCache: new Map(),
         // Intersection Observer for lazy loading
         imageObserver: null
       };
       
       // ---------- IMAGE LOADING SYSTEM (SAME AS HOMEPAGE) ----------
-      const imageLoader = {
-        loadedImages: new Set(),
-        failedImages: new Set(),
-        
-        initObserver: function() {
-          state.imageObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                const img = entry.target;
-                this.loadImage(img);
+      function initImageObserver() {
+        state.imageObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              img.src = img.dataset.src;
+              img.onload = () => {
+                img.classList.add('loaded');
                 state.imageObserver.unobserve(img);
-              }
-            });
-          }, {
-            rootMargin: '100px',
-            threshold: 0.01
-          });
-        },
-        
-        loadImage: function(imgElement) {
-          if (!imgElement || !imgElement.dataset.src) return;
-          
-          const src = imgElement.dataset.src;
-          
-          if (this.loadedImages.has(src)) {
-            imgElement.src = src;
-            imgElement.classList.add('loaded');
-            return;
-          }
-          
-          if (this.failedImages.has(src)) {
-            this.setFallbackImage(imgElement);
-            return;
-          }
-          
-          const img = new Image();
-          img.decoding = 'async';
-          img.loading = 'lazy';
-          
-          img.onload = () => {
-            this.loadedImages.add(src);
-            imgElement.src = src;
-            imgElement.classList.add('loaded');
-          };
-          
-          img.onerror = () => {
-            this.failedImages.add(src);
-            this.setFallbackImage(imgElement);
-          };
-          
-          img.src = src;
-        },
-        
-        setFallbackImage: function(imgElement) {
-          const isLogo = imgElement.parentElement.classList.contains('logo-overlay');
-          const fallbackSrc = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-          
-          imgElement.src = fallbackSrc;
-          imgElement.classList.add('loaded');
-          imgElement.classList.add('error');
-        },
-        
-        preloadCriticalImages: function() {
-          const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
-          const criticalImages = Array.from(images).slice(0, 4);
-          
-          criticalImages.forEach(img => {
-            this.loadImage(img);
-          });
-          
-          const remainingImages = Array.from(images).slice(4);
-          remainingImages.forEach(img => {
-            if (state.imageObserver) {
-              state.imageObserver.observe(img);
+              };
+              img.onerror = () => {
+                // Use appropriate fallback based on image type
+                const isLogo = img.parentElement.classList.contains('logo-overlay');
+                img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+                img.classList.add('loaded');
+                state.imageObserver.unobserve(img);
+              };
             }
           });
-        }
-      };
+        }, {
+          rootMargin: '100px 0px',
+          threshold: 0.01
+        });
+      }
       
       // ---------- LIST MANAGER ----------
       const listManager = {
@@ -2088,30 +2013,11 @@
         grid.innerHTML = '';
         grid.appendChild(fragment);
         
-        // Initialize image observer for new images
-        if (state.imageObserver) {
-          state.imageObserver.disconnect();
-          
-          const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
-          images.forEach(img => {
-            // Check cache first
-            const src = img.dataset.src;
-            if (imageLoader.loadedImages.has(src)) {
-              img.src = src;
-              img.classList.add('loaded');
-            } else if (imageLoader.failedImages.has(src)) {
-              const isLogo = img.parentElement.classList.contains('logo-overlay');
-              img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-              img.classList.add('loaded');
-              img.classList.add('error');
-            } else {
-              state.imageObserver.observe(img);
-            }
-          });
-        }
-        
-        // Preload critical images
-        setTimeout(() => imageLoader.preloadCriticalImages(), 50);
+        // Set up lazy loading for images
+        const images = grid.querySelectorAll('img[data-src]');
+        images.forEach(img => {
+          state.imageObserver.observe(img);
+        });
       }
       
       function createRestaurantCard(restaurant) {
@@ -2121,7 +2027,7 @@
         
         const rating = restaurant.rating || 0;
         const category = restaurant.category || 'Restaurant';
-        const logoUrl = restaurant.logo_url;
+        const logoUrl = getLogoUrl(restaurant);
         const status = listManager.getRestaurantListStatus(restaurant.id);
         const isTopRated = rating >= 4.5;
         
@@ -2616,7 +2522,7 @@
         }
         
         // Initialize image lazy loading system (SAME AS HOMEPAGE)
-        imageLoader.initObserver();
+        initImageObserver();
         
         // Show loading skeleton
         showLoadingSkeleton();
@@ -2633,18 +2539,13 @@
         // Listen for auth changes
         supabase.auth.onAuthStateChange(updateAuthUI);
         
-        // Setup scroll listener for additional image loading
-        window.addEventListener('scroll', debounce(() => {
-          // The Intersection Observer handles this automatically
-        }, 100));
-        
         // Handle window resize
         window.addEventListener('resize', debounce(() => {
           // Re-check visibility on resize
           if (state.imageObserver) {
-            const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
+            const images = document.querySelectorAll('img[data-src]');
             images.forEach(img => {
-              if (!img.classList.contains('loaded') && !img.classList.contains('error')) {
+              if (!img.classList.contains('loaded')) {
                 const rect = img.getBoundingClientRect();
                 const isVisible = (
                   rect.top <= (window.innerHeight + 100) &&
@@ -2652,16 +2553,22 @@
                 );
                 
                 if (isVisible) {
-                  imageLoader.loadImage(img);
-                  state.imageObserver.unobserve(img);
+                  img.src = img.dataset.src;
+                  img.onload = () => {
+                    img.classList.add('loaded');
+                    state.imageObserver.unobserve(img);
+                  };
+                  img.onerror = () => {
+                    const isLogo = img.parentElement.classList.contains('logo-overlay');
+                    img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+                    img.classList.add('loaded');
+                    state.imageObserver.unobserve(img);
+                  };
                 }
               }
             });
           }
         }, 100));
-        
-        // Initial image load
-        setTimeout(() => imageLoader.preloadCriticalImages(), 100);
       }
       
       // Start the app
