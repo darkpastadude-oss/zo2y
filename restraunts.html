@@ -894,77 +894,56 @@
           });
         }
       };
-      
-      // ---------- RESTAURANT DATA LOADING (from second code) ----------
-      async function loadRestaurantsFromSupabase() {
-          try {
-              showLoadingSkeleton();
-              
-              console.log("🔄 Loading restaurants from Supabase...");
-              
-              await Promise.all([
-                  loadAllRestaurantImages(),
-                  loadRestaurantsData()
-              ]);
-              
-              showNotification(`Loaded ${state.restaurants.length} restaurants`, 'success');
-              
-          } catch (error) {
-              console.error('❌ Error loading restaurants:', error);
-              
-              let errorMessage = 'Error loading restaurants. ';
-              if (error.message?.includes('JWT')) {
-                  errorMessage += 'Authentication error. Please refresh.';
-              } else if (error.code === 'PGRST116') {
-                  errorMessage += 'Table "restraunts" not found. Check table name.';
-              } else {
-                  errorMessage += 'Please check your connection and refresh.';
-              }
-              
-              showNotification(errorMessage, 'error');
-              
-              showEmptyState(errorMessage);
-          }
-      }
-
-      async function loadRestaurantsData() {
-          const { data, error } = await supabase
-              .from('restraunts')
-              .select('id, slug, name, category, description, rating, logo_url, image, price_range, hours, location')
-              .order('rating', { ascending: false });
-          
-          if (error) throw error;
-          
-          if (!data || data.length === 0) {
-              showEmptyState('No restaurants in database. Add restaurants to your Supabase table.');
-              return;
-          }
-          
-          state.restaurants = data.map(restaurant => ({
-              id: restaurant.id,
-              slug: restaurant.slug,
-              name: restaurant.name,
-              category: restaurant.category,
-              description: restaurant.description,
-              rating: restaurant.rating,
-              logo_url: getLogoUrl(restaurant),
-              coverImage: getCoverImageUrl(restaurant.slug),
-              price_range: restaurant.price_range || '$$',
-              hours: restaurant.hours,
-              location: restaurant.location,
-              quickFilterTags: generateQuickFilterTags(restaurant)
-          }));
-          
-          // Load categories
-          await categoryManager.loadCategories();
-          categoryManager.populateDropdown();
-          
-          // Apply initial filters
-          applyFilters();
-          
-          updateCounts();
-      }
-      
+     async function loadRestaurantsData() {
+    try {
+        // Try with the basic columns from the working code
+        const { data, error } = await supabase
+            .from('restraunts')
+            .select('id, slug, name, category, description, rating, logo_url, image')
+            .order('rating', { ascending: false });
+        
+        if (error) {
+            console.error('Supabase query error:', error);
+            throw error;
+        }
+        
+        if (!data || data.length === 0) {
+            showEmptyState('No restaurants in database. Add restaurants to your Supabase table.');
+            return;
+        }
+        
+        console.log('✅ Successfully loaded', data.length, 'restaurants');
+        
+        state.restaurants = data.map(restaurant => ({
+            id: restaurant.id,
+            slug: restaurant.slug,
+            name: restaurant.name,
+            category: restaurant.category,
+            description: restaurant.description,
+            rating: restaurant.rating,
+            logo_url: getLogoUrl(restaurant),
+            coverImage: getCoverImageUrl(restaurant.slug),
+            price_range: restaurant.price_range || '$$', // Fallback
+            hours: restaurant.hours || '',
+            location: restaurant.location || '',
+            quickFilterTags: generateQuickFilterTags(restaurant)
+        }));
+        
+        // Load categories
+        await categoryManager.loadCategories();
+        categoryManager.populateDropdown();
+        
+        // Apply initial filters
+        applyFilters();
+        
+        updateCounts();
+        
+    } catch (error) {
+        console.error('❌ Detailed error in loadRestaurantsData:', error);
+        showNotification(`Database error: ${error.message}`, 'error');
+        showEmptyState('Database connection failed. Please check table permissions.');
+    }
+}
       function generateQuickFilterTags(restaurant) {
         const tags = [];
         const rating = restaurant.rating || 0;
