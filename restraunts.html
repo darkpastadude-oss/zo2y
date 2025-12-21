@@ -21,20 +21,24 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Guest Banner */
+    /* Guest Banner - FIXED TO BE STICKY */
     .guest-banner {
       display: none;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(255, 184, 77, 0.95) 100%);
       border-bottom: 1px solid rgba(245, 158, 11, 0.4);
-      padding: 16px 24px;
+      padding: 12px 24px;
       backdrop-filter: blur(10px);
       animation: slideDown 0.3s ease-out;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
     }
     
     @keyframes slideDown {
       from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-20px);
       }
       to {
         opacity: 1;
@@ -60,27 +64,29 @@
     .banner-icon {
       width: 36px;
       height: 36px;
-      background: var(--gradient);
+      background: rgba(11, 22, 51, 0.9);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #0b1633;
+      color: var(--accent);
       font-size: 16px;
       flex-shrink: 0;
+      border: 2px solid rgba(11, 22, 51, 0.8);
     }
     
     .banner-text h3 {
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 4px;
-      color: var(--white);
+      color: #0b1633;
     }
     
     .banner-text p {
       font-size: 13px;
-      color: var(--muted);
+      color: rgba(11, 22, 51, 0.8);
       margin: 0;
+      font-weight: 500;
     }
     
     .banner-actions {
@@ -92,7 +98,7 @@
     .banner-btn {
       padding: 8px 16px;
       border-radius: 12px;
-      font-weight: 500;
+      font-weight: 600;
       font-size: 13px;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -101,54 +107,46 @@
     }
     
     .banner-btn-primary {
-      background: var(--gradient);
-      color: #0b1633;
+      background: #0b1633;
+      color: var(--accent);
     }
     
     .banner-btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+      box-shadow: 0 8px 20px rgba(11, 22, 51, 0.3);
+      background: #132347;
     }
     
     .banner-btn-outline {
       background: transparent;
-      color: var(--white);
-      border: 1px solid var(--border);
+      color: #0b1633;
+      border: 2px solid #0b1633;
     }
     
     .banner-btn-outline:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: var(--accent);
+      background: rgba(11, 22, 51, 0.1);
+      border-color: #132347;
     }
     
-    .banner-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 8px;
-      margin-left: 4px;
-    }
+    /* REMOVED CLOSE BUTTON - BANNER IS PERSISTENT */
     
-    .banner-close:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--white);
-    }
-    
-    /* Image Loading - FIXED */
+    /* Image Loading - FIXED: Lazy loading with Intersection Observer */
     .restaurant-image {
       display: block;
       width: 100%;
       height: 200px;
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-      transition: opacity 0.3s ease;
+      transition: opacity 0.5s ease;
       opacity: 0;
     }
     
     .restaurant-image.loaded {
       opacity: 1;
+    }
+    
+    .restaurant-image.error {
+      background: linear-gradient(135deg, #2d1a5f 0%, #1a1033 100%);
     }
     
     /* Logo overlay image */
@@ -158,11 +156,15 @@
       object-fit: contain;
       border-radius: 8px;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.5s ease;
     }
     
     .logo-overlay img.loaded {
       opacity: 1;
+    }
+    
+    .logo-overlay img.error {
+      display: none;
     }
     
     /* Enhanced Header */
@@ -178,6 +180,23 @@
       background: var(--surface); 
       border-bottom: 1px solid var(--border); 
     } 
+    
+    /* When guest banner is shown, header should be lower */
+    .guest-banner.show + header {
+      top: 60px;
+    }
+    
+    @media (max-width: 768px) {
+      .guest-banner.show + header {
+        top: 80px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .guest-banner.show + header {
+        top: 100px;
+      }
+    }
     
     .logo { 
       height: 40px; 
@@ -790,7 +809,7 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 1000;
+      z-index: 1001;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -807,21 +826,28 @@
       transition: transform 0.4s ease;
       backdrop-filter: blur(10px);
       border: 1px solid var(--border);
+      font-weight: 500;
     }
     
     .notification-success {
-      background: rgba(16, 185, 129, 0.9);
+      background: rgba(16, 185, 129, 0.95);
       color: white;
     }
     
     .notification-error {
-      background: rgba(239, 68, 68, 0.9);
+      background: rgba(239, 68, 68, 0.95);
       color: white;
     }
     
     .notification-info {
-      background: rgba(59, 130, 246, 0.9);
+      background: rgba(59, 130, 246, 0.95);
       color: white;
+    }
+    
+    .notification-warning {
+      background: rgba(245, 158, 11, 0.95);
+      color: #0b1633;
+      font-weight: 600;
     }
     
     .notification-show {
@@ -837,15 +863,138 @@
       margin-left: auto;
       background: none;
       border: none;
-      color: white;
+      color: inherit;
       cursor: pointer;
       font-size: 1rem;
-      opacity: 0.7;
+      opacity: 0.8;
       transition: opacity 0.2s;
+      padding: 0 0 0 12px;
     }
     
     .notification-close:hover {
       opacity: 1;
+    }
+    
+    /* Auth Prompt Modal */
+    .auth-prompt-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 1002;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .auth-prompt-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .auth-prompt-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: center;
+    }
+    
+    .auth-prompt-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 32px;
+      color: #0b1633;
+    }
+    
+    .auth-prompt-header h3 {
+      font-size: 28px;
+      margin-bottom: 12px;
+      color: var(--white);
+      font-weight: 700;
+    }
+    
+    .auth-prompt-header p {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+    
+    .auth-prompt-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .auth-prompt-btn {
+      padding: 18px 24px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .auth-prompt-primary {
+      background: var(--gradient);
+      color: #0b1633;
+    }
+    
+    .auth-prompt-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+    }
+    
+    .auth-prompt-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid var(--border);
+    }
+    
+    .auth-prompt-secondary:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--accent);
+    }
+    
+    .auth-prompt-close {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      font-size: 15px;
+    }
+    
+    .auth-prompt-close:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
     }
     
     /* Skeleton Loading */
@@ -1062,6 +1211,18 @@
       .card-title-wrapper {
         width: 100%;
       }
+      
+      .auth-prompt-content {
+        padding: 30px 24px;
+      }
+      
+      .auth-prompt-buttons {
+        gap: 12px;
+      }
+      
+      .auth-prompt-btn {
+        padding: 16px 20px;
+      }
     }
     
     @media (max-width: 480px) {
@@ -1080,6 +1241,7 @@
       .guest-banner {
         flex-direction: column;
         gap: 12px;
+        padding: 16px;
       }
       
       .banner-actions {
@@ -1108,6 +1270,20 @@
         top: 8px;
         right: 8px;
       }
+      
+      .auth-prompt-content {
+        padding: 24px 20px;
+      }
+      
+      .auth-prompt-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+      }
+      
+      .auth-prompt-header h3 {
+        font-size: 22px;
+      }
     }
     
     /* Performance optimizations */
@@ -1125,20 +1301,7 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <header>
-    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-    <div class="toolbar">
-      <div class="search-wrapper">
-        <span class="search-icon">🔎</span>
-        <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
-        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
-      </div>
-      <button class="btn" id="resetFilters">Clear Filters</button>
-      <button class="btn btn-primary" id="authBtn">Sign In</button>
-    </div>
-  </header>
-
-  <!-- Guest Banner -->
+  <!-- Guest Banner - ALWAYS VISIBLE FOR LOGGED OUT USERS -->
   <div id="guestBanner" class="guest-banner">
     <div class="banner-content">
       <div class="banner-icon">
@@ -1152,11 +1315,22 @@
     <div class="banner-actions">
       <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
       <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
-      <button class="banner-close" id="bannerClose" aria-label="Dismiss banner">
-        <i class="fas fa-times"></i>
-      </button>
+      <!-- NO CLOSE BUTTON - BANNER IS PERSISTENT -->
     </div>
   </div>
+
+  <header>
+    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+    <div class="toolbar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔎</span>
+        <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
+        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+      </div>
+      <button class="btn" id="resetFilters">Clear Filters</button>
+      <button class="btn btn-primary" id="authBtn">Sign In</button>
+    </div>
+  </header>
 
   <main class="container">
     <div class="page-header">
@@ -1219,7 +1393,7 @@
     </div>
   </main>
 
-  <!-- Actions Modal -->
+  <!-- Actions Modal (For logged in users) -->
   <div id="actionsModal" class="actions-modal">
     <div class="actions-content">
       <div class="actions-header">
@@ -1241,6 +1415,30 @@
         </button>
       </div>
       <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Auth Prompt Modal (For logged out users) -->
+  <div id="authPromptModal" class="auth-prompt-modal">
+    <div class="auth-prompt-content">
+      <div class="auth-prompt-icon">
+        <i class="fas fa-lock"></i>
+      </div>
+      <div class="auth-prompt-header">
+        <h3>Sign In Required</h3>
+        <p>You need to be signed in to save restaurants to your lists. Create an account to save your favorites, mark places you want to visit, and track where you've been!</p>
+      </div>
+      <div class="auth-prompt-buttons">
+        <button class="auth-prompt-btn auth-prompt-primary" id="authPromptSignupBtn">
+          <i class="fas fa-user-plus"></i>
+          Create Free Account
+        </button>
+        <button class="auth-prompt-btn auth-prompt-secondary" id="authPromptLoginBtn">
+          <i class="fas fa-sign-in-alt"></i>
+          Sign In to Existing Account
+        </button>
+      </div>
+      <button class="auth-prompt-close" id="authPromptCloseBtn">Maybe Later</button>
     </div>
   </div>
 
@@ -1291,10 +1489,14 @@
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
-        authChecked: false
+        authChecked: false,
+        // Image cache
+        imageCache: new Map(),
+        // Intersection Observer for lazy loading
+        imageObserver: null
       };
       
-      // ---------- LIST MANAGER (UNCHANGED FROM YOUR ORIGINAL) ----------
+      // ---------- LIST MANAGER ----------
       const listManager = {
           userLists: [],
           currentLists: {
@@ -1466,6 +1668,8 @@
             iconClass = "fas fa-check-circle";
         } else if (type === "error") {
             iconClass = "fas fa-exclamation-circle";
+        } else if (type === "warning") {
+            iconClass = "fas fa-exclamation-triangle";
         } else {
             iconClass = "fas fa-info-circle";
         }
@@ -1499,18 +1703,26 @@
         }, duration);
       }
       
-      // ---------- MODAL FUNCTIONS ----------
+      // ---------- AUTH PROMPT MODAL (FOR LOGGED OUT USERS) ----------
+      function showAuthPrompt() {
+        const modal = document.getElementById('authPromptModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function hideAuthPrompt() {
+        const modal = document.getElementById('authPromptModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+      
+      // ---------- ACTIONS MODAL (FOR LOGGED IN USERS) ----------
       function showModal(restaurantData) {
         if (!restaurantData) return;
         
         // Check if user is logged in
         if (!state.isLoggedIn) {
-            showNotification('Please sign in to save restaurants to your lists', 'info');
-            setTimeout(() => {
-                if (confirm('Would you like to sign in or create an account to save restaurants?')) {
-                    window.location.href = 'login.html';
-                }
-            }, 500);
+            showAuthPrompt();
             return;
         }
         
@@ -1556,12 +1768,9 @@
       
       // ---------- GUEST BANNER ----------
       const guestBanner = {
-        storageKey: 'zo2y_banner_dismissed',
-        
         init: function() {
           const loginBtn = document.getElementById('bannerLoginBtn');
           const signupBtn = document.getElementById('bannerSignupBtn');
-          const closeBtn = document.getElementById('bannerClose');
           
           if (loginBtn) {
             loginBtn.addEventListener('click', () => {
@@ -1575,131 +1784,114 @@
             });
           }
           
-          if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-              this.dismiss();
-            });
-          }
-        },
-        
-        shouldShow: function() {
-          if (state.isLoggedIn) return false;
-          
-          try {
-            return !localStorage.getItem(this.storageKey);
-          } catch (e) {
-            return true;
-          }
+          // No close button - banner is persistent for logged out users
         },
         
         show: function() {
-          if (!this.shouldShow()) return;
-          
           const banner = document.getElementById('guestBanner');
           if (banner) {
-            // Wait a bit for auth check
-            setTimeout(() => {
-              if (!state.isLoggedIn) {
-                banner.classList.add('show');
-              }
-            }, 300);
+            banner.classList.add('show');
           }
         },
         
-        dismiss: function() {
+        hide: function() {
           const banner = document.getElementById('guestBanner');
           if (banner) {
             banner.classList.remove('show');
-            
-            try {
-              localStorage.setItem(this.storageKey, 'true');
-            } catch (e) {
-              // Ignore
-            }
           }
         }
       };
       
-      // ---------- IMAGE LOADING SYSTEM (FIXED) ----------
+      // ---------- ADVANCED IMAGE LOADING SYSTEM (FIXED) ----------
       const imageLoader = {
-        cache: new Map(),
+        // Cache for loaded images
+        loadedImages: new Set(),
+        failedImages: new Set(),
         
-        loadImage: function(element) {
-          if (!element || !element.dataset.src) return;
+        initObserver: function() {
+          // Create Intersection Observer for lazy loading
+          state.imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                this.loadImage(img);
+                state.imageObserver.unobserve(img);
+              }
+            });
+          }, {
+            rootMargin: '100px', // Start loading 100px before element is visible
+            threshold: 0.01
+          });
+        },
+        
+        loadImage: function(imgElement) {
+          if (!imgElement || !imgElement.dataset.src) return;
           
-          const src = element.dataset.src;
+          const src = imgElement.dataset.src;
           
-          // Check cache
-          if (this.cache.has(src)) {
-            const cached = this.cache.get(src);
-            if (cached.status === 'loaded') {
-              element.src = src;
-              element.onload = () => element.classList.add('loaded');
-              return;
-            } else if (cached.status === 'error') {
-              this.setFallbackImage(element);
-              return;
-            }
+          // Check if already loaded
+          if (this.loadedImages.has(src)) {
+            imgElement.src = src;
+            imgElement.classList.add('loaded');
+            return;
           }
           
-          // Mark as loading
-          this.cache.set(src, { status: 'loading' });
+          // Check if previously failed
+          if (this.failedImages.has(src)) {
+            this.setFallbackImage(imgElement);
+            return;
+          }
           
           const img = new Image();
           img.decoding = 'async';
+          img.loading = 'lazy';
           
           img.onload = () => {
-            this.cache.set(src, { status: 'loaded' });
-            
-            requestAnimationFrame(() => {
-              element.src = src;
-              element.classList.add('loaded');
-            });
+            this.loadedImages.add(src);
+            imgElement.src = src;
+            imgElement.classList.add('loaded');
           };
           
           img.onerror = () => {
-            this.cache.set(src, { status: 'error' });
-            this.setFallbackImage(element);
+            this.failedImages.add(src);
+            this.setFallbackImage(imgElement);
           };
           
           img.src = src;
         },
         
-        setFallbackImage: function(element) {
-          const fallbackSrc = element.classList.contains('logo-image') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+        setFallbackImage: function(imgElement) {
+          const isLogo = imgElement.parentElement.classList.contains('logo-overlay');
+          const fallbackSrc = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
           
-          requestAnimationFrame(() => {
-            element.src = fallbackSrc;
-            element.classList.add('loaded');
-          });
-        },
-        
-        loadVisibleImages: function() {
-          const images = document.querySelectorAll('.restaurant-image:not(.loaded), .logo-overlay img:not(.loaded)');
-          
-          images.forEach(img => {
-            const rect = img.getBoundingClientRect();
-            const isVisible = (
-              rect.top <= (window.innerHeight + 100) &&
-              rect.bottom >= -100 &&
-              rect.left <= (window.innerWidth + 100) &&
-              rect.right >= -100
-            );
-            
-            if (isVisible) {
-              this.loadImage(img);
-            }
-          });
+          imgElement.src = fallbackSrc;
+          imgElement.classList.add('loaded');
+          imgElement.classList.add('error');
         },
         
         preloadCriticalImages: function() {
-          const images = document.querySelectorAll('.restaurant-image:not(.loaded), .logo-overlay img:not(.loaded)');
+          // Preload first 4 images immediately
+          const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
+          const criticalImages = Array.from(images).slice(0, 4);
           
-          for (const img of images) {
-            const rect = img.getBoundingClientRect();
-            if (rect.top < window.innerHeight * 2) {
-              this.loadImage(img);
+          criticalImages.forEach(img => {
+            this.loadImage(img);
+          });
+          
+          // Observe remaining images for lazy loading
+          const remainingImages = Array.from(images).slice(4);
+          remainingImages.forEach(img => {
+            if (state.imageObserver) {
+              state.imageObserver.observe(img);
             }
+          });
+        },
+        
+        // Reset cache if needed (for when filters change)
+        resetCache: function() {
+          // Keep loaded images in cache, but clear observer targets
+          if (state.imageObserver) {
+            state.imageObserver.disconnect();
           }
         }
       };
@@ -1907,7 +2099,7 @@
         }
       }
       
-      // ---------- RENDERING (FIXED NULL ERROR) ----------
+      // ---------- RENDERING ----------
       function showLoadingSkeleton() {
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
@@ -1963,8 +2155,30 @@
         grid.innerHTML = '';
         grid.appendChild(fragment);
         
-        // Load images
-        setTimeout(() => imageLoader.loadVisibleImages(), 50);
+        // Initialize image observer for new images
+        if (state.imageObserver) {
+          state.imageObserver.disconnect();
+          
+          const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
+          images.forEach(img => {
+            // Check cache first
+            const src = img.dataset.src;
+            if (imageLoader.loadedImages.has(src)) {
+              img.src = src;
+              img.classList.add('loaded');
+            } else if (imageLoader.failedImages.has(src)) {
+              const isLogo = img.parentElement.classList.contains('logo-overlay');
+              img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+              img.classList.add('loaded');
+              img.classList.add('error');
+            } else {
+              state.imageObserver.observe(img);
+            }
+          });
+        }
+        
+        // Preload critical images
+        setTimeout(() => imageLoader.preloadCriticalImages(), 50);
       }
       
       function createRestaurantCard(restaurant) {
@@ -2036,7 +2250,7 @@
           menuBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            await showModal({
+            showModal({
               id: restaurant.id,
               name: restaurant.name,
               slug: restaurant.slug
@@ -2216,7 +2430,7 @@
         // Grid view controls
         initializeViewControls();
         
-        // Modal events
+        // Actions modal events (for logged in users)
         const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
         const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
         const modalVisitedBtn = document.getElementById('modalVisitedBtn');
@@ -2227,6 +2441,8 @@
             if (!state.currentModalRestaurant) return;
             await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
             updateModalButtons(state.currentModalRestaurant.id);
+            // Re-render to update badges
+            renderRestaurants();
           });
         }
         
@@ -2235,6 +2451,8 @@
             if (!state.currentModalRestaurant) return;
             await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
             updateModalButtons(state.currentModalRestaurant.id);
+            // Re-render to update badges
+            renderRestaurants();
           });
         }
         
@@ -2243,6 +2461,8 @@
             if (!state.currentModalRestaurant) return;
             await listManager.toggleInList('visited', state.currentModalRestaurant.id);
             updateModalButtons(state.currentModalRestaurant.id);
+            // Re-render to update badges
+            renderRestaurants();
           });
         }
         
@@ -2259,9 +2479,41 @@
           });
         }
         
+        // Auth prompt modal events (for logged out users)
+        const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
+        const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
+        const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
+        
+        if (authPromptSignupBtn) {
+          authPromptSignupBtn.addEventListener('click', () => {
+            window.location.href = 'signup.html';
+          });
+        }
+        
+        if (authPromptLoginBtn) {
+          authPromptLoginBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+          });
+        }
+        
+        if (authPromptCloseBtn) {
+          authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
+        }
+        
+        const authPromptModal = document.getElementById('authPromptModal');
+        if (authPromptModal) {
+          authPromptModal.addEventListener('click', (e) => {
+            if (e.target === authPromptModal) {
+              hideAuthPrompt();
+            }
+          });
+        }
+        
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
+            hideAuthPrompt();
           }
         });
         
@@ -2343,7 +2595,7 @@
         };
       }
       
-      // ---------- AUTH MANAGEMENT (FIXED .catch() ERROR) ----------
+      // ---------- AUTH MANAGEMENT ----------
       async function updateAuthUI() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -2351,7 +2603,10 @@
           if (session && session.user) {
             state.isLoggedIn = true;
             
-            // FIXED: Proper error handling for profile fetch
+            // Hide guest banner
+            guestBanner.hide();
+            
+            // Get user profile
             let profile = null;
             try {
               const { data: profileData, error: profileError } = await supabase
@@ -2385,6 +2640,10 @@
             
           } else {
             state.isLoggedIn = false;
+            
+            // Show guest banner (persistent)
+            guestBanner.show();
+            
             const authBtn = document.getElementById('authBtn');
             if (authBtn) {
               authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
@@ -2393,11 +2652,6 @@
           }
           
           state.authChecked = true;
-          
-          // Show/hide guest banner
-          if (!state.isLoggedIn) {
-            guestBanner.show();
-          }
           
           // Re-render to update badges
           if (state.filteredRestaurants.length > 0) {
@@ -2409,6 +2663,10 @@
           // Fallback to logged out
           state.isLoggedIn = false;
           state.authChecked = true;
+          
+          // Show guest banner
+          guestBanner.show();
+          
           const authBtn = document.getElementById('authBtn');
           if (authBtn) {
             authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
@@ -2423,6 +2681,9 @@
           showNotification('Failed to connect to server', 'error');
           return;
         }
+        
+        // Initialize image lazy loading system
+        imageLoader.initObserver();
         
         // Show loading skeleton
         showLoadingSkeleton();
@@ -2439,13 +2700,32 @@
         // Listen for auth changes
         supabase.auth.onAuthStateChange(updateAuthUI);
         
-        // Setup image lazy loading
+        // Setup scroll listener for additional image loading
         window.addEventListener('scroll', debounce(() => {
-          imageLoader.loadVisibleImages();
+          // The Intersection Observer handles this automatically
         }, 100));
         
+        // Handle window resize
         window.addEventListener('resize', debounce(() => {
-          imageLoader.loadVisibleImages();
+          // Re-check visibility on resize
+          if (state.imageObserver) {
+            // Force re-check of all observed images
+            const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
+            images.forEach(img => {
+              if (!img.classList.contains('loaded') && !img.classList.contains('error')) {
+                const rect = img.getBoundingClientRect();
+                const isVisible = (
+                  rect.top <= (window.innerHeight + 100) &&
+                  rect.bottom >= -100
+                );
+                
+                if (isVisible) {
+                  imageLoader.loadImage(img);
+                  state.imageObserver.unobserve(img);
+                }
+              }
+            });
+          }
         }, 100));
         
         // Initial image load
