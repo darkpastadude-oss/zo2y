@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zo2y — Find Your Next Favorite Restaurant</title>
+  <title>Zo2y — All Restaurants</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
     .restaurant-image {
       display: block;
       width: 100%;
-      height: 180px;
+      height: 200px;
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
       opacity: 0;
@@ -237,7 +237,7 @@
     }
     
     .card-image {
-      height: 160px;
+      height: 200px;
       position: relative;
       overflow: hidden;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
@@ -283,45 +283,51 @@
     .card-rating {
       background: var(--gradient);
       color: #0b1633;
-      padding: 2px 6px;
+      padding: 4px 8px;
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 2px;
+      gap: 4px;
       white-space: nowrap;
     }
     
     .card-category {
       color: var(--accent);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
     
     .card-description {
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 16px 0;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
       flex: 1;
     }
     
     .card-footer {
-      margin-top: 12px;
+      margin-top: auto;
       padding-top: 12px;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+    
+    .card-location {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
     }
     
     .card-actions {
@@ -330,17 +336,18 @@
     }
     
     .action-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     
     .action-btn:hover {
@@ -353,12 +360,6 @@
       background: var(--accent);
       color: #0b1633;
       border-color: var(--accent);
-    }
-    
-    .card-price {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 500;
     }
     
     /* Skeleton Loading */
@@ -376,7 +377,7 @@
     }
     
     .skeleton-image {
-      height: 160px;
+      height: 200px;
       background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
       background-size: 200% 100%;
       animation: loading 1.5s infinite;
@@ -553,7 +554,11 @@
       }
       
       .card-image {
-        height: 140px;
+        height: 180px;
+      }
+      
+      .restaurant-image {
+        height: 180px;
       }
     }
     
@@ -567,8 +572,16 @@
       }
       
       .action-btn {
-        width: 28px;
-        height: 28px;
+        padding: 6px 8px;
+        font-size: 11px;
+      }
+      
+      .card-image {
+        height: 160px;
+      }
+      
+      .restaurant-image {
+        height: 160px;
       }
     }
     
@@ -601,18 +614,16 @@
 
   <main class="container">
     <div class="page-header">
-      <h1>Find Your Next Favorite Restaurant</h1>
-      <p>Discover 74+ restaurants tailored to your taste</p>
+      <h1>Browse All Restaurants</h1>
+      <p>Discover and explore all available restaurants</p>
     </div>
     
-    <!-- Quick Decision Filters -->
+    <!-- Quick Filters - View all restaurants -->
     <div class="quick-filters" id="quickFilters">
-      <button class="filter-chip active" data-filter="recommended">⭐ Recommended</button>
-      <button class="filter-chip" data-filter="best-now">🔥 Best Right Now</button>
-      <button class="filter-chip" data-filter="cheap-good">💸 Cheap & Good</button>
-      <button class="filter-chip" data-filter="late-night">🌙 Late Night</button>
-      <button class="filter-chip" data-filter="date-spot">❤️ Date Spot</button>
-      <button class="filter-chip" data-filter="high-rated">🏆 Top Rated</button>
+      <button class="filter-chip active" data-filter="all">All Restaurants</button>
+      <button class="filter-chip" data-filter="best-now">🔥 Trending</button>
+      <button class="filter-chip" data-filter="high-rated">⭐ Top Rated</button>
+      <button class="filter-chip" data-filter="new">🆕 New</button>
     </div>
     
     <div class="controls">
@@ -622,7 +633,7 @@
       
       <div class="sort-controls">
         <select id="sortSelect" class="sort-select">
-          <option value="recommended">Recommended</option>
+          <option value="all">All Restaurants</option>
           <option value="rating-desc">Rating: High to Low</option>
           <option value="rating-asc">Rating: Low to High</option>
           <option value="name-asc">Name: A to Z</option>
@@ -672,7 +683,7 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       
-      // Default fallback images (from second code)
+      // Default fallback images
       const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
       const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
       
@@ -697,12 +708,12 @@
         activeFilters: {
           search: '',
           category: 'all',
-          quickFilter: 'recommended',
-          sort: 'recommended'
+          quickFilter: 'all',
+          sort: 'all'
         },
         imageCache: new Map(),
         userLists: new Map(),
-        restaurantImages: {} // For storing images from gallery table
+        restaurantImages: {}
       };
       
       // ---------- ENHANCED NOTIFICATION SYSTEM ----------
@@ -758,7 +769,7 @@
           }, duration);
       }
       
-      // ---------- IMAGE LOADING FUNCTIONS (from second code) ----------
+      // ---------- IMAGE LOADING FUNCTIONS ----------
       async function loadAllRestaurantImages() {
           try {
               console.log("🔄 Loading all restaurant images from gallery...");
@@ -895,7 +906,7 @@
         }
       };
       
-      // ---------- RESTAURANT DATA LOADING (using the working logic from second code) ----------
+      // ---------- RESTAURANT DATA LOADING ----------
       async function loadRestaurantsFromSupabase() {
           try {
               showLoadingSkeleton();
@@ -908,8 +919,8 @@
               // Then load restaurant data
               const { data, error } = await supabase
                   .from('restraunts')
-                  .select('id, slug, name, category, description, rating, logo_url, image')
-                  .order('rating', { ascending: false });
+                  .select('id, slug, name, category, description, rating, logo_url, image, location')
+                  .order('name', { ascending: true });
               
               if (error) {
                   console.error('Supabase query error:', error);
@@ -932,8 +943,6 @@
                   rating: restaurant.rating,
                   logo_url: getLogoUrl(restaurant),
                   coverImage: getCoverImageUrl(restaurant.slug),
-                  price_range: restaurant.price_range || '$$', // Fallback
-                  hours: restaurant.hours || '',
                   location: restaurant.location || '',
                   quickFilterTags: generateQuickFilterTags(restaurant)
               }));
@@ -976,13 +985,11 @@
       function generateQuickFilterTags(restaurant) {
         const tags = [];
         const rating = restaurant.rating || 0;
-        const price = restaurant.price_range || '$$';
         
-        if (rating >= 4.5) tags.push('high-rated', 'best-now');
-        if (rating >= 4.0 && price === '$') tags.push('cheap-good');
-        if (price === '$') tags.push('cheap-good');
-        if (restaurant.hours && restaurant.hours.includes('00:00')) tags.push('late-night');
-        if (rating >= 4.0 && price === '$$$') tags.push('date-spot');
+        if (rating >= 4.5) tags.push('high-rated');
+        if (rating >= 4.3) tags.push('best-now');
+        // Add new tag randomly for demonstration
+        if (Math.random() > 0.7) tags.push('new');
         
         return tags;
       }
@@ -1028,41 +1035,19 @@
       function applyQuickFilter(restaurants, filterType) {
         switch(filterType) {
           case 'best-now':
-            // High rating + recent activity (simulated)
+            // High rating
             return restaurants.filter(r => (r.rating || 0) >= 4.3);
-            
-          case 'cheap-good':
-            return restaurants.filter(r => 
-              (r.price_range === '$' || r.price_range === '$$') && 
-              (r.rating || 0) >= 4.0
-            );
-            
-          case 'late-night':
-            return restaurants.filter(r => 
-              r.hours && (
-                r.hours.includes('00:00') || 
-                r.hours.includes('23:00') ||
-                (r.hours.includes('AM') && r.hours.includes('2:00'))
-              )
-            );
-            
-          case 'date-spot':
-            return restaurants.filter(r => 
-              (r.rating || 0) >= 4.0 && 
-              (r.price_range === '$$$' || r.price_range === '$$$$')
-            );
             
           case 'high-rated':
             return restaurants.filter(r => (r.rating || 0) >= 4.5);
             
-          case 'recommended':
+          case 'new':
+            // For demo, show random restaurants as "new"
+            return restaurants.filter(r => Math.random() > 0.7);
+            
+          case 'all':
           default:
-            // Default: mix of high rating and popularity
-            return restaurants.sort((a, b) => {
-              const scoreA = (a.rating || 0) * 0.7 + (a.popularity || 0.5) * 0.3;
-              const scoreB = (b.rating || 0) * 0.7 + (b.popularity || 0.5) * 0.3;
-              return scoreB - scoreA;
-            });
+            return restaurants;
         }
       }
       
@@ -1082,9 +1067,9 @@
           case 'name-desc':
             return sorted.sort((a, b) => b.name.localeCompare(a.name));
             
-          case 'recommended':
+          case 'all':
           default:
-            return sorted; // Already sorted by recommendation score
+            return sorted;
         }
       }
       
@@ -1147,13 +1132,13 @@
         card.dataset.id = restaurant.id;
         
         const rating = restaurant.rating || 0;
-        const priceRange = restaurant.price_range || '$$';
         const category = restaurant.category || 'Restaurant';
+        const location = restaurant.location || 'Location not specified';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
-              <img class="restaurant-image" data-src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="160">
+              <img class="restaurant-image" data-src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="200">
               ${rating >= 4.5 ? '<div class="card-badge">Top Rated</div>' : ''}
             </div>
             <div class="card-content">
@@ -1170,15 +1155,13 @@
               </div>
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
               <div class="card-footer">
+                <div class="card-location">${location}</div>
                 <div class="card-actions">
-                  <button class="action-btn" data-action="favorite" title="Add to favorites">
-                    <i class="far fa-heart"></i>
-                  </button>
-                  <button class="action-btn" data-action="save" title="Save for later">
-                    <i class="far fa-bookmark"></i>
+                  <button class="action-btn" data-action="view" title="View details">
+                    <i class="fas fa-eye"></i>
+                    View
                   </button>
                 </div>
-                <div class="card-price">${'$'.repeat(priceRange.length)} • ${getRandomDistance()}</div>
               </div>
             </div>
           </a>
@@ -1194,7 +1177,8 @@
           btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            handleCardAction(btn.dataset.action, restaurant);
+            // Just navigate to the restaurant page - the link will handle it
+            window.location.href = `restaurant.html?slug=${restaurant.slug}`;
           });
         });
         
@@ -1234,11 +1218,6 @@
         images.forEach(img => {
           lazyLoadImage(img);
         });
-      }
-      
-      function getRandomDistance() {
-        const distances = ['0.5 mi', '1.2 mi', '0.8 mi', '2.1 mi', '1.5 mi'];
-        return distances[Math.floor(Math.random() * distances.length)];
       }
       
       // ---------- PAGINATION ----------
@@ -1295,19 +1274,6 @@
         emptyState.querySelector('h3').textContent = message || 'No restaurants found';
         emptyState.style.display = 'block';
         document.getElementById('restaurantGrid').innerHTML = '';
-      }
-      
-      // ---------- EVENT HANDLERS ----------
-      
-      function handleCardAction(action, restaurant) {
-        switch(action) {
-          case 'favorite':
-            showNotification(`Added ${restaurant.name} to favorites`, 'success');
-            break;
-          case 'save':
-            showNotification(`Saved ${restaurant.name} for later`, 'success');
-            break;
-        }
       }
       
       // ---------- DEBOUNCED FUNCTIONS ----------
@@ -1389,18 +1355,18 @@
         document.getElementById('search').value = '';
         document.getElementById('clearSearch').style.display = 'none';
         document.getElementById('categorySelect').value = 'all';
-        document.getElementById('sortSelect').value = 'recommended';
+        document.getElementById('sortSelect').value = 'all';
         
         // Reset quick filters
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        document.querySelector('[data-filter="recommended"]').classList.add('active');
+        document.querySelector('[data-filter="all"]').classList.add('active');
         
         // Reset state
         state.activeFilters = {
           search: '',
           category: 'all',
-          quickFilter: 'recommended',
-          sort: 'recommended'
+          quickFilter: 'all',
+          sort: 'all'
         };
         
         applyFilters();
