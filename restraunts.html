@@ -119,6 +119,47 @@
       font-weight: 600;
     }
     
+    /* Grid View Controls */
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+    
+    .grid-size-buttons {
+      display: flex;
+      gap: 4px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 4px;
+    }
+    
+    .grid-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      transition: all 0.3s ease;
+    }
+    
+    .grid-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+    
+    .grid-btn.active {
+      background: var(--accent);
+      color: #0b1633;
+    }
+    
     /* Quick Filters */
     .quick-filters {
       display: flex;
@@ -213,10 +254,22 @@
     /* Enhanced Grid */
     .grid { 
       display: grid; gap: 20px; transition: grid-template-columns 0.3s ease;
+    }
+    
+    /* Grid variations */
+    .grid-normal {
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
     
-    /* Restaurant Card - Simplified */
+    .grid-compact {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    .grid-dense {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    /* Restaurant Card */
     .restaurant-card { 
       background: var(--card); 
       border-radius: 16px; 
@@ -243,10 +296,80 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    .card-badge {
+    /* Logo overlay in bottom left */
+    .logo-overlay {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
+      background: rgba(11, 22, 51, 0.9);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border: 2px solid var(--accent);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    
+    .logo-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      border-radius: 8px;
+    }
+    
+    .restaurant-card:hover .logo-overlay {
+      transform: scale(1.1);
+      border-color: var(--accent);
+      background: rgba(245,158,11,0.9);
+      box-shadow: 0 8px 24px rgba(245,158,11,0.4);
+    }
+    
+    /* Three dots menu button */
+    .menu-btn {
       position: absolute;
       top: 12px;
       right: 12px;
+      width: 36px;
+      height: 36px;
+      background: rgba(11, 22, 51, 0.9);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 25;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .menu-btn:hover {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+    
+    .menu-btn i {
+      color: var(--white);
+      font-size: 16px;
+    }
+    
+    .menu-btn:hover i {
+      color: #0b1633;
+    }
+    
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
       background: rgba(11, 22, 51, 0.9);
       color: var(--accent);
       padding: 4px 8px;
@@ -330,36 +453,125 @@
       font-weight: 500;
     }
     
-    .card-actions {
-      display: flex;
-      gap: 8px;
+    /* Actions Modal */
+    .actions-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     
-    .action-btn {
+    .actions-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .actions-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: center;
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .actions-header {
+      margin-bottom: 24px;
+    }
+    
+    .actions-header h3 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: var(--white);
+      font-weight: 600;
+    }
+    
+    .actions-header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .action-btn-modal {
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--white);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
+      padding: 16px 20px;
+      border-radius: 16px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 12px;
+      text-align: left;
+      font-size: 15px;
     }
     
-    .action-btn:hover {
+    .action-btn-modal:hover {
+      background: var(--accent);
+      color: #0b1633;
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+    
+    .action-btn-modal.active {
       background: var(--accent);
       color: #0b1633;
       border-color: var(--accent);
     }
     
-    .action-btn.active {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
+    .action-btn-modal i {
+      font-size: 18px;
+      width: 24px;
+    }
+    
+    .cancel-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      border-radius: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .cancel-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
     }
     
     /* Skeleton Loading */
@@ -512,9 +724,16 @@
     
     /* Responsive */
     @media (max-width: 768px) {
-      .grid {
+      .grid-normal {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 16px;
+      }
+      
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       }
       
       .search-wrapper {
@@ -526,6 +745,14 @@
       .toolbar {
         width: 100%;
         justify-content: space-between;
+      }
+      
+      .view-controls {
+        order: 4;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 12px;
+        justify-content: center;
       }
       
       .sort-controls {
@@ -560,20 +787,26 @@
       .restaurant-image {
         height: 180px;
       }
+      
+      .logo-overlay {
+        width: 40px;
+        height: 40px;
+        bottom: 10px;
+        left: 10px;
+      }
     }
     
     @media (max-width: 480px) {
-      .grid {
+      .grid-normal {
         grid-template-columns: 1fr;
       }
       
-      .card-actions {
-        gap: 4px;
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
       
-      .action-btn {
-        padding: 6px 8px;
-        font-size: 11px;
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
       
       .card-image {
@@ -583,14 +816,29 @@
       .restaurant-image {
         height: 160px;
       }
+      
+      .logo-overlay {
+        width: 36px;
+        height: 36px;
+        bottom: 8px;
+        left: 8px;
+      }
+      
+      .menu-btn {
+        width: 32px;
+        height: 32px;
+        top: 10px;
+        right: 10px;
+      }
     }
     
     /* Performance optimizations */
     @media (prefers-reduced-motion: reduce) {
       .restaurant-card,
-      .action-btn,
+      .menu-btn,
       .btn,
-      .filter-chip {
+      .filter-chip,
+      .grid-btn {
         transition: none !important;
       }
     }
@@ -645,10 +893,24 @@
           <!-- Categories populated dynamically -->
         </select>
       </div>
+      
+      <div class="view-controls">
+        <div class="grid-size-buttons">
+          <button class="grid-btn active" data-view="normal" title="Normal View" aria-label="Normal grid view">
+            <i class="fas fa-th"></i>
+          </button>
+          <button class="grid-btn" data-view="compact" title="Compact View" aria-label="Compact grid view">
+            <i class="fas fa-th-large"></i>
+          </button>
+          <button class="grid-btn" data-view="dense" title="Dense View" aria-label="Dense grid view">
+            <i class="fas fa-th-list"></i>
+          </button>
+        </div>
+      </div>
     </div>
     
     <!-- Restaurant Grid -->
-    <div id="restaurantGrid" class="grid">
+    <div id="restaurantGrid" class="grid grid-normal">
       <!-- Content loaded dynamically -->
     </div>
     
@@ -667,6 +929,31 @@
       <button class="pagination-btn" id="nextPage" disabled>→</button>
     </div>
   </main>
+
+  <!-- Actions Modal -->
+  <div id="actionsModal" class="actions-modal">
+    <div class="actions-content">
+      <div class="actions-header">
+        <h3 id="modalRestaurantName">Restaurant Name</h3>
+        <p>Add this restaurant to your lists</p>
+      </div>
+      <div class="action-buttons">
+        <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn" aria-label="Add to favorites">
+          <i class="fas fa-heart"></i>
+          <span>Add to Favorites</span>
+        </button>
+        <button class="action-btn-modal" data-action="wantToGo" id="modalWantToGoBtn" aria-label="Add to want to go list">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Want to Go</span>
+        </button>
+        <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn" aria-label="Mark as visited">
+          <i class="fas fa-utensils"></i>
+          <span>Mark as Visited</span>
+        </button>
+      </div>
+      <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
+    </div>
+  </div>
 
   <footer>
     © 2025 Zo2y — Built with ❤️ for food lovers
@@ -713,7 +1000,8 @@
         },
         imageCache: new Map(),
         userLists: new Map(),
-        restaurantImages: {}
+        restaurantImages: {},
+        currentModalRestaurant: null
       };
       
       // ---------- ENHANCED NOTIFICATION SYSTEM ----------
@@ -768,6 +1056,79 @@
               }
           }, duration);
       }
+      
+      // ---------- MODAL FUNCTIONS ----------
+      const actionsModal = document.getElementById('actionsModal');
+      const modalRestaurantName = document.getElementById('modalRestaurantName');
+      const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
+      const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
+      const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+      const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+      function showModal(restaurantData) {
+          if (!restaurantData) return;
+          
+          state.currentModalRestaurant = restaurantData;
+          modalRestaurantName.textContent = restaurantData.name;
+          
+          updateModalButtons(restaurantData.id);
+          
+          actionsModal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+      }
+
+      function hideModal() {
+          actionsModal.classList.remove('active');
+          document.body.style.overflow = 'auto';
+          state.currentModalRestaurant = null;
+      }
+
+      function updateModalButtons(restaurantId) {
+          // For now, just show generic buttons. You can add actual list checking logic here
+          modalFavoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>Add to Favorites</span>`;
+          modalFavoritesBtn.classList.remove('active');
+          
+          modalWantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>Want to Go</span>`;
+          modalWantToGoBtn.classList.remove('active');
+          
+          modalVisitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>Mark as Visited</span>`;
+          modalVisitedBtn.classList.remove('active');
+      }
+
+      modalFavoritesBtn.addEventListener('click', async () => {
+          if (!state.currentModalRestaurant) return;
+          showNotification(`Added ${state.currentModalRestaurant.name} to Favorites`, 'success');
+          modalFavoritesBtn.classList.add('active');
+          modalFavoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>Added to Favorites</span>`;
+      });
+
+      modalWantToGoBtn.addEventListener('click', async () => {
+          if (!state.currentModalRestaurant) return;
+          showNotification(`Added ${state.currentModalRestaurant.name} to Want to Go`, 'success');
+          modalWantToGoBtn.classList.add('active');
+          modalWantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>Added to Want to Go</span>`;
+      });
+
+      modalVisitedBtn.addEventListener('click', async () => {
+          if (!state.currentModalRestaurant) return;
+          showNotification(`Marked ${state.currentModalRestaurant.name} as Visited`, 'success');
+          modalVisitedBtn.classList.add('active');
+          modalVisitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>Marked as Visited</span>`;
+      });
+
+      modalCancelBtn.addEventListener('click', hideModal);
+
+      actionsModal.addEventListener('click', (e) => {
+          if (e.target === actionsModal) {
+              hideModal();
+          }
+      });
+
+      document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && actionsModal.classList.contains('active')) {
+              hideModal();
+          }
+      });
       
       // ---------- IMAGE LOADING FUNCTIONS ----------
       async function loadAllRestaurantImages() {
@@ -1006,6 +1367,36 @@
         return tags;
       }
       
+      // ---------- GRID VIEW CONTROLS ----------
+      function initializeViewControls() {
+          const gridButtons = document.querySelectorAll('.grid-btn');
+          const grid = document.getElementById('restaurantGrid');
+          
+          gridButtons.forEach(btn => {
+              btn.addEventListener('click', () => {
+                  const view = btn.dataset.view;
+                  
+                  gridButtons.forEach(b => b.classList.remove('active'));
+                  btn.classList.add('active');
+                  
+                  grid.classList.remove('grid-normal', 'grid-compact', 'grid-dense');
+                  grid.classList.add(`grid-${view}`);
+                  
+                  try {
+                      localStorage.setItem('zo2y_grid_view', view);
+                  } catch (e) {}
+              });
+          });
+          
+          try {
+              const savedView = localStorage.getItem('zo2y_grid_view') || 'normal';
+              const savedBtn = document.querySelector(`.grid-btn[data-view="${savedView}"]`);
+              if (savedBtn) {
+                  savedBtn.click();
+              }
+          } catch (e) {}
+      }
+      
       // ---------- FILTERING & SORTING ----------
       
       function applyFilters() {
@@ -1145,11 +1536,18 @@
         
         const rating = restaurant.rating || 0;
         const category = restaurant.category || 'Restaurant';
+        const logoUrl = getLogoUrl(restaurant);
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
               <img class="restaurant-image" data-src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="200">
+              <div class="logo-overlay">
+                <img data-src="${logoUrl}" alt="${restaurant.name} logo" loading="lazy" width="48" height="48">
+              </div>
+              <button class="menu-btn" aria-label="Restaurant actions">
+                <i class="fas fa-ellipsis-h"></i>
+              </button>
               ${rating >= 4.5 ? '<div class="card-badge">Top Rated</div>' : ''}
             </div>
             <div class="card-content">
@@ -1167,29 +1565,26 @@
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
               <div class="card-footer">
                 <div class="card-location">Click to view details</div>
-                <div class="card-actions">
-                  <button class="action-btn" data-action="view" title="View details">
-                    <i class="fas fa-eye"></i>
-                    View
-                  </button>
-                </div>
               </div>
             </div>
           </a>
         `;
         
-        // Set up lazy loading for the image
-        const img = card.querySelector('.restaurant-image');
-        lazyLoadImage(img);
+        // Set up lazy loading for images
+        const images = card.querySelectorAll('img');
+        images.forEach(img => {
+          lazyLoadImage(img);
+        });
         
-        // Set up action buttons
-        const actionButtons = card.querySelectorAll('.action-btn');
-        actionButtons.forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            // Just navigate to the restaurant page - the link will handle it
-            window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+        // Set up menu button
+        const menuBtn = card.querySelector('.menu-btn');
+        menuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showModal({
+            id: restaurant.id,
+            name: restaurant.name,
+            slug: restaurant.slug
           });
         });
         
@@ -1359,6 +1754,9 @@
         document.getElementById('authBtn').addEventListener('click', () => {
           window.location.href = 'login.html';
         });
+        
+        // Initialize grid view controls
+        initializeViewControls();
       }
       
       function resetAllFilters() {
