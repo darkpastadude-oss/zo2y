@@ -6,6 +6,7 @@
     <title>Zo2y — Discover Local Favorites</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; --accent-light: #3a2a1a;
@@ -121,7 +122,7 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* Restaurant Card - Same as other page */
+        /* Restaurant Card - UPDATED TO MATCH RESTAURANTS.HTML */
         .card {
             flex:0 0 320px; 
             min-width:320px; 
@@ -136,6 +137,7 @@
             transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
+            height: 100%;
         } 
         .card:hover{
             transform:translateY(-4px); 
@@ -144,13 +146,13 @@
         }
         
         .card-image {
-            height: 180px;
+            height: 200px;
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
         }
         
-        /* Logo overlay in bottom left - same style */
+        /* Logo overlay in bottom left - same as restaurants.html */
         .logo-overlay {
             position: absolute;
             bottom: 12px;
@@ -186,7 +188,7 @@
             box-shadow: 0 8px 24px rgba(245,158,11,0.4);
         }
         
-        /* Three dots menu button - same style */
+        /* Three dots menu button - same style as restaurants.html */
         .menu-btn {
             position: absolute;
             top: 12px;
@@ -200,7 +202,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 25;
+            z-index: 30;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -220,17 +222,20 @@
             color: #0b1633;
         }
         
-        .restaurant-image {
-            display: block;
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-        
-        .card-badge {
+        /* Badge container - same as restaurants.html */
+        .badge-container {
             position: absolute;
             top: 12px;
             left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 25;
+            max-width: calc(100% - 80px);
+        }
+        
+        /* User list badge (Favorites, Visited, Want to Go) - same as restaurants.html */
+        .user-list-badge {
             background: rgba(11, 22, 51, 0.9);
             color: var(--accent);
             padding: 4px 8px;
@@ -239,6 +244,19 @@
             font-weight: 600;
             backdrop-filter: blur(10px);
             border: 1px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .restaurant-image {
+            display: block;
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
         }
         
         .card-content {
@@ -253,7 +271,14 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .card-title-wrapper {
+            display: flex;
+            align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
         
         .card-title {
@@ -262,6 +287,35 @@
             line-height: 1.3;
             margin: 0;
             flex: 1;
+        }
+        
+        /* Top rated badge - same as restaurants.html */
+        .top-rated-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            color: #0b1633;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            animation: glow 2s infinite alternate;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+            white-space: nowrap;
+        }
+        
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
+                            0 0 10px rgba(245, 158, 11, 0.3);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
+                            0 0 20px rgba(245, 158, 11, 0.5),
+                            0 0 30px rgba(245, 158, 11, 0.3);
+            }
         }
         
         .card-rating {
@@ -275,6 +329,7 @@
             align-items: center;
             gap: 4px;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         
         .card-category {
@@ -587,24 +642,77 @@
             align-items:center; 
             flex-wrap: wrap;
         } 
+        
+        /* UPDATED: Explore Restaurants Button - Orange and Cool */
         .btn-primary {
-            background: var(--accent); 
-            color:#111; 
-            padding:14px 28px; 
-            border-radius:12px; 
-            font-weight:600; 
-            border:none; 
-            cursor:pointer; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            font-size: 15px; 
+            background: var(--gradient);
+            color: #0b1633;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
         }
+        
         .btn-primary:hover {
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 24px rgba(245,158,11,0.25);
-        } 
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+            }
+        }
+        
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+        
+        .btn-primary:hover::after {
+            left: 100%;
+        }
+        
+        .btn-primary i {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-primary:hover i {
+            transform: translateX(5px);
+        }
+        
         .btn-outline {
             background:transparent; 
             color:var(--white); 
@@ -1046,11 +1154,11 @@
             }
             
             .card-image {
-                height: 160px;
+                height: 180px;
             }
             
             .restaurant-image {
-                height: 160px;
+                height: 180px;
             }
             
             .hero {
@@ -1065,6 +1173,11 @@
             }
             .day-restaurant-info {
                 text-align: center;
+            }
+            
+            .btn-primary, .btn-outline {
+                padding: 12px 20px;
+                font-size: 14px;
             }
         }
         
@@ -1113,11 +1226,11 @@
             }
             
             .card-image {
-                height: 140px;
+                height: 160px;
             }
             
             .restaurant-image {
-                height: 140px;
+                height: 160px;
             }
         }
     </style>
@@ -1177,7 +1290,11 @@
                     <p class="lead">Find authentic dining experiences based on real reviews from the food lover community.</p>
                     <div class="cta-row">
                         <button class="btn-primary hidden" id="mainCtaBtn"><span>Join Community</span></button>
-                        <button class="btn-outline" onclick="location.href='restraunts.html'">Explore Restaurants</button>
+                        <!-- UPDATED: Orange Explore Restaurants Button -->
+                        <button class="btn-primary" onclick="location.href='restraunts.html'">
+                            <i class="fas fa-utensils"></i>
+                            <span>Explore Restaurants</span>
+                        </button>
                     </div>
                 </div>
                 <div class="hero-right">
@@ -1299,7 +1416,7 @@
       }
 
       // Default fallback images - Using same as other page
-      const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
+      const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-cover.jpg';
       const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
 
       // ---------- GLOBAL VARIABLES ----------
@@ -1455,6 +1572,14 @@
           isInList(listType, restaurantId) {
               const list = this.currentLists[listType];
               return list?.restaurants?.includes(restaurantId) || false;
+          },
+          
+          getRestaurantListStatus(restaurantId) {
+              return {
+                  favorites: this.isInList('favorites', restaurantId),
+                  wantToGo: this.isInList('wantToGo', restaurantId),
+                  visited: this.isInList('visited', restaurantId)
+              };
           }
       };
 
@@ -1485,18 +1610,16 @@
       }
 
       function updateModalButtons(restaurantId) {
-          const isFavorite = listManager.isInList('favorites', restaurantId);
-          const isWantToGo = listManager.isInList('wantToGo', restaurantId);
-          const isVisited = listManager.isInList('visited', restaurantId);
+          const status = listManager.getRestaurantListStatus(restaurantId);
           
-          modalFavoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
-          modalFavoritesBtn.classList.toggle('active', isFavorite);
+          modalFavoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+          modalFavoritesBtn.classList.toggle('active', status.favorites);
           
-          modalWantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${isWantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
-          modalWantToGoBtn.classList.toggle('active', isWantToGo);
+          modalWantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+          modalWantToGoBtn.classList.toggle('active', status.wantToGo);
           
-          modalVisitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${isVisited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
-          modalVisitedBtn.classList.toggle('active', isVisited);
+          modalVisitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+          modalVisitedBtn.classList.toggle('active', status.visited);
       }
 
       modalFavoritesBtn.addEventListener('click', async () => {
@@ -1670,7 +1793,8 @@
                           imageObserver.unobserve(img);
                       };
                       img.onerror = () => {
-                          img.src = DEFAULT_LOGO_URL;
+                          const isLogo = img.parentElement.classList.contains('logo-overlay');
+                          img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
                           img.classList.add('loaded');
                           imageObserver.unobserve(img);
                       };
@@ -1726,7 +1850,7 @@
           }
       }
 
-      // ---------- CARD CREATION (Same layout as other page) ----------
+      // ---------- CARD CREATION (Updated to match restaurants.html exactly) ----------
       async function createRestaurantCard(restaurant) {
           const card = document.createElement('div');
           card.className = 'card';
@@ -1735,6 +1859,14 @@
           const rating = restaurant.rating || 0;
           const category = restaurant.category || 'Restaurant';
           const logoUrl = getLogoUrl(restaurant);
+          const status = listManager.getRestaurantListStatus(restaurant.id);
+          const isTopRated = rating >= 4.5;
+          
+          // Build badge string - same as restaurants.html
+          let badgeText = '';
+          if (status.favorites) badgeText += '❤️ ';
+          if (status.wantToGo) badgeText += '📍 ';
+          if (status.visited) badgeText += '✓ ';
           
           // Check if user is logged in
           let isLoggedIn = false;
@@ -1751,16 +1883,23 @@
           card.innerHTML = `
             <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
               <div class="card-image">
-                <img class="restaurant-image" data-src="${restaurant.coverImage || restaurant.coverImage}" alt="${restaurant.name}" width="300" height="180">
+                <img class="restaurant-image" data-src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="200">
                 <div class="logo-overlay">
-                  <img data-src="${logoUrl}" alt="${restaurant.name} logo" loading="lazy" width="48" height="48">
+                  <img data-src="${logoUrl}" alt="${restaurant.name} logo" width="48" height="48">
                 </div>
-                ${isMobile && isLoggedIn ? '<div class="menu-btn" aria-label="Restaurant actions"><i class="fas fa-ellipsis-h"></i></div>' : ''}
-                ${rating >= 4.5 ? '<div class="card-badge">Top Rated</div>' : ''}
+                ${isMobile && isLoggedIn ? '<button class="menu-btn" aria-label="Restaurant actions" title="Save to lists"><i class="fas fa-ellipsis-h"></i></button>' : ''}
+                ${badgeText ? `
+                  <div class="badge-container">
+                    <div class="user-list-badge">${badgeText.trim()}</div>
+                  </div>
+                ` : ''}
               </div>
               <div class="card-content">
                 <div class="card-header">
-                  <h3 class="card-title">${restaurant.name}</h3>
+                  <div class="card-title-wrapper">
+                    <h3 class="card-title">${restaurant.name}</h3>
+                    ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
+                  </div>
                   <div class="card-rating">
                     <i class="fas fa-star"></i>
                     ${rating.toFixed(1)}
@@ -1786,7 +1925,7 @@
               }
           });
           
-          // Add list buttons that don't navigate (PC only)
+          // Add list buttons that don't navigate (PC only) - same as restaurants.html
           if (isLoggedIn && !isMobile) {
               const listActions = document.createElement('div');
               listActions.className = 'list-actions';
@@ -1828,11 +1967,27 @@
                       else listName = 'Visited';
                       
                       showNotification(`${actionText} ${listName}`, wasAdded ? 'success' : 'info');
+                      
+                      // Update badge on card
+                      const badgeContainer = card.querySelector('.badge-container');
+                      if (badgeContainer) {
+                          let badgeText = '';
+                          const newStatus = listManager.getRestaurantListStatus(restaurantId);
+                          if (newStatus.favorites) badgeText += '❤️ ';
+                          if (newStatus.wantToGo) badgeText += '📍 ';
+                          if (newStatus.visited) badgeText += '✓ ';
+                          
+                          if (badgeText) {
+                              badgeContainer.innerHTML = `<div class="user-list-badge">${badgeText.trim()}</div>`;
+                          } else {
+                              badgeContainer.innerHTML = '';
+                          }
+                      }
                   });
               });
           }
           
-          // Set up menu button for mobile
+          // Set up menu button for mobile - same as restaurants.html
           if (isMobile && isLoggedIn) {
               const menuBtn = card.querySelector('.menu-btn');
               if (menuBtn) {
