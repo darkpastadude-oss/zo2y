@@ -907,58 +907,70 @@
       };
       
       // ---------- RESTAURANT DATA LOADING ----------
+      // Using EXACT logic from your working code
+      async function loadRestaurantsData() {
+        try {
+            // Try with the basic columns from the working code
+            const { data, error } = await supabase
+                .from('restraunts')
+                .select('id, slug, name, category, description, rating, logo_url, image')
+                .order('rating', { ascending: false });
+            
+            if (error) {
+                console.error('Supabase query error:', error);
+                throw error;
+            }
+            
+            if (!data || data.length === 0) {
+                showEmptyState('No restaurants in database. Add restaurants to your Supabase table.');
+                return;
+            }
+            
+            console.log('✅ Successfully loaded', data.length, 'restaurants');
+            
+            state.restaurants = data.map(restaurant => ({
+                id: restaurant.id,
+                slug: restaurant.slug,
+                name: restaurant.name,
+                category: restaurant.category,
+                description: restaurant.description,
+                rating: restaurant.rating,
+                logo_url: getLogoUrl(restaurant),
+                coverImage: getCoverImageUrl(restaurant.slug)
+            }));
+            
+            // Load categories
+            await categoryManager.loadCategories();
+            categoryManager.populateDropdown();
+            
+            // Apply initial filters
+            applyFilters();
+            updateCounts();
+            
+        } catch (error) {
+            console.error('❌ Detailed error in loadRestaurantsData:', error);
+            showNotification(`Database error: ${error.message}`, 'error');
+            showEmptyState('Database connection failed. Please check table permissions.');
+        }
+      }
+
+      // Main loading function
       async function loadRestaurantsFromSupabase() {
           try {
               showLoadingSkeleton();
               
-              console.log("🔄 Loading restaurants from Supabase...");
+              console.log("🔄 Loading all restaurant images from gallery...");
               
-              // Load images first
+              // Load images first - EXACT same as working code
               await loadAllRestaurantImages();
               
-              // Then load restaurant data
-              const { data, error } = await supabase
-                  .from('restraunts')
-                  .select('id, slug, name, category, description, rating, logo_url, image, location')
-                  .order('name', { ascending: true });
-              
-              if (error) {
-                  console.error('Supabase query error:', error);
-                  throw error;
-              }
-              
-              if (!data || data.length === 0) {
-                  showEmptyState('No restaurants in database. Add restaurants to your Supabase table.');
-                  return;
-              }
-              
-              console.log('✅ Successfully loaded', data.length, 'restaurants');
-              
-              state.restaurants = data.map(restaurant => ({
-                  id: restaurant.id,
-                  slug: restaurant.slug,
-                  name: restaurant.name,
-                  category: restaurant.category,
-                  description: restaurant.description,
-                  rating: restaurant.rating,
-                  logo_url: getLogoUrl(restaurant),
-                  coverImage: getCoverImageUrl(restaurant.slug),
-                  location: restaurant.location || '',
-                  quickFilterTags: generateQuickFilterTags(restaurant)
-              }));
-              
-              // Load categories
-              await categoryManager.loadCategories();
-              categoryManager.populateDropdown();
-              
-              // Apply initial filters
-              applyFilters();
-              updateCounts();
+              // Then load restaurant data - EXACT same as working code
+              await loadRestaurantsData();
               
               showNotification(`Loaded ${state.restaurants.length} restaurants`, 'success');
               
           } catch (error) {
-              console.error('❌ Detailed error in loadRestaurantsFromSupabase:', error);
+              console.error('❌ Error loading restaurants:', error);
               
               let errorMessage = 'Error loading restaurants. ';
               if (error.message?.includes('JWT')) {
@@ -1133,7 +1145,6 @@
         
         const rating = restaurant.rating || 0;
         const category = restaurant.category || 'Restaurant';
-        const location = restaurant.location || 'Location not specified';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -1155,7 +1166,7 @@
               </div>
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
               <div class="card-footer">
-                <div class="card-location">${location}</div>
+                <div class="card-location">Click to view details</div>
                 <div class="card-actions">
                   <button class="action-btn" data-action="view" title="View details">
                     <i class="fas fa-eye"></i>
