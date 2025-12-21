@@ -39,6 +39,17 @@
       display: block;
     }
     
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
     .banner-content {
       display: flex;
       flex-wrap: wrap;
@@ -128,7 +139,7 @@
       align-items: center; 
       gap: 20px; 
       padding: 14px 24px; 
-      backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(10px) saturate(180%); /* REDUCED BLUR */
       background: var(--surface); 
       border-bottom: 1px solid var(--border); 
     } 
@@ -1063,8 +1074,9 @@
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       }
       
+      /* FIXED: Third grid option for mobile */
       .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
       
       .search-wrapper {
@@ -1109,6 +1121,7 @@
       header {
         padding: 12px 16px;
         flex-wrap: wrap;
+        backdrop-filter: blur(5px) saturate(180%); /* REDUCED FOR MOBILE */
       }
       
       .guest-banner {
@@ -1171,6 +1184,7 @@
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
       
+      /* FIXED: Third grid option for very small screens */
       .grid-dense {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
@@ -1734,7 +1748,7 @@
           
           if (signupBtn) {
             signupBtn.addEventListener('click', () => {
-              window.location.href = 'signup.html';
+              window.location.href = 'sign-up.html'; // FIXED: Changed from signup.html to sign-up.html
             });
           }
         },
@@ -2325,7 +2339,7 @@
         
         if (authPromptSignupBtn) {
           authPromptSignupBtn.addEventListener('click', () => {
-            window.location.href = 'signup.html';
+            window.location.href = 'sign-up.html'; // FIXED: Changed from signup.html to sign-up.html
           });
         }
         
