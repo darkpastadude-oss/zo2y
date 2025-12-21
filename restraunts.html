@@ -30,7 +30,6 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
       opacity: 0;
       transition: opacity 0.3s ease;
-      content-visibility: auto;
     }
     
     .restaurant-image.loaded {
@@ -118,47 +117,6 @@
       border: none;
       color: #0b1633;
       font-weight: 600;
-    }
-    
-    /* Grid View Controls */
-    .view-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: auto;
-    }
-    
-    .grid-size-buttons {
-      display: flex;
-      gap: 4px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 4px;
-    }
-    
-    .grid-btn {
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      cursor: pointer;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      transition: all 0.3s ease;
-    }
-    
-    .grid-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
-    
-    .grid-btn.active {
-      background: var(--accent);
-      color: #0b1633;
     }
     
     /* Quick Filters */
@@ -255,23 +213,10 @@
     /* Enhanced Grid */
     .grid { 
       display: grid; gap: 20px; transition: grid-template-columns 0.3s ease;
-      will-change: grid-template-columns;
-    }
-    
-    /* Grid variations */
-    .grid-normal {
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
     
-    .grid-compact {
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    }
-    
-    .grid-dense {
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    }
-    
-    /* Restaurant Card */
+    /* Restaurant Card - Simplified */
     .restaurant-card { 
       background: var(--card); 
       border-radius: 16px; 
@@ -283,8 +228,6 @@
       transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
-      will-change: transform;
-      contain: content;
     } 
     
     .restaurant-card:hover { 
@@ -300,80 +243,10 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Logo overlay in bottom left */
-    .logo-overlay {
-      position: absolute;
-      bottom: 12px;
-      left: 12px;
-      width: 48px;
-      height: 48px;
-      background: rgba(11, 22, 51, 0.9);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px;
-      border: 2px solid var(--accent);
-      backdrop-filter: blur(10px);
-      z-index: 20;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-      pointer-events: none;
-    }
-    
-    .logo-overlay img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      pointer-events: none;
-      border-radius: 8px;
-    }
-    
-    .restaurant-card:hover .logo-overlay {
-      transform: scale(1.1);
-      border-color: var(--accent);
-      background: rgba(245,158,11,0.9);
-      box-shadow: 0 8px 24px rgba(245,158,11,0.4);
-    }
-    
-    /* Three dots menu button */
-    .menu-btn {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 36px;
-      height: 36px;
-      background: rgba(11, 22, 51, 0.9);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 25;
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    
-    .menu-btn:hover {
-      background: var(--accent);
-      transform: scale(1.1);
-    }
-    
-    .menu-btn i {
-      color: var(--white);
-      font-size: 16px;
-    }
-    
-    .menu-btn:hover i {
-      color: #0b1633;
-    }
-    
     .card-badge {
       position: absolute;
       top: 12px;
-      left: 12px;
+      right: 12px;
       background: rgba(11, 22, 51, 0.9);
       color: var(--accent);
       padding: 4px 8px;
@@ -457,132 +330,36 @@
       font-weight: 500;
     }
     
-    /* Actions Modal */
-    .actions-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: blur(20px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .actions-modal.active {
+    .card-actions {
       display: flex;
-      opacity: 1;
+      gap: 8px;
     }
     
-    .actions-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 400px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-      animation: modalSlideIn 0.3s ease-out;
-      text-align: center;
-    }
-    
-    @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .actions-header {
-      margin-bottom: 24px;
-    }
-    
-    .actions-header h3 {
-      font-size: 22px;
-      margin-bottom: 8px;
-      color: var(--white);
-      font-weight: 600;
-    }
-    
-    .actions-header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    
-    .action-btn-modal {
+    .action-btn {
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--white);
-      padding: 16px 20px;
-      border-radius: 16px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 12px;
-      text-align: left;
-      font-size: 15px;
-      justify-content: space-between;
+      gap: 6px;
     }
     
-    .action-btn-modal:hover {
-      background: var(--accent);
-      color: #0b1633;
-      transform: translateY(-2px);
-      border-color: var(--accent);
-      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-    }
-    
-    .action-btn-modal.active {
+    .action-btn:hover {
       background: var(--accent);
       color: #0b1633;
       border-color: var(--accent);
     }
     
-    .action-btn-modal i {
-      font-size: 18px;
-      width: 24px;
-    }
-    
-    .action-status {
-      font-size: 13px;
-      opacity: 0.8;
-      font-weight: 500;
-    }
-    
-    .cancel-btn {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 14px 20px;
-      border-radius: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-    }
-    
-    .cancel-btn:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--white);
+    .action-btn.active {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
     }
     
     /* Skeleton Loading */
@@ -735,16 +512,9 @@
     
     /* Responsive */
     @media (max-width: 768px) {
-      .grid-normal {
+      .grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      }
-      
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      }
-      
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 16px;
       }
       
       .search-wrapper {
@@ -756,14 +526,6 @@
       .toolbar {
         width: 100%;
         justify-content: space-between;
-      }
-      
-      .view-controls {
-        order: 4;
-        width: 100%;
-        margin-left: 0;
-        margin-top: 12px;
-        justify-content: center;
       }
       
       .sort-controls {
@@ -798,26 +560,20 @@
       .restaurant-image {
         height: 180px;
       }
-      
-      .logo-overlay {
-        width: 40px;
-        height: 40px;
-        bottom: 10px;
-        left: 10px;
-      }
     }
     
     @media (max-width: 480px) {
-      .grid-normal {
+      .grid {
         grid-template-columns: 1fr;
       }
       
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      .card-actions {
+        gap: 4px;
       }
       
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      .action-btn {
+        padding: 6px 8px;
+        font-size: 11px;
       }
       
       .card-image {
@@ -827,29 +583,14 @@
       .restaurant-image {
         height: 160px;
       }
-      
-      .logo-overlay {
-        width: 36px;
-        height: 36px;
-        bottom: 8px;
-        left: 8px;
-      }
-      
-      .menu-btn {
-        width: 32px;
-        height: 32px;
-        top: 10px;
-        right: 10px;
-      }
     }
     
     /* Performance optimizations */
     @media (prefers-reduced-motion: reduce) {
       .restaurant-card,
-      .menu-btn,
+      .action-btn,
       .btn,
-      .filter-chip,
-      .grid-btn {
+      .filter-chip {
         transition: none !important;
       }
     }
@@ -904,24 +645,10 @@
           <!-- Categories populated dynamically -->
         </select>
       </div>
-      
-      <div class="view-controls">
-        <div class="grid-size-buttons">
-          <button class="grid-btn active" data-view="normal" title="Normal View" aria-label="Normal grid view">
-            <i class="fas fa-th"></i>
-          </button>
-          <button class="grid-btn" data-view="compact" title="Compact View" aria-label="Compact grid view">
-            <i class="fas fa-th-large"></i>
-          </button>
-          <button class="grid-btn" data-view="dense" title="Dense View" aria-label="Dense grid view">
-            <i class="fas fa-th-list"></i>
-          </button>
-        </div>
-      </div>
     </div>
     
     <!-- Restaurant Grid -->
-    <div id="restaurantGrid" class="grid grid-normal">
+    <div id="restaurantGrid" class="grid">
       <!-- Content loaded dynamically -->
     </div>
     
@@ -940,40 +667,6 @@
       <button class="pagination-btn" id="nextPage" disabled>→</button>
     </div>
   </main>
-
-  <!-- Actions Modal -->
-  <div id="actionsModal" class="actions-modal">
-    <div class="actions-content">
-      <div class="actions-header">
-        <h3 id="modalRestaurantName">Restaurant Name</h3>
-        <p>Manage this restaurant in your lists</p>
-      </div>
-      <div class="action-buttons">
-        <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn" aria-label="Toggle favorites">
-          <div>
-            <i class="fas fa-heart"></i>
-            <span>Favorites</span>
-          </div>
-          <span class="action-status" id="favoritesStatus"></span>
-        </button>
-        <button class="action-btn-modal" data-action="wantToGo" id="modalWantToGoBtn" aria-label="Toggle want to go list">
-          <div>
-            <i class="fas fa-map-marker-alt"></i>
-            <span>Want to Go</span>
-          </div>
-          <span class="action-status" id="wantToGoStatus"></span>
-        </button>
-        <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn" aria-label="Toggle visited status">
-          <div>
-            <i class="fas fa-utensils"></i>
-            <span>Visited</span>
-          </div>
-          <span class="action-status" id="visitedStatus"></span>
-        </button>
-      </div>
-      <button class="cancel-btn" id="modalCancelBtn">Close</button>
-    </div>
-  </div>
 
   <footer>
     © 2025 Zo2y — Built with ❤️ for food lovers
@@ -1019,13 +712,8 @@
           sort: 'all'
         },
         imageCache: new Map(),
-        userLists: new Map(), // Map of restaurant ID -> list types
-        restaurantImages: {},
-        currentModalRestaurant: null,
-        currentUser: null,
-        // Performance tracking
-        imageLoadTimes: new Map(),
-        renderTimes: []
+        userLists: new Map(),
+        restaurantImages: {}
       };
       
       // ---------- ENHANCED NOTIFICATION SYSTEM ----------
@@ -1081,299 +769,7 @@
           }, duration);
       }
       
-      // ---------- LIST MANAGEMENT FUNCTIONS ----------
-      
-      async function loadUserLists() {
-          try {
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) {
-                  state.userLists.clear();
-                  return;
-              }
-              
-              state.currentUser = session.user;
-              
-              // Load user's lists
-              const { data, error } = await supabase
-                  .from('user_lists')
-                  .select('restaurant_id, list_type')
-                  .eq('user_id', session.user.id);
-              
-              if (error) throw error;
-              
-              // Clear existing lists
-              state.userLists.clear();
-              
-              // Populate user lists
-              if (data) {
-                  data.forEach(item => {
-                      if (!state.userLists.has(item.restaurant_id)) {
-                          state.userLists.set(item.restaurant_id, new Set());
-                      }
-                      state.userLists.get(item.restaurant_id).add(item.list_type);
-                  });
-              }
-              
-          } catch (error) {
-              console.error('Error loading user lists:', error);
-          }
-      }
-      
-      async function toggleRestaurantInList(restaurantId, listType) {
-          try {
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) {
-                  showNotification('Please sign in to save restaurants', 'error');
-                  window.location.href = 'login.html';
-                  return false;
-              }
-              
-              const userId = session.user.id;
-              const isInList = state.userLists.get(restaurantId)?.has(listType);
-              
-              if (isInList) {
-                  // Remove from list
-                  const { error } = await supabase
-                      .from('user_lists')
-                      .delete()
-                      .eq('user_id', userId)
-                      .eq('restaurant_id', restaurantId)
-                      .eq('list_type', listType);
-                  
-                  if (error) throw error;
-                  
-                  // Update local state
-                  state.userLists.get(restaurantId).delete(listType);
-                  if (state.userLists.get(restaurantId).size === 0) {
-                      state.userLists.delete(restaurantId);
-                  }
-                  
-                  showNotification(`Removed from ${getListDisplayName(listType)}`, 'success');
-                  return false;
-              } else {
-                  // Add to list
-                  const { error } = await supabase
-                      .from('user_lists')
-                      .upsert({
-                          user_id: userId,
-                          restaurant_id: restaurantId,
-                          list_type: listType,
-                          created_at: new Date().toISOString()
-                      }, {
-                          onConflict: 'user_id,restaurant_id,list_type'
-                      });
-                  
-                  if (error) throw error;
-                  
-                  // Update local state
-                  if (!state.userLists.has(restaurantId)) {
-                      state.userLists.set(restaurantId, new Set());
-                  }
-                  state.userLists.get(restaurantId).add(listType);
-                  
-                  showNotification(`Added to ${getListDisplayName(listType)}`, 'success');
-                  return true;
-              }
-              
-          } catch (error) {
-              console.error('Error toggling restaurant in list:', error);
-              showNotification('Failed to update list', 'error');
-              return null;
-          }
-      }
-      
-      function getListDisplayName(listType) {
-          const names = {
-              'favorites': 'Favorites',
-              'wantToGo': 'Want to Go',
-              'visited': 'Visited'
-          };
-          return names[listType] || listType;
-      }
-      
-      function isRestaurantInList(restaurantId, listType) {
-          return state.userLists.get(restaurantId)?.has(listType) || false;
-      }
-      
-      // ---------- MODAL FUNCTIONS ----------
-      const actionsModal = document.getElementById('actionsModal');
-      const modalRestaurantName = document.getElementById('modalRestaurantName');
-      const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
-      const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
-      const modalVisitedBtn = document.getElementById('modalVisitedBtn');
-      const modalCancelBtn = document.getElementById('modalCancelBtn');
-
-      function showModal(restaurantData) {
-          if (!restaurantData) return;
-          
-          state.currentModalRestaurant = restaurantData;
-          modalRestaurantName.textContent = restaurantData.name;
-          
-          updateModalButtons(restaurantData.id);
-          
-          actionsModal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-      }
-
-      function hideModal() {
-          actionsModal.classList.remove('active');
-          document.body.style.overflow = 'auto';
-          state.currentModalRestaurant = null;
-      }
-
-      function updateModalButtons(restaurantId) {
-          // Update favorites button
-          const isFavorited = isRestaurantInList(restaurantId, 'favorites');
-          modalFavoritesBtn.innerHTML = `
-              <div>
-                  <i class="fas ${isFavorited ? 'fa-heart' : 'fa-heart'}"></i>
-                  <span>${isFavorited ? 'Remove from Favorites' : 'Add to Favorites'}</span>
-              </div>
-              <span class="action-status">${isFavorited ? '✓ Added' : ''}</span>
-          `;
-          modalFavoritesBtn.classList.toggle('active', isFavorited);
-          
-          // Update want to go button
-          const isWantToGo = isRestaurantInList(restaurantId, 'wantToGo');
-          modalWantToGoBtn.innerHTML = `
-              <div>
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span>${isWantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>
-              </div>
-              <span class="action-status">${isWantToGo ? '✓ Added' : ''}</span>
-          `;
-          modalWantToGoBtn.classList.toggle('active', isWantToGo);
-          
-          // Update visited button
-          const isVisited = isRestaurantInList(restaurantId, 'visited');
-          modalVisitedBtn.innerHTML = `
-              <div>
-                  <i class="fas fa-utensils"></i>
-                  <span>${isVisited ? 'Remove from Visited' : 'Mark as Visited'}</span>
-              </div>
-              <span class="action-status">${isVisited ? '✓ Added' : ''}</span>
-          `;
-          modalVisitedBtn.classList.toggle('active', isVisited);
-      }
-
-      async function handleListAction(listType) {
-          if (!state.currentModalRestaurant) return;
-          
-          const restaurantId = state.currentModalRestaurant.id;
-          const restaurantName = state.currentModalRestaurant.name;
-          const wasAdded = await toggleRestaurantInList(restaurantId, listType);
-          
-          if (wasAdded !== null) {
-              // Update modal buttons immediately
-              updateModalButtons(restaurantId);
-          }
-      }
-
-      modalFavoritesBtn.addEventListener('click', () => handleListAction('favorites'));
-      modalWantToGoBtn.addEventListener('click', () => handleListAction('wantToGo'));
-      modalVisitedBtn.addEventListener('click', () => handleListAction('visited'));
-      modalCancelBtn.addEventListener('click', hideModal);
-
-      actionsModal.addEventListener('click', (e) => {
-          if (e.target === actionsModal) {
-              hideModal();
-          }
-      });
-
-      document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && actionsModal.classList.contains('active')) {
-              hideModal();
-          }
-      });
-      
-      // ---------- PERFORMANCE-OPTIMIZED IMAGE LOADING ----------
-      
-      class ImageLoader {
-          constructor() {
-              this.cache = new Map();
-              this.pending = new Map();
-              this.observer = null;
-              this.batchSize = 5;
-              this.initIntersectionObserver();
-          }
-          
-          initIntersectionObserver() {
-              this.observer = new IntersectionObserver((entries) => {
-                  entries.forEach((entry, index) => {
-                      if (entry.isIntersecting) {
-                          const img = entry.target;
-                          this.loadImage(img);
-                          this.observer.unobserve(img);
-                      }
-                  });
-              }, {
-                  rootMargin: '100px 0px',
-                  threshold: 0.01
-              });
-          }
-          
-          async loadImage(img) {
-              const src = img.dataset.src;
-              if (!src) return;
-              
-              // Check cache first
-              if (this.cache.has(src)) {
-                  img.src = this.cache.get(src);
-                  img.classList.add('loaded');
-                  return;
-              }
-              
-              // Prevent duplicate loading
-              if (this.pending.has(src)) {
-                  return;
-              }
-              
-              const loadPromise = new Promise((resolve, reject) => {
-                  const image = new Image();
-                  image.onload = () => {
-                      this.cache.set(src, src);
-                      img.src = src;
-                      img.classList.add('loaded');
-                      resolve();
-                  };
-                  image.onerror = () => {
-                      img.src = DEFAULT_COVER_URL;
-                      img.classList.add('loaded');
-                      img.classList.add('failed');
-                      reject();
-                  };
-                  image.src = src;
-              });
-              
-              this.pending.set(src, loadPromise);
-              await loadPromise;
-              this.pending.delete(src);
-          }
-          
-          observe(img) {
-              this.observer.observe(img);
-          }
-          
-          preloadImages(urls) {
-              // Preload first batch of images
-              const toPreload = urls.slice(0, this.batchSize);
-              toPreload.forEach(url => {
-                  if (!this.cache.has(url) && !this.pending.has(url)) {
-                      const img = new Image();
-                      img.src = url;
-                      this.cache.set(url, url);
-                  }
-              });
-          }
-          
-          clear() {
-              this.observer.disconnect();
-              this.initIntersectionObserver();
-          }
-      }
-      
-      const imageLoader = new ImageLoader();
-      
+      // ---------- IMAGE LOADING FUNCTIONS ----------
       async function loadAllRestaurantImages() {
           try {
               console.log("🔄 Loading all restaurant images from gallery...");
@@ -1408,11 +804,6 @@
                   });
                   
                   console.log(`✅ Loaded images for ${Object.keys(state.restaurantImages).length} restaurants`);
-                  
-                  // Preload first batch of cover images
-                  const coverUrls = Object.values(state.restaurantImages).map(img => img.cover);
-                  imageLoader.preloadImages(coverUrls);
-                  
               } else {
                   console.log('No images found in gallery table');
               }
@@ -1516,8 +907,10 @@
       };
       
       // ---------- RESTAURANT DATA LOADING ----------
+      // Using EXACT logic from your working code
       async function loadRestaurantsData() {
         try {
+            // Try with the basic columns from the working code
             const { data, error } = await supabase
                 .from('restraunts')
                 .select('id, slug, name, category, description, rating, logo_url, image')
@@ -1568,13 +961,10 @@
               
               console.log("🔄 Loading all restaurant images from gallery...");
               
-              // Load user lists if authenticated
-              await loadUserLists();
-              
-              // Load images first
+              // Load images first - EXACT same as working code
               await loadAllRestaurantImages();
               
-              // Then load restaurant data
+              // Then load restaurant data - EXACT same as working code
               await loadRestaurantsData();
               
               showNotification(`Loaded ${state.restaurants.length} restaurants`, 'success');
@@ -1603,40 +993,17 @@
               `;
           }
       }
-      
-      // ---------- GRID VIEW CONTROLS ----------
-      function initializeViewControls() {
-          const gridButtons = document.querySelectorAll('.grid-btn');
-          const grid = document.getElementById('restaurantGrid');
-          
-          gridButtons.forEach(btn => {
-              btn.addEventListener('click', () => {
-                  const view = btn.dataset.view;
-                  
-                  gridButtons.forEach(b => b.classList.remove('active'));
-                  btn.classList.add('active');
-                  
-                  grid.classList.remove('grid-normal', 'grid-compact', 'grid-dense');
-                  grid.classList.add(`grid-${view}`);
-                  
-                  try {
-                      localStorage.setItem('zo2y_grid_view', view);
-                  } catch (e) {}
-                  
-                  // Re-render with new layout
-                  if (state.filteredRestaurants.length > 0) {
-                      renderRestaurants();
-                  }
-              });
-          });
-          
-          try {
-              const savedView = localStorage.getItem('zo2y_grid_view') || 'normal';
-              const savedBtn = document.querySelector(`.grid-btn[data-view="${savedView}"]`);
-              if (savedBtn) {
-                  savedBtn.click();
-              }
-          } catch (e) {}
+
+      function generateQuickFilterTags(restaurant) {
+        const tags = [];
+        const rating = restaurant.rating || 0;
+        
+        if (rating >= 4.5) tags.push('high-rated');
+        if (rating >= 4.3) tags.push('best-now');
+        // Add new tag randomly for demonstration
+        if (Math.random() > 0.7) tags.push('new');
+        
+        return tags;
       }
       
       // ---------- FILTERING & SORTING ----------
@@ -1680,12 +1047,14 @@
       function applyQuickFilter(restaurants, filterType) {
         switch(filterType) {
           case 'best-now':
+            // High rating
             return restaurants.filter(r => (r.rating || 0) >= 4.3);
             
           case 'high-rated':
             return restaurants.filter(r => (r.rating || 0) >= 4.5);
             
           case 'new':
+            // For demo, show random restaurants as "new"
             return restaurants.filter(r => Math.random() > 0.7);
             
           case 'all':
@@ -1716,7 +1085,7 @@
         }
       }
       
-      // ---------- OPTIMIZED RENDERING ----------
+      // ---------- RENDERING ----------
       
       function showLoadingSkeleton() {
         const grid = document.getElementById('restaurantGrid');
@@ -1739,7 +1108,6 @@
       }
       
       function renderRestaurants() {
-        const startTime = performance.now();
         const grid = document.getElementById('restaurantGrid');
         const emptyState = document.getElementById('emptyState');
         
@@ -1750,13 +1118,13 @@
         }
         
         emptyState.style.display = 'none';
+        grid.innerHTML = '';
         
         // Calculate pagination slice
         const startIdx = (state.currentPage - 1) * state.pageSize;
         const endIdx = startIdx + state.pageSize;
         const pageItems = state.filteredRestaurants.slice(startIdx, endIdx);
         
-        // Use DocumentFragment for better performance
         const fragment = document.createDocumentFragment();
         
         pageItems.forEach(restaurant => {
@@ -1764,17 +1132,10 @@
           fragment.appendChild(card);
         });
         
-        // Replace content in one operation
-        grid.innerHTML = '';
         grid.appendChild(fragment);
         
-        const endTime = performance.now();
-        state.renderTimes.push(endTime - startTime);
-        
-        // Keep only last 10 render times
-        if (state.renderTimes.length > 10) {
-          state.renderTimes.shift();
-        }
+        // Lazy load images for this page
+        lazyLoadPageImages();
       }
       
       function createRestaurantCard(restaurant) {
@@ -1784,28 +1145,11 @@
         
         const rating = restaurant.rating || 0;
         const category = restaurant.category || 'Restaurant';
-        const logoUrl = getLogoUrl(restaurant);
-        const isFavorited = isRestaurantInList(restaurant.id, 'favorites');
-        const isWantToGo = isRestaurantInList(restaurant.id, 'wantToGo');
-        const isVisited = isRestaurantInList(restaurant.id, 'visited');
-        
-        // Build badge string if restaurant is in any list
-        let badgeText = '';
-        if (isFavorited) badgeText += '❤️ ';
-        if (isWantToGo) badgeText += '📍 ';
-        if (isVisited) badgeText += '✓ ';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
               <img class="restaurant-image" data-src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="200">
-              <div class="logo-overlay">
-                <img data-src="${logoUrl}" alt="${restaurant.name} logo" loading="lazy" width="48" height="48">
-              </div>
-              <button class="menu-btn" aria-label="Restaurant actions">
-                <i class="fas fa-ellipsis-h"></i>
-              </button>
-              ${badgeText ? `<div class="card-badge">${badgeText.trim()}</div>` : ''}
               ${rating >= 4.5 ? '<div class="card-badge">Top Rated</div>' : ''}
             </div>
             <div class="card-content">
@@ -1823,30 +1167,68 @@
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
               <div class="card-footer">
                 <div class="card-location">Click to view details</div>
+                <div class="card-actions">
+                  <button class="action-btn" data-action="view" title="View details">
+                    <i class="fas fa-eye"></i>
+                    View
+                  </button>
+                </div>
               </div>
             </div>
           </a>
         `;
         
-        // Set up lazy loading for images
-        const images = card.querySelectorAll('img[data-src]');
-        images.forEach(img => {
-          imageLoader.observe(img);
-        });
+        // Set up lazy loading for the image
+        const img = card.querySelector('.restaurant-image');
+        lazyLoadImage(img);
         
-        // Set up menu button
-        const menuBtn = card.querySelector('.menu-btn');
-        menuBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          showModal({
-            id: restaurant.id,
-            name: restaurant.name,
-            slug: restaurant.slug
+        // Set up action buttons
+        const actionButtons = card.querySelectorAll('.action-btn');
+        actionButtons.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Just navigate to the restaurant page - the link will handle it
+            window.location.href = `restaurant.html?slug=${restaurant.slug}`;
           });
         });
         
         return card;
+      }
+      
+      function lazyLoadImage(img) {
+        if (!img.dataset.src) return;
+        
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              img.src = img.dataset.src;
+              img.onload = () => {
+                img.classList.add('loaded');
+                observer.unobserve(img);
+              };
+              img.onerror = () => {
+                img.src = DEFAULT_COVER_URL;
+                img.classList.add('loaded');
+                img.classList.add('failed');
+                observer.unobserve(img);
+              };
+            }
+          });
+        }, {
+          rootMargin: '50px 0px',
+          threshold: 0.01
+        });
+        
+        observer.observe(img);
+      }
+      
+      function lazyLoadPageImages() {
+        const images = document.querySelectorAll('.restaurant-image:not([src])');
+        images.forEach(img => {
+          lazyLoadImage(img);
+        });
       }
       
       // ---------- PAGINATION ----------
@@ -1974,19 +1356,9 @@
         document.getElementById('resetEmpty').addEventListener('click', resetAllFilters);
         
         // Auth button
-        document.getElementById('authBtn').addEventListener('click', handleAuthButton);
-        
-        // Initialize grid view controls
-        initializeViewControls();
-      }
-      
-      async function handleAuthButton() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          window.location.href = 'profile.html';
-        } else {
+        document.getElementById('authBtn').addEventListener('click', () => {
           window.location.href = 'login.html';
-        }
+        });
       }
       
       function resetAllFilters() {
@@ -2026,30 +1398,17 @@
           console.error('Failed to load restaurants:', error);
         }
         
-        // Handle auth state changes
-        supabase.auth.onAuthStateChange(async (event, session) => {
-          if (event === 'SIGNED_IN') {
+        // Handle auth state
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
             document.getElementById('authBtn').textContent = 'Profile';
             document.getElementById('authBtn').onclick = () => {
               window.location.href = 'profile.html';
             };
-            await loadUserLists();
-            renderRestaurants();
-          } else if (event === 'SIGNED_OUT') {
-            document.getElementById('authBtn').textContent = 'Sign In';
-            document.getElementById('authBtn').onclick = handleAuthButton;
-            state.userLists.clear();
-            renderRestaurants();
           }
-        });
-        
-        // Check initial auth state
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          document.getElementById('authBtn').textContent = 'Profile';
-          document.getElementById('authBtn').onclick = () => {
-            window.location.href = 'profile.html';
-          };
+        } catch (error) {
+          console.error('Error checking auth state:', error);
         }
       });
       
@@ -2062,21 +1421,6 @@
             renderRestaurants();
           }
         }, 250);
-      });
-      
-      // Handle page visibility for performance
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          // Page is hidden, pause non-essential operations
-          imageLoader.observer.disconnect();
-        } else {
-          // Page is visible again
-          imageLoader.initIntersectionObserver();
-          const images = document.querySelectorAll('img[data-src]:not([src])');
-          images.forEach(img => {
-            imageLoader.observe(img);
-          });
-        }
       });
       
     })();
