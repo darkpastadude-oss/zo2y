@@ -3,285 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zo2y — Discover Restaurants</title>
+  <title>Zo2y — All Restaurants</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Critical CSS for initial render -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { 
-      --bg: #0f172a; 
-      --surface: #1e293b;
-      --surface-light: #334155;
-      --surface-dark: #0f172a;
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-tertiary: #64748b;
-      --accent: #f59e0b;
-      --accent-light: #fbbf24;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --error: #ef4444;
-      --info: #3b82f6;
-      --border: rgba(255, 255, 255, 0.1);
-      --border-light: rgba(255, 255, 255, 0.05);
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      --radius-sm: 0.375rem;
-      --radius: 0.5rem;
-      --radius-md: 0.75rem;
-      --radius-lg: 1rem;
-      --radius-xl: 1.5rem;
-      --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
+      --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      --shadow: 0 10px 30px rgba(0,0,0,0.3);
+      --success: #10b981; --error: #ef4444; --info: #3b82f6;
+      --surface: rgba(19, 35, 71, 0.6);
     }
     
-    /* Reset and base styles */
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
-    
-    html, body { 
-      height: 100%; 
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-      background: var(--bg); 
-      color: var(--text-primary); 
-      line-height: 1.5; 
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    
-    a { 
-      color: inherit; 
-      text-decoration: none; 
-    }
-    
-    img {
-      max-width: 100%;
-      height: auto;
-    }
-    
-    /* Skip to content for accessibility */
-    .skip-to-content {
-      position: absolute;
-      top: -40px;
-      left: 0;
-      background: var(--accent);
-      color: var(--surface-dark);
-      padding: 8px 16px;
-      border-radius: var(--radius);
-      z-index: 9999;
-      transition: top 0.3s;
-    }
-    
-    .skip-to-content:focus {
-      top: 16px;
-    }
-    
-    /* Header */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 1.5rem;
-    }
-    
-    .header-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-    }
-    
-    .logo {
-      height: 40px;
-      width: auto;
-      cursor: pointer;
-      transition: transform var(--transition);
-    }
-    
-    .logo:hover {
-      transform: scale(1.05);
-    }
-    
-    .search-container {
-      flex: 1;
-      max-width: 400px;
-      position: relative;
-    }
-    
-    .search {
-      width: 100%;
-      padding: 0.75rem 1rem 0.75rem 3rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      color: var(--text-primary);
-      font-size: 0.9375rem;
-      transition: all var(--transition);
-    }
-    
-    .search:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-    }
-    
-    .search-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-tertiary);
-      pointer-events: none;
-    }
-    
-    .clear-search {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-tertiary);
-      cursor: pointer;
-      padding: 0.25rem;
-      border-radius: 50%;
-      display: none;
-      transition: background-color var(--transition);
-    }
-    
-    .clear-search:hover {
-      background: var(--surface-light);
-      color: var(--text-primary);
-    }
-    
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-left: auto;
-    }
-    
-    .btn {
-      padding: 0.625rem 1rem;
-      border-radius: var(--radius);
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all var(--transition);
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-    
-    .btn-outline {
-      background: transparent;
-      border-color: var(--border);
-      color: var(--text-primary);
-    }
-    
-    .btn-outline:hover {
-      background: var(--surface);
-      border-color: var(--accent);
-    }
-    
-    .btn-primary {
-      background: var(--accent);
-      color: var(--surface-dark);
-      font-weight: 600;
-    }
-    
-    .btn-primary:hover {
-      background: var(--accent-light);
-      transform: translateY(-1px);
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; } 
+    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
+    a { color: inherit; text-decoration: none; } 
     
     /* Guest Banner */
     .guest-banner {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 1rem 1.5rem;
+      display: none;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 16px 24px;
       backdrop-filter: blur(10px);
       animation: slideDown 0.3s ease-out;
-      display: none;
-    }
-    
-    .guest-banner.show {
-      display: block;
-    }
-    
-    .banner-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-    
-    .banner-content {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    
-    .banner-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--accent);
-      color: var(--surface-dark);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    
-    .banner-text {
-      flex: 1;
-    }
-    
-    .banner-text h3 {
-      font-size: 0.9375rem;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-      color: var(--text-primary);
-    }
-    
-    .banner-text p {
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-    
-    .banner-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-shrink: 0;
-    }
-    
-    .banner-close {
-      background: none;
-      border: none;
-      color: var(--text-tertiary);
-      cursor: pointer;
-      padding: 0.5rem;
-      margin-left: 0.5rem;
-      border-radius: var(--radius-sm);
-      transition: background-color var(--transition);
-    }
-    
-    .banner-close:hover {
-      background: rgba(255, 255, 255, 0.1);
     }
     
     @keyframes slideDown {
@@ -295,44 +42,284 @@
       }
     }
     
-    /* Main Content */
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
-    
-    .page-header {
-      margin-bottom: 2rem;
-    }
-    
-    .page-header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .page-header p {
-      color: var(--text-secondary);
-      font-size: 1rem;
-    }
-    
-    /* Filters */
-    .filters-section {
-      margin-bottom: 2rem;
+    .guest-banner.show {
       display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
     }
     
+    .banner-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    .banner-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1633;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    
+    .banner-text h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--white);
+    }
+    
+    .banner-text p {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+    }
+    
+    .banner-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .banner-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      flex-shrink: 0;
+    }
+    
+    .banner-btn-primary {
+      background: var(--gradient);
+      color: #0b1633;
+    }
+    
+    .banner-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    }
+    
+    .banner-btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid var(--border);
+    }
+    
+    .banner-btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent);
+    }
+    
+    .banner-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      margin-left: 4px;
+    }
+    
+    .banner-close:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--white);
+    }
+    
+    /* Image Loading - FIXED */
+    .restaurant-image {
+      display: block;
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+    
+    .restaurant-image.loaded {
+      opacity: 1;
+    }
+    
+    /* Logo overlay image */
+    .logo-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .logo-overlay img.loaded {
+      opacity: 1;
+    }
+    
+    /* Enhanced Header */
+    header { 
+      position: sticky; 
+      top: 0; 
+      z-index: 100; 
+      display: flex; 
+      align-items: center; 
+      gap: 20px; 
+      padding: 14px 24px; 
+      backdrop-filter: blur(20px) saturate(180%);
+      background: var(--surface); 
+      border-bottom: 1px solid var(--border); 
+    } 
+    
+    .logo { 
+      height: 40px; 
+      cursor: pointer; 
+      transition: transform 0.3s ease;
+    }
+    
+    .logo:hover {
+      transform: scale(1.05);
+    }
+    
+    .toolbar { 
+      display: flex; 
+      gap: 12px; 
+      margin-left: auto; 
+      align-items: center; 
+      flex-wrap: wrap; 
+    } 
+    
+    /* Enhanced Search */
+    .search-wrapper {
+      width: 320px;
+      position: relative;
+    }
+    
+    .search { 
+      width: 100%; 
+      padding: 10px 16px 10px 40px; 
+      border-radius: 20px; 
+      border: 1px solid var(--border); 
+      background: var(--card); 
+      color: var(--white); 
+      outline: none; 
+      font-size: 14px; 
+      transition: all 0.3s ease;
+    } 
+    
+    .search:focus { 
+      border-color: var(--accent); 
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
+    } 
+    
+    .search-icon { 
+      position: absolute; 
+      left: 12px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      opacity: 0.6; 
+      pointer-events: none;
+    }
+    
+    .clear-search {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+    }
+    
+    .clear-search:hover {
+      color: var(--white);
+    }
+    
+    .btn { 
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      color: var(--white); 
+      padding: 8px 16px; 
+      border-radius: 16px; 
+      cursor: pointer; 
+      font-size: 13px; 
+      font-weight: 500; 
+      transition: all 0.2s ease; 
+      white-space: nowrap;
+    } 
+    
+    .btn:hover { 
+      background: var(--accent); 
+      color: #0b1633; 
+    }
+    
+    .btn-primary {
+      background: var(--gradient);
+      border: none;
+      color: #0b1633;
+      font-weight: 600;
+    }
+    
+    /* Grid View Controls */
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+    
+    .grid-size-buttons {
+      display: flex;
+      gap: 4px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 4px;
+    }
+    
+    .grid-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      transition: all 0.3s ease;
+    }
+    
+    .grid-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+    
+    .grid-btn.active {
+      background: var(--accent);
+      color: #0b1633;
+    }
+    
+    /* Quick Filters */
     .quick-filters {
       display: flex;
-      gap: 0.5rem;
+      gap: 8px;
       overflow-x: auto;
-      padding-bottom: 0.5rem;
+      padding: 8px 0;
+      margin: 0 -20px;
+      padding-left: 20px;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
@@ -342,290 +329,320 @@
     }
     
     .filter-chip {
-      padding: 0.5rem 1rem;
-      background: var(--surface);
+      background: var(--card);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text-secondary);
-      font-size: 0.875rem;
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: all var(--transition);
+      transition: all 0.2s ease;
       white-space: nowrap;
       flex-shrink: 0;
     }
     
     .filter-chip:hover {
-      background: var(--surface-light);
-      color: var(--text-primary);
-    }
-    
-    .filter-chip.active {
-      background: var(--accent);
-      color: var(--surface-dark);
+      background: rgba(245, 158, 11, 0.1);
       border-color: var(--accent);
     }
     
-    .filter-controls {
+    .filter-chip.active {
+      background: var(--gradient);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
+    /* Enhanced Container */
+    .container { 
+      max-width: 1200px; 
+      margin: 24px auto; 
+      padding: 0 20px; 
+    } 
+    
+    .page-header {
+      margin-bottom: 24px;
+    }
+    
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .page-header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    /* Controls Bar */
+    .controls { 
+      display: flex; 
+      gap: 12px; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      flex-wrap: wrap; 
+    } 
+    
+    .controls-info { 
+      color: var(--muted); 
+      font-size: 14px; 
+      font-weight: 500; 
+    } 
+    
+    .sort-controls {
       display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
+      gap: 8px;
+      margin-left: auto;
     }
     
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .filter-label {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-    
-    .select {
-      padding: 0.5rem 2rem 0.5rem 0.75rem;
-      background: var(--surface);
+    .sort-select {
+      background: var(--card);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text-primary);
-      font-size: 0.875rem;
+      color: var(--white);
+      padding: 8px 12px;
+      border-radius: 16px;
+      font-size: 13px;
       cursor: pointer;
       min-width: 160px;
-      transition: border-color var(--transition);
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
     }
     
-    .select:focus {
+    .sort-select:focus {
       outline: none;
       border-color: var(--accent);
     }
     
-    .results-info {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      margin-left: auto;
-    }
-    
-    /* Restaurant Grid */
-    .restaurant-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-      position: relative;
+    /* Enhanced Grid */
+    .grid { 
+      display: grid; 
+      gap: 20px; 
+      transition: grid-template-columns 0.3s ease;
       min-height: 400px;
     }
     
-    /* Skeleton Loading */
-    .skeleton-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
+    /* Grid variations */
+    .grid-normal {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
     
-    .skeleton-card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
+    .grid-compact {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    .grid-dense {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    /* Restaurant Card */
+    .restaurant-card { 
+      background: var(--card); 
+      border-radius: 16px; 
+      overflow: hidden; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
       border: 1px solid var(--border);
-      animation: pulse 2s infinite;
-    }
-    
-    .skeleton-image {
-      height: 180px;
-      background: var(--surface-light);
-    }
-    
-    .skeleton-content {
-      padding: 1.25rem;
-    }
-    
-    .skeleton-line {
-      height: 0.75rem;
-      background: var(--surface-light);
-      border-radius: var(--radius-sm);
-      margin-bottom: 0.75rem;
-    }
-    
-    .skeleton-line.short {
-      width: 60%;
-    }
-    
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.7;
-      }
-    }
-    
-    /* Restaurant Card - Optimized */
-    .restaurant-card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      border: 1px solid var(--border-light);
-      transition: all var(--transition);
-      height: 100%;
+      cursor: pointer; 
+      position: relative;
+      transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
-      position: relative;
-      will-change: transform;
-      contain: content;
-    }
+      height: 100%;
+    } 
     
-    .restaurant-card:hover {
-      transform: translateY(-4px);
+    .restaurant-card:hover { 
+      transform: translateY(-4px); 
+      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
       border-color: var(--accent);
-      box-shadow: var(--shadow-lg);
-    }
-    
-    .card-image-container {
-      position: relative;
-      width: 100%;
-      height: 180px;
-      overflow: hidden;
-      background: var(--surface-dark);
     }
     
     .card-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      will-change: opacity;
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    .card-image.loaded {
-      opacity: 1;
-    }
-    
-    .card-image-placeholder {
+    /* Logo overlay in bottom left */
+    .logo-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, var(--surface-dark) 0%, var(--surface) 100%);
+      bottom: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
+      background: rgba(11, 22, 51, 0.9);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text-tertiary);
+      padding: 4px;
+      border: 2px solid var(--accent);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      pointer-events: none;
     }
     
-    .card-badges {
+    .restaurant-card:hover .logo-overlay {
+      transform: scale(1.1);
+      border-color: var(--accent);
+      background: rgba(245,158,11,0.9);
+      box-shadow: 0 8px 24px rgba(245,158,11,0.4);
+    }
+    
+    /* Badge container */
+    .badge-container {
       position: absolute;
-      top: 0.75rem;
-      left: 0.75rem;
+      top: 12px;
+      left: 12px;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      z-index: 2;
+      gap: 8px;
+      z-index: 25;
+      max-width: calc(100% - 80px);
     }
     
-    .card-badge {
-      padding: 0.25rem 0.5rem;
-      background: rgba(15, 23, 42, 0.9);
+    /* User list badge (Favorites, Visited, Want to Go) */
+    .user-list-badge {
+      background: rgba(11, 22, 51, 0.9);
       color: var(--accent);
-      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 11px;
       font-weight: 600;
-      border-radius: var(--radius-sm);
+      backdrop-filter: blur(10px);
       border: 1px solid var(--accent);
-      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
     }
     
-    .card-menu-btn {
+    /* Three dots menu button - ALWAYS VISIBLE */
+    .menu-btn {
       position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      width: 32px;
-      height: 32px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      background: rgba(11, 22, 51, 0.9);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 2;
-      backdrop-filter: blur(4px);
-      transition: all var(--transition);
+      z-index: 30;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     
-    .card-menu-btn:hover {
+    .menu-btn:hover {
       background: var(--accent);
-      border-color: var(--accent);
+      transform: scale(1.1);
     }
     
-    .card-menu-btn:hover i {
-      color: var(--surface-dark);
+    .menu-btn i {
+      color: var(--white);
+      font-size: 16px;
     }
     
-    .card-menu-btn i {
-      color: var(--text-primary);
-      font-size: 0.875rem;
+    .menu-btn:hover i {
+      color: #0b1633;
     }
     
     .card-content {
-      padding: 1.25rem;
+      padding: 16px;
       flex: 1;
       display: flex;
       flex-direction: column;
     }
     
     .card-header {
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
+      gap: 12px;
+    }
+    
+    .card-title-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     
     .card-title {
-      font-size: 1rem;
-      font-weight: 600;
-      line-height: 1.4;
-      color: var(--text-primary);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0;
       flex: 1;
     }
     
+    /* Top rated badge - NEW POSITIONING */
+    .top-rated-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      animation: glow 2s infinite alternate;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+      white-space: nowrap;
+    }
+    
+    @keyframes glow {
+      0% {
+        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
+                    0 0 10px rgba(245, 158, 11, 0.3);
+      }
+      100% {
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
+                    0 0 20px rgba(245, 158, 11, 0.5),
+                    0 0 30px rgba(245, 158, 11, 0.3);
+      }
+    }
+    
     .card-rating {
+      background: var(--gradient);
+      color: #0b1633;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 0.25rem;
-      background: var(--surface-light);
-      color: var(--accent);
-      padding: 0.25rem 0.5rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.8125rem;
-      font-weight: 600;
+      gap: 4px;
+      white-space: nowrap;
       flex-shrink: 0;
     }
     
     .card-category {
       color: var(--accent);
-      font-size: 0.8125rem;
-      font-weight: 500;
-      margin-bottom: 0.75rem;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 6px;
     }
     
     .card-description {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
+      color: var(--muted);
+      font-size: 14px;
       line-height: 1.5;
-      margin-bottom: 1rem;
+      margin: 0 0 16px 0;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
       flex: 1;
@@ -633,94 +650,266 @@
     
     .card-footer {
       margin-top: auto;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--border-light);
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     
-    .card-actions {
-      display: flex;
-      gap: 0.5rem;
+    .card-location {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
     }
     
-    .card-action-btn {
-      width: 32px;
-      height: 32px;
-      background: var(--surface-light);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      display: flex;
+    /* Actions Modal */
+    .actions-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      transition: all var(--transition);
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     
-    .card-action-btn:hover {
-      background: var(--accent);
-      border-color: var(--accent);
+    .actions-modal.active {
+      display: flex;
+      opacity: 1;
     }
     
-    .card-action-btn:hover i {
-      color: var(--surface-dark);
+    .actions-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: center;
     }
     
-    .card-action-btn i {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
-    .card-action-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
+    .actions-header {
+      margin-bottom: 24px;
     }
     
-    .card-action-btn.active i {
-      color: var(--surface-dark);
+    .actions-header h3 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: var(--white);
+      font-weight: 600;
     }
     
-    .card-view-btn {
-      background: var(--surface-light);
+    .actions-header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .action-btn-modal {
+      background: var(--bg);
       border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 0.375rem 0.75rem;
-      border-radius: var(--radius);
-      font-size: 0.8125rem;
+      color: var(--white);
+      padding: 16px 20px;
+      border-radius: 16px;
       font-weight: 500;
       cursor: pointer;
-      transition: all var(--transition);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      font-size: 15px;
+      justify-content: space-between;
     }
     
-    .card-view-btn:hover {
+    .action-btn-modal:hover {
       background: var(--accent);
-      color: var(--surface-dark);
+      color: #0b1633;
+      transform: translateY(-2px);
       border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+    
+    .action-btn-modal.active {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
+    .action-btn-modal i {
+      font-size: 18px;
+      width: 24px;
+    }
+    
+    .cancel-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      border-radius: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .cancel-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
+    }
+    
+    /* Enhanced Custom Notification */
+    .notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+    }
+    
+    .custom-notification {
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      transform: translateX(120%);
+      transition: transform 0.4s ease;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+    }
+    
+    .notification-success {
+      background: rgba(16, 185, 129, 0.9);
+      color: white;
+    }
+    
+    .notification-error {
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+    }
+    
+    .notification-info {
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+    }
+    
+    .notification-show {
+      transform: translateY(0);
+    }
+    
+    .notification-icon {
+      margin-right: 12px;
+      font-size: 1.2rem;
+    }
+    
+    .notification-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .notification-close:hover {
+      opacity: 1;
+    }
+    
+    /* Skeleton Loading */
+    .skeleton-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    
+    .skeleton-card {
+      background: var(--card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    
+    .skeleton-image {
+      height: 200px;
+      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    
+    .skeleton-content {
+      padding: 16px;
+    }
+    
+    .skeleton-line {
+      height: 12px;
+      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    
+    .skeleton-line.short {
+      width: 60%;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
     
     /* Empty State */
-    .empty-state {
+    .empty-state { 
       grid-column: 1 / -1;
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--text-secondary);
+      padding: 60px 20px; 
+      text-align: center; 
+      color: var(--muted); 
+      display: none; 
     }
     
-    .empty-state-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
       opacity: 0.5;
     }
     
     .empty-state h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.5rem;
-      color: var(--text-primary);
-    }
-    
-    .empty-state p {
-      margin-bottom: 1.5rem;
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: var(--white);
     }
     
     /* Pagination */
@@ -728,33 +917,34 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 0.5rem;
-      margin-top: 3rem;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 16px 0;
     }
     
     .pagination-btn {
-      width: 40px;
-      height: 40px;
-      background: var(--surface);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--card);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text-primary);
+      color: var(--white);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all var(--transition);
+      transition: all 0.2s ease;
     }
     
     .pagination-btn:hover:not(:disabled) {
       background: var(--accent);
-      color: var(--surface-dark);
+      color: #0b1633;
       border-color: var(--accent);
     }
     
     .pagination-btn.active {
-      background: var(--accent);
-      color: var(--surface-dark);
+      background: var(--gradient);
+      color: #0b1633;
       border-color: var(--accent);
     }
     
@@ -764,289 +954,170 @@
     }
     
     .pagination-info {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      margin: 0 1rem;
-    }
-    
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(10px);
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-    
-    .modal-overlay.active {
-      display: flex;
-      animation: fadeIn 0.2s ease;
-    }
-    
-    .modal {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      max-width: 400px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: slideUp 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .modal-header {
-      padding: 1.5rem 1.5rem 0;
-      text-align: center;
-    }
-    
-    .modal-header h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .modal-header p {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-    }
-    
-    .modal-actions {
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    
-    .modal-action-btn {
-      padding: 1rem;
-      background: var(--surface-light);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text-primary);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      text-align: left;
-    }
-    
-    .modal-action-btn:hover {
-      background: var(--accent);
-      color: var(--surface-dark);
-      border-color: var(--accent);
-      transform: translateY(-1px);
-    }
-    
-    .modal-action-btn.active {
-      background: var(--accent);
-      color: var(--surface-dark);
-      border-color: var(--accent);
-    }
-    
-    .modal-action-btn i {
-      width: 20px;
-      font-size: 1rem;
-    }
-    
-    .modal-cancel {
-      padding: 1.5rem 1.5rem 1rem;
-    }
-    
-    .modal-cancel-btn {
-      width: 100%;
-      padding: 0.875rem;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text-secondary);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-    
-    .modal-cancel-btn:hover {
-      background: var(--surface-light);
-      color: var(--text-primary);
-    }
-    
-    /* Notifications */
-    .notification-container {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      max-width: 400px;
-    }
-    
-    .notification {
-      padding: 1rem 1.25rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      align-items: center;
-      transform: translateX(120%);
-      transition: transform 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
-    
-    .notification.show {
-      transform: translateX(0);
-    }
-    
-    .notification-success {
-      border-left: 4px solid var(--success);
-    }
-    
-    .notification-error {
-      border-left: 4px solid var(--error);
-    }
-    
-    .notification-info {
-      border-left: 4px solid var(--info);
-    }
-    
-    .notification-icon {
-      margin-right: 0.75rem;
-      font-size: 1.25rem;
-    }
-    
-    .notification-success .notification-icon {
-      color: var(--success);
-    }
-    
-    .notification-error .notification-icon {
-      color: var(--error);
-    }
-    
-    .notification-info .notification-icon {
-      color: var(--info);
-    }
-    
-    .notification-close {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: var(--text-tertiary);
-      cursor: pointer;
-      padding: 0.25rem;
-      border-radius: 50%;
-      transition: background-color var(--transition);
-    }
-    
-    .notification-close:hover {
-      background: var(--surface-light);
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 16px;
     }
     
     /* Footer */
-    footer {
-      padding: 2rem 1.5rem;
-      border-top: 1px solid var(--border);
-      background: var(--surface-dark);
-      text-align: center;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
+    footer { 
+      padding: 30px 20px; 
+      color: var(--muted); 
+      text-align: center; 
+      border-top: 1px solid var(--border); 
+      margin-top: 60px; 
+      background: var(--card);
     }
     
     /* Responsive */
     @media (max-width: 768px) {
-      .header-container {
+      .grid-normal {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      }
+      
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+      
+      .search-wrapper {
+        width: 100%;
+        order: 3;
+        margin-top: 12px;
+      }
+      
+      .toolbar {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .view-controls {
+        order: 4;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 12px;
+        justify-content: center;
+      }
+      
+      .sort-controls {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+      }
+      
+      .sort-select {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .quick-filters {
+        margin: 0 -16px;
+        padding-left: 16px;
+      }
+      
+      .container {
+        padding: 0 16px;
+      }
+      
+      header {
+        padding: 12px 16px;
         flex-wrap: wrap;
       }
       
-      .search-container {
-        order: 3;
-        width: 100%;
-        max-width: 100%;
-        margin-top: 1rem;
+      .guest-banner {
+        padding: 12px 16px;
       }
       
-      .restaurant-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      .card-image {
+        height: 180px;
       }
       
-      .banner-container {
+      .restaurant-image {
+        height: 180px;
+      }
+      
+      .logo-overlay {
+        width: 40px;
+        height: 40px;
+        bottom: 10px;
+        left: 10px;
+      }
+      
+      .menu-btn {
+        width: 32px;
+        height: 32px;
+        top: 10px;
+        right: 10px;
+      }
+      
+      .card-header {
         flex-direction: column;
-        align-items: stretch;
-        text-align: center;
+        align-items: flex-start;
+        gap: 8px;
       }
       
-      .banner-content {
-        justify-content: center;
-      }
-      
-      .banner-actions {
-        justify-content: center;
+      .card-title-wrapper {
+        width: 100%;
       }
     }
     
-    @media (max-width: 640px) {
-      .restaurant-grid {
+    @media (max-width: 480px) {
+      .grid-normal {
         grid-template-columns: 1fr;
       }
       
-      .filter-controls {
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      
+      .guest-banner {
         flex-direction: column;
-        align-items: stretch;
+        gap: 12px;
       }
       
-      .results-info {
-        margin-left: 0;
-        text-align: center;
+      .banner-actions {
+        width: 100%;
+        justify-content: center;
       }
       
-      .header-actions {
-        flex-wrap: wrap;
-        justify-content: flex-end;
+      .card-image {
+        height: 160px;
       }
       
-      .banner-container {
-        flex-direction: column;
-        gap: 0.75rem;
+      .restaurant-image {
+        height: 160px;
       }
       
-      .banner-content {
-        flex-direction: column;
-        text-align: center;
+      .logo-overlay {
+        width: 36px;
+        height: 36px;
+        bottom: 8px;
+        left: 8px;
+      }
+      
+      .menu-btn {
+        width: 30px;
+        height: 30px;
+        top: 8px;
+        right: 8px;
       }
     }
     
-    /* Reduce motion */
+    /* Performance optimizations */
     @media (prefers-reduced-motion: reduce) {
-      * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+      .restaurant-card,
+      .menu-btn,
+      .btn,
+      .filter-chip,
+      .grid-btn {
+        transition: none !important;
       }
     }
   </style>
@@ -1054,137 +1125,131 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <a href="#main-content" class="skip-to-content">Skip to main content</a>
-  
   <header>
-    <div class="header-container">
-      <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-      
-      <div class="search-container">
+    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+    <div class="toolbar">
+      <div class="search-wrapper">
         <span class="search-icon">🔎</span>
-        <input type="text" id="search" class="search" placeholder="Search restaurants..." 
-               aria-label="Search restaurants" autocomplete="off">
+        <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
         <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
       </div>
-      
-      <div class="header-actions">
-        <button class="btn btn-outline" id="resetFilters">Clear Filters</button>
-        <button class="btn btn-primary" id="authBtn">Sign In</button>
-      </div>
+      <button class="btn" id="resetFilters">Clear Filters</button>
+      <button class="btn btn-primary" id="authBtn">Sign In</button>
     </div>
   </header>
 
   <!-- Guest Banner -->
   <div id="guestBanner" class="guest-banner">
-    <div class="banner-container">
-      <div class="banner-content">
-        <div class="banner-icon">
-          <i class="fas fa-star"></i>
-        </div>
-        <div class="banner-text">
-          <h3>Sign in to save your favorites</h3>
-          <p>Create lists, get recommendations, and never forget a great meal</p>
-        </div>
+    <div class="banner-content">
+      <div class="banner-icon">
+        <i class="fas fa-star"></i>
       </div>
-      <div class="banner-actions">
-        <button class="btn btn-outline" id="bannerLoginBtn">Sign In</button>
-        <button class="btn btn-primary" id="bannerSignupBtn">Sign Up</button>
-        <button class="banner-close" id="bannerClose" aria-label="Dismiss banner">
-          <i class="fas fa-times"></i>
-        </button>
+      <div class="banner-text">
+        <h3>Sign in to save your favorite restaurants!</h3>
+        <p>Create lists, save preferences, and get personalized recommendations</p>
       </div>
+    </div>
+    <div class="banner-actions">
+      <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
+      <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
+      <button class="banner-close" id="bannerClose" aria-label="Dismiss banner">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
   </div>
 
-  <main id="main-content">
+  <main class="container">
     <div class="page-header">
-      <h1>Discover Restaurants</h1>
-      <p>Find your next favorite meal from our curated collection</p>
+      <h1>Browse All Restaurants</h1>
+      <p>Discover and explore all available restaurants</p>
     </div>
     
-    <div class="filters-section">
-      <div class="quick-filters" id="quickFilters">
-        <button class="filter-chip active" data-filter="all">All Restaurants</button>
-        <button class="filter-chip" data-filter="trending">🔥 Trending</button>
-        <button class="filter-chip" data-filter="top-rated">⭐ Top Rated</button>
-        <button class="filter-chip" data-filter="new">🆕 New</button>
+    <!-- Quick Filters -->
+    <div class="quick-filters" id="quickFilters">
+      <button class="filter-chip active" data-filter="all">All Restaurants</button>
+      <button class="filter-chip" data-filter="trending">🔥 Trending</button>
+      <button class="filter-chip" data-filter="top-rated">⭐ Top Rated</button>
+      <button class="filter-chip" data-filter="new">🆕 New</button>
+    </div>
+    
+    <div class="controls">
+      <div class="controls-info">
+        Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> restaurants
       </div>
       
-      <div class="filter-controls">
-        <div class="filter-group">
-          <label for="sortSelect" class="filter-label">Sort by:</label>
-          <select id="sortSelect" class="select">
-            <option value="rating-desc">Rating: High to Low</option>
-            <option value="rating-asc">Rating: Low to High</option>
-            <option value="name-asc">Name: A to Z</option>
-            <option value="name-desc">Name: Z to A</option>
-          </select>
-        </div>
+      <div class="sort-controls">
+        <select id="sortSelect" class="sort-select">
+          <option value="rating-desc">Rating: High to Low</option>
+          <option value="rating-asc">Rating: Low to High</option>
+          <option value="name-asc">Name: A to Z</option>
+          <option value="name-desc">Name: Z to A</option>
+        </select>
         
-        <div class="filter-group">
-          <label for="categorySelect" class="filter-label">Category:</label>
-          <select id="categorySelect" class="select">
-            <option value="all">All Categories</option>
-            <!-- Categories will be populated -->
-          </select>
-        </div>
-        
-        <div class="results-info">
-          Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> restaurants
+        <select id="categorySelect" class="sort-select">
+          <option value="all">All Categories</option>
+          <!-- Categories populated dynamically -->
+        </select>
+      </div>
+      
+      <div class="view-controls">
+        <div class="grid-size-buttons">
+          <button class="grid-btn active" data-view="normal" title="Normal View" aria-label="Normal grid view">
+            <i class="fas fa-th"></i>
+          </button>
+          <button class="grid-btn" data-view="compact" title="Compact View" aria-label="Compact grid view">
+            <i class="fas fa-th-large"></i>
+          </button>
+          <button class="grid-btn" data-view="dense" title="Dense View" aria-label="Dense grid view">
+            <i class="fas fa-th-list"></i>
+          </button>
         </div>
       </div>
     </div>
     
-    <div id="restaurantGrid" class="restaurant-grid">
-      <!-- Content will be loaded here -->
+    <!-- Restaurant Grid -->
+    <div id="restaurantGrid" class="grid grid-normal">
+      <!-- Content loaded dynamically -->
     </div>
     
+    <!-- Pagination -->
     <div id="pagination" class="pagination" style="display: none;">
-      <button class="pagination-btn" id="prevPage" disabled>
-        <i class="fas fa-chevron-left"></i>
-      </button>
-      <span class="pagination-info">
-        Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
-      </span>
-      <button class="pagination-btn" id="nextPage" disabled>
-        <i class="fas fa-chevron-right"></i>
-      </button>
+      <button class="pagination-btn" id="prevPage" disabled>←</button>
+      <span class="pagination-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+      <button class="pagination-btn" id="nextPage" disabled>→</button>
     </div>
   </main>
 
   <!-- Actions Modal -->
-  <div id="actionsModal" class="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
+  <div id="actionsModal" class="actions-modal">
+    <div class="actions-content">
+      <div class="actions-header">
         <h3 id="modalRestaurantName">Restaurant Name</h3>
-        <p>Add to your lists</p>
+        <p>Add this restaurant to your lists</p>
       </div>
-      <div class="modal-actions">
-        <button class="modal-action-btn" data-action="favorites" id="modalFavoritesBtn">
+      <div class="action-buttons">
+        <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn">
           <i class="fas fa-heart"></i>
           <span id="favoritesText">Add to Favorites</span>
         </button>
-        <button class="modal-action-btn" data-action="wantToGo" id="modalWantToGoBtn">
+        <button class="action-btn-modal" data-action="wantToGo" id="modalWantToGoBtn">
           <i class="fas fa-map-marker-alt"></i>
           <span id="wantToGoText">Want to Go</span>
         </button>
-        <button class="modal-action-btn" data-action="visited" id="modalVisitedBtn">
+        <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn">
           <i class="fas fa-utensils"></i>
           <span id="visitedText">Mark as Visited</span>
         </button>
       </div>
-      <div class="modal-cancel">
-        <button class="modal-cancel-btn" id="modalCancelBtn">Cancel</button>
-      </div>
+      <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
     </div>
   </div>
 
-  <!-- Notifications -->
-  <div id="notificationContainer" class="notification-container"></div>
-
   <footer>
-    © 2025 Zo2y — Made with ❤️ for food lovers
+    © 2025 Zo2y — Built with ❤️ for food lovers
   </footer>
+
+  <!-- Notification Container -->
+  <div id="notificationContainer" class="notification-container"></div>
 
   <script>
     (function() {
@@ -1194,13 +1259,9 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       
-      // Default fallback images (public URLs that never expire)
+      // Default fallback images (public URLs)
       const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-cover.jpg';
       const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
-      
-      // Image cache for instant loading
-      const IMAGE_CACHE = new Map();
-      const IMAGE_CACHE_SIZE = 100; // Keep last 100 images in memory
       
       // Initialize Supabase
       let supabase;
@@ -1224,496 +1285,238 @@
           search: '',
           category: 'all',
           quickFilter: 'all',
-          sort: 'rating-desc' // Default sort by rating
+          sort: 'rating-desc'
         },
+        restaurantImages: new Map(),
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
         authChecked: false
       };
       
-      // ---------- IMAGE LOADING SYSTEM (PERFORMANCE FIXED) ----------
-      const imageLoader = {
-        // Cache for loaded images
-        cache: IMAGE_CACHE,
-        
-        // Preload queue for visible images
-        preloadQueue: [],
-        isPreloading: false,
-        
-        // Load single image with fallback
-        loadImage: async function(element) {
-          if (!element || !element.dataset.src) return;
-          
-          const src = element.dataset.src;
-          const isLogo = element.classList.contains('logo-image');
-          
-          // Check memory cache first
-          if (this.cache.has(src)) {
-            const cached = this.cache.get(src);
-            if (cached.status === 'loaded') {
-              element.src = cached.url;
-              element.onload = () => element.classList.add('loaded');
-              return;
-            } else if (cached.status === 'error') {
-              this.setFallbackImage(element, isLogo);
-              return;
-            }
-          }
-          
-          // Mark as loading
-          this.cache.set(src, { status: 'loading' });
-          
-          // Use async decoding to prevent main thread blocking
-          const img = new Image();
-          img.decoding = 'async';
-          
-          img.onload = () => {
-            // Cache the successful load
-            this.cache.set(src, { status: 'loaded', url: src });
-            this.manageCacheSize();
-            
-            // Use requestAnimationFrame for smooth transition
-            requestAnimationFrame(() => {
-              element.src = src;
-              element.classList.add('loaded');
-            });
-          };
-          
-          img.onerror = () => {
-            // Cache the error
-            this.cache.set(src, { status: 'error' });
-            this.setFallbackImage(element, isLogo);
-          };
-          
-          // Start loading
-          img.src = src;
-        },
-        
-        // Set fallback image
-        setFallbackImage: function(element, isLogo) {
-          const fallbackSrc = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-          
-          requestAnimationFrame(() => {
-            element.src = fallbackSrc;
-            element.classList.add('loaded');
-          });
-        },
-        
-        // Manage cache size (LRU)
-        manageCacheSize: function() {
-          if (this.cache.size > IMAGE_CACHE_SIZE) {
-            const firstKey = this.cache.keys().next().value;
-            this.cache.delete(firstKey);
-          }
-        },
-        
-        // Load images in viewport
-        loadVisibleImages: function() {
-          const images = document.querySelectorAll('img[data-src]:not(.loaded)');
-          
-          images.forEach(img => {
-            const rect = img.getBoundingClientRect();
-            const isVisible = (
-              rect.top <= window.innerHeight + 100 && // 100px buffer
-              rect.bottom >= -100 &&
-              rect.left <= window.innerWidth + 100 &&
-              rect.right >= -100
-            );
-            
-            if (isVisible) {
-              this.loadImage(img);
-            }
-          });
-        },
-        
-        // Preload critical images (above the fold)
-        preloadCriticalImages: function() {
-          const viewportHeight = window.innerHeight;
-          const images = document.querySelectorAll('img[data-src]:not(.loaded)');
-          
-          for (const img of images) {
-            const rect = img.getBoundingClientRect();
-            if (rect.top < viewportHeight * 1.5) {
-              this.loadImage(img);
-            } else {
-              break;
-            }
-          }
-        }
-      };
-      
-      // ---------- RESTAURANT CARD RENDERER (STABLE KEYS) ----------
-      const cardRenderer = {
-        // Cache rendered cards by restaurant ID
-        cardCache: new Map(),
-        
-        // Create restaurant card with stable key (restaurant.id)
-        createCard: function(restaurant) {
-          // Check cache first
-          const cacheKey = `restaurant-${restaurant.id}`;
-          if (this.cardCache.has(cacheKey)) {
-            return this.cardCache.get(cacheKey).cloneNode(true);
-          }
-          
-          const rating = restaurant.rating || 0;
-          const category = restaurant.category || 'Restaurant';
-          const coverUrl = restaurant.coverImage || DEFAULT_COVER_URL;
-          const logoUrl = restaurant.logo_url || DEFAULT_LOGO_URL;
-          
-          const card = document.createElement('article');
-          card.className = 'restaurant-card';
-          card.dataset.id = restaurant.id;
-          
-          // Use restaurant ID as key for React-like stability
-          card.setAttribute('data-key', restaurant.id);
-          
-          // Build card HTML
-          card.innerHTML = `
-            <div class="card-image-container">
-              <img class="card-image" 
-                   data-src="${coverUrl}" 
-                   alt="${restaurant.name}"
-                   width="280"
-                   height="180"
-                   loading="lazy"
-                   decoding="async">
-              <div class="card-image-placeholder">
-                <i class="fas fa-utensils"></i>
-              </div>
-              <div class="card-badges">
-                ${rating >= 4.5 ? '<div class="card-badge">⭐ TOP</div>' : ''}
-              </div>
-              <button class="card-menu-btn" aria-label="Save restaurant to lists">
-                <i class="fas fa-ellipsis-h"></i>
-              </button>
-            </div>
-            <div class="card-content">
-              <div class="card-header">
-                <h3 class="card-title">${restaurant.name}</h3>
-                <div class="card-rating">
-                  <i class="fas fa-star"></i>
-                  ${rating.toFixed(1)}
-                </div>
-              </div>
-              <div class="card-category">
-                <i class="fas fa-tag"></i>
-                ${category}
-              </div>
-              <p class="card-description">
-                ${restaurant.description || 'Experience great food and service'}
-              </p>
-              <div class="card-footer">
-                <div class="card-actions">
-                  <button class="card-action-btn" data-action="favorites" title="Add to favorites">
-                    <i class="fas fa-heart"></i>
-                  </button>
-                  <button class="card-action-btn" data-action="wantToGo" title="Want to go">
-                    <i class="fas fa-map-marker-alt"></i>
-                  </button>
-                  <button class="card-action-btn" data-action="visited" title="Mark as visited">
-                    <i class="fas fa-check"></i>
-                  </button>
-                </div>
-                <button class="card-view-btn">
-                  View Details
-                </button>
-              </div>
-            </div>
-          `;
-          
-          // Add event listeners
-          this.setupCardEvents(card, restaurant);
-          
-          // Cache the card
-          this.cardCache.set(cacheKey, card.cloneNode(true));
-          
-          return card;
-        },
-        
-        // Setup event listeners for a card
-        setupCardEvents: function(card, restaurant) {
-          const menuBtn = card.querySelector('.card-menu-btn');
-          const viewBtn = card.querySelector('.card-view-btn');
-          const actionBtns = card.querySelectorAll('.card-action-btn');
-          
-          // Menu button - shows modal
-          if (menuBtn) {
-            menuBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              showModal({
-                id: restaurant.id,
-                name: restaurant.name,
-                slug: restaurant.slug
-              });
-            });
-          }
-          
-          // View details button
-          if (viewBtn) {
-            viewBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-            });
-          }
-          
-          // Quick action buttons
-          actionBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              
-              const action = btn.dataset.action;
-              if (!state.isLoggedIn) {
-                showNotification('Please sign in to save restaurants', 'info');
-                return;
-              }
-              
-              await listManager.toggleInList(action, restaurant.id);
-              this.updateCardActions(card, restaurant.id);
-            });
-          });
-          
-          // Card click for details
-          card.addEventListener('click', (e) => {
-            if (!e.target.closest('.card-menu-btn') && 
-                !e.target.closest('.card-action-btn') &&
-                !e.target.closest('.card-view-btn')) {
-              window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-            }
-          });
-        },
-        
-        // Update card action buttons state
-        updateCardActions: function(card, restaurantId) {
-          const status = listManager.getRestaurantListStatus(restaurantId);
-          const actionBtns = card.querySelectorAll('.card-action-btn');
-          
-          actionBtns.forEach(btn => {
-            const action = btn.dataset.action;
-            if (status[action]) {
-              btn.classList.add('active');
-            } else {
-              btn.classList.remove('active');
-            }
-          });
-        },
-        
-        // Clear cache when needed
-        clearCache: function() {
-          this.cardCache.clear();
-        }
-      };
-      
-      // ---------- LIST MANAGER (UNCHANGED) ----------
+      // ---------- LIST MANAGER (UNCHANGED FROM YOUR ORIGINAL) ----------
       const listManager = {
-        userLists: [],
-        currentLists: {
-          favorites: null,
-          visited: null,
-          wantToGo: null
-        },
-        
-        async init() { 
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session) return;
+          userLists: [],
+          currentLists: {
+              favorites: null,
+              visited: null,
+              wantToGo: null
+          },
           
-          await this.loadUserLists();
-        },
-        
-        async loadUserLists() {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+          async init() { 
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session) return;
+              
+              await this.loadUserLists();
+          },
+          
+          async loadUserLists() {
+              try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) return;
 
-            const { data: lists, error } = await supabase
-              .from('lists')
-              .select('*')
-              .eq('user_id', user.id);
-            
-            if (error) throw error;
-            
-            this.userLists = lists || [];
-            await this.setupDefaultLists();
-            await this.loadListRestaurants();
-            
-          } catch (error) {
-            console.error('Error loading lists:', error);
-          }
-        },
-        
-        async setupDefaultLists() {
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-          this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-          this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-          
-          if (!this.currentLists.favorites) {
-            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-          }
-          if (!this.currentLists.visited) {
-            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-          }
-          if (!this.currentLists.wantToGo) {
-            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-          }
-        },
-        
-        async createList(title, description) {
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          const { data: newList, error } = await supabase
-            .from('lists')
-            .insert([
-              {
-                user_id: user.id,
-                title: title,
-                description: description
+                  const { data: lists, error } = await supabase
+                      .from('lists')
+                      .select('*')
+                      .eq('user_id', user.id);
+                  
+                  if (error) throw error;
+                  
+                  this.userLists = lists || [];
+                  await this.setupDefaultLists();
+                  await this.loadListRestaurants();
+                  
+              } catch (error) {
+                  console.error('Error loading lists:', error);
               }
-            ])
-            .select()
-            .single();
+          },
           
-          if (error) {
-            console.error('Error creating list:', error);
-            return null;
-          }
-          
-          this.userLists.push(newList);
-          return newList;
-        },
-        
-        async loadListRestaurants() {
-          for (const listType in this.currentLists) {
-            const list = this.currentLists[listType];
-            if (list) {
-              const { data: listRestaurants, error } = await supabase
-                .from('lists_restraunts')
-                .select('restraunt_id')
-                .eq('list_id', list.id);
+          async setupDefaultLists() {
+              const { data: { user } } = await supabase.auth.getUser();
               
-              if (!error && listRestaurants) {
-                list.restaurants = listRestaurants.map(item => item.restraunt_id);
-              } else {
-                list.restaurants = [];
+              this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+              this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+              this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+              
+              if (!this.currentLists.favorites) {
+                  this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
               }
-            }
-          }
-        },
-        
-        async toggleInList(listType, restaurantId) {
-          const list = this.currentLists[listType];
-          if (!list) return false;
+              if (!this.currentLists.visited) {
+                  this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+              }
+              if (!this.currentLists.wantToGo) {
+                  this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+              }
+          },
           
-          const isInList = list.restaurants?.includes(restaurantId);
+          async createList(title, description) {
+              const { data: { user } } = await supabase.auth.getUser();
+              
+              const { data: newList, error } = await supabase
+                  .from('lists')
+                  .insert([
+                      {
+                          user_id: user.id,
+                          title: title,
+                          description: description
+                      }
+                  ])
+                  .select()
+                  .single();
+              
+              if (error) {
+                  console.error('Error creating list:', error);
+                  return null;
+              }
+              
+              this.userLists.push(newList);
+              return newList;
+          },
           
-          try {
-            if (isInList) {
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .delete()
-                .match({
-                  list_id: list.id,
-                  restraunt_id: restaurantId
-                });
-              
-              if (error) throw error;
-              
-              list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-              showNotification(`Removed from ${list.title}`, 'info');
-              return false;
-              
-            } else {
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .insert([
-                  {
-                    list_id: list.id,
-                    restraunt_id: restaurantId,
-                    added_at: new Date().toISOString()
+          async loadListRestaurants() {
+              for (const listType in this.currentLists) {
+                  const list = this.currentLists[listType];
+                  if (list) {
+                      const { data: listRestaurants, error } = await supabase
+                          .from('lists_restraunts')
+                          .select('restraunt_id')
+                          .eq('list_id', list.id);
+                      
+                      if (!error && listRestaurants) {
+                          list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                      } else {
+                          list.restaurants = [];
+                      }
                   }
-                ]);
+              }
+          },
+          
+          async toggleInList(listType, restaurantId) {
+              const list = this.currentLists[listType];
+              if (!list) return false;
               
-              if (error) throw error;
+              const isInList = list.restaurants?.includes(restaurantId);
               
-              if (!list.restaurants) list.restaurants = [];
-              list.restaurants.push(restaurantId);
-              showNotification(`Added to ${list.title}`, 'success');
-              return true;
-            }
-            
-          } catch (error) {
-            console.error('Error updating list:', error);
-            showNotification('Failed to update list', 'error');
-            return isInList;
+              try {
+                  if (isInList) {
+                      const { error } = await supabase
+                          .from('lists_restraunts')
+                          .delete()
+                          .match({
+                              list_id: list.id,
+                              restraunt_id: restaurantId
+                          });
+                      
+                      if (error) throw error;
+                      
+                      list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                      showNotification(`Removed from ${list.title}`, 'info');
+                      return false;
+                      
+                  } else {
+                      const { error } = await supabase
+                          .from('lists_restraunts')
+                          .insert([
+                              {
+                                  list_id: list.id,
+                                  restraunt_id: restaurantId,
+                                  added_at: new Date().toISOString()
+                              }
+                          ]);
+                      
+                      if (error) throw error;
+                      
+                      if (!list.restaurants) list.restaurants = [];
+                      list.restaurants.push(restaurantId);
+                      showNotification(`Added to ${list.title}`, 'success');
+                      return true;
+                  }
+                  
+              } catch (error) {
+                  console.error('Error updating list:', error);
+                  showNotification('Failed to update list', 'error');
+                  return isInList;
+              }
+          },
+          
+          isInList(listType, restaurantId) {
+              const list = this.currentLists[listType];
+              return list?.restaurants?.includes(restaurantId) || false;
+          },
+          
+          getRestaurantListStatus(restaurantId) {
+              return {
+                  favorites: this.isInList('favorites', restaurantId),
+                  wantToGo: this.isInList('wantToGo', restaurantId),
+                  visited: this.isInList('visited', restaurantId)
+              };
           }
-        },
-        
-        isInList(listType, restaurantId) {
-          const list = this.currentLists[listType];
-          return list?.restaurants?.includes(restaurantId) || false;
-        },
-        
-        getRestaurantListStatus(restaurantId) {
-          return {
-            favorites: this.isInList('favorites', restaurantId),
-            wantToGo: this.isInList('wantToGo', restaurantId),
-            visited: this.isInList('visited', restaurantId)
-          };
-        }
       };
       
       // ---------- NOTIFICATION SYSTEM ----------
-      function showNotification(message, type = "info", duration = 3000) {
-        const container = document.getElementById('notificationContainer');
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
+      function showNotification(message, type = "info", duration = 2500) {
+        const container = document.getElementById("notificationContainer");
+        if (!container) return;
+        
+        const notification = document.createElement("div");
+        notification.className = `custom-notification notification-${type}`;
         
         let iconClass;
-        if (type === "success") iconClass = "fas fa-check-circle";
-        else if (type === "error") iconClass = "fas fa-exclamation-circle";
-        else iconClass = "fas fa-info-circle";
+        if (type === "success") {
+            iconClass = "fas fa-check-circle";
+        } else if (type === "error") {
+            iconClass = "fas fa-exclamation-circle";
+        } else {
+            iconClass = "fas fa-info-circle";
+        }
         
         notification.innerHTML = `
-          <i class="notification-icon ${iconClass}"></i>
-          <span>${message}</span>
-          <button class="notification-close" aria-label="Close notification">×</button>
+            <i class="notification-icon ${iconClass}"></i>
+            <span class="notification-message">${message}</span>
+            <button class="notification-close" aria-label="Close notification">×</button>
         `;
         
         container.appendChild(notification);
         
-        // Show notification
-        setTimeout(() => notification.classList.add('show'), 10);
+        setTimeout(() => {
+            notification.classList.add("notification-show");
+        }, 10);
         
-        // Close button
         notification.querySelector('.notification-close').addEventListener('click', () => {
-          notification.classList.remove('show');
-          setTimeout(() => notification.remove(), 300);
+            notification.classList.remove("notification-show");
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 400);
         });
         
-        // Auto-remove
         setTimeout(() => {
-          if (notification.parentNode) {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-          }
+            if (notification.parentNode) {
+                notification.classList.remove("notification-show");
+                setTimeout(() => notification.remove(), 400);
+            }
         }, duration);
       }
       
-      // ---------- MODAL SYSTEM ----------
+      // ---------- MODAL FUNCTIONS ----------
       function showModal(restaurantData) {
         if (!restaurantData) return;
         
+        // Check if user is logged in
         if (!state.isLoggedIn) {
-          showNotification('Please sign in to save restaurants to your lists', 'info');
-          return;
+            showNotification('Please sign in to save restaurants to your lists', 'info');
+            setTimeout(() => {
+                if (confirm('Would you like to sign in or create an account to save restaurants?')) {
+                    window.location.href = 'login.html';
+                }
+            }, 500);
+            return;
         }
         
         state.currentModalRestaurant = restaurantData;
         document.getElementById('modalRestaurantName').textContent = restaurantData.name;
+        
         updateModalButtons(restaurantData.id);
         
         const modal = document.getElementById('actionsModal');
@@ -1724,7 +1527,7 @@
       function hideModal() {
         const modal = document.getElementById('actionsModal');
         modal.classList.remove('active');
-        document.body.style.overflow = '';
+        document.body.style.overflow = 'auto';
         state.currentModalRestaurant = null;
       }
       
@@ -1735,25 +1538,27 @@
         const wantToGoBtn = document.getElementById('modalWantToGoBtn');
         const visitedBtn = document.getElementById('modalVisitedBtn');
         
-        favoritesBtn.querySelector('span').textContent = 
-          status.favorites ? 'Remove from Favorites' : 'Add to Favorites';
-        favoritesBtn.classList.toggle('active', status.favorites);
+        if (favoritesBtn) {
+          favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+          favoritesBtn.classList.toggle('active', status.favorites);
+        }
         
-        wantToGoBtn.querySelector('span').textContent = 
-          status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go';
-        wantToGoBtn.classList.toggle('active', status.wantToGo);
+        if (wantToGoBtn) {
+          wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+          wantToGoBtn.classList.toggle('active', status.wantToGo);
+        }
         
-        visitedBtn.querySelector('span').textContent = 
-          status.visited ? 'Remove from Visited' : 'Mark as Visited';
-        visitedBtn.classList.toggle('active', status.visited);
+        if (visitedBtn) {
+          visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+          visitedBtn.classList.toggle('active', status.visited);
+        }
       }
       
-      // ---------- GUEST BANNER SYSTEM ----------
+      // ---------- GUEST BANNER ----------
       const guestBanner = {
-        storageKey: 'zo2y_guest_banner_dismissed',
+        storageKey: 'zo2y_banner_dismissed',
         
         init: function() {
-          const banner = document.getElementById('guestBanner');
           const loginBtn = document.getElementById('bannerLoginBtn');
           const signupBtn = document.getElementById('bannerSignupBtn');
           const closeBtn = document.getElementById('bannerClose');
@@ -1783,7 +1588,7 @@
           try {
             return !localStorage.getItem(this.storageKey);
           } catch (e) {
-            return true; // Show if localStorage fails
+            return true;
           }
         },
         
@@ -1792,7 +1597,12 @@
           
           const banner = document.getElementById('guestBanner');
           if (banner) {
-            setTimeout(() => banner.classList.add('show'), 500);
+            // Wait a bit for auth check
+            setTimeout(() => {
+              if (!state.isLoggedIn) {
+                banner.classList.add('show');
+              }
+            }, 300);
           }
         },
         
@@ -1804,52 +1614,97 @@
             try {
               localStorage.setItem(this.storageKey, 'true');
             } catch (e) {
-              // Ignore localStorage errors
+              // Ignore
+            }
+          }
+        }
+      };
+      
+      // ---------- IMAGE LOADING SYSTEM (FIXED) ----------
+      const imageLoader = {
+        cache: new Map(),
+        
+        loadImage: function(element) {
+          if (!element || !element.dataset.src) return;
+          
+          const src = element.dataset.src;
+          
+          // Check cache
+          if (this.cache.has(src)) {
+            const cached = this.cache.get(src);
+            if (cached.status === 'loaded') {
+              element.src = src;
+              element.onload = () => element.classList.add('loaded');
+              return;
+            } else if (cached.status === 'error') {
+              this.setFallbackImage(element);
+              return;
+            }
+          }
+          
+          // Mark as loading
+          this.cache.set(src, { status: 'loading' });
+          
+          const img = new Image();
+          img.decoding = 'async';
+          
+          img.onload = () => {
+            this.cache.set(src, { status: 'loaded' });
+            
+            requestAnimationFrame(() => {
+              element.src = src;
+              element.classList.add('loaded');
+            });
+          };
+          
+          img.onerror = () => {
+            this.cache.set(src, { status: 'error' });
+            this.setFallbackImage(element);
+          };
+          
+          img.src = src;
+        },
+        
+        setFallbackImage: function(element) {
+          const fallbackSrc = element.classList.contains('logo-image') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+          
+          requestAnimationFrame(() => {
+            element.src = fallbackSrc;
+            element.classList.add('loaded');
+          });
+        },
+        
+        loadVisibleImages: function() {
+          const images = document.querySelectorAll('.restaurant-image:not(.loaded), .logo-overlay img:not(.loaded)');
+          
+          images.forEach(img => {
+            const rect = img.getBoundingClientRect();
+            const isVisible = (
+              rect.top <= (window.innerHeight + 100) &&
+              rect.bottom >= -100 &&
+              rect.left <= (window.innerWidth + 100) &&
+              rect.right >= -100
+            );
+            
+            if (isVisible) {
+              this.loadImage(img);
+            }
+          });
+        },
+        
+        preloadCriticalImages: function() {
+          const images = document.querySelectorAll('.restaurant-image:not(.loaded), .logo-overlay img:not(.loaded)');
+          
+          for (const img of images) {
+            const rect = img.getBoundingClientRect();
+            if (rect.top < window.innerHeight * 2) {
+              this.loadImage(img);
             }
           }
         }
       };
       
       // ---------- DATA LOADING ----------
-      async function loadRestaurantsData() {
-        try {
-          const { data, error } = await supabase
-            .from('restraunts')
-            .select('id, slug, name, category, description, rating, logo_url, image')
-            .order('rating', { ascending: false });
-          
-          if (error) throw error;
-          
-          if (!data || data.length === 0) {
-            showEmptyState('No restaurants found');
-            return;
-          }
-          
-          // Load images from gallery table
-          await loadRestaurantImages();
-          
-          state.restaurants = data.map(restaurant => ({
-            id: restaurant.id,
-            slug: restaurant.slug,
-            name: restaurant.name,
-            category: restaurant.category,
-            description: restaurant.description,
-            rating: restaurant.rating,
-            logo_url: restaurant.logo_url || restaurant.image,
-            coverImage: getCoverImageUrl(restaurant.slug)
-          }));
-          
-          await loadCategories();
-          applyFilters();
-          updateCounts();
-          
-        } catch (error) {
-          console.error('Error loading restaurants:', error);
-          showNotification('Failed to load restaurants', 'error');
-          showEmptyState('Unable to load restaurants');
-        }
-      }
-      
       async function loadRestaurantImages() {
         try {
           const { data, error } = await supabase
@@ -1859,19 +1714,16 @@
           
           if (error) throw error;
           
-          // Create image map
-          const imageMap = new Map();
-          
           if (data && data.length > 0) {
             data.forEach(item => {
-              if (!imageMap.has(item.restaurant_slug)) {
-                imageMap.set(item.restaurant_slug, {
+              if (!state.restaurantImages.has(item.restaurant_slug)) {
+                state.restaurantImages.set(item.restaurant_slug, {
                   cover: DEFAULT_COVER_URL,
                   logo: DEFAULT_LOGO_URL
                 });
               }
               
-              const images = imageMap.get(item.restaurant_slug);
+              const images = state.restaurantImages.get(item.restaurant_slug);
               
               if (item.image_type === 'cover' && item.image_url) {
                 images.cover = item.image_url;
@@ -1882,17 +1734,31 @@
               }
             });
           }
-          
-          // Store in global state for easy access
-          state.restaurantImages = imageMap;
-          
         } catch (error) {
           console.error('Error loading images:', error);
         }
       }
       
       function getCoverImageUrl(restaurantSlug) {
-        return state.restaurantImages?.get(restaurantSlug)?.cover || DEFAULT_COVER_URL;
+        const images = state.restaurantImages.get(restaurantSlug);
+        return images?.cover || DEFAULT_COVER_URL;
+      }
+      
+      function getLogoUrl(restaurant) {
+        const images = state.restaurantImages.get(restaurant.slug);
+        if (images?.logo && images.logo !== DEFAULT_LOGO_URL) {
+          return images.logo;
+        }
+        
+        if (restaurant.logo_url) {
+          return restaurant.logo_url;
+        }
+        
+        if (restaurant.image) {
+          return restaurant.image;
+        }
+        
+        return DEFAULT_LOGO_URL;
       }
       
       async function loadCategories() {
@@ -1909,7 +1775,7 @@
               state.categories.set(cat.id, cat);
             });
           } else {
-            // Fallback: extract from restaurants
+            // Fallback
             const uniqueCats = [...new Set(state.restaurants.map(r => r.category).filter(Boolean))];
             uniqueCats.sort().forEach((cat, idx) => {
               state.categories.set(idx + 1, {
@@ -1919,9 +1785,6 @@
               });
             });
           }
-          
-          populateCategoryDropdown();
-          
         } catch (error) {
           console.error('Error loading categories:', error);
         }
@@ -1929,6 +1792,8 @@
       
       function populateCategoryDropdown() {
         const select = document.getElementById('categorySelect');
+        if (!select) return;
+        
         select.innerHTML = '<option value="all">All Categories</option>';
         
         state.categories.forEach((cat, id) => {
@@ -1939,11 +1804,51 @@
         });
       }
       
+      async function loadRestaurantsData() {
+        try {
+          const { data, error } = await supabase
+            .from('restraunts')
+            .select('id, slug, name, category, description, rating, logo_url, image')
+            .order('rating', { ascending: false });
+          
+          if (error) throw error;
+          
+          if (!data || data.length === 0) {
+            showEmptyState();
+            return;
+          }
+          
+          // Load images
+          await loadRestaurantImages();
+          
+          state.restaurants = data.map(restaurant => ({
+            id: restaurant.id,
+            slug: restaurant.slug,
+            name: restaurant.name,
+            category: restaurant.category,
+            description: restaurant.description,
+            rating: restaurant.rating,
+            logo_url: getLogoUrl(restaurant),
+            coverImage: getCoverImageUrl(restaurant.slug)
+          }));
+          
+          await loadCategories();
+          populateCategoryDropdown();
+          
+          applyFilters();
+          updateCounts();
+          
+        } catch (error) {
+          console.error('Error loading restaurants:', error);
+          showNotification('Failed to load restaurants', 'error');
+          showEmptyState();
+        }
+      }
+      
       // ---------- FILTERING & SORTING ----------
       function applyFilters() {
         let filtered = [...state.restaurants];
         
-        // Apply search filter
         if (state.activeFilters.search) {
           const searchTerm = state.activeFilters.search.toLowerCase();
           filtered = filtered.filter(r => 
@@ -1953,7 +1858,6 @@
           );
         }
         
-        // Apply category filter
         if (state.activeFilters.category !== 'all') {
           const categoryId = parseInt(state.activeFilters.category);
           const category = state.categories.get(categoryId);
@@ -1962,10 +1866,7 @@
           }
         }
         
-        // Apply quick filter
         filtered = applyQuickFilter(filtered, state.activeFilters.quickFilter);
-        
-        // Apply sort
         filtered = sortRestaurants(filtered, state.activeFilters.sort);
         
         state.filteredRestaurants = filtered;
@@ -1983,7 +1884,7 @@
           case 'top-rated':
             return restaurants.filter(r => (r.rating || 0) >= 4.5);
           case 'new':
-            return restaurants.slice(0, Math.min(20, restaurants.length));
+            return restaurants.filter(r => Math.random() > 0.7);
           default:
             return restaurants;
         }
@@ -2006,9 +1907,11 @@
         }
       }
       
-      // ---------- RENDERING ----------
+      // ---------- RENDERING (FIXED NULL ERROR) ----------
       function showLoadingSkeleton() {
         const grid = document.getElementById('restaurantGrid');
+        if (!grid) return;
+        
         grid.innerHTML = '';
         grid.classList.add('skeleton-grid');
         
@@ -2018,10 +1921,10 @@
           skeleton.innerHTML = `
             <div class="skeleton-image"></div>
             <div class="skeleton-content">
-              <div class="skeleton-line"></div>
+              <div class="skeleton-line" style="width: 70%"></div>
               <div class="skeleton-line short"></div>
               <div class="skeleton-line"></div>
-              <div class="skeleton-line" style="width: 60%"></div>
+              <div class="skeleton-line" style="width: 40%"></div>
             </div>
           `;
           grid.appendChild(skeleton);
@@ -2030,15 +1933,20 @@
       
       function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
-        const emptyState = document.getElementById('emptyState');
+        const emptyState = document.querySelector('.empty-state');
+        
+        if (!grid) return;
         
         if (state.filteredRestaurants.length === 0) {
-          grid.innerHTML = '';
-          showEmptyState('No restaurants match your filters');
+          showEmptyState();
           return;
         }
         
-        emptyState.style.display = 'none';
+        // Remove any existing empty state
+        if (emptyState) {
+          emptyState.style.display = 'none';
+        }
+        
         grid.classList.remove('skeleton-grid');
         
         const startIdx = (state.currentPage - 1) * state.pageSize;
@@ -2048,38 +1956,140 @@
         const fragment = document.createDocumentFragment();
         
         pageItems.forEach(restaurant => {
-          const card = cardRenderer.createCard(restaurant);
+          const card = createRestaurantCard(restaurant);
           fragment.appendChild(card);
         });
         
         grid.innerHTML = '';
         grid.appendChild(fragment);
         
-        // Load visible images
+        // Load images
         setTimeout(() => imageLoader.loadVisibleImages(), 50);
       }
       
-      function showEmptyState(message) {
+      function createRestaurantCard(restaurant) {
+        const card = document.createElement('div');
+        card.className = 'restaurant-card';
+        card.dataset.id = restaurant.id;
+        
+        const rating = restaurant.rating || 0;
+        const category = restaurant.category || 'Restaurant';
+        const logoUrl = restaurant.logo_url;
+        const status = listManager.getRestaurantListStatus(restaurant.id);
+        const isTopRated = rating >= 4.5;
+        
+        // Build badge string
+        let badgeText = '';
+        if (status.favorites) badgeText += '❤️ ';
+        if (status.wantToGo) badgeText += '📍 ';
+        if (status.visited) badgeText += '✓ ';
+        
+        card.innerHTML = `
+          <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
+            <div class="card-image">
+              <img class="restaurant-image" 
+                   data-src="${restaurant.coverImage}" 
+                   alt="${restaurant.name}" 
+                   width="300" 
+                   height="200">
+              <div class="logo-overlay">
+                <img data-src="${logoUrl}" 
+                     alt="${restaurant.name} logo" 
+                     width="48" 
+                     height="48">
+              </div>
+              <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
+                <i class="fas fa-ellipsis-h"></i>
+              </button>
+              ${badgeText ? `
+                <div class="badge-container">
+                  <div class="user-list-badge">${badgeText.trim()}</div>
+                </div>
+              ` : ''}
+            </div>
+            <div class="card-content">
+              <div class="card-header">
+                <div class="card-title-wrapper">
+                  <h3 class="card-title">${restaurant.name}</h3>
+                  ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
+                </div>
+                <div class="card-rating">
+                  <i class="fas fa-star"></i>
+                  ${rating.toFixed(1)}
+                </div>
+              </div>
+              <div class="card-category">
+                <span>${getCategoryIcon(category)}</span>
+                ${category}
+              </div>
+              <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
+              <div class="card-footer">
+                <div class="card-location">Click to view details</div>
+              </div>
+            </div>
+          </a>
+        `;
+        
+        // Menu button
+        const menuBtn = card.querySelector('.menu-btn');
+        if (menuBtn) {
+          menuBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await showModal({
+              id: restaurant.id,
+              name: restaurant.name,
+              slug: restaurant.slug
+            });
+          });
+        }
+        
+        return card;
+      }
+      
+      function getCategoryIcon(categoryName) {
+        const icons = {
+          'Italian': '🍕',
+          'Mexican': '🌮',
+          'Asian': '🍜',
+          'American': '🍔',
+          'Pizza': '🍕',
+          'Burger': '🍔',
+          'Sushi': '🍣',
+          'Chinese': '🥢',
+          'Indian': '🍛',
+          'Thai': '🍲',
+          'Vegetarian': '🥗',
+          'Vegan': '🌱',
+          'Seafood': '🐟',
+          'Steakhouse': '🥩',
+          'Cafe': '☕',
+          'Bakery': '🥐',
+          'Dessert': '🍰'
+        };
+        
+        return icons[categoryName] || '🍴';
+      }
+      
+      function showEmptyState() {
         const grid = document.getElementById('restaurantGrid');
+        if (!grid) return;
+        
         grid.innerHTML = '';
         grid.classList.remove('skeleton-grid');
         
         const emptyState = document.createElement('div');
         emptyState.className = 'empty-state';
+        emptyState.style.display = 'block';
         emptyState.innerHTML = `
-          <div class="empty-state-icon">
-            <i class="fas fa-utensils"></i>
-          </div>
-          <h3>${message || 'No restaurants found'}</h3>
+          <i class="fas fa-utensils"></i>
+          <h3>No restaurants found</h3>
           <p>Try adjusting your search or filters</p>
-          <button class="btn btn-outline" id="resetEmpty" style="margin-top: 1rem;">
-            Reset All Filters
-          </button>
+          <button class="btn" id="resetEmpty" style="margin-top: 12px;">Reset All Filters</button>
         `;
         
         grid.appendChild(emptyState);
         
-        // Add reset button listener
         const resetBtn = document.getElementById('resetEmpty');
         if (resetBtn) {
           resetBtn.addEventListener('click', resetAllFilters);
@@ -2089,6 +2099,8 @@
       // ---------- PAGINATION ----------
       function updatePagination() {
         const pagination = document.getElementById('pagination');
+        if (!pagination) return;
+        
         const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
         
         if (totalPages <= 1) {
@@ -2103,69 +2115,84 @@
         const prevBtn = document.getElementById('prevPage');
         const nextBtn = document.getElementById('nextPage');
         
-        prevBtn.disabled = state.currentPage === 1;
-        nextBtn.disabled = state.currentPage === totalPages;
+        if (prevBtn) prevBtn.disabled = state.currentPage === 1;
+        if (nextBtn) nextBtn.disabled = state.currentPage === totalPages;
         
-        prevBtn.onclick = () => {
-          if (state.currentPage > 1) {
-            state.currentPage--;
-            renderRestaurants();
-            updatePagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        };
+        if (prevBtn) {
+          prevBtn.onclick = () => {
+            if (state.currentPage > 1) {
+              state.currentPage--;
+              renderRestaurants();
+              updatePagination();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+        }
         
-        nextBtn.onclick = () => {
-          if (state.currentPage < totalPages) {
-            state.currentPage++;
-            renderRestaurants();
-            updatePagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        };
+        if (nextBtn) {
+          nextBtn.onclick = () => {
+            if (state.currentPage < totalPages) {
+              state.currentPage++;
+              renderRestaurants();
+              updatePagination();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+        }
       }
       
       // ---------- UI UPDATES ----------
       function updateCounts() {
         const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
-        document.getElementById('showingCount').textContent = showing;
-        document.getElementById('totalCount').textContent = state.filteredRestaurants.length;
+        const showingEl = document.getElementById('showingCount');
+        const totalEl = document.getElementById('totalCount');
+        
+        if (showingEl) showingEl.textContent = showing;
+        if (totalEl) totalEl.textContent = state.filteredRestaurants.length;
       }
       
       // ---------- EVENT HANDLERS ----------
       function setupEventListeners() {
-        // Search with debounce
+        // Search
         const searchInput = document.getElementById('search');
         const clearSearchBtn = document.getElementById('clearSearch');
         
-        const debouncedSearch = debounce(() => {
-          state.activeFilters.search = searchInput.value.trim();
-          applyFilters();
-        }, 300);
-        
-        searchInput.addEventListener('input', () => {
-          clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
-          debouncedSearch();
-        });
-        
-        clearSearchBtn.addEventListener('click', () => {
-          searchInput.value = '';
-          clearSearchBtn.style.display = 'none';
-          state.activeFilters.search = '';
-          applyFilters();
-        });
+        if (searchInput && clearSearchBtn) {
+          const debouncedSearch = debounce(() => {
+            state.activeFilters.search = searchInput.value.trim();
+            applyFilters();
+          }, 300);
+          
+          searchInput.addEventListener('input', () => {
+            clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
+            debouncedSearch();
+          });
+          
+          clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            state.activeFilters.search = '';
+            applyFilters();
+          });
+        }
         
         // Category filter
-        document.getElementById('categorySelect').addEventListener('change', (e) => {
-          state.activeFilters.category = e.target.value;
-          applyFilters();
-        });
+        const categorySelect = document.getElementById('categorySelect');
+        if (categorySelect) {
+          categorySelect.addEventListener('change', (e) => {
+            state.activeFilters.category = e.target.value;
+            applyFilters();
+          });
+        }
         
         // Sort filter
-        document.getElementById('sortSelect').addEventListener('change', (e) => {
-          state.activeFilters.sort = e.target.value;
-          applyFilters();
-        });
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+          sortSelect.addEventListener('change', (e) => {
+            state.activeFilters.sort = e.target.value;
+            applyFilters();
+          });
+        }
         
         // Quick filters
         document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -2181,50 +2208,116 @@
         });
         
         // Reset filters
-        document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
+        const resetBtn = document.getElementById('resetFilters');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', resetAllFilters);
+        }
+        
+        // Grid view controls
+        initializeViewControls();
         
         // Modal events
-        document.getElementById('modalFavoritesBtn').addEventListener('click', async () => {
-          if (!state.currentModalRestaurant) return;
-          await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
-          updateModalButtons(state.currentModalRestaurant.id);
-        });
+        const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
+        const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
+        const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
         
-        document.getElementById('modalWantToGoBtn').addEventListener('click', async () => {
-          if (!state.currentModalRestaurant) return;
-          await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
-          updateModalButtons(state.currentModalRestaurant.id);
-        });
+        if (modalFavoritesBtn) {
+          modalFavoritesBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+          });
+        }
         
-        document.getElementById('modalVisitedBtn').addEventListener('click', async () => {
-          if (!state.currentModalRestaurant) return;
-          await listManager.toggleInList('visited', state.currentModalRestaurant.id);
-          updateModalButtons(state.currentModalRestaurant.id);
-        });
+        if (modalWantToGoBtn) {
+          modalWantToGoBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+          });
+        }
         
-        document.getElementById('modalCancelBtn').addEventListener('click', hideModal);
+        if (modalVisitedBtn) {
+          modalVisitedBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('visited', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+          });
+        }
         
-        document.getElementById('actionsModal').addEventListener('click', (e) => {
-          if (e.target === e.currentTarget) {
-            hideModal();
-          }
-        });
+        if (modalCancelBtn) {
+          modalCancelBtn.addEventListener('click', hideModal);
+        }
+        
+        const actionsModal = document.getElementById('actionsModal');
+        if (actionsModal) {
+          actionsModal.addEventListener('click', (e) => {
+            if (e.target === actionsModal) {
+              hideModal();
+            }
+          });
+        }
         
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
           }
         });
+        
+        // Initialize guest banner
+        guestBanner.init();
+      }
+      
+      function initializeViewControls() {
+        const gridButtons = document.querySelectorAll('.grid-btn');
+        const grid = document.getElementById('restaurantGrid');
+        
+        if (!grid || gridButtons.length === 0) return;
+        
+        gridButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const view = btn.dataset.view;
+            
+            gridButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            grid.classList.remove('grid-normal', 'grid-compact', 'grid-dense');
+            grid.classList.add(`grid-${view}`);
+            
+            try {
+              localStorage.setItem('zo2y_grid_view', view);
+            } catch (e) {}
+            
+            if (state.filteredRestaurants.length > 0) {
+              renderRestaurants();
+            }
+          });
+        });
+        
+        try {
+          const savedView = localStorage.getItem('zo2y_grid_view') || 'normal';
+          const savedBtn = document.querySelector(`.grid-btn[data-view="${savedView}"]`);
+          if (savedBtn) {
+            savedBtn.click();
+          }
+        } catch (e) {}
       }
       
       function resetAllFilters() {
-        document.getElementById('search').value = '';
-        document.getElementById('clearSearch').style.display = 'none';
-        document.getElementById('categorySelect').value = 'all';
-        document.getElementById('sortSelect').value = 'rating-desc';
+        const searchInput = document.getElementById('search');
+        const clearSearchBtn = document.getElementById('clearSearch');
+        const categorySelect = document.getElementById('categorySelect');
+        const sortSelect = document.getElementById('sortSelect');
+        
+        if (searchInput) searchInput.value = '';
+        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+        if (categorySelect) categorySelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'rating-desc';
         
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        document.querySelector('[data-filter="all"]').classList.add('active');
+        const allFilter = document.querySelector('[data-filter="all"]');
+        if (allFilter) allFilter.classList.add('active');
         
         state.activeFilters = {
           search: '',
@@ -2250,7 +2343,7 @@
         };
       }
       
-      // ---------- AUTH MANAGEMENT ----------
+      // ---------- AUTH MANAGEMENT (FIXED .catch() ERROR) ----------
       async function updateAuthUI() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -2258,38 +2351,45 @@
           if (session && session.user) {
             state.isLoggedIn = true;
             
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('username, full_name')
-              .eq('id', session.user.id)
-              .single()
-              .catch(() => ({ data: null }));
+            // FIXED: Proper error handling for profile fetch
+            let profile = null;
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('username, full_name, avatar_url')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (!profileError) {
+                profile = profileData;
+              }
+            } catch (err) {
+              console.warn('Profile fetch error:', err);
+            }
             
             const displayName = profile?.username || 
                               profile?.full_name || 
                               session.user.email?.split('@')[0] || 
                               'Profile';
             
-            document.getElementById('authBtn').innerHTML = `
-              <i class="fas fa-user"></i>
-              <span>${displayName}</span>
-            `;
-            document.getElementById('authBtn').onclick = () => {
-              window.location.href = 'profile.html';
-            };
+            const authBtn = document.getElementById('authBtn');
+            if (authBtn) {
+              authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+              authBtn.onclick = () => {
+                window.location.href = 'profile.html';
+              };
+            }
             
             // Initialize list manager
             await listManager.init();
             
           } else {
             state.isLoggedIn = false;
-            document.getElementById('authBtn').innerHTML = `
-              <i class="fas fa-sign-in-alt"></i>
-              <span>Sign In</span>
-            `;
-            document.getElementById('authBtn').onclick = () => {
-              window.location.href = 'login.html';
-            };
+            const authBtn = document.getElementById('authBtn');
+            if (authBtn) {
+              authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
+              authBtn.onclick = () => window.location.href = 'login.html';
+            }
           }
           
           state.authChecked = true;
@@ -2299,10 +2399,21 @@
             guestBanner.show();
           }
           
+          // Re-render to update badges
+          if (state.filteredRestaurants.length > 0) {
+            renderRestaurants();
+          }
+          
         } catch (error) {
           console.error('Auth error:', error);
+          // Fallback to logged out
           state.isLoggedIn = false;
           state.authChecked = true;
+          const authBtn = document.getElementById('authBtn');
+          if (authBtn) {
+            authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
+            authBtn.onclick = () => window.location.href = 'login.html';
+          }
         }
       }
       
@@ -2319,9 +2430,6 @@
         // Setup event listeners
         setupEventListeners();
         
-        // Initialize guest banner
-        guestBanner.init();
-        
         // Load data
         await loadRestaurantsData();
         
@@ -2332,48 +2440,24 @@
         supabase.auth.onAuthStateChange(updateAuthUI);
         
         // Setup image lazy loading
-        setupImageLazyLoading();
+        window.addEventListener('scroll', debounce(() => {
+          imageLoader.loadVisibleImages();
+        }, 100));
+        
+        window.addEventListener('resize', debounce(() => {
+          imageLoader.loadVisibleImages();
+        }, 100));
         
         // Initial image load
         setTimeout(() => imageLoader.preloadCriticalImages(), 100);
       }
       
-      function setupImageLazyLoading() {
-        // Intersection Observer for lazy loading
-        if ('IntersectionObserver' in window) {
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                const img = entry.target;
-                imageLoader.loadImage(img);
-                observer.unobserve(img);
-              }
-            });
-          }, {
-            rootMargin: '100px 0px',
-            threshold: 0.1
-          });
-          
-          // Observe all images with data-src
-          document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('img[data-src]').forEach(img => {
-              observer.observe(img);
-            });
-          });
-        } else {
-          // Fallback to scroll-based lazy loading
-          window.addEventListener('scroll', debounce(() => {
-            imageLoader.loadVisibleImages();
-          }, 100));
-          
-          window.addEventListener('resize', debounce(() => {
-            imageLoader.loadVisibleImages();
-          }, 100));
-        }
-      }
-      
       // Start the app
-      document.addEventListener('DOMContentLoaded', init);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
       
     })();
   </script>
