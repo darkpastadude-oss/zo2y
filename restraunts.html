@@ -21,17 +21,24 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Login Banner */
+    /* Fixed Sticky Login Banner */
     .login-banner {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 12px;
-      padding: 16px 24px;
-      margin: 0 0 24px 0;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 0;
+      padding: 14px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      margin: 0;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
     }
     
     .login-banner.hidden {
@@ -45,48 +52,48 @@
     }
     
     .login-banner-icon {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       background: var(--gradient);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #0b1633;
-      font-size: 18px;
+      font-size: 16px;
     }
     
     .login-banner-text h3 {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       margin-bottom: 4px;
       color: var(--white);
     }
     
     .login-banner-text p {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--muted);
       margin: 0;
     }
     
     .login-banner-actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
     }
     
     .banner-btn {
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 12px;
       font-weight: 500;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
       transition: all 0.3s ease;
+      border: none;
     }
     
     .banner-btn-primary {
       background: var(--gradient);
       color: #0b1633;
-      border: none;
     }
     
     .banner-btn-primary:hover {
@@ -112,8 +119,11 @@
       height: 200px;
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+      transition: opacity 0.5s ease;
+    }
+    
+    .restaurant-image.loading {
       opacity: 0;
-      transition: opacity 0.3s ease;
     }
     
     .restaurant-image.loaded {
@@ -131,14 +141,22 @@
     
     /* Enhanced Header */
     header { 
-      position: sticky; top: 0; z-index: 100; 
-      display: flex; align-items: center; gap: 20px; 
-      padding: 14px 24px; backdrop-filter: blur(20px) saturate(180%);
-      background: var(--surface); border-bottom: 1px solid var(--border); 
+      position: sticky; 
+      top: 72px; /* Account for banner height */
+      z-index: 100; 
+      display: flex; 
+      align-items: center; 
+      gap: 20px; 
+      padding: 14px 24px; 
+      backdrop-filter: blur(20px) saturate(180%);
+      background: var(--surface); 
+      border-bottom: 1px solid var(--border); 
     } 
     
     .logo { 
-      height: 40px; cursor: pointer; transition: transform 0.3s ease;
+      height: 40px; 
+      cursor: pointer; 
+      transition: transform 0.3s ease;
     }
     
     .logo:hover {
@@ -146,7 +164,11 @@
     }
     
     .toolbar { 
-      display: flex; gap: 12px; margin-left: auto; align-items: center; flex-wrap: wrap; 
+      display: flex; 
+      gap: 12px; 
+      margin-left: auto; 
+      align-items: center; 
+      flex-wrap: wrap; 
     } 
     
     /* Enhanced Search */
@@ -156,18 +178,29 @@
     }
     
     .search { 
-      width: 100%; padding: 10px 16px 10px 40px; border-radius: 20px; 
-      border: 1px solid var(--border); background: var(--card); color: var(--white); 
-      outline: none; font-size: 14px; transition: all 0.3s ease;
+      width: 100%; 
+      padding: 10px 16px 10px 40px; 
+      border-radius: 20px; 
+      border: 1px solid var(--border); 
+      background: var(--card); 
+      color: var(--white); 
+      outline: none; 
+      font-size: 14px; 
+      transition: all 0.3s ease;
     } 
     
     .search:focus { 
-      border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
+      border-color: var(--accent); 
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
     } 
     
     .search-icon { 
-      position: absolute; left: 12px; top: 50%; transform: translateY(-50%); 
-      opacity: 0.6; pointer-events: none;
+      position: absolute; 
+      left: 12px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      opacity: 0.6; 
+      pointer-events: none;
     }
     
     .clear-search {
@@ -187,13 +220,21 @@
     }
     
     .btn { 
-      background: var(--card); border: 1px solid var(--border); color: var(--white); 
-      padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 13px; 
-      font-weight: 500; transition: all 0.2s ease; white-space: nowrap;
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      color: var(--white); 
+      padding: 8px 16px; 
+      border-radius: 16px; 
+      cursor: pointer; 
+      font-size: 13px; 
+      font-weight: 500; 
+      transition: all 0.2s ease; 
+      white-space: nowrap;
     } 
     
     .btn:hover { 
-      background: var(--accent); color: #0b1633; 
+      background: var(--accent); 
+      color: #0b1633; 
     }
     
     .btn-primary {
@@ -286,7 +327,9 @@
     
     /* Enhanced Container */
     .container { 
-      max-width: 1200px; margin: 24px auto; padding: 0 20px; 
+      max-width: 1200px; 
+      margin: 24px auto; 
+      padding: 0 20px; 
     } 
     
     .page-header {
@@ -306,11 +349,17 @@
     
     /* Controls Bar */
     .controls { 
-      display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; 
+      display: flex; 
+      gap: 12px; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      flex-wrap: wrap; 
     } 
     
     .controls-info { 
-      color: var(--muted); font-size: 14px; font-weight: 500; 
+      color: var(--muted); 
+      font-size: 14px; 
+      font-weight: 500; 
     } 
     
     .sort-controls {
@@ -337,7 +386,9 @@
     
     /* Enhanced Grid */
     .grid { 
-      display: grid; gap: 20px; transition: grid-template-columns 0.3s ease;
+      display: grid; 
+      gap: 20px; 
+      transition: grid-template-columns 0.3s ease;
     }
     
     /* Grid variations */
@@ -446,7 +497,7 @@
       overflow: hidden;
     }
     
-    /* Three dots menu button */
+    /* Three dots menu button - ALWAYS VISIBLE */
     .menu-btn {
       position: absolute;
       top: 12px;
@@ -492,7 +543,14 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .card-title-wrapper {
+      display: flex;
+      align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
     
     .card-title {
@@ -501,6 +559,35 @@
       line-height: 1.3;
       margin: 0;
       flex: 1;
+    }
+    
+    /* Top rated badge - NEW POSITIONING */
+    .top-rated-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      animation: glow 2s infinite alternate;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+      white-space: nowrap;
+    }
+    
+    @keyframes glow {
+      0% {
+        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
+                    0 0 10px rgba(245, 158, 11, 0.3);
+      }
+      100% {
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
+                    0 0 20px rgba(245, 158, 11, 0.5),
+                    0 0 30px rgba(245, 158, 11, 0.3);
+      }
     }
     
     .card-rating {
@@ -514,20 +601,7 @@
       align-items: center;
       gap: 4px;
       white-space: nowrap;
-    }
-    
-    /* Top rated badge in card content */
-    .top-rated-badge {
-      display: inline-block;
-      background: rgba(245, 158, 11, 0.1);
-      color: var(--accent);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      margin-top: 4px;
-      align-self: flex-start;
+      flex-shrink: 0;
     }
     
     .card-category {
@@ -547,7 +621,7 @@
       margin: 0 0 16px 0;
       display: -webkit-box;
       -webkit-line-clamp: 3;
-      -webkit-box-orvent: vertical;
+      -webkit-box-orient: vertical;
       overflow: hidden;
       flex: 1;
     }
@@ -797,7 +871,10 @@
     
     /* Empty State */
     .empty-state { 
-      padding: 60px 20px; text-align: center; color: var(--muted); display: none; 
+      padding: 60px 20px; 
+      text-align: center; 
+      color: var(--muted); 
+      display: none; 
       grid-column: 1 / -1;
     }
     
@@ -862,8 +939,11 @@
     
     /* Footer */
     footer { 
-      padding: 30px 20px; color: var(--muted); text-align: center; 
-      border-top: 1px solid var(--border); margin-top: 60px; 
+      padding: 30px 20px; 
+      color: var(--muted); 
+      text-align: center; 
+      border-top: 1px solid var(--border); 
+      margin-top: 60px; 
       background: var(--card);
     }
     
@@ -923,23 +1003,11 @@
       header {
         padding: 12px 16px;
         flex-wrap: wrap;
+        top: 68px; /* Adjusted for mobile */
       }
       
       .login-banner {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
-        padding: 20px 16px;
-      }
-      
-      .login-banner-content {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .login-banner-actions {
-        width: 100%;
-        justify-content: center;
+        padding: 12px 16px;
       }
       
       .card-image {
@@ -963,6 +1031,16 @@
         top: 10px;
         right: 10px;
       }
+      
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .card-title-wrapper {
+        width: 100%;
+      }
     }
     
     @media (max-width: 480px) {
@@ -978,7 +1056,19 @@
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
       
+      .login-banner {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+        padding: 16px 12px;
+      }
+      
+      .login-banner-content {
+        flex-direction: column;
+      }
+      
       .login-banner-actions {
+        width: 100%;
         flex-direction: column;
       }
       
@@ -1020,6 +1110,23 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
+  <!-- Login Banner - ALWAYS AT TOP -->
+  <div id="loginBanner" class="login-banner">
+    <div class="login-banner-content">
+      <div class="login-banner-icon">
+        <i class="fas fa-star"></i>
+      </div>
+      <div class="login-banner-text">
+        <h3>Sign in to save your favorite restaurants!</h3>
+        <p>Create lists, save preferences, and get personalized recommendations</p>
+      </div>
+    </div>
+    <div class="login-banner-actions">
+      <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
+      <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
+    </div>
+  </div>
+
   <header>
     <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
     <div class="toolbar">
@@ -1034,23 +1141,6 @@
   </header>
 
   <main class="container">
-    <!-- Login Banner -->
-    <div id="loginBanner" class="login-banner">
-      <div class="login-banner-content">
-        <div class="login-banner-icon">
-          <i class="fas fa-star"></i>
-        </div>
-        <div class="login-banner-text">
-          <h3>Sign in to save your favorite restaurants!</h3>
-          <p>Create lists, save preferences, and get personalized recommendations</p>
-        </div>
-      </div>
-      <div class="login-banner-actions">
-        <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
-        <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
-      </div>
-    </div>
-    
     <div class="page-header">
       <h1>Browse All Restaurants</h1>
       <p>Discover and explore all available restaurants</p>
@@ -1190,7 +1280,8 @@
         },
         restaurantImages: {},
         currentModalRestaurant: null,
-        currentUser: null
+        currentUser: null,
+        isLoggedIn: false
       };
       
       // ---------- SIMPLIFIED LIST MANAGEMENT (Like Homepage) ----------
@@ -1426,17 +1517,13 @@
           if (!restaurantData) return;
           
           // Check if user is logged in
-          let isLoggedIn = false;
-          try {
-              const { data: { session } } = await supabase.auth.getSession();
-              isLoggedIn = !!session;
-          } catch (error) {
-              console.error('Error checking session:', error);
-              isLoggedIn = false;
-          }
-          
-          if (!isLoggedIn) {
-              showNotification('Please sign in to manage lists', 'info');
+          if (!state.isLoggedIn) {
+              showNotification('Please sign in to save restaurants to your lists', 'info');
+              setTimeout(() => {
+                  if (confirm('Would you like to sign in or create an account to save restaurants?')) {
+                      window.location.href = 'login.html';
+                  }
+              }, 500);
               return;
           }
           
@@ -1560,24 +1647,30 @@
           });
       }
       
-      function updateLoginBanner() {
+      async function updateLoginBanner() {
           const loginBanner = document.getElementById('loginBanner');
           if (!loginBanner) return;
           
           // Check if user is logged in
-          supabase.auth.getSession().then(({ data: { session } }) => {
-              if (session) {
+          try {
+              const { data: { session } } = await supabase.auth.getSession();
+              state.isLoggedIn = !!session;
+              
+              if (state.isLoggedIn) {
                   // User is logged in, hide banner
                   loginBanner.classList.add('hidden');
+                  document.querySelector('header').style.top = '0';
               } else {
                   // User is not logged in, show banner
                   loginBanner.classList.remove('hidden');
+                  document.querySelector('header').style.top = '72px';
               }
-          }).catch(error => {
+          } catch (error) {
               console.error('Error checking session for banner:', error);
               // Show banner by default if error
               loginBanner.classList.remove('hidden');
-          });
+              document.querySelector('header').style.top = '72px';
+          }
       }
       
       // ---------- IMAGE LOADING FUNCTIONS ----------
@@ -1644,33 +1737,48 @@
           return DEFAULT_LOGO_URL;
       }
       
-      // Initialize image observer for lazy loading - FIXED VERSION
-      let imageObserver;
-      function initImageObserver() {
-          imageObserver = new IntersectionObserver((entries) => {
-              entries.forEach(entry => {
-                  if (entry.isIntersecting) {
-                      const img = entry.target;
-                      const src = img.dataset.src;
-                      if (src && !img.src) {
-                          img.src = src;
-                          img.onload = () => {
-                              img.classList.add('loaded');
-                              imageObserver.unobserve(img);
-                          };
-                          img.onerror = () => {
-                              img.src = img.dataset.src.includes('logo') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-                              img.classList.add('loaded');
-                              imageObserver.unobserve(img);
-                          };
-                      }
+      // ---------- IMPROVED IMAGE LOADING ----------
+      function initImageLoading() {
+          // Preload images for better performance
+          const imageCache = new Map();
+          
+          return {
+              loadImage: function(src, element) {
+                  if (!src || !element) return;
+                  
+                  // Check cache
+                  if (imageCache.has(src)) {
+                      element.src = src;
+                      element.classList.remove('loading');
+                      element.classList.add('loaded');
+                      return;
                   }
-              });
-          }, {
-              rootMargin: '100px 0px',
-              threshold: 0.01
-          });
+                  
+                  // Mark as loading
+                  element.classList.add('loading');
+                  
+                  const img = new Image();
+                  img.onload = () => {
+                      element.src = src;
+                      element.classList.remove('loading');
+                      element.classList.add('loaded');
+                      imageCache.set(src, true);
+                  };
+                  img.onerror = () => {
+                      // Use fallback
+                      const fallbackSrc = src.includes('logo') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+                      element.src = fallbackSrc;
+                      element.classList.remove('loading');
+                      element.classList.add('loaded');
+                      imageCache.set(src, false);
+                  };
+                  img.src = src;
+              }
+          };
       }
+      
+      // Initialize image loader
+      const imageLoader = initImageLoading();
       
       // ---------- CATEGORY MANAGER ----------
       const categoryManager = {
@@ -1978,6 +2086,11 @@
         
         grid.innerHTML = '';
         grid.appendChild(fragment);
+        
+        // Load images after rendering
+        setTimeout(() => {
+          loadImagesOnPage();
+        }, 100);
       }
       
       async function createRestaurantCard(restaurant) {
@@ -1997,23 +2110,25 @@
         if (status.wantToGo) badgeText += '📍 ';
         if (status.visited) badgeText += '✓ ';
         
-        // Check if user is logged in for menu button
-        let isLoggedIn = false;
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            isLoggedIn = !!session;
-        } catch (error) {
-            isLoggedIn = false;
-        }
-        
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
-              <img class="restaurant-image" data-src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="200">
+              <img class="restaurant-image loading" 
+                   data-src="${restaurant.coverImage}" 
+                   alt="${restaurant.name}" 
+                   width="300" 
+                   height="200">
               <div class="logo-overlay">
-                <img data-src="${logoUrl}" alt="${restaurant.name} logo" loading="lazy" width="48" height="48">
+                <img data-src="${logoUrl}" 
+                     alt="${restaurant.name} logo" 
+                     loading="lazy" 
+                     width="48" 
+                     height="48">
               </div>
-              ${isLoggedIn ? '<button class="menu-btn" aria-label="Restaurant actions"><i class="fas fa-ellipsis-h"></i></button>' : ''}
+              <!-- Menu button ALWAYS visible -->
+              <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
+                <i class="fas fa-ellipsis-h"></i>
+              </button>
               ${badgeText ? `
                 <div class="badge-container">
                   <div class="user-list-badge">${badgeText.trim()}</div>
@@ -2022,13 +2137,15 @@
             </div>
             <div class="card-content">
               <div class="card-header">
-                <h3 class="card-title">${restaurant.name}</h3>
+                <div class="card-title-wrapper">
+                  <h3 class="card-title">${restaurant.name}</h3>
+                  ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
+                </div>
                 <div class="card-rating">
                   <i class="fas fa-star"></i>
                   ${rating.toFixed(1)}
                 </div>
               </div>
-              ${isTopRated ? '<div class="top-rated-badge">Top Rated</div>' : ''}
               <div class="card-category">
                 <span>${categoryManager.getCategoryIcon(category)}</span>
                 ${category}
@@ -2041,39 +2158,40 @@
           </a>
         `;
         
-        // Set up lazy loading for images - FIXED
-        const images = card.querySelectorAll('img[data-src]');
-        images.forEach(img => {
-          if (imageObserver) {
-              imageObserver.observe(img);
-          } else {
-              // Load immediately if observer not ready
-              img.src = img.dataset.src;
-              img.onload = () => img.classList.add('loaded');
-              img.onerror = () => {
-                  img.src = img.dataset.src.includes('logo') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-                  img.classList.add('loaded');
-              };
-          }
-        });
-        
-        // Set up menu button
-        if (isLoggedIn) {
-          const menuBtn = card.querySelector('.menu-btn');
-          if (menuBtn) {
-              menuBtn.addEventListener('click', async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  await showModal({
-                      id: restaurant.id,
-                      name: restaurant.name,
-                      slug: restaurant.slug
-                  });
-              });
-          }
+        // Set up menu button - ALWAYS works, shows login prompt if not logged in
+        const menuBtn = card.querySelector('.menu-btn');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                await showModal({
+                    id: restaurant.id,
+                    name: restaurant.name,
+                    slug: restaurant.slug
+                });
+            });
         }
         
         return card;
+      }
+      
+      function loadImagesOnPage() {
+        const images = document.querySelectorAll('.restaurant-image[data-src]:not(.loaded)');
+        images.forEach(img => {
+          const src = img.getAttribute('data-src');
+          if (src) {
+            imageLoader.loadImage(src, img);
+          }
+        });
+        
+        // Load logo images
+        const logoImages = document.querySelectorAll('.logo-overlay img[data-src]:not([src])');
+        logoImages.forEach(img => {
+          const src = img.getAttribute('data-src');
+          if (src) {
+            imageLoader.loadImage(src, img);
+          }
+        });
       }
       
       // ---------- PAGINATION ----------
@@ -2155,6 +2273,7 @@
 
               if (session && session.user) {
                   // User is logged in
+                  state.isLoggedIn = true;
                   const userId = session.user.id;
                   
                   // Fetch profile from user_profiles table
@@ -2191,12 +2310,13 @@
                   
               } else {
                   // Not logged in
+                  state.isLoggedIn = false;
                   document.getElementById('authBtn').innerHTML = `<i class="fas fa-user"></i><span>Sign In</span>`;
                   document.getElementById('authBtn').onclick = () => location.href = 'login.html';
               }
               
               // Update login banner
-              updateLoginBanner();
+              await updateLoginBanner();
               
               // Re-render cards to update badges
               if (state.filteredRestaurants.length > 0) {
@@ -2206,6 +2326,7 @@
           } catch (e) {
               console.error('updateAuthUI error', e);
               // Fallback to logged out state
+              state.isLoggedIn = false;
               document.getElementById('authBtn').innerHTML = `<i class="fas fa-user"></i><span>Sign In</span>`;
               document.getElementById('authBtn').onclick = () => location.href = 'login.html';
           }
@@ -2297,7 +2418,6 @@
         if (!supabase) return;
         
         initializeEventListeners();
-        initImageObserver();
         
         try {
           await loadRestaurantsFromSupabase();
@@ -2314,31 +2434,21 @@
         });
       });
       
-      // Window resize optimization
-      let resizeTimeout;
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          if (state.filteredRestaurants.length > 0) {
-            renderRestaurants();
+      // Handle scroll for performance
+      let scrollTimeout;
+      window.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          if (document.visibilityState === 'visible') {
+            loadImagesOnPage();
           }
-        }, 250);
+        }, 100);
       });
       
       // Handle page visibility for performance
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          if (imageObserver) {
-            imageObserver.disconnect();
-          }
-        } else {
-          initImageObserver();
-          const images = document.querySelectorAll('img[data-src]:not([src])');
-          images.forEach(img => {
-            if (imageObserver) {
-                imageObserver.observe(img);
-            }
-          });
+        if (!document.hidden) {
+          loadImagesOnPage();
         }
       });
       
