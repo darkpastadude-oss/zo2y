@@ -332,7 +332,53 @@
       box-shadow: 0 8px 24px rgba(245,158,11,0.4);
     }
     
-    /* Three dots menu button */
+    /* Badge container - FIXED POSITIONING */
+    .badge-container {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 25;
+      max-width: calc(100% - 80px);
+    }
+    
+    /* User list badge (Favorites, Visited, Want to Go) */
+    .user-list-badge {
+      background: rgba(11, 22, 51, 0.9);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    
+    /* Top rated badge - positioned separately */
+    .top-rated-badge {
+      position: absolute;
+      top: 12px;
+      right: 60px; /* Leave space for menu button */
+      background: rgba(11, 22, 51, 0.9);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--accent);
+      z-index: 25;
+    }
+    
+    /* Three dots menu button - FIXED POSITIONING */
     .menu-btn {
       position: absolute;
       top: 12px;
@@ -346,7 +392,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 25;
+      z-index: 30;
       backdrop-filter: blur(10px);
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -364,20 +410,6 @@
     
     .menu-btn:hover i {
       color: #0b1633;
-    }
-    
-    .card-badge {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      background: rgba(11, 22, 51, 0.9);
-      color: var(--accent);
-      padding: 4px 8px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--accent);
     }
     
     .card-content {
@@ -832,6 +864,12 @@
         top: 10px;
         right: 10px;
       }
+      
+      .top-rated-badge {
+        right: 50px;
+        font-size: 10px;
+        padding: 3px 6px;
+      }
     }
     
     @media (max-width: 480px) {
@@ -867,6 +905,12 @@
         height: 30px;
         top: 8px;
         right: 8px;
+      }
+      
+      .top-rated-badge {
+        right: 46px;
+        font-size: 9px;
+        padding: 2px 4px;
       }
     }
     
@@ -1036,13 +1080,12 @@
           quickFilter: 'all',
           sort: 'all'
         },
-        imageCache: new Map(),
         restaurantImages: {},
         currentModalRestaurant: null,
         currentUser: null
       };
       
-      // ---------- LIST MANAGEMENT SYSTEM (From Homepage) ----------
+      // ---------- SIMPLIFIED LIST MANAGEMENT (Like Homepage) ----------
       const listManager = {
           userLists: [],
           currentLists: {
@@ -1050,25 +1093,12 @@
               visited: null,
               wantToGo: null
           },
-          restaurantLists: new Map(), // restaurantId -> array of listIds
           
           async init() { 
               const { data: { session } } = await supabase.auth.getSession();
-              if (!session) {
-                  this.clearData();
-                  return;
-              }
+              if (!session) return;
               
               await this.loadUserLists();
-              await this.loadAllRestaurantLists();
-          },
-          
-          clearData() {
-              this.userLists = [];
-              this.currentLists.favorites = null;
-              this.currentLists.visited = null;
-              this.currentLists.wantToGo = null;
-              this.restaurantLists.clear();
           },
           
           async loadUserLists() {
@@ -1085,6 +1115,7 @@
                   
                   this.userLists = lists || [];
                   await this.setupDefaultLists();
+                  await this.loadListRestaurants();
                   
               } catch (error) {
                   console.error('Error loading lists:', error);
@@ -1094,12 +1125,10 @@
           async setupDefaultLists() {
               const { data: { user } } = await supabase.auth.getUser();
               
-              // Find existing default lists
               this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
               this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
               this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
               
-              // Create missing default lists
               if (!this.currentLists.favorites) {
                   this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
               }
@@ -1113,7 +1142,6 @@
           
           async createList(title, description) {
               const { data: { user } } = await supabase.auth.getUser();
-              if (!user) return null;
               
               const { data: newList, error } = await supabase
                   .from('lists')
@@ -1136,35 +1164,21 @@
               return newList;
           },
           
-          async loadAllRestaurantLists() {
-              try {
-                  const { data: { user } } = await supabase.auth.getUser();
-                  if (!user) return;
-                  
-                  // Get all list items for this user
-                  const { data: listItems, error } = await supabase
-                      .from('lists_restraunts')
-                      .select('list_id, restraunt_id')
-                      .in('list_id', this.userLists.map(list => list.id));
-                  
-                  if (error) throw error;
-                  
-                  // Clear existing data
-                  this.restaurantLists.clear();
-                  
-                  // Group by restaurant_id
-                  if (listItems) {
-                      listItems.forEach(item => {
-                          const restaurantId = item.restraunt_id;
-                          if (!this.restaurantLists.has(restaurantId)) {
-                              this.restaurantLists.set(restaurantId, []);
-                          }
-                          this.restaurantLists.get(restaurantId).push(item.list_id);
-                      });
+          async loadListRestaurants() {
+              for (const listType in this.currentLists) {
+                  const list = this.currentLists[listType];
+                  if (list) {
+                      const { data: listRestaurants, error } = await supabase
+                          .from('lists_restraunts')
+                          .select('restraunt_id')
+                          .eq('list_id', list.id);
+                      
+                      if (!error && listRestaurants) {
+                          list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                      } else {
+                          list.restaurants = [];
+                      }
                   }
-                  
-              } catch (error) {
-                  console.error('Error loading restaurant lists:', error);
               }
           },
           
@@ -1172,11 +1186,10 @@
               const list = this.currentLists[listType];
               if (!list) return false;
               
-              const isInList = this.isInList(listType, restaurantId);
+              const isInList = list.restaurants?.includes(restaurantId);
               
               try {
                   if (isInList) {
-                      // Remove from list
                       const { error } = await supabase
                           .from('lists_restraunts')
                           .delete()
@@ -1187,20 +1200,11 @@
                       
                       if (error) throw error;
                       
-                      // Update local state
-                      const currentLists = this.restaurantLists.get(restaurantId) || [];
-                      const newLists = currentLists.filter(listId => listId !== list.id);
-                      if (newLists.length === 0) {
-                          this.restaurantLists.delete(restaurantId);
-                      } else {
-                          this.restaurantLists.set(restaurantId, newLists);
-                      }
-                      
+                      list.restaurants = list.restaurants.filter(id => id !== restaurantId);
                       showNotification(`Removed from ${list.title}`, 'info');
                       return false;
                       
                   } else {
-                      // Add to list
                       const { error } = await supabase
                           .from('lists_restraunts')
                           .insert([
@@ -1213,10 +1217,8 @@
                       
                       if (error) throw error;
                       
-                      // Update local state
-                      const currentLists = this.restaurantLists.get(restaurantId) || [];
-                      this.restaurantLists.set(restaurantId, [...currentLists, list.id]);
-                      
+                      if (!list.restaurants) list.restaurants = [];
+                      list.restaurants.push(restaurantId);
                       showNotification(`Added to ${list.title}`, 'success');
                       return true;
                   }
@@ -1230,31 +1232,15 @@
           
           isInList(listType, restaurantId) {
               const list = this.currentLists[listType];
-              if (!list) return false;
-              
-              const lists = this.restaurantLists.get(restaurantId);
-              return lists ? lists.includes(list.id) : false;
+              return list?.restaurants?.includes(restaurantId) || false;
           },
           
           getRestaurantListStatus(restaurantId) {
-              const lists = this.restaurantLists.get(restaurantId) || [];
-              const status = {
-                  favorites: false,
-                  wantToGo: false,
-                  visited: false
+              return {
+                  favorites: this.isInList('favorites', restaurantId),
+                  wantToGo: this.isInList('wantToGo', restaurantId),
+                  visited: this.isInList('visited', restaurantId)
               };
-              
-              if (this.currentLists.favorites && lists.includes(this.currentLists.favorites.id)) {
-                  status.favorites = true;
-              }
-              if (this.currentLists.wantToGo && lists.includes(this.currentLists.wantToGo.id)) {
-                  status.wantToGo = true;
-              }
-              if (this.currentLists.visited && lists.includes(this.currentLists.visited.id)) {
-                  status.visited = true;
-              }
-              
-              return status;
           }
       };
       
@@ -1327,10 +1313,6 @@
       const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
       const modalVisitedBtn = document.getElementById('modalVisitedBtn');
       const modalCancelBtn = document.getElementById('modalCancelBtn');
-      
-      const favoritesText = document.getElementById('favoritesText');
-      const wantToGoText = document.getElementById('wantToGoText');
-      const visitedText = document.getElementById('visitedText');
 
       function showModal(restaurantData) {
           if (!restaurantData) return;
@@ -1341,7 +1323,7 @@
               return;
           }
           
-          currentModalRestaurant = restaurantData;
+          state.currentModalRestaurant = restaurantData;
           modalRestaurantName.textContent = restaurantData.name;
           
           updateModalButtons(restaurantData.id);
@@ -1353,44 +1335,41 @@
       function hideModal() {
           actionsModal.classList.remove('active');
           document.body.style.overflow = 'auto';
-          currentModalRestaurant = null;
+          state.currentModalRestaurant = null;
       }
 
       function updateModalButtons(restaurantId) {
           const status = listManager.getRestaurantListStatus(restaurantId);
           
-          // Update Favorites button
+          modalFavoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
           modalFavoritesBtn.classList.toggle('active', status.favorites);
-          favoritesText.textContent = status.favorites ? 'Remove from Favorites' : 'Add to Favorites';
           
-          // Update Want to Go button
+          modalWantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
           modalWantToGoBtn.classList.toggle('active', status.wantToGo);
-          wantToGoText.textContent = status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go';
           
-          // Update Visited button
+          modalVisitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
           modalVisitedBtn.classList.toggle('active', status.visited);
-          visitedText.textContent = status.visited ? 'Remove from Visited' : 'Mark as Visited';
       }
 
       modalFavoritesBtn.addEventListener('click', async () => {
-          if (!currentModalRestaurant) return;
-          const wasAdded = await listManager.toggleInList('favorites', currentModalRestaurant.id);
-          updateModalButtons(currentModalRestaurant.id);
-          updateCardBadges(currentModalRestaurant.id);
+          if (!state.currentModalRestaurant) return;
+          await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+          updateModalButtons(state.currentModalRestaurant.id);
+          updateCardBadges(state.currentModalRestaurant.id);
       });
 
       modalWantToGoBtn.addEventListener('click', async () => {
-          if (!currentModalRestaurant) return;
-          const wasAdded = await listManager.toggleInList('wantToGo', currentModalRestaurant.id);
-          updateModalButtons(currentModalRestaurant.id);
-          updateCardBadges(currentModalRestaurant.id);
+          if (!state.currentModalRestaurant) return;
+          await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+          updateModalButtons(state.currentModalRestaurant.id);
+          updateCardBadges(state.currentModalRestaurant.id);
       });
 
       modalVisitedBtn.addEventListener('click', async () => {
-          if (!currentModalRestaurant) return;
-          const wasAdded = await listManager.toggleInList('visited', currentModalRestaurant.id);
-          updateModalButtons(currentModalRestaurant.id);
-          updateCardBadges(currentModalRestaurant.id);
+          if (!state.currentModalRestaurant) return;
+          await listManager.toggleInList('visited', state.currentModalRestaurant.id);
+          updateModalButtons(state.currentModalRestaurant.id);
+          updateCardBadges(state.currentModalRestaurant.id);
       });
 
       modalCancelBtn.addEventListener('click', hideModal);
@@ -1411,7 +1390,7 @@
           const card = document.querySelector(`.restaurant-card[data-id="${restaurantId}"]`);
           if (!card) return;
           
-          const badge = card.querySelector('.card-badge:not(.top-rated)');
+          const badgeContainer = card.querySelector('.badge-container');
           const status = listManager.getRestaurantListStatus(restaurantId);
           
           let badgeText = '';
@@ -1420,16 +1399,30 @@
           if (status.visited) badgeText += '✓ ';
           
           if (badgeText) {
-              if (badge) {
-                  badge.textContent = badgeText.trim();
-              } else {
+              if (!badgeContainer) {
+                  const newBadgeContainer = document.createElement('div');
+                  newBadgeContainer.className = 'badge-container';
+                  
                   const newBadge = document.createElement('div');
-                  newBadge.className = 'card-badge';
+                  newBadge.className = 'user-list-badge';
                   newBadge.textContent = badgeText.trim();
-                  card.querySelector('.card-image').appendChild(newBadge);
+                  
+                  newBadgeContainer.appendChild(newBadge);
+                  card.querySelector('.card-image').appendChild(newBadgeContainer);
+              } else {
+                  const badge = badgeContainer.querySelector('.user-list-badge');
+                  if (badge) {
+                      badge.textContent = badgeText.trim();
+                  } else {
+                      const newBadge = document.createElement('div');
+                      newBadge.className = 'user-list-badge';
+                      newBadge.textContent = badgeText.trim();
+                      badgeContainer.innerHTML = '';
+                      badgeContainer.appendChild(newBadge);
+                  }
               }
-          } else if (badge) {
-              badge.remove();
+          } else if (badgeContainer) {
+              badgeContainer.remove();
           }
       }
       
@@ -1497,7 +1490,7 @@
           return DEFAULT_LOGO_URL;
       }
       
-      // Initialize image observer for lazy loading
+      // Initialize image observer for lazy loading - FIXED VERSION
       let imageObserver;
       function initImageObserver() {
           imageObserver = new IntersectionObserver((entries) => {
@@ -1505,7 +1498,7 @@
                   if (entry.isIntersecting) {
                       const img = entry.target;
                       const src = img.dataset.src;
-                      if (src) {
+                      if (src && !img.src) {
                           img.src = src;
                           img.onload = () => {
                               img.classList.add('loaded');
@@ -1806,7 +1799,7 @@
         }
       }
       
-      function renderRestaurants() {
+      async function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
         const emptyState = document.getElementById('emptyState');
         
@@ -1824,16 +1817,16 @@
         
         const fragment = document.createDocumentFragment();
         
-        pageItems.forEach(restaurant => {
-          const card = createRestaurantCard(restaurant);
+        for (const restaurant of pageItems) {
+          const card = await createRestaurantCard(restaurant);
           fragment.appendChild(card);
-        });
+        }
         
         grid.innerHTML = '';
         grid.appendChild(fragment);
       }
       
-      function createRestaurantCard(restaurant) {
+      async function createRestaurantCard(restaurant) {
         const card = document.createElement('div');
         card.className = 'restaurant-card';
         card.dataset.id = restaurant.id;
@@ -1849,6 +1842,15 @@
         if (status.wantToGo) badgeText += '📍 ';
         if (status.visited) badgeText += '✓ ';
         
+        // Check if user is logged in for menu button
+        let isLoggedIn = false;
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            isLoggedIn = !!session;
+        } catch (error) {
+            isLoggedIn = false;
+        }
+        
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
@@ -1856,11 +1858,13 @@
               <div class="logo-overlay">
                 <img data-src="${logoUrl}" alt="${restaurant.name} logo" loading="lazy" width="48" height="48">
               </div>
-              <button class="menu-btn" aria-label="Restaurant actions">
-                <i class="fas fa-ellipsis-h"></i>
-              </button>
-              ${badgeText ? `<div class="card-badge">${badgeText.trim()}</div>` : ''}
-              ${rating >= 4.5 ? '<div class="card-badge" style="left: auto; right: 12px;">Top Rated</div>' : ''}
+              ${isLoggedIn ? '<button class="menu-btn" aria-label="Restaurant actions"><i class="fas fa-ellipsis-h"></i></button>' : ''}
+              ${badgeText ? `
+                <div class="badge-container">
+                  <div class="user-list-badge">${badgeText.trim()}</div>
+                </div>
+              ` : ''}
+              ${rating >= 4.5 ? '<div class="top-rated-badge">Top Rated</div>' : ''}
             </div>
             <div class="card-content">
               <div class="card-header">
@@ -1882,25 +1886,37 @@
           </a>
         `;
         
-        // Set up lazy loading for images
+        // Set up lazy loading for images - FIXED
         const images = card.querySelectorAll('img[data-src]');
         images.forEach(img => {
           if (imageObserver) {
               imageObserver.observe(img);
+          } else {
+              // Load immediately if observer not ready
+              img.src = img.dataset.src;
+              img.onload = () => img.classList.add('loaded');
+              img.onerror = () => {
+                  img.src = img.dataset.src.includes('logo') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+                  img.classList.add('loaded');
+              };
           }
         });
         
         // Set up menu button
-        const menuBtn = card.querySelector('.menu-btn');
-        menuBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          showModal({
-            id: restaurant.id,
-            name: restaurant.name,
-            slug: restaurant.slug
-          });
-        });
+        if (isLoggedIn) {
+          const menuBtn = card.querySelector('.menu-btn');
+          if (menuBtn) {
+              menuBtn.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showModal({
+                      id: restaurant.id,
+                      name: restaurant.name,
+                      slug: restaurant.slug
+                  });
+              });
+          }
+        }
         
         return card;
       }
@@ -2022,9 +2038,6 @@
                   // Not logged in
                   document.getElementById('authBtn').innerHTML = `<i class="fas fa-user"></i><span>Sign In</span>`;
                   document.getElementById('authBtn').onclick = () => location.href = 'login.html';
-                  
-                  // Clear list data
-                  listManager.clearData();
               }
               
               // Re-render cards to update badges
