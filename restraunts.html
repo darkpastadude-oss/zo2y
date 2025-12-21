@@ -21,6 +21,90 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
+    /* Login Banner */
+    .login-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin: 0 0 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    }
+    
+    .login-banner.hidden {
+      display: none;
+    }
+    
+    .login-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .login-banner-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1633;
+      font-size: 18px;
+    }
+    
+    .login-banner-text h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--white);
+    }
+    
+    .login-banner-text p {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0;
+    }
+    
+    .login-banner-actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .banner-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .banner-btn-primary {
+      background: var(--gradient);
+      color: #0b1633;
+      border: none;
+    }
+    
+    .banner-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    }
+    
+    .banner-btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid var(--border);
+    }
+    
+    .banner-btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent);
+    }
+    
     /* Optimized Image Loading */
     .restaurant-image {
       display: block;
@@ -332,7 +416,7 @@
       box-shadow: 0 8px 24px rgba(245,158,11,0.4);
     }
     
-    /* Badge container - FIXED POSITIONING */
+    /* Badge container */
     .badge-container {
       position: absolute;
       top: 12px;
@@ -362,23 +446,7 @@
       overflow: hidden;
     }
     
-    /* Top rated badge - positioned separately */
-    .top-rated-badge {
-      position: absolute;
-      top: 12px;
-      right: 60px; /* Leave space for menu button */
-      background: rgba(11, 22, 51, 0.9);
-      color: var(--accent);
-      padding: 4px 8px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--accent);
-      z-index: 25;
-    }
-    
-    /* Three dots menu button - FIXED POSITIONING */
+    /* Three dots menu button */
     .menu-btn {
       position: absolute;
       top: 12px;
@@ -448,6 +516,20 @@
       white-space: nowrap;
     }
     
+    /* Top rated badge in card content */
+    .top-rated-badge {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      margin-top: 4px;
+      align-self: flex-start;
+    }
+    
     .card-category {
       color: var(--accent);
       font-size: 13px;
@@ -465,7 +547,7 @@
       margin: 0 0 16px 0;
       display: -webkit-box;
       -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
+      -webkit-box-orvent: vertical;
       overflow: hidden;
       flex: 1;
     }
@@ -843,6 +925,23 @@
         flex-wrap: wrap;
       }
       
+      .login-banner {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+        padding: 20px 16px;
+      }
+      
+      .login-banner-content {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .login-banner-actions {
+        width: 100%;
+        justify-content: center;
+      }
+      
       .card-image {
         height: 180px;
       }
@@ -864,12 +963,6 @@
         top: 10px;
         right: 10px;
       }
-      
-      .top-rated-badge {
-        right: 50px;
-        font-size: 10px;
-        padding: 3px 6px;
-      }
     }
     
     @media (max-width: 480px) {
@@ -883,6 +976,10 @@
       
       .grid-dense {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      
+      .login-banner-actions {
+        flex-direction: column;
       }
       
       .card-image {
@@ -905,12 +1002,6 @@
         height: 30px;
         top: 8px;
         right: 8px;
-      }
-      
-      .top-rated-badge {
-        right: 46px;
-        font-size: 9px;
-        padding: 2px 4px;
       }
     }
     
@@ -943,6 +1034,23 @@
   </header>
 
   <main class="container">
+    <!-- Login Banner -->
+    <div id="loginBanner" class="login-banner">
+      <div class="login-banner-content">
+        <div class="login-banner-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="login-banner-text">
+          <h3>Sign in to save your favorite restaurants!</h3>
+          <p>Create lists, save preferences, and get personalized recommendations</p>
+        </div>
+      </div>
+      <div class="login-banner-actions">
+        <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
+        <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
+      </div>
+    </div>
+    
     <div class="page-header">
       <h1>Browse All Restaurants</h1>
       <p>Discover and explore all available restaurants</p>
@@ -1314,11 +1422,20 @@
       const modalVisitedBtn = document.getElementById('modalVisitedBtn');
       const modalCancelBtn = document.getElementById('modalCancelBtn');
 
-      function showModal(restaurantData) {
+      async function showModal(restaurantData) {
           if (!restaurantData) return;
           
-          const { data: { session } } = supabase.auth.getSession();
-          if (!session) {
+          // Check if user is logged in
+          let isLoggedIn = false;
+          try {
+              const { data: { session } } = await supabase.auth.getSession();
+              isLoggedIn = !!session;
+          } catch (error) {
+              console.error('Error checking session:', error);
+              isLoggedIn = false;
+          }
+          
+          if (!isLoggedIn) {
               showNotification('Please sign in to manage lists', 'info');
               return;
           }
@@ -1424,6 +1541,43 @@
           } else if (badgeContainer) {
               badgeContainer.remove();
           }
+      }
+      
+      // ---------- LOGIN BANNER FUNCTIONS ----------
+      function setupLoginBanner() {
+          const loginBanner = document.getElementById('loginBanner');
+          const bannerLoginBtn = document.getElementById('bannerLoginBtn');
+          const bannerSignupBtn = document.getElementById('bannerSignupBtn');
+          
+          if (!loginBanner) return;
+          
+          bannerLoginBtn.addEventListener('click', () => {
+              location.href = 'login.html';
+          });
+          
+          bannerSignupBtn.addEventListener('click', () => {
+              location.href = 'signup.html';
+          });
+      }
+      
+      function updateLoginBanner() {
+          const loginBanner = document.getElementById('loginBanner');
+          if (!loginBanner) return;
+          
+          // Check if user is logged in
+          supabase.auth.getSession().then(({ data: { session } }) => {
+              if (session) {
+                  // User is logged in, hide banner
+                  loginBanner.classList.add('hidden');
+              } else {
+                  // User is not logged in, show banner
+                  loginBanner.classList.remove('hidden');
+              }
+          }).catch(error => {
+              console.error('Error checking session for banner:', error);
+              // Show banner by default if error
+              loginBanner.classList.remove('hidden');
+          });
       }
       
       // ---------- IMAGE LOADING FUNCTIONS ----------
@@ -1835,6 +1989,7 @@
         const category = restaurant.category || 'Restaurant';
         const logoUrl = getLogoUrl(restaurant);
         const status = listManager.getRestaurantListStatus(restaurant.id);
+        const isTopRated = rating >= 4.5;
         
         // Build badge string if restaurant is in any list
         let badgeText = '';
@@ -1864,7 +2019,6 @@
                   <div class="user-list-badge">${badgeText.trim()}</div>
                 </div>
               ` : ''}
-              ${rating >= 4.5 ? '<div class="top-rated-badge">Top Rated</div>' : ''}
             </div>
             <div class="card-content">
               <div class="card-header">
@@ -1874,6 +2028,7 @@
                   ${rating.toFixed(1)}
                 </div>
               </div>
+              ${isTopRated ? '<div class="top-rated-badge">Top Rated</div>' : ''}
               <div class="card-category">
                 <span>${categoryManager.getCategoryIcon(category)}</span>
                 ${category}
@@ -1906,10 +2061,10 @@
         if (isLoggedIn) {
           const menuBtn = card.querySelector('.menu-btn');
           if (menuBtn) {
-              menuBtn.addEventListener('click', (e) => {
+              menuBtn.addEventListener('click', async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  showModal({
+                  await showModal({
                       id: restaurant.id,
                       name: restaurant.name,
                       slug: restaurant.slug
@@ -2040,6 +2195,9 @@
                   document.getElementById('authBtn').onclick = () => location.href = 'login.html';
               }
               
+              // Update login banner
+              updateLoginBanner();
+              
               // Re-render cards to update badges
               if (state.filteredRestaurants.length > 0) {
                   renderRestaurants();
@@ -2108,6 +2266,9 @@
         
         // Initialize grid view controls
         initializeViewControls();
+        
+        // Setup login banner
+        setupLoginBanner();
       }
       
       function resetAllFilters() {
