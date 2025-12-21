@@ -21,28 +21,32 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Fixed Sticky Login Banner */
+    /* Hidden by default - only shown after auth check */
     .login-banner {
+      display: none;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      border-radius: 0;
-      padding: 14px 24px;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 16px 24px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .login-banner.show {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 99;
-      margin: 0;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
-    }
-    
-    .login-banner.hidden {
-      display: none;
     }
     
     .login-banner-content {
@@ -61,6 +65,7 @@
       justify-content: center;
       color: #0b1633;
       font-size: 16px;
+      flex-shrink: 0;
     }
     
     .login-banner-text h3 {
@@ -89,6 +94,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       border: none;
+      flex-shrink: 0;
     }
     
     .banner-btn-primary {
@@ -112,7 +118,7 @@
       border-color: var(--accent);
     }
     
-    /* Optimized Image Loading */
+    /* Fixed Image Loading - No Stutter */
     .restaurant-image {
       display: block;
       width: 100%;
@@ -120,9 +126,6 @@
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
       transition: opacity 0.5s ease;
-    }
-    
-    .restaurant-image.loading {
       opacity: 0;
     }
     
@@ -130,19 +133,10 @@
       opacity: 1;
     }
     
-    .restaurant-image.failed {
-      background: linear-gradient(135deg, #2d4a8c 0%, #1a2d5f 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
     /* Enhanced Header */
     header { 
       position: sticky; 
-      top: 72px; /* Account for banner height */
+      top: 0; 
       z-index: 100; 
       display: flex; 
       align-items: center; 
@@ -458,6 +452,12 @@
       object-fit: contain;
       pointer-events: none;
       border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .logo-overlay img.loaded {
+      opacity: 1;
     }
     
     .restaurant-card:hover .logo-overlay {
@@ -1003,11 +1003,22 @@
       header {
         padding: 12px 16px;
         flex-wrap: wrap;
-        top: 68px; /* Adjusted for mobile */
       }
       
       .login-banner {
         padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+      
+      .login-banner-content {
+        flex-direction: column;
+      }
+      
+      .login-banner-actions {
+        width: 100%;
+        justify-content: center;
       }
       
       .card-image {
@@ -1056,19 +1067,7 @@
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
       
-      .login-banner {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-        padding: 16px 12px;
-      }
-      
-      .login-banner-content {
-        flex-direction: column;
-      }
-      
       .login-banner-actions {
-        width: 100%;
         flex-direction: column;
       }
       
@@ -1110,7 +1109,20 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Login Banner - ALWAYS AT TOP -->
+  <header>
+    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+    <div class="toolbar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔎</span>
+        <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
+        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+      </div>
+      <button class="btn" id="resetFilters">Clear Filters</button>
+      <button class="btn btn-primary" id="authBtn">Sign In</button>
+    </div>
+  </header>
+
+  <!-- Login Banner - HIDDEN by default, shown only after auth check -->
   <div id="loginBanner" class="login-banner">
     <div class="login-banner-content">
       <div class="login-banner-icon">
@@ -1126,19 +1138,6 @@
       <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
     </div>
   </div>
-
-  <header>
-    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-    <div class="toolbar">
-      <div class="search-wrapper">
-        <span class="search-icon">🔎</span>
-        <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
-        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
-      </div>
-      <button class="btn" id="resetFilters">Clear Filters</button>
-      <button class="btn btn-primary" id="authBtn">Sign In</button>
-    </div>
-  </header>
 
   <main class="container">
     <div class="page-header">
@@ -1281,10 +1280,11 @@
         restaurantImages: {},
         currentModalRestaurant: null,
         currentUser: null,
-        isLoggedIn: false
+        isLoggedIn: false,
+        authChecked: false // Track if auth check is complete
       };
       
-      // ---------- SIMPLIFIED LIST MANAGEMENT (Like Homepage) ----------
+      // ---------- SIMPLIFIED LIST MANAGEMENT ----------
       const listManager = {
           userLists: [],
           currentLists: {
@@ -1632,48 +1632,39 @@
       
       // ---------- LOGIN BANNER FUNCTIONS ----------
       function setupLoginBanner() {
-          const loginBanner = document.getElementById('loginBanner');
           const bannerLoginBtn = document.getElementById('bannerLoginBtn');
           const bannerSignupBtn = document.getElementById('bannerSignupBtn');
           
-          if (!loginBanner) return;
+          if (bannerLoginBtn) {
+              bannerLoginBtn.addEventListener('click', () => {
+                  location.href = 'login.html';
+              });
+          }
           
-          bannerLoginBtn.addEventListener('click', () => {
-              location.href = 'login.html';
-          });
-          
-          bannerSignupBtn.addEventListener('click', () => {
-              location.href = 'signup.html';
-          });
+          if (bannerSignupBtn) {
+              bannerSignupBtn.addEventListener('click', () => {
+                  location.href = 'signup.html';
+              });
+          }
       }
       
       async function updateLoginBanner() {
           const loginBanner = document.getElementById('loginBanner');
           if (!loginBanner) return;
           
-          // Check if user is logged in
-          try {
-              const { data: { session } } = await supabase.auth.getSession();
-              state.isLoggedIn = !!session;
-              
-              if (state.isLoggedIn) {
-                  // User is logged in, hide banner
-                  loginBanner.classList.add('hidden');
-                  document.querySelector('header').style.top = '0';
-              } else {
+          // Only show/hide after auth is checked to prevent flash
+          if (state.authChecked) {
+              if (!state.isLoggedIn) {
                   // User is not logged in, show banner
-                  loginBanner.classList.remove('hidden');
-                  document.querySelector('header').style.top = '72px';
+                  loginBanner.classList.add('show');
+              } else {
+                  // User is logged in, hide banner
+                  loginBanner.classList.remove('show');
               }
-          } catch (error) {
-              console.error('Error checking session for banner:', error);
-              // Show banner by default if error
-              loginBanner.classList.remove('hidden');
-              document.querySelector('header').style.top = '72px';
           }
       }
       
-      // ---------- IMAGE LOADING FUNCTIONS ----------
+      // ---------- IMAGE LOADING FUNCTIONS (NO STUTTER) ----------
       async function loadAllRestaurantImages() {
           try {
               console.log("🔄 Loading all restaurant images from gallery...");
@@ -1737,48 +1728,69 @@
           return DEFAULT_LOGO_URL;
       }
       
-      // ---------- IMPROVED IMAGE LOADING ----------
-      function initImageLoading() {
-          // Preload images for better performance
-          const imageCache = new Map();
+      // ---------- SMOOTH IMAGE LOADING ----------
+      const imageLoader = {
+          cache: new Map(),
           
-          return {
-              loadImage: function(src, element) {
-                  if (!src || !element) return;
-                  
-                  // Check cache
-                  if (imageCache.has(src)) {
+          loadImage: function(element) {
+              if (!element || !element.dataset.src) return;
+              
+              const src = element.dataset.src;
+              
+              // Check cache
+              if (this.cache.has(src)) {
+                  if (this.cache.get(src) === 'loaded') {
                       element.src = src;
-                      element.classList.remove('loading');
                       element.classList.add('loaded');
-                      return;
-                  }
-                  
-                  // Mark as loading
-                  element.classList.add('loading');
-                  
-                  const img = new Image();
-                  img.onload = () => {
-                      element.src = src;
-                      element.classList.remove('loading');
-                      element.classList.add('loaded');
-                      imageCache.set(src, true);
-                  };
-                  img.onerror = () => {
-                      // Use fallback
+                  } else {
+                      // Fallback for failed images
                       const fallbackSrc = src.includes('logo') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
                       element.src = fallbackSrc;
-                      element.classList.remove('loading');
                       element.classList.add('loaded');
-                      imageCache.set(src, false);
-                  };
-                  img.src = src;
+                  }
+                  return;
               }
-          };
-      }
-      
-      // Initialize image loader
-      const imageLoader = initImageLoading();
+              
+              // Mark as loading in cache
+              this.cache.set(src, 'loading');
+              
+              const img = new Image();
+              img.onload = () => {
+                  element.src = src;
+                  element.classList.add('loaded');
+                  this.cache.set(src, 'loaded');
+              };
+              
+              img.onerror = () => {
+                  // Use fallback
+                  const fallbackSrc = src.includes('logo') ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+                  element.src = fallbackSrc;
+                  element.classList.add('loaded');
+                  this.cache.set(src, 'failed');
+              };
+              
+              img.src = src;
+          },
+          
+          loadVisibleImages: function() {
+              const images = document.querySelectorAll('.restaurant-image:not(.loaded), .logo-overlay img:not(.loaded)');
+              
+              images.forEach(img => {
+                  // Check if element is in viewport
+                  const rect = img.getBoundingClientRect();
+                  const isVisible = (
+                      rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
+                      rect.bottom >= 0 &&
+                      rect.left <= (window.innerWidth || document.documentElement.clientWidth) &&
+                      rect.right >= 0
+                  );
+                  
+                  if (isVisible) {
+                      this.loadImage(img);
+                  }
+              });
+          }
+      };
       
       // ---------- CATEGORY MANAGER ----------
       const categoryManager = {
@@ -2087,10 +2099,10 @@
         grid.innerHTML = '';
         grid.appendChild(fragment);
         
-        // Load images after rendering
+        // Load images after a small delay to prevent stutter
         setTimeout(() => {
-          loadImagesOnPage();
-        }, 100);
+          imageLoader.loadVisibleImages();
+        }, 50);
       }
       
       async function createRestaurantCard(restaurant) {
@@ -2113,7 +2125,7 @@
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
-              <img class="restaurant-image loading" 
+              <img class="restaurant-image" 
                    data-src="${restaurant.coverImage}" 
                    alt="${restaurant.name}" 
                    width="300" 
@@ -2121,7 +2133,6 @@
               <div class="logo-overlay">
                 <img data-src="${logoUrl}" 
                      alt="${restaurant.name} logo" 
-                     loading="lazy" 
                      width="48" 
                      height="48">
               </div>
@@ -2173,25 +2184,6 @@
         }
         
         return card;
-      }
-      
-      function loadImagesOnPage() {
-        const images = document.querySelectorAll('.restaurant-image[data-src]:not(.loaded)');
-        images.forEach(img => {
-          const src = img.getAttribute('data-src');
-          if (src) {
-            imageLoader.loadImage(src, img);
-          }
-        });
-        
-        // Load logo images
-        const logoImages = document.querySelectorAll('.logo-overlay img[data-src]:not([src])');
-        logoImages.forEach(img => {
-          const src = img.getAttribute('data-src');
-          if (src) {
-            imageLoader.loadImage(src, img);
-          }
-        });
       }
       
       // ---------- PAGINATION ----------
@@ -2263,7 +2255,7 @@
         };
       }
       
-      // ---------- AUTH MANAGEMENT ----------
+      // ---------- AUTH MANAGEMENT (NO FLASH) ----------
       async function updateAuthUI() {
           try {
               const { data: { session }, error } = await supabase.auth.getSession();
@@ -2315,8 +2307,11 @@
                   document.getElementById('authBtn').onclick = () => location.href = 'login.html';
               }
               
-              // Update login banner
-              await updateLoginBanner();
+              // Mark auth as checked
+              state.authChecked = true;
+              
+              // Update login banner (will show/hide based on auth state)
+              updateLoginBanner();
               
               // Re-render cards to update badges
               if (state.filteredRestaurants.length > 0) {
@@ -2327,8 +2322,10 @@
               console.error('updateAuthUI error', e);
               // Fallback to logged out state
               state.isLoggedIn = false;
+              state.authChecked = true;
               document.getElementById('authBtn').innerHTML = `<i class="fas fa-user"></i><span>Sign In</span>`;
               document.getElementById('authBtn').onclick = () => location.href = 'login.html';
+              updateLoginBanner();
           }
       }
       
@@ -2425,7 +2422,7 @@
           console.error('Failed to load restaurants:', error);
         }
         
-        // Initialize auth UI and list manager
+        // Initialize auth UI FIRST (before showing anything)
         await updateAuthUI();
         
         // Listen for auth state changes
@@ -2434,23 +2431,19 @@
         });
       });
       
-      // Handle scroll for performance
+      // Handle scroll for lazy loading
       let scrollTimeout;
       window.addEventListener('scroll', () => {
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
-          if (document.visibilityState === 'visible') {
-            loadImagesOnPage();
-          }
+          imageLoader.loadVisibleImages();
         }, 100);
       });
       
-      // Handle page visibility for performance
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          loadImagesOnPage();
-        }
-      });
+      // Initial image load
+      setTimeout(() => {
+        imageLoader.loadVisibleImages();
+      }, 200);
       
     })();
   </script>
