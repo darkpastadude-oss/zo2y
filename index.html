@@ -2081,31 +2081,6 @@
             slideIndicators: document.getElementById('slideIndicators')
         };
         
-        // ---------- IMAGE LOADING SYSTEM ----------
-        function initImageObserver() {
-            state.imageObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.onload = () => {
-                            img.classList.add('loaded');
-                            state.imageObserver.unobserve(img);
-                        };
-                        img.onerror = () => {
-                            const isLogo = img.parentElement.classList.contains('logo-overlay');
-                            img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-                            img.classList.add('loaded');
-                            state.imageObserver.unobserve(img);
-                        };
-                    }
-                });
-            }, {
-                rootMargin: '100px 0px',
-                threshold: 0.01
-            });
-        }
-        
         // ---------- LIST MANAGER (SAME as restaurants.html) ----------
         const listManager = {
             userLists: [],
@@ -2264,6 +2239,31 @@
                 };
             }
         };
+        
+        // ---------- IMAGE LOADING SYSTEM ----------
+        function initImageObserver() {
+            state.imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.onload = () => {
+                            img.classList.add('loaded');
+                            state.imageObserver.unobserve(img);
+                        };
+                        img.onerror = () => {
+                            const isLogo = img.parentElement.classList.contains('logo-overlay');
+                            img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+                            img.classList.add('loaded');
+                            state.imageObserver.unobserve(img);
+                        };
+                    }
+                });
+            }, {
+                rootMargin: '100px 0px',
+                threshold: 0.01
+            });
+        }
         
         // ---------- NOTIFICATION SYSTEM ----------
         function showNotification(message, type = "info", duration = 2500) {
@@ -2443,7 +2443,7 @@
                 });
             }
             
-            // Modal action buttons
+            // Modal action buttons - UPDATED WITH RE-RENDER
             const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
             const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
             const modalVisitedBtn = document.getElementById('modalVisitedBtn');
@@ -2454,6 +2454,7 @@
                     await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
                     updateModalButtons(state.currentModalRestaurant.id);
                     hideModal();
+                    // RE-RENDER CARDS TO UPDATE BADGES
                     renderRestaurants();
                     setupRestaurantOfTheDay();
                 });
@@ -2465,6 +2466,7 @@
                     await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
                     updateModalButtons(state.currentModalRestaurant.id);
                     hideModal();
+                    // RE-RENDER CARDS TO UPDATE BADGES
                     renderRestaurants();
                     setupRestaurantOfTheDay();
                 });
@@ -2476,6 +2478,7 @@
                     await listManager.toggleInList('visited', state.currentModalRestaurant.id);
                     updateModalButtons(state.currentModalRestaurant.id);
                     hideModal();
+                    // RE-RENDER CARDS TO UPDATE BADGES
                     renderRestaurants();
                     setupRestaurantOfTheDay();
                 });
@@ -2675,7 +2678,7 @@
             
             const rating = restaurant.rating || 0;
             const category = restaurant.category || 'Restaurant';
-            const logoUrl = getLogoUrl(restaurant);
+            const logoUrl = restaurant.logo || getLogoUrl(restaurant);
             const status = listManager.getRestaurantListStatus(restaurant.id);
             const isTopRated = rating >= 4.5;
             
@@ -3090,6 +3093,10 @@
                 // Initialize list manager - CRITICAL FOR LIST FUNCTIONS TO WORK
                 await listManager.init();
                 
+                // Re-render to show badges
+                renderRestaurants();
+                setupRestaurantOfTheDay();
+                
             } else {
                 // Logged out
                 elements.guestBanner.classList.add('show');
@@ -3102,10 +3109,11 @@
                 
                 elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>Account</span>`;
                 elements.userAccountBtn.onclick = () => location.href = 'login.html';
+                
+                // Re-render to remove badges
+                renderRestaurants();
+                setupRestaurantOfTheDay();
             }
-            
-            // Listen for auth changes
-            supabase.auth.onAuthStateChange(updateAuthUI);
         }
         
         // ---------- INITIALIZATION ----------
