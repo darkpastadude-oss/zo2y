@@ -23,6 +23,34 @@
         a { color: inherit; text-decoration: none; }
         img { display: block; max-width: 100%; height: auto; }
         
+        /* Image Loading System (Same as restaurants.html) */
+        .restaurant-image {
+            display: block;
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+        }
+        
+        .restaurant-image.loaded {
+            opacity: 1;
+        }
+        
+        .logo-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .logo-overlay img.loaded {
+            opacity: 1;
+        }
+        
         /* Guest Banner */
         .guest-banner {
             display: none;
@@ -317,17 +345,15 @@
         }
         
         .btn-primary.logged-in {
-            background: transparent;
-            color: var(--white);
-            border: 1px solid var(--border);
-            box-shadow: none;
+            background: var(--gradient);
+            color: #0b1633;
+            border: 1px solid var(--accent);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
         }
         
         .btn-primary.logged-in:hover {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: var(--accent);
-            transform: none;
-            box-shadow: none;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
         }
         
         .btn-outline {
@@ -774,6 +800,168 @@
             font-weight: 500;
         }
         
+        /* Restaurant of the Day Card - EXACT SAME STYLE */
+        .restaurant-of-day {
+            position: relative;
+            background: transparent;
+            border-radius: 20px;
+            padding: 40px 0;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .day-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .day-header h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 16px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .day-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--gradient);
+            border-radius: 3px;
+        }
+        
+        .day-header p {
+            color: var(--muted);
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 24px auto 0;
+            line-height: 1.6;
+        }
+        
+        /* Day Card - Same as regular card but bigger */
+        .day-card-container {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .day-card {
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .day-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            border-color: var(--accent);
+        }
+        
+        .day-card .card-image {
+            height: 300px;
+        }
+        
+        .day-card .card-content {
+            padding: 24px;
+        }
+        
+        .day-card .card-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .day-card .card-rating {
+            padding: 8px 16px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+        
+        .day-card .card-category {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .day-card .card-description {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .day-card-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .day-card-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+        
+        .day-card-btn-primary {
+            background: var(--gradient);
+            color: #0b1633;
+        }
+        
+        .day-card-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+        
+        .day-card-btn-outline {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--border);
+        }
+        
+        .day-card-btn-outline:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        
+        .day-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--gradient);
+            color: #0b1633;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid rgba(245, 158, 11, 0.5);
+            z-index: 10;
+        }
+        
         /* Skeleton Loading */
         .skeleton-grid {
             display: flex;
@@ -841,195 +1029,6 @@
             color: #111;
             border-color: var(--accent);
             transform: translateY(-2px);
-        }
-        
-        /* Restaurant of the Day (Improved Design) */
-        .restaurant-of-day {
-            position: relative;
-            background: transparent;
-            border-radius: 20px;
-            padding: 40px 0;
-            margin: 40px 0;
-            text-align: center;
-        }
-        
-        .day-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .day-header h2 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: 16px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .day-header h2::after {
-            content: '';
-            position: absolute;
-            bottom: -16px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: var(--gradient);
-            border-radius: 3px;
-        }
-        
-        .day-header p {
-            color: var(--muted);
-            font-size: 1rem;
-            max-width: 600px;
-            margin: 24px auto 0;
-            line-height: 1.6;
-        }
-        
-        .day-card {
-            background: var(--card);
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            max-width: 800px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: 400px;
-        }
-        
-        .day-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
-            border-color: var(--accent);
-        }
-        
-        .day-card-image {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .day-card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.7s ease;
-        }
-        
-        .day-card:hover .day-card-image img {
-            transform: scale(1.05);
-        }
-        
-        .day-card-content {
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: left;
-        }
-        
-        .day-card-header {
-            margin-bottom: 16px;
-        }
-        
-        .day-card-title {
-            font-size: 28px;
-            font-weight: 800;
-            line-height: 1.2;
-            margin: 0 0 8px 0;
-            color: var(--white);
-        }
-        
-        .day-card-rating {
-            background: var(--gradient);
-            color: #0b1633;
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 900;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .day-card-category {
-            color: var(--accent);
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .day-card-description {
-            color: var(--muted);
-            font-size: 15px;
-            line-height: 1.7;
-            margin: 0 0 24px 0;
-        }
-        
-        .day-card-actions {
-            display: flex;
-            gap: 16px;
-            margin-top: 20px;
-        }
-        
-        .day-card-btn {
-            flex: 1;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            font-size: 15px;
-        }
-        
-        .day-card-btn-primary {
-            background: var(--gradient);
-            color: #0b1633;
-        }
-        
-        .day-card-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-        }
-        
-        .day-card-btn-outline {
-            background: transparent;
-            color: var(--white);
-            border: 2px solid var(--border);
-        }
-        
-        .day-card-btn-outline:hover {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-        
-        .day-badge {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: var(--gradient);
-            color: #0b1633;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 2px solid rgba(245, 158, 11, 0.5);
-            z-index: 10;
         }
         
         /* App Download */
@@ -1226,13 +1225,12 @@
                 margin: 0 auto;
             }
             
-            .day-card {
-                grid-template-columns: 1fr;
-                max-width: 500px;
+            .day-card .card-image {
+                height: 250px;
             }
             
-            .day-card-image {
-                height: 250px;
+            .day-card-actions {
+                flex-direction: column;
             }
         }
         
@@ -1256,16 +1254,12 @@
                 font-size: 1.8rem;
             }
             
-            .day-card-content {
-                padding: 24px;
+            .day-card .card-content {
+                padding: 20px;
             }
             
-            .day-card-title {
-                font-size: 24px;
-            }
-            
-            .day-card-actions {
-                flex-direction: column;
+            .day-card .card-title {
+                font-size: 20px;
             }
             
             .footer-content {
@@ -1281,10 +1275,6 @@
             
             .day-header h2 {
                 font-size: 1.6rem;
-            }
-            
-            .day-card {
-                margin: 0 16px;
             }
             
             .footer-content {
@@ -1477,18 +1467,17 @@
             </div>
         </section>
 
-        <!-- Improved Restaurant of the Day -->
+        <!-- Restaurant of the Day - EXACT SAME CARD SYSTEM -->
         <section class="section">
             <div class="restaurant-of-day">
                 <div class="day-header">
                     <h2>Restaurant of the Day</h2>
                     <p>Our specially selected restaurant that stands out from the rest. This exclusive pick features premium quality and exceptional dining experience.</p>
                 </div>
-                <div id="dayCardContainer">
-                    <!-- Loading -->
-                    <div class="day-card" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
-                        <div class="spinner"></div>
-                        <div class="loading-text">Loading featured restaurant...</div>
+                <div class="day-card-container">
+                    <div id="dayCard" class="day-card">
+                        <!-- Content loaded dynamically -->
+                        <div class="skeleton-card" style="width:100%; min-height:500px;"></div>
                     </div>
                 </div>
             </div>
@@ -1558,6 +1547,10 @@
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         
+        // Default images (SAME AS restaurants.html)
+        const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-cover.jpg';
+        const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
+        
         // Initialize
         let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
@@ -1566,7 +1559,9 @@
             restaurants: [],
             filtered: [],
             isLoggedIn: false,
-            currentModalRestaurant: null
+            currentModalRestaurant: null,
+            restaurantImages: new Map(),
+            imageObserver: null
         };
         
         // DOM elements
@@ -1579,19 +1574,232 @@
             filterBar: document.getElementById('filterBar'),
             featuredSlider: document.getElementById('featuredSlider'),
             nearbySlider: document.getElementById('nearbySlider'),
-            dayCardContainer: document.getElementById('dayCardContainer')
+            dayCard: document.getElementById('dayCard')
         };
         
-        // Initialize
-        async function init() {
-            await updateAuthUI();
-            setupEventListeners();
-            await loadRestaurants();
-            initSpotlight();
-            setupRestaurantOfTheDay();
+        // ---------- IMAGE LOADING SYSTEM (SAME AS restaurants.html) ----------
+        function initImageObserver() {
+            state.imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.onload = () => {
+                            img.classList.add('loaded');
+                            state.imageObserver.unobserve(img);
+                        };
+                        img.onerror = () => {
+                            const isLogo = img.parentElement.classList.contains('logo-overlay');
+                            img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
+                            img.classList.add('loaded');
+                            state.imageObserver.unobserve(img);
+                        };
+                    }
+                });
+            }, {
+                rootMargin: '100px 0px',
+                threshold: 0.01
+            });
         }
         
-        // Auth
+        // ---------- LIST MANAGER (SAME AS restaurants.html) ----------
+        const listManager = {
+            userLists: [],
+            currentLists: {
+                favorites: null,
+                visited: null,
+                wantToGo: null
+            },
+            
+            async init() { 
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+                
+                await this.loadUserLists();
+            },
+            
+            async loadUserLists() {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', user.id);
+                    
+                    if (error) throw error;
+                    
+                    this.userLists = lists || [];
+                    await this.setupDefaultLists();
+                    await this.loadListRestaurants();
+                    
+                } catch (error) {
+                    console.error('Error loading lists:', error);
+                }
+            },
+            
+            async setupDefaultLists() {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+                this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+                this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                
+                if (!this.currentLists.favorites) {
+                    this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+                }
+                if (!this.currentLists.visited) {
+                    this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+                }
+                if (!this.currentLists.wantToGo) {
+                    this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+                }
+            },
+            
+            async createList(title, description) {
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                const { data: newList, error } = await supabase
+                    .from('lists')
+                    .insert([
+                        {
+                            user_id: user.id,
+                            title: title,
+                            description: description
+                        }
+                    ])
+                    .select()
+                    .single();
+                
+                if (error) {
+                    console.error('Error creating list:', error);
+                    return null;
+                }
+                
+                this.userLists.push(newList);
+                return newList;
+            },
+            
+            async loadListRestaurants() {
+                for (const listType in this.currentLists) {
+                    const list = this.currentLists[listType];
+                    if (list) {
+                        const { data: listRestaurants, error } = await supabase
+                            .from('lists_restraunts')
+                            .select('restraunt_id')
+                            .eq('list_id', list.id);
+                        
+                        if (!error && listRestaurants) {
+                            list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                        } else {
+                            list.restaurants = [];
+                        }
+                    }
+                }
+            },
+            
+            async toggleInList(listType, restaurantId) {
+                const list = this.currentLists[listType];
+                if (!list) return false;
+                
+                const isInList = list.restaurants?.includes(restaurantId);
+                
+                try {
+                    if (isInList) {
+                        const { error } = await supabase
+                            .from('lists_restraunts')
+                            .delete()
+                            .match({
+                                list_id: list.id,
+                                restraunt_id: restaurantId
+                            });
+                        
+                        if (error) throw error;
+                        
+                        list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                        showNotification(`Removed from ${list.title}`, 'info');
+                        return false;
+                        
+                    } else {
+                        const { error } = await supabase
+                            .from('lists_restraunts')
+                            .insert([
+                                {
+                                    list_id: list.id,
+                                    restraunt_id: restaurantId,
+                                    added_at: new Date().toISOString()
+                                }
+                            ]);
+                        
+                        if (error) throw error;
+                        
+                        if (!list.restaurants) list.restaurants = [];
+                        list.restaurants.push(restaurantId);
+                        showNotification(`Added to ${list.title}`, 'success');
+                        return true;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error updating list:', error);
+                    showNotification('Failed to update list', 'error');
+                    return isInList;
+                }
+            },
+            
+            isInList(listType, restaurantId) {
+                const list = this.currentLists[listType];
+                return list?.restaurants?.includes(restaurantId) || false;
+            },
+            
+            getRestaurantListStatus(restaurantId) {
+                return {
+                    favorites: this.isInList('favorites', restaurantId),
+                    wantToGo: this.isInList('wantToGo', restaurantId),
+                    visited: this.isInList('visited', restaurantId)
+                };
+            }
+        };
+        
+        // ---------- NOTIFICATION SYSTEM ----------
+        function showNotification(message, type = "info", duration = 2500) {
+            const container = document.getElementById("notificationContainer");
+            if (!container) return;
+            
+            const notification = document.createElement("div");
+            notification.className = `custom-notification notification-${type}`;
+            
+            let iconClass;
+            if (type === "success") {
+                iconClass = "fas fa-check-circle";
+            } else if (type === "error") {
+                iconClass = "fas fa-exclamation-circle";
+            } else if (type === "warning") {
+                iconClass = "fas fa-exclamation-triangle";
+            } else {
+                iconClass = "fas fa-info-circle";
+            }
+            
+            notification.innerHTML = `
+                <i class="${iconClass}" style="margin-right:8px"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add("notification-show");
+            }, 10);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.classList.remove("notification-show");
+                    setTimeout(() => notification.remove(), 400);
+                }
+            }, duration);
+        }
+        
+        // ---------- AUTH MANAGEMENT ----------
         async function updateAuthUI() {
             const { data: { session } } = await supabase.auth.getSession();
             state.isLoggedIn = !!session;
@@ -1607,17 +1815,19 @@
                 const displayName = user.user_metadata?.username || user.email?.split('@')[0] || 'Account';
                 elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
                 elements.userAccountBtn.onclick = () => location.href = 'profile.html';
+                
+                // Initialize list manager
+                await listManager.init();
+                
             } else {
                 // Logged out
                 elements.guestBanner.classList.add('show');
                 elements.startJourneyBtn.style.display = 'flex';
-                document.querySelector('.btn-primary.logged-in').style.display = 'flex';
+                document.querySelector('.btn-primary.logged-in').style.display = 'none';
                 
                 // Style buttons correctly
                 elements.startJourneyBtn.classList.add('logged-out');
                 elements.startJourneyBtn.classList.remove('logged-in');
-                document.querySelector('.btn-primary.logged-in').classList.add('logged-in');
-                document.querySelector('.btn-primary.logged-in').classList.remove('logged-out');
                 
                 elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>Account</span>`;
                 elements.userAccountBtn.onclick = () => location.href = 'login.html';
@@ -1627,7 +1837,64 @@
             supabase.auth.onAuthStateChange(updateAuthUI);
         }
         
-        // Load restaurants
+        // ---------- IMAGE LOADING ----------
+        async function loadRestaurantImages() {
+            try {
+                const { data, error } = await supabase
+                    .from('restaurant_gallery')
+                    .select('restaurant_slug, image_url, image_type, is_primary')
+                    .order('sort_order');
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        if (!state.restaurantImages.has(item.restaurant_slug)) {
+                            state.restaurantImages.set(item.restaurant_slug, {
+                                cover: DEFAULT_COVER_URL,
+                                logo: DEFAULT_LOGO_URL
+                            });
+                        }
+                        
+                        const images = state.restaurantImages.get(item.restaurant_slug);
+                        
+                        if (item.image_type === 'cover' && item.image_url) {
+                            images.cover = item.image_url;
+                        }
+                        
+                        if (item.image_type === 'logo' && item.image_url) {
+                            images.logo = item.image_url;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading images:', error);
+            }
+        }
+        
+        function getCoverImageUrl(restaurantSlug) {
+            const images = state.restaurantImages.get(restaurantSlug);
+            return images?.cover || DEFAULT_COVER_URL;
+        }
+        
+        function getLogoUrl(restaurant) {
+            const images = state.restaurantImages.get(restaurant.slug);
+            if (images?.logo && images.logo !== DEFAULT_LOGO_URL) {
+                return images.logo;
+            }
+            
+            if (restaurant.logo_url) {
+                return restaurant.logo_url;
+            }
+            
+            if (restaurant.image) {
+                return restaurant.image;
+            }
+            
+            return DEFAULT_LOGO_URL;
+        }
+        
+        // ---------- DATA LOADING ----------
         async function loadRestaurants() {
             try {
                 const { data, error } = await supabase
@@ -1638,43 +1905,26 @@
                 
                 if (error) throw error;
                 
+                // Load images first
+                await loadRestaurantImages();
+                
                 state.restaurants = data.map(r => ({
                     ...r,
-                    coverImage: r.image || 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-cover.jpg',
-                    logo: r.logo_url || 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg'
+                    coverImage: getCoverImageUrl(r.slug),
+                    logo: getLogoUrl(r)
                 }));
                 
                 renderRestaurants();
                 populateFilters();
+                setupRestaurantOfTheDay();
+                
             } catch (error) {
                 console.error('Error loading restaurants:', error);
                 showNotification('Failed to load restaurants', 'error');
             }
         }
         
-        // Render restaurants
-        function renderRestaurants() {
-            const featured = state.restaurants.slice(0, 12);
-            const nearby = state.restaurants.slice(12, 24);
-            
-            // Clear skeletons
-            elements.featuredSlider.classList.remove('skeleton-grid');
-            elements.nearbySlider.classList.remove('skeleton-grid');
-            
-            // Render featured
-            elements.featuredSlider.innerHTML = '';
-            featured.forEach((restaurant, index) => {
-                elements.featuredSlider.appendChild(createCard(restaurant, index));
-            });
-            
-            // Render nearby
-            elements.nearbySlider.innerHTML = '';
-            nearby.forEach((restaurant, index) => {
-                elements.nearbySlider.appendChild(createCard(restaurant, index));
-            });
-        }
-        
-        // Create card (EXACT SAME as restaurants.html)
+        // ---------- CARD CREATION (EXACT SAME AS restaurants.html) ----------
         function createCard(restaurant, index) {
             const card = document.createElement('div');
             card.className = 'restaurant-card';
@@ -1682,17 +1932,36 @@
             
             const rating = restaurant.rating || 0;
             const isTopRated = rating >= 4.5;
+            const status = listManager.getRestaurantListStatus(restaurant.id);
+            
+            // Build badge string
+            let badgeText = '';
+            if (status.favorites) badgeText += '❤️ ';
+            if (status.wantToGo) badgeText += '📍 ';
+            if (status.visited) badgeText += '✓ ';
             
             card.innerHTML = `
                 <a href="restaurant.html?slug=${restaurant.slug}">
                     <div class="card-image">
-                        <img class="restaurant-image" src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="200">
+                        <img class="restaurant-image" 
+                             data-src="${restaurant.coverImage}" 
+                             alt="${restaurant.name}" 
+                             width="300" 
+                             height="200">
                         <div class="logo-overlay">
-                            <img src="${restaurant.logo}" alt="${restaurant.name} logo" width="48" height="48">
+                            <img data-src="${restaurant.logo}" 
+                                 alt="${restaurant.name} logo" 
+                                 width="48" 
+                                 height="48">
                         </div>
                         <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
+                        ${badgeText ? `
+                            <div class="badge-container">
+                                <div class="user-list-badge">${badgeText.trim()}</div>
+                            </div>
+                        ` : ''}
                     </div>
                     <div class="card-content">
                         <div class="card-header">
@@ -1717,7 +1986,7 @@
                 </a>
             `;
             
-            // Menu button event
+            // Menu button event (SAME AS restaurants.html)
             const menuBtn = card.querySelector('.menu-btn');
             if (menuBtn) {
                 menuBtn.addEventListener('click', async (e) => {
@@ -1730,6 +1999,12 @@
                     });
                 });
             }
+            
+            // Observe images for lazy loading
+            const images = card.querySelectorAll('img[data-src]');
+            images.forEach(img => {
+                state.imageObserver.observe(img);
+            });
             
             return card;
         }
@@ -1744,6 +2019,28 @@
                 'Bakery': '🥐', 'Dessert': '🍰', 'Middle Eastern': '🥙', 'Healthy': '🥗'
             };
             return icons[category] || '🍴';
+        }
+        
+        // Render restaurants
+        function renderRestaurants() {
+            const featured = state.restaurants.slice(0, 12);
+            const nearby = state.restaurants.slice(12, 24);
+            
+            // Clear skeletons
+            elements.featuredSlider.classList.remove('skeleton-grid');
+            elements.nearbySlider.classList.remove('skeleton-grid');
+            
+            // Render featured
+            elements.featuredSlider.innerHTML = '';
+            featured.forEach((restaurant, index) => {
+                elements.featuredSlider.appendChild(createCard(restaurant, index));
+            });
+            
+            // Render nearby
+            elements.nearbySlider.innerHTML = '';
+            nearby.forEach((restaurant, index) => {
+                elements.nearbySlider.appendChild(createCard(restaurant, index));
+            });
         }
         
         // Populate filters
@@ -1788,20 +2085,6 @@
             });
         }
         
-        // Spotlight
-        function initSpotlight() {
-            if (state.restaurants.length === 0) return;
-            
-            const restaurant = state.restaurants[Math.floor(Math.random() * Math.min(state.restaurants.length, 6))];
-            if (!restaurant) return;
-            
-            document.getElementById('spotFoodImage').src = restaurant.coverImage;
-            document.getElementById('spotLogo').innerHTML = `<img src="${restaurant.logo}" alt="${restaurant.name} logo">`;
-            document.getElementById('spotName').textContent = restaurant.name;
-            document.getElementById('spotDesc').textContent = restaurant.description;
-            document.getElementById('spotRating').textContent = `⭐ ${restaurant.rating}`;
-        }
-        
         // Restaurant of the Day
         function setupRestaurantOfTheDay() {
             if (state.restaurants.length === 0) return;
@@ -1809,49 +2092,92 @@
             const topRated = state.restaurants.filter(r => (r.rating || 0) >= 4.5);
             const restaurant = topRated.length > 0 ? topRated[0] : state.restaurants[0];
             
-            elements.dayCardContainer.innerHTML = `
-                <div class="day-card">
-                    <div class="day-badge">Restaurant of the Day</div>
-                    <div class="day-card-image">
-                        <img src="${restaurant.coverImage}" alt="${restaurant.name}">
-                        <div class="logo-overlay" style="bottom: 20px; left: 20px; width: 60px; height: 60px;">
-                            <img src="${restaurant.logo}" alt="${restaurant.name} logo">
-                        </div>
-                        <button class="menu-btn" style="top: 20px; right: 20px;" aria-label="Restaurant actions" title="Save to lists">
-                            <i class="fas fa-ellipsis-h"></i>
-                        </button>
+            const rating = restaurant.rating || 0;
+            const isTopRated = rating >= 4.5;
+            const status = listManager.getRestaurantListStatus(restaurant.id);
+            
+            // Build badge string
+            let badgeText = '';
+            if (status.favorites) badgeText += '❤️ ';
+            if (status.wantToGo) badgeText += '📍 ';
+            if (status.visited) badgeText += '✓ ';
+            
+            elements.dayCard.innerHTML = `
+                <div class="day-badge">Restaurant of the Day</div>
+                <div class="card-image">
+                    <img class="restaurant-image" 
+                         data-src="${restaurant.coverImage}" 
+                         alt="${restaurant.name}" 
+                         width="800" 
+                         height="300">
+                    <div class="logo-overlay">
+                        <img data-src="${restaurant.logo}" 
+                             alt="${restaurant.name} logo" 
+                             width="60" 
+                             height="60">
                     </div>
-                    <div class="day-card-content">
-                        <div class="day-card-header">
-                            <h3 class="day-card-title">${restaurant.name}</h3>
-                            <div class="day-card-rating">
-                                <i class="fas fa-star"></i>
-                                ${restaurant.rating.toFixed(1)}
-                            </div>
+                    <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    ${badgeText ? `
+                        <div class="badge-container">
+                            <div class="user-list-badge">${badgeText.trim()}</div>
                         </div>
-                        <div class="day-card-category">
-                            <span>${getCategoryIcon(restaurant.category)}</span>
-                            ${restaurant.category || 'Restaurant'}
+                    ` : ''}
+                </div>
+                <div class="card-content">
+                    <div class="card-header">
+                        <div class="card-title-wrapper">
+                            <h3 class="card-title">${restaurant.name}</h3>
+                            ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
                         </div>
-                        <p class="day-card-description">${restaurant.description || 'An exceptional dining experience with premium quality food and service.'}</p>
-                        <div class="day-card-actions">
-                            <button class="day-card-btn day-card-btn-primary" onclick="location.href='restaurant.html?slug=${restaurant.slug}'">
-                                <i class="fas fa-utensils"></i>
-                                View Restaurant
-                            </button>
-                            <button class="day-card-btn day-card-btn-outline" onclick="showModal(${restaurant.id})">
-                                <i class="fas fa-bookmark"></i>
-                                Save
-                            </button>
+                        <div class="card-rating">
+                            <i class="fas fa-star"></i>
+                            ${rating.toFixed(1)}
                         </div>
+                    </div>
+                    <div class="card-category">
+                        <span>${getCategoryIcon(restaurant.category)}</span>
+                        ${restaurant.category || 'Restaurant'}
+                    </div>
+                    <p class="card-description">${restaurant.description || 'An exceptional dining experience with premium quality food and service. This restaurant has been selected as our Restaurant of the Day for its outstanding quality, service, and customer satisfaction.'}</p>
+                    <div class="day-card-actions">
+                        <button class="day-card-btn day-card-btn-primary" onclick="location.href='restaurant.html?slug=${restaurant.slug}'">
+                            <i class="fas fa-utensils"></i>
+                            View Restaurant
+                        </button>
+                        <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">
+                            <i class="fas fa-bookmark"></i>
+                            Save
+                        </button>
                     </div>
                 </div>
             `;
             
-            // Add menu button event listener for day card
-            const dayMenuBtn = elements.dayCardContainer.querySelector('.menu-btn');
-            if (dayMenuBtn) {
-                dayMenuBtn.addEventListener('click', (e) => {
+            // Observe images for lazy loading
+            const images = elements.dayCard.querySelectorAll('img[data-src]');
+            images.forEach(img => {
+                state.imageObserver.observe(img);
+            });
+            
+            // Menu button event
+            const menuBtn = elements.dayCard.querySelector('.menu-btn');
+            if (menuBtn) {
+                menuBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showModal({
+                        id: restaurant.id,
+                        name: restaurant.name,
+                        slug: restaurant.slug
+                    });
+                });
+            }
+            
+            // Save button event
+            const saveBtn = document.getElementById('dayCardSaveBtn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     showModal({
@@ -1863,7 +2189,159 @@
             }
         }
         
-        // Event listeners
+        // ---------- MODAL FUNCTIONS ----------
+        function setupModalListeners() {
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
+            const actionsModal = document.getElementById('actionsModal');
+            
+            if (modalCancelBtn) {
+                modalCancelBtn.addEventListener('click', hideModal);
+            }
+            
+            if (actionsModal) {
+                actionsModal.addEventListener('click', (e) => {
+                    if (e.target === actionsModal) {
+                        hideModal();
+                    }
+                });
+            }
+            
+            // Auth prompt modal events
+            const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
+            const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
+            const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
+            const authPromptModal = document.getElementById('authPromptModal');
+            
+            if (authPromptSignupBtn) {
+                authPromptSignupBtn.addEventListener('click', () => {
+                    window.location.href = 'sign-up.html';
+                });
+            }
+            
+            if (authPromptLoginBtn) {
+                authPromptLoginBtn.addEventListener('click', () => {
+                    window.location.href = 'login.html';
+                });
+            }
+            
+            if (authPromptCloseBtn) {
+                authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
+            }
+            
+            if (authPromptModal) {
+                authPromptModal.addEventListener('click', (e) => {
+                    if (e.target === authPromptModal) {
+                        hideAuthPrompt();
+                    }
+                });
+            }
+            
+            // Modal action buttons
+            const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
+            const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
+            const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+            
+            if (modalFavoritesBtn) {
+                modalFavoritesBtn.addEventListener('click', async () => {
+                    if (!state.currentModalRestaurant) return;
+                    await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+                    updateModalButtons(state.currentModalRestaurant.id);
+                    hideModal();
+                    renderRestaurants();
+                    setupRestaurantOfTheDay();
+                });
+            }
+            
+            if (modalWantToGoBtn) {
+                modalWantToGoBtn.addEventListener('click', async () => {
+                    if (!state.currentModalRestaurant) return;
+                    await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+                    updateModalButtons(state.currentModalRestaurant.id);
+                    hideModal();
+                    renderRestaurants();
+                    setupRestaurantOfTheDay();
+                });
+            }
+            
+            if (modalVisitedBtn) {
+                modalVisitedBtn.addEventListener('click', async () => {
+                    if (!state.currentModalRestaurant) return;
+                    await listManager.toggleInList('visited', state.currentModalRestaurant.id);
+                    updateModalButtons(state.currentModalRestaurant.id);
+                    hideModal();
+                    renderRestaurants();
+                    setupRestaurantOfTheDay();
+                });
+            }
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideModal();
+                    hideAuthPrompt();
+                }
+            });
+        }
+        
+        function showModal(restaurantData) {
+            if (!restaurantData) return;
+            
+            // Check if user is logged in
+            if (!state.isLoggedIn) {
+                showAuthPrompt();
+                return;
+            }
+            
+            state.currentModalRestaurant = restaurantData;
+            document.getElementById('modalRestaurantName').textContent = restaurantData.name;
+            
+            updateModalButtons(restaurantData.id);
+            
+            const modal = document.getElementById('actionsModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideModal() {
+            const modal = document.getElementById('actionsModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            state.currentModalRestaurant = null;
+        }
+        
+        function updateModalButtons(restaurantId) {
+            const status = listManager.getRestaurantListStatus(restaurantId);
+            
+            const favoritesBtn = document.getElementById('modalFavoritesBtn');
+            const wantToGoBtn = document.getElementById('modalWantToGoBtn');
+            const visitedBtn = document.getElementById('modalVisitedBtn');
+            
+            if (favoritesBtn) {
+                favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+            }
+            
+            if (wantToGoBtn) {
+                wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+            }
+            
+            if (visitedBtn) {
+                visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+            }
+        }
+        
+        function showAuthPrompt() {
+            const modal = document.getElementById('authPromptModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideAuthPrompt() {
+            const modal = document.getElementById('authPromptModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // ---------- EVENT LISTENERS ----------
         function setupEventListeners() {
             // FIXED SEARCH - Redirects to restaurants.html with search query
             if (elements.search && elements.clearSearch) {
@@ -1932,111 +2410,21 @@
                 elements.search.focus();
             });
             
-            // Modal event listeners
+            // Setup modal listeners
             setupModalListeners();
         }
         
-        // Modal functions
-        function setupModalListeners() {
-            const modalCancelBtn = document.getElementById('modalCancelBtn');
-            const actionsModal = document.getElementById('actionsModal');
+        // ---------- INITIALIZATION ----------
+        async function init() {
+            // Initialize image loading system (SAME AS restaurants.html)
+            initImageObserver();
             
-            if (modalCancelBtn) {
-                modalCancelBtn.addEventListener('click', hideModal);
-            }
+            await updateAuthUI();
+            setupEventListeners();
+            await loadRestaurants();
             
-            if (actionsModal) {
-                actionsModal.addEventListener('click', (e) => {
-                    if (e.target === actionsModal) {
-                        hideModal();
-                    }
-                });
-            }
-            
-            // Auth prompt modal events
-            const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
-            const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
-            const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
-            const authPromptModal = document.getElementById('authPromptModal');
-            
-            if (authPromptSignupBtn) {
-                authPromptSignupBtn.addEventListener('click', () => {
-                    window.location.href = 'sign-up.html';
-                });
-            }
-            
-            if (authPromptLoginBtn) {
-                authPromptLoginBtn.addEventListener('click', () => {
-                    window.location.href = 'login.html';
-                });
-            }
-            
-            if (authPromptCloseBtn) {
-                authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
-            }
-            
-            if (authPromptModal) {
-                authPromptModal.addEventListener('click', (e) => {
-                    if (e.target === authPromptModal) {
-                        hideAuthPrompt();
-                    }
-                });
-            }
-            
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    hideModal();
-                    hideAuthPrompt();
-                }
-            });
-        }
-        
-        function showModal(restaurantData) {
-            if (!restaurantData) return;
-            
-            // Check if user is logged in
-            if (!state.isLoggedIn) {
-                showAuthPrompt();
-                return;
-            }
-            
-            // For demo purposes, just show notification
-            showNotification(`Save functionality for ${restaurantData.name} would appear here`, 'info');
-        }
-        
-        function hideModal() {
-            const modal = document.getElementById('actionsModal');
-            if (modal) modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-        
-        function showAuthPrompt() {
-            const modal = document.getElementById('authPromptModal');
-            if (modal) modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function hideAuthPrompt() {
-            const modal = document.getElementById('authPromptModal');
-            if (modal) modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-        
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            if (!container) return;
-            
-            const notification = document.createElement('div');
-            notification.className = `custom-notification notification-${type}`;
-            notification.innerHTML = `<span>${message}</span>`;
-            container.appendChild(notification);
-            
-            setTimeout(() => notification.classList.add('notification-show'), 10);
-            setTimeout(() => {
-                notification.classList.remove('notification-show');
-                setTimeout(() => notification.remove(), 400);
-            }, 3000);
+            // Listen for auth changes
+            supabase.auth.onAuthStateChange(updateAuthUI);
         }
         
         // Initialize
