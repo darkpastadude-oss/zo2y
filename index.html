@@ -29,10 +29,9 @@
             line-height: 1.6;
         } 
         a{color:inherit; text-decoration:none} 
-        img{display:block; max-width:100%; height:auto; opacity: 0; transition: opacity 0.3s ease;}
-        img.loaded { opacity: 1; }
+        img{display:block; max-width:100%; height:auto;}
         
-        /* Guest Banner */
+        /* Guest Banner - CENTERED */
         .guest-banner {
             display: none;
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
@@ -114,15 +113,14 @@
             transform: translateY(-1px);
         }
         
-        /* Navigation */
+        /* Navigation - CENTERED CONTENT */
         .nav{
             position:sticky; 
             top:0; 
             z-index:100; 
             display:flex; 
             align-items:center; 
-            justify-content: space-between;
-            gap: 16px;
+            justify-content: center;
             padding: 12px 16px; 
             backdrop-filter: blur(20px) saturate(180%);
             background: rgba(19, 35, 71, 0.9);
@@ -130,13 +128,12 @@
             transition: all 0.3s ease;
         } 
         
-        .nav-inner {
+        .nav-container {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             width: 100%;
             max-width: 1200px;
-            margin: 0 auto;
-            justify-content: space-between;
         }
         
         .nav.scrolled {
@@ -155,14 +152,20 @@
             transform: scale(1.05);
         } 
         
-        .search {
-            width: 100%;
-            max-width: 400px;
-            position:relative;
-            margin: 0 16px;
-        } 
+        /* Search Bar - WORKING */
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+            margin: 0 24px;
+        }
         
-        .search input {
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .search-wrapper input {
             width:100%; 
             padding: 10px 16px 10px 42px; 
             border-radius:999px; 
@@ -174,13 +177,13 @@
             transition: all 0.3s ease;
         } 
         
-        .search input:focus {
+        .search-wrapper input:focus {
             border-color: var(--accent); 
             background: rgba(255,255,255,0.08);
             box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
         } 
         
-        .search .icon {
+        .search-icon {
             position:absolute; 
             left:14px; 
             top:50%; 
@@ -189,7 +192,7 @@
             font-size:16px;
         }
         
-        .nav .right {
+        .nav-right {
             display:flex; 
             align-items:center; 
             gap:12px;
@@ -232,7 +235,58 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* Restaurant Card - FIXED: ALL CARDS SAME HEIGHT */
+        /* Skeleton Loading */
+        .skeleton-grid {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 8px 0 20px 0;
+            scroll-snap-type: x mandatory;
+        }
+        
+        .skeleton-card {
+            flex: 0 0 280px;
+            height: 420px;
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .skeleton-image {
+            height: 180px;
+            background: linear-gradient(90deg, #1a2d5f 25%, #2a3d6f 50%, #1a2d5f 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        .skeleton-content {
+            padding: 16px;
+        }
+        
+        .skeleton-line {
+            height: 12px;
+            background: linear-gradient(90deg, #1a2d5f 25%, #2a3d6f 50%, #1a2d5f 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        
+        .skeleton-line.short {
+            width: 60%;
+        }
+        
+        .skeleton-line.medium {
+            width: 80%;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Restaurant Card - INSTANT LOADING */
         .card {
             flex: 0 0 280px;
             min-width: 280px;
@@ -247,8 +301,29 @@
             transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
-            height: 420px; /* FIXED: Consistent height */
-        } 
+            height: 420px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        
+        .card.loaded {
+            opacity: 1;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+        .card:nth-child(6) { animation-delay: 0.6s; }
         
         .card:hover{
             transform:translateY(-4px); 
@@ -261,7 +336,7 @@
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-            flex-shrink: 0; /* FIXED: Prevent image from stretching */
+            flex-shrink: 0;
         }
         
         .logo-overlay {
@@ -372,7 +447,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 240px; /* FIXED: Consistent content height */
+            min-height: 240px;
         }
         
         .card-header {
@@ -460,7 +535,7 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             flex: 1;
-            min-height: 58px; /* FIXED: Consistent description height */
+            min-height: 58px;
         }
         
         .card-footer {
@@ -478,26 +553,24 @@
             font-weight: 500;
         }
         
-        /* Hero Section */
+        /* Hero Section - CENTERED */
         .hero {
             position:relative; 
             min-height: 70vh;
             display:flex; 
             align-items:center; 
+            justify-content: center;
             padding: 40px 16px;
-            gap: 40px; 
-            overflow: hidden;
         } 
         
-        .hero-inner {
+        .hero-container {
             position:relative; 
             z-index:6; 
             display:flex; 
             align-items:center; 
-            gap: 40px; 
+            gap: 60px; 
             width:100%; 
             max-width:1200px; 
-            margin:0 auto;
         } 
         
         .hero-left {
@@ -508,6 +581,7 @@
         .tag {
             display:inline-flex; 
             align-items:center; 
+            justify-content: center;
             gap:8px; 
             color:var(--accent); 
             font-weight:600; 
@@ -526,6 +600,7 @@
             font-weight:700; 
             letter-spacing:-0.5px; 
             color:var(--white);
+            text-align: left;
         } 
         
         .lead {
@@ -683,10 +758,12 @@
             font-size: 13px;
         } 
         
-        /* Section styling */
+        /* Section styling - CENTERED */
         .section {
             padding:40px 16px;
             position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
         } 
         
         .section-header {
@@ -746,9 +823,10 @@
             display: none;
         }
         
-        /* Filter Bar */
+        /* Filter Bar - CENTERED */
         .filter-bar {
             display: flex;
+            justify-content: center;
             gap: 8px;
             margin-bottom: 24px;
             overflow-x: auto;
@@ -780,26 +858,30 @@
             border-color: var(--accent);
         }
         
-        /* Restaurant of the Day - FIXED: Proper portrait card with golden frame */
+        /* IMPROVED: Restaurant of the Day - CENTERED & SPECIAL */
         .restaurant-of-day {
             position: relative;
             background: transparent;
             border-radius: 20px;
-            padding: 24px;
+            padding: 40px 20px;
             margin: 40px 0;
-            overflow: hidden;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .day-header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 30px;
+            max-width: 800px;
         }
         
         .day-header h2 {
-            font-size: 32px;
+            font-size: 2.5rem;
             font-weight: 700;
             color: var(--white);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             position: relative;
             display: inline-block;
         }
@@ -807,25 +889,27 @@
         .day-header h2::after {
             content: '';
             position: absolute;
-            bottom: -8px;
+            bottom: -12px;
             left: 50%;
             transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
+            width: 100px;
+            height: 4px;
             background: var(--gradient);
             border-radius: 3px;
         }
         
         .day-header p {
             color: var(--muted);
-            font-size: 16px;
+            font-size: 18px;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 24px auto 0;
+            line-height: 1.6;
         }
         
         .day-card-wrapper {
             position: relative;
-            max-width: 350px;
+            max-width: 400px;
+            width: 100%;
             margin: 0 auto;
         }
         
@@ -834,22 +918,23 @@
             border-radius: 20px;
             overflow: hidden;
             position: relative;
-            border: 3px solid transparent;
+            border: 4px solid transparent;
             background-clip: padding-box;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            height: 520px; /* FIXED: Consistent height with other cards */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            transition: all 0.4s ease;
+            height: 500px;
+            margin: 0 auto;
         }
         
         .day-card::before {
             content: '';
             position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            background: linear-gradient(45deg, #f59e0b, #ffb84d, #f59e0b);
-            border-radius: 22px;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: linear-gradient(45deg, #f59e0b, #ffb84d, #f59e0b, #ffb84d);
+            border-radius: 24px;
             z-index: -1;
             animation: goldenGlow 3s infinite alternate;
         }
@@ -857,20 +942,21 @@
         @keyframes goldenGlow {
             0% {
                 opacity: 0.7;
-                box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+                box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
             }
             100% {
                 opacity: 1;
-                box-shadow: 0 0 40px rgba(245, 158, 11, 0.7);
+                box-shadow: 0 0 60px rgba(245, 158, 11, 0.8);
             }
         }
         
         .day-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 70px rgba(245, 158, 11, 0.3);
         }
         
         .day-card-image {
-            height: 220px;
+            height: 200px;
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
@@ -956,14 +1042,15 @@
         }
         
         .day-card-content {
-            padding: 20px;
-            height: 300px; /* FIXED: Consistent content height */
+            padding: 24px;
+            height: 300px;
             display: flex;
             flex-direction: column;
+            text-align: left;
         }
         
         .day-card-header {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -971,7 +1058,7 @@
         }
         
         .day-card-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             line-height: 1.3;
             margin: 0;
@@ -996,7 +1083,7 @@
             color: var(--accent);
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -1005,10 +1092,10 @@
         .day-card-description {
             color: var(--muted);
             font-size: 14px;
-            line-height: 1.5;
-            margin: 0 0 16px 0;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
             display: -webkit-box;
-            -webkit-line-clamp: 4;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
             flex: 1;
@@ -1022,38 +1109,41 @@
         
         .day-card-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            justify-content: center;
         }
         
         .day-card-btn {
             flex: 1;
-            padding: 10px 16px;
-            border-radius: 10px;
+            padding: 12px 20px;
+            border-radius: 12px;
             font-weight: 600;
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
             transition: all 0.3s ease;
             font-size: 14px;
+            min-width: 140px;
         }
         
         .day-card-btn-primary {
             background: var(--gradient);
             color: #0b1633;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
         }
         
         .day-card-btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
         }
         
         .day-card-btn-outline {
             background: transparent;
             color: var(--white);
-            border: 1px solid var(--border);
+            border: 2px solid var(--border);
         }
         
         .day-card-btn-outline:hover {
@@ -1061,35 +1151,36 @@
             border-color: var(--accent);
         }
         
-        /* App Download Section */
+        /* App Download Section - CENTERED */
         .app-download {
             background: var(--card);
             border-radius: 16px;
-            padding: 32px 24px;
+            padding: 40px 24px;
             text-align: center;
-            margin: 40px 0;
+            margin: 40px auto;
             border: 1px solid var(--border);
+            max-width: 800px;
         }
         
         .app-download h2 {
-            font-size: 1.75rem;
-            margin-bottom: 12px;
+            font-size: 2rem;
+            margin-bottom: 16px;
             color: var(--white);
         }
         
         .app-download p {
-            font-size: 14px;
+            font-size: 16px;
             color: var(--muted);
-            margin-bottom: 24px;
+            margin-bottom: 32px;
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         
         .app-buttons {
             display: flex;
-            gap: 12px;
+            gap: 16px;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -1098,10 +1189,10 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 12px 16px;
+            padding: 12px 20px;
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 12px;
             color: var(--white);
             text-decoration: none;
             transition: all 0.3s ease;
@@ -1115,7 +1206,7 @@
         }
         
         .app-button i {
-            font-size: 18px;
+            font-size: 20px;
         }
         
         .app-button-text {
@@ -1125,17 +1216,17 @@
         }
         
         .app-button-text span:first-child {
-            font-size: 10px;
+            font-size: 11px;
             opacity: 0.8;
         }
         
         .app-button-text span:last-child {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
         }
         
-        /* MODALS - FIXED: Proper positioning and styling */
-        .actions-modal {
+        /* MODALS */
+        .actions-modal, .auth-prompt-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -1152,12 +1243,12 @@
             transition: opacity 0.3s ease;
         }
         
-        .actions-modal.active {
+        .actions-modal.active, .auth-prompt-modal.active {
             display: flex;
             opacity: 1;
         }
         
-        .actions-content {
+        .actions-content, .auth-prompt-content {
             background: var(--card);
             border-radius: 20px;
             padding: 30px;
@@ -1180,204 +1271,54 @@
             }
         }
         
-        .actions-header {
-            margin-bottom: 24px;
-        }
-        
-        .actions-header h3 {
-            font-size: 22px;
-            margin-bottom: 8px;
-            color: var(--white);
-            font-weight: 600;
-        }
-        
-        .actions-header p {
-            color: var(--muted);
-            font-size: 14px;
-        }
-        
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        
-        .action-btn-modal {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            color: var(--white);
-            padding: 16px 20px;
-            border-radius: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-align: left;
-            font-size: 15px;
-        }
-        
-        .action-btn-modal:hover {
-            background: var(--accent);
-            color: #0b1633;
-            transform: translateY(-2px);
-            border-color: var(--accent);
-            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-        }
-        
-        .action-btn-modal.active {
-            background: var(--accent);
-            color: #0b1633;
-            border-color: var(--accent);
-        }
-        
-        .action-btn-modal i {
-            font-size: 18px;
-            width: 24px;
-        }
-        
-        .cancel-btn {
-            background: transparent;
-            color: var(--muted);
-            border: 1px solid var(--border);
-            padding: 14px 20px;
-            border-radius: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .cancel-btn:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--white);
-        }
-        
-        /* Auth Prompt Modal */
-        .auth-prompt-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(11, 22, 51, 0.98);
-            backdrop-filter: blur(20px);
-            z-index: 1002;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .auth-prompt-modal.active {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .auth-prompt-content {
+        /* Footer - CENTERED */
+        footer{
+            padding:40px 20px 24px;
+            color:var(--muted); 
+            text-align:center; 
+            border-top:1px solid var(--border); 
+            margin-top:40px;
             background: var(--card);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 480px;
-            width: 100%;
-            border: 2px solid var(--accent);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-            animation: modalSlideIn 0.3s ease-out;
-            text-align: center;
-        }
+        } 
         
-        .auth-prompt-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            font-size: 32px;
-            color: #0b1633;
-        }
+        .footer-content {
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 30px; 
+            text-align: center; 
+            margin-bottom: 30px;
+        } 
         
-        .auth-prompt-header h3 {
-            font-size: 28px;
-            margin-bottom: 12px;
-            color: var(--white);
-            font-weight: 700;
-        }
-        
-        .auth-prompt-header p {
-            color: var(--muted);
+        .footer-column h3 {
+            color: var(--white); 
+            margin-bottom: 16px; 
             font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 32px;
-        }
-        
-        .auth-prompt-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .auth-prompt-btn {
-            padding: 18px 24px;
-            border-radius: 16px;
             font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
+        } 
+        
+        .footer-column a {
+            display: block; 
+            margin-bottom: 10px; 
             transition: all 0.3s ease;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
+            padding: 4px 0;
+            font-size: 14px;
+        } 
+        
+        .footer-column a:hover {
+            color: var(--accent); 
+        } 
+        
+        .footer-bottom {
+            border-top: 1px solid var(--border); 
+            padding-top: 20px;
+            font-size: 14px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
-        .auth-prompt-primary {
-            background: var(--gradient);
-            color: #0b1633;
-        }
-        
-        .auth-prompt-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-        }
-        
-        .auth-prompt-secondary {
-            background: transparent;
-            color: var(--white);
-            border: 2px solid var(--border);
-        }
-        
-        .auth-prompt-secondary:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: var(--accent);
-        }
-        
-        .auth-prompt-close {
-            background: transparent;
-            color: var(--muted);
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            font-size: 15px;
-        }
-        
-        .auth-prompt-close:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--white);
-        }
-        
-        /* Enhanced Custom Notification */
+        /* Notification */
         .notification-container {
             position: fixed;
             top: 20px;
@@ -1402,116 +1343,15 @@
             max-width: 100%;
         }
         
-        .notification-success {
-            background: rgba(16, 185, 129, 0.95);
-            color: white;
-        }
-        
-        .notification-error {
-            background: rgba(239, 68, 68, 0.95);
-            color: white;
-        }
-        
-        .notification-info {
-            background: rgba(59, 130, 246, 0.95);
-            color: white;
-        }
-        
-        .notification-warning {
-            background: rgba(245, 158, 11, 0.95);
-            color: #0b1633;
-            font-weight: 600;
-        }
-        
         .notification-show {
             transform: translateX(0);
         }
         
-        .notification-icon {
-            margin-right: 10px;
-            font-size: 1rem;
-        }
-        
-        .notification-close {
-            margin-left: auto;
-            background: none;
-            border: none;
-            color: inherit;
-            cursor: pointer;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-            padding-left: 12px;
-        }
-        
-        /* Footer */
-        footer{
-            padding:40px 20px 24px;
-            color:var(--muted); 
-            text-align:center; 
-            border-top:1px solid var(--border); 
-            margin-top:40px;
-            background: var(--card);
-        } 
-        
-        .footer-content {
-            max-width: 1200px; 
-            margin: 0 auto; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-            gap: 24px; 
-            text-align: left; 
-            margin-bottom: 24px;
-        } 
-        
-        .footer-column h3 {
-            color: var(--white); 
-            margin-bottom: 12px; 
-            font-size: 15px;
-            font-weight: 600;
-        } 
-        
-        .footer-column a {
-            display: block; 
-            margin-bottom: 8px; 
-            transition: all 0.3s ease;
-            padding: 4px 0;
-            font-size: 13px;
-        } 
-        
-        .footer-column a:hover {
-            color: var(--accent); 
-        } 
-        
-        .footer-bottom {
-            border-top: 1px solid var(--border); 
-            padding-top: 16px;
-            font-size: 12px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .footer-bottom div {
-            margin-bottom: 6px;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav {
-                padding: 10px 12px;
-            }
-            
-            .nav-inner {
-                gap: 12px;
-            }
-            
-            .search {
-                display: none;
-            }
-            
-            .hero-inner {
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-container {
                 flex-direction: column-reverse;
-                gap: 30px;
+                gap: 40px;
                 text-align: center;
             }
             
@@ -1527,81 +1367,33 @@
             }
             
             .spotlight {
-                grid-template-columns: 80px 1fr;
-                max-width: 400px;
+                max-width: 500px;
                 margin: 0 auto;
             }
             
-            .spotlight-img-container {
-                height: 80px;
-            }
-            
-            .guest-banner {
-                width: calc(100% - 24px);
-                padding: 8px 16px;
-                margin-bottom: 16px;
-            }
-            
-            .banner-content {
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
-            
-            .banner-text {
-                margin-right: 0;
-            }
-            
-            .section {
-                padding: 32px 16px;
-            }
-            
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-            
-            .view-all {
-                align-self: flex-start;
-            }
-            
-            .card {
-                min-width: 260px;
-                flex: 0 0 260px;
-                height: 400px; /* Adjusted for mobile */
-            }
-            
-            .card-image {
-                height: 160px;
-            }
-            
-            .restaurant-image {
-                height: 160px;
-            }
-            
-            .card-content {
-                min-height: 240px;
-                padding: 12px;
-            }
-            
-            .card-description {
-                min-height: 54px;
-                -webkit-line-clamp: 2;
-            }
-            
-            /* Restaurant of the Day mobile optimization */
-            .restaurant-of-day {
-                padding: 20px 16px;
-                margin: 32px 0;
-            }
-            
             .day-header h2 {
-                font-size: 24px;
+                font-size: 2rem;
             }
             
             .day-card-wrapper {
-                max-width: 300px;
+                max-width: 350px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            
+            .search-container {
+                order: 3;
+                margin: 12px 0 0 0;
+                max-width: 100%;
+            }
+            
+            .hero {
+                min-height: 60vh;
             }
             
             .day-card {
@@ -1614,31 +1406,6 @@
             
             .day-card-content {
                 height: 300px;
-                padding: 16px;
-            }
-            
-            .day-card-title {
-                font-size: 18px;
-            }
-            
-            .day-card-description {
-                -webkit-line-clamp: 3;
-            }
-            
-            .day-card-actions {
-                flex-direction: column;
-            }
-            
-            .day-card-btn {
-                width: 100%;
-            }
-            
-            .app-download {
-                padding: 24px 16px;
-            }
-            
-            .app-download h2 {
-                font-size: 1.5rem;
             }
             
             .app-buttons {
@@ -1649,147 +1416,38 @@
             .app-button {
                 width: 100%;
                 max-width: 250px;
-                justify-content: center;
+            }
+            
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+                text-align: left;
             }
         }
         
         @media (max-width: 480px) {
-            .nav .right {
-                gap: 8px;
-            }
-            
-            .account-btn {
-                padding: 6px 12px;
-                font-size: 13px;
-            }
-            
-            .nav a.ghost {
-                padding: 6px 12px;
-                font-size: 13px;
-            }
-            
             .hero {
                 padding: 32px 12px;
-                min-height: 60vh;
-            }
-            
-            h1 {
-                font-size: 1.75rem;
-            }
-            
-            .lead {
-                font-size: 0.875rem;
-            }
-            
-            .btn-primary, .btn-outline {
-                padding: 10px 20px;
-                font-size: 13px;
-            }
-            
-            .cta-row {
-                flex-direction: column;
-                gap: 10px;
-                width: 100%;
-            }
-            
-            .btn-primary, .btn-outline {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .guest-banner {
-                width: calc(100% - 20px);
-                padding: 6px 12px;
-            }
-            
-            .banner-btn {
-                padding: 5px 10px;
-                font-size: 12px;
-            }
-            
-            .card {
-                min-width: 240px;
-                flex: 0 0 240px;
-                height: 380px;
-            }
-            
-            .card-image {
-                height: 140px;
-            }
-            
-            .restaurant-image {
-                height: 140px;
-            }
-            
-            .logo-overlay {
-                width: 36px;
-                height: 36px;
-                bottom: 8px;
-                left: 8px;
-            }
-            
-            .menu-btn {
-                width: 30px;
-                height: 30px;
-                top: 8px;
-                right: 8px;
-            }
-            
-            .card-content {
-                min-height: 240px;
-                padding: 10px;
-            }
-            
-            .section {
-                padding: 24px 12px;
-            }
-            
-            /* Restaurant of the Day small screens */
-            .restaurant-of-day {
-                padding: 16px 12px;
-                margin: 24px 0;
             }
             
             .day-header h2 {
-                font-size: 20px;
-            }
-            
-            .day-card-wrapper {
-                max-width: 100%;
+                font-size: 1.75rem;
             }
             
             .day-card {
                 height: 460px;
             }
             
-            .day-card-image {
-                height: 160px;
+            .day-card-actions {
+                flex-direction: column;
             }
             
-            .day-card-content {
-                height: 300px;
-                padding: 12px;
-            }
-            
-            .day-card-title {
-                font-size: 16px;
-            }
-            
-            .day-card-description {
-                font-size: 13px;
-                -webkit-line-clamp: 2;
+            .day-card-btn {
+                width: 100%;
             }
             
             .footer-content {
                 grid-template-columns: 1fr;
                 text-align: center;
-                gap: 20px;
-            }
-        }
-        
-        @media (min-width: 769px) {
-            .search {
-                display: block !important;
             }
         }
     </style>
@@ -1797,7 +1455,7 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-    <!-- Actions Modal - For logged in users -->
+    <!-- Actions Modal -->
     <div id="actionsModal" class="actions-modal">
         <div class="actions-content">
             <div class="actions-header">
@@ -1822,7 +1480,7 @@
         </div>
     </div>
 
-    <!-- Auth Prompt Modal - For logged out users -->
+    <!-- Auth Prompt Modal -->
     <div id="authPromptModal" class="auth-prompt-modal">
         <div class="auth-prompt-content">
             <div class="auth-prompt-icon">
@@ -1850,14 +1508,19 @@
     <div id="notificationContainer" class="notification-container"></div>
 
     <header class="nav" role="banner">
-        <div class="nav-inner">
+        <div class="nav-container">
             <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
-            <div class="search" aria-hidden="false">
-                <span class="icon">🔎</span>
-                <input id="globalSearch" placeholder="Search restaurants" aria-label="Search restaurants">
+            
+            <!-- WORKING SEARCH BAR -->
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔎</span>
+                    <input type="search" id="globalSearch" placeholder="Search restaurants by name, category, or description..." aria-label="Search restaurants">
+                </div>
             </div>
-            <div class="right">
-                <a class="ghost" href="restraunts.html">Explore</a>
+            
+            <div class="nav-right">
+                <a class="ghost" href="restraunts.html">Explore All</a>
                 <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
             </div>
         </div>
@@ -1876,8 +1539,7 @@
 
     <main>
         <section class="hero" aria-labelledby="heroTitle">
-            <div class="hero-bg" aria-hidden="true"></div>
-            <div class="hero-inner">
+            <div class="hero-container">
                 <div class="hero-left">
                     <div class="tag">Trusted by Food Lovers</div>
                     <h1 id="heroTitle">Discover Hidden Gems & Local Favorites</h1>
@@ -1897,12 +1559,14 @@
                 <div class="hero-right">
                     <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
                         <div class="spotlight-img-container">
-                            <img id="spotFoodImage" class="spotlight-food-image" data-src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png" alt="Featured restaurant food">
-                            <div class="spotlight-logo-overlay" id="spotLogo"></div>
+                            <img id="spotFoodImage" class="spotlight-food-image" src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png" alt="Featured restaurant food" loading="eager">
+                            <div class="spotlight-logo-overlay" id="spotLogo">
+                                <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morilogo.png" alt="Mori Sushi logo" loading="eager">
+                            </div>
                         </div>
                         <div class="meta">
                             <div><h3 id="spotName">Mori Sushi</h3><p id="spotDesc">Modern sushi chain serving rolls, sashimi & Japanese bites.</p><div class="rating" id="spotRating">⭐ 4.7</div></div>
-                            <div style="align-self:start"><button class="btn-outline" id="spotAction" style="padding:6px 12px; font-size:12px">View Details</button></div>
+                            <div><button class="btn-outline" onclick="location.href='restaurant.html?slug=mori-sushi'" style="padding:6px 12px; font-size:12px">View Details</button></div>
                         </div>
                     </div>
                 </div>
@@ -1912,7 +1576,10 @@
         <!-- Featured Restaurants Section -->
         <section class="section">
             <div class="section-header">
-                <div><h2>Featured Restaurants</h2><p class="section-subtitle">Handpicked selections based on quality and authenticity</p></div>
+                <div>
+                    <h2>Featured Restaurants</h2>
+                    <p class="section-subtitle">Handpicked selections based on quality and authenticity</p>
+                </div>
                 <a href="restraunts.html" class="view-all">View All <span>→</span></a>
             </div>
             
@@ -1922,31 +1589,47 @@
             </div>
             
             <div class="slider-container">
-                <div id="featuredSlider" class="slider" aria-label="Featured restaurants"></div>
+                <!-- Skeleton loading initially -->
+                <div id="featuredSlider" class="slider skeleton-grid">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
             </div>
         </section>
 
         <!-- Nearby Restaurants Section -->
         <section class="section">
             <div class="section-header">
-                <div><h2>Nearby Restaurants</h2><p class="section-subtitle">Great food close to you</p></div>
+                <div>
+                    <h2>Nearby Restaurants</h2>
+                    <p class="section-subtitle">Great food close to you</p>
+                </div>
             </div>
             <div class="slider-container">
-                <div id="nearbySlider" class="slider" aria-label="Nearby restaurants"></div>
+                <div id="nearbySlider" class="slider skeleton-grid">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
             </div>
         </section>
 
-        <!-- FIXED: Restaurant of the Day Section - Proper portrait card with golden frame -->
+        <!-- IMPROVED: Restaurant of the Day Section -->
         <section class="section">
             <div class="restaurant-of-day" id="restaurantOfDay">
                 <div class="day-header">
-                    <h2>Restaurant of the Day</h2>
-                    <p>Our specially selected restaurant that stands out from the rest</p>
+                    <h2>✨ Restaurant of the Day ✨</h2>
+                    <p>Our specially selected restaurant that stands out from the rest. This exclusive pick features premium quality and exceptional dining experience.</p>
                 </div>
                 <div class="day-card-wrapper">
-                    <div class="day-card" id="dayRestaurantCard">
-                        <!-- Content populated dynamically -->
-                    </div>
+                    <!-- Content populated dynamically -->
                 </div>
             </div>
         </section>
@@ -1978,10 +1661,30 @@
 
     <footer>
         <div class="footer-content">
-            <div class="footer-column"><h3>Explore</h3><a href="restraunts.html">All Restaurants</a><a href="categories.html">By Category</a></div>
-            <div class="footer-column"><h3>Community</h3><a href="blog.html">Food Blog</a><a href="guides.html">Neighborhood Guides</a></div>
-            <div class="footer-column"><h3>Business</h3><a href="add-restaurant.html">Add Your Restaurant</a><a href="partners.html">Partnerships</a></div>
-            <div class="footer-column"><h3>Support</h3><a href="about.html">About Zo2y</a><a href="contact.html">Contact Us</a><a href="terms.html">Terms & Privacy</a></div>
+            <div class="footer-column">
+                <h3>Explore</h3>
+                <a href="restraunts.html">All Restaurants</a>
+                <a href="categories.html">By Category</a>
+                <a href="#" id="searchFooterLink">Search</a>
+            </div>
+            <div class="footer-column">
+                <h3>Community</h3>
+                <a href="blog.html">Food Blog</a>
+                <a href="guides.html">Neighborhood Guides</a>
+                <a href="#" id="featuredLink">Featured</a>
+            </div>
+            <div class="footer-column">
+                <h3>Business</h3>
+                <a href="add-restaurant.html">Add Your Restaurant</a>
+                <a href="partners.html">Partnerships</a>
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <div class="footer-column">
+                <h3>Support</h3>
+                <a href="about.html">About Zo2y</a>
+                <a href="help.html">Help Center</a>
+                <a href="terms.html">Terms & Privacy</a>
+            </div>
         </div>
         <div class="footer-bottom">
             <div style="margin-bottom:8px">© 2025 Zo2y — Built with ❤️ for food lovers</div>
@@ -2001,13 +1704,7 @@
           supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       } catch (error) {
           console.error('❌ Failed to initialize Supabase client:', error);
-          supabase = {
-              auth: {
-                  getSession: async () => ({ data: { session: null }, error: null }),
-                  getUser: async () => ({ data: { user: null }, error: null }),
-                  onAuthStateChange: () => {}
-              }
-          };
+          supabase = null;
       }
 
       // Default fallback images
@@ -2021,18 +1718,12 @@
         restaurantImages: new Map(),
         currentModalRestaurant: null,
         spotlightInterval: null,
-        imageObserver: null,
         isLoggedIn: false,
         featuredSlider: null,
         nearbySlider: null,
         dayRestaurant: null,
-        // Cache to prevent reloading
-        cache: {
-            restaurantsLoaded: false,
-            imagesLoaded: false,
-            lastLoadTime: 0,
-            cacheDuration: 5 * 60 * 1000
-        }
+        searchResults: [],
+        isLoading: false
       };
       
       // ---------- LIST MANAGEMENT ----------
@@ -2192,21 +1883,8 @@
       };
 
       // ---------- NOTIFICATION SYSTEM ----------
-      const notificationQueue = [];
-      let isShowingNotification = false;
-
       function showNotification(message, type = "info", duration = 2500) {
-          notificationQueue.push({ message, type, duration });
-          processNotificationQueue();
-      }
-
-      function processNotificationQueue() {
-          if (isShowingNotification || notificationQueue.length === 0) return;
-          
-          isShowingNotification = true;
-          const { message, type, duration } = notificationQueue.shift();
-          
-          const notificationContainer = document.getElementById("notificationContainer");
+          const container = document.getElementById("notificationContainer");
           const notification = document.createElement("div");
           notification.className = `custom-notification notification-${type}`;
           
@@ -2227,32 +1905,23 @@
               <button class="notification-close" aria-label="Close notification">×</button>
           `;
           
-          notificationContainer.appendChild(notification);
+          container.appendChild(notification);
           
           setTimeout(() => {
               notification.classList.add("notification-show");
           }, 10);
           
           notification.querySelector('.notification-close').addEventListener('click', () => {
-              hideNotification(notification);
+              notification.classList.remove("notification-show");
+              setTimeout(() => notification.remove(), 400);
           });
           
           setTimeout(() => {
               if (notification.parentNode) {
-                  hideNotification(notification);
+                  notification.classList.remove("notification-show");
+                  setTimeout(() => notification.remove(), 400);
               }
           }, duration);
-      }
-
-      function hideNotification(notification) {
-          notification.classList.remove("notification-show");
-          setTimeout(() => {
-              if (notification.parentNode) {
-                  notification.parentNode.removeChild(notification);
-              }
-              isShowingNotification = false;
-              processNotificationQueue();
-          }, 400);
       }
 
       // ---------- AUTH PROMPT MODAL ----------
@@ -2376,12 +2045,15 @@
           }
       });
       
-      // ---------- IMAGE LOADING SYSTEM ----------
-      async function loadAllRestaurantImages() {
-          if (appState.cache.imagesLoaded && (Date.now() - appState.cache.lastLoadTime < appState.cache.cacheDuration)) {
-              return;
-          }
-          
+      // ---------- IMAGE PRELOADING FOR INSTANT LOADING ----------
+      function preloadImages(urls) {
+          urls.forEach(url => {
+              const img = new Image();
+              img.src = url;
+          });
+      }
+      
+      async function loadRestaurantImages() {
           try {
               const { data, error } = await supabase
                   .from('restaurant_gallery')
@@ -2411,9 +2083,6 @@
                           images.logo = item.image_url;
                       }
                   });
-                  
-                  appState.cache.imagesLoaded = true;
-                  appState.cache.lastLoadTime = Date.now();
               }
           } catch (error) {
               console.error('Error loading restaurant images:', error);
@@ -2442,41 +2111,11 @@
           return DEFAULT_LOGO_URL;
       }
       
-      function initImageObserver() {
-          appState.imageObserver = new IntersectionObserver((entries) => {
-              entries.forEach(entry => {
-                  if (entry.isIntersecting) {
-                      const img = entry.target;
-                      img.src = img.dataset.src;
-                      img.onload = () => {
-                          img.classList.add('loaded');
-                          appState.imageObserver.unobserve(img);
-                      };
-                      img.onerror = () => {
-                          const isLogo = img.parentElement.classList.contains('logo-overlay') || 
-                                       img.parentElement.classList.contains('spotlight-logo-overlay') ||
-                                       img.parentElement.classList.contains('day-card-logo');
-                          img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-                          img.classList.add('loaded');
-                          appState.imageObserver.unobserve(img);
-                      };
-                  }
-              });
-          }, {
-              rootMargin: '100px 0px',
-              threshold: 0.01
-          });
-      }
-      
-      // ---------- RESTAURANT DATA LOADING ----------
+      // ---------- RESTAURANT DATA LOADING WITH INSTANT DISPLAY ----------
       async function loadRestaurantsData() {
-          if (appState.cache.restaurantsLoaded && (Date.now() - appState.cache.lastLoadTime < appState.cache.cacheDuration)) {
-              return appState.restaurants;
-          }
-          
           try {
               // Load images first
-              await loadAllRestaurantImages();
+              await loadRestaurantImages();
               
               // Then load restaurant data
               const { data, error } = await supabase
@@ -2491,6 +2130,15 @@
                   appState.restaurants = [];
                   return [];
               }
+              
+              // Preload images for instant display
+              const imageUrls = [];
+              data.forEach(restaurant => {
+                  const coverUrl = getCoverImageUrl(restaurant.slug);
+                  const logoUrl = getLogoUrl(restaurant);
+                  imageUrls.push(coverUrl, logoUrl);
+              });
+              preloadImages(imageUrls);
               
               appState.restaurants = data.map(restaurant => ({
                   id: restaurant.id,
@@ -2508,9 +2156,6 @@
               appState.restaurants.forEach(r => {
                   if (r.category) appState.categories.add(r.category);
               });
-              
-              appState.cache.restaurantsLoaded = true;
-              appState.cache.lastLoadTime = Date.now();
               
               return appState.restaurants;
               
@@ -2583,28 +2228,18 @@
               filteredRestaurants = filteredRestaurants.filter(r => r.category === filterType);
           }
           
+          // Clear and render filtered restaurants
           appState.featuredSlider.innerHTML = '';
-          
-          const displayRestaurants = filteredRestaurants.slice(0, 6);
-          
-          displayRestaurants.forEach(async restaurant => {
-              const card = await createRestaurantCard(restaurant);
+          filteredRestaurants.slice(0, 6).forEach((restaurant, index) => {
+              const card = createRestaurantCard(restaurant, index);
               appState.featuredSlider.appendChild(card);
-          });
-          
-          // Update lazy loading
-          const images = appState.featuredSlider.querySelectorAll('img[data-src]');
-          images.forEach(img => {
-              if (appState.imageObserver) {
-                  appState.imageObserver.observe(img);
-              }
           });
       }
       
-      // ---------- CARD CREATION ----------
-      async function createRestaurantCard(restaurant) {
+      // ---------- CARD CREATION WITH INSTANT LOADING ----------
+      function createRestaurantCard(restaurant, index = 0) {
           const card = document.createElement('div');
-          card.className = 'card';
+          card.className = `card`;
           card.dataset.id = restaurant.id;
           
           const rating = restaurant.rating || 0;
@@ -2622,15 +2257,17 @@
             <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
               <div class="card-image">
                 <img class="restaurant-image" 
-                     data-src="${restaurant.coverImage}" 
+                     src="${restaurant.coverImage}" 
                      alt="${restaurant.name}" 
                      width="280" 
-                     height="180">
+                     height="180"
+                     loading="${index < 3 ? 'eager' : 'lazy'}">
                 <div class="logo-overlay">
-                  <img data-src="${logoUrl}" 
+                  <img src="${logoUrl}" 
                        alt="${restaurant.name} logo" 
                        width="40" 
-                       height="40">
+                       height="40"
+                       loading="eager">
                 </div>
                 <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
                   <i class="fas fa-ellipsis-h"></i>
@@ -2664,15 +2301,7 @@
             </a>
           `;
           
-          // Set up lazy loading for images
-          const images = card.querySelectorAll('img[data-src]');
-          images.forEach(img => {
-              if (appState.imageObserver) {
-                  appState.imageObserver.observe(img);
-              }
-          });
-          
-          // Menu button event listener - FIXED: Three dots working
+          // Menu button event listener
           const menuBtn = card.querySelector('.menu-btn');
           if (menuBtn) {
               menuBtn.addEventListener('click', async (e) => {
@@ -2685,6 +2314,9 @@
                   });
               });
           }
+          
+          // Add animation delay based on index
+          card.style.animationDelay = `${index * 0.1}s`;
           
           return card;
       }
@@ -2770,7 +2402,6 @@
           const spotName = document.getElementById('spotName');
           const spotDesc = document.getElementById('spotDesc');
           const spotRating = document.getElementById('spotRating');
-          const spotAction = document.getElementById('spotAction');
           
           if (spotFoodImage) {
               spotFoodImage.src = restaurant.coverImage;
@@ -2778,57 +2409,56 @@
           }
           
           if (spotLogo) {
-              spotLogo.innerHTML = `<img src="${getLogoUrl(restaurant)}" alt="${restaurant.name} logo" class="loaded">`;
+              spotLogo.innerHTML = `<img src="${getLogoUrl(restaurant)}" alt="${restaurant.name} logo">`;
           }
           
           if (spotName) spotName.textContent = restaurant.name;
           if (spotDesc) spotDesc.textContent = restaurant.description;
           if (spotRating) spotRating.textContent = `⭐ ${restaurant.rating}`;
-          if (spotAction) {
-              spotAction.onclick = () => location.href = `restaurant.html?slug=${restaurant.slug}`;
-          }
       }
       
-      // ---------- RESTAURANT OF THE DAY - FIXED: Proper portrait card ----------
+      // ---------- RESTAURANT OF THE DAY - IMPROVED DESIGN ----------
       function setupRestaurantOfTheDay() {
           if (appState.restaurants.length === 0) {
               // Fallback content
-              const dayCard = document.getElementById('dayRestaurantCard');
-              if (dayCard) {
-                  dayCard.innerHTML = `
-                      <div class="day-card-image">
-                          <img src="${DEFAULT_COVER_URL}" alt="Restaurant of the Day" class="loaded">
-                          <div class="day-card-logo">
-                              <img src="${DEFAULT_LOGO_URL}" alt="Restaurant logo" class="loaded">
-                          </div>
-                          <button class="day-card-menu-btn" id="dayCardMenuBtn">
-                              <i class="fas fa-ellipsis-h"></i>
-                          </button>
-                          <div class="day-card-badge">RESTAURANT OF THE DAY</div>
-                      </div>
-                      <div class="day-card-content">
-                          <div class="day-card-header">
-                              <h3 class="day-card-title">Holmes Burger</h3>
-                              <div class="day-card-rating">
-                                  <i class="fas fa-star"></i>
-                                  4.7
+              const dayCardWrapper = document.querySelector('.day-card-wrapper');
+              if (dayCardWrapper) {
+                  dayCardWrapper.innerHTML = `
+                      <div class="day-card">
+                          <div class="day-card-image">
+                              <img src="${DEFAULT_COVER_URL}" alt="Restaurant of the Day">
+                              <div class="day-card-logo">
+                                  <img src="${DEFAULT_LOGO_URL}" alt="Restaurant logo">
                               </div>
+                              <button class="day-card-menu-btn" id="dayCardMenuBtn">
+                                  <i class="fas fa-ellipsis-h"></i>
+                              </button>
+                              <div class="day-card-badge">RESTAURANT OF THE DAY</div>
                           </div>
-                          <div class="day-card-category">
-                              <span>🍔</span>
-                              Burgers
-                          </div>
-                          <p class="day-card-description">Gourmet burgers with creative combinations in a stylish setting. Our signature double-patty burger with truffle aioli and aged cheddar has been rated the best in the city.</p>
-                          <div class="day-card-footer">
-                              <div class="day-card-actions">
-                                  <button class="day-card-btn day-card-btn-primary" onclick="location.href='cards/holmes.html'">
-                                      <i class="fas fa-utensils"></i>
-                                      View Restaurant
-                                  </button>
-                                  <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">
-                                      <i class="fas fa-bookmark"></i>
-                                      Save
-                                  </button>
+                          <div class="day-card-content">
+                              <div class="day-card-header">
+                                  <h3 class="day-card-title">Holmes Burger</h3>
+                                  <div class="day-card-rating">
+                                      <i class="fas fa-star"></i>
+                                      4.7
+                                  </div>
+                              </div>
+                              <div class="day-card-category">
+                                  <span>🍔</span>
+                                  Burgers
+                              </div>
+                              <p class="day-card-description">Gourmet burgers with creative combinations in a stylish setting. Our signature double-patty burger with truffle aioli and aged cheddar has been rated the best in the city.</p>
+                              <div class="day-card-footer">
+                                  <div class="day-card-actions">
+                                      <button class="day-card-btn day-card-btn-primary" onclick="location.href='restaurant.html?slug=holmes-burger'">
+                                          <i class="fas fa-utensils"></i>
+                                          View Restaurant
+                                      </button>
+                                      <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">
+                                          <i class="fas fa-bookmark"></i>
+                                          Save
+                                      </button>
+                                  </div>
                               </div>
                           </div>
                       </div>
@@ -2837,13 +2467,16 @@
               return;
           }
           
-          // Pick a random restaurant
-          const randomIndex = Math.floor(Math.random() * appState.restaurants.length);
-          const restaurant = appState.restaurants[randomIndex];
+          // Pick a restaurant with high rating for the day
+          const topRestaurants = appState.restaurants.filter(r => (r.rating || 0) >= 4.5);
+          const restaurant = topRestaurants.length > 0 
+              ? topRestaurants[Math.floor(Math.random() * topRestaurants.length)]
+              : appState.restaurants[0];
+          
           appState.dayRestaurant = restaurant;
           
-          const dayCard = document.getElementById('dayRestaurantCard');
-          if (!dayCard) return;
+          const dayCardWrapper = document.querySelector('.day-card-wrapper');
+          if (!dayCardWrapper) return;
           
           const rating = restaurant.rating || 0;
           const category = restaurant.category || 'Restaurant';
@@ -2855,57 +2488,51 @@
           if (status.wantToGo) badgeText += '📍 ';
           if (status.visited) badgeText += '✓ ';
           
-          dayCard.innerHTML = `
-              <div class="day-card-image">
-                  <img data-src="${restaurant.coverImage}" alt="${restaurant.name}" class="day-card-main-image">
-                  <div class="day-card-logo">
-                      <img data-src="${logoUrl}" alt="${restaurant.name} logo">
-                  </div>
-                  <button class="day-card-menu-btn" id="dayCardMenuBtn">
-                      <i class="fas fa-ellipsis-h"></i>
-                  </button>
-                  <div class="day-card-badge">RESTAURANT OF THE DAY</div>
-                  ${badgeText ? `
-                    <div class="badge-container" style="top: 60px; left: 16px;">
-                      <div class="user-list-badge">${badgeText.trim()}</div>
-                    </div>
-                  ` : ''}
-              </div>
-              <div class="day-card-content">
-                  <div class="day-card-header">
-                      <h3 class="day-card-title">${restaurant.name}</h3>
-                      <div class="day-card-rating">
-                          <i class="fas fa-star"></i>
-                          ${rating.toFixed(1)}
+          dayCardWrapper.innerHTML = `
+              <div class="day-card">
+                  <div class="day-card-image">
+                      <img src="${restaurant.coverImage}" alt="${restaurant.name}" class="day-card-main-image">
+                      <div class="day-card-logo">
+                          <img src="${logoUrl}" alt="${restaurant.name} logo">
                       </div>
+                      <button class="day-card-menu-btn" id="dayCardMenuBtn">
+                          <i class="fas fa-ellipsis-h"></i>
+                      </button>
+                      <div class="day-card-badge">RESTAURANT OF THE DAY</div>
+                      ${badgeText ? `
+                        <div class="badge-container" style="top: 60px; left: 16px;">
+                          <div class="user-list-badge">${badgeText.trim()}</div>
+                        </div>
+                      ` : ''}
                   </div>
-                  <div class="day-card-category">
-                      <span>${getCategoryIcon(category)}</span>
-                      ${category}
-                  </div>
-                  <p class="day-card-description">${restaurant.description || 'Delicious food served with care'}</p>
-                  <div class="day-card-footer">
-                      <div class="day-card-actions">
-                          <button class="day-card-btn day-card-btn-primary" id="dayCardViewBtn">
-                              <i class="fas fa-utensils"></i>
-                              View Restaurant
-                          </button>
-                          <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">
-                              <i class="fas fa-bookmark"></i>
-                              Save
-                          </button>
+                  <div class="day-card-content">
+                      <div class="day-card-header">
+                          <h3 class="day-card-title">${restaurant.name}</h3>
+                          <div class="day-card-rating">
+                              <i class="fas fa-star"></i>
+                              ${rating.toFixed(1)}
+                          </div>
+                      </div>
+                      <div class="day-card-category">
+                          <span>${getCategoryIcon(category)}</span>
+                          ${category}
+                      </div>
+                      <p class="day-card-description">${restaurant.description || 'Delicious food served with care'}</p>
+                      <div class="day-card-footer">
+                          <div class="day-card-actions">
+                              <button class="day-card-btn day-card-btn-primary" id="dayCardViewBtn">
+                                  <i class="fas fa-utensils"></i>
+                                  View Restaurant
+                              </button>
+                              <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">
+                                  <i class="fas fa-bookmark"></i>
+                                  Save
+                              </button>
+                          </div>
                       </div>
                   </div>
               </div>
           `;
-          
-          // Set up lazy loading
-          const images = dayCard.querySelectorAll('img[data-src]');
-          images.forEach(img => {
-              if (appState.imageObserver) {
-                  appState.imageObserver.observe(img);
-              }
-          });
           
           // Add event listeners
           const viewBtn = document.getElementById('dayCardViewBtn');
@@ -2955,7 +2582,7 @@
           if (status.wantToGo) badgeText += '📍 ';
           if (status.visited) badgeText += '✓ ';
           
-          const dayCard = document.getElementById('dayRestaurantCard');
+          const dayCard = document.querySelector('.day-card');
           if (!dayCard) return;
           
           let badgeContainer = dayCard.querySelector('.badge-container');
@@ -2973,7 +2600,7 @@
           }
       }
       
-      // ---------- INITIALIZE CARDS ----------
+      // ---------- INITIALIZE CARDS WITH INSTANT LOADING ----------
       async function initCards() {
           const featuredSlider = document.getElementById('featuredSlider');
           const nearbySlider = document.getElementById('nearbySlider');
@@ -2983,39 +2610,110 @@
           appState.featuredSlider = featuredSlider;
           appState.nearbySlider = nearbySlider;
           
-          featuredSlider.innerHTML = '';
-          nearbySlider.innerHTML = '';
+          // Remove skeleton loading
+          featuredSlider.classList.remove('skeleton-grid');
+          nearbySlider.classList.remove('skeleton-grid');
           
           if (appState.isLoggedIn) {
               await listManager.init();
           }
           
           if (appState.restaurants.length === 0) {
-              featuredSlider.innerHTML = '<div style="color: var(--muted); padding: 20px; text-align: center;">Loading restaurants...</div>';
+              showNotification('No restaurants available', 'warning');
               return;
           }
           
-          // Populate featured (first 6 restaurants)
+          // Populate featured (first 6 restaurants) - INSTANT LOADING
           const featured = appState.restaurants.slice(0, 6);
-          for (const restaurant of featured) {
-              const card = await createRestaurantCard(restaurant);
+          featured.forEach((restaurant, index) => {
+              const card = createRestaurantCard(restaurant, index);
               featuredSlider.appendChild(card);
-          }
+          });
           
-          // Populate nearby (next 6 restaurants)
+          // Populate nearby (next 6 restaurants) - INSTANT LOADING
           const nearby = appState.restaurants.slice(6, 12);
-          for (const restaurant of nearby) {
-              const card = await createRestaurantCard(restaurant);
+          nearby.forEach((restaurant, index) => {
+              const card = createRestaurantCard(restaurant, index);
               nearbySlider.appendChild(card);
-          }
+          });
+      }
+      
+      // ---------- WORKING SEARCH FUNCTIONALITY ----------
+      function setupSearch() {
+          const searchInput = document.getElementById('globalSearch');
+          if (!searchInput) return;
           
-          // Initialize lazy loading
-          const allImages = document.querySelectorAll('img[data-src]');
-          allImages.forEach(img => {
-              if (appState.imageObserver) {
-                  appState.imageObserver.observe(img);
+          // Debounce search to avoid too many requests
+          let searchTimeout;
+          searchInput.addEventListener('input', function() {
+              clearTimeout(searchTimeout);
+              searchTimeout = setTimeout(() => {
+                  const query = this.value.trim();
+                  if (query.length > 0) {
+                      performSearch(query);
+                  }
+              }, 300);
+          });
+          
+          // Enter key to redirect to restaurants page with search
+          searchInput.addEventListener('keydown', function(e) {
+              if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const query = this.value.trim();
+                  if (query.length > 0) {
+                      window.location.href = `restraunts.html?search=${encodeURIComponent(query)}`;
+                  } else {
+                      window.location.href = 'restraunts.html';
+                  }
               }
           });
+          
+          // Footer search link
+          const searchFooterLink = document.getElementById('searchFooterLink');
+          if (searchFooterLink) {
+              searchFooterLink.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  searchInput.focus();
+              });
+          }
+      }
+      
+      function performSearch(query) {
+          if (!appState.restaurants.length) return;
+          
+          const normalizedQuery = query.toLowerCase();
+          const results = appState.restaurants.filter(restaurant => {
+              return (
+                  restaurant.name.toLowerCase().includes(normalizedQuery) ||
+                  (restaurant.description && restaurant.description.toLowerCase().includes(normalizedQuery)) ||
+                  (restaurant.category && restaurant.category.toLowerCase().includes(normalizedQuery))
+              );
+          });
+          
+          appState.searchResults = results;
+          
+          // Show quick results in featured section if we have results
+          if (results.length > 0) {
+              const featuredSlider = document.getElementById('featuredSlider');
+              if (featuredSlider) {
+                  featuredSlider.innerHTML = '';
+                  results.slice(0, 6).forEach((restaurant, index) => {
+                      const card = createRestaurantCard(restaurant, index);
+                      featuredSlider.appendChild(card);
+                  });
+                  
+                  // Update section title
+                  const sectionTitle = document.querySelector('.section h2');
+                  if (sectionTitle) {
+                      sectionTitle.textContent = `Search Results for "${query}"`;
+                  }
+                  
+                  const sectionSubtitle = document.querySelector('.section-subtitle');
+                  if (sectionSubtitle) {
+                      sectionSubtitle.textContent = `${results.length} restaurants found`;
+                  }
+              }
+          }
       }
       
       // ---------- AUTH UI ----------
@@ -3186,27 +2884,30 @@
           showAppComingSoonModal();
       });
 
-      // ---------- SEARCH ----------
-      const globalSearch = document.getElementById('globalSearch');
-      if (globalSearch) {
-          globalSearch.addEventListener('keydown', (e) => { 
-              if(e.key === 'Enter'){ 
-                  const q = e.target.value.trim(); 
-                  const url = q ? `restraunts.html?q=${encodeURIComponent(q)}` : 'restraunts.html'; 
-                  location.href = url; 
-              } 
+      // ---------- NAV SCROLL EFFECT ----------
+      function setupNavScroll() {
+          const nav = document.querySelector('.nav');
+          window.addEventListener('scroll', function() {
+              if (window.scrollY > 10) {
+                  nav.classList.add('scrolled');
+              } else {
+                  nav.classList.remove('scrolled');
+              }
           });
       }
       
       // ---------- INITIALIZE ----------
-      document.addEventListener('DOMContentLoaded', async function() {
-          // Initialize image observer
-          initImageObserver();
-          
+      async function init() {
           // Initialize auth UI first
           await updateAuthUI();
           
-          // Load restaurants
+          // Setup search functionality
+          setupSearch();
+          
+          // Setup nav scroll effect
+          setupNavScroll();
+          
+          // Load restaurants data
           await loadRestaurantsData();
           
           // Populate UI
@@ -3218,24 +2919,24 @@
               setupRestaurantOfTheDay();
           }
           
-          // Add nav scroll effect
-          window.addEventListener('scroll', function() {
-              const nav = document.querySelector('.nav');
-              if (window.scrollY > 10) {
-                  nav.classList.add('scrolled');
-              } else {
-                  nav.classList.remove('scrolled');
-              }
-          });
-          
-          // Add mobile search toggle
-          if (window.innerWidth <= 768) {
-              const search = document.querySelector('.search');
-              if (search) {
-                  search.style.display = 'none';
+          // Check URL for search parameter
+          const urlParams = new URLSearchParams(window.location.search);
+          const searchParam = urlParams.get('search');
+          if (searchParam) {
+              const searchInput = document.getElementById('globalSearch');
+              if (searchInput) {
+                  searchInput.value = searchParam;
+                  performSearch(searchParam);
               }
           }
-      });
+      }
+
+      // Start initialization when DOM is ready
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+      } else {
+          init();
+      }
 
     })();
     </script>
