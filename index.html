@@ -446,7 +446,7 @@
         
         .hero-right {
             width: 100%;
-            max-width: 500px; /* Increased for bigger spotlight */
+            max-width: 500px;
             min-width: 0;
             display: flex;
             align-items: center;
@@ -462,11 +462,11 @@
         
         .spotlight {
             width: 100%;
-            border-radius: 20px; /* Increased border radius */
+            border-radius: 20px;
             overflow: hidden;
             background: var(--card);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); /* Bigger shadow */
-            border: 2px solid var(--border); /* Thicker border */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--border);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -474,7 +474,7 @@
             z-index: 2;
             transition: all 0.3s ease;
             cursor: pointer;
-            height: 360px; /* Fixed height */
+            height: 360px;
         }
         
         .spotlight:hover {
@@ -485,7 +485,7 @@
         
         .spotlight-img-container {
             width: 100%;
-            height: 220px; /* Bigger image */
+            height: 220px;
             border-radius: 0;
             overflow: hidden;
             background: var(--glass);
@@ -508,7 +508,7 @@
             position: absolute;
             bottom: 12px;
             left: 12px;
-            width: 48px; /* Bigger logo */
+            width: 48px;
             height: 48px;
             background: rgba(11, 22, 51, 0.9);
             border-radius: 12px;
@@ -516,7 +516,7 @@
             align-items: center;
             justify-content: center;
             padding: 4px;
-            border: 2px solid var(--accent); /* Thicker border */
+            border: 2px solid var(--accent);
             backdrop-filter: blur(10px);
             z-index: 10;
             transition: all 0.3s ease;
@@ -530,7 +530,7 @@
         }
         
         .spotlight-content {
-            padding: 20px; /* More padding */
+            padding: 20px;
             flex: 1;
             width: 100%;
             display: flex;
@@ -544,7 +544,7 @@
         
         .spotlight h3 {
             margin: 0 0 8px 0;
-            font-size: 20px; /* Bigger font */
+            font-size: 20px;
             font-weight: 700;
             color: var(--white);
             line-height: 1.3;
@@ -553,7 +553,7 @@
         .spotlight p {
             margin: 0;
             color: var(--muted);
-            font-size: 14px; /* Bigger font */
+            font-size: 14px;
             line-height: 1.5;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -568,7 +568,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 14px; /* Bigger font */
+            font-size: 14px;
         }
         
         .spotlight-actions {
@@ -603,7 +603,7 @@
             background: var(--accent);
         }
         
-        /* Restaurant Cards (SAME SIZE as restaurants.html) */
+        /* Restaurant Cards */
         .restaurant-card {
             background: var(--card);
             border-radius: 16px;
@@ -616,6 +616,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            flex-shrink: 0;
         }
         
         .restaurant-card:hover {
@@ -814,11 +815,11 @@
             line-height: 1.5;
             margin: 0 0 16px 0;
             display: -webkit-box;
-            -webkit-line-clamp: 3; /* Fixed: Show 3 lines like restaurants.html */
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
             flex: 1;
-            min-height: 60px; /* Fixed: Prevent cropping */
+            min-height: 60px;
         }
         
         .card-footer {
@@ -836,12 +837,70 @@
             font-weight: 500;
         }
         
-        /* Slider Grid */
+        /* DESKTOP: Grid Layout */
         .slider-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             transition: grid-template-columns 0.3s ease;
+        }
+        
+        /* MOBILE: Horizontal Scroll Layout */
+        @media (max-width: 768px) {
+            .slider-grid {
+                display: flex;
+                grid-template-columns: none;
+                gap: 16px;
+                overflow-x: auto;
+                padding: 8px 0 20px 0;
+                scroll-snap-type: x mandatory;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -16px;
+                padding-left: 16px;
+            }
+            
+            .slider-grid::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .restaurant-card {
+                width: 280px;
+                flex-shrink: 0;
+                scroll-snap-align: start;
+            }
+            
+            .card-image {
+                height: 180px;
+            }
+            
+            .restaurant-image {
+                height: 180px;
+            }
+            
+            .logo-overlay {
+                width: 40px;
+                height: 40px;
+                bottom: 10px;
+                left: 10px;
+            }
+            
+            .menu-btn {
+                width: 32px;
+                height: 32px;
+                top: 10px;
+                right: 10px;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .card-title-wrapper {
+                width: 100%;
+            }
         }
         
         /* Restaurant of the Day Card */
@@ -946,7 +1005,7 @@
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 20px;
-            -webkit-line-clamp: 3; /* Show 3 lines */
+            -webkit-line-clamp: 3;
             min-height: auto;
         }
         
@@ -1055,23 +1114,6 @@
         }
         
         .view-all:hover { gap: 8px; }
-        
-        /* Slider */
-        .slider-container {
-            position: relative;
-        }
-        
-        .slider {
-            display: flex;
-            gap: 16px;
-            overflow-x: auto;
-            padding: 8px 0 20px 0;
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .slider::-webkit-scrollbar { display: none; }
         
         /* Filter Bar */
         .filter-bar {
@@ -1577,6 +1619,7 @@
                 flex-direction: column;
             }
             
+            /* Keep desktop grid on tablets */
             .slider-grid {
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             }
@@ -1614,10 +1657,6 @@
                 grid-template-columns: repeat(2, 1fr);
                 text-align: left;
             }
-            
-            .slider-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            }
         }
         
         @media (max-width: 480px) {
@@ -1648,10 +1687,6 @@
             
             .spotlight p {
                 font-size: 13px;
-            }
-            
-            .slider-grid {
-                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -2071,7 +2106,7 @@
             });
         }
         
-        // ---------- LIST MANAGER (FIXED to work like restaurants.html) ----------
+        // ---------- LIST MANAGER (SAME as restaurants.html) ----------
         const listManager = {
             userLists: [],
             currentLists: {
@@ -2573,7 +2608,7 @@
             return DEFAULT_LOGO_URL;
         }
         
-        // FIXED: Load all restaurants for search
+        // Load all restaurants for search
         async function loadAllRestaurantsForSearch() {
             try {
                 const { data, error } = await supabase
@@ -2632,7 +2667,7 @@
             }
         }
         
-        // ---------- CARD CREATION (SAME as restaurants.html) ----------
+        // ---------- CARD CREATION ----------
         function createCard(restaurant, index) {
             const card = document.createElement('div');
             card.className = 'restaurant-card';
@@ -2899,7 +2934,7 @@
             }
         }
         
-        // ---------- SEARCH FUNCTION (FIXED: Searches ALL restaurants) ----------
+        // ---------- SEARCH FUNCTION ----------
         function updateSearchSuggestions(searchTerm) {
             const suggestionsContainer = elements.searchSuggestions;
             if (!searchTerm.trim()) {
@@ -2946,7 +2981,7 @@
         
         // ---------- EVENT LISTENERS ----------
         function setupEventListeners() {
-            // SEARCH WITH AUTOCOMPLETE (FIXED: Uses all restaurants)
+            // SEARCH WITH AUTOCOMPLETE
             if (elements.search && elements.clearSearch) {
                 let debounceTimer;
                 
@@ -3052,7 +3087,7 @@
                 elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
                 elements.userAccountBtn.onclick = () => location.href = 'profile.html';
                 
-                // Initialize list manager
+                // Initialize list manager - CRITICAL FOR LIST FUNCTIONS TO WORK
                 await listManager.init();
                 
             } else {
