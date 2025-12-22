@@ -156,7 +156,7 @@
         
         .logo:hover { transform: scale(1.05); }
         
-        /* Search Bar - WORKING VERSION */
+        /* Search Bar with Autocomplete */
         .search-wrapper {
             width: 100%;
             max-width: 500px;
@@ -205,6 +205,78 @@
         
         .clear-search:hover {
             color: var(--white);
+        }
+        
+        /* Search Suggestions */
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-top: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .search-suggestions.show {
+            display: block;
+        }
+        
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .suggestion-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .suggestion-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .suggestion-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .suggestion-name {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .suggestion-category {
+            font-size: 12px;
+            color: var(--muted);
         }
         
         .nav-right {
@@ -382,6 +454,7 @@
             position: relative;
         }
         
+        /* Spotlight - Now Rotating */
         .spotlight {
             width: 100%;
             border-radius: 16px;
@@ -397,6 +470,13 @@
             position: relative;
             z-index: 2;
             transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .spotlight:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.2);
         }
         
         .spotlight-img-container {
@@ -414,6 +494,10 @@
             object-fit: cover;
             display: block;
             transition: transform 0.5s ease;
+        }
+        
+        .spotlight:hover .spotlight-food-image {
+            transform: scale(1.05);
         }
         
         .spotlight-logo-overlay {
@@ -461,6 +545,10 @@
             color: var(--muted);
             font-size: 12px;
             line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         
         .rating {
@@ -470,6 +558,31 @@
             align-items: center;
             gap: 4px;
             font-size: 13px;
+        }
+        
+        .spotlight-change-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: rgba(11, 22, 51, 0.9);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--accent);
+            font-size: 12px;
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+        
+        .spotlight-change-btn:hover {
+            background: var(--accent);
+            color: #111;
+            transform: rotate(90deg);
         }
         
         /* Sections */
@@ -567,7 +680,7 @@
             border-color: var(--accent);
         }
         
-        /* Restaurant Cards (EXACT SAME as restaurants.html) */
+        /* Restaurant Cards (EXACT SAME as restaurants.html with EQUAL HEIGHTS) */
         .restaurant-card {
             background: var(--card);
             border-radius: 16px;
@@ -579,7 +692,7 @@
             transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
-            height: 100%;
+            height: 460px; /* FIXED EQUAL HEIGHT */
             flex: 0 0 300px;
             min-width: 300px;
             scroll-snap-align: start;
@@ -596,6 +709,7 @@
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+            flex-shrink: 0;
         }
         
         /* Logo overlay in bottom left */
@@ -695,6 +809,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-height: 0; /* Important for equal heights */
         }
         
         .card-header {
@@ -783,6 +898,7 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             flex: 1;
+            min-height: 60px;
         }
         
         .card-footer {
@@ -800,7 +916,7 @@
             font-weight: 500;
         }
         
-        /* Restaurant of the Day Card - EXACT SAME STYLE */
+        /* Restaurant of the Day Card - SMALLER VERSION */
         .restaurant-of-day {
             position: relative;
             background: transparent;
@@ -844,7 +960,7 @@
             line-height: 1.6;
         }
         
-        /* Day Card - Same as regular card but bigger */
+        /* Day Card - Regular card size but with badge */
         .day-card-container {
             display: flex;
             justify-content: center;
@@ -862,8 +978,9 @@
             display: flex;
             flex-direction: column;
             width: 100%;
-            max-width: 800px;
+            max-width: 600px; /* SMALLER */
             margin: 0 auto;
+            height: auto;
         }
         
         .day-card:hover {
@@ -873,34 +990,34 @@
         }
         
         .day-card .card-image {
-            height: 300px;
+            height: 250px; /* SMALLER */
         }
         
         .day-card .card-content {
-            padding: 24px;
+            padding: 20px;
         }
         
         .day-card .card-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
             margin-bottom: 8px;
         }
         
         .day-card .card-rating {
-            padding: 8px 16px;
-            font-size: 16px;
+            padding: 6px 12px;
+            font-size: 14px;
             font-weight: 800;
         }
         
         .day-card .card-category {
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 16px;
         }
         
         .day-card .card-description {
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.6;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         
         .day-card-actions {
@@ -911,7 +1028,7 @@
         
         .day-card-btn {
             flex: 1;
-            padding: 14px 24px;
+            padding: 12px 20px;
             border-radius: 12px;
             font-weight: 700;
             border: none;
@@ -921,7 +1038,7 @@
             justify-content: center;
             gap: 10px;
             transition: all 0.3s ease;
-            font-size: 15px;
+            font-size: 14px;
         }
         
         .day-card-btn-primary {
@@ -974,7 +1091,7 @@
         
         .skeleton-card {
             flex: 0 0 300px;
-            height: 460px;
+            height: 460px; /* SAME HEIGHT AS CARDS */
             background: var(--card);
             border-radius: 16px;
             border: 1px solid var(--border);
@@ -1085,7 +1202,7 @@
             transform: translateY(-2px);
         }
         
-        /* Modals */
+        /* Modals - EXACT SAME as restaurants.html */
         .actions-modal, .auth-prompt-modal {
             display: none;
             position: fixed;
@@ -1123,6 +1240,204 @@
         @keyframes modalSlideIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .actions-header {
+            margin-bottom: 24px;
+        }
+        
+        .actions-header h3 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        .actions-header p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .action-btn-modal {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            font-size: 15px;
+            justify-content: space-between;
+        }
+        
+        .action-btn-modal:hover {
+            background: var(--accent);
+            color: #0b1633;
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+        
+        .action-btn-modal.active {
+            background: var(--accent);
+            color: #0b1633;
+            border-color: var(--accent);
+        }
+        
+        .action-btn-modal i {
+            font-size: 18px;
+            width: 24px;
+        }
+        
+        .cancel-btn {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 14px 20px;
+            border-radius: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .cancel-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--white);
+        }
+        
+        /* Auth Prompt Modal - Same as restaurants.html */
+        .auth-prompt-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11, 22, 51, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 1002;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .auth-prompt-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .auth-prompt-content {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            border: 2px solid var(--accent);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            animation: modalSlideIn 0.3s ease-out;
+            text-align: center;
+        }
+        
+        .auth-prompt-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 32px;
+            color: #0b1633;
+        }
+        
+        .auth-prompt-header h3 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: var(--white);
+            font-weight: 700;
+        }
+        
+        .auth-prompt-header p {
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 32px;
+        }
+        
+        .auth-prompt-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .auth-prompt-btn {
+            padding: 18px 24px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .auth-prompt-primary {
+            background: var(--gradient);
+            color: #0b1633;
+        }
+        
+        .auth-prompt-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+        
+        .auth-prompt-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--border);
+        }
+        
+        .auth-prompt-secondary:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--accent);
+        }
+        
+        .auth-prompt-close {
+            background: transparent;
+            color: var(--muted);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 15px;
+        }
+        
+        .auth-prompt-close:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--white);
         }
         
         /* Footer */
@@ -1226,7 +1541,7 @@
             }
             
             .day-card .card-image {
-                height: 250px;
+                height: 200px;
             }
             
             .day-card-actions {
@@ -1259,7 +1574,7 @@
             }
             
             .day-card .card-title {
-                font-size: 20px;
+                font-size: 18px;
             }
             
             .footer-content {
@@ -1287,7 +1602,7 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-    <!-- Actions Modal -->
+    <!-- Actions Modal - EXACT SAME as restaurants.html -->
     <div id="actionsModal" class="actions-modal">
         <div class="actions-content">
             <div class="actions-header">
@@ -1297,22 +1612,22 @@
             <div class="action-buttons">
                 <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn">
                     <i class="fas fa-heart"></i>
-                    <span>Add to Favorites</span>
+                    <span id="favoritesText">Add to Favorites</span>
                 </button>
                 <button class="action-btn-modal" data-action="wantToGo" id="modalWantToGoBtn">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>Want to Go</span>
+                    <span id="wantToGoText">Want to Go</span>
                 </button>
                 <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn">
                     <i class="fas fa-utensils"></i>
-                    <span>Mark as Visited</span>
+                    <span id="visitedText">Mark as Visited</span>
                 </button>
             </div>
             <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
         </div>
     </div>
 
-    <!-- Auth Prompt Modal -->
+    <!-- Auth Prompt Modal - Same as restaurants.html -->
     <div id="authPromptModal" class="auth-prompt-modal">
         <div class="auth-prompt-content">
             <div class="auth-prompt-icon">
@@ -1343,11 +1658,12 @@
         <div class="nav-container">
             <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
             
-            <!-- FIXED SEARCH BAR with working search -->
+            <!-- SEARCH BAR WITH AUTOCOMPLETE -->
             <div class="search-wrapper">
                 <span class="search-icon">🔎</span>
                 <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
                 <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+                <div id="searchSuggestions" class="search-suggestions"></div>
             </div>
             
             <div class="nav-right">
@@ -1388,16 +1704,20 @@
                     </div>
                 </div>
                 <div class="hero-right">
+                    <!-- ROTATING SPOTLIGHT -->
                     <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
+                        <button class="spotlight-change-btn" id="spotlightChangeBtn" title="Show another restaurant">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                         <div class="spotlight-img-container">
-                            <img id="spotFoodImage" class="spotlight-food-image" src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morisush.png" alt="Featured restaurant food">
+                            <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food">
                             <div class="spotlight-logo-overlay" id="spotLogo">
-                                <img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/mori/morilogo.png" alt="Mori Sushi logo">
+                                <img src="" alt="Restaurant logo">
                             </div>
                         </div>
                         <div class="meta">
-                            <div><h3 id="spotName">Mori Sushi</h3><p id="spotDesc">Modern sushi chain serving rolls, sashimi & Japanese bites.</p><div class="rating" id="spotRating">⭐ 4.7</div></div>
-                            <div><button class="btn-outline" onclick="location.href='restaurant.html?slug=mori-sushi'" style="padding:6px 12px; font-size:12px">View Details</button></div>
+                            <div><h3 id="spotName">Loading...</h3><p id="spotDesc">Loading restaurant details...</p><div class="rating" id="spotRating">⭐ ...</div></div>
+                            <div><button class="btn-outline" id="spotlightViewBtn" style="padding:6px 12px; font-size:12px">View Details</button></div>
                         </div>
                     </div>
                 </div>
@@ -1467,17 +1787,17 @@
             </div>
         </section>
 
-        <!-- Restaurant of the Day - EXACT SAME CARD SYSTEM -->
+        <!-- Restaurant of the Day - SMALLER VERSION -->
         <section class="section">
             <div class="restaurant-of-day">
                 <div class="day-header">
                     <h2>Restaurant of the Day</h2>
-                    <p>Our specially selected restaurant that stands out from the rest. This exclusive pick features premium quality and exceptional dining experience.</p>
+                    <p>Our specially selected restaurant that stands out from the rest.</p>
                 </div>
                 <div class="day-card-container">
                     <div id="dayCard" class="day-card">
                         <!-- Content loaded dynamically -->
-                        <div class="skeleton-card" style="width:100%; min-height:500px;"></div>
+                        <div class="skeleton-card" style="width:100%; height:400px;"></div>
                     </div>
                 </div>
             </div>
@@ -1547,7 +1867,7 @@
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         
-        // Default images (SAME AS restaurants.html)
+        // Default images
         const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-cover.jpg';
         const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
         
@@ -1561,23 +1881,35 @@
             isLoggedIn: false,
             currentModalRestaurant: null,
             restaurantImages: new Map(),
-            imageObserver: null
+            imageObserver: null,
+            spotlightIndex: 0,
+            spotlightRestaurants: [],
+            searchSuggestions: []
         };
         
         // DOM elements
         const elements = {
             search: document.getElementById('search'),
             clearSearch: document.getElementById('clearSearch'),
+            searchSuggestions: document.getElementById('searchSuggestions'),
             startJourneyBtn: document.getElementById('startJourneyBtn'),
             guestBanner: document.getElementById('guestBanner'),
             userAccountBtn: document.getElementById('userAccountBtn'),
             filterBar: document.getElementById('filterBar'),
             featuredSlider: document.getElementById('featuredSlider'),
             nearbySlider: document.getElementById('nearbySlider'),
-            dayCard: document.getElementById('dayCard')
+            dayCard: document.getElementById('dayCard'),
+            spotlightCard: document.getElementById('spotlightCard'),
+            spotFoodImage: document.getElementById('spotFoodImage'),
+            spotLogo: document.getElementById('spotLogo').querySelector('img'),
+            spotName: document.getElementById('spotName'),
+            spotDesc: document.getElementById('spotDesc'),
+            spotRating: document.getElementById('spotRating'),
+            spotlightChangeBtn: document.getElementById('spotlightChangeBtn'),
+            spotlightViewBtn: document.getElementById('spotlightViewBtn')
         };
         
-        // ---------- IMAGE LOADING SYSTEM (SAME AS restaurants.html) ----------
+        // ---------- IMAGE LOADING SYSTEM ----------
         function initImageObserver() {
             state.imageObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -1602,7 +1934,7 @@
             });
         }
         
-        // ---------- LIST MANAGER (SAME AS restaurants.html) ----------
+        // ---------- LIST MANAGER (SAME as restaurants.html) ----------
         const listManager = {
             userLists: [],
             currentLists: {
@@ -1799,6 +2131,48 @@
             }, duration);
         }
         
+        // ---------- SEARCH SUGGESTIONS ----------
+        function updateSearchSuggestions(searchTerm) {
+            const suggestionsContainer = elements.searchSuggestions;
+            if (!searchTerm.trim()) {
+                suggestionsContainer.classList.remove('show');
+                return;
+            }
+            
+            const searchLower = searchTerm.toLowerCase();
+            const matches = state.restaurants.filter(restaurant => 
+                restaurant.name.toLowerCase().includes(searchLower) ||
+                (restaurant.category && restaurant.category.toLowerCase().includes(searchLower))
+            ).slice(0, 5); // Limit to 5 suggestions
+            
+            if (matches.length === 0) {
+                suggestionsContainer.classList.remove('show');
+                return;
+            }
+            
+            suggestionsContainer.innerHTML = matches.map(restaurant => `
+                <div class="suggestion-item" data-slug="${restaurant.slug}">
+                    <div class="suggestion-logo">
+                        <img src="${restaurant.logo}" alt="${restaurant.name} logo">
+                    </div>
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">${restaurant.name}</div>
+                        <div class="suggestion-category">${restaurant.category || 'Restaurant'}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            suggestionsContainer.classList.add('show');
+            
+            // Add click events to suggestions
+            suggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const slug = item.dataset.slug;
+                    window.location.href = `restaurant.html?slug=${slug}`;
+                });
+            });
+        }
+        
         // ---------- AUTH MANAGEMENT ----------
         async function updateAuthUI() {
             const { data: { session } } = await supabase.auth.getSession();
@@ -1914,6 +2288,10 @@
                     logo: getLogoUrl(r)
                 }));
                 
+                // Initialize spotlight with top 6 restaurants
+                state.spotlightRestaurants = state.restaurants.slice(0, 6);
+                updateSpotlight();
+                
                 renderRestaurants();
                 populateFilters();
                 setupRestaurantOfTheDay();
@@ -1924,7 +2302,37 @@
             }
         }
         
-        // ---------- CARD CREATION (EXACT SAME AS restaurants.html) ----------
+        // ---------- SPOTLIGHT FUNCTIONS ----------
+        function updateSpotlight() {
+            if (state.spotlightRestaurants.length === 0) return;
+            
+            const restaurant = state.spotlightRestaurants[state.spotlightIndex];
+            
+            elements.spotFoodImage.src = restaurant.coverImage;
+            elements.spotLogo.src = restaurant.logo;
+            elements.spotName.textContent = restaurant.name;
+            elements.spotDesc.textContent = restaurant.description || 'Delicious food served with care';
+            elements.spotRating.textContent = `⭐ ${restaurant.rating.toFixed(1)}`;
+            
+            // Update view button
+            elements.spotlightViewBtn.onclick = () => {
+                window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+            };
+            
+            // Make entire spotlight clickable
+            elements.spotlightCard.onclick = () => {
+                window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+            };
+        }
+        
+        function nextSpotlight() {
+            if (state.spotlightRestaurants.length === 0) return;
+            
+            state.spotlightIndex = (state.spotlightIndex + 1) % state.spotlightRestaurants.length;
+            updateSpotlight();
+        }
+        
+        // ---------- CARD CREATION (EQUAL HEIGHTS) ----------
         function createCard(restaurant, index) {
             const card = document.createElement('div');
             card.className = 'restaurant-card';
@@ -1986,7 +2394,7 @@
                 </a>
             `;
             
-            // Menu button event (SAME AS restaurants.html)
+            // Menu button event (SAME as restaurants.html)
             const menuBtn = card.querySelector('.menu-btn');
             if (menuBtn) {
                 menuBtn.addEventListener('click', async (e) => {
@@ -2108,8 +2516,8 @@
                     <img class="restaurant-image" 
                          data-src="${restaurant.coverImage}" 
                          alt="${restaurant.name}" 
-                         width="800" 
-                         height="300">
+                         width="600" 
+                         height="250">
                     <div class="logo-overlay">
                         <img data-src="${restaurant.logo}" 
                              alt="${restaurant.name} logo" 
@@ -2318,14 +2726,17 @@
             
             if (favoritesBtn) {
                 favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+                favoritesBtn.classList.toggle('active', status.favorites);
             }
             
             if (wantToGoBtn) {
                 wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+                wantToGoBtn.classList.toggle('active', status.wantToGo);
             }
             
             if (visitedBtn) {
                 visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+                visitedBtn.classList.toggle('active', status.visited);
             }
         }
         
@@ -2343,15 +2754,25 @@
         
         // ---------- EVENT LISTENERS ----------
         function setupEventListeners() {
-            // FIXED SEARCH - Redirects to restaurants.html with search query
+            // SEARCH WITH AUTOCOMPLETE
             if (elements.search && elements.clearSearch) {
+                let debounceTimer;
+                
                 elements.search.addEventListener('input', function() {
                     elements.clearSearch.style.display = this.value ? 'block' : 'none';
+                    
+                    // Update suggestions
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        updateSearchSuggestions(this.value);
+                    }, 300);
                 });
                 
                 elements.clearSearch.addEventListener('click', function() {
                     elements.search.value = '';
                     this.style.display = 'none';
+                    elements.searchSuggestions.classList.remove('show');
+                    elements.search.focus();
                 });
                 
                 // Enter key redirects to restaurants.html with search query
@@ -2375,6 +2796,21 @@
                         }
                     });
                 }
+                
+                // Close suggestions when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!elements.searchWrapper?.contains(e.target)) {
+                        elements.searchSuggestions.classList.remove('show');
+                    }
+                });
+            }
+            
+            // Spotlight change button
+            if (elements.spotlightChangeBtn) {
+                elements.spotlightChangeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    nextSpotlight();
+                });
             }
             
             // Start journey button
@@ -2416,7 +2852,7 @@
         
         // ---------- INITIALIZATION ----------
         async function init() {
-            // Initialize image loading system (SAME AS restaurants.html)
+            // Initialize image loading system
             initImageObserver();
             
             await updateAuthUI();
@@ -2425,6 +2861,9 @@
             
             // Listen for auth changes
             supabase.auth.onAuthStateChange(updateAuthUI);
+            
+            // Auto-rotate spotlight every 8 seconds
+            setInterval(nextSpotlight, 8000);
         }
         
         // Initialize
