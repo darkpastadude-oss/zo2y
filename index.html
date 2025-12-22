@@ -10,11 +10,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; --accent-light: #3a2a1a;
-            --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.08); --shadow: rgba(0,0,0,0.3);
+            --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
+            --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
             --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-            --gradient-subtle: linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(255,184,77,0.1) 100%);
+            --shadow: 0 10px 30px rgba(0,0,0,0.3);
             --success: #10b981; --error: #ef4444; --info: #3b82f6;
+            --surface: rgba(19, 35, 71, 0.6);
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,9 +99,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px 16px;
-            backdrop-filter: blur(20px) saturate(180%);
-            background: rgba(19, 35, 71, 0.9);
+            padding: 14px 16px;
+            backdrop-filter: blur(10px) saturate(180%);
+            background: var(--surface);
             border-bottom: 1px solid var(--border);
             transition: all 0.3s ease;
         }
@@ -119,7 +120,7 @@
         }
         
         .logo {
-            height: 36px;
+            height: 40px;
             cursor: pointer;
             transition: all 0.3s ease;
             flex-shrink: 0;
@@ -127,7 +128,7 @@
         
         .logo:hover { transform: scale(1.05); }
         
-        /* Search Bar (Fixed from restaurants.html) */
+        /* Search Bar - WORKING VERSION */
         .search-wrapper {
             width: 100%;
             max-width: 500px;
@@ -137,10 +138,10 @@
         
         .search {
             width: 100%;
-            padding: 10px 16px 10px 42px;
-            border-radius: 999px;
+            padding: 10px 16px 10px 40px;
+            border-radius: 20px;
             border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--card);
             color: var(--white);
             outline: none;
             font-size: 14px;
@@ -149,17 +150,15 @@
         
         .search:focus {
             border-color: var(--accent);
-            background: rgba(255, 255, 255, 0.08);
             box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
         }
         
         .search-icon {
             position: absolute;
-            left: 14px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            opacity: 0.7;
-            font-size: 16px;
+            opacity: 0.6;
             pointer-events: none;
         }
         
@@ -288,6 +287,7 @@
             flex-wrap: wrap;
         }
         
+        /* Button states based on login */
         .btn-primary {
             background: var(--gradient);
             color: #0b1633;
@@ -311,23 +311,6 @@
             box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
         }
         
-        .btn-outline {
-            background: transparent;
-            color: var(--white);
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-weight: 500;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-        
-        .btn-outline:hover {
-            border-color: var(--accent);
-            background: rgba(245, 158, 11, 0.05);
-        }
-        
-        /* Button states based on login */
         .btn-primary.logged-out {
             background: var(--gradient);
             border: 1px solid var(--accent);
@@ -345,6 +328,22 @@
             border-color: var(--accent);
             transform: none;
             box-shadow: none;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--accent);
+            background: rgba(245, 158, 11, 0.05);
         }
         
         .hero-right {
@@ -542,6 +541,239 @@
             border-color: var(--accent);
         }
         
+        /* Restaurant Cards (EXACT SAME as restaurants.html) */
+        .restaurant-card {
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex: 0 0 300px;
+            min-width: 300px;
+            scroll-snap-align: start;
+        }
+        
+        .restaurant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            border-color: var(--accent);
+        }
+        
+        .card-image {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+        }
+        
+        /* Logo overlay in bottom left */
+        .logo-overlay {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            width: 48px;
+            height: 48px;
+            background: rgba(11, 22, 51, 0.9);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border: 2px solid var(--accent);
+            backdrop-filter: blur(10px);
+            z-index: 20;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+        
+        .restaurant-card:hover .logo-overlay {
+            transform: scale(1.1);
+            border-color: var(--accent);
+            background: rgba(245,158,11,0.9);
+            box-shadow: 0 8px 24px rgba(245,158,11,0.4);
+        }
+        
+        /* Badge container */
+        .badge-container {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 25;
+            max-width: calc(100% - 80px);
+        }
+        
+        /* User list badge (Favorites, Visited, Want to Go) */
+        .user-list-badge {
+            background: rgba(11, 22, 51, 0.9);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        /* Three dots menu button - EXACT SAME as restaurants.html */
+        .menu-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            background: rgba(11, 22, 51, 0.9);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 30;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .menu-btn:hover {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+        
+        .menu-btn i {
+            color: var(--white);
+            font-size: 16px;
+        }
+        
+        .menu-btn:hover i {
+            color: #0b1633;
+        }
+        
+        .card-content {
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-header {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .card-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin: 0;
+            flex: 1;
+        }
+        
+        /* Top rated badge - NEW POSITIONING */
+        .top-rated-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            color: #0b1633;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            animation: glow 2s infinite alternate;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+            white-space: nowrap;
+        }
+        
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
+                            0 0 10px rgba(245, 158, 11, 0.3);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
+                            0 0 20px rgba(245, 158, 11, 0.5),
+                            0 0 30px rgba(245, 158, 11, 0.3);
+            }
+        }
+        
+        .card-rating {
+            background: var(--gradient);
+            color: #0b1633;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .card-category {
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .card-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0 0 16px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+        
+        .card-footer {
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-location {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
         /* Skeleton Loading */
         .skeleton-grid {
             display: flex;
@@ -553,8 +785,8 @@
         }
         
         .skeleton-card {
-            flex: 0 0 280px;
-            height: 420px;
+            flex: 0 0 300px;
+            height: 460px;
             background: var(--card);
             border-radius: 16px;
             border: 1px solid var(--border);
@@ -578,255 +810,9 @@
             100% { left: 100%; }
         }
         
-        /* Restaurant Card */
-        .card {
-            flex: 0 0 280px;
-            min-width: 280px;
-            background: var(--card);
-            border-radius: 16px;
-            overflow: hidden;
-            scroll-snap-align: start;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border);
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            height: 420px;
-            opacity: 1;
-            transform: translateY(0);
-            animation: cardAppear 0.3s ease-out forwards;
-        }
-        
-        @keyframes cardAppear {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-            border-color: var(--accent);
-        }
-        
-        .card-image {
-            height: 180px;
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-            flex-shrink: 0;
-        }
-        
-        .logo-overlay {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            width: 40px;
-            height: 40px;
-            background: rgba(11, 22, 51, 0.9);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3px;
-            border: 2px solid var(--accent);
-            backdrop-filter: blur(10px);
-            z-index: 20;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            pointer-events: none;
-        }
-        
-        .card:hover .logo-overlay {
-            transform: scale(1.1);
-            border-color: var(--accent);
-            background: rgba(245, 158, 11, 0.9);
-            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
-        }
-        
-        .logo-overlay img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 6px;
-        }
-        
-        /* Menu Button (Fixed to match restaurants.html) */
-        .menu-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 36px;
-            height: 36px;
-            background: rgba(11, 22, 51, 0.9);
-            border: 2px solid var(--accent);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 30;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        .menu-btn:hover {
-            background: var(--accent);
-            transform: scale(1.1);
-        }
-        
-        .menu-btn i {
-            color: var(--white);
-            font-size: 16px;
-        }
-        
-        .menu-btn:hover i {
-            color: #0b1633;
-        }
-        
-        .badge-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            z-index: 25;
-            max-width: calc(100% - 70px);
-        }
-        
-        .user-list-badge {
-            background: rgba(11, 22, 51, 0.9);
-            color: var(--accent);
-            padding: 3px 6px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            white-space: nowrap;
-            max-width: 100%;
-            overflow: hidden;
-        }
-        
-        .restaurant-image {
-            display: block;
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-            background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-        }
-        
-        .card:hover .restaurant-image { transform: scale(1.05); }
-        
-        .card-content {
-            padding: 16px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 240px;
-        }
-        
-        .card-header {
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        
-        .card-title-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        
-        .card-title {
-            font-size: 16px;
-            font-weight: 700;
-            line-height: 1.3;
-            margin: 0;
-            flex: 1;
-        }
-        
-        .top-rated-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-            color: #0b1633;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            border: 1px solid rgba(245, 158, 11, 0.5);
-            animation: glow 2s infinite alternate;
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-            white-space: nowrap;
-        }
-        
-        @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.3); }
-            100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.8), 0 0 20px rgba(245, 158, 11, 0.5), 0 0 30px rgba(245, 158, 11, 0.3); }
-        }
-        
-        .card-rating {
-            background: var(--gradient);
-            color: #0b1633;
-            padding: 3px 6px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        
-        .card-category {
-            color: var(--accent);
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .card-description {
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.5;
-            margin: 0 0 14px 0;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            flex: 1;
-            min-height: 58px;
-        }
-        
-        .card-footer {
-            margin-top: auto;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .card-location {
-            color: var(--muted);
-            font-size: 12px;
-            font-weight: 500;
+        .skeleton-image {
+            height: 200px;
+            background: #1a2d5f;
         }
         
         /* Load More Button */
@@ -1367,7 +1353,7 @@
         <div class="nav-container">
             <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
             
-            <!-- Fixed Search Bar (from restaurants.html) -->
+            <!-- FIXED SEARCH BAR with working search -->
             <div class="search-wrapper">
                 <span class="search-icon">🔎</span>
                 <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
@@ -1688,10 +1674,10 @@
             });
         }
         
-        // Create card
+        // Create card (EXACT SAME as restaurants.html)
         function createCard(restaurant, index) {
             const card = document.createElement('div');
-            card.className = 'card';
+            card.className = 'restaurant-card';
             card.style.animationDelay = `${index * 0.05}s`;
             
             const rating = restaurant.rating || 0;
@@ -1700,11 +1686,11 @@
             card.innerHTML = `
                 <a href="restaurant.html?slug=${restaurant.slug}">
                     <div class="card-image">
-                        <img class="restaurant-image" src="${restaurant.coverImage}" alt="${restaurant.name}">
+                        <img class="restaurant-image" src="${restaurant.coverImage}" alt="${restaurant.name}" width="300" height="200">
                         <div class="logo-overlay">
-                            <img src="${restaurant.logo}" alt="${restaurant.name} logo">
+                            <img src="${restaurant.logo}" alt="${restaurant.name} logo" width="48" height="48">
                         </div>
-                        <button class="menu-btn" onclick="event.preventDefault(); event.stopPropagation(); showModal(${restaurant.id})">
+                        <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
                     </div>
@@ -1730,6 +1716,20 @@
                     </div>
                 </a>
             `;
+            
+            // Menu button event
+            const menuBtn = card.querySelector('.menu-btn');
+            if (menuBtn) {
+                menuBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showModal({
+                        id: restaurant.id,
+                        name: restaurant.name,
+                        slug: restaurant.slug
+                    });
+                });
+            }
             
             return card;
         }
@@ -1817,7 +1817,7 @@
                         <div class="logo-overlay" style="bottom: 20px; left: 20px; width: 60px; height: 60px;">
                             <img src="${restaurant.logo}" alt="${restaurant.name} logo">
                         </div>
-                        <button class="menu-btn" onclick="event.preventDefault(); event.stopPropagation(); showModal(${restaurant.id})" style="top: 20px; right: 20px;">
+                        <button class="menu-btn" style="top: 20px; right: 20px;" aria-label="Restaurant actions" title="Save to lists">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
                     </div>
@@ -1847,27 +1847,56 @@
                     </div>
                 </div>
             `;
+            
+            // Add menu button event listener for day card
+            const dayMenuBtn = elements.dayCardContainer.querySelector('.menu-btn');
+            if (dayMenuBtn) {
+                dayMenuBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showModal({
+                        id: restaurant.id,
+                        name: restaurant.name,
+                        slug: restaurant.slug
+                    });
+                });
+            }
         }
         
         // Event listeners
         function setupEventListeners() {
-            // Search (from restaurants.html)
+            // FIXED SEARCH - Redirects to restaurants.html with search query
             if (elements.search && elements.clearSearch) {
-                elements.search.addEventListener('input', debounce(function() {
+                elements.search.addEventListener('input', function() {
                     elements.clearSearch.style.display = this.value ? 'block' : 'none';
-                    // Search functionality would redirect to restaurants page
-                }, 300));
+                });
                 
                 elements.clearSearch.addEventListener('click', function() {
                     elements.search.value = '';
                     this.style.display = 'none';
                 });
                 
+                // Enter key redirects to restaurants.html with search query
                 elements.search.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter' && this.value.trim()) {
-                        window.location.href = `restraunts.html?search=${encodeURIComponent(this.value.trim())}`;
+                        e.preventDefault();
+                        const searchQuery = encodeURIComponent(this.value.trim());
+                        window.location.href = `restraunts.html?search=${searchQuery}`;
                     }
                 });
+                
+                // Search icon also triggers search
+                const searchIcon = document.querySelector('.search-icon');
+                if (searchIcon) {
+                    searchIcon.addEventListener('click', function() {
+                        if (elements.search.value.trim()) {
+                            const searchQuery = encodeURIComponent(elements.search.value.trim());
+                            window.location.href = `restraunts.html?search=${searchQuery}`;
+                        } else {
+                            elements.search.focus();
+                        }
+                    });
+                }
             }
             
             // Start journey button
@@ -1896,35 +1925,108 @@
             window.addEventListener('scroll', function() {
                 document.querySelector('.nav').classList.toggle('scrolled', window.scrollY > 10);
             });
+            
+            // Footer search link
+            document.getElementById('searchFooterLink')?.addEventListener('click', function(e) {
+                e.preventDefault();
+                elements.search.focus();
+            });
+            
+            // Modal event listeners
+            setupModalListeners();
         }
         
-        // Modal functions (simplified)
-        function showModal(restaurantId) {
+        // Modal functions
+        function setupModalListeners() {
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
+            const actionsModal = document.getElementById('actionsModal');
+            
+            if (modalCancelBtn) {
+                modalCancelBtn.addEventListener('click', hideModal);
+            }
+            
+            if (actionsModal) {
+                actionsModal.addEventListener('click', (e) => {
+                    if (e.target === actionsModal) {
+                        hideModal();
+                    }
+                });
+            }
+            
+            // Auth prompt modal events
+            const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
+            const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
+            const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
+            const authPromptModal = document.getElementById('authPromptModal');
+            
+            if (authPromptSignupBtn) {
+                authPromptSignupBtn.addEventListener('click', () => {
+                    window.location.href = 'sign-up.html';
+                });
+            }
+            
+            if (authPromptLoginBtn) {
+                authPromptLoginBtn.addEventListener('click', () => {
+                    window.location.href = 'login.html';
+                });
+            }
+            
+            if (authPromptCloseBtn) {
+                authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
+            }
+            
+            if (authPromptModal) {
+                authPromptModal.addEventListener('click', (e) => {
+                    if (e.target === authPromptModal) {
+                        hideAuthPrompt();
+                    }
+                });
+            }
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideModal();
+                    hideAuthPrompt();
+                }
+            });
+        }
+        
+        function showModal(restaurantData) {
+            if (!restaurantData) return;
+            
+            // Check if user is logged in
             if (!state.isLoggedIn) {
-                document.getElementById('authPromptModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
+                showAuthPrompt();
                 return;
             }
             
-            // For now, just show a notification
-            showNotification('Save functionality requires backend integration', 'info');
+            // For demo purposes, just show notification
+            showNotification(`Save functionality for ${restaurantData.name} would appear here`, 'info');
         }
         
-        // Utility functions
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
+        function hideModal() {
+            const modal = document.getElementById('actionsModal');
+            if (modal) modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        function showAuthPrompt() {
+            const modal = document.getElementById('authPromptModal');
+            if (modal) modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideAuthPrompt() {
+            const modal = document.getElementById('authPromptModal');
+            if (modal) modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
         }
         
         function showNotification(message, type = 'info') {
             const container = document.getElementById('notificationContainer');
+            if (!container) return;
+            
             const notification = document.createElement('div');
             notification.className = `custom-notification notification-${type}`;
             notification.innerHTML = `<span>${message}</span>`;
