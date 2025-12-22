@@ -204,7 +204,7 @@
             background: rgba(245,158,11,0.05);
         }
         
-        /* Restaurant Card - UPDATED TO MATCH RESTAURANTS.HTML */
+        /* Restaurant Card - UPDATED TO USE THREE-DOT SYSTEM ONLY */
         .card {
             flex:0 0 320px; 
             min-width:320px; 
@@ -270,7 +270,7 @@
             box-shadow: 0 8px 24px rgba(245,158,11,0.4);
         }
         
-        /* Three dots menu button - same style as restaurants.html */
+        /* Three dots menu button - ALWAYS VISIBLE like restaurants.html */
         .menu-btn {
             position: absolute;
             top: 12px;
@@ -451,48 +451,7 @@
             font-weight: 500;
         }
         
-        /* PC: List Actions (hover to show) - Same as other page */
-        .list-actions { 
-            position: absolute; top: 16px; right: 16px; display: flex; 
-            flex-direction: column; gap: 10px; opacity: 0; z-index: 10; 
-            transition: all 0.3s ease;
-        } 
-        
-        .card:hover .list-actions { 
-            opacity: 1; 
-        } 
-        
-        .list-btn { 
-            background: rgba(11, 22, 51, 0.95); 
-            border: 2px solid var(--accent); 
-            color: var(--white); 
-            padding: 10px; 
-            border-radius: 14px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            font-size: 16px; 
-            backdrop-filter: blur(10px); 
-            width: 50px; 
-            height: 50px; 
-            transition: all 0.3s ease;
-        } 
-        
-        .list-btn:hover { 
-            transform: scale(1.15); 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent); 
-            box-shadow: 0 6px 16px rgba(245,158,11,0.4);
-        } 
-        
-        .list-btn.active { 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent);
-            transform: scale(1.1);
-        } 
+        /* REMOVED: PC List Actions (hover to show) - Using three-dot system only */
         
         /* Actions Modal - Same as other page */
         .actions-modal {
@@ -1081,59 +1040,206 @@
             display: none;
         }
         
-        /* Restaurant of the Day Section - FIXED */
+        /* REDESIGNED: Restaurant of the Day Section - COOL DESIGN */
         .restaurant-of-day {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 40px;
-            margin: 40px 0;
-            border: 1px solid var(--border);
-            text-align: center;
             position: relative;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 32px;
+            margin: 60px 0 40px;
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .restaurant-of-day::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            z-index: 1;
+        }
+        
+        .restaurant-of-day::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .day-badge-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
         }
         
         .day-badge {
-            display: inline-block;
-            background: rgba(245,158,11,0.1);
-            color: var(--accent);
-            padding: 8px 16px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            color: #0b1633;
+            padding: 12px 24px;
+            border-radius: 100px;
             font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 20px;
-            border: 1px solid rgba(245,158,11,0.2);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+            border: 2px solid rgba(255, 184, 77, 0.8);
+            animation: badgeGlow 3s infinite alternate;
+            white-space: nowrap;
         }
         
-        .day-restaurant {
+        @keyframes badgeGlow {
+            0% {
+                box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4),
+                            inset 0 0 0 0 rgba(255, 255, 255, 0.2);
+            }
+            100% {
+                box-shadow: 0 8px 30px rgba(245, 158, 11, 0.7),
+                            0 0 30px rgba(245, 158, 11, 0.3),
+                            inset 0 0 20px rgba(255, 255, 255, 0.1);
+            }
+        }
+        
+        .day-badge i {
+            font-size: 16px;
+        }
+        
+        .day-restaurant-card {
+            background: rgba(11, 22, 51, 0.5);
+            border-radius: 20px;
+            padding: 24px;
             display: flex;
             align-items: center;
             gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            margin-top: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .day-restaurant-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2);
+        }
+        
+        .day-restaurant-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 60%, rgba(245, 158, 11, 0.05) 100%);
+            pointer-events: none;
         }
         
         .day-restaurant-image {
-            width: 100px;
-            height: 100px;
-            border-radius: 12px;
+            width: 150px;
+            height: 150px;
+            border-radius: 16px;
             object-fit: cover;
-            background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+            border: 3px solid var(--accent);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            flex-shrink: 0;
         }
         
         .day-restaurant-info {
+            flex: 1;
             text-align: left;
         }
         
         .day-restaurant-info h3 {
-            font-size: 20px;
-            margin-bottom: 8px;
+            font-size: 28px;
+            margin-bottom: 12px;
             color: var(--white);
+            font-weight: 700;
         }
         
         .day-restaurant-info p {
             color: var(--muted);
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+        
+        .day-restaurant-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .day-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 14px;
+            color: var(--white);
+            font-weight: 500;
+        }
+        
+        .day-stat i {
+            color: var(--accent);
+            font-size: 16px;
+        }
+        
+        .day-restaurant-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .day-btn-primary {
+            background: var(--gradient);
+            color: #0b1633;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .day-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+        }
+        
+        .day-btn-outline {
+            background: transparent;
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .day-btn-outline:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--accent);
         }
         
         /* App Download Section */
@@ -1347,21 +1453,28 @@
             .guest-banner {
                 width: calc(100% - 64px);
             }
+            
+            /* Responsive: Restaurant of the Day */
+            .day-restaurant-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .day-restaurant-info {
+                text-align: center;
+            }
+            
+            .day-restaurant-stats {
+                justify-content: center;
+            }
+            
+            .day-restaurant-actions {
+                justify-content: center;
+            }
         } 
         
         /* MOBILE STYLES (768px and below) */
         @media (max-width: 768px) { 
-            /* Show mobile menu button */
-            .menu-btn {
-                display: flex;
-            }
-            
-            /* Hide PC list actions on mobile */
-            .list-actions {
-                display: none !important;
-            }
-            
-            /* Smaller logo overlay on mobile */
             .logo-overlay {
                 width: 40px;
                 height: 40px;
@@ -1384,13 +1497,6 @@
             .section {
                 padding: 32px 20px;
             }
-            .day-restaurant {
-                flex-direction: column;
-                text-align: center;
-            }
-            .day-restaurant-info {
-                text-align: center;
-            }
             
             .btn-primary, .btn-outline {
                 padding: 12px 20px;
@@ -1411,6 +1517,30 @@
             
             .banner-text {
                 margin-right: 0;
+            }
+            
+            /* Mobile: Restaurant of the Day */
+            .restaurant-of-day {
+                padding: 24px 16px;
+                margin: 40px 0;
+            }
+            
+            .day-badge {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+            
+            .day-restaurant-image {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .day-restaurant-info h3 {
+                font-size: 24px;
+            }
+            
+            .day-restaurant-info p {
+                font-size: 14px;
             }
         }
         
@@ -1438,10 +1568,6 @@
             .section { 
                 padding: 24px 16px;
             }
-            .restaurant-of-day {
-                padding: 32px 16px;
-                margin: 32px 0;
-            }
             
             /* Even smaller logo on very small screens */
             .logo-overlay {
@@ -1466,14 +1592,38 @@
                 height: 160px;
             }
             
-            .day-restaurant-image {
-                width: 80px;
-                height: 80px;
-            }
-            
             .guest-banner {
                 width: calc(100% - 24px);
                 padding: 6px 12px;
+            }
+            
+            /* Mobile: Restaurant of the Day */
+            .day-restaurant-card {
+                padding: 20px;
+            }
+            
+            .day-restaurant-image {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .day-restaurant-info h3 {
+                font-size: 20px;
+            }
+            
+            .day-restaurant-stats {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+            
+            .day-restaurant-actions {
+                flex-direction: column;
+            }
+            
+            .day-btn-primary, .day-btn-outline {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -1623,18 +1773,46 @@
             </div>
         </section>
 
-        <!-- Restaurant of the Day Section - FIXED -->
+        <!-- REDESIGNED: Restaurant of the Day Section - COOL DESIGN -->
         <section class="section">
             <div class="restaurant-of-day">
-                <div class="day-badge">Restaurant of the Day</div>
-                <div class="day-restaurant">
-                    <img id="dayRestaurantImage" class="day-restaurant-image" data-src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Holmes Burger food">
-                    <div class="day-restaurant-info">
-                        <h3>Holmes Burger</h3>
-                        <p>Gourmet burgers with creative combinations in a stylish setting</p>
-                        <div class="rating">⭐ 4.7 • 🍔 Burgers</div>
+                <div class="day-badge-container">
+                    <div class="day-badge">
+                        <i class="fas fa-crown"></i>
+                        Restaurant of the Day
+                        <i class="fas fa-crown"></i>
                     </div>
-                    <button class="btn-outline" onclick="location.href='cards/holmes.html'">View Details</button>
+                </div>
+                <div class="day-restaurant-card">
+                    <img id="dayRestaurantImage" class="day-restaurant-image" data-src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/holmes/holmes.jpg" alt="Holmes Burger">
+                    <div class="day-restaurant-info">
+                        <h3 id="dayRestaurantName">Holmes Burger</h3>
+                        <p id="dayRestaurantDescription">Gourmet burgers with creative combinations in a stylish setting. Our signature double-patty burger with truffle aioli and aged cheddar has been rated the best in the city.</p>
+                        <div class="day-restaurant-stats">
+                            <div class="day-stat">
+                                <i class="fas fa-star"></i>
+                                <span id="dayRestaurantRating">4.7</span> Rating
+                            </div>
+                            <div class="day-stat">
+                                <i class="fas fa-utensils"></i>
+                                <span id="dayRestaurantCategory">Burgers</span>
+                            </div>
+                            <div class="day-stat">
+                                <i class="fas fa-clock"></i>
+                                Opens at <span id="dayRestaurantHours">11:00 AM</span>
+                            </div>
+                        </div>
+                        <div class="day-restaurant-actions">
+                            <button class="day-btn-primary" onclick="location.href='cards/holmes.html'">
+                                <i class="fas fa-utensils"></i>
+                                View Restaurant
+                            </button>
+                            <button class="day-btn-outline" onclick="showMap()">
+                                <i class="fas fa-map-marker-alt"></i>
+                                View Location
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1698,7 +1876,7 @@
           };
       }
 
-      // Default fallback images - Using same as other page
+      // Default fallback images
       const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-cover.jpg';
       const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
 
@@ -1900,7 +2078,7 @@
           }
       });
 
-      // ---------- ACTIONS MODAL FUNCTIONS (Same as other page) ----------
+      // ---------- ACTIONS MODAL FUNCTIONS ----------
       const actionsModal = document.getElementById('actionsModal');
       const modalRestaurantName = document.getElementById('modalRestaurantName');
       const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
@@ -2047,7 +2225,7 @@
           }, 400);
       }
 
-      // ---------- IMAGE LOADING FUNCTIONS (Same as other page) ----------
+      // ---------- IMAGE LOADING FUNCTIONS ----------
       async function loadAllRestaurantImages() {
           try {
               console.log("🔄 Loading all restaurant images from gallery...");
@@ -2134,7 +2312,7 @@
           });
       }
 
-      // ---------- RESTAURANT DATA LOADING (Same as other page) ----------
+      // ---------- RESTAURANT DATA LOADING ----------
       async function loadRestaurantsFromSupabase() {
           try {
               console.log("🔄 Loading restaurants from Supabase...");
@@ -2178,7 +2356,7 @@
           }
       }
 
-      // ---------- CARD CREATION (Updated to match restaurants.html exactly) ----------
+      // ---------- CARD CREATION (Using three-dot system only) ----------
       async function createRestaurantCard(restaurant) {
           const card = document.createElement('div');
           card.className = 'card';
@@ -2190,13 +2368,11 @@
           const status = listManager.getRestaurantListStatus(restaurant.id);
           const isTopRated = rating >= 4.5;
           
-          // Build badge string - same as restaurants.html
+          // Build badge string
           let badgeText = '';
           if (status.favorites) badgeText += '❤️ ';
           if (status.wantToGo) badgeText += '📍 ';
           if (status.visited) badgeText += '✓ ';
-          
-          const isMobile = window.innerWidth <= 768;
           
           card.innerHTML = `
             <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -2243,82 +2419,18 @@
               }
           });
           
-          // Add list buttons that don't navigate (PC only) - same as restaurants.html
-          if (isLoggedIn && !isMobile) {
-              const listActions = document.createElement('div');
-              listActions.className = 'list-actions';
-              
-              // Get current list status
-              const isFavorite = listManager.isInList('favorites', restaurant.id);
-              const isWantToGo = listManager.isInList('wantToGo', restaurant.id);
-              const isVisited = listManager.isInList('visited', restaurant.id);
-              
-              listActions.innerHTML = `
-                  <button class="list-btn favorite ${isFavorite ? 'active' : ''}" data-id="${restaurant.id}" data-list="favorites" title="${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}">❤️</button>
-                  <button class="list-btn want-to-go ${isWantToGo ? 'active' : ''}" data-id="${restaurant.id}" data-list="wantToGo" title="${isWantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}">📍</button>
-                  <button class="list-btn visited ${isVisited ? 'active' : ''}" data-id="${restaurant.id}" data-list="visited" title="${isVisited ? 'Remove from Visited' : 'Mark as Visited'}">🍽️</button>
-              `;
-              card.appendChild(listActions);
-              
-              // Add event listeners for list buttons
-              const listBtns = listActions.querySelectorAll('.list-btn');
-              listBtns.forEach(btn => {
-                  btn.addEventListener('click', async (e) => {
-                      e.preventDefault(); 
-                      e.stopPropagation();
-                      const restaurantId = parseInt(btn.dataset.id);
-                      const listType = btn.dataset.list;
-                      const wasAdded = await listManager.toggleInList(listType, restaurantId);
-                      btn.classList.toggle('active', wasAdded);
-                      
-                      // Update button title
-                      const newTitle = wasAdded ? 
-                          `Remove from ${listType === 'favorites' ? 'Favorites' : listType === 'wantToGo' ? 'Want to Go' : 'Visited'}` :
-                          `Add to ${listType === 'favorites' ? 'Favorites' : listType === 'wantToGo' ? 'Want to Go' : 'Visited'}`;
-                      btn.title = newTitle;
-                      
-                      // Show notification
-                      const actionText = wasAdded ? 'Added to' : 'Removed from';
-                      let listName = '';
-                      if (listType === 'favorites') listName = 'Favorites';
-                      else if (listType === 'wantToGo') listName = 'Want to Go';
-                      else listName = 'Visited';
-                      
-                      showNotification(`${actionText} ${listName}`, wasAdded ? 'success' : 'info');
-                      
-                      // Update badge on card
-                      const badgeContainer = card.querySelector('.badge-container');
-                      if (badgeContainer) {
-                          let badgeText = '';
-                          const newStatus = listManager.getRestaurantListStatus(restaurantId);
-                          if (newStatus.favorites) badgeText += '❤️ ';
-                          if (newStatus.wantToGo) badgeText += '📍 ';
-                          if (newStatus.visited) badgeText += '✓ ';
-                          
-                          if (badgeText) {
-                              badgeContainer.innerHTML = `<div class="user-list-badge">${badgeText.trim()}</div>`;
-                          } else {
-                              badgeContainer.innerHTML = '';
-                          }
-                      }
+          // Menu button event listener (three-dot system)
+          const menuBtn = card.querySelector('.menu-btn');
+          if (menuBtn) {
+              menuBtn.addEventListener('click', async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  showModal({
+                      id: restaurant.id,
+                      name: restaurant.name,
+                      slug: restaurant.slug
                   });
               });
-          }
-          
-          // Set up menu button for mobile - same as restaurants.html
-          if (isMobile) {
-              const menuBtn = card.querySelector('.menu-btn');
-              if (menuBtn) {
-                  menuBtn.addEventListener('click', (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      showModal({
-                          id: restaurant.id,
-                          name: restaurant.name,
-                          slug: restaurant.slug
-                      });
-                  });
-              }
           }
           
           return card;
@@ -2643,7 +2755,7 @@
       
       if (bannerSignupBtn) {
           bannerSignupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-uphtml';
+              window.location.href = 'sign-up.html';
           });
       }
 
@@ -2658,23 +2770,48 @@
           }
       }
 
-      // ---------- RESTAURANT OF THE DAY IMAGE FIX ----------
-      function fixRestaurantOfDayImage() {
-          const dayImage = document.getElementById('dayRestaurantImage');
-          if (dayImage && dayImage.dataset.src) {
-              const img = new Image();
-              img.onload = () => {
-                  dayImage.src = dayImage.dataset.src;
-                  dayImage.classList.add('loaded');
-              };
-              img.onerror = () => {
-                  dayImage.src = DEFAULT_COVER_URL;
-                  dayImage.classList.add('loaded');
-              };
-              img.src = dayImage.dataset.src;
+      // ---------- RESTAURANT OF THE DAY FUNCTIONS ----------
+      function setupRestaurantOfTheDay() {
+          // Get a random restaurant from the loaded restaurants
+          if (restaurants.length > 0) {
+              const randomIndex = Math.floor(Math.random() * restaurants.length);
+              const restaurant = restaurants[randomIndex];
+              
+              // Update the restaurant of the day section
+              const dayImage = document.getElementById('dayRestaurantImage');
+              const dayName = document.getElementById('dayRestaurantName');
+              const dayDesc = document.getElementById('dayRestaurantDescription');
+              const dayRating = document.getElementById('dayRestaurantRating');
+              const dayCategory = document.getElementById('dayRestaurantCategory');
+              
+              if (dayImage) {
+                  const img = new Image();
+                  img.onload = () => {
+                      dayImage.src = restaurant.coverImage;
+                      dayImage.classList.add('loaded');
+                  };
+                  img.onerror = () => {
+                      dayImage.src = DEFAULT_COVER_URL;
+                      dayImage.classList.add('loaded');
+                  };
+                  img.src = restaurant.coverImage;
+              }
+              
+              if (dayName) dayName.textContent = restaurant.name;
+              if (dayDesc) dayDesc.textContent = restaurant.description || 'Delicious food served with care';
+              if (dayRating) dayRating.textContent = restaurant.rating.toFixed(1);
+              if (dayCategory) dayCategory.textContent = restaurant.category || 'Restaurant';
+              
+              // Update the button to go to the correct restaurant page
+              const viewBtn = document.querySelector('.day-btn-primary');
+              if (viewBtn) {
+                  viewBtn.onclick = () => {
+                      location.href = `restaurant.html?slug=${restaurant.slug}`;
+                  };
+              }
           }
       }
-
+      
       // ---------- APP COMING SOON MODAL ----------
       const iosAppButton = document.getElementById('iosAppButton');
       const androidAppButton = document.getElementById('androidAppButton');
@@ -2759,6 +2896,11 @@
           });
       }
 
+      // ---------- HELPER FUNCTION FOR RESTAURANT OF THE DAY ----------
+      function showMap() {
+          showNotification('Map view coming soon!', 'info');
+      }
+
       // ---------- INITIALIZE ----------
       document.addEventListener('DOMContentLoaded', async function() {
           // Initialize image observer
@@ -2776,10 +2918,8 @@
           
           if (restaurants.length > 0) {
               initSpotlight();
+              setupRestaurantOfTheDay();
           }
-          
-          // Fix restaurant of the day image
-          fixRestaurantOfDayImage();
           
           // Add nav scroll effect
           window.addEventListener('scroll', function() {
