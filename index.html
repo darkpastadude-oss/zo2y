@@ -3168,190 +3168,194 @@
     
     // ---------- MODAL FUNCTIONS ----------
     function setupModalListeners() {
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        const actionsModal = document.getElementById('actionsModal');
-        
-        if (modalCancelBtn) {
-            modalCancelBtn.addEventListener('click', hideModal);
-        }
-        
-        if (actionsModal) {
-            actionsModal.addEventListener('click', (e) => {
-                if (e.target === actionsModal) {
-                    hideModal();
-                }
-            });
-        }
-        
-        // Custom lists modal events - FIXED: COPIED EXACT LOGIC FROM RESTAURANTS.HTML
-        const customListsModal = document.getElementById('customListsModal');
-        const closeListsBtn = document.getElementById('closeListsBtn');
-        const createListBtn = document.getElementById('createListBtn');
-        const saveListsBtn = document.getElementById('saveListsBtn');
-        const newListNameInput = document.getElementById('newListName');
-        
-        if (closeListsBtn) {
-            closeListsBtn.addEventListener('click', hideCustomListsModal);
-        }
-        
-        if (createListBtn) {
-            createListBtn.addEventListener('click', async () => {
-                const name = newListNameInput.value.trim();
-                if (!name) {
-                    showNotification('Please enter a list name', 'warning');
-                    return;
-                }
-                
-                // Check if list already exists
-                const existingList = state.customLists.find(l => 
-                    l.title.toLowerCase() === name.toLowerCase()
-                );
-                
-                if (existingList) {
-                    showNotification(`"${name}" list already exists`, 'warning');
-                    return;
-                }
-                
-                const newList = await customListsManager.createList(name);
-                if (newList) {
-                    showNotification(`Created "${name}" list`, 'success');
-                    newListNameInput.value = '';
-                    
-                    // Refresh lists from database
-                    await customListsManager.refreshLists();
-                    
-                    // Auto-select the new list
-                    state.selectedLists.add(newList.id);
-                    
-                    // Refresh the display
-                    customListsManager.renderListsList(state.currentModalRestaurant?.id);
-                }
-            });
-        }
-        
-        if (saveListsBtn) {
-            saveListsBtn.addEventListener('click', saveListChanges);
-        }
-        
-        if (newListNameInput) {
-            newListNameInput.addEventListener('keypress', async (e) => {
-                if (e.key === 'Enter') {
-                    createListBtn.click();
-                }
-            });
-        }
-        
-        if (customListsModal) {
-            customListsModal.addEventListener('click', (e) => {
-                if (e.target === customListsModal) {
-                    hideCustomListsModal();
-                }
-            });
-        }
-        
-        // Auth prompt modal events
-        const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
-        const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
-        const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
-        const authPromptModal = document.getElementById('authPromptModal');
-        
-        if (authPromptSignupBtn) {
-            authPromptSignupBtn.addEventListener('click', () => {
-                window.location.href = 'sign-up.html';
-            });
-        }
-        
-        if (authPromptLoginBtn) {
-            authPromptLoginBtn.addEventListener('click', () => {
-                window.location.href = 'login.html';
-            });
-        }
-        
-        if (authPromptCloseBtn) {
-            authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
-        }
-        
-        if (authPromptModal) {
-            authPromptModal.addEventListener('click', (e) => {
-                if (e.target === authPromptModal) {
-                    hideAuthPrompt();
-                }
-            });
-        }
-        
-        // Modal action buttons - UPDATED WITH RE-RENDER
-        const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
-        const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
-        const modalVisitedBtn = document.getElementById('modalVisitedBtn');
-        const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
-        
-        if (modalFavoritesBtn) {
-            modalFavoritesBtn.addEventListener('click', async () => {
-                if (!state.currentModalRestaurant) return;
-                await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
-                updateModalButtons(state.currentModalRestaurant.id);
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const actionsModal = document.getElementById('actionsModal');
+    
+    if (modalCancelBtn) {
+        modalCancelBtn.addEventListener('click', hideModal);
+    }
+    
+    if (actionsModal) {
+        actionsModal.addEventListener('click', (e) => {
+            if (e.target === actionsModal) {
                 hideModal();
-                // RE-RENDER CARDS TO UPDATE BADGES
-                renderRestaurants();
-                setupRestaurantOfTheDay();
-            });
-        }
-        
-        if (modalWantToGoBtn) {
-            modalWantToGoBtn.addEventListener('click', async () => {
-                if (!state.currentModalRestaurant) return;
-                await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
-                updateModalButtons(state.currentModalRestaurant.id);
-                hideModal();
-                // RE-RENDER CARDS TO UPDATE BADGES
-                renderRestaurants();
-                setupRestaurantOfTheDay();
-            });
-        }
-        
-        if (modalVisitedBtn) {
-            modalVisitedBtn.addEventListener('click', async () => {
-                if (!state.currentModalRestaurant) return;
-                await listManager.toggleInList('visited', state.currentModalRestaurant.id);
-                updateModalButtons(state.currentModalRestaurant.id);
-                hideModal();
-                // RE-RENDER CARDS TO UPDATE BADGES
-                renderRestaurants();
-                setupRestaurantOfTheDay();
-            });
-        }
-        
-        // FIXED: Custom Lists button handler - COPIED EXACT LOGIC FROM RESTAURANTS.HTML
-        if (modalCustomListsBtn) {
-            modalCustomListsBtn.addEventListener('click', () => {
-                console.log('Custom lists button clicked');
+            }
+        });
+    }
+    
+    // Custom lists modal events
+    const customListsModal = document.getElementById('customListsModal');
+    const closeListsBtn = document.getElementById('closeListsBtn');
+    const createListBtn = document.getElementById('createListBtn');
+    const saveListsBtn = document.getElementById('saveListsBtn');
+    const newListNameInput = document.getElementById('newListName');
+    
+    if (closeListsBtn) {
+        closeListsBtn.addEventListener('click', hideCustomListsModal);
+    }
+    
+    if (createListBtn) {
+        createListBtn.addEventListener('click', async () => {
+            const name = newListNameInput.value.trim();
+            if (!name) {
+                showNotification('Please enter a list name', 'warning');
+                return;
+            }
+            
+            // Check if list already exists
+            const existingList = state.customLists.find(l => 
+                l.title.toLowerCase() === name.toLowerCase()
+            );
+            
+            if (existingList) {
+                showNotification(`"${name}" list already exists`, 'warning');
+                return;
+            }
+            
+            const newList = await customListsManager.createList(name);
+            if (newList) {
+                showNotification(`Created "${name}" list`, 'success');
+                newListNameInput.value = '';
                 
-                // Check if we have a current restaurant
-                if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
-                    console.error('No restaurant selected or restaurant has no ID');
-                    showNotification('No restaurant selected', 'error');
-                    return;
+                // Refresh lists from database
+                await customListsManager.refreshLists();
+                
+                // Auto-select the new list
+                state.selectedLists.add(newList.id);
+                
+                // Refresh the display
+                if (state.currentModalRestaurant?.id) {
+                    customListsManager.renderListsList(state.currentModalRestaurant.id);
                 }
-                
-                console.log('Restaurant ID:', state.currentModalRestaurant.id);
-                
-                // Close actions modal first
-                hideModal();
-                
-                // Show custom lists modal immediately
-                showCustomListsModal(state.currentModalRestaurant.id);
-            });
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                hideModal();
-                hideAuthPrompt();
+            }
+        });
+    }
+    
+    if (saveListsBtn) {
+        saveListsBtn.addEventListener('click', saveListChanges);
+    }
+    
+    if (newListNameInput) {
+        newListNameInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                createListBtn.click();
+            }
+        });
+    }
+    
+    if (customListsModal) {
+        customListsModal.addEventListener('click', (e) => {
+            if (e.target === customListsModal) {
                 hideCustomListsModal();
             }
         });
     }
+    
+    // Auth prompt modal events
+    const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
+    const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
+    const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
+    const authPromptModal = document.getElementById('authPromptModal');
+    
+    if (authPromptSignupBtn) {
+        authPromptSignupBtn.addEventListener('click', () => {
+            window.location.href = 'sign-up.html';
+        });
+    }
+    
+    if (authPromptLoginBtn) {
+        authPromptLoginBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
+    }
+    
+    if (authPromptCloseBtn) {
+        authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
+    }
+    
+    if (authPromptModal) {
+        authPromptModal.addEventListener('click', (e) => {
+            if (e.target === authPromptModal) {
+                hideAuthPrompt();
+            }
+        });
+    }
+    
+    // Modal action buttons
+    const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
+    const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
+    const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+    const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
+    
+    if (modalFavoritesBtn) {
+        modalFavoritesBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+            hideModal();
+            // RE-RENDER CARDS TO UPDATE BADGES
+            renderRestaurants();
+            setupRestaurantOfTheDay();
+        });
+    }
+    
+    if (modalWantToGoBtn) {
+        modalWantToGoBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+            hideModal();
+            // RE-RENDER CARDS TO UPDATE BADGES
+            renderRestaurants();
+            setupRestaurantOfTheDay();
+        });
+    }
+    
+    if (modalVisitedBtn) {
+        modalVisitedBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('visited', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+            hideModal();
+            // RE-RENDER CARDS TO UPDATE BADGES
+            renderRestaurants();
+            setupRestaurantOfTheDay();
+        });
+    }
+    
+    // Custom Lists button handler - FIXED VERSION
+    if (modalCustomListsBtn) {
+        modalCustomListsBtn.addEventListener('click', () => {
+            console.log('Custom lists button clicked');
+            
+            // Check if we have a current restaurant
+            if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+                console.error('No restaurant selected or restaurant has no ID');
+                showNotification('No restaurant selected', 'error');
+                return;
+            }
+            
+            console.log('Restaurant ID:', state.currentModalRestaurant.id);
+            
+            // Close actions modal first
+            hideModal();
+            
+            // Show custom lists modal after a short delay
+            setTimeout(() => {
+                showCustomListsModal(state.currentModalRestaurant.id);
+            }, 100);
+        });
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideModal();
+            hideAuthPrompt();
+            hideCustomListsModal();
+        }
+    });
+}
     
     function showModal(restaurantData) {
         if (!restaurantData) return;
@@ -3768,112 +3772,99 @@
     }
     
     // ---------- CARD CREATION ----------
-    function createCard(restaurant, index) {
-        const card = document.createElement('div');
-        card.className = 'restaurant-card';
-        card.dataset.id = restaurant.id;
-        
-        const rating = restaurant.rating || 0;
-        const categoryIcon = restaurant.category_icon || getCategoryIconFallback(restaurant.category);
-        const category = restaurant.category || 'Restaurant';
-        const logoUrl = getLogoUrl(restaurant);
-        const status = listManager.getRestaurantListStatus(restaurant.id);
-        const isTopRated = rating >= 4.5;
-        const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
-        
-        // Build badge string
-        let badgeText = '';
-        if (status.favorites) badgeText += '❤️ ';
-        if (status.wantToGo) badgeText += '📍 ';
-        if (status.visited) badgeText += '✓ ';
-        
-        card.innerHTML = `
-            <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
-                <div class="card-image">
-                    ${hasCoverImage ? `
-                        <img class="restaurant-image" 
-                             data-src="${restaurant.coverImage}" 
-                             alt="${restaurant.name}" 
-                             width="300" 
-                             height="200">
-                    ` : ''}
-                    ${logoUrl ? `
-                        <div class="logo-overlay">
-                            <img data-src="${logoUrl}" 
-                                 alt="${restaurant.name} logo" 
-                                 width="48" 
-                                 height="48">
-                        </div>
-                    ` : ''}
-                    <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
-                        <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    ${badgeText ? `
-                        <div class="badge-container">
-                            <div class="user-list-badge">${badgeText.trim()}</div>
-                        </div>
-                    ` : ''}
-                </div>
-                <div class="card-content">
-                    <div class="card-header">
-                        <div class="card-title-wrapper">
-                            <h3 class="card-title">${restaurant.name}</h3>
-                            ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
-                        </div>
-                        <div class="card-rating">
-                            <i class="fas fa-star"></i>
-                            ${rating.toFixed(1)}
-                        </div>
+   function createCard(restaurant, index) {
+    const card = document.createElement('div');
+    card.className = 'restaurant-card';
+    card.dataset.id = restaurant.id;
+    
+    const rating = restaurant.rating || 0;
+    const categoryIcon = restaurant.category_icon || getCategoryIconFallback(restaurant.category);
+    const category = restaurant.category || 'Restaurant';
+    const logoUrl = getLogoUrl(restaurant);
+    const status = listManager.getRestaurantListStatus(restaurant.id);
+    const isTopRated = rating >= 4.5;
+    const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
+    
+    // Build badge string
+    let badgeText = '';
+    if (status.favorites) badgeText += '❤️ ';
+    if (status.wantToGo) badgeText += '📍 ';
+    if (status.visited) badgeText += '✓ ';
+    
+    card.innerHTML = `
+        <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
+            <div class="card-image">
+                ${hasCoverImage ? `
+                    <img class="restaurant-image" 
+                         data-src="${restaurant.coverImage}" 
+                         alt="${restaurant.name}" 
+                         width="300" 
+                         height="200">
+                ` : ''}
+                ${logoUrl ? `
+                    <div class="logo-overlay">
+                        <img data-src="${logoUrl}" 
+                             alt="${restaurant.name} logo" 
+                             width="48" 
+                             height="48">
                     </div>
-                    <div class="card-category">
-                        <span>${categoryIcon}</span>
-                        ${category}
+                ` : ''}
+                <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+                ${badgeText ? `
+                    <div class="badge-container">
+                        <div class="user-list-badge">${badgeText.trim()}</div>
                     </div>
-                    <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
-                    <div class="card-footer">
-                        <div class="card-location">Click to view details</div>
+                ` : ''}
+            </div>
+            <div class="card-content">
+                <div class="card-header">
+                    <div class="card-title-wrapper">
+                        <h3 class="card-title">${restaurant.name}</h3>
+                        ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
+                    </div>
+                    <div class="card-rating">
+                        <i class="fas fa-star"></i>
+                        ${rating.toFixed(1)}
                     </div>
                 </div>
-            </a>
-        `;
-        
-        // Menu button event - FIXED: COPIED EXACT LOGIC FROM RESTAURANTS.HTML
-        const menuBtn = card.querySelector('.menu-btn');
-        if (menuBtn) {
-            menuBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Find restaurant in state
-                const restaurantId = restaurant.id;
-                const restaurantData = state.restaurants.find(r => r.id === restaurantId);
-                
-                if (!restaurantData) {
-                    console.error('Restaurant not found in state:', restaurantId);
-                    showNotification('Restaurant not found', 'error');
-                    return;
-                }
-                
-                console.log('Showing modal for restaurant:', restaurantData);
-                
-                // Show modal with the restaurant data
-                showModal({
-                    id: restaurantData.id,
-                    name: restaurantData.name,
-                    slug: restaurantData.slug
-                });
+                <div class="card-category">
+                    <span>${categoryIcon}</span>
+                    ${category}
+                </div>
+                <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
+                <div class="card-footer">
+                    <div class="card-location">Click to view details</div>
+                </div>
+            </div>
+        </a>
+    `;
+    
+    // Menu button event - FIXED VERSION
+    const menuBtn = card.querySelector('.menu-btn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Use the restaurant object we already have
+            showModal({
+                id: restaurant.id,
+                name: restaurant.name,
+                slug: restaurant.slug
             });
-        }
-        
-        // Load images
-        const images = card.querySelectorAll('img[data-src]');
-        images.forEach(img => {
-            loadImage(img, img.dataset.src);
         });
-        
-        return card;
     }
     
+    // Load images
+    const images = card.querySelectorAll('img[data-src]');
+    images.forEach(img => {
+        loadImage(img, img.dataset.src);
+    });
+    
+    return card;
+}
     // Render restaurants
     function renderRestaurants() {
         const featured = state.restaurants.slice(0, 12);
