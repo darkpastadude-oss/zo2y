@@ -2427,228 +2427,375 @@
         
         // ---------- CUSTOM LISTS MANAGER ----------
         const customListsManager = {
-            async init() {
-                if (state.isLoggedIn) {
-                    await this.loadCustomLists();
-                }
-            },
-            
-            async loadCustomLists() {
-                try {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) return;
-                    
-                    console.log('Loading custom lists for user:', user.id);
-                    
-                    // Get all custom lists (excluding default lists)
-                    const { data: lists, error } = await supabase
-                        .from('lists')
-                        .select('*')
-                        .eq('user_id', user.id)
-                        .neq('title', 'Favorites')
-                        .neq('title', 'Visited')
-                        .neq('title', 'Want to Go')
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) {
-                        console.error('Error loading custom lists:', error);
-                        throw error;
-                    }
-                    
-                    console.log('Loaded custom lists:', lists);
-                    state.customLists = lists || [];
-                    
-                } catch (error) {
-                    console.error('Error loading custom lists:', error);
-                    state.customLists = [];
-                }
-            },
-            
-            async createList(name) {
-                try {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) return null;
-                    
-                    const { data: newList, error } = await supabase
-                        .from('lists')
-                        .insert([
-                            {
-                                user_id: user.id,
-                                title: name,
-                                description: 'Custom list for restaurants',
-                                created_at: new Date().toISOString()
-                            }
-                        ])
-                        .select()
-                        .single();
-                    
-                    if (error) throw error;
-                    
-                    state.customLists.unshift(newList);
-                    return newList;
-                    
-                } catch (error) {
-                    console.error('Error creating list:', error);
-                    showNotification('Error creating list', 'error');
-                    return null;
-                }
-            },
-            
-            async checkRestaurantInList(restaurantId, listId) {
-                try {
-                    const { data, error } = await supabase
-                        .from('lists_restraunts')
-                        .select('*')
-                        .eq('list_id', listId)
-                        .eq('restraunt_id', restaurantId);
-                    
-                    if (error) {
-                        console.error('Error checking restaurant in list:', error);
-                        return false;
-                    }
-                    
-                    return data && data.length > 0;
-                    
-                } catch (error) {
-                    console.error('Error checking restaurant in list:', error);
-                    return false;
-                }
-            },
-            
-            async toggleRestaurantInList(restaurantId, listId) {
-                try {
-                    const isInList = await this.checkRestaurantInList(restaurantId, listId);
-                    
-                    if (isInList) {
-                        // Remove from list
-                        const { error } = await supabase
-                            .from('lists_restraunts')
-                            .delete()
-                            .eq('list_id', listId)
-                            .eq('restraunt_id', restaurantId);
-                        
-                        if (error) {
-                            console.error('Error removing from list:', error);
-                            throw error;
-                        }
-                        
-                        return false;
-                    } else {
-                        // Add to list
-                        const { error } = await supabase
-                            .from('lists_restraunts')
-                            .insert([
-                                {
-                                    list_id: listId,
-                                    restraunt_id: restaurantId,
-                                    added_at: new Date().toISOString()
-                                }
-                            ]);
-                        
-                        if (error) {
-                            console.error('Error adding to list:', error);
-                            throw error;
-                        }
-                        
-                        return true;
-                    }
-                    
-                } catch (error) {
-                    console.error('Error toggling restaurant in list:', error);
-                    showNotification('Error updating list', 'error');
-                    return null;
-                }
-            },
-            
-            async loadRestaurantListsStatus(restaurantId) {
-                if (!state.isLoggedIn || !restaurantId) return {};
-                
-                const status = {};
-                
-                console.log('Checking restaurant status in', state.customLists.length, 'custom lists');
-                
-                // Check each list in parallel for better performance
-                const promises = state.customLists.map(async (list) => {
-                    status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
-                });
-                
-                await Promise.all(promises);
-                
-                console.log('Restaurant list status:', status);
-                return status;
-            },
-            
-            renderListsList(restaurantId) {
-                const container = document.getElementById('listsListContainer');
-                if (!container) return;
-                
-                console.log('Rendering lists list for restaurant:', restaurantId);
-                
-                if (state.customLists.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-lists">
-                            <i class="fas fa-list"></i>
-                            <h4>No custom lists yet</h4>
-                            <p>Create your first list to organize restaurants</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                let html = '<div class="lists-list">';
-                
-                state.customLists.forEach(list => {
-                    const isChecked = state.selectedLists.has(list.id);
-                    const listIcon = list.icon || '📋';
-                    html += `
-                        <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
-                            <div class="list-info">
-                                <div class="list-icon">
-                                    ${listIcon}
-                                </div>
-                                <div>
-                                    <span class="list-name">${list.title}</span>
-                                    ${list.description ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">${list.description}</div>` : ''}
-                                </div>
-                            </div>
-                            <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
-                        </div>
-                    `;
-                });
-                
-                html += '</div>';
-                container.innerHTML = html;
-                
-                // Add event listeners
-                container.querySelectorAll('.list-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const listId = item.dataset.listId;
-                        const checkbox = item.querySelector('.list-checkbox');
-                        
-                        if (state.selectedLists.has(listId)) {
-                            state.selectedLists.delete(listId);
-                            item.classList.remove('active');
-                            checkbox.classList.remove('checked');
-                        } else {
-                            state.selectedLists.add(listId);
-                            item.classList.add('active');
-                            checkbox.classList.add('checked');
-                            
-                            // Add animation
-                            checkbox.style.animation = 'none';
-                            setTimeout(() => {
-                                checkbox.style.animation = 'checkPop 0.3s ease';
-                            }, 10);
-                        }
-                    });
-                });
-            },
-            
-            async refreshLists() {
-                await this.loadCustomLists();
+          async init() {
+            if (state.currentUser) {
+              await this.loadCustomLists();
             }
+          },
+          
+          async loadCustomLists() {
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+              
+              console.log('Loading custom lists for user:', user.id);
+              
+              // Get all custom lists (excluding default lists)
+              const { data: lists, error } = await supabase
+                .from('lists')
+                .select('*')
+                .eq('user_id', user.id)
+                .neq('title', 'Favorites')
+                .neq('title', 'Visited')
+                .neq('title', 'Want to Go')
+                .order('created_at', { ascending: false });
+              
+              if (error) {
+                console.error('Error loading custom lists:', error);
+                throw error;
+              }
+              
+              console.log('Loaded custom lists:', lists);
+              state.customLists = lists || [];
+              
+            } catch (error) {
+              console.error('Error loading custom lists:', error);
+              state.customLists = [];
+            }
+          },
+          
+          async createList(name) {
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return null;
+              
+              const { data: newList, error } = await supabase
+                .from('lists')
+                .insert([
+                  {
+                    user_id: user.id,
+                    title: name,
+                    description: 'Custom list for restaurants',
+                    created_at: new Date().toISOString()
+                  }
+                ])
+                .select()
+                .single();
+              
+              if (error) throw error;
+              
+              state.customLists.unshift(newList);
+              return newList;
+              
+            } catch (error) {
+              console.error('Error creating list:', error);
+              showNotification('Error creating list', 'error');
+              return null;
+            }
+          },
+          
+          // FIXED: Removed .single() to fix 406 error
+          async checkRestaurantInList(restaurantId, listId) {
+            try {
+              const { data, error } = await supabase
+                .from('lists_restraunts')
+                .select('*')
+                .eq('list_id', listId)
+                .eq('restraunt_id', restaurantId);
+              
+              if (error) {
+                console.error('Error checking restaurant in list:', error);
+                return false;
+              }
+              
+              // Check if we got any results
+              return data && data.length > 0;
+              
+            } catch (error) {
+              console.error('Error checking restaurant in list:', error);
+              return false;
+            }
+          },
+          
+          async toggleRestaurantInList(restaurantId, listId) {
+            try {
+              const isInList = await this.checkRestaurantInList(restaurantId, listId);
+              
+              if (isInList) {
+                // Remove from list
+                const { error } = await supabase
+                  .from('lists_restraunts')
+                  .delete()
+                  .eq('list_id', listId)
+                  .eq('restraunt_id', restaurantId);
+                
+                if (error) {
+                  console.error('Error removing from list:', error);
+                  throw error;
+                }
+                
+                return false;
+              } else {
+                // Add to list
+                const { error } = await supabase
+                  .from('lists_restraunts')
+                  .insert([
+                    {
+                      list_id: listId,
+                      restraunt_id: restaurantId,
+                      added_at: new Date().toISOString()
+                    }
+                  ]);
+                
+                if (error) {
+                  console.error('Error adding to list:', error);
+                  throw error;
+                }
+                
+                return true;
+              }
+              
+            } catch (error) {
+              console.error('Error toggling restaurant in list:', error);
+              showNotification('Error updating list', 'error');
+              return null;
+            }
+          },
+          
+          async loadRestaurantListsStatus(restaurantId) {
+            if (!state.currentUser || !restaurantId) return {};
+            
+            const status = {};
+            
+            console.log('Checking restaurant status in', state.customLists.length, 'custom lists');
+            
+            // Check each list in parallel for better performance
+            const promises = state.customLists.map(async (list) => {
+              status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
+            });
+            
+            await Promise.all(promises);
+            
+            console.log('Restaurant list status:', status);
+            return status;
+          },
+          
+          renderListsList(restaurantId) {
+            const container = document.getElementById('listsListContainer');
+            if (!container) return;
+            
+            console.log('Rendering lists list for restaurant:', restaurantId);
+            
+            if (state.customLists.length === 0) {
+              container.innerHTML = `
+                <div class="empty-lists">
+                  <i class="fas fa-list"></i>
+                  <h4>No custom lists yet</h4>
+                  <p>Create your first list to organize restaurants</p>
+                </div>
+              `;
+              return;
+            }
+            
+            let html = '<div class="lists-list">';
+            
+            state.customLists.forEach(list => {
+              const isChecked = state.selectedLists.has(list.id);
+              const listIcon = list.icon || '📋';
+              html += `
+                <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
+                  <div class="list-info">
+                    <div class="list-icon">
+                      ${listIcon}
+                    </div>
+                    <div>
+                      <span class="list-name">${list.title}</span>
+                      ${list.description ? `<div class="text-xs text-muted mt-1">${list.description}</div>` : ''}
+                    </div>
+                  </div>
+                  <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
+                </div>
+              `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // Add event listeners
+            container.querySelectorAll('.list-item').forEach(item => {
+              item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const listId = item.dataset.listId;
+                const checkbox = item.querySelector('.list-checkbox');
+                
+                if (state.selectedLists.has(listId)) {
+                  state.selectedLists.delete(listId);
+                  item.classList.remove('active');
+                  checkbox.classList.remove('checked');
+                } else {
+                  state.selectedLists.add(listId);
+                  item.classList.add('active');
+                  checkbox.classList.add('checked');
+                  
+                  // Add animation
+                  checkbox.style.animation = 'none';
+                  setTimeout(() => {
+                    checkbox.style.animation = 'checkPop 0.3s ease';
+                  }, 10);
+                }
+              });
+            });
+          },
+          
+          async refreshLists() {
+            await this.loadCustomLists();
+          }
         };
+        
+        // ---------- CUSTOM LISTS MODAL FUNCTIONS ----------
+        async function showCustomListsModal(restaurantId) {
+          console.log('Showing custom lists modal for restaurant:', restaurantId);
+          
+          if (!restaurantId) {
+            showNotification('No restaurant selected', 'error');
+            return;
+          }
+          
+          if (!state.isLoggedIn) {
+            showAuthPrompt();
+            return;
+          }
+          
+          // Find the restaurant in the state
+          const restaurant = state.restaurants.find(r => r.id === restaurantId);
+          if (!restaurant) {
+            showNotification('Restaurant not found', 'error');
+            return;
+          }
+          
+          state.currentModalRestaurant = restaurant;
+          
+          console.log('Restaurant found:', restaurant.name);
+          
+          // Ensure custom lists are loaded
+          if (!state.customLists || state.customLists.length === 0) {
+            await customListsManager.refreshLists();
+          }
+          
+          // Load current list status for this restaurant
+          try {
+            console.log('Loading status for restaurant ID:', restaurantId);
+            const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
+            
+            state.selectedLists.clear();
+            for (const [listId, isChecked] of Object.entries(status)) {
+              if (isChecked) {
+                state.selectedLists.add(listId);
+              }
+            }
+            
+            console.log('Selected lists:', Array.from(state.selectedLists));
+            console.log('Available custom lists:', state.customLists);
+            
+            // Render lists list
+            customListsManager.renderListsList(restaurantId);
+            
+            // Show modal
+            const modal = document.getElementById('customListsModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Focus the modal
+            setTimeout(() => {
+              const newListInput = document.getElementById('newListName');
+              if (newListInput) newListInput.focus();
+            }, 300);
+            
+          } catch (error) {
+            console.error('Error loading list status:', error);
+            showNotification('Error loading lists', 'error');
+            
+            // Still show modal with empty state
+            const modal = document.getElementById('customListsModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
+        }
+        
+        function hideCustomListsModal() {
+          const modal = document.getElementById('customListsModal');
+          modal.classList.remove('active');
+          document.body.style.overflow = 'auto';
+          state.selectedLists.clear();
+        }
+        
+        async function saveListChanges() {
+          if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+            showNotification('No restaurant selected', 'error');
+            hideCustomListsModal();
+            return;
+          }
+          
+          const restaurantId = state.currentModalRestaurant.id;
+          const restaurantName = state.currentModalRestaurant.name;
+          const saveBtn = document.getElementById('saveListsBtn');
+          const originalText = saveBtn.textContent;
+          
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving...';
+          
+          try {
+            let changesMade = false;
+            const results = [];
+            
+            // Process each custom list
+            for (const list of state.customLists) {
+              const shouldBeInList = state.selectedLists.has(list.id);
+              const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
+              
+              console.log(`List ${list.title}: shouldBeInList=${shouldBeInList}, isInList=${isInList}`);
+              
+              if (shouldBeInList && !isInList) {
+                // Add to list
+                console.log(`Adding to list: ${list.title}`);
+                const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+                if (success) {
+                  results.push(`Added to "${list.title}"`);
+                  changesMade = true;
+                }
+              } else if (!shouldBeInList && isInList) {
+                // Remove from list
+                console.log(`Removing from list: ${list.title}`);
+                const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+                if (success !== null) {
+                  results.push(`Removed from "${list.title}"`);
+                  changesMade = true;
+                }
+              }
+            }
+            
+            if (changesMade) {
+              showNotification('List changes saved successfully!', 'success');
+              console.log('Save results:', results);
+            } else {
+              showNotification('No changes made', 'info');
+            }
+            
+            hideCustomListsModal();
+            
+            // Refresh restaurant display
+            if (state.filteredRestaurants.length > 0) {
+              renderRestaurants();
+            }
+            
+          } catch (error) {
+            console.error('Error saving list changes:', error);
+            showNotification('Error saving changes', 'error');
+          } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+          }
+        }
         
         // ---------- FAST IMAGE LOADING SYSTEM ----------
         function initFastImageLoader() {
@@ -2862,306 +3009,6 @@
                 };
             }
         };
-        
-        // ---------- CUSTOM LISTS MODAL FUNCTIONS ----------
-        async function showCustomListsModal(restaurantId) {
-            console.log('Showing custom lists modal for restaurant:', restaurantId);
-            
-            if (!restaurantId) {
-                showNotification('No restaurant selected', 'error');
-                return;
-            }
-            
-            if (!state.isLoggedIn) {
-                showAuthPrompt();
-                return;
-            }
-            
-            // Find the restaurant in the state
-            const restaurant = state.restaurants.find(r => r.id === restaurantId);
-            if (!restaurant) {
-                showNotification('Restaurant not found', 'error');
-                return;
-            }
-            
-            state.currentModalRestaurant = restaurant;
-            
-            console.log('Restaurant found:', restaurant.name);
-            
-            // Ensure custom lists are loaded
-            if (!state.customLists || state.customLists.length === 0) {
-                await customListsManager.refreshLists();
-            }
-            
-            // Load current list status for this restaurant
-            try {
-                console.log('Loading status for restaurant ID:', restaurantId);
-                const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
-                
-                state.selectedLists.clear();
-                for (const [listId, isChecked] of Object.entries(status)) {
-                    if (isChecked) {
-                        state.selectedLists.add(listId);
-                    }
-                }
-                
-                console.log('Selected lists:', Array.from(state.selectedLists));
-                console.log('Available custom lists:', state.customLists);
-                
-                // Render lists list
-                customListsManager.renderListsList(restaurantId);
-                
-                // Show modal
-                const modal = document.getElementById('customListsModal');
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                
-                // Focus the modal
-                setTimeout(() => {
-                    const newListInput = document.getElementById('newListName');
-                    if (newListInput) newListInput.focus();
-                }, 300);
-                
-            } catch (error) {
-                console.error('Error loading list status:', error);
-                showNotification('Error loading lists', 'error');
-                
-                // Still show modal with empty state
-                const modal = document.getElementById('customListsModal');
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        
-        function hideCustomListsModal() {
-            const modal = document.getElementById('customListsModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-            state.selectedLists.clear();
-        }
-        
-        async function saveListChanges() {
-            if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
-                showNotification('No restaurant selected', 'error');
-                hideCustomListsModal();
-                return;
-            }
-            
-            const restaurantId = state.currentModalRestaurant.id;
-            const restaurantName = state.currentModalRestaurant.name;
-            const saveBtn = document.getElementById('saveListsBtn');
-            const originalText = saveBtn.textContent;
-            
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-            
-            try {
-                let changesMade = false;
-                const results = [];
-                
-                // Process each custom list
-                for (const list of state.customLists) {
-                    const shouldBeInList = state.selectedLists.has(list.id);
-                    const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
-                    
-                    console.log(`List ${list.title}: shouldBeInList=${shouldBeInList}, isInList=${isInList}`);
-                    
-                    if (shouldBeInList && !isInList) {
-                        // Add to list
-                        console.log(`Adding to list: ${list.title}`);
-                        const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-                        if (success) {
-                            results.push(`Added to "${list.title}"`);
-                            changesMade = true;
-                        }
-                    } else if (!shouldBeInList && isInList) {
-                        // Remove from list
-                        console.log(`Removing from list: ${list.title}`);
-                        const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-                        if (success !== null) {
-                            results.push(`Removed from "${list.title}"`);
-                            changesMade = true;
-                        }
-                    }
-                }
-                
-                if (changesMade) {
-                    showNotification('List changes saved successfully!', 'success');
-                    console.log('Save results:', results);
-                } else {
-                    showNotification('No changes made', 'info');
-                }
-                
-                hideCustomListsModal();
-                
-                // Refresh restaurant display
-                renderRestaurants();
-                setupRestaurantOfTheDay();
-                
-            } catch (error) {
-                console.error('Error saving list changes:', error);
-                showNotification('Error saving changes', 'error');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-            }
-        }
-        
-        // ---------- NOTIFICATION SYSTEM ----------
-        function showNotification(message, type = "info", duration = 2500) {
-            const container = document.getElementById("notificationContainer");
-            if (!container) return;
-            
-            const notification = document.createElement("div");
-            notification.className = `custom-notification notification-${type}`;
-            
-            let iconClass;
-            if (type === "success") {
-                iconClass = "fas fa-check-circle";
-            } else if (type === "error") {
-                iconClass = "fas fa-exclamation-circle";
-            } else if (type === "warning") {
-                iconClass = "fas fa-exclamation-triangle";
-            } else {
-                iconClass = "fas fa-info-circle";
-            }
-            
-            notification.innerHTML = `
-                <i class="notification-icon ${iconClass}"></i>
-                <span class="notification-message">${message}</span>
-                <button class="notification-close" aria-label="Close notification">×</button>
-            `;
-            
-            container.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.classList.add("notification-show");
-            }, 10);
-            
-            notification.querySelector('.notification-close').addEventListener('click', () => {
-                notification.classList.remove("notification-show");
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 400);
-            });
-            
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.classList.remove("notification-show");
-                    setTimeout(() => notification.remove(), 400);
-                }
-            }, duration);
-        }
-        
-        // ---------- SPOTLIGHT FUNCTIONS ----------
-        function updateSpotlight() {
-            if (state.spotlightRestaurants.length === 0) return;
-            
-            const restaurant = state.spotlightRestaurants[state.spotlightIndex];
-            
-            // Load food image
-            if (restaurant.coverImage) {
-                loadImage(elements.spotFoodImage, restaurant.coverImage);
-            }
-            
-            // Load logo with better fallback handling
-            const logoUrl = restaurant.logo || restaurant.logo_url;
-            
-            if (logoUrl) {
-                // Show logo overlay and load image
-                elements.spotLogoOverlay.style.display = 'flex';
-                loadImage(elements.spotLogo, logoUrl);
-            } else {
-                // Hide logo overlay if no logo
-                elements.spotLogoOverlay.style.display = 'none';
-            }
-            
-            elements.spotName.textContent = restaurant.name;
-            elements.spotDesc.textContent = restaurant.description || 'Delicious food served with care';
-            elements.spotRating.textContent = `⭐ ${restaurant.rating?.toFixed(1) || '0.0'}`;
-            
-            // Update view button
-            elements.spotlightViewBtn.onclick = () => {
-                window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-            };
-            
-            // Make entire spotlight clickable
-            elements.spotlightCard.onclick = () => {
-                window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-            };
-            
-            // Update slide indicators
-            updateSlideIndicators();
-        }
-        
-        function updateSlideIndicators() {
-            if (!elements.slideIndicators) return;
-            
-            elements.slideIndicators.innerHTML = '';
-            
-            for (let i = 0; i < state.spotlightRestaurants.length; i++) {
-                const indicator = document.createElement('div');
-                indicator.className = 'slide-indicator';
-                if (i === state.spotlightIndex) {
-                    indicator.classList.add('active');
-                }
-                
-                indicator.addEventListener('click', () => {
-                    state.spotlightIndex = i;
-                    updateSpotlight();
-                    resetSpotlightInterval();
-                });
-                
-                elements.slideIndicators.appendChild(indicator);
-            }
-        }
-        
-        function nextSpotlight() {
-            if (state.spotlightRestaurants.length === 0) return;
-            
-            state.spotlightIndex = (state.spotlightIndex + 1) % state.spotlightRestaurants.length;
-            updateSpotlight();
-        }
-        
-        function prevSpotlight() {
-            if (state.spotlightRestaurants.length === 0) return;
-            
-            state.spotlightIndex = (state.spotlightIndex - 1 + state.spotlightRestaurants.length) % state.spotlightRestaurants.length;
-            updateSpotlight();
-        }
-        
-        function startSpotlightRotation() {
-            if (state.spotlightRestaurants.length <= 1) return;
-            
-            resetSpotlightInterval();
-            
-            // Pause rotation when user hovers over spotlight
-            elements.spotlightCard.addEventListener('mouseenter', () => {
-                if (state.spotlightInterval) {
-                    clearInterval(state.spotlightInterval);
-                    state.spotlightInterval = null;
-                }
-            });
-            
-            // Resume rotation when user stops hovering
-            elements.spotlightCard.addEventListener('mouseleave', () => {
-                if (!state.spotlightInterval && state.spotlightRestaurants.length > 1) {
-                    resetSpotlightInterval();
-                }
-            });
-        }
-        
-        function resetSpotlightInterval() {
-            if (state.spotlightInterval) {
-                clearInterval(state.spotlightInterval);
-            }
-            
-            if (state.spotlightRestaurants.length > 1) {
-                state.spotlightInterval = setInterval(nextSpotlight, 5000);
-            }
-        }
         
         // ---------- MODAL FUNCTIONS ----------
         function setupModalListeners() {
