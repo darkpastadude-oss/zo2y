@@ -1768,8 +1768,8 @@
         imageQueue: [],
         imagesLoading: 0,
         maxConcurrentLoads: 6,
-        customLists: [], // Changed from customFolders to customLists
-        selectedLists: new Set() // Changed from selectedFolders
+        customLists: [],
+        selectedLists: new Set()
       };
       
       // ---------- CUSTOM LISTS MANAGER ----------
@@ -1919,7 +1919,6 @@
           if (!container) return;
           
           console.log('Rendering lists list for restaurant:', restaurantId);
-          console.log('Available custom lists:', state.customLists);
           
           if (state.customLists.length === 0) {
             container.innerHTML = `
@@ -1982,7 +1981,6 @@
           });
         },
         
-        // NEW: Refresh lists from database
         async refreshLists() {
           await this.loadCustomLists();
         }
@@ -2252,16 +2250,18 @@
         }, duration);
       }
       
-      // ---------- CUSTOM LISTS MODAL ----------
+      // ---------- CUSTOM LISTS MODAL FUNCTIONS ----------
       async function showCustomListsModal(restaurantId) {
+        console.log('Showing custom lists modal for restaurant:', restaurantId);
+        
         if (!restaurantId) {
           showNotification('No restaurant selected', 'error');
           return;
         }
         
         if (!state.isLoggedIn) {
-            showAuthPrompt();
-            return;
+          showAuthPrompt();
+          return;
         }
         
         // Find the restaurant in the state
@@ -2273,13 +2273,16 @@
         
         state.currentModalRestaurant = restaurant;
         
-        console.log('Showing custom lists modal for restaurant:', restaurantId);
+        console.log('Restaurant found:', restaurant.name);
         
-        // First, refresh lists from database to ensure we have latest
-        await customListsManager.refreshLists();
+        // Ensure custom lists are loaded
+        if (!state.customLists || state.customLists.length === 0) {
+          await customListsManager.refreshLists();
+        }
         
         // Load current list status for this restaurant
         try {
+          console.log('Loading status for restaurant ID:', restaurantId);
           const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
           
           state.selectedLists.clear();
@@ -2289,7 +2292,8 @@
             }
           }
           
-          console.log('Selected lists after loading status:', Array.from(state.selectedLists));
+          console.log('Selected lists:', Array.from(state.selectedLists));
+          console.log('Available custom lists:', state.customLists);
           
           // Render lists list
           customListsManager.renderListsList(restaurantId);
@@ -2299,9 +2303,20 @@
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
           
+          // Focus the modal
+          setTimeout(() => {
+            const newListInput = document.getElementById('newListName');
+            if (newListInput) newListInput.focus();
+          }, 300);
+          
         } catch (error) {
           console.error('Error loading list status:', error);
           showNotification('Error loading lists', 'error');
+          
+          // Still show modal with empty state
+          const modal = document.getElementById('customListsModal');
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
         }
       }
       
@@ -2320,40 +2335,38 @@
         }
         
         const restaurantId = state.currentModalRestaurant.id;
+        const restaurantName = state.currentModalRestaurant.name;
         const saveBtn = document.getElementById('saveListsBtn');
         const originalText = saveBtn.textContent;
+        
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
         
         try {
           let changesMade = false;
+          const results = [];
           
-          // Process each list
+          // Process each custom list
           for (const list of state.customLists) {
             const shouldBeInList = state.selectedLists.has(list.id);
-            const isInList = await customListsManager.checkRestaurantInList(
-              restaurantId, 
-              list.id
-            );
+            const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
+            
+            console.log(`List ${list.title}: shouldBeInList=${shouldBeInList}, isInList=${isInList}`);
             
             if (shouldBeInList && !isInList) {
               // Add to list
-              const success = await customListsManager.toggleRestaurantInList(
-                restaurantId, 
-                list.id
-              );
+              console.log(`Adding to list: ${list.title}`);
+              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
               if (success) {
-                showNotification(`Added to "${list.title}" list`, 'success');
+                results.push(`Added to "${list.title}"`);
                 changesMade = true;
               }
             } else if (!shouldBeInList && isInList) {
               // Remove from list
-              const success = await customListsManager.toggleRestaurantInList(
-                restaurantId, 
-                list.id
-              );
+              console.log(`Removing from list: ${list.title}`);
+              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
               if (success !== null) {
-                showNotification(`Removed from "${list.title}" list`, 'info');
+                results.push(`Removed from "${list.title}"`);
                 changesMade = true;
               }
             }
@@ -2361,6 +2374,7 @@
           
           if (changesMade) {
             showNotification('List changes saved successfully!', 'success');
+            console.log('Save results:', results);
           } else {
             showNotification('No changes made', 'info');
           }
@@ -3460,6 +3474,7 @@
             }
             
             await listManager.init();
+            await customListsManager.init();
             
           } else {
             state.isLoggedIn = false;
@@ -3476,12 +3491,7 @@
           state.authChecked = true;
           
           if (state.filteredRestaurants.length > 0) {
-            // Render restaurants without waiting for list status
-            const grid = document.getElementById('restaurantGrid');
-            if (grid) {
-              // Clear and re-render synchronously
-              renderRestaurants();
-            }
+            renderRestaurants();
           }
           
         } catch (error) {
