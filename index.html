@@ -1262,7 +1262,7 @@
         }
         
         /* Modals */
-        .actions-modal, .auth-prompt-modal {
+        .actions-modal, .auth-prompt-modal, .custom-lists-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -1279,12 +1279,12 @@
             transition: opacity 0.3s ease;
         }
         
-        .actions-modal.active, .auth-prompt-modal.active {
+        .actions-modal.active, .auth-prompt-modal.active, .custom-lists-modal.active {
             display: flex;
             opacity: 1;
         }
         
-        .actions-content, .auth-prompt-content {
+        .actions-content, .auth-prompt-content, .custom-lists-content {
             background: var(--card);
             border-radius: 20px;
             padding: 30px;
@@ -1296,16 +1296,23 @@
             text-align: center;
         }
         
+        .custom-lists-content {
+            max-width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
         @keyframes modalSlideIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .actions-header {
+        .actions-header, .lists-header {
             margin-bottom: 24px;
         }
         
-        .actions-header h3 {
+        .actions-header h3, .lists-header h3 {
             font-size: 22px;
             margin-bottom: 8px;
             color: var(--white);
@@ -1355,9 +1362,258 @@
             border-color: var(--accent);
         }
         
+        .action-btn-modal.custom-lists-btn {
+            border: 1px solid var(--accent);
+        }
+        
         .action-btn-modal i {
             font-size: 18px;
             width: 24px;
+        }
+        
+        /* Custom Lists Modal Styling */
+        .lists-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .lists-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .lists-header h3 i {
+            color: var(--accent);
+        }
+        
+        .close-lists-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .close-lists-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--white);
+        }
+        
+        .lists-list-container {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 10px;
+        }
+        
+        .lists-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .lists-list-container::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .lists-list-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+        
+        .lists-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .list-item:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+        
+        .list-item.active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--accent);
+        }
+        
+        .list-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .list-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0b1633;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .list-name {
+            font-weight: 500;
+            color: var(--white);
+        }
+        
+        .list-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .list-checkbox.checked {
+            background: var(--accent);
+            border-color: var(--accent);
+            animation: checkPop 0.3s ease;
+        }
+        
+        @keyframes checkPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .list-checkbox.checked::after {
+            content: "✓";
+            color: #0b1633;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .empty-lists {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+        }
+        
+        .empty-lists i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+            color: var(--accent);
+        }
+        
+        .empty-lists h4 {
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+        
+        .new-list-section {
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .new-list-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .new-list-input input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .new-list-input input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        
+        .create-list-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            color: #0b1633;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .create-list-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+        
+        .create-list-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .lists-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .lists-save-btn {
+            flex: 1;
+            background: var(--accent);
+            color: #0b1633;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .lists-save-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+        
+        .lists-save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .cancel-btn {
@@ -1687,6 +1943,12 @@
                 grid-template-columns: repeat(2, 1fr);
                 text-align: left;
             }
+            
+            .custom-lists-content {
+                padding: 20px;
+                margin: 10px;
+                max-height: 70vh;
+            }
         }
         
         @media (max-width: 480px) {
@@ -1718,6 +1980,20 @@
             .spotlight p {
                 font-size: 13px;
             }
+            
+            .custom-lists-content {
+                padding: 16px;
+            }
+            
+            .list-item {
+                padding: 12px;
+            }
+            
+            .list-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
         }
     </style>
   
@@ -1744,8 +2020,40 @@
                     <i class="fas fa-utensils"></i>
                     <span id="visitedText">Mark as Visited</span>
                 </button>
+                <!-- ADDED: Custom Lists button -->
+                <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
+                    <i class="fas fa-list"></i>
+                    <span>Custom Lists</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
             <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ADDED: Custom Lists Modal -->
+    <div id="customListsModal" class="custom-lists-modal">
+        <div class="custom-lists-content">
+            <div class="lists-header">
+                <h3><i class="fas fa-list"></i> Custom Lists</h3>
+                <button class="close-lists-btn" id="closeListsBtn">×</button>
+            </div>
+            
+            <div class="lists-list-container" id="listsListContainer">
+                <!-- Lists will be populated here -->
+            </div>
+            
+            <div class="new-list-section">
+                <div class="new-list-input">
+                    <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
+                    <button class="create-list-btn" id="createListBtn">
+                        <i class="fas fa-plus"></i> Create
+                    </button>
+                </div>
+                <div class="lists-actions">
+                    <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2089,7 +2397,9 @@
             searchSuggestions: [],
             spotlightInterval: null,
             allRestaurants: [],
-            preloader: null
+            preloader: null,
+            customLists: [],
+            selectedLists: new Set()
         };
         
         // DOM elements
@@ -2112,7 +2422,239 @@
             spotDesc: document.getElementById('spotDesc'),
             spotRating: document.getElementById('spotRating'),
             spotlightViewBtn: document.getElementById('spotlightViewBtn'),
-            slideIndicators: document.getElementById('slideIndicators')
+            slideIndicators: document.getElementById('slideIndicators'),
+            // Custom lists elements
+            modalCustomListsBtn: document.getElementById('modalCustomListsBtn'),
+            closeListsBtn: document.getElementById('closeListsBtn'),
+            createListBtn: document.getElementById('createListBtn'),
+            saveListsBtn: document.getElementById('saveListsBtn'),
+            newListName: document.getElementById('newListName'),
+            listsListContainer: document.getElementById('listsListContainer')
+        };
+        
+        // ---------- CUSTOM LISTS MANAGER ----------
+        const customListsManager = {
+            async init() {
+                if (state.isLoggedIn) {
+                    await this.loadCustomLists();
+                }
+            },
+            
+            async loadCustomLists() {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    
+                    console.log('Loading custom lists for user:', user.id);
+                    
+                    // Get all custom lists (excluding default lists)
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .neq('title', 'Favorites')
+                        .neq('title', 'Visited')
+                        .neq('title', 'Want to Go')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) {
+                        console.error('Error loading custom lists:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Loaded custom lists:', lists);
+                    state.customLists = lists || [];
+                    
+                } catch (error) {
+                    console.error('Error loading custom lists:', error);
+                    state.customLists = [];
+                }
+            },
+            
+            async createList(name) {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return null;
+                    
+                    const { data: newList, error } = await supabase
+                        .from('lists')
+                        .insert([
+                            {
+                                user_id: user.id,
+                                title: name,
+                                description: 'Custom list for restaurants',
+                                created_at: new Date().toISOString()
+                            }
+                        ])
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    state.customLists.unshift(newList);
+                    return newList;
+                    
+                } catch (error) {
+                    console.error('Error creating list:', error);
+                    showNotification('Error creating list', 'error');
+                    return null;
+                }
+            },
+            
+            async checkRestaurantInList(restaurantId, listId) {
+                try {
+                    const { data, error } = await supabase
+                        .from('lists_restraunts')
+                        .select('*')
+                        .eq('list_id', listId)
+                        .eq('restraunt_id', restaurantId);
+                    
+                    if (error) {
+                        console.error('Error checking restaurant in list:', error);
+                        return false;
+                    }
+                    
+                    return data && data.length > 0;
+                    
+                } catch (error) {
+                    console.error('Error checking restaurant in list:', error);
+                    return false;
+                }
+            },
+            
+            async toggleRestaurantInList(restaurantId, listId) {
+                try {
+                    const isInList = await this.checkRestaurantInList(restaurantId, listId);
+                    
+                    if (isInList) {
+                        // Remove from list
+                        const { error } = await supabase
+                            .from('lists_restraunts')
+                            .delete()
+                            .eq('list_id', listId)
+                            .eq('restraunt_id', restaurantId);
+                        
+                        if (error) {
+                            console.error('Error removing from list:', error);
+                            throw error;
+                        }
+                        
+                        return false;
+                    } else {
+                        // Add to list
+                        const { error } = await supabase
+                            .from('lists_restraunts')
+                            .insert([
+                                {
+                                    list_id: listId,
+                                    restraunt_id: restaurantId,
+                                    added_at: new Date().toISOString()
+                                }
+                            ]);
+                        
+                        if (error) {
+                            console.error('Error adding to list:', error);
+                            throw error;
+                        }
+                        
+                        return true;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error toggling restaurant in list:', error);
+                    showNotification('Error updating list', 'error');
+                    return null;
+                }
+            },
+            
+            async loadRestaurantListsStatus(restaurantId) {
+                if (!state.isLoggedIn || !restaurantId) return {};
+                
+                const status = {};
+                
+                console.log('Checking restaurant status in', state.customLists.length, 'custom lists');
+                
+                // Check each list in parallel for better performance
+                const promises = state.customLists.map(async (list) => {
+                    status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
+                });
+                
+                await Promise.all(promises);
+                
+                console.log('Restaurant list status:', status);
+                return status;
+            },
+            
+            renderListsList(restaurantId) {
+                const container = elements.listsListContainer;
+                if (!container) return;
+                
+                console.log('Rendering lists list for restaurant:', restaurantId);
+                
+                if (state.customLists.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-lists">
+                            <i class="fas fa-list"></i>
+                            <h4>No custom lists yet</h4>
+                            <p>Create your first list to organize restaurants</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '<div class="lists-list">';
+                
+                state.customLists.forEach(list => {
+                    const isChecked = state.selectedLists.has(list.id);
+                    const listIcon = list.icon || '📋';
+                    html += `
+                        <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
+                            <div class="list-info">
+                                <div class="list-icon">
+                                    ${listIcon}
+                                </div>
+                                <div>
+                                    <span class="list-name">${list.title}</span>
+                                    ${list.description ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">${list.description}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+                
+                // Add event listeners
+                container.querySelectorAll('.list-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const listId = item.dataset.listId;
+                        const checkbox = item.querySelector('.list-checkbox');
+                        
+                        if (state.selectedLists.has(listId)) {
+                            state.selectedLists.delete(listId);
+                            item.classList.remove('active');
+                            checkbox.classList.remove('checked');
+                        } else {
+                            state.selectedLists.add(listId);
+                            item.classList.add('active');
+                            checkbox.classList.add('checked');
+                            
+                            // Add animation
+                            checkbox.style.animation = 'none';
+                            setTimeout(() => {
+                                checkbox.style.animation = 'checkPop 0.3s ease';
+                            }, 10);
+                        }
+                    });
+                });
+            },
+            
+            async refreshLists() {
+                await this.loadCustomLists();
+            }
         };
         
         // ---------- FAST IMAGE LOADING SYSTEM ----------
@@ -2182,6 +2724,7 @@
                 if (!session) return;
                 
                 await this.loadUserLists();
+                await customListsManager.init();
             },
             
             async loadUserLists() {
@@ -2326,6 +2869,149 @@
                 };
             }
         };
+        
+        // ---------- CUSTOM LISTS MODAL FUNCTIONS ----------
+        async function showCustomListsModal(restaurantId) {
+            console.log('Showing custom lists modal for restaurant:', restaurantId);
+            
+            if (!restaurantId) {
+                showNotification('No restaurant selected', 'error');
+                return;
+            }
+            
+            if (!state.isLoggedIn) {
+                showAuthPrompt();
+                return;
+            }
+            
+            // Find the restaurant in the state
+            const restaurant = state.restaurants.find(r => r.id === restaurantId);
+            if (!restaurant) {
+                showNotification('Restaurant not found', 'error');
+                return;
+            }
+            
+            state.currentModalRestaurant = restaurant;
+            
+            console.log('Restaurant found:', restaurant.name);
+            
+            // Ensure custom lists are loaded
+            if (!state.customLists || state.customLists.length === 0) {
+                await customListsManager.refreshLists();
+            }
+            
+            // Load current list status for this restaurant
+            try {
+                console.log('Loading status for restaurant ID:', restaurantId);
+                const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
+                
+                state.selectedLists.clear();
+                for (const [listId, isChecked] of Object.entries(status)) {
+                    if (isChecked) {
+                        state.selectedLists.add(listId);
+                    }
+                }
+                
+                console.log('Selected lists:', Array.from(state.selectedLists));
+                console.log('Available custom lists:', state.customLists);
+                
+                // Render lists list
+                customListsManager.renderListsList(restaurantId);
+                
+                // Show modal
+                const modal = document.getElementById('customListsModal');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Focus the modal
+                setTimeout(() => {
+                    if (elements.newListName) elements.newListName.focus();
+                }, 300);
+                
+            } catch (error) {
+                console.error('Error loading list status:', error);
+                showNotification('Error loading lists', 'error');
+                
+                // Still show modal with empty state
+                const modal = document.getElementById('customListsModal');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function hideCustomListsModal() {
+            const modal = document.getElementById('customListsModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            state.selectedLists.clear();
+        }
+        
+        async function saveListChanges() {
+            if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+                showNotification('No restaurant selected', 'error');
+                hideCustomListsModal();
+                return;
+            }
+            
+            const restaurantId = state.currentModalRestaurant.id;
+            const restaurantName = state.currentModalRestaurant.name;
+            const saveBtn = elements.saveListsBtn;
+            const originalText = saveBtn.textContent;
+            
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            
+            try {
+                let changesMade = false;
+                const results = [];
+                
+                // Process each custom list
+                for (const list of state.customLists) {
+                    const shouldBeInList = state.selectedLists.has(list.id);
+                    const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
+                    
+                    console.log(`List ${list.title}: shouldBeInList=${shouldBeInList}, isInList=${isInList}`);
+                    
+                    if (shouldBeInList && !isInList) {
+                        // Add to list
+                        console.log(`Adding to list: ${list.title}`);
+                        const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+                        if (success) {
+                            results.push(`Added to "${list.title}"`);
+                            changesMade = true;
+                        }
+                    } else if (!shouldBeInList && isInList) {
+                        // Remove from list
+                        console.log(`Removing from list: ${list.title}`);
+                        const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+                        if (success !== null) {
+                            results.push(`Removed from "${list.title}"`);
+                            changesMade = true;
+                        }
+                    }
+                }
+                
+                if (changesMade) {
+                    showNotification('List changes saved successfully!', 'success');
+                    console.log('Save results:', results);
+                } else {
+                    showNotification('No changes made', 'info');
+                }
+                
+                hideCustomListsModal();
+                
+                // Refresh restaurant display
+                renderRestaurants();
+                setupRestaurantOfTheDay();
+                
+            } catch (error) {
+                console.error('Error saving list changes:', error);
+                showNotification('Error saving changes', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        }
         
         // ---------- NOTIFICATION SYSTEM ----------
         function showNotification(message, type = "info", duration = 2500) {
@@ -2500,6 +3186,68 @@
                 });
             }
             
+            // Custom lists modal events
+            const customListsModal = document.getElementById('customListsModal');
+            
+            if (elements.closeListsBtn) {
+                elements.closeListsBtn.addEventListener('click', hideCustomListsModal);
+            }
+            
+            if (elements.createListBtn) {
+                elements.createListBtn.addEventListener('click', async () => {
+                    const name = elements.newListName.value.trim();
+                    if (!name) {
+                        showNotification('Please enter a list name', 'warning');
+                        return;
+                    }
+                    
+                    // Check if list already exists
+                    const existingList = state.customLists.find(l => 
+                        l.title.toLowerCase() === name.toLowerCase()
+                    );
+                    
+                    if (existingList) {
+                        showNotification(`"${name}" list already exists`, 'warning');
+                        return;
+                    }
+                    
+                    const newList = await customListsManager.createList(name);
+                    if (newList) {
+                        showNotification(`Created "${name}" list`, 'success');
+                        elements.newListName.value = '';
+                        
+                        // Refresh lists from database
+                        await customListsManager.refreshLists();
+                        
+                        // Auto-select the new list
+                        state.selectedLists.add(newList.id);
+                        
+                        // Refresh the display
+                        customListsManager.renderListsList(state.currentModalRestaurant?.id);
+                    }
+                });
+            }
+            
+            if (elements.saveListsBtn) {
+                elements.saveListsBtn.addEventListener('click', saveListChanges);
+            }
+            
+            if (elements.newListName) {
+                elements.newListName.addEventListener('keypress', async (e) => {
+                    if (e.key === 'Enter') {
+                        elements.createListBtn.click();
+                    }
+                });
+            }
+            
+            if (customListsModal) {
+                customListsModal.addEventListener('click', (e) => {
+                    if (e.target === customListsModal) {
+                        hideCustomListsModal();
+                    }
+                });
+            }
+            
             // Auth prompt modal events
             const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
             const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
@@ -2571,11 +3319,32 @@
                 });
             }
             
+            // Custom Lists button
+            if (elements.modalCustomListsBtn) {
+                elements.modalCustomListsBtn.addEventListener('click', () => {
+                    if (!state.currentModalRestaurant) {
+                        showNotification('No restaurant selected', 'error');
+                        return;
+                    }
+                    
+                    console.log('Custom lists button clicked for restaurant:', state.currentModalRestaurant.id);
+                    
+                    // Close actions modal first
+                    hideModal();
+                    
+                    // Show custom lists modal after a short delay
+                    setTimeout(() => {
+                        showCustomListsModal(state.currentModalRestaurant.id);
+                    }, 100);
+                });
+            }
+            
             // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     hideModal();
                     hideAuthPrompt();
+                    hideCustomListsModal();
                 }
             });
         }
@@ -3416,6 +4185,7 @@
                 
                 // Initialize list manager - CRITICAL FOR LIST FUNCTIONS TO WORK
                 await listManager.init();
+                await customListsManager.init();
                 
                 // Re-render to show badges
                 renderRestaurants();
