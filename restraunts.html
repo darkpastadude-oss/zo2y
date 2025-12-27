@@ -720,6 +720,15 @@
       width: 24px;
     }
     
+    .custom-folders-btn {
+      background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+      border-color: #8b5cf6;
+    }
+    
+    .custom-folders-btn:hover {
+      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    }
+    
     .cancel-btn {
       background: transparent;
       color: var(--muted);
@@ -735,6 +744,290 @@
     .cancel-btn:hover {
       background: rgba(255,255,255,0.05);
       color: var(--white);
+    }
+    
+    /* Custom Folders Modal */
+    .custom-folders-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .custom-folders-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .custom-folders-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      border: 2px solid #8b5cf6;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .folders-header {
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .folders-header h3 {
+      font-size: 22px;
+      color: var(--white);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .folders-header h3 i {
+      color: #8b5cf6;
+    }
+    
+    .close-folders-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .close-folders-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+    
+    .folders-list-container {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding-right: 10px;
+    }
+    
+    .folders-list-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .folders-list-container::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+    }
+    
+    .folders-list-container::-webkit-scrollbar-thumb {
+      background: #8b5cf6;
+      border-radius: 10px;
+    }
+    
+    .folders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .folder-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .folder-item:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: #8b5cf6;
+      transform: translateX(5px);
+    }
+    
+    .folder-item.active {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: #8b5cf6;
+    }
+    
+    .folder-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    
+    .folder-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+    }
+    
+    .folder-name {
+      font-weight: 500;
+      color: var(--white);
+    }
+    
+    .folder-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #475569;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .folder-checkbox.checked {
+      background: #8b5cf6;
+      border-color: #8b5cf6;
+      animation: checkPop 0.3s ease;
+    }
+    
+    @keyframes checkPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .folder-checkbox.checked::after {
+      content: "✓";
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .empty-folders {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    
+    .empty-folders i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+      color: #8b5cf6;
+    }
+    
+    .empty-folders h4 {
+      margin-bottom: 8px;
+      color: var(--white);
+    }
+    
+    .new-folder-section {
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .new-folder-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .new-folder-input input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .new-folder-input input:focus {
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+    
+    .create-folder-btn {
+      background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .create-folder-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+    
+    .create-folder-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .folders-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    
+    .folders-save-btn {
+      flex: 1;
+      background: var(--accent);
+      color: #0b1633;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .folders-save-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    
+    .folders-save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
     }
     
     /* Auth Prompt Modal */
@@ -1148,6 +1441,12 @@
         width: 100%;
       }
       
+      .custom-folders-content {
+        padding: 20px;
+        margin: 10px;
+        max-height: 70vh;
+      }
+      
       .auth-prompt-content {
         padding: 30px 24px;
       }
@@ -1216,6 +1515,20 @@
         height: 30px;
         top: 8px;
         right: 8px;
+      }
+      
+      .custom-folders-content {
+        padding: 16px;
+      }
+      
+      .folder-item {
+        padding: 12px;
+      }
+      
+      .folder-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
       }
       
       .auth-prompt-content {
@@ -1342,8 +1655,39 @@
           <i class="fas fa-utensils"></i>
           <span id="visitedText">Mark as Visited</span>
         </button>
+        <button class="action-btn-modal custom-folders-btn" id="modalCustomFoldersBtn">
+          <i class="fas fa-folder"></i>
+          <span>Custom Folders</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
       <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Custom Folders Modal -->
+  <div id="customFoldersModal" class="custom-folders-modal">
+    <div class="custom-folders-content">
+      <div class="folders-header">
+        <h3><i class="fas fa-folder"></i> Custom Folders</h3>
+        <button class="close-folders-btn" id="closeFoldersBtn">×</button>
+      </div>
+      
+      <div class="folders-list-container" id="foldersListContainer">
+        <!-- Folders will be populated here -->
+      </div>
+      
+      <div class="new-folder-section">
+        <div class="new-folder-input">
+          <input type="text" id="newFolderName" placeholder="Enter new folder name..." maxlength="50">
+          <button class="create-folder-btn" id="createFolderBtn">
+            <i class="fas fa-plus"></i> Create
+          </button>
+        </div>
+        <div class="folders-actions">
+          <button class="folders-save-btn" id="saveFoldersBtn">Save Changes</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1417,7 +1761,199 @@
         authChecked: false,
         imageQueue: [],
         imagesLoading: 0,
-        maxConcurrentLoads: 6
+        maxConcurrentLoads: 6,
+        customFolders: [],
+        selectedFolders: new Set()
+      };
+      
+      // ---------- CUSTOM FOLDERS MANAGER ----------
+      const customFoldersManager = {
+        async init() {
+          if (state.currentUser) {
+            await this.loadCustomFolders();
+          }
+        },
+        
+        async loadCustomFolders() {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            
+            const { data: folders, error } = await supabase
+              .from('lists')
+              .select('*')
+              .eq('user_id', user.id)
+              .not('title', 'in', '("Favorites","Visited","Want to Go")')
+              .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            state.customFolders = folders || [];
+            
+          } catch (error) {
+            console.error('Error loading custom folders:', error);
+            state.customFolders = [];
+          }
+        },
+        
+        async createFolder(name) {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return null;
+            
+            const { data: newFolder, error } = await supabase
+              .from('lists')
+              .insert([
+                {
+                  user_id: user.id,
+                  title: name,
+                  description: 'Custom folder for restaurants',
+                  created_at: new Date().toISOString()
+                }
+              ])
+              .select()
+              .single();
+            
+            if (error) throw error;
+            
+            state.customFolders.unshift(newFolder);
+            return newFolder;
+            
+          } catch (error) {
+            console.error('Error creating folder:', error);
+            return null;
+          }
+        },
+        
+        async checkRestaurantInFolder(restaurantId, folderId) {
+          try {
+            const { data, error } = await supabase
+              .from('lists_restraunts')
+              .select('*')
+              .eq('list_id', folderId)
+              .eq('restraunt_id', restaurantId)
+              .single();
+            
+            if (error && error.code !== 'PGRST116') throw error;
+            
+            return !!data;
+            
+          } catch (error) {
+            console.error('Error checking restaurant in folder:', error);
+            return false;
+          }
+        },
+        
+        async toggleRestaurantInFolder(restaurantId, folderId) {
+          try {
+            const isInFolder = await this.checkRestaurantInFolder(restaurantId, folderId);
+            
+            if (isInFolder) {
+              // Remove from folder
+              const { error } = await supabase
+                .from('lists_restraunts')
+                .delete()
+                .eq('list_id', folderId)
+                .eq('restraunt_id', restaurantId);
+              
+              if (error) throw error;
+              
+              return false;
+            } else {
+              // Add to folder
+              const { error } = await supabase
+                .from('lists_restraunts')
+                .insert([
+                  {
+                    list_id: folderId,
+                    restraunt_id: restaurantId,
+                    added_at: new Date().toISOString()
+                  }
+                ]);
+              
+              if (error) throw error;
+              
+              return true;
+            }
+            
+          } catch (error) {
+            console.error('Error toggling restaurant in folder:', error);
+            return null;
+          }
+        },
+        
+        async loadRestaurantFoldersStatus(restaurantId) {
+          if (!state.currentUser || !restaurantId) return {};
+          
+          const status = {};
+          
+          for (const folder of state.customFolders) {
+            status[folder.id] = await this.checkRestaurantInFolder(restaurantId, folder.id);
+          }
+          
+          return status;
+        },
+        
+        renderFoldersList(restaurantId) {
+          const container = document.getElementById('foldersListContainer');
+          if (!container) return;
+          
+          if (state.customFolders.length === 0) {
+            container.innerHTML = `
+              <div class="empty-folders">
+                <i class="fas fa-folder-open"></i>
+                <h4>No custom folders yet</h4>
+                <p>Create your first folder to organize restaurants</p>
+              </div>
+            `;
+            return;
+          }
+          
+          let html = '<div class="folders-list">';
+          
+          state.customFolders.forEach(folder => {
+            const isChecked = state.selectedFolders.has(folder.id);
+            html += `
+              <div class="folder-item ${isChecked ? 'active' : ''}" data-folder-id="${folder.id}">
+                <div class="folder-info">
+                  <div class="folder-icon">
+                    <i class="fas fa-folder"></i>
+                  </div>
+                  <span class="folder-name">${folder.title}</span>
+                </div>
+                <div class="folder-checkbox ${isChecked ? 'checked' : ''}"></div>
+              </div>
+            `;
+          });
+          
+          html += '</div>';
+          container.innerHTML = html;
+          
+          // Add event listeners
+          container.querySelectorAll('.folder-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const folderId = item.dataset.folderId;
+              const checkbox = item.querySelector('.folder-checkbox');
+              
+              if (state.selectedFolders.has(folderId)) {
+                state.selectedFolders.delete(folderId);
+                item.classList.remove('active');
+                checkbox.classList.remove('checked');
+              } else {
+                state.selectedFolders.add(folderId);
+                item.classList.add('active');
+                checkbox.classList.add('checked');
+                
+                // Add animation
+                checkbox.style.animation = 'none';
+                setTimeout(() => {
+                  checkbox.style.animation = 'checkPop 0.3s ease';
+                }, 10);
+              }
+            });
+          });
+        }
       };
       
       // ---------- FAST IMAGE LOADING SYSTEM ----------
@@ -1490,6 +2026,7 @@
               if (!session) return;
               
               await this.loadUserLists();
+              await customFoldersManager.init();
           },
           
           async loadUserLists() {
@@ -1681,6 +2218,89 @@
                 setTimeout(() => notification.remove(), 400);
             }
         }, duration);
+      }
+      
+      // ---------- CUSTOM FOLDERS MODAL ----------
+      function showCustomFoldersModal(restaurantId) {
+        if (!restaurantId) return;
+        
+        if (!state.isLoggedIn) {
+            showAuthPrompt();
+            return;
+        }
+        
+        state.currentModalRestaurant = state.restaurants.find(r => r.id === restaurantId);
+        if (!state.currentModalRestaurant) return;
+        
+        // Load current folder status for this restaurant
+        customFoldersManager.loadRestaurantFoldersStatus(restaurantId).then(status => {
+          state.selectedFolders.clear();
+          for (const [folderId, isChecked] of Object.entries(status)) {
+            if (isChecked) {
+              state.selectedFolders.add(folderId);
+            }
+          }
+          
+          // Render folders list
+          customFoldersManager.renderFoldersList(restaurantId);
+          
+          // Show modal
+          const modal = document.getElementById('customFoldersModal');
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        });
+      }
+      
+      function hideCustomFoldersModal() {
+        const modal = document.getElementById('customFoldersModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        state.selectedFolders.clear();
+      }
+      
+      async function saveFolderChanges() {
+        if (!state.currentModalRestaurant) return;
+        
+        const saveBtn = document.getElementById('saveFoldersBtn');
+        const originalText = saveBtn.textContent;
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        
+        try {
+          // Process each folder
+          for (const folder of state.customFolders) {
+            const shouldBeInFolder = state.selectedFolders.has(folder.id);
+            const isInFolder = await customFoldersManager.checkRestaurantInFolder(
+              state.currentModalRestaurant.id, 
+              folder.id
+            );
+            
+            if (shouldBeInFolder && !isInFolder) {
+              // Add to folder
+              await customFoldersManager.toggleRestaurantInFolder(
+                state.currentModalRestaurant.id, 
+                folder.id
+              );
+            } else if (!shouldBeInFolder && isInFolder) {
+              // Remove from folder
+              await customFoldersManager.toggleRestaurantInFolder(
+                state.currentModalRestaurant.id, 
+                folder.id
+              );
+            }
+          }
+          
+          showNotification('Folder changes saved successfully!', 'success');
+          hideCustomFoldersModal();
+          renderRestaurants(); // Refresh restaurant display
+          
+        } catch (error) {
+          console.error('Error saving folder changes:', error);
+          showNotification('Error saving changes', 'error');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText;
+        }
       }
       
       // ---------- AUTH PROMPT MODAL ----------
@@ -2251,7 +2871,7 @@
         loadVisibleImages();
       }
       
-      function createRestaurantCard(restaurant) {
+      async function createRestaurantCard(restaurant) {
         const card = document.createElement('div');
         card.className = 'restaurant-card';
         card.dataset.id = restaurant.id;
@@ -2264,10 +2884,31 @@
         const isTopRated = rating >= 4.5;
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         
+        // Load custom folder status
+        let folderStatus = {};
+        if (state.isLoggedIn) {
+          folderStatus = await customFoldersManager.loadRestaurantFoldersStatus(restaurant.id);
+        }
+        
+        // Get custom folder icons for badge
+        const customFolderIcons = [];
+        for (const [folderId, isChecked] of Object.entries(folderStatus)) {
+          if (isChecked) {
+            const folder = state.customFolders.find(f => f.id === folderId);
+            if (folder) {
+              customFolderIcons.push('📁');
+              if (customFolderIcons.length >= 2) break; // Limit to 2 icons
+            }
+          }
+        }
+        
         let badgeText = '';
         if (status.favorites) badgeText += '❤️ ';
         if (status.wantToGo) badgeText += '📍 ';
         if (status.visited) badgeText += '✓ ';
+        if (customFolderIcons.length > 0) {
+          badgeText += customFolderIcons.join(' ');
+        }
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -2481,9 +3122,11 @@
         
         initializeViewControls();
         
+        // Actions modal buttons
         const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
         const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
         const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+        const modalCustomFoldersBtn = document.getElementById('modalCustomFoldersBtn');
         const modalCancelBtn = document.getElementById('modalCancelBtn');
         
         if (modalFavoritesBtn) {
@@ -2513,6 +3156,14 @@
           });
         }
         
+        if (modalCustomFoldersBtn) {
+          modalCustomFoldersBtn.addEventListener('click', () => {
+            if (!state.currentModalRestaurant) return;
+            hideModal();
+            showCustomFoldersModal(state.currentModalRestaurant.id);
+          });
+        }
+        
         if (modalCancelBtn) {
           modalCancelBtn.addEventListener('click', hideModal);
         }
@@ -2526,6 +3177,73 @@
           });
         }
         
+        // Custom folders modal buttons
+        const closeFoldersBtn = document.getElementById('closeFoldersBtn');
+        const createFolderBtn = document.getElementById('createFolderBtn');
+        const saveFoldersBtn = document.getElementById('saveFoldersBtn');
+        const newFolderNameInput = document.getElementById('newFolderName');
+        
+        if (closeFoldersBtn) {
+          closeFoldersBtn.addEventListener('click', hideCustomFoldersModal);
+        }
+        
+        if (createFolderBtn) {
+          createFolderBtn.addEventListener('click', async () => {
+            const name = newFolderNameInput.value.trim();
+            if (!name) {
+              showNotification('Please enter a folder name', 'warning');
+              return;
+            }
+            
+            // Check if folder already exists
+            const existingFolder = state.customFolders.find(f => 
+              f.title.toLowerCase() === name.toLowerCase()
+            );
+            
+            if (existingFolder) {
+              showNotification(`"${name}" folder already exists`, 'warning');
+              return;
+            }
+            
+            const newFolder = await customFoldersManager.createFolder(name);
+            if (newFolder) {
+              showNotification(`Created "${name}" folder`, 'success');
+              newFolderNameInput.value = '';
+              customFoldersManager.renderFoldersList(state.currentModalRestaurant?.id);
+              
+              // Auto-select the new folder
+              state.selectedFolders.add(newFolder.id);
+              
+              // Refresh the display
+              setTimeout(() => {
+                customFoldersManager.renderFoldersList(state.currentModalRestaurant?.id);
+              }, 100);
+            }
+          });
+        }
+        
+        if (saveFoldersBtn) {
+          saveFoldersBtn.addEventListener('click', saveFolderChanges);
+        }
+        
+        if (newFolderNameInput) {
+          newFolderNameInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+              createFolderBtn.click();
+            }
+          });
+        }
+        
+        const customFoldersModal = document.getElementById('customFoldersModal');
+        if (customFoldersModal) {
+          customFoldersModal.addEventListener('click', (e) => {
+            if (e.target === customFoldersModal) {
+              hideCustomFoldersModal();
+            }
+          });
+        }
+        
+        // Auth prompt modal buttons
         const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
         const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
         const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
@@ -2558,6 +3276,7 @@
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
+            hideCustomFoldersModal();
             hideAuthPrompt();
           }
         });
