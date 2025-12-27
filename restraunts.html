@@ -2778,11 +2778,10 @@
         state.filteredRestaurants = filtered;
         state.currentPage = 1;
         
-        renderRestaurants();
+        renderRestaurants(); // This is now async
         updatePagination();
         updateCounts();
       }
-      
       function applyQuickFilter(restaurants, filterType) {
         switch(filterType) {
           case 'trending':
@@ -2813,7 +2812,7 @@
         }
       }
       
-      // ---------- RENDERING ----------
+       // ---------- RENDERING ----------
       function showLoadingSkeleton() {
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
@@ -2837,7 +2836,7 @@
         }
       }
       
-      function renderRestaurants() {
+      async function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
         const emptyState = document.querySelector('.empty-state');
         
@@ -2858,20 +2857,19 @@
         const endIdx = startIdx + state.pageSize;
         const pageItems = state.filteredRestaurants.slice(startIdx, endIdx);
         
-        const fragment = document.createDocumentFragment();
-        
-        pageItems.forEach(restaurant => {
-          const card = createRestaurantCard(restaurant);
-          fragment.appendChild(card);
-        });
-        
+        // Clear grid first
         grid.innerHTML = '';
-        grid.appendChild(fragment);
+        
+        // Create cards sequentially to avoid async issues
+        for (const restaurant of pageItems) {
+          const card = await createRestaurantCard(restaurant);
+          grid.appendChild(card);
+        }
         
         loadVisibleImages();
       }
       
-      async function createRestaurantCard(restaurant) {
+      function createRestaurantCard(restaurant) {
         const card = document.createElement('div');
         card.className = 'restaurant-card';
         card.dataset.id = restaurant.id;
@@ -2884,31 +2882,13 @@
         const isTopRated = rating >= 4.5;
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         
-        // Load custom folder status
-        let folderStatus = {};
-        if (state.isLoggedIn) {
-          folderStatus = await customFoldersManager.loadRestaurantFoldersStatus(restaurant.id);
-        }
-        
-        // Get custom folder icons for badge
-        const customFolderIcons = [];
-        for (const [folderId, isChecked] of Object.entries(folderStatus)) {
-          if (isChecked) {
-            const folder = state.customFolders.find(f => f.id === folderId);
-            if (folder) {
-              customFolderIcons.push('📁');
-              if (customFolderIcons.length >= 2) break; // Limit to 2 icons
-            }
-          }
-        }
+        // Don't load custom folder status here - it was causing async issues
+        // Instead, we'll load it separately if needed
         
         let badgeText = '';
         if (status.favorites) badgeText += '❤️ ';
         if (status.wantToGo) badgeText += '📍 ';
         if (status.visited) badgeText += '✓ ';
-        if (customFolderIcons.length > 0) {
-          badgeText += customFolderIcons.join(' ');
-        }
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -2975,7 +2955,6 @@
         
         return card;
       }
-      
       function loadVisibleImages() {
         const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
         images.forEach(img => {
@@ -3358,6 +3337,7 @@
       }
       
       // ---------- AUTH MANAGEMENT ----------
+      // ---------- AUTH MANAGEMENT ----------
       async function updateAuthUI() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -3412,7 +3392,12 @@
           state.authChecked = true;
           
           if (state.filteredRestaurants.length > 0) {
-            renderRestaurants();
+            // Render restaurants without waiting for folder status
+            const grid = document.getElementById('restaurantGrid');
+            if (grid) {
+              // Clear and re-render synchronously
+              renderRestaurants();
+            }
           }
           
         } catch (error) {
@@ -3429,7 +3414,6 @@
           }
         }
       }
-      
       // ---------- INITIALIZATION ----------
       async function init() {
         if (!supabase) {
