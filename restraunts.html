@@ -720,13 +720,17 @@
       width: 24px;
     }
     
-    .custom-folders-btn {
-      background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
-      border-color: #8b5cf6;
+    /* UPDATED: Custom Lists button styling - Yellow outline instead of purple */
+    .custom-lists-btn {
+      background: var(--bg);
+      border: 1px solid var(--accent);
+      color: var(--white);
     }
     
-    .custom-folders-btn:hover {
-      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    .custom-lists-btn:hover {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
     }
     
     .cancel-btn {
@@ -746,8 +750,8 @@
       color: var(--white);
     }
     
-    /* Custom Folders Modal */
-    .custom-folders-modal {
+    /* Custom Lists Modal - UPDATED STYLING */
+    .custom-lists-modal {
       display: none;
       position: fixed;
       top: 0;
@@ -764,18 +768,18 @@
       transition: opacity 0.3s ease;
     }
     
-    .custom-folders-modal.active {
+    .custom-lists-modal.active {
       display: flex;
       opacity: 1;
     }
     
-    .custom-folders-content {
+    .custom-lists-content {
       background: var(--card);
       border-radius: 20px;
       padding: 30px;
       max-width: 500px;
       width: 100%;
-      border: 2px solid #8b5cf6;
+      border: 2px solid var(--accent); /* Changed from purple to yellow */
       box-shadow: 0 25px 50px rgba(0,0,0,0.3);
       animation: modalSlideIn 0.3s ease-out;
       max-height: 80vh;
@@ -783,14 +787,14 @@
       flex-direction: column;
     }
     
-    .folders-header {
+    .lists-header {
       margin-bottom: 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     
-    .folders-header h3 {
+    .lists-header h3 {
       font-size: 22px;
       color: var(--white);
       font-weight: 600;
@@ -799,11 +803,11 @@
       gap: 10px;
     }
     
-    .folders-header h3 i {
-      color: #8b5cf6;
+    .lists-header h3 i {
+      color: var(--accent); /* Changed from purple to yellow */
     }
     
-    .close-folders-btn {
+    .close-lists-btn {
       background: none;
       border: none;
       color: var(--muted);
@@ -818,39 +822,39 @@
       transition: all 0.3s ease;
     }
     
-    .close-folders-btn:hover {
+    .close-lists-btn:hover {
       background: rgba(255,255,255,0.1);
       color: var(--white);
     }
     
-    .folders-list-container {
+    .lists-list-container {
       flex: 1;
       overflow-y: auto;
       margin-bottom: 20px;
       padding-right: 10px;
     }
     
-    .folders-list-container::-webkit-scrollbar {
+    .lists-list-container::-webkit-scrollbar {
       width: 8px;
     }
     
-    .folders-list-container::-webkit-scrollbar-track {
+    .lists-list-container::-webkit-scrollbar-track {
       background: rgba(255,255,255,0.05);
       border-radius: 10px;
     }
     
-    .folders-list-container::-webkit-scrollbar-thumb {
-      background: #8b5cf6;
+    .lists-list-container::-webkit-scrollbar-thumb {
+      background: var(--accent); /* Changed from purple to yellow */
       border-radius: 10px;
     }
     
-    .folders-list {
+    .lists-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
     
-    .folder-item {
+    .list-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -862,45 +866,46 @@
       transition: all 0.3s ease;
     }
     
-    .folder-item:hover {
-      background: rgba(139, 92, 246, 0.1);
-      border-color: #8b5cf6;
+    .list-item:hover {
+      background: rgba(245, 158, 11, 0.1); /* Changed from purple to yellow */
+      border-color: var(--accent);
       transform: translateX(5px);
     }
     
-    .folder-item.active {
-      background: rgba(139, 92, 246, 0.2);
-      border-color: #8b5cf6;
+    .list-item.active {
+      background: rgba(245, 158, 11, 0.2); /* Changed from purple to yellow */
+      border-color: var(--accent);
     }
     
-    .folder-info {
+    .list-info {
       display: flex;
       align-items: center;
       gap: 12px;
       flex: 1;
     }
     
-    .folder-icon {
+    .list-icon {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); /* Changed from purple to yellow gradient */
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: #0b1633;
       font-size: 18px;
+      font-weight: 600;
     }
     
-    .folder-name {
+    .list-name {
       font-weight: 500;
       color: var(--white);
     }
     
-    .folder-checkbox {
+    .list-checkbox {
       width: 20px;
       height: 20px;
-      border: 2px solid #475569;
+      border: 2px solid var(--border);
       border-radius: 6px;
       display: flex;
       align-items: center;
@@ -910,9 +915,9 @@
       position: relative;
     }
     
-    .folder-checkbox.checked {
-      background: #8b5cf6;
-      border-color: #8b5cf6;
+    .list-checkbox.checked {
+      background: var(--accent); /* Changed from purple to yellow */
+      border-color: var(--accent);
       animation: checkPop 0.3s ease;
     }
     
@@ -922,43 +927,43 @@
       100% { transform: scale(1); }
     }
     
-    .folder-checkbox.checked::after {
+    .list-checkbox.checked::after {
       content: "✓";
-      color: white;
+      color: #0b1633;
       font-size: 12px;
       font-weight: bold;
     }
     
-    .empty-folders {
+    .empty-lists {
       text-align: center;
       padding: 40px 20px;
       color: var(--muted);
     }
     
-    .empty-folders i {
+    .empty-lists i {
       font-size: 48px;
       margin-bottom: 16px;
       opacity: 0.5;
-      color: #8b5cf6;
+      color: var(--accent); /* Changed from purple to yellow */
     }
     
-    .empty-folders h4 {
+    .empty-lists h4 {
       margin-bottom: 8px;
       color: var(--white);
     }
     
-    .new-folder-section {
+    .new-list-section {
       padding-top: 20px;
       border-top: 1px solid var(--border);
     }
     
-    .new-folder-input {
+    .new-list-input {
       display: flex;
       gap: 10px;
       margin-bottom: 15px;
     }
     
-    .new-folder-input input {
+    .new-list-input input {
       flex: 1;
       padding: 12px 16px;
       background: rgba(255,255,255,0.05);
@@ -970,14 +975,14 @@
       transition: all 0.3s ease;
     }
     
-    .new-folder-input input:focus {
-      border-color: #8b5cf6;
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    .new-list-input input:focus {
+      border-color: var(--accent); /* Changed from purple to yellow */
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
     }
     
-    .create-folder-btn {
-      background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
-      color: white;
+    .create-list-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); /* Changed from purple to yellow gradient */
+      color: #0b1633;
       border: none;
       padding: 12px 20px;
       border-radius: 12px;
@@ -990,24 +995,24 @@
       gap: 8px;
     }
     
-    .create-folder-btn:hover {
+    .create-list-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
     }
     
-    .create-folder-btn:disabled {
+    .create-list-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none;
     }
     
-    .folders-actions {
+    .lists-actions {
       display: flex;
       gap: 12px;
       margin-top: 10px;
     }
     
-    .folders-save-btn {
+    .lists-save-btn {
       flex: 1;
       background: var(--accent);
       color: #0b1633;
@@ -1019,12 +1024,12 @@
       transition: all 0.3s ease;
     }
     
-    .folders-save-btn:hover:not(:disabled) {
+    .lists-save-btn:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
     }
     
-    .folders-save-btn:disabled {
+    .lists-save-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none;
@@ -1441,7 +1446,7 @@
         width: 100%;
       }
       
-      .custom-folders-content {
+      .custom-lists-content {
         padding: 20px;
         margin: 10px;
         max-height: 70vh;
@@ -1517,15 +1522,15 @@
         right: 8px;
       }
       
-      .custom-folders-content {
+      .custom-lists-content {
         padding: 16px;
       }
       
-      .folder-item {
+      .list-item {
         padding: 12px;
       }
       
-      .folder-icon {
+      .list-icon {
         width: 32px;
         height: 32px;
         font-size: 16px;
@@ -1655,9 +1660,10 @@
           <i class="fas fa-utensils"></i>
           <span id="visitedText">Mark as Visited</span>
         </button>
-        <button class="action-btn-modal custom-folders-btn" id="modalCustomFoldersBtn">
-          <i class="fas fa-folder"></i>
-          <span>Custom Folders</span>
+        <!-- UPDATED: Changed from Custom Folders to Custom Lists -->
+        <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
+          <i class="fas fa-list"></i>
+          <span>Custom Lists</span>
           <i class="fas fa-chevron-right"></i>
         </button>
       </div>
@@ -1665,27 +1671,27 @@
     </div>
   </div>
 
-  <!-- Custom Folders Modal -->
-  <div id="customFoldersModal" class="custom-folders-modal">
-    <div class="custom-folders-content">
-      <div class="folders-header">
-        <h3><i class="fas fa-folder"></i> Custom Folders</h3>
-        <button class="close-folders-btn" id="closeFoldersBtn">×</button>
+  <!-- Custom Lists Modal - UPDATED NAME -->
+  <div id="customListsModal" class="custom-lists-modal">
+    <div class="custom-lists-content">
+      <div class="lists-header">
+        <h3><i class="fas fa-list"></i> Custom Lists</h3>
+        <button class="close-lists-btn" id="closeListsBtn">×</button>
       </div>
       
-      <div class="folders-list-container" id="foldersListContainer">
-        <!-- Folders will be populated here -->
+      <div class="lists-list-container" id="listsListContainer">
+        <!-- Lists will be populated here -->
       </div>
       
-      <div class="new-folder-section">
-        <div class="new-folder-input">
-          <input type="text" id="newFolderName" placeholder="Enter new folder name..." maxlength="50">
-          <button class="create-folder-btn" id="createFolderBtn">
+      <div class="new-list-section">
+        <div class="new-list-input">
+          <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
+          <button class="create-list-btn" id="createListBtn">
             <i class="fas fa-plus"></i> Create
           </button>
         </div>
-        <div class="folders-actions">
-          <button class="folders-save-btn" id="saveFoldersBtn">Save Changes</button>
+        <div class="lists-actions">
+          <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
         </div>
       </div>
     </div>
@@ -1762,24 +1768,24 @@
         imageQueue: [],
         imagesLoading: 0,
         maxConcurrentLoads: 6,
-        customFolders: [],
-        selectedFolders: new Set()
+        customLists: [], // Changed from customFolders to customLists
+        selectedLists: new Set() // Changed from selectedFolders
       };
       
-      // ---------- CUSTOM FOLDERS MANAGER ----------
-      const customFoldersManager = {
+      // ---------- CUSTOM LISTS MANAGER ----------
+      const customListsManager = {
         async init() {
           if (state.currentUser) {
-            await this.loadCustomFolders();
+            await this.loadCustomLists();
           }
         },
         
-        async loadCustomFolders() {
+        async loadCustomLists() {
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
             
-            const { data: folders, error } = await supabase
+            const { data: lists, error } = await supabase
               .from('lists')
               .select('*')
               .eq('user_id', user.id)
@@ -1788,26 +1794,26 @@
             
             if (error) throw error;
             
-            state.customFolders = folders || [];
+            state.customLists = lists || [];
             
           } catch (error) {
-            console.error('Error loading custom folders:', error);
-            state.customFolders = [];
+            console.error('Error loading custom lists:', error);
+            state.customLists = [];
           }
         },
         
-        async createFolder(name) {
+        async createList(name) {
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return null;
             
-            const { data: newFolder, error } = await supabase
+            const { data: newList, error } = await supabase
               .from('lists')
               .insert([
                 {
                   user_id: user.id,
                   title: name,
-                  description: 'Custom folder for restaurants',
+                  description: 'Custom list for restaurants',
                   created_at: new Date().toISOString()
                 }
               ])
@@ -1816,21 +1822,21 @@
             
             if (error) throw error;
             
-            state.customFolders.unshift(newFolder);
-            return newFolder;
+            state.customLists.unshift(newList);
+            return newList;
             
           } catch (error) {
-            console.error('Error creating folder:', error);
+            console.error('Error creating list:', error);
             return null;
           }
         },
         
-        async checkRestaurantInFolder(restaurantId, folderId) {
+        async checkRestaurantInList(restaurantId, listId) {
           try {
             const { data, error } = await supabase
               .from('lists_restraunts')
               .select('*')
-              .eq('list_id', folderId)
+              .eq('list_id', listId)
               .eq('restraunt_id', restaurantId)
               .single();
             
@@ -1839,33 +1845,33 @@
             return !!data;
             
           } catch (error) {
-            console.error('Error checking restaurant in folder:', error);
+            console.error('Error checking restaurant in list:', error);
             return false;
           }
         },
         
-        async toggleRestaurantInFolder(restaurantId, folderId) {
+        async toggleRestaurantInList(restaurantId, listId) {
           try {
-            const isInFolder = await this.checkRestaurantInFolder(restaurantId, folderId);
+            const isInList = await this.checkRestaurantInList(restaurantId, listId);
             
-            if (isInFolder) {
-              // Remove from folder
+            if (isInList) {
+              // Remove from list
               const { error } = await supabase
                 .from('lists_restraunts')
                 .delete()
-                .eq('list_id', folderId)
+                .eq('list_id', listId)
                 .eq('restraunt_id', restaurantId);
               
               if (error) throw error;
               
               return false;
             } else {
-              // Add to folder
+              // Add to list
               const { error } = await supabase
                 .from('lists_restraunts')
                 .insert([
                   {
-                    list_id: folderId,
+                    list_id: listId,
                     restraunt_id: restaurantId,
                     added_at: new Date().toISOString()
                   }
@@ -1877,51 +1883,52 @@
             }
             
           } catch (error) {
-            console.error('Error toggling restaurant in folder:', error);
+            console.error('Error toggling restaurant in list:', error);
             return null;
           }
         },
         
-        async loadRestaurantFoldersStatus(restaurantId) {
+        async loadRestaurantListsStatus(restaurantId) {
           if (!state.currentUser || !restaurantId) return {};
           
           const status = {};
           
-          for (const folder of state.customFolders) {
-            status[folder.id] = await this.checkRestaurantInFolder(restaurantId, folder.id);
+          for (const list of state.customLists) {
+            status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
           }
           
           return status;
         },
         
-        renderFoldersList(restaurantId) {
-          const container = document.getElementById('foldersListContainer');
+        renderListsList(restaurantId) {
+          const container = document.getElementById('listsListContainer');
           if (!container) return;
           
-          if (state.customFolders.length === 0) {
+          if (state.customLists.length === 0) {
             container.innerHTML = `
-              <div class="empty-folders">
-                <i class="fas fa-folder-open"></i>
-                <h4>No custom folders yet</h4>
-                <p>Create your first folder to organize restaurants</p>
+              <div class="empty-lists">
+                <i class="fas fa-list"></i>
+                <h4>No custom lists yet</h4>
+                <p>Create your first list to organize restaurants</p>
               </div>
             `;
             return;
           }
           
-          let html = '<div class="folders-list">';
+          let html = '<div class="lists-list">';
           
-          state.customFolders.forEach(folder => {
-            const isChecked = state.selectedFolders.has(folder.id);
+          state.customLists.forEach(list => {
+            const isChecked = state.selectedLists.has(list.id);
+            const listIcon = list.icon || '📋';
             html += `
-              <div class="folder-item ${isChecked ? 'active' : ''}" data-folder-id="${folder.id}">
-                <div class="folder-info">
-                  <div class="folder-icon">
-                    <i class="fas fa-folder"></i>
+              <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
+                <div class="list-info">
+                  <div class="list-icon">
+                    ${listIcon}
                   </div>
-                  <span class="folder-name">${folder.title}</span>
+                  <span class="list-name">${list.title}</span>
                 </div>
-                <div class="folder-checkbox ${isChecked ? 'checked' : ''}"></div>
+                <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
               </div>
             `;
           });
@@ -1930,18 +1937,18 @@
           container.innerHTML = html;
           
           // Add event listeners
-          container.querySelectorAll('.folder-item').forEach(item => {
+          container.querySelectorAll('.list-item').forEach(item => {
             item.addEventListener('click', (e) => {
               e.stopPropagation();
-              const folderId = item.dataset.folderId;
-              const checkbox = item.querySelector('.folder-checkbox');
+              const listId = item.dataset.listId;
+              const checkbox = item.querySelector('.list-checkbox');
               
-              if (state.selectedFolders.has(folderId)) {
-                state.selectedFolders.delete(folderId);
+              if (state.selectedLists.has(listId)) {
+                state.selectedLists.delete(listId);
                 item.classList.remove('active');
                 checkbox.classList.remove('checked');
               } else {
-                state.selectedFolders.add(folderId);
+                state.selectedLists.add(listId);
                 item.classList.add('active');
                 checkbox.classList.add('checked');
                 
@@ -2026,7 +2033,7 @@
               if (!session) return;
               
               await this.loadUserLists();
-              await customFoldersManager.init();
+              await customListsManager.init();
           },
           
           async loadUserLists() {
@@ -2220,8 +2227,8 @@
         }, duration);
       }
       
-      // ---------- CUSTOM FOLDERS MODAL ----------
-            function showCustomFoldersModal(restaurantId) {
+      // ---------- CUSTOM LISTS MODAL ----------
+      function showCustomListsModal(restaurantId) {
         if (!restaurantId) {
           showNotification('No restaurant selected', 'error');
           return;
@@ -2241,82 +2248,84 @@
         
         state.currentModalRestaurant = restaurant;
         
-        // Load current folder status for this restaurant
-        customFoldersManager.loadRestaurantFoldersStatus(restaurantId).then(status => {
-          state.selectedFolders.clear();
-          for (const [folderId, isChecked] of Object.entries(status)) {
+        // Load current list status for this restaurant
+        customListsManager.loadRestaurantListsStatus(restaurantId).then(status => {
+          state.selectedLists.clear();
+          for (const [listId, isChecked] of Object.entries(status)) {
             if (isChecked) {
-              state.selectedFolders.add(folderId);
+              state.selectedLists.add(listId);
             }
           }
           
-          // Render folders list
-          customFoldersManager.renderFoldersList(restaurantId);
+          // Render lists list
+          customListsManager.renderListsList(restaurantId);
           
           // Show modal
-          const modal = document.getElementById('customFoldersModal');
+          const modal = document.getElementById('customListsModal');
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
         }).catch(error => {
-          console.error('Error loading folder status:', error);
-          showNotification('Error loading folders', 'error');
+          console.error('Error loading list status:', error);
+          showNotification('Error loading lists', 'error');
         });
       }
       
-      function hideCustomFoldersModal() {
-        const modal = document.getElementById('customFoldersModal');
+      function hideCustomListsModal() {
+        const modal = document.getElementById('customListsModal');
         modal.classList.remove('active');
         document.body.style.overflow = 'auto';
-        state.selectedFolders.clear();
+        state.selectedLists.clear();
       }
       
-         async function saveFolderChanges() {
+      async function saveListChanges() {
         if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
           showNotification('No restaurant selected', 'error');
-          hideCustomFoldersModal();
+          hideCustomListsModal();
           return;
         }
         
         const restaurantId = state.currentModalRestaurant.id;
-        const saveBtn = document.getElementById('saveFoldersBtn');
+        const saveBtn = document.getElementById('saveListsBtn');
         const originalText = saveBtn.textContent;
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
         
         try {
-          // Process each folder
-          for (const folder of state.customFolders) {
-            const shouldBeInFolder = state.selectedFolders.has(folder.id);
-            const isInFolder = await customFoldersManager.checkRestaurantInFolder(
+          // Process each list
+          for (const list of state.customLists) {
+            const shouldBeInList = state.selectedLists.has(list.id);
+            const isInList = await customListsManager.checkRestaurantInList(
               restaurantId, 
-              folder.id
+              list.id
             );
             
-            if (shouldBeInFolder && !isInFolder) {
-              // Add to folder
-              await customFoldersManager.toggleRestaurantInFolder(
+            if (shouldBeInList && !isInList) {
+              // Add to list
+              await customListsManager.toggleRestaurantInList(
                 restaurantId, 
-                folder.id
+                list.id
               );
-            } else if (!shouldBeInFolder && isInFolder) {
-              // Remove from folder
-              await customFoldersManager.toggleRestaurantInFolder(
+              showNotification(`Added to "${list.title}" list`, 'success');
+            } else if (!shouldBeInList && isInList) {
+              // Remove from list
+              await customListsManager.toggleRestaurantInList(
                 restaurantId, 
-                folder.id
+                list.id
               );
+              showNotification(`Removed from "${list.title}" list`, 'info');
             }
           }
           
-          showNotification('Folder changes saved successfully!', 'success');
-          hideCustomFoldersModal();
+          showNotification('List changes saved successfully!', 'success');
+          hideCustomListsModal();
           
-          // Refresh restaurant display if needed
+          // Refresh restaurant display
           if (state.filteredRestaurants.length > 0) {
             renderRestaurants();
           }
           
         } catch (error) {
-          console.error('Error saving folder changes:', error);
+          console.error('Error saving list changes:', error);
           showNotification('Error saving changes', 'error');
         } finally {
           saveBtn.disabled = false;
@@ -2356,20 +2365,11 @@
         document.body.style.overflow = 'hidden';
       }
       
-            function hideModal() {
+      function hideModal() {
         const modal = document.getElementById('actionsModal');
         modal.classList.remove('active');
         document.body.style.overflow = 'auto';
-        // Don't clear currentModalRestaurant here - it's needed for custom folders
-      }
-      
-      function hideCustomFoldersModal() {
-        const modal = document.getElementById('customFoldersModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-        state.selectedFolders.clear();
-        // Now we can clear the restaurant after custom folders modal is closed
-        state.currentModalRestaurant = null;
+        // Don't clear currentModalRestaurant here - it's needed for custom lists
       }
       
       function updateModalButtons(restaurantId) {
@@ -2808,10 +2808,11 @@
         state.filteredRestaurants = filtered;
         state.currentPage = 1;
         
-        renderRestaurants(); // This is now async
+        renderRestaurants();
         updatePagination();
         updateCounts();
       }
+      
       function applyQuickFilter(restaurants, filterType) {
         switch(filterType) {
           case 'trending':
@@ -2842,7 +2843,7 @@
         }
       }
       
-       // ---------- RENDERING ----------
+      // ---------- RENDERING ----------
       function showLoadingSkeleton() {
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
@@ -2911,9 +2912,6 @@
         const status = listManager.getRestaurantListStatus(restaurant.id);
         const isTopRated = rating >= 4.5;
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
-        
-        // Don't load custom folder status here - it was causing async issues
-        // Instead, we'll load it separately if needed
         
         let badgeText = '';
         if (status.favorites) badgeText += '❤️ ';
@@ -2985,6 +2983,7 @@
         
         return card;
       }
+      
       function loadVisibleImages() {
         const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
         images.forEach(img => {
@@ -3135,7 +3134,7 @@
         const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
         const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
         const modalVisitedBtn = document.getElementById('modalVisitedBtn');
-        const modalCustomFoldersBtn = document.getElementById('modalCustomFoldersBtn');
+        const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
         const modalCancelBtn = document.getElementById('modalCancelBtn');
         
         if (modalFavoritesBtn) {
@@ -3165,8 +3164,9 @@
           });
         }
         
-             if (modalCustomFoldersBtn) {
-          modalCustomFoldersBtn.addEventListener('click', async () => {
+        // UPDATED: Custom Lists button handler
+        if (modalCustomListsBtn) {
+          modalCustomListsBtn.addEventListener('click', async () => {
             if (!state.currentModalRestaurant) {
               showNotification('No restaurant selected', 'error');
               return;
@@ -3181,81 +3181,81 @@
             
             // Wait a bit for the modal to close
             setTimeout(() => {
-              // Set the restaurant for custom folders
+              // Set the restaurant for custom lists
               state.currentModalRestaurant = {
                 id: restaurantId,
                 name: restaurantName,
                 slug: state.currentModalRestaurant.slug
               };
               
-              // Now show the custom folders modal
-              showCustomFoldersModal(restaurantId);
+              // Now show the custom lists modal
+              showCustomListsModal(restaurantId);
             }, 100);
           });
         }
         
-        // Custom folders modal buttons
-        const closeFoldersBtn = document.getElementById('closeFoldersBtn');
-        const createFolderBtn = document.getElementById('createFolderBtn');
-        const saveFoldersBtn = document.getElementById('saveFoldersBtn');
-        const newFolderNameInput = document.getElementById('newFolderName');
+        // Custom lists modal buttons - UPDATED NAMES
+        const closeListsBtn = document.getElementById('closeListsBtn');
+        const createListBtn = document.getElementById('createListBtn');
+        const saveListsBtn = document.getElementById('saveListsBtn');
+        const newListNameInput = document.getElementById('newListName');
         
-        if (closeFoldersBtn) {
-          closeFoldersBtn.addEventListener('click', hideCustomFoldersModal);
+        if (closeListsBtn) {
+          closeListsBtn.addEventListener('click', hideCustomListsModal);
         }
         
-        if (createFolderBtn) {
-          createFolderBtn.addEventListener('click', async () => {
-            const name = newFolderNameInput.value.trim();
+        if (createListBtn) {
+          createListBtn.addEventListener('click', async () => {
+            const name = newListNameInput.value.trim();
             if (!name) {
-              showNotification('Please enter a folder name', 'warning');
+              showNotification('Please enter a list name', 'warning');
               return;
             }
             
-            // Check if folder already exists
-            const existingFolder = state.customFolders.find(f => 
-              f.title.toLowerCase() === name.toLowerCase()
+            // Check if list already exists
+            const existingList = state.customLists.find(l => 
+              l.title.toLowerCase() === name.toLowerCase()
             );
             
-            if (existingFolder) {
-              showNotification(`"${name}" folder already exists`, 'warning');
+            if (existingList) {
+              showNotification(`"${name}" list already exists`, 'warning');
               return;
             }
             
-            const newFolder = await customFoldersManager.createFolder(name);
-            if (newFolder) {
-              showNotification(`Created "${name}" folder`, 'success');
-              newFolderNameInput.value = '';
-              customFoldersManager.renderFoldersList(state.currentModalRestaurant?.id);
+            const newList = await customListsManager.createList(name);
+            if (newList) {
+              showNotification(`Created "${name}" list`, 'success');
+              newListNameInput.value = '';
+              customListsManager.renderListsList(state.currentModalRestaurant?.id);
               
-              // Auto-select the new folder
-              state.selectedFolders.add(newFolder.id);
+              // Auto-select the new list
+              state.selectedLists.add(newList.id);
               
               // Refresh the display
               setTimeout(() => {
-                customFoldersManager.renderFoldersList(state.currentModalRestaurant?.id);
+                customListsManager.renderListsList(state.currentModalRestaurant?.id);
               }, 100);
             }
           });
         }
         
-        if (saveFoldersBtn) {
-          saveFoldersBtn.addEventListener('click', saveFolderChanges);
+        if (saveListsBtn) {
+          saveListsBtn.addEventListener('click', saveListChanges);
         }
         
-        if (newFolderNameInput) {
-          newFolderNameInput.addEventListener('keypress', async (e) => {
+        if (newListNameInput) {
+          newListNameInput.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
-              createFolderBtn.click();
+              createListBtn.click();
             }
           });
         }
         
-        const customFoldersModal = document.getElementById('customFoldersModal');
-        if (customFoldersModal) {
-          customFoldersModal.addEventListener('click', (e) => {
-            if (e.target === customFoldersModal) {
-              hideCustomFoldersModal();
+        const customListsModal = document.getElementById('customListsModal');
+        if (customListsModal) {
+          customListsModal.addEventListener('click', (e) => {
+            if (e.target === customListsModal) {
+              hideCustomListsModal();
             }
           });
         }
@@ -3293,7 +3293,7 @@
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
-            hideCustomFoldersModal();
+            hideCustomListsModal();
             hideAuthPrompt();
           }
         });
@@ -3375,7 +3375,6 @@
       }
       
       // ---------- AUTH MANAGEMENT ----------
-      // ---------- AUTH MANAGEMENT ----------
       async function updateAuthUI() {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -3430,7 +3429,7 @@
           state.authChecked = true;
           
           if (state.filteredRestaurants.length > 0) {
-            // Render restaurants without waiting for folder status
+            // Render restaurants without waiting for list status
             const grid = document.getElementById('restaurantGrid');
             if (grid) {
               // Clear and re-render synchronously
@@ -3452,6 +3451,7 @@
           }
         }
       }
+      
       // ---------- INITIALIZATION ----------
       async function init() {
         if (!supabase) {
