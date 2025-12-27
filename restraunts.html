@@ -3094,7 +3094,7 @@
         document.getElementById('totalPages').textContent = totalPages;
         
         const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextPage');
+        const nextBtn = document.getElementById('nextBtn');
         
         if (prevBtn) prevBtn.disabled = state.currentPage === 1;
         if (nextBtn) nextBtn.disabled = state.currentPage === totalPages;
@@ -3191,7 +3191,7 @@
         
         initializeViewControls();
         
-        // Actions modal buttons
+        // Actions modal buttons - FIXED VERSION
         const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
         const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
         const modalVisitedBtn = document.getElementById('modalVisitedBtn');
@@ -3225,34 +3225,28 @@
           });
         }
         
-        // Custom Lists button handler
+        // FIXED: Custom Lists button handler - This was the main issue
         if (modalCustomListsBtn) {
-          modalCustomListsBtn.addEventListener('click', async () => {
+          modalCustomListsBtn.addEventListener('click', () => {
             if (!state.currentModalRestaurant) {
               showNotification('No restaurant selected', 'error');
               return;
             }
             
-            // Store the current restaurant ID before closing the modal
-            const restaurantId = state.currentModalRestaurant.id;
-            const restaurantName = state.currentModalRestaurant.name;
+            console.log('Custom lists button clicked for restaurant:', state.currentModalRestaurant.id);
             
-            // Close the actions modal
+            // Close actions modal first
             hideModal();
             
-            // Wait a bit for the modal to close
+            // Show custom lists modal after a short delay
             setTimeout(() => {
-              // Set the restaurant for custom lists
-              state.currentModalRestaurant = {
-                id: restaurantId,
-                name: restaurantName,
-                slug: state.currentModalRestaurant.slug
-              };
-              
-              // Now show the custom lists modal
-              showCustomListsModal(restaurantId);
+              showCustomListsModal(state.currentModalRestaurant.id);
             }, 100);
           });
+        }
+        
+        if (modalCancelBtn) {
+          modalCancelBtn.addEventListener('click', hideModal);
         }
         
         // Custom lists modal buttons
@@ -3351,6 +3345,14 @@
           });
         }
         
+        // Auth button
+        const authBtn = document.getElementById('authBtn');
+        if (authBtn) {
+          authBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+          });
+        }
+        
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
@@ -3442,6 +3444,7 @@
           
           if (session && session.user) {
             state.isLoggedIn = true;
+            state.currentUser = session.user;
             
             guestBanner.hide();
             
@@ -3478,6 +3481,7 @@
             
           } else {
             state.isLoggedIn = false;
+            state.currentUser = null;
             
             guestBanner.show();
             
@@ -3497,6 +3501,7 @@
         } catch (error) {
           console.error('Auth error:', error);
           state.isLoggedIn = false;
+          state.currentUser = null;
           state.authChecked = true;
           
           guestBanner.show();
