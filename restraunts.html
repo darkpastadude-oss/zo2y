@@ -1841,18 +1841,22 @@
           }
         },
         
+        // FIXED: Removed .single() to fix 406 error
         async checkRestaurantInList(restaurantId, listId) {
           try {
             const { data, error } = await supabase
               .from('lists_restraunts')
               .select('*')
               .eq('list_id', listId)
-              .eq('restraunt_id', restaurantId)
-              .single();
+              .eq('restraunt_id', restaurantId);
             
-            if (error && error.code !== 'PGRST116') throw error;
+            if (error) {
+              console.error('Error checking restaurant in list:', error);
+              return false;
+            }
             
-            return !!data;
+            // Check if we got any results
+            return data && data.length > 0;
             
           } catch (error) {
             console.error('Error checking restaurant in list:', error);
@@ -1872,7 +1876,10 @@
                 .eq('list_id', listId)
                 .eq('restraunt_id', restaurantId);
               
-              if (error) throw error;
+              if (error) {
+                console.error('Error removing from list:', error);
+                throw error;
+              }
               
               return false;
             } else {
@@ -1887,7 +1894,10 @@
                   }
                 ]);
               
-              if (error) throw error;
+              if (error) {
+                console.error('Error adding to list:', error);
+                throw error;
+              }
               
               return true;
             }
@@ -1906,9 +1916,12 @@
           
           console.log('Checking restaurant status in', state.customLists.length, 'custom lists');
           
-          for (const list of state.customLists) {
+          // Check each list in parallel for better performance
+          const promises = state.customLists.map(async (list) => {
             status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
-          }
+          });
+          
+          await Promise.all(promises);
           
           console.log('Restaurant list status:', status);
           return status;
@@ -1959,7 +1972,7 @@
           container.querySelectorAll('.list-item').forEach(item => {
             item.addEventListener('click', (e) => {
               e.stopPropagation();
-              const listId = parseInt(item.dataset.listId);
+              const listId = item.dataset.listId;
               const checkbox = item.querySelector('.list-checkbox');
               
               if (state.selectedLists.has(listId)) {
@@ -2288,7 +2301,7 @@
           state.selectedLists.clear();
           for (const [listId, isChecked] of Object.entries(status)) {
             if (isChecked) {
-              state.selectedLists.add(parseInt(listId));
+              state.selectedLists.add(listId);
             }
           }
           
@@ -3094,7 +3107,7 @@
         document.getElementById('totalPages').textContent = totalPages;
         
         const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextBtn');
+        const nextBtn = document.getElementById('nextPage');
         
         if (prevBtn) prevBtn.disabled = state.currentPage === 1;
         if (nextBtn) nextBtn.disabled = state.currentPage === totalPages;
@@ -3191,7 +3204,7 @@
         
         initializeViewControls();
         
-        // Actions modal buttons - FIXED VERSION
+        // Actions modal buttons
         const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
         const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
         const modalVisitedBtn = document.getElementById('modalVisitedBtn');
@@ -3225,7 +3238,7 @@
           });
         }
         
-        // FIXED: Custom Lists button handler - This was the main issue
+        // Fixed Custom Lists button handler
         if (modalCustomListsBtn) {
           modalCustomListsBtn.addEventListener('click', () => {
             if (!state.currentModalRestaurant) {
