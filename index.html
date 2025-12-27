@@ -2422,14 +2422,7 @@
             spotDesc: document.getElementById('spotDesc'),
             spotRating: document.getElementById('spotRating'),
             spotlightViewBtn: document.getElementById('spotlightViewBtn'),
-            slideIndicators: document.getElementById('slideIndicators'),
-            // Custom lists elements
-            modalCustomListsBtn: document.getElementById('modalCustomListsBtn'),
-            closeListsBtn: document.getElementById('closeListsBtn'),
-            createListBtn: document.getElementById('createListBtn'),
-            saveListsBtn: document.getElementById('saveListsBtn'),
-            newListName: document.getElementById('newListName'),
-            listsListContainer: document.getElementById('listsListContainer')
+            slideIndicators: document.getElementById('slideIndicators')
         };
         
         // ---------- CUSTOM LISTS MANAGER ----------
@@ -2586,7 +2579,7 @@
             },
             
             renderListsList(restaurantId) {
-                const container = elements.listsListContainer;
+                const container = document.getElementById('listsListContainer');
                 if (!container) return;
                 
                 console.log('Rendering lists list for restaurant:', restaurantId);
@@ -2925,7 +2918,8 @@
                 
                 // Focus the modal
                 setTimeout(() => {
-                    if (elements.newListName) elements.newListName.focus();
+                    const newListInput = document.getElementById('newListName');
+                    if (newListInput) newListInput.focus();
                 }, 300);
                 
             } catch (error) {
@@ -2955,7 +2949,7 @@
             
             const restaurantId = state.currentModalRestaurant.id;
             const restaurantName = state.currentModalRestaurant.name;
-            const saveBtn = elements.saveListsBtn;
+            const saveBtn = document.getElementById('saveListsBtn');
             const originalText = saveBtn.textContent;
             
             saveBtn.disabled = true;
@@ -3186,16 +3180,20 @@
                 });
             }
             
-            // Custom lists modal events
+            // Custom lists modal events - FIXED: COPIED EXACT LOGIC FROM RESTAURANTS.HTML
             const customListsModal = document.getElementById('customListsModal');
+            const closeListsBtn = document.getElementById('closeListsBtn');
+            const createListBtn = document.getElementById('createListBtn');
+            const saveListsBtn = document.getElementById('saveListsBtn');
+            const newListNameInput = document.getElementById('newListName');
             
-            if (elements.closeListsBtn) {
-                elements.closeListsBtn.addEventListener('click', hideCustomListsModal);
+            if (closeListsBtn) {
+                closeListsBtn.addEventListener('click', hideCustomListsModal);
             }
             
-            if (elements.createListBtn) {
-                elements.createListBtn.addEventListener('click', async () => {
-                    const name = elements.newListName.value.trim();
+            if (createListBtn) {
+                createListBtn.addEventListener('click', async () => {
+                    const name = newListNameInput.value.trim();
                     if (!name) {
                         showNotification('Please enter a list name', 'warning');
                         return;
@@ -3214,7 +3212,7 @@
                     const newList = await customListsManager.createList(name);
                     if (newList) {
                         showNotification(`Created "${name}" list`, 'success');
-                        elements.newListName.value = '';
+                        newListNameInput.value = '';
                         
                         // Refresh lists from database
                         await customListsManager.refreshLists();
@@ -3228,14 +3226,14 @@
                 });
             }
             
-            if (elements.saveListsBtn) {
-                elements.saveListsBtn.addEventListener('click', saveListChanges);
+            if (saveListsBtn) {
+                saveListsBtn.addEventListener('click', saveListChanges);
             }
             
-            if (elements.newListName) {
-                elements.newListName.addEventListener('keypress', async (e) => {
+            if (newListNameInput) {
+                newListNameInput.addEventListener('keypress', async (e) => {
                     if (e.key === 'Enter') {
-                        elements.createListBtn.click();
+                        createListBtn.click();
                     }
                 });
             }
@@ -3282,6 +3280,7 @@
             const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
             const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
             const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+            const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
             
             if (modalFavoritesBtn) {
                 modalFavoritesBtn.addEventListener('click', async () => {
@@ -3319,23 +3318,25 @@
                 });
             }
             
-            // Custom Lists button
-            if (elements.modalCustomListsBtn) {
-                elements.modalCustomListsBtn.addEventListener('click', () => {
-                    if (!state.currentModalRestaurant) {
+            // FIXED: Custom Lists button handler - COPIED EXACT LOGIC FROM RESTAURANTS.HTML
+            if (modalCustomListsBtn) {
+                modalCustomListsBtn.addEventListener('click', () => {
+                    console.log('Custom lists button clicked');
+                    
+                    // Check if we have a current restaurant
+                    if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+                        console.error('No restaurant selected or restaurant has no ID');
                         showNotification('No restaurant selected', 'error');
                         return;
                     }
                     
-                    console.log('Custom lists button clicked for restaurant:', state.currentModalRestaurant.id);
+                    console.log('Restaurant ID:', state.currentModalRestaurant.id);
                     
                     // Close actions modal first
                     hideModal();
                     
-                    // Show custom lists modal after a short delay
-                    setTimeout(() => {
-                        showCustomListsModal(state.currentModalRestaurant.id);
-                    }, 100);
+                    // Show custom lists modal immediately
+                    showCustomListsModal(state.currentModalRestaurant.id);
                 });
             }
             
@@ -3833,16 +3834,30 @@
                 </a>
             `;
             
-            // Menu button event
+            // Menu button event - FIXED: COPIED EXACT LOGIC FROM RESTAURANTS.HTML
             const menuBtn = card.querySelector('.menu-btn');
             if (menuBtn) {
                 menuBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    
+                    // Find restaurant in state
+                    const restaurantId = restaurant.id;
+                    const restaurantData = state.restaurants.find(r => r.id === restaurantId);
+                    
+                    if (!restaurantData) {
+                        console.error('Restaurant not found in state:', restaurantId);
+                        showNotification('Restaurant not found', 'error');
+                        return;
+                    }
+                    
+                    console.log('Showing modal for restaurant:', restaurantData);
+                    
+                    // Show modal with the restaurant data
                     showModal({
-                        id: restaurant.id,
-                        name: restaurant.name,
-                        slug: restaurant.slug
+                        id: restaurantData.id,
+                        name: restaurantData.name,
+                        slug: restaurantData.slug
                     });
                 });
             }
