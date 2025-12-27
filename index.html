@@ -3323,21 +3323,20 @@
                 modalCustomListsBtn.addEventListener('click', () => {
                     console.log('Custom lists button clicked');
                     
-                    // Check if we have a current restaurant
                     if (!state.currentModalRestaurant) {
                         showNotification('No restaurant selected', 'error');
                         return;
                     }
-                    
+
+                    // SAVE ID BEFORE HIDING MODAL
                     const restaurantId = state.currentModalRestaurant.id;
                     console.log('Restaurant ID:', restaurantId);
-
                     
                     // Close actions modal first
                     hideModal();
                     
-                    // Show custom lists modal immediately
-                    showCustomListsModal(state.currentModalRestaurant.id);
+                    // Open custom lists with safe ID
+                    showCustomListsModal(restaurantId);
                 });
             }
             
