@@ -1831,8 +1831,8 @@
                         <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
                             <div class="spotlight-img-container">
                                 <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food">
-                                <div class="spotlight-logo-overlay" id="spotLogo">
-                                    <img src="" alt="Restaurant logo">
+                                <div class="spotlight-logo-overlay" id="spotLogoOverlay">
+                                    <img id="spotLogo" src="" alt="Restaurant logo">
                                 </div>
                             </div>
                             <div class="spotlight-content">
@@ -2106,7 +2106,8 @@
             dayCard: document.getElementById('dayCard'),
             spotlightCard: document.getElementById('spotlightCard'),
             spotFoodImage: document.getElementById('spotFoodImage'),
-            spotLogo: document.getElementById('spotLogo').querySelector('img'),
+            spotLogo: document.getElementById('spotLogo'),
+            spotLogoOverlay: document.getElementById('spotLogoOverlay'),
             spotName: document.getElementById('spotName'),
             spotDesc: document.getElementById('spotDesc'),
             spotRating: document.getElementById('spotRating'),
@@ -2147,7 +2148,8 @@
         }
         
         function loadImage(imgElement, url) {
-            if (!url || url === '') {
+            if (!url || url === '' || !imgElement) {
+                console.warn('Invalid image element or URL:', { imgElement, url });
                 return;
             }
             
@@ -2161,6 +2163,7 @@
             };
             
             imgElement.onerror = () => {
+                console.error('Failed to load image:', url);
                 imgElement.style.display = 'none';
             };
         }
@@ -2378,11 +2381,26 @@
             
             const restaurant = state.spotlightRestaurants[state.spotlightIndex];
             
-            loadImage(elements.spotFoodImage, restaurant.coverImage);
-            loadImage(elements.spotLogo, restaurant.logo);
+            // Load food image
+            if (restaurant.coverImage) {
+                loadImage(elements.spotFoodImage, restaurant.coverImage);
+            }
+            
+            // Load logo with better fallback handling
+            const logoUrl = restaurant.logo || restaurant.logo_url;
+            
+            if (logoUrl) {
+                // Show logo overlay and load image
+                elements.spotLogoOverlay.style.display = 'flex';
+                loadImage(elements.spotLogo, logoUrl);
+            } else {
+                // Hide logo overlay if no logo
+                elements.spotLogoOverlay.style.display = 'none';
+            }
+            
             elements.spotName.textContent = restaurant.name;
             elements.spotDesc.textContent = restaurant.description || 'Delicious food served with care';
-            elements.spotRating.textContent = `⭐ ${restaurant.rating.toFixed(1)}`;
+            elements.spotRating.textContent = `⭐ ${restaurant.rating?.toFixed(1) || '0.0'}`;
             
             // Update view button
             elements.spotlightViewBtn.onclick = () => {
@@ -2692,17 +2710,27 @@
         }
         
         function getLogoUrl(restaurant) {
+            if (!restaurant) return null;
+            
+            // Check restaurant_gallery images first
             const images = state.restaurantImages.get(restaurant.slug);
             if (images?.logo) {
                 return images.logo;
             }
             
+            // Check restaurant's own logo_url
             if (restaurant.logo_url) {
                 return restaurant.logo_url;
             }
             
+            // Check restaurant's main image as fallback
             if (restaurant.image) {
                 return restaurant.image;
+            }
+            
+            // Check restaurantImages for cover as last resort
+            if (images?.cover) {
+                return images.cover;
             }
             
             return null;
@@ -2889,7 +2917,8 @@
                     description: restaurant.description,
                     rating: restaurant.rating,
                     logo_url: getLogoUrl(restaurant),
-                    coverImage: getCoverImageUrl(restaurant.slug)
+                    coverImage: getCoverImageUrl(restaurant.slug),
+                    logo: getLogoUrl(restaurant)
                 }));
                 
                 // Initialize spotlight with top 6 restaurants
@@ -2959,7 +2988,8 @@
                     description: restaurant.description,
                     rating: restaurant.rating,
                     logo_url: getLogoUrl(restaurant),
-                    coverImage: getCoverImageUrl(restaurant.slug)
+                    coverImage: getCoverImageUrl(restaurant.slug),
+                    logo: getLogoUrl(restaurant)
                 };
             });
         }
