@@ -2399,7 +2399,8 @@
             allRestaurants: [],
             preloader: null,
             customLists: [],
-            selectedLists: new Set()
+            selectedLists: new Set(),
+            currentUser: null
         };
         
         // DOM elements
@@ -4183,45 +4184,49 @@
         
         // ---------- AUTH MANAGEMENT ----------
         async function updateAuthUI() {
-            const { data: { session } } = await supabase.auth.getSession();
-            state.isLoggedIn = !!session;
-            
-            if (state.isLoggedIn) {
-                // Logged in
-                elements.guestBanner.classList.remove('show');
-                elements.startJourneyBtn.style.display = 'none';
-                document.querySelector('.btn-primary.logged-in').style.display = 'flex';
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
                 
-                // Update account button
-                const user = session.user;
-                const displayName = user.user_metadata?.username || user.email?.split('@')[0] || 'Account';
-                elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
-                elements.userAccountBtn.onclick = () => location.href = 'profile.html';
-                
-                // Initialize list manager - CRITICAL FOR LIST FUNCTIONS TO WORK
-                await listManager.init();
-                await customListsManager.init();
-                
-                // Re-render to show badges
-                renderRestaurants();
-                setupRestaurantOfTheDay();
-                
-            } else {
-                // Logged out
-                elements.guestBanner.classList.add('show');
-                elements.startJourneyBtn.style.display = 'flex';
-                document.querySelector('.btn-primary.logged-in').style.display = 'none';
-                
-                // Style buttons correctly
-                elements.startJourneyBtn.classList.add('logged-out');
-                elements.startJourneyBtn.classList.remove('logged-in');
-                
-                elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>Account</span>`;
-                elements.userAccountBtn.onclick = () => location.href = 'login.html';
-                
-                // Re-render to remove badges
-                renderRestaurants();
-                setupRestaurantOfTheDay();
+                if (session && session.user) {
+                    state.isLoggedIn = true;
+                    state.currentUser = session.user;
+                    
+                    // Hide guest banner
+                    elements.guestBanner.classList.remove('show');
+                    
+                    // Update account button
+                    const user = session.user;
+                    const displayName = user.user_metadata?.username || user.email?.split('@')[0] || 'Account';
+                    elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+                    elements.userAccountBtn.onclick = () => location.href = 'profile.html';
+                    
+                    // Initialize list manager - CRITICAL FOR LIST FUNCTIONS TO WORK
+                    await listManager.init();
+                    await customListsManager.init();
+                    
+                    // Re-render to show badges
+                    renderRestaurants();
+                    setupRestaurantOfTheDay();
+                    
+                } else {
+                    state.isLoggedIn = false;
+                    state.currentUser = null;
+                    
+                    // Show guest banner
+                    elements.guestBanner.classList.add('show');
+                    
+                    // Update account button
+                    elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>Account</span>`;
+                    elements.userAccountBtn.onclick = () => location.href = 'login.html';
+                    
+                    // Re-render to remove badges
+                    renderRestaurants();
+                    setupRestaurantOfTheDay();
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                state.isLoggedIn = false;
+                state.currentUser = null;
             }
         }
         
