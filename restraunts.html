@@ -1386,9 +1386,6 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       
-      // SIMPLIFIED IMAGE SYSTEM - No default images, faster loading
-      const PLACEHOLDER_COLOR = '#1a2d5f';
-      
       // Initialize Supabase
       let supabase;
       try {
@@ -1413,12 +1410,11 @@
           quickFilter: 'all',
           sort: 'rating-desc'
         },
-        restaurantImages: new Map(), // Simple map for fast lookup
+        restaurantImages: new Map(),
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
         authChecked: false,
-        // FAST IMAGE LOADING SYSTEM
         imageQueue: [],
         imagesLoading: 0,
         maxConcurrentLoads: 6
@@ -1426,11 +1422,9 @@
       
       // ---------- FAST IMAGE LOADING SYSTEM ----------
       function initFastImageLoader() {
-        // Preload images in batches
         state.imageQueue = [];
         state.imagesLoading = 0;
         
-        // Create image preloader
         const preloader = {
           queue: [],
           loading: 0,
@@ -1465,14 +1459,11 @@
       
       function loadImage(imgElement, url) {
         if (!url || url === '') {
-          // No image - just show the background gradient
           return;
         }
         
-        // Start loading immediately (no lazy loading for better UX)
         imgElement.src = url;
         imgElement.onload = () => {
-          // Image loaded successfully
           imgElement.style.opacity = '0';
           setTimeout(() => {
             imgElement.style.transition = 'opacity 0.3s ease';
@@ -1481,7 +1472,6 @@
         };
         
         imgElement.onerror = () => {
-          // If image fails to load, hide the img element
           imgElement.style.display = 'none';
         };
       }
@@ -1792,7 +1782,6 @@
       // ---------- DATA LOADING ----------
       async function loadRestaurantImages() {
         try {
-          // Load restaurant images in one query
           const { data: galleryData, error: galleryError } = await supabase
             .from('restaurant_gallery')
             .select('restaurant_slug, image_url, image_type, is_primary')
@@ -1800,17 +1789,14 @@
           
           if (galleryError) throw galleryError;
           
-          // Also get restaurant data with their images
           const { data: restaurantsData, error: restaurantsError } = await supabase
             .from('restraunts')
             .select('slug, image, logo_url');
           
           if (restaurantsError) throw restaurantsError;
           
-          // Build image map
           state.restaurantImages.clear();
           
-          // First, add gallery images
           if (galleryData && galleryData.length > 0) {
             galleryData.forEach(item => {
               if (!state.restaurantImages.has(item.restaurant_slug)) {
@@ -1832,7 +1818,6 @@
             });
           }
           
-          // Then, add restaurant table images as fallback
           if (restaurantsData && restaurantsData.length > 0) {
             restaurantsData.forEach(restaurant => {
               if (!state.restaurantImages.has(restaurant.slug)) {
@@ -1859,7 +1844,7 @@
       
       function getCoverImageUrl(restaurantSlug) {
         const images = state.restaurantImages.get(restaurantSlug);
-        return images?.cover || null; // Return null if no image
+        return images?.cover || null;
       }
       
       function getLogoUrl(restaurant) {
@@ -1876,7 +1861,7 @@
           return restaurant.image;
         }
         
-        return null; // No logo
+        return null;
       }
       
       async function loadCategories() {
@@ -1884,66 +1869,101 @@
           const { data, error } = await supabase
             .from('categories')
             .select('*')
-            .order('sort_order');
+            .order('sort_order', { ascending: true });
           
-          if (error) throw error;
+          if (error) {
+            console.warn('No categories table found, using fallback categories');
+            createFallbackCategories();
+            return;
+          }
+          
+          state.categories.clear();
           
           if (data && data.length > 0) {
             data.forEach(cat => {
-              state.categories.set(cat.id, cat);
-            });
-          } else {
-            const uniqueCats = [...new Set(state.restaurants.map(r => r.category).filter(Boolean))];
-            uniqueCats.sort().forEach((cat, idx) => {
-              state.categories.set(idx + 1, {
-                id: idx + 1,
-                name: cat,
-                slug: cat.toLowerCase().replace(/\s+/g, '-')
+              state.categories.set(cat.id, {
+                id: cat.id,
+                name: cat.name,
+                slug: cat.slug,
+                icon: cat.icon,
+                description: cat.description,
+                sort_order: cat.sort_order || 0
               });
             });
+          } else {
+            createFallbackCategories();
           }
+          
         } catch (error) {
           console.error('Error loading categories:', error);
+          createFallbackCategories();
         }
       }
       
-      function populateCategoryDropdown() {
-        const select = document.getElementById('categorySelect');
-        if (!select) return;
+      function createFallbackCategories() {
+        state.categories.clear();
+        const fallbackCategories = [
+          { id: 1, name: 'Burgers', slug: 'burgers', icon: '🍔', sort_order: 1 },
+          { id: 2, name: 'Chicken', slug: 'chicken', icon: '🍗', sort_order: 2 },
+          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: '🥙', sort_order: 3 },
+          { id: 4, name: 'Pizza', slug: 'pizza', icon: '🍕', sort_order: 4 },
+          { id: 5, name: 'Asian', slug: 'asian', icon: '🍜', sort_order: 5 },
+          { id: 6, name: 'Mexican', slug: 'mexican', icon: '🌮', sort_order: 6 },
+          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: '☕', sort_order: 7 },
+          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: '🍟', sort_order: 8 },
+          { id: 9, name: 'Seafood', slug: 'seafood', icon: '🐟', sort_order: 9 },
+          { id: 10, name: 'International', slug: 'international', icon: '🌍', sort_order: 10 }
+        ];
         
-        select.innerHTML = '<option value="all">All Categories</option>';
-        
-        state.categories.forEach((cat, id) => {
-          const option = document.createElement('option');
-          option.value = id;
-          option.textContent = cat.name;
-          select.appendChild(option);
+        fallbackCategories.forEach(cat => {
+          state.categories.set(cat.id, cat);
         });
       }
       
       async function loadRestaurantsData() {
         try {
-          // First load images for faster display
           await loadRestaurantImages();
           
-          // Then load restaurants
+          // First, try to load with categories join
           const { data, error } = await supabase
             .from('restraunts')
-            .select('id, slug, name, category, description, rating, logo_url, image')
+            .select(`
+              id, 
+              slug, 
+              name, 
+              category,
+              category_id,
+              description, 
+              rating, 
+              logo_url, 
+              image,
+              categories!inner (
+                name,
+                icon,
+                slug
+              )
+            `)
             .order('rating', { ascending: false });
           
-          if (error) throw error;
+          if (error) {
+            console.warn('Could not load with categories join, loading basic data');
+            await loadBasicRestaurantData();
+            return;
+          }
           
           if (!data || data.length === 0) {
             showEmptyState();
             return;
           }
           
+          // Process restaurants with categories
           state.restaurants = data.map(restaurant => ({
             id: restaurant.id,
             slug: restaurant.slug,
             name: restaurant.name,
-            category: restaurant.category,
+            category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
+            category_id: restaurant.category_id,
+            category_icon: restaurant.categories ? restaurant.categories.icon : getCategoryIconFallback(restaurant.category),
             description: restaurant.description,
             rating: restaurant.rating,
             logo_url: getLogoUrl(restaurant),
@@ -1956,7 +1976,6 @@
           applyFilters();
           updateCounts();
           
-          // Preload images after rendering
           setTimeout(() => preloadVisibleImages(), 100);
           
         } catch (error) {
@@ -1966,7 +1985,120 @@
         }
       }
       
-      // Preload images that are visible
+      async function loadBasicRestaurantData() {
+        const { data, error } = await supabase
+          .from('restraunts')
+          .select('id, slug, name, category, description, rating, logo_url, image')
+          .order('rating', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+          showEmptyState();
+          return;
+        }
+        
+        // Normalize categories from restaurant data
+        const categoryMap = new Map();
+        data.forEach((restaurant, index) => {
+          let categoryName = restaurant.category || 'Restaurant';
+          categoryName = normalizeCategoryName(categoryName);
+          
+          if (!categoryMap.has(categoryName)) {
+            categoryMap.set(categoryName, {
+              id: categoryMap.size + 1,
+              name: categoryName,
+              icon: getCategoryIconFallback(categoryName),
+              sort_order: categoryMap.size + 1
+            });
+          }
+        });
+        
+        // Add categories to state
+        categoryMap.forEach((cat, name) => {
+          state.categories.set(cat.id, cat);
+        });
+        
+        // Process restaurants
+        state.restaurants = data.map(restaurant => {
+          const categoryName = normalizeCategoryName(restaurant.category || 'Restaurant');
+          const category = Array.from(state.categories.values()).find(c => c.name === categoryName);
+          
+          return {
+            id: restaurant.id,
+            slug: restaurant.slug,
+            name: restaurant.name,
+            category: categoryName,
+            category_id: category ? category.id : 1,
+            category_icon: category ? category.icon : getCategoryIconFallback(categoryName),
+            description: restaurant.description,
+            rating: restaurant.rating,
+            logo_url: getLogoUrl(restaurant),
+            coverImage: getCoverImageUrl(restaurant.slug)
+          };
+        });
+        
+        populateCategoryDropdown();
+        applyFilters();
+        updateCounts();
+        
+        setTimeout(() => preloadVisibleImages(), 100);
+      }
+      
+      function normalizeCategoryName(categoryName) {
+        if (!categoryName) return 'Restaurant';
+        
+        const lowerName = categoryName.toLowerCase().trim();
+        const corrections = {
+          'burgers': 'Burgers',
+          'burger': 'Burgers',
+          'chicken': 'Chicken',
+          'middle eastern': 'Middle Eastern',
+          'pizza': 'Pizza',
+          'asian': 'Asian',
+          'mexican': 'Mexican',
+          'cafe & bakery': 'Cafe & Bakery',
+          'cafe': 'Cafe & Bakery',
+          'bakery': 'Cafe & Bakery',
+          'fast food': 'Fast Food',
+          'seafood': 'Seafood',
+          'breakfast': 'Breakfast',
+          'desserts': 'Desserts',
+          'indian': 'Indian',
+          'italian': 'Italian',
+          'bbq & ribs': 'BBQ & Ribs',
+          'bbq': 'BBQ & Ribs',
+          'international': 'International',
+          'sushi': 'Asian',
+          'shawerma': 'Middle Eastern'
+        };
+        
+        return corrections[lowerName] || 
+               categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
+      }
+      
+      function getCategoryIconFallback(categoryName) {
+        const icons = {
+          'Burgers': '🍔',
+          'Chicken': '🍗',
+          'Middle Eastern': '🥙',
+          'Pizza': '🍕',
+          'Asian': '🍜',
+          'Mexican': '🌮',
+          'Cafe & Bakery': '☕',
+          'Fast Food': '🍟',
+          'Italian': '🍝',
+          'Seafood': '🐟',
+          'Breakfast': '🥞',
+          'Desserts': '🍰',
+          'Indian': '🍛',
+          'BBQ & Ribs': '🥩',
+          'International': '🌍'
+        };
+        
+        return icons[categoryName] || '🍴';
+      }
+      
       function preloadVisibleImages() {
         const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
         images.forEach(img => {
@@ -1977,6 +2109,28 @@
               state.preloader.addImage(url);
             }
           }
+        });
+      }
+      
+      function populateCategoryDropdown() {
+        const select = document.getElementById('categorySelect');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="all">All Categories</option>';
+        
+        const sortedCategories = Array.from(state.categories.values())
+          .sort((a, b) => {
+            if (a.sort_order !== undefined && b.sort_order !== undefined) {
+              return a.sort_order - b.sort_order;
+            }
+            return a.name.localeCompare(b.name);
+          });
+        
+        sortedCategories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.id;
+          option.textContent = `${cat.icon || '🍴'} ${cat.name}`;
+          select.appendChild(option);
         });
       }
       
@@ -1995,10 +2149,7 @@
         
         if (state.activeFilters.category !== 'all') {
           const categoryId = parseInt(state.activeFilters.category);
-          const category = state.categories.get(categoryId);
-          if (category) {
-            filtered = filtered.filter(r => r.category === category.name);
-          }
+          filtered = filtered.filter(r => r.category_id === categoryId);
         }
         
         filtered = applyQuickFilter(filtered, state.activeFilters.quickFilter);
@@ -2097,7 +2248,6 @@
         grid.innerHTML = '';
         grid.appendChild(fragment);
         
-        // Load images immediately for visible items
         loadVisibleImages();
       }
       
@@ -2107,13 +2257,13 @@
         card.dataset.id = restaurant.id;
         
         const rating = restaurant.rating || 0;
+        const categoryIcon = restaurant.category_icon || getCategoryIconFallback(restaurant.category);
         const category = restaurant.category || 'Restaurant';
         const logoUrl = getLogoUrl(restaurant);
         const status = listManager.getRestaurantListStatus(restaurant.id);
         const isTopRated = rating >= 4.5;
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         
-        // Build badge string
         let badgeText = '';
         if (status.favorites) badgeText += '❤️ ';
         if (status.wantToGo) badgeText += '📍 ';
@@ -2158,7 +2308,7 @@
                 </div>
               </div>
               <div class="card-category">
-                <span>${getCategoryIcon(category)}</span>
+                <span>${categoryIcon}</span>
                 ${category}
               </div>
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
@@ -2169,7 +2319,6 @@
           </a>
         `;
         
-        // Menu button
         const menuBtn = card.querySelector('.menu-btn');
         if (menuBtn) {
           menuBtn.addEventListener('click', async (e) => {
@@ -2191,30 +2340,6 @@
         images.forEach(img => {
           loadImage(img, img.dataset.src);
         });
-      }
-      
-      function getCategoryIcon(categoryName) {
-        const icons = {
-          'Italian': '🍕',
-          'Mexican': '🌮',
-          'Asian': '🍜',
-          'American': '🍔',
-          'Pizza': '🍕',
-          'Burger': '🍔',
-          'Sushi': '🍣',
-          'Chinese': '🥢',
-          'Indian': '🍛',
-          'Thai': '🍲',
-          'Vegetarian': '🥗',
-          'Vegan': '🌱',
-          'Seafood': '🐟',
-          'Steakhouse': '🥩',
-          'Cafe': '☕',
-          'Bakery': '🥐',
-          'Dessert': '🍰'
-        };
-        
-        return icons[categoryName] || '🍴';
       }
       
       function showEmptyState() {
@@ -2299,7 +2424,6 @@
       
       // ---------- EVENT HANDLERS ----------
       function setupEventListeners() {
-        // Search
         const searchInput = document.getElementById('search');
         const clearSearchBtn = document.getElementById('clearSearch');
         
@@ -2322,7 +2446,6 @@
           });
         }
         
-        // Category filter
         const categorySelect = document.getElementById('categorySelect');
         if (categorySelect) {
           categorySelect.addEventListener('change', (e) => {
@@ -2331,7 +2454,6 @@
           });
         }
         
-        // Sort filter
         const sortSelect = document.getElementById('sortSelect');
         if (sortSelect) {
           sortSelect.addEventListener('change', (e) => {
@@ -2340,7 +2462,6 @@
           });
         }
         
-        // Quick filters
         document.querySelectorAll('.filter-chip').forEach(chip => {
           chip.addEventListener('click', (e) => {
             const filterType = e.target.dataset.filter;
@@ -2353,16 +2474,13 @@
           });
         });
         
-        // Reset filters
         const resetBtn = document.getElementById('resetFilters');
         if (resetBtn) {
           resetBtn.addEventListener('click', resetAllFilters);
         }
         
-        // Grid view controls
         initializeViewControls();
         
-        // Actions modal events
         const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
         const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
         const modalVisitedBtn = document.getElementById('modalVisitedBtn');
@@ -2408,7 +2526,6 @@
           });
         }
         
-        // Auth prompt modal events
         const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
         const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
         const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
@@ -2438,7 +2555,6 @@
           });
         }
         
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
@@ -2446,7 +2562,6 @@
           }
         });
         
-        // Initialize guest banner
         guestBanner.init();
       }
       
@@ -2511,7 +2626,6 @@
         showNotification('Filters reset', 'info');
       }
       
-      // ---------- DEBOUNCE UTILITY ----------
       function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -2604,25 +2718,14 @@
           return;
         }
         
-        // Initialize fast image loader
         initFastImageLoader();
-        
-        // Show loading skeleton
         showLoadingSkeleton();
-        
-        // Setup event listeners
         setupEventListeners();
-        
-        // Load data
         await loadRestaurantsData();
-        
-        // Setup auth
         await updateAuthUI();
         
-        // Listen for auth changes
         supabase.auth.onAuthStateChange(updateAuthUI);
         
-        // Handle scroll for image loading
         let scrollTimeout;
         window.addEventListener('scroll', () => {
           clearTimeout(scrollTimeout);
@@ -2632,7 +2735,6 @@
         });
       }
       
-      // Start the app
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
       } else {
