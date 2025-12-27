@@ -21,7 +21,7 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Guest Banner - UPDATED POSITIONING (Same as homepage) */
+    /* Guest Banner */
     .guest-banner {
       display: none;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
@@ -101,33 +101,20 @@
       transform: translateY(-1px);
     }
     
-    /* Image Loading - USING SAME SYSTEM AS HOMEPAGE */
+    /* IMAGE SYSTEM - IMPROVED FOR FASTER LOADING */
     .restaurant-image {
       display: block;
       width: 100%;
       height: 200px;
       object-fit: cover;
-      opacity: 0;
-      transition: opacity 0.3s ease;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    .restaurant-image.loaded {
-      opacity: 1;
-    }
-    
-    /* Logo overlay image */
     .logo-overlay img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       border-radius: 8px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .logo-overlay img.loaded {
-      opacity: 1;
     }
     
     /* Enhanced Header */
@@ -139,7 +126,7 @@
       align-items: center; 
       gap: 20px; 
       padding: 14px 24px; 
-      backdrop-filter: blur(10px) saturate(180%); /* REDUCED BLUR */
+      backdrop-filter: blur(10px) saturate(180%);
       background: var(--surface); 
       border-bottom: 1px solid var(--border); 
     } 
@@ -548,7 +535,7 @@
       flex: 1;
     }
     
-    /* Top rated badge - NEW POSITIONING */
+    /* Top rated badge */
     .top-rated-badge {
       display: inline-block;
       background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
@@ -750,7 +737,7 @@
       color: var(--white);
     }
     
-    /* Auth Prompt Modal - Same as homepage */
+    /* Auth Prompt Modal */
     .auth-prompt-modal {
       display: none;
       position: fixed;
@@ -1074,7 +1061,6 @@
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       }
       
-      /* FIXED: Third grid option for mobile */
       .grid-dense {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
@@ -1121,7 +1107,7 @@
       header {
         padding: 12px 16px;
         flex-wrap: wrap;
-        backdrop-filter: blur(5px) saturate(180%); /* REDUCED FOR MOBILE */
+        backdrop-filter: blur(5px) saturate(180%);
       }
       
       .guest-banner {
@@ -1184,7 +1170,6 @@
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
       
-      /* FIXED: Third grid option for very small screens */
       .grid-dense {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
@@ -1252,7 +1237,7 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Guest Banner - NEW POSITIONING (under header) -->
+  <!-- Guest Banner -->
   <div id="guestBanner" class="guest-banner">
     <div class="banner-content">
       <span class="banner-text">Want to save your favorite restaurants?</span>
@@ -1337,7 +1322,7 @@
     </div>
   </main>
 
-  <!-- Actions Modal (For logged in users) -->
+  <!-- Actions Modal -->
   <div id="actionsModal" class="actions-modal">
     <div class="actions-content">
       <div class="actions-header">
@@ -1362,7 +1347,7 @@
     </div>
   </div>
 
-  <!-- Auth Prompt Modal (For logged out users) - Same as homepage -->
+  <!-- Auth Prompt Modal -->
   <div id="authPromptModal" class="auth-prompt-modal">
     <div class="auth-prompt-content">
       <div class="auth-prompt-icon">
@@ -1401,9 +1386,8 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       
-      // Default fallback images (public URLs)
-      const DEFAULT_COVER_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-cover.jpg';
-      const DEFAULT_LOGO_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/restaurant-images/default-logo.jpg';
+      // SIMPLIFIED IMAGE SYSTEM - No default images, faster loading
+      const PLACEHOLDER_COLOR = '#1a2d5f';
       
       // Initialize Supabase
       let supabase;
@@ -1429,39 +1413,77 @@
           quickFilter: 'all',
           sort: 'rating-desc'
         },
-        restaurantImages: new Map(),
+        restaurantImages: new Map(), // Simple map for fast lookup
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
         authChecked: false,
-        // Intersection Observer for lazy loading
-        imageObserver: null
+        // FAST IMAGE LOADING SYSTEM
+        imageQueue: [],
+        imagesLoading: 0,
+        maxConcurrentLoads: 6
       };
       
-      // ---------- IMAGE LOADING SYSTEM (SAME AS HOMEPAGE) ----------
-      function initImageObserver() {
-        state.imageObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              const img = entry.target;
-              img.src = img.dataset.src;
-              img.onload = () => {
-                img.classList.add('loaded');
-                state.imageObserver.unobserve(img);
-              };
-              img.onerror = () => {
-                // Use appropriate fallback based on image type
-                const isLogo = img.parentElement.classList.contains('logo-overlay');
-                img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-                img.classList.add('loaded');
-                state.imageObserver.unobserve(img);
-              };
+      // ---------- FAST IMAGE LOADING SYSTEM ----------
+      function initFastImageLoader() {
+        // Preload images in batches
+        state.imageQueue = [];
+        state.imagesLoading = 0;
+        
+        // Create image preloader
+        const preloader = {
+          queue: [],
+          loading: 0,
+          maxConcurrent: 6,
+          
+          addImage(url) {
+            if (!url) return;
+            this.queue.push(url);
+            this.processQueue();
+          },
+          
+          processQueue() {
+            while (this.loading < this.maxConcurrent && this.queue.length > 0) {
+              const url = this.queue.shift();
+              this.loadImage(url);
             }
-          });
-        }, {
-          rootMargin: '100px 0px',
-          threshold: 0.01
-        });
+          },
+          
+          loadImage(url) {
+            this.loading++;
+            const img = new Image();
+            img.onload = img.onerror = () => {
+              this.loading--;
+              this.processQueue();
+            };
+            img.src = url;
+          }
+        };
+        
+        state.preloader = preloader;
+      }
+      
+      function loadImage(imgElement, url) {
+        if (!url || url === '') {
+          // No image - just show the background gradient
+          return;
+        }
+        
+        // Start loading immediately (no lazy loading for better UX)
+        imgElement.src = url;
+        imgElement.onload = () => {
+          // Image loaded successfully
+          imgElement.style.opacity = '0';
+          setTimeout(() => {
+            imgElement.style.transition = 'opacity 0.3s ease';
+            imgElement.style.opacity = '1';
+          }, 10);
+        };
+        
+        imgElement.onerror = () => {
+          // If image fails to load, hide the img element
+          imgElement.style.display = 'none';
+        };
       }
       
       // ---------- LIST MANAGER ----------
@@ -1671,7 +1693,7 @@
         }, duration);
       }
       
-      // ---------- AUTH PROMPT MODAL (FOR LOGGED OUT USERS) ----------
+      // ---------- AUTH PROMPT MODAL ----------
       function showAuthPrompt() {
         const modal = document.getElementById('authPromptModal');
         modal.classList.add('active');
@@ -1684,11 +1706,10 @@
         document.body.style.overflow = 'auto';
       }
       
-      // ---------- ACTIONS MODAL (FOR LOGGED IN USERS) ----------
+      // ---------- ACTIONS MODAL ----------
       function showModal(restaurantData) {
         if (!restaurantData) return;
         
-        // Check if user is logged in
         if (!state.isLoggedIn) {
             showAuthPrompt();
             return;
@@ -1748,7 +1769,7 @@
           
           if (signupBtn) {
             signupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-up.html'; // FIXED: Changed from signup.html to sign-up.html
+              window.location.href = 'sign-up.html';
             });
           }
         },
@@ -1771,19 +1792,31 @@
       // ---------- DATA LOADING ----------
       async function loadRestaurantImages() {
         try {
-          const { data, error } = await supabase
+          // Load restaurant images in one query
+          const { data: galleryData, error: galleryError } = await supabase
             .from('restaurant_gallery')
             .select('restaurant_slug, image_url, image_type, is_primary')
             .order('sort_order');
           
-          if (error) throw error;
+          if (galleryError) throw galleryError;
           
-          if (data && data.length > 0) {
-            data.forEach(item => {
+          // Also get restaurant data with their images
+          const { data: restaurantsData, error: restaurantsError } = await supabase
+            .from('restraunts')
+            .select('slug, image, logo_url');
+          
+          if (restaurantsError) throw restaurantsError;
+          
+          // Build image map
+          state.restaurantImages.clear();
+          
+          // First, add gallery images
+          if (galleryData && galleryData.length > 0) {
+            galleryData.forEach(item => {
               if (!state.restaurantImages.has(item.restaurant_slug)) {
                 state.restaurantImages.set(item.restaurant_slug, {
-                  cover: DEFAULT_COVER_URL,
-                  logo: DEFAULT_LOGO_URL
+                  cover: null,
+                  logo: null
                 });
               }
               
@@ -1798,6 +1831,27 @@
               }
             });
           }
+          
+          // Then, add restaurant table images as fallback
+          if (restaurantsData && restaurantsData.length > 0) {
+            restaurantsData.forEach(restaurant => {
+              if (!state.restaurantImages.has(restaurant.slug)) {
+                state.restaurantImages.set(restaurant.slug, {
+                  cover: restaurant.image || null,
+                  logo: restaurant.logo_url || null
+                });
+              } else {
+                const images = state.restaurantImages.get(restaurant.slug);
+                if (!images.cover && restaurant.image) {
+                  images.cover = restaurant.image;
+                }
+                if (!images.logo && restaurant.logo_url) {
+                  images.logo = restaurant.logo_url;
+                }
+              }
+            });
+          }
+          
         } catch (error) {
           console.error('Error loading images:', error);
         }
@@ -1805,12 +1859,12 @@
       
       function getCoverImageUrl(restaurantSlug) {
         const images = state.restaurantImages.get(restaurantSlug);
-        return images?.cover || DEFAULT_COVER_URL;
+        return images?.cover || null; // Return null if no image
       }
       
       function getLogoUrl(restaurant) {
         const images = state.restaurantImages.get(restaurant.slug);
-        if (images?.logo && images.logo !== DEFAULT_LOGO_URL) {
+        if (images?.logo) {
           return images.logo;
         }
         
@@ -1822,7 +1876,7 @@
           return restaurant.image;
         }
         
-        return DEFAULT_LOGO_URL;
+        return null; // No logo
       }
       
       async function loadCategories() {
@@ -1839,7 +1893,6 @@
               state.categories.set(cat.id, cat);
             });
           } else {
-            // Fallback
             const uniqueCats = [...new Set(state.restaurants.map(r => r.category).filter(Boolean))];
             uniqueCats.sort().forEach((cat, idx) => {
               state.categories.set(idx + 1, {
@@ -1870,6 +1923,10 @@
       
       async function loadRestaurantsData() {
         try {
+          // First load images for faster display
+          await loadRestaurantImages();
+          
+          // Then load restaurants
           const { data, error } = await supabase
             .from('restraunts')
             .select('id, slug, name, category, description, rating, logo_url, image')
@@ -1881,9 +1938,6 @@
             showEmptyState();
             return;
           }
-          
-          // Load images
-          await loadRestaurantImages();
           
           state.restaurants = data.map(restaurant => ({
             id: restaurant.id,
@@ -1902,11 +1956,28 @@
           applyFilters();
           updateCounts();
           
+          // Preload images after rendering
+          setTimeout(() => preloadVisibleImages(), 100);
+          
         } catch (error) {
           console.error('Error loading restaurants:', error);
           showNotification('Failed to load restaurants', 'error');
           showEmptyState();
         }
+      }
+      
+      // Preload images that are visible
+      function preloadVisibleImages() {
+        const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
+        images.forEach(img => {
+          const rect = img.getBoundingClientRect();
+          if (rect.top < window.innerHeight + 200) {
+            const url = img.dataset.src;
+            if (url && url !== '') {
+              state.preloader.addImage(url);
+            }
+          }
+        });
       }
       
       // ---------- FILTERING & SORTING ----------
@@ -2006,7 +2077,6 @@
           return;
         }
         
-        // Remove any existing empty state
         if (emptyState) {
           emptyState.style.display = 'none';
         }
@@ -2027,11 +2097,8 @@
         grid.innerHTML = '';
         grid.appendChild(fragment);
         
-        // Set up lazy loading for images
-        const images = grid.querySelectorAll('img[data-src]');
-        images.forEach(img => {
-          state.imageObserver.observe(img);
-        });
+        // Load images immediately for visible items
+        loadVisibleImages();
       }
       
       function createRestaurantCard(restaurant) {
@@ -2044,6 +2111,7 @@
         const logoUrl = getLogoUrl(restaurant);
         const status = listManager.getRestaurantListStatus(restaurant.id);
         const isTopRated = rating >= 4.5;
+        const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         
         // Build badge string
         let badgeText = '';
@@ -2054,17 +2122,21 @@
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
-              <img class="restaurant-image" 
-                   data-src="${restaurant.coverImage}" 
-                   alt="${restaurant.name}" 
-                   width="300" 
-                   height="200">
-              <div class="logo-overlay">
-                <img data-src="${logoUrl}" 
-                     alt="${restaurant.name} logo" 
-                     width="48" 
-                     height="48">
-              </div>
+              ${hasCoverImage ? `
+                <img class="restaurant-image" 
+                     data-src="${restaurant.coverImage}" 
+                     alt="${restaurant.name}" 
+                     width="300" 
+                     height="200">
+              ` : ''}
+              ${logoUrl ? `
+                <div class="logo-overlay">
+                  <img data-src="${logoUrl}" 
+                       alt="${restaurant.name} logo" 
+                       width="48" 
+                       height="48">
+                </div>
+              ` : ''}
               <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
                 <i class="fas fa-ellipsis-h"></i>
               </button>
@@ -2112,6 +2184,13 @@
         }
         
         return card;
+      }
+      
+      function loadVisibleImages() {
+        const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
+        images.forEach(img => {
+          loadImage(img, img.dataset.src);
+        });
       }
       
       function getCategoryIcon(categoryName) {
@@ -2283,7 +2362,7 @@
         // Grid view controls
         initializeViewControls();
         
-        // Actions modal events (for logged in users)
+        // Actions modal events
         const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
         const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
         const modalVisitedBtn = document.getElementById('modalVisitedBtn');
@@ -2294,7 +2373,6 @@
             if (!state.currentModalRestaurant) return;
             await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
             updateModalButtons(state.currentModalRestaurant.id);
-            // Re-render to update badges
             renderRestaurants();
           });
         }
@@ -2304,7 +2382,6 @@
             if (!state.currentModalRestaurant) return;
             await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
             updateModalButtons(state.currentModalRestaurant.id);
-            // Re-render to update badges
             renderRestaurants();
           });
         }
@@ -2314,7 +2391,6 @@
             if (!state.currentModalRestaurant) return;
             await listManager.toggleInList('visited', state.currentModalRestaurant.id);
             updateModalButtons(state.currentModalRestaurant.id);
-            // Re-render to update badges
             renderRestaurants();
           });
         }
@@ -2332,14 +2408,14 @@
           });
         }
         
-        // Auth prompt modal events (for logged out users)
+        // Auth prompt modal events
         const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
         const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
         const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
         
         if (authPromptSignupBtn) {
           authPromptSignupBtn.addEventListener('click', () => {
-            window.location.href = 'sign-up.html'; // FIXED: Changed from signup.html to sign-up.html
+            window.location.href = 'sign-up.html';
           });
         }
         
@@ -2456,10 +2532,8 @@
           if (session && session.user) {
             state.isLoggedIn = true;
             
-            // Hide guest banner
             guestBanner.hide();
             
-            // Get user profile
             let profile = null;
             try {
               const { data: profileData, error: profileError } = await supabase
@@ -2488,13 +2562,11 @@
               };
             }
             
-            // Initialize list manager
             await listManager.init();
             
           } else {
             state.isLoggedIn = false;
             
-            // Show guest banner (persistent)
             guestBanner.show();
             
             const authBtn = document.getElementById('authBtn');
@@ -2506,18 +2578,15 @@
           
           state.authChecked = true;
           
-          // Re-render to update badges
           if (state.filteredRestaurants.length > 0) {
             renderRestaurants();
           }
           
         } catch (error) {
           console.error('Auth error:', error);
-          // Fallback to logged out
           state.isLoggedIn = false;
           state.authChecked = true;
           
-          // Show guest banner
           guestBanner.show();
           
           const authBtn = document.getElementById('authBtn');
@@ -2535,8 +2604,8 @@
           return;
         }
         
-        // Initialize image lazy loading system (SAME AS HOMEPAGE)
-        initImageObserver();
+        // Initialize fast image loader
+        initFastImageLoader();
         
         // Show loading skeleton
         showLoadingSkeleton();
@@ -2553,36 +2622,14 @@
         // Listen for auth changes
         supabase.auth.onAuthStateChange(updateAuthUI);
         
-        // Handle window resize
-        window.addEventListener('resize', debounce(() => {
-          // Re-check visibility on resize
-          if (state.imageObserver) {
-            const images = document.querySelectorAll('img[data-src]');
-            images.forEach(img => {
-              if (!img.classList.contains('loaded')) {
-                const rect = img.getBoundingClientRect();
-                const isVisible = (
-                  rect.top <= (window.innerHeight + 100) &&
-                  rect.bottom >= -100
-                );
-                
-                if (isVisible) {
-                  img.src = img.dataset.src;
-                  img.onload = () => {
-                    img.classList.add('loaded');
-                    state.imageObserver.unobserve(img);
-                  };
-                  img.onerror = () => {
-                    const isLogo = img.parentElement.classList.contains('logo-overlay');
-                    img.src = isLogo ? DEFAULT_LOGO_URL : DEFAULT_COVER_URL;
-                    img.classList.add('loaded');
-                    state.imageObserver.unobserve(img);
-                  };
-                }
-              }
-            });
-          }
-        }, 100));
+        // Handle scroll for image loading
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+          clearTimeout(scrollTimeout);
+          scrollTimeout = setTimeout(() => {
+            preloadVisibleImages();
+          }, 100);
+        });
       }
       
       // Start the app
