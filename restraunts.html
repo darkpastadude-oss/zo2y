@@ -2221,16 +2221,25 @@
       }
       
       // ---------- CUSTOM FOLDERS MODAL ----------
-      function showCustomFoldersModal(restaurantId) {
-        if (!restaurantId) return;
+            function showCustomFoldersModal(restaurantId) {
+        if (!restaurantId) {
+          showNotification('No restaurant selected', 'error');
+          return;
+        }
         
         if (!state.isLoggedIn) {
             showAuthPrompt();
             return;
         }
         
-        state.currentModalRestaurant = state.restaurants.find(r => r.id === restaurantId);
-        if (!state.currentModalRestaurant) return;
+        // Find the restaurant in the state
+        const restaurant = state.restaurants.find(r => r.id === restaurantId);
+        if (!restaurant) {
+          showNotification('Restaurant not found', 'error');
+          return;
+        }
+        
+        state.currentModalRestaurant = restaurant;
         
         // Load current folder status for this restaurant
         customFoldersManager.loadRestaurantFoldersStatus(restaurantId).then(status => {
@@ -2248,6 +2257,9 @@
           const modal = document.getElementById('customFoldersModal');
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
+        }).catch(error => {
+          console.error('Error loading folder status:', error);
+          showNotification('Error loading folders', 'error');
         });
       }
       
@@ -2258,9 +2270,14 @@
         state.selectedFolders.clear();
       }
       
-      async function saveFolderChanges() {
-        if (!state.currentModalRestaurant) return;
+         async function saveFolderChanges() {
+        if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+          showNotification('No restaurant selected', 'error');
+          hideCustomFoldersModal();
+          return;
+        }
         
+        const restaurantId = state.currentModalRestaurant.id;
         const saveBtn = document.getElementById('saveFoldersBtn');
         const originalText = saveBtn.textContent;
         saveBtn.disabled = true;
@@ -2271,20 +2288,20 @@
           for (const folder of state.customFolders) {
             const shouldBeInFolder = state.selectedFolders.has(folder.id);
             const isInFolder = await customFoldersManager.checkRestaurantInFolder(
-              state.currentModalRestaurant.id, 
+              restaurantId, 
               folder.id
             );
             
             if (shouldBeInFolder && !isInFolder) {
               // Add to folder
               await customFoldersManager.toggleRestaurantInFolder(
-                state.currentModalRestaurant.id, 
+                restaurantId, 
                 folder.id
               );
             } else if (!shouldBeInFolder && isInFolder) {
               // Remove from folder
               await customFoldersManager.toggleRestaurantInFolder(
-                state.currentModalRestaurant.id, 
+                restaurantId, 
                 folder.id
               );
             }
@@ -2292,7 +2309,11 @@
           
           showNotification('Folder changes saved successfully!', 'success');
           hideCustomFoldersModal();
-          renderRestaurants(); // Refresh restaurant display
+          
+          // Refresh restaurant display if needed
+          if (state.filteredRestaurants.length > 0) {
+            renderRestaurants();
+          }
           
         } catch (error) {
           console.error('Error saving folder changes:', error);
@@ -2335,10 +2356,19 @@
         document.body.style.overflow = 'hidden';
       }
       
-      function hideModal() {
+            function hideModal() {
         const modal = document.getElementById('actionsModal');
         modal.classList.remove('active');
         document.body.style.overflow = 'auto';
+        // Don't clear currentModalRestaurant here - it's needed for custom folders
+      }
+      
+      function hideCustomFoldersModal() {
+        const modal = document.getElementById('customFoldersModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        state.selectedFolders.clear();
+        // Now we can clear the restaurant after custom folders modal is closed
         state.currentModalRestaurant = null;
       }
       
@@ -3135,24 +3165,32 @@
           });
         }
         
-        if (modalCustomFoldersBtn) {
-          modalCustomFoldersBtn.addEventListener('click', () => {
-            if (!state.currentModalRestaurant) return;
-            hideModal();
-            showCustomFoldersModal(state.currentModalRestaurant.id);
-          });
-        }
-        
-        if (modalCancelBtn) {
-          modalCancelBtn.addEventListener('click', hideModal);
-        }
-        
-        const actionsModal = document.getElementById('actionsModal');
-        if (actionsModal) {
-          actionsModal.addEventListener('click', (e) => {
-            if (e.target === actionsModal) {
-              hideModal();
+             if (modalCustomFoldersBtn) {
+          modalCustomFoldersBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) {
+              showNotification('No restaurant selected', 'error');
+              return;
             }
+            
+            // Store the current restaurant ID before closing the modal
+            const restaurantId = state.currentModalRestaurant.id;
+            const restaurantName = state.currentModalRestaurant.name;
+            
+            // Close the actions modal
+            hideModal();
+            
+            // Wait a bit for the modal to close
+            setTimeout(() => {
+              // Set the restaurant for custom folders
+              state.currentModalRestaurant = {
+                id: restaurantId,
+                name: restaurantName,
+                slug: state.currentModalRestaurant.slug
+              };
+              
+              // Now show the custom folders modal
+              showCustomFoldersModal(restaurantId);
+            }, 100);
           });
         }
         
