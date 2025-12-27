@@ -3323,32 +3323,40 @@
             }
             
             // FIXED: Custom Lists button handler - COPIED EXACTLY FROM RESTAURANTS.HTML
-            // FIXED: Custom Lists button handler - SAVE ID BEFORE HIDING MODAL
-if (modalCustomListsBtn) {
-    modalCustomListsBtn.addEventListener('click', () => {
-        console.log('Custom lists button clicked');
-        
-        // Check if we have a current restaurant
-        if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
-            console.error('No restaurant selected or restaurant has no ID');
-            showNotification('No restaurant selected', 'error');
-            return;
+            if (modalCustomListsBtn) {
+                modalCustomListsBtn.addEventListener('click', () => {
+                    console.log('Custom lists button clicked');
+                    
+                    // Check if we have a current restaurant
+                    if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+                        console.error('No restaurant selected or restaurant has no ID');
+                        showNotification('No restaurant selected', 'error');
+                        return;
+                    }
+                    
+                    console.log('Restaurant ID:', state.currentModalRestaurant.id);
+                     // SAVE THE RESTAURANT ID BEFORE HIDING THE MODAL
+                    const restaurantId = state.currentModalRestaurant.id;
+                    
+                    // Close actions modal first
+                    hideModal();
+                    
+                    // Show custom lists modal immediately
+                    setTimeout(() => {
+                        showCustomListsModal(state.currentModalRestaurant.id);
+                    }, 100);
+                });
+            }
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideModal();
+                    hideAuthPrompt();
+                    hideCustomListsModal();
+                }
+            });
         }
-        
-        console.log('Restaurant ID:', state.currentModalRestaurant.id);
-        
-        // SAVE THE RESTAURANT ID BEFORE HIDING THE MODAL
-        const restaurantId = state.currentModalRestaurant.id;
-        
-        // Close actions modal first
-        hideModal();
-        
-        // Show custom lists modal after a short delay, using the saved ID
-        setTimeout(() => {
-            showCustomListsModal(restaurantId);
-        }, 100);
-    });
-}
         
         function showModal(restaurantData) {
             if (!restaurantData) return;
