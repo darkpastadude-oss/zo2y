@@ -101,13 +101,19 @@
       transform: translateY(-1px);
     }
     
-    /* IMAGE SYSTEM - IMPROVED FOR FASTER LOADING */
+    /* Enhanced Image Loading */
     .restaurant-image {
       display: block;
       width: 100%;
       height: 200px;
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .restaurant-image.loaded {
+      opacity: 1;
     }
     
     .logo-overlay img {
@@ -115,6 +121,12 @@
       height: 100%;
       object-fit: contain;
       border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .logo-overlay img.loaded {
+      opacity: 1;
     }
     
     /* Enhanced Header */
@@ -227,8 +239,7 @@
     .view-controls {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-left: auto;
+      gap: 12px;
     }
     
     .grid-size-buttons {
@@ -262,6 +273,31 @@
     .grid-btn.active {
       background: var(--accent);
       color: #0b1633;
+    }
+    
+    /* Items Per Page Selector */
+    .items-per-page {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 8px;
+    }
+    
+    .items-per-page label {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    
+    .items-select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      cursor: pointer;
+      min-width: 80px;
     }
     
     /* Quick Filters */
@@ -310,6 +346,7 @@
       max-width: 1200px; 
       margin: 24px auto; 
       padding: 0 20px; 
+      min-height: calc(100vh - 200px);
     } 
     
     .page-header {
@@ -369,20 +406,21 @@
       display: grid; 
       gap: 20px; 
       transition: grid-template-columns 0.3s ease;
-      min-height: 400px;
+      min-height: 200px;
+      align-items: stretch;
     }
     
-    /* Grid variations */
+    /* Grid variations with FIXED NO-GAP layout */
     .grid-normal {
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
     
     .grid-compact {
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     }
     
     .grid-dense {
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
     
     /* Restaurant Card */
@@ -720,7 +758,7 @@
       width: 24px;
     }
     
-    /* UPDATED: Custom Lists button styling - Yellow outline instead of purple */
+    /* Custom Lists button styling */
     .custom-lists-btn {
       background: var(--bg);
       border: 1px solid var(--accent);
@@ -750,7 +788,7 @@
       color: var(--white);
     }
     
-    /* Custom Lists Modal - UPDATED STYLING */
+    /* Custom Lists Modal */
     .custom-lists-modal {
       display: none;
       position: fixed;
@@ -779,7 +817,7 @@
       padding: 30px;
       max-width: 500px;
       width: 100%;
-      border: 2px solid var(--accent); /* Changed from purple to yellow */
+      border: 2px solid var(--accent);
       box-shadow: 0 25px 50px rgba(0,0,0,0.3);
       animation: modalSlideIn 0.3s ease-out;
       max-height: 80vh;
@@ -804,7 +842,7 @@
     }
     
     .lists-header h3 i {
-      color: var(--accent); /* Changed from purple to yellow */
+      color: var(--accent);
     }
     
     .close-lists-btn {
@@ -844,7 +882,7 @@
     }
     
     .lists-list-container::-webkit-scrollbar-thumb {
-      background: var(--accent); /* Changed from purple to yellow */
+      background: var(--accent);
       border-radius: 10px;
     }
     
@@ -867,13 +905,13 @@
     }
     
     .list-item:hover {
-      background: rgba(245, 158, 11, 0.1); /* Changed from purple to yellow */
+      background: rgba(245, 158, 11, 0.1);
       border-color: var(--accent);
       transform: translateX(5px);
     }
     
     .list-item.active {
-      background: rgba(245, 158, 11, 0.2); /* Changed from purple to yellow */
+      background: rgba(245, 158, 11, 0.2);
       border-color: var(--accent);
     }
     
@@ -887,7 +925,7 @@
     .list-icon {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); /* Changed from purple to yellow gradient */
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -916,7 +954,7 @@
     }
     
     .list-checkbox.checked {
-      background: var(--accent); /* Changed from purple to yellow */
+      background: var(--accent);
       border-color: var(--accent);
       animation: checkPop 0.3s ease;
     }
@@ -944,7 +982,7 @@
       font-size: 48px;
       margin-bottom: 16px;
       opacity: 0.5;
-      color: var(--accent); /* Changed from purple to yellow */
+      color: var(--accent);
     }
     
     .empty-lists h4 {
@@ -976,12 +1014,12 @@
     }
     
     .new-list-input input:focus {
-      border-color: var(--accent); /* Changed from purple to yellow */
+      border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
     }
     
     .create-list-btn {
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); /* Changed from purple to yellow gradient */
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
       color: #0b1633;
       border: none;
       padding: 12px 20px;
@@ -1232,8 +1270,7 @@
     }
     
     .pagination-btn {
-      width: 36px;
-      height: 36px;
+      padding: 8px 16px;
       border-radius: 8px;
       background: var(--card);
       border: 1px solid var(--border);
@@ -1243,6 +1280,8 @@
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      font-size: 13px;
+      font-weight: 500;
     }
     
     .pagination-btn:hover:not(:disabled) {
@@ -1266,6 +1305,22 @@
       color: var(--muted);
       font-size: 13px;
       margin: 0 16px;
+    }
+    
+    .view-all-btn {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-left: 12px;
+    }
+    
+    .view-all-btn:hover {
+      background: rgba(245, 158, 11, 0.1);
     }
     
     /* Footer */
@@ -1372,6 +1427,7 @@
       .toolbar {
         width: 100%;
         justify-content: space-between;
+        flex-wrap: wrap;
       }
       
       .view-controls {
@@ -1379,7 +1435,11 @@
         width: 100%;
         margin-left: 0;
         margin-top: 12px;
-        justify-content: center;
+        justify-content: space-between;
+      }
+      
+      .items-per-page {
+        margin-left: 0;
       }
       
       .sort-controls {
@@ -1624,6 +1684,16 @@
             <i class="fas fa-th-list"></i>
           </button>
         </div>
+        
+        <div class="items-per-page">
+          <label for="itemsPerPage">Show:</label>
+          <select id="itemsPerPage" class="items-select">
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="9999">All</option>
+          </select>
+        </div>
       </div>
     </div>
     
@@ -1634,9 +1704,10 @@
     
     <!-- Pagination -->
     <div id="pagination" class="pagination" style="display: none;">
-      <button class="pagination-btn" id="prevPage" disabled>←</button>
+      <button class="pagination-btn" id="prevPage" disabled>← Prev</button>
       <span class="pagination-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
-      <button class="pagination-btn" id="nextPage" disabled>→</button>
+      <button class="pagination-btn" id="nextPage" disabled>Next →</button>
+      <button class="view-all-btn" id="viewAllBtn" style="display: none;">View All</button>
     </div>
   </main>
 
@@ -1660,7 +1731,6 @@
           <i class="fas fa-utensils"></i>
           <span id="visitedText">Mark as Visited</span>
         </button>
-        <!-- UPDATED: Changed from Custom Folders to Custom Lists -->
         <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
           <i class="fas fa-list"></i>
           <span>Custom Lists</span>
@@ -1671,7 +1741,7 @@
     </div>
   </div>
 
-  <!-- Custom Lists Modal - UPDATED NAME -->
+  <!-- Custom Lists Modal -->
   <div id="customListsModal" class="custom-lists-modal">
     <div class="custom-lists-content">
       <div class="lists-header">
@@ -1765,12 +1835,103 @@
         currentUser: null,
         isLoggedIn: false,
         authChecked: false,
-        imageQueue: [],
-        imagesLoading: 0,
-        maxConcurrentLoads: 6,
         customLists: [],
-        selectedLists: new Set()
+        selectedLists: new Set(),
+        isViewAll: false,
+        viewAllButtonText: "View All"
       };
+      
+      // ---------- IMAGE OPTIMIZATION ----------
+      function getOptimizedSupabaseImageUrl(url, options = {}) {
+        if (!url || !url.includes('supabase.co')) return url;
+        
+        try {
+          // Parse the URL
+          const urlObj = new URL(url);
+          const params = new URLSearchParams(urlObj.search);
+          
+          // Set optimization parameters
+          if (!params.has('width')) params.set('width', options.width || '600');
+          if (!params.has('height')) params.set('height', options.height || '400');
+          if (!params.has('quality')) params.set('quality', options.quality || '75');
+          if (!params.has('format')) params.set('format', options.format || 'webp');
+          if (!params.has('resize')) params.set('resize', options.resize || 'cover');
+          
+          // Add cache busting
+          if (!params.has('v')) params.set('v', '1.0');
+          
+          // Reconstruct URL
+          urlObj.search = params.toString();
+          return urlObj.toString();
+        } catch (e) {
+          // If URL parsing fails, return original
+          return url;
+        }
+      }
+      
+      // ---------- LAZY LOADING SYSTEM ----------
+      let imageObserver;
+      
+      function initLazyLoading() {
+        if ('IntersectionObserver' in window) {
+          imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                loadImage(img, img.dataset.src);
+                observer.unobserve(img);
+              }
+            });
+          }, {
+            rootMargin: '100px 0px',
+            threshold: 0.01
+          });
+        }
+      }
+      
+      function loadImage(imgElement, url) {
+        if (!url || url === '') {
+          imgElement.style.display = 'none';
+          return;
+        }
+        
+        // Optimize Supabase URLs
+        const optimizedUrl = getOptimizedSupabaseImageUrl(url, {
+          width: imgElement.clientWidth > 0 ? Math.ceil(imgElement.clientWidth * 1.5) : '600',
+          height: '400'
+        });
+        
+        const tempImg = new Image();
+        tempImg.onload = () => {
+          imgElement.src = optimizedUrl;
+          imgElement.classList.add('loaded');
+          
+          // Fade in effect
+          imgElement.style.opacity = '0';
+          setTimeout(() => {
+            imgElement.style.transition = 'opacity 0.3s ease';
+            imgElement.style.opacity = '1';
+          }, 10);
+        };
+        
+        tempImg.onerror = () => {
+          // Fallback to original URL if optimized fails
+          imgElement.src = url;
+          imgElement.classList.add('loaded');
+        };
+        
+        // Start loading
+        tempImg.src = optimizedUrl;
+      }
+      
+      function observeImage(imgElement) {
+        if (imageObserver && imgElement.dataset.src) {
+          imageObserver.observe(imgElement);
+        } else if (imgElement.dataset.src) {
+          // Fallback for browsers without IntersectionObserver
+          loadImage(imgElement, imgElement.dataset.src);
+        }
+      }
       
       // ---------- CUSTOM LISTS MANAGER ----------
       const customListsManager = {
@@ -1785,8 +1946,6 @@
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
             
-            console.log('Loading custom lists for user:', user.id);
-            
             // Get all custom lists (excluding default lists)
             const { data: lists, error } = await supabase
               .from('lists')
@@ -1797,12 +1956,8 @@
               .neq('title', 'Want to Go')
               .order('created_at', { ascending: false });
             
-            if (error) {
-              console.error('Error loading custom lists:', error);
-              throw error;
-            }
+            if (error) throw error;
             
-            console.log('Loaded custom lists:', lists);
             state.customLists = lists || [];
             
           } catch (error) {
@@ -1841,7 +1996,6 @@
           }
         },
         
-        // FIXED: Removed .single() to fix 406 error
         async checkRestaurantInList(restaurantId, listId) {
           try {
             const { data, error } = await supabase
@@ -1855,7 +2009,6 @@
               return false;
             }
             
-            // Check if we got any results
             return data && data.length > 0;
             
           } catch (error) {
@@ -1876,10 +2029,7 @@
                 .eq('list_id', listId)
                 .eq('restraunt_id', restaurantId);
               
-              if (error) {
-                console.error('Error removing from list:', error);
-                throw error;
-              }
+              if (error) throw error;
               
               return false;
             } else {
@@ -1894,10 +2044,7 @@
                   }
                 ]);
               
-              if (error) {
-                console.error('Error adding to list:', error);
-                throw error;
-              }
+              if (error) throw error;
               
               return true;
             }
@@ -1914,24 +2061,19 @@
           
           const status = {};
           
-          console.log('Checking restaurant status in', state.customLists.length, 'custom lists');
-          
-          // Check each list in parallel for better performance
+          // Check each list
           const promises = state.customLists.map(async (list) => {
             status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
           });
           
           await Promise.all(promises);
           
-          console.log('Restaurant list status:', status);
           return status;
         },
         
         renderListsList(restaurantId) {
           const container = document.getElementById('listsListContainer');
           if (!container) return;
-          
-          console.log('Rendering lists list for restaurant:', restaurantId);
           
           if (state.customLists.length === 0) {
             container.innerHTML = `
@@ -1984,7 +2126,6 @@
                 item.classList.add('active');
                 checkbox.classList.add('checked');
                 
-                // Add animation
                 checkbox.style.animation = 'none';
                 setTimeout(() => {
                   checkbox.style.animation = 'checkPop 0.3s ease';
@@ -1998,62 +2139,6 @@
           await this.loadCustomLists();
         }
       };
-      
-      // ---------- FAST IMAGE LOADING SYSTEM ----------
-      function initFastImageLoader() {
-        state.imageQueue = [];
-        state.imagesLoading = 0;
-        
-        const preloader = {
-          queue: [],
-          loading: 0,
-          maxConcurrent: 6,
-          
-          addImage(url) {
-            if (!url) return;
-            this.queue.push(url);
-            this.processQueue();
-          },
-          
-          processQueue() {
-            while (this.loading < this.maxConcurrent && this.queue.length > 0) {
-              const url = this.queue.shift();
-              this.loadImage(url);
-            }
-          },
-          
-          loadImage(url) {
-            this.loading++;
-            const img = new Image();
-            img.onload = img.onerror = () => {
-              this.loading--;
-              this.processQueue();
-            };
-            img.src = url;
-          }
-        };
-        
-        state.preloader = preloader;
-      }
-      
-      function loadImage(imgElement, url) {
-        if (!url || url === '') {
-          return;
-        }
-        
-        imgElement.src = url;
-        imgElement.onload = () => {
-          imgElement.style.opacity = '0';
-          setTimeout(() => {
-            imgElement.style.transition = 'opacity 0.3s ease';
-            imgElement.style.opacity = '1';
-          }, 10);
-        };
-        
-        imgElement.onerror = () => {
-          imgElement.style.display = 'none';
-        };
-      }
       
       // ---------- LIST MANAGER ----------
       const listManager = {
@@ -2263,10 +2348,8 @@
         }, duration);
       }
       
-      // ---------- CUSTOM LISTS MODAL FUNCTIONS ----------
+      // ---------- CUSTOM LISTS MODAL ----------
       async function showCustomListsModal(restaurantId) {
-        console.log('Showing custom lists modal for restaurant:', restaurantId);
-        
         if (!restaurantId) {
           showNotification('No restaurant selected', 'error');
           return;
@@ -2277,7 +2360,6 @@
           return;
         }
         
-        // Find the restaurant in the state
         const restaurant = state.restaurants.find(r => r.id === restaurantId);
         if (!restaurant) {
           showNotification('Restaurant not found', 'error');
@@ -2286,16 +2368,11 @@
         
         state.currentModalRestaurant = restaurant;
         
-        console.log('Restaurant found:', restaurant.name);
-        
-        // Ensure custom lists are loaded
         if (!state.customLists || state.customLists.length === 0) {
           await customListsManager.refreshLists();
         }
         
-        // Load current list status for this restaurant
         try {
-          console.log('Loading status for restaurant ID:', restaurantId);
           const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
           
           state.selectedLists.clear();
@@ -2305,18 +2382,12 @@
             }
           }
           
-          console.log('Selected lists:', Array.from(state.selectedLists));
-          console.log('Available custom lists:', state.customLists);
-          
-          // Render lists list
           customListsManager.renderListsList(restaurantId);
           
-          // Show modal
           const modal = document.getElementById('customListsModal');
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
           
-          // Focus the modal
           setTimeout(() => {
             const newListInput = document.getElementById('newListName');
             if (newListInput) newListInput.focus();
@@ -2326,7 +2397,6 @@
           console.error('Error loading list status:', error);
           showNotification('Error loading lists', 'error');
           
-          // Still show modal with empty state
           const modal = document.getElementById('customListsModal');
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
@@ -2348,7 +2418,6 @@
         }
         
         const restaurantId = state.currentModalRestaurant.id;
-        const restaurantName = state.currentModalRestaurant.name;
         const saveBtn = document.getElementById('saveListsBtn');
         const originalText = saveBtn.textContent;
         
@@ -2357,29 +2426,19 @@
         
         try {
           let changesMade = false;
-          const results = [];
           
-          // Process each custom list
           for (const list of state.customLists) {
             const shouldBeInList = state.selectedLists.has(list.id);
             const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
             
-            console.log(`List ${list.title}: shouldBeInList=${shouldBeInList}, isInList=${isInList}`);
-            
             if (shouldBeInList && !isInList) {
-              // Add to list
-              console.log(`Adding to list: ${list.title}`);
               const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
               if (success) {
-                results.push(`Added to "${list.title}"`);
                 changesMade = true;
               }
             } else if (!shouldBeInList && isInList) {
-              // Remove from list
-              console.log(`Removing from list: ${list.title}`);
               const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
               if (success !== null) {
-                results.push(`Removed from "${list.title}"`);
                 changesMade = true;
               }
             }
@@ -2387,14 +2446,12 @@
           
           if (changesMade) {
             showNotification('List changes saved successfully!', 'success');
-            console.log('Save results:', results);
           } else {
             showNotification('No changes made', 'info');
           }
           
           hideCustomListsModal();
           
-          // Refresh restaurant display
           if (state.filteredRestaurants.length > 0) {
             renderRestaurants();
           }
@@ -2700,8 +2757,6 @@
           applyFilters();
           updateCounts();
           
-          setTimeout(() => preloadVisibleImages(), 100);
-          
         } catch (error) {
           console.error('Error loading restaurants:', error);
           showNotification('Failed to load restaurants', 'error');
@@ -2722,7 +2777,6 @@
           return;
         }
         
-        // Normalize categories from restaurant data
         const categoryMap = new Map();
         data.forEach((restaurant, index) => {
           let categoryName = restaurant.category || 'Restaurant';
@@ -2738,12 +2792,10 @@
           }
         });
         
-        // Add categories to state
         categoryMap.forEach((cat, name) => {
           state.categories.set(cat.id, cat);
         });
         
-        // Process restaurants
         state.restaurants = data.map(restaurant => {
           const categoryName = normalizeCategoryName(restaurant.category || 'Restaurant');
           const category = Array.from(state.categories.values()).find(c => c.name === categoryName);
@@ -2765,8 +2817,6 @@
         populateCategoryDropdown();
         applyFilters();
         updateCounts();
-        
-        setTimeout(() => preloadVisibleImages(), 100);
       }
       
       function normalizeCategoryName(categoryName) {
@@ -2821,19 +2871,6 @@
         };
         
         return icons[categoryName] || '🍴';
-      }
-      
-      function preloadVisibleImages() {
-        const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
-        images.forEach(img => {
-          const rect = img.getBoundingClientRect();
-          if (rect.top < window.innerHeight + 200) {
-            const url = img.dataset.src;
-            if (url && url !== '') {
-              state.preloader.addImage(url);
-            }
-          }
-        });
       }
       
       function populateCategoryDropdown() {
@@ -2958,20 +2995,30 @@
         
         grid.classList.remove('skeleton-grid');
         
-        const startIdx = (state.currentPage - 1) * state.pageSize;
-        const endIdx = startIdx + state.pageSize;
-        const pageItems = state.filteredRestaurants.slice(startIdx, endIdx);
+        // Determine items to show
+        let itemsToShow;
+        if (state.isViewAll) {
+          itemsToShow = state.filteredRestaurants;
+        } else {
+          const startIdx = (state.currentPage - 1) * state.pageSize;
+          const endIdx = startIdx + state.pageSize;
+          itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
+        }
         
         // Clear grid first
         grid.innerHTML = '';
         
-        // Create cards sequentially to avoid async issues
-        for (const restaurant of pageItems) {
-          const card = await createRestaurantCard(restaurant);
+        // Create cards
+        for (const restaurant of itemsToShow) {
+          const card = createRestaurantCard(restaurant);
           grid.appendChild(card);
+          
+          // Set up lazy loading for images in this card
+          setTimeout(() => {
+            const images = card.querySelectorAll('img[data-src]');
+            images.forEach(img => observeImage(img));
+          }, 10);
         }
-        
-        loadVisibleImages();
       }
       
       function createRestaurantCard(restaurant) {
@@ -3058,13 +3105,6 @@
         return card;
       }
       
-      function loadVisibleImages() {
-        const images = document.querySelectorAll('.restaurant-image[data-src], .logo-overlay img[data-src]');
-        images.forEach(img => {
-          loadImage(img, img.dataset.src);
-        });
-      }
-      
       function showEmptyState() {
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
@@ -3090,14 +3130,15 @@
         }
       }
       
-      // ---------- PAGINATION ----------
+      // ---------- PAGINATION & VIEW ALL ----------
       function updatePagination() {
         const pagination = document.getElementById('pagination');
+        const viewAllBtn = document.getElementById('viewAllBtn');
         if (!pagination) return;
         
         const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
         
-        if (totalPages <= 1) {
+        if (state.filteredRestaurants.length <= state.pageSize || state.isViewAll) {
           pagination.style.display = 'none';
           return;
         }
@@ -3133,15 +3174,50 @@
             }
           };
         }
+        
+        if (viewAllBtn) {
+          viewAllBtn.style.display = 'inline-block';
+          viewAllBtn.textContent = state.isViewAll ? 'Show Less' : 'View All';
+          viewAllBtn.onclick = toggleViewAll;
+        }
+      }
+      
+      function toggleViewAll() {
+        state.isViewAll = !state.isViewAll;
+        
+        if (state.isViewAll) {
+          state.pageSize = 9999; // Effectively show all
+        } else {
+          // Get current items per page setting
+          const itemsPerPageSelect = document.getElementById('itemsPerPage');
+          if (itemsPerPageSelect) {
+            state.pageSize = parseInt(itemsPerPageSelect.value);
+          } else {
+            state.pageSize = 20;
+          }
+        }
+        
+        renderRestaurants();
+        updatePagination();
+        updateCounts();
+        
+        if (!state.isViewAll) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
       
       // ---------- UI UPDATES ----------
       function updateCounts() {
-        const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
         const showingEl = document.getElementById('showingCount');
         const totalEl = document.getElementById('totalCount');
         
-        if (showingEl) showingEl.textContent = showing;
+        if (state.isViewAll) {
+          if (showingEl) showingEl.textContent = state.filteredRestaurants.length;
+        } else {
+          const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
+          if (showingEl) showingEl.textContent = showing;
+        }
+        
         if (totalEl) totalEl.textContent = state.filteredRestaurants.length;
       }
       
@@ -3183,6 +3259,26 @@
             state.activeFilters.sort = e.target.value;
             applyFilters();
           });
+        }
+        
+        // Items per page selector
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        if (itemsPerPageSelect) {
+          itemsPerPageSelect.addEventListener('change', (e) => {
+            state.pageSize = parseInt(e.target.value);
+            state.currentPage = 1;
+            state.isViewAll = false;
+            applyFilters();
+          });
+          
+          // Load saved preference
+          try {
+            const savedItems = localStorage.getItem('zo2y_items_per_page');
+            if (savedItems) {
+              itemsPerPageSelect.value = savedItems;
+              state.pageSize = parseInt(savedItems);
+            }
+          } catch (e) {}
         }
         
         document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -3238,7 +3334,6 @@
           });
         }
         
-        // Fixed Custom Lists button handler
         if (modalCustomListsBtn) {
           modalCustomListsBtn.addEventListener('click', () => {
             if (!state.currentModalRestaurant) {
@@ -3246,12 +3341,8 @@
               return;
             }
             
-            console.log('Custom lists button clicked for restaurant:', state.currentModalRestaurant.id);
-            
-            // Close actions modal first
             hideModal();
             
-            // Show custom lists modal after a short delay
             setTimeout(() => {
               showCustomListsModal(state.currentModalRestaurant.id);
             }, 100);
@@ -3280,7 +3371,6 @@
               return;
             }
             
-            // Check if list already exists
             const existingList = state.customLists.find(l => 
               l.title.toLowerCase() === name.toLowerCase()
             );
@@ -3295,13 +3385,10 @@
               showNotification(`Created "${name}" list`, 'success');
               newListNameInput.value = '';
               
-              // Refresh lists from database
               await customListsManager.refreshLists();
               
-              // Auto-select the new list
               state.selectedLists.add(newList.id);
               
-              // Refresh the display
               customListsManager.renderListsList(state.currentModalRestaurant?.id);
             }
           });
@@ -3417,11 +3504,16 @@
         const clearSearchBtn = document.getElementById('clearSearch');
         const categorySelect = document.getElementById('categorySelect');
         const sortSelect = document.getElementById('sortSelect');
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
         
         if (searchInput) searchInput.value = '';
         if (clearSearchBtn) clearSearchBtn.style.display = 'none';
         if (categorySelect) categorySelect.value = 'all';
         if (sortSelect) sortSelect.value = 'rating-desc';
+        if (itemsPerPageSelect) {
+          itemsPerPageSelect.value = '20';
+          state.pageSize = 20;
+        }
         
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
         const allFilter = document.querySelector('[data-filter="all"]');
@@ -3433,6 +3525,9 @@
           quickFilter: 'all',
           sort: 'rating-desc'
         };
+        
+        state.isViewAll = false;
+        state.currentPage = 1;
         
         applyFilters();
         showNotification('Filters reset', 'info');
@@ -3534,7 +3629,7 @@
           return;
         }
         
-        initFastImageLoader();
+        initLazyLoading();
         showLoadingSkeleton();
         setupEventListeners();
         await loadRestaurantsData();
@@ -3542,13 +3637,15 @@
         
         supabase.auth.onAuthStateChange(updateAuthUI);
         
-        let scrollTimeout;
-        window.addEventListener('scroll', () => {
-          clearTimeout(scrollTimeout);
-          scrollTimeout = setTimeout(() => {
-            preloadVisibleImages();
-          }, 100);
-        });
+        // Save items per page preference
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        if (itemsPerPageSelect) {
+          itemsPerPageSelect.addEventListener('change', function() {
+            try {
+              localStorage.setItem('zo2y_items_per_page', this.value);
+            } catch (e) {}
+          });
+        }
       }
       
       if (document.readyState === 'loading') {
