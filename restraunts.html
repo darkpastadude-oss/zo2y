@@ -15,15 +15,32 @@
       --shadow: 0 10px 30px rgba(0,0,0,0.3);
       --success: #10b981; --error: #ef4444; --info: #3b82f6;
       --surface: rgba(19, 35, 71, 0.6);
+      --cloud-color: #3b82f6;
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; } 
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Guest Banner */
+    /* Mobile Guest Banner - Sticky at top */
     .guest-banner {
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 101;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 0;
+      margin: 0;
+      text-align: center;
+      animation: slideDown 0.3s ease-out;
+      backdrop-filter: blur(10px);
+    }
+    
+    .guest-banner.desktop {
       display: none;
+      position: static;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
       border: 1px solid rgba(245, 158, 11, 0.2);
       padding: 10px 20px;
@@ -31,11 +48,10 @@
       border-radius: 12px;
       max-width: 800px;
       width: calc(100% - 40px);
-      text-align: center;
-      animation: slideDown 0.3s ease-out;
+      backdrop-filter: none;
     }
     
-    .guest-banner.show {
+    .guest-banner.mobile {
       display: block;
     }
     
@@ -52,32 +68,34 @@
     
     .banner-content {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       justify-content: center;
       gap: 8px;
       color: var(--muted);
       font-size: 14px;
+      padding: 8px 12px;
     }
     
     .banner-text {
       margin-right: 8px;
+      font-size: 13px;
     }
     
     .banner-actions {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
     
     .banner-btn {
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 8px;
       font-weight: 500;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
       transition: all 0.3s ease;
       border: none;
+      white-space: nowrap;
     }
     
     .banner-btn-outline {
@@ -142,6 +160,10 @@
       background: var(--surface); 
       border-bottom: 1px solid var(--border); 
     } 
+    
+    .has-mobile-banner header {
+      top: 40px;
+    }
     
     .logo { 
       height: 40px; 
@@ -451,6 +473,104 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
+    /* Cloud Kitchen Badge - TOP RIGHT */
+    .cloud-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      background: rgba(59, 130, 246, 0.95);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      z-index: 25;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      border: 2px solid var(--cloud-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      color: white;
+      font-size: 16px;
+    }
+    
+    .cloud-badge:hover {
+      background: rgba(59, 130, 246, 1);
+      transform: scale(1.1);
+      width: auto;
+      padding: 0 12px;
+      gap: 6px;
+    }
+    
+    .cloud-badge:hover .cloud-text {
+      display: inline;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .cloud-text {
+      display: none;
+    }
+    
+    /* Cloud Kitchen Info Tooltip */
+    .cloud-tooltip {
+      position: absolute;
+      top: 50px;
+      right: 12px;
+      background: var(--card);
+      border: 2px solid var(--cloud-color);
+      border-radius: 12px;
+      padding: 16px;
+      width: 280px;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(20px);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .cloud-badge:hover .cloud-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    
+    .tooltip-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .tooltip-header i {
+      color: var(--cloud-color);
+      font-size: 18px;
+    }
+    
+    .tooltip-header h4 {
+      color: var(--white);
+      font-size: 16px;
+      margin: 0;
+    }
+    
+    .tooltip-content {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .tooltip-content ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    
+    .tooltip-content li {
+      margin-bottom: 4px;
+    }
+    
     /* Logo overlay in bottom left */
     .logo-overlay {
       position: absolute;
@@ -509,10 +629,10 @@
       overflow: hidden;
     }
     
-    /* Three dots menu button - ALWAYS VISIBLE */
+    /* Three dots menu button - Moved down when cloud badge is present */
     .menu-btn {
       position: absolute;
-      top: 12px;
+      top: 60px;
       right: 12px;
       width: 36px;
       height: 36px;
@@ -527,6 +647,10 @@
       backdrop-filter: blur(10px);
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .menu-btn.no-cloud {
+      top: 12px;
     }
     
     .menu-btn:hover {
@@ -1406,6 +1530,66 @@
     
     /* Responsive */
     @media (max-width: 768px) {
+      /* Mobile banner adjustments */
+      .guest-banner.mobile {
+        display: block;
+      }
+      
+      .guest-banner.desktop {
+        display: none;
+      }
+      
+      .guest-banner .banner-content {
+        padding: 6px 12px;
+      }
+      
+      .banner-text {
+        font-size: 12px;
+        margin-right: 4px;
+      }
+      
+      .banner-btn {
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+      
+      .has-mobile-banner header {
+        top: 34px;
+      }
+      
+      /* Cloud badge mobile adjustments */
+      .cloud-badge {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      
+      .cloud-badge:hover {
+        padding: 0 8px;
+        gap: 4px;
+      }
+      
+      .cloud-badge:hover .cloud-text {
+        font-size: 11px;
+      }
+      
+      .cloud-tooltip {
+        width: 240px;
+        right: 8px;
+      }
+      
+      .menu-btn {
+        top: 56px;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+      }
+      
+      .menu-btn.no-cloud {
+        top: 12px;
+      }
+      
+      /* Grid adjustments */
       .grid-normal {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       }
@@ -1526,6 +1710,57 @@
     }
     
     @media (max-width: 480px) {
+      /* Mobile banner adjustments */
+      .guest-banner.mobile .banner-content {
+        flex-direction: row;
+        justify-content: center;
+        padding: 5px 10px;
+      }
+      
+      .banner-text {
+        display: none;
+      }
+      
+      .has-mobile-banner header {
+        top: 30px;
+      }
+      
+      /* Cloud badge touch-friendly */
+      .cloud-badge {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+      
+      .cloud-badge:active {
+        background: rgba(59, 130, 246, 1);
+        transform: scale(1.1);
+        width: auto;
+        padding: 0 6px;
+        gap: 3px;
+      }
+      
+      .cloud-badge:active .cloud-text {
+        display: inline;
+        font-size: 10px;
+      }
+      
+      .cloud-tooltip {
+        display: none;
+      }
+      
+      .menu-btn {
+        top: 52px;
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+      
+      .menu-btn.no-cloud {
+        top: 10px;
+      }
+      
+      /* Grid adjustments */
       .grid-normal {
         grid-template-columns: 1fr;
       }
@@ -1538,16 +1773,19 @@
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
       
+      /* Fix for extra square in dense grid */
+      .grid-dense .restaurant-card {
+        min-height: 200px;
+      }
+      
       .guest-banner {
-        flex-direction: column;
-        gap: 12px;
         padding: 6px 12px;
         width: calc(100% - 24px);
       }
       
       .banner-content {
-        flex-direction: column;
-        gap: 8px;
+        flex-direction: row;
+        gap: 6px;
         text-align: center;
       }
       
@@ -1573,13 +1811,6 @@
         height: 36px;
         bottom: 8px;
         left: 8px;
-      }
-      
-      .menu-btn {
-        width: 30px;
-        height: 30px;
-        top: 8px;
-        right: 8px;
       }
       
       .custom-lists-content {
@@ -1610,13 +1841,38 @@
         font-size: 22px;
       }
     }
+    
+    @media (min-width: 769px) {
+      /* Desktop banner adjustments */
+      .guest-banner.mobile {
+        display: none;
+      }
+      
+      .guest-banner.desktop {
+        display: block;
+      }
+      
+      .has-mobile-banner header {
+        top: 0;
+      }
+    }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Guest Banner -->
-  <div id="guestBanner" class="guest-banner">
+  <!-- Mobile Guest Banner - Sticky at top -->
+  <div id="guestBannerMobile" class="guest-banner mobile">
+    <div class="banner-content">
+      <span class="banner-text">Want to save favorites?</span>
+      <div class="banner-actions">
+        <button class="banner-btn banner-btn-primary" id="bannerMobileSignupBtn">Sign Up Free</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop Guest Banner -->
+  <div id="guestBannerDesktop" class="guest-banner desktop">
     <div class="banner-content">
       <span class="banner-text">Want to save your favorite restaurants?</span>
       <div class="banner-actions">
@@ -1821,6 +2077,7 @@
         restaurants: [],
         filteredRestaurants: [],
         categories: new Map(),
+        cloudKitchens: new Set(), // Set of restaurant IDs that are cloud kitchens
         currentPage: 1,
         pageSize: 20,
         isLoading: false,
@@ -1839,6 +2096,63 @@
         selectedLists: new Set(),
         isViewAll: false,
         viewAllButtonText: "View All"
+      };
+      
+      // ---------- CLOUD KITCHEN MANAGER ----------
+      const cloudKitchenManager = {
+        async loadCloudKitchens() {
+          try {
+            const { data: cloudKitchens, error } = await supabase
+              .from('cloud_kitchens')
+              .select('restaurant_id');
+            
+            if (error) {
+              console.warn('Error loading cloud kitchens:', error);
+              return;
+            }
+            
+            if (cloudKitchens && cloudKitchens.length > 0) {
+              state.cloudKitchens.clear();
+              cloudKitchens.forEach(ck => {
+                state.cloudKitchens.add(ck.restaurant_id);
+              });
+              console.log(`Loaded ${state.cloudKitchens.size} cloud kitchens`);
+            }
+          } catch (error) {
+            console.error('Error loading cloud kitchens:', error);
+          }
+        },
+        
+        isCloudKitchen(restaurantId) {
+          return state.cloudKitchens.has(restaurantId);
+        },
+        
+        createCloudBadge(restaurantId) {
+          if (!this.isCloudKitchen(restaurantId)) return '';
+          
+          return `
+            <div class="cloud-badge" aria-label="Cloud Kitchen">
+              <i class="fas fa-cloud"></i>
+              <span class="cloud-text">Cloud Kitchen</span>
+              <div class="cloud-tooltip">
+                <div class="tooltip-header">
+                  <i class="fas fa-cloud"></i>
+                  <h4>Cloud Kitchen</h4>
+                </div>
+                <div class="tooltip-content">
+                  <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
+                  <ul>
+                    <li>Delivery only - no dine-in option</li>
+                    <li>Optimized for online orders</li>
+                    <li>Often operates multiple brands from one kitchen</li>
+                    <li>Lower overhead costs</li>
+                  </ul>
+                  <p>These restaurants focus on quality food optimized for delivery.</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
       };
       
       // ---------- IMAGE OPTIMIZATION ----------
@@ -2529,8 +2843,15 @@
       // ---------- GUEST BANNER ----------
       const guestBanner = {
         init: function() {
+          const mobileSignupBtn = document.getElementById('bannerMobileSignupBtn');
           const loginBtn = document.getElementById('bannerLoginBtn');
           const signupBtn = document.getElementById('bannerSignupBtn');
+          
+          if (mobileSignupBtn) {
+            mobileSignupBtn.addEventListener('click', () => {
+              window.location.href = 'sign-up.html';
+            });
+          }
           
           if (loginBtn) {
             loginBtn.addEventListener('click', () => {
@@ -2543,20 +2864,49 @@
               window.location.href = 'sign-up.html';
             });
           }
+          
+          // Add mobile banner class to body for CSS targeting
+          if (window.innerWidth <= 768) {
+            document.body.classList.add('has-mobile-banner');
+          }
         },
         
         show: function() {
-          const banner = document.getElementById('guestBanner');
-          if (banner) {
-            banner.classList.add('show');
+          const mobileBanner = document.getElementById('guestBannerMobile');
+          const desktopBanner = document.getElementById('guestBannerDesktop');
+          
+          if (window.innerWidth <= 768) {
+            // Mobile
+            if (mobileBanner) {
+              mobileBanner.style.display = 'block';
+            }
+            if (desktopBanner) {
+              desktopBanner.style.display = 'none';
+            }
+            document.body.classList.add('has-mobile-banner');
+          } else {
+            // Desktop
+            if (mobileBanner) {
+              mobileBanner.style.display = 'none';
+            }
+            if (desktopBanner) {
+              desktopBanner.style.display = 'block';
+            }
+            document.body.classList.remove('has-mobile-banner');
           }
         },
         
         hide: function() {
-          const banner = document.getElementById('guestBanner');
-          if (banner) {
-            banner.classList.remove('show');
+          const mobileBanner = document.getElementById('guestBannerMobile');
+          const desktopBanner = document.getElementById('guestBannerDesktop');
+          
+          if (mobileBanner) {
+            mobileBanner.style.display = 'none';
           }
+          if (desktopBanner) {
+            desktopBanner.style.display = 'none';
+          }
+          document.body.classList.remove('has-mobile-banner');
         }
       };
       
@@ -2703,6 +3053,8 @@
       
       async function loadRestaurantsData() {
         try {
+          // Load cloud kitchens first
+          await cloudKitchenManager.loadCloudKitchens();
           await loadRestaurantImages();
           
           // First, try to load with categories join
@@ -2748,7 +3100,8 @@
             description: restaurant.description,
             rating: restaurant.rating,
             logo_url: getLogoUrl(restaurant),
-            coverImage: getCoverImageUrl(restaurant.slug)
+            coverImage: getCoverImageUrl(restaurant.slug),
+            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
           }));
           
           await loadCategories();
@@ -2810,7 +3163,8 @@
             description: restaurant.description,
             rating: restaurant.rating,
             logo_url: getLogoUrl(restaurant),
-            coverImage: getCoverImageUrl(restaurant.slug)
+            coverImage: getCoverImageUrl(restaurant.slug),
+            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
           };
         });
         
@@ -3019,6 +3373,12 @@
             images.forEach(img => observeImage(img));
           }, 10);
         }
+        
+        // Fix for extra square in dense grid
+        const gridBtn = document.querySelector('.grid-btn.active');
+        if (gridBtn && gridBtn.dataset.view === 'dense') {
+          grid.classList.add('grid-dense-fixed');
+        }
       }
       
       function createRestaurantCard(restaurant) {
@@ -3033,6 +3393,8 @@
         const status = listManager.getRestaurantListStatus(restaurant.id);
         const isTopRated = rating >= 4.5;
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
+        const isCloudKitchen = restaurant.isCloudKitchen || false;
+        const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
         
         let badgeText = '';
         if (status.favorites) badgeText += '❤️ ';
@@ -3057,9 +3419,10 @@
                        height="48">
                 </div>
               ` : ''}
-              <button class="menu-btn" aria-label="Restaurant actions" title="Save to lists">
+              <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" aria-label="Restaurant actions" title="Save to lists">
                 <i class="fas fa-ellipsis-h"></i>
               </button>
+              ${cloudBadge}
               ${badgeText ? `
                 <div class="badge-container">
                   <div class="user-list-badge">${badgeText.trim()}</div>
@@ -3099,6 +3462,18 @@
               name: restaurant.name,
               slug: restaurant.slug
             });
+          });
+        }
+        
+        // Mobile: Make cloud badge clickable to show tooltip
+        const cloudBadgeEl = card.querySelector('.cloud-badge');
+        if (cloudBadgeEl && window.innerWidth <= 768) {
+          cloudBadgeEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Show a simple alert for mobile
+            alert('Cloud Kitchen\n\nA delivery-only restaurant that operates without a physical dining space. These kitchens focus on quality food optimized for delivery.');
           });
         }
         
@@ -3458,6 +3833,15 @@
             hideModal();
             hideCustomListsModal();
             hideAuthPrompt();
+          }
+        });
+        
+        // Window resize for banner switching
+        window.addEventListener('resize', () => {
+          if (state.currentUser) {
+            guestBanner.hide();
+          } else {
+            guestBanner.show();
           }
         });
         
