@@ -19,18 +19,16 @@
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; } 
-    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
+    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; position: relative; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Mobile Guest Banner - STICKY FIX */
+    /* Fixed Mobile Guest Banner - NON-STICKY */
     .guest-banner.mobile {
       display: block;
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      padding: 8px 12px;
-      backdrop-filter: blur(8px) saturate(180%);
-      background: rgba(245, 158, 11, 0.15);
+      position: relative;
+      z-index: 100;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(255, 184, 77, 0.2) 100%);
       border-bottom: 1px solid rgba(245, 158, 11, 0.3);
       margin-bottom: 0;
       width: 100%;
@@ -41,10 +39,9 @@
       max-width: 800px;
       width: calc(100% - 40px);
       border-radius: 12px;
-      margin: 0 auto 20px auto;
+      margin: 20px auto 20px auto;
       border: 1px solid rgba(245, 158, 11, 0.2);
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
       padding: 10px 20px;
       text-align: center;
     }
@@ -52,7 +49,7 @@
     .banner-content {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 8px;
       color: var(--muted);
       font-size: 14px;
@@ -70,7 +67,7 @@
     }
     
     .banner-btn {
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 8px;
       font-weight: 500;
       font-size: 12px;
@@ -101,7 +98,7 @@
       transform: translateY(-1px);
     }
     
-    /* Enhanced Image Loading - Optimized for speed */
+    /* Enhanced Image Loading - FIXED */
     .restaurant-image {
       display: block;
       width: 100%;
@@ -109,7 +106,7 @@
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.5s ease;
     }
     
     .restaurant-image.loaded {
@@ -122,18 +119,18 @@
       object-fit: contain;
       border-radius: 8px;
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.5s ease;
     }
     
     .logo-overlay img.loaded {
       opacity: 1;
     }
     
-    /* Enhanced Header */
+    /* Enhanced Header - FIXED POSITION */
     header { 
       position: sticky; 
       top: 0; 
-      z-index: 100; 
+      z-index: 1000; 
       display: flex; 
       align-items: center; 
       gap: 20px; 
@@ -427,7 +424,7 @@
     .restaurant-card { 
       background: var(--card); 
       border-radius: 16px; 
-      overflow: hidden; 
+      overflow: visible; /* CHANGED from hidden to visible for tooltips */
       box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
       border: 1px solid var(--border);
       cursor: pointer; 
@@ -451,11 +448,15 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Cloud Kitchen Badge - FIXED with external tooltip */
-    .cloud-badge {
+    /* Cloud Kitchen Badge - FIXED POSITION */
+    .cloud-badge-container {
       position: absolute;
       top: 12px;
       right: 12px;
+      z-index: 30;
+    }
+    
+    .cloud-badge {
       width: 36px;
       height: 36px;
       background: rgba(59, 130, 246, 0.95);
@@ -471,6 +472,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       color: white;
       font-size: 16px;
+      position: relative;
     }
     
     .cloud-badge:hover {
@@ -478,15 +480,10 @@
       transform: scale(1.05);
     }
     
-    /* Cloud Kitchen Tooltip - POSITIONED OUTSIDE IMAGE */
-    .cloud-badge-container {
-      position: relative;
-      display: inline-block;
-    }
-    
+    /* Cloud Kitchen Tooltip - FIXED POSITION OUTSIDE */
     .cloud-tooltip {
       position: absolute;
-      top: 0;
+      top: -10px;
       left: 50%;
       transform: translateX(-50%) translateY(-100%);
       background: var(--card);
@@ -501,7 +498,6 @@
       visibility: hidden;
       transition: all 0.3s ease;
       pointer-events: none;
-      margin-bottom: 10px;
     }
     
     .cloud-badge:hover .cloud-tooltip {
@@ -544,7 +540,7 @@
       margin-bottom: 4px;
     }
     
-    /* User List Badge with external tooltip */
+    /* User List Badge - FIXED POSITION */
     .badge-container {
       position: absolute;
       top: 12px;
@@ -571,10 +567,10 @@
       white-space: nowrap;
     }
     
-    /* Badge tooltips - POSITIONED OUTSIDE IMAGE */
+    /* Badge tooltips - FIXED POSITION OUTSIDE */
     .badge-tooltip {
       position: absolute;
-      top: 0;
+      top: -10px;
       left: 50%;
       transform: translateX(-50%) translateY(-100%);
       background: var(--card);
@@ -592,7 +588,6 @@
       text-align: left;
       font-size: 12px;
       line-height: 1.4;
-      margin-bottom: 10px;
     }
     
     .user-list-badge:hover .badge-tooltip {
@@ -602,10 +597,10 @@
       pointer-events: auto;
     }
     
-    /* Menu button with external tooltip */
+    /* Menu button - FIXED POSITION (top right on desktop) */
     .menu-btn-container {
       position: absolute;
-      top: 60px;
+      top: 12px; /* FIXED: Always top, right adjusts for cloud badge */
       right: 12px;
       z-index: 30;
     }
@@ -626,8 +621,8 @@
       position: relative;
     }
     
-    .menu-btn.no-cloud {
-      top: 12px;
+    .menu-btn.has-cloud {
+      top: 50px; /* Moves down if there's a cloud badge */
     }
     
     .menu-btn:hover {
@@ -644,10 +639,10 @@
       color: #0b1633;
     }
     
-    /* Menu button tooltip - POSITIONED OUTSIDE IMAGE */
+    /* Menu button tooltip - FIXED POSITION OUTSIDE */
     .menu-btn-tooltip {
       position: absolute;
-      top: 0;
+      top: -10px;
       left: 50%;
       transform: translateX(-50%) translateY(-100%);
       background: var(--card);
@@ -664,7 +659,6 @@
       font-size: 12px;
       font-weight: 500;
       white-space: nowrap;
-      margin-bottom: 10px;
     }
     
     .menu-btn:hover .menu-btn-tooltip {
@@ -812,6 +806,18 @@
       font-weight: 500;
     }
     
+    /* Remove Chrome's autofill banner */
+    .chromeframe {
+      display: none !important;
+    }
+    
+    /* Fix for iOS Safari bottom bar */
+    @supports (-webkit-touch-callout: none) {
+      body {
+        min-height: -webkit-fill-available;
+      }
+    }
+    
     /* Actions Modal */
     .actions-modal {
       display: none;
@@ -858,503 +864,28 @@
       }
     }
     
-    .actions-header {
-      margin-bottom: 24px;
-    }
-    
-    .actions-header h3 {
-      font-size: 22px;
-      margin-bottom: 8px;
-      color: var(--white);
-      font-weight: 600;
-    }
-    
-    .actions-header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    
-    .action-btn-modal {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 16px 20px;
-      border-radius: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-align: left;
-      font-size: 15px;
-      justify-content: space-between;
-    }
-    
-    .action-btn-modal:hover {
-      background: var(--accent);
-      color: #0b1633;
-      transform: translateY(-2px);
-      border-color: var(--accent);
-      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-    }
-    
-    .action-btn-modal.active {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    .action-btn-modal i {
-      font-size: 18px;
-      width: 24px;
-    }
-    
-    /* Custom Lists button styling */
-    .custom-lists-btn {
-      background: var(--bg);
-      border: 1px solid var(--accent);
-      color: var(--white);
-    }
-    
-    .custom-lists-btn:hover {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    .cancel-btn {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 14px 20px;
-      border-radius: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-    }
-    
-    .cancel-btn:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--white);
-    }
-    
-    /* Custom Lists Modal */
-    .custom-lists-modal {
+    /* Add descriptions to cloud icon */
+    .cloud-description {
       display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
+      position: absolute;
+      top: 50px;
       right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: none;
-      z-index: 1001;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .custom-lists-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .custom-lists-content {
       background: var(--card);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 500px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-      animation: modalSlideIn 0.3s ease-out;
-      max-height: 80vh;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .lists-header {
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .lists-header h3 {
-      font-size: 22px;
-      color: var(--white);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .lists-header h3 i {
-      color: var(--accent);
-    }
-    
-    .close-lists-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 24px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      transition: all 0.3s ease;
-    }
-    
-    .close-lists-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
-    
-    .lists-list-container {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding-right: 10px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 10px;
-    }
-    
-    .lists-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .list-item:hover {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: var(--accent);
-      transform: translateX(5px);
-    }
-    
-    .list-item.active {
-      background: rgba(245, 158, 11, 0.2);
-      border-color: var(--accent);
-    }
-    
-    .list-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-    }
-    
-    .list-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0b1633;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    
-    .list-name {
-      font-weight: 500;
-      color: var(--white);
-    }
-    
-    .list-checkbox {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    
-    .list-checkbox.checked {
-      background: var(--accent);
-      border-color: var(--accent);
-      animation: checkPop 0.3s ease;
-    }
-    
-    @keyframes checkPop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    
-    .list-checkbox.checked::after {
-      content: "✓";
-      color: #0b1633;
+      border: 1px solid var(--cloud-color);
+      border-radius: 8px;
+      padding: 8px 12px;
       font-size: 12px;
-      font-weight: bold;
-    }
-    
-    .empty-lists {
-      text-align: center;
-      padding: 40px 20px;
       color: var(--muted);
+      width: 200px;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     
-    .empty-lists i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-      color: var(--accent);
+    .cloud-badge:hover .cloud-description {
+      display: block;
     }
     
-    .empty-lists h4 {
-      margin-bottom: 8px;
-      color: var(--white);
-    }
-    
-    .new-list-section {
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-    }
-    
-    .new-list-input {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    
-    .new-list-input input {
-      flex: 1;
-      padding: 12px 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--white);
-      font-size: 14px;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-    
-    .new-list-input input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-    }
-    
-    .create-list-btn {
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .create-list-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    }
-    
-    .create-list-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    .lists-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 10px;
-    }
-    
-    .lists-save-btn {
-      flex: 1;
-      background: var(--accent);
-      color: #0b1633;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .lists-save-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    }
-    
-    .lists-save-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    /* Auth Prompt Modal */
-    .auth-prompt-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.98);
-      backdrop-filter: none;
-      z-index: 1002;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .auth-prompt-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .auth-prompt-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 480px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-      animation: modalSlideIn 0.3s ease-out;
-      text-align: center;
-    }
-    
-    .auth-prompt-icon {
-      width: 80px;
-      height: 80px;
-      background: var(--gradient);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      font-size: 32px;
-      color: #0b1633;
-    }
-    
-    .auth-prompt-header h3 {
-      font-size: 28px;
-      margin-bottom: 12px;
-      color: var(--white);
-      font-weight: 700;
-    }
-    
-    .auth-prompt-header p {
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.5;
-      margin-bottom: 32px;
-    }
-    
-    .auth-prompt-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .auth-prompt-btn {
-      padding: 18px 24px;
-      border-radius: 16px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    
-    .auth-prompt-primary {
-      background: var(--gradient);
-      color: #0b1633;
-    }
-    
-    .auth-prompt-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-    }
-    
-    .auth-prompt-secondary {
-      background: transparent;
-      color: var(--white);
-      border: 2px solid var(--border);
-    }
-    
-    .auth-prompt-secondary:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: var(--accent);
-    }
-    
-    .auth-prompt-close {
-      background: transparent;
-      color: var(--muted);
-      border: none;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-      font-size: 15px;
-    }
-    
-    .auth-prompt-close:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--white);
-    }
-    
-    /* Skeleton Loading */
+    /* Skeleton Loading - FIXED */
     .skeleton-grid {
       display: grid;
       gap: 20px;
@@ -1397,182 +928,15 @@
       100% { background-position: -200% 0; }
     }
     
-    /* Empty State */
-    .empty-state { 
-      grid-column: 1 / -1;
-      padding: 60px 20px; 
-      text-align: center; 
-      color: var(--muted); 
-      display: none; 
-    }
-    
-    .empty-state i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
-    
-    .empty-state h3 {
-      margin-bottom: 8px;
-      font-size: 18px;
-      color: var(--white);
-    }
-    
-    /* Pagination */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      margin-top: 32px;
-      padding: 16px 0;
-    }
-    
-    .pagination-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    
-    .pagination-btn:hover:not(:disabled) {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    .pagination-btn.active {
-      background: var(--gradient);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    .pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .pagination-info {
-      color: var(--muted);
-      font-size: 13px;
-      margin: 0 16px;
-    }
-    
-    .view-all-btn {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-left: 12px;
-    }
-    
-    .view-all-btn:hover {
-      background: rgba(245, 158, 11, 0.1);
-    }
-    
-    /* Footer */
-    footer { 
-      padding: 30px 20px; 
-      color: var(--muted); 
-      text-align: center; 
-      border-top: 1px solid var(--border); 
-      margin-top: 60px; 
-      background: var(--card);
-    }
-    
-    /* Enhanced Custom Notification */
-    .notification-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1001;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 400px;
-    }
-    
-    .custom-notification {
-      padding: 16px 20px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      transform: translateX(120%);
-      transition: transform 0.4s ease;
-      backdrop-filter: none;
-      border: 1px solid var(--border);
-      font-weight: 500;
-    }
-    
-    .notification-success {
-      background: rgba(16, 185, 129, 0.95);
-      color: white;
-    }
-    
-    .notification-error {
-      background: rgba(239, 68, 68, 0.95);
-      color: white;
-    }
-    
-    .notification-info {
-      background: rgba(59, 130, 246, 0.95);
-      color: white;
-    }
-    
-    .notification-warning {
-      background: rgba(245, 158, 11, 0.95);
-      color: #0b1633;
-      font-weight: 600;
-    }
-    
-    .notification-show {
-      transform: translateY(0);
-    }
-    
-    .notification-icon {
-      margin-right: 12px;
-      font-size: 1.2rem;
-    }
-    
-    .notification-close {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      font-size: 1rem;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-      padding: 0 0 0 12px;
-    }
-    
-    .notification-close:hover {
-      opacity: 1;
-    }
-    
     /* Responsive */
     @media (max-width: 768px) {
-      /* Mobile banner adjustments */
+      /* Mobile banner adjustments - NON-STICKY */
       .guest-banner.mobile {
-        position: sticky;
+        position: relative;
         top: 0;
-        z-index: 200;
-        padding: 8px 12px;
-        backdrop-filter: blur(8px) saturate(180%);
-        background: rgba(245, 158, 11, 0.15);
+        z-index: 100;
+        padding: 10px 12px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
         border-bottom: 1px solid rgba(245, 158, 11, 0.3);
         margin-bottom: 0;
       }
@@ -1581,35 +945,37 @@
         display: none;
       }
       
-      .guest-banner .banner-content {
-        padding: 8px 12px;
+      .banner-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
       }
       
       .banner-text {
-        font-size: 12px;
-        margin-right: 4px;
+        font-size: 13px;
+        margin-right: 0;
+      }
+      
+      .banner-actions {
+        width: 100%;
+        justify-content: center;
       }
       
       .banner-btn {
-        padding: 3px 8px;
-        font-size: 11px;
+        padding: 8px 16px;
+        font-size: 13px;
       }
       
-      /* Tooltip adjustments for mobile */
+      /* Hide tooltips on mobile */
       .cloud-tooltip,
       .badge-tooltip,
       .menu-btn-tooltip {
         display: none !important;
       }
       
-      .cloud-badge {
-        width: 34px;
-        height: 34px;
-      }
-      
-      .menu-btn {
-        width: 40px;
-        height: 40px;
+      /* Show tap description for cloud icon on mobile */
+      .cloud-description {
+        display: none !important;
       }
       
       /* Improved grid spacing */
@@ -1697,8 +1063,14 @@
         left: 10px;
       }
       
+      /* Adjust menu button position on mobile */
       .menu-btn-container {
-        top: 56px;
+        top: 12px;
+        right: 12px;
+      }
+      
+      .menu-btn.has-cloud {
+        top: 50px;
       }
       
       .menu-btn {
@@ -1715,36 +1087,18 @@
       .card-title-wrapper {
         width: 100%;
       }
-      
-      .custom-lists-content {
-        padding: 20px;
-        margin: 10px;
-        max-height: 70vh;
-      }
-      
-      .auth-prompt-content {
-        padding: 30px 24px;
-      }
-      
-      .auth-prompt-buttons {
-        gap: 12px;
-      }
-      
-      .auth-prompt-btn {
-        padding: 16px 20px;
-      }
     }
     
     @media (max-width: 480px) {
       /* Mobile banner adjustments */
       .guest-banner.mobile .banner-content {
-        flex-direction: row;
-        justify-content: center;
-        padding: 6px 10px;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px;
       }
       
       .banner-text {
-        font-size: 11px;
+        font-size: 12px;
       }
       
       /* Cloud badge touch-friendly */
@@ -1786,7 +1140,7 @@
       }
       
       .banner-content {
-        flex-direction: row;
+        flex-direction: column;
         gap: 6px;
         text-align: center;
       }
@@ -1805,34 +1159,6 @@
         bottom: 8px;
         left: 8px;
       }
-      
-      .custom-lists-content {
-        padding: 16px;
-      }
-      
-      .list-item {
-        padding: 12px;
-      }
-      
-      .list-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-      }
-      
-      .auth-prompt-content {
-        padding: 24px 20px;
-      }
-      
-      .auth-prompt-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 24px;
-      }
-      
-      .auth-prompt-header h3 {
-        font-size: 22px;
-      }
     }
     
     @media (min-width: 769px) {
@@ -1844,13 +1170,24 @@
       .guest-banner.desktop {
         display: block;
       }
+      
+      /* Fix menu button position on desktop */
+      .menu-btn.has-cloud {
+        top: 50px;
+        right: 12px;
+      }
+      
+      .menu-btn:not(.has-cloud) {
+        top: 12px;
+        right: 12px;
+      }
     }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Mobile Guest Banner - STICKY -->
+  <!-- Mobile Guest Banner - NON-STICKY -->
   <div id="guestBannerMobile" class="guest-banner mobile">
     <div class="banner-content">
       <span class="banner-text">Want to save favorites?</span>
@@ -2083,88 +1420,93 @@
         isViewAll: false,
         viewAllButtonText: "View All",
         totalRestaurantCount: 0,
-        preloader: null // Image preloader instance
+        imageObserver: null // IntersectionObserver instance
       };
       
-      // ---------- IMAGE LOADING SYSTEM ----------
-      function initFastImageLoader() {
-        state.preloader = {
-          queue: [],
-          loading: 0,
-          maxConcurrent: 6,
-          
-          addImage(url) {
-            if (!url) return;
-            this.queue.push(url);
-            this.processQueue();
-          },
-          
-          processQueue() {
-            while (this.loading < this.maxConcurrent && this.queue.length > 0) {
-              const url = this.queue.shift();
-              this.loadImage(url);
+      // ---------- FIXED IMAGE LOADING SYSTEM ----------
+      function initFixedImageLoader() {
+        if (state.imageObserver) return;
+        
+        state.imageObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              if (img.dataset.src) {
+                // Load image with delay for smooth loading
+                setTimeout(() => {
+                  img.src = img.dataset.src;
+                  img.classList.add('loaded');
+                  observer.unobserve(img);
+                }, Math.random() * 200); // Stagger loading
+              }
             }
-          },
-          
-          loadImage(url) {
-            this.loading++;
-            const img = new Image();
-            img.onload = img.onerror = () => {
-              this.loading--;
-              this.processQueue();
-            };
-            img.src = url;
+          });
+        }, {
+          rootMargin: '100px 0px', // Load images before they're visible
+          threshold: 0.01
+        });
+        
+        // Observe images when they're added to DOM
+        const observeNewImages = () => {
+          const images = document.querySelectorAll('img[data-src]');
+          images.forEach(img => {
+            if (!img.classList.contains('observed')) {
+              state.imageObserver.observe(img);
+              img.classList.add('observed');
+            }
+          });
+        };
+        
+        // Use MutationObserver to watch for new images
+        const mutationObserver = new MutationObserver(observeNewImages);
+        mutationObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+        
+        // Initial observation
+        setTimeout(observeNewImages, 100);
+      }
+      
+      // ---------- FIX BOTTOM GOOGLE BANNER ----------
+      function fixIOSBottomBanner() {
+        // Fix for iOS Safari bottom bar
+        if (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {
+          const viewport = document.querySelector('meta[name=viewport]');
+          if (viewport) {
+            let content = viewport.getAttribute('content');
+            content += ', viewport-fit=cover';
+            viewport.setAttribute('content', content);
           }
-        };
-      }
-      
-      function loadImage(imgElement, url) {
-        if (!url || url === '' || !imgElement) {
-          console.warn('Invalid image element or URL:', { imgElement, url });
-          imgElement.style.display = 'none';
-          return;
-        }
-        
-        // Add to preloader queue
-        if (state.preloader) {
-          state.preloader.addImage(url);
-        }
-        
-        imgElement.src = url;
-        imgElement.onload = () => {
-          imgElement.classList.add('loaded');
-          imgElement.style.opacity = '0';
-          setTimeout(() => {
-            imgElement.style.transition = 'opacity 0.3s ease';
-            imgElement.style.opacity = '1';
-          }, 10);
-        };
-        
-        imgElement.onerror = () => {
-          console.error('Failed to load image:', url);
-          imgElement.style.display = 'none';
-        };
-      }
-      
-      function getOptimizedSupabaseImageUrl(url, options = {}) {
-        if (!url || !url.includes('supabase.co')) return url;
-        
-        try {
-          const urlObj = new URL(url);
-          const params = new URLSearchParams(urlObj.search);
           
-          if (!params.has('width')) params.set('width', options.width || '400');
-          if (!params.has('height')) params.set('height', options.height || '300');
-          if (!params.has('quality')) params.set('quality', options.quality || '50');
-          if (!params.has('format')) params.set('format', options.format || 'webp');
-          if (!params.has('resize')) params.set('resize', options.resize || 'cover');
+          // Prevent elastic scrolling that reveals bottom bar
+          document.body.style.overflow = 'hidden';
+          document.body.style.height = '100%';
           
-          if (!params.has('v')) params.set('v', '1.0');
+          // Fix for safari's 100vh issue
+          const setVH = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+          };
           
-          urlObj.search = params.toString();
-          return urlObj.toString();
-        } catch (e) {
-          return url;
+          setVH();
+          window.addEventListener('resize', setVH);
+          
+          // Fix for address bar hiding
+          let lastScrollTop = 0;
+          window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
+            
+            if (scrollTop > lastScrollTop) {
+              // Scrolling down - hide address bar
+              document.body.style.height = 'calc(100% + 60px)';
+            } else {
+              // Scrolling up
+              document.body.style.height = '100%';
+            }
+            lastScrollTop = scrollTop;
+          });
         }
       }
       
@@ -2215,8 +1557,9 @@
                     <li>Optimized for online orders</li>
                     <li>Often operates multiple brands from one kitchen</li>
                     <li>Lower overhead costs</li>
+                    <li>Focus on quality food optimized for delivery</li>
                   </ul>
-                  <p>These restaurants focus on quality food optimized for delivery.</p>
+                  <p>Perfect for takeout and delivery orders!</p>
                 </div>
               </div>
             </div>
@@ -3334,49 +2677,6 @@
         }
       }
       
-      async function renderRestaurants() {
-        const grid = document.getElementById('restaurantGrid');
-        const emptyState = document.querySelector('.empty-state');
-        
-        if (!grid) return;
-        
-        if (state.filteredRestaurants.length === 0) {
-          showEmptyState();
-          return;
-        }
-        
-        if (emptyState) {
-          emptyState.style.display = 'none';
-        }
-        
-        grid.classList.remove('skeleton-grid');
-        
-        let itemsToShow;
-        if (state.isViewAll) {
-          itemsToShow = state.filteredRestaurants;
-        } else {
-          const startIdx = (state.currentPage - 1) * state.pageSize;
-          const endIdx = startIdx + state.pageSize;
-          itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
-        }
-        
-        grid.innerHTML = '';
-        
-        for (const restaurant of itemsToShow) {
-          const card = createRestaurantCard(restaurant);
-          grid.appendChild(card);
-          
-          setTimeout(() => {
-            const images = card.querySelectorAll('img[data-src]');
-            images.forEach(img => {
-              if (img.getBoundingClientRect().top < window.innerHeight + 100) {
-                loadImage(img, img.dataset.src);
-              }
-            });
-          }, 0);
-        }
-      }
-      
       function createRestaurantCard(restaurant) {
         const card = document.createElement('div');
         card.className = 'restaurant-card';
@@ -3391,6 +2691,7 @@
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         const isCloudKitchen = restaurant.isCloudKitchen || false;
         const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
+        const hasCloudBadge = isCloudKitchen;
         
         let badgeText = '';
         let tooltipText = '';
@@ -3408,6 +2709,8 @@
         }
         
         tooltipText = tooltipText.slice(0, -3); // Remove last " • "
+        
+        const menuBtnClass = hasCloudBadge ? 'menu-btn has-cloud' : 'menu-btn';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -3428,7 +2731,7 @@
                 </div>
               ` : ''}
               <div class="menu-btn-container">
-                <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" aria-label="Restaurant actions">
+                <button class="${menuBtnClass}" aria-label="Restaurant actions">
                   <i class="fas fa-ellipsis-h"></i>
                   <div class="menu-btn-tooltip">Save to lists</div>
                 </button>
@@ -3479,7 +2782,69 @@
           });
         }
         
+        // Add click event for cloud badge on mobile
+        const cloudBadgeElement = card.querySelector('.cloud-badge');
+        if (cloudBadgeElement && window.innerWidth <= 768) {
+          cloudBadgeElement.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('Cloud Kitchen: A delivery-only restaurant without physical dining space. Optimized for online orders.');
+          });
+        }
+        
         return card;
+      }
+      
+      async function renderRestaurants() {
+        const grid = document.getElementById('restaurantGrid');
+        const emptyState = document.querySelector('.empty-state');
+        
+        if (!grid) return;
+        
+        if (state.filteredRestaurants.length === 0) {
+          showEmptyState();
+          return;
+        }
+        
+        if (emptyState) {
+          emptyState.style.display = 'none';
+        }
+        
+        grid.classList.remove('skeleton-grid');
+        
+        let itemsToShow;
+        if (state.isViewAll) {
+          itemsToShow = state.filteredRestaurants;
+        } else {
+          const startIdx = (state.currentPage - 1) * state.pageSize;
+          const endIdx = startIdx + state.pageSize;
+          itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
+        }
+        
+        grid.innerHTML = '';
+        
+        // Create document fragment for better performance
+        const fragment = document.createDocumentFragment();
+        
+        for (const restaurant of itemsToShow) {
+          const card = createRestaurantCard(restaurant);
+          fragment.appendChild(card);
+        }
+        
+        grid.appendChild(fragment);
+        
+        // Initialize IntersectionObserver for the new images
+        if (state.imageObserver) {
+          setTimeout(() => {
+            const images = grid.querySelectorAll('img[data-src]');
+            images.forEach(img => {
+              if (!img.classList.contains('observed')) {
+                state.imageObserver.observe(img);
+                img.classList.add('observed');
+              }
+            });
+          }, 100);
+        }
       }
       
       function showEmptyState() {
@@ -4013,13 +3378,29 @@
           return;
         }
         
-        initFastImageLoader();
+        // Initialize fixes
+        initFixedImageLoader();
+        fixIOSBottomBanner();
+        
         showLoadingSkeleton();
         setupEventListeners();
         await loadRestaurantsData();
         await updateAuthUI();
         
         supabase.auth.onAuthStateChange(updateAuthUI);
+        
+        // Force observe images after everything loads
+        setTimeout(() => {
+          if (state.imageObserver) {
+            const images = document.querySelectorAll('img[data-src]');
+            images.forEach(img => {
+              if (!img.classList.contains('observed')) {
+                state.imageObserver.observe(img);
+                img.classList.add('observed');
+              }
+            });
+          }
+        }, 500);
       }
       
       if (document.readyState === 'loading') {
