@@ -119,6 +119,34 @@
       transform: translateY(-1px);
     }
     
+    /* Enhanced Image Loading */
+    .restaurant-image {
+      display: block;
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .restaurant-image.loaded {
+      opacity: 1;
+    }
+    
+    .logo-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .logo-overlay img.loaded {
+      opacity: 1;
+    }
+    
     /* Enhanced Header */
     header { 
       position: sticky; 
@@ -269,7 +297,7 @@
       color: #0b1633;
     }
     
-    /* Items Per Page Selector - FIXED */
+    /* Items Per Page Selector */
     .items-per-page {
       display: flex;
       align-items: center;
@@ -404,7 +432,7 @@
       align-items: stretch;
     }
     
-    /* Grid variations */
+    /* Grid variations with FIXED NO-GAP layout */
     .grid-normal {
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
@@ -445,26 +473,7 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Enhanced Image Loading - FIXED */
-    .restaurant-image {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    .restaurant-image.loaded {
-      opacity: 1;
-    }
-    
-    .restaurant-image.load-error {
-      display: none;
-    }
-    
-    /* Cloud Kitchen Badge - IMPROVED */
+    /* Cloud Kitchen Badge - TOP RIGHT */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -504,7 +513,7 @@
       display: none;
     }
     
-    /* Cloud Kitchen Info Tooltip - FIXED CONTENT */
+    /* Cloud Kitchen Info Tooltip */
     .cloud-tooltip {
       position: absolute;
       top: 50px;
@@ -553,10 +562,6 @@
       line-height: 1.5;
     }
     
-    .tooltip-content p {
-      margin-bottom: 10px;
-    }
-    
     .tooltip-content ul {
       margin: 8px 0;
       padding-left: 20px;
@@ -566,60 +571,65 @@
       margin-bottom: 4px;
     }
     
-    /* Cloud Kitchen Mobile Modal */
-    .cloud-mobile-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: blur(20px);
-      z-index: 1003;
+    /* Logo overlay in bottom left */
+    .logo-overlay {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
+      background: rgba(11, 22, 51, 0.9);
+      border-radius: 12px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 4px;
+      border: 2px solid var(--accent);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      pointer-events: none;
     }
     
-    .cloud-mobile-modal.active {
-      display: flex;
+    .restaurant-card:hover .logo-overlay {
+      transform: scale(1.1);
+      border-color: var(--accent);
+      background: rgba(245,158,11,0.9);
+      box-shadow: 0 8px 24px rgba(245,158,11,0.4);
     }
     
-    .cloud-mobile-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 24px;
-      max-width: 320px;
-      width: 100%;
-      border: 2px solid var(--cloud-color);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-      animation: modalSlideIn 0.3s ease-out;
-    }
-    
-    .cloud-mobile-close {
+    /* Badge container */
+    .badge-container {
       position: absolute;
       top: 12px;
-      right: 12px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 24px;
-      cursor: pointer;
-      width: 36px;
-      height: 36px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 25;
+      max-width: calc(100% - 80px);
+    }
+    
+    /* User list badge (Favorites, Visited, Want to Go) */
+    .user-list-badge {
+      background: rgba(11, 22, 51, 0.9);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--accent);
       display: flex;
       align-items: center;
-      justify-content: center;
-      border-radius: 50%;
+      gap: 2px;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
     }
     
-    .cloud-mobile-close:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
-    
-    /* Menu button */
+    /* Three dots menu button - Moved down when cloud badge is present */
     .menu-btn {
       position: absolute;
       top: 60px;
@@ -706,10 +716,13 @@
     
     @keyframes glow {
       0% {
-        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
+                    0 0 10px rgba(245, 158, 11, 0.3);
       }
       100% {
-        box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
+                    0 0 20px rgba(245, 158, 11, 0.5),
+                    0 0 30px rgba(245, 158, 11, 0.3);
       }
     }
     
@@ -778,10 +791,13 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     
     .actions-modal.active {
       display: flex;
+      opacity: 1;
     }
     
     .actions-content {
@@ -805,6 +821,22 @@
         opacity: 1;
         transform: translateY(0);
       }
+    }
+    
+    .actions-header {
+      margin-bottom: 24px;
+    }
+    
+    .actions-header h3 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: var(--white);
+      font-weight: 600;
+    }
+    
+    .actions-header p {
+      color: var(--muted);
+      font-size: 14px;
     }
     
     .action-buttons {
@@ -836,6 +868,7 @@
       color: #0b1633;
       transform: translateY(-2px);
       border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
     }
     
     .action-btn-modal.active {
@@ -844,6 +877,12 @@
       border-color: var(--accent);
     }
     
+    .action-btn-modal i {
+      font-size: 18px;
+      width: 24px;
+    }
+    
+    /* Custom Lists button styling */
     .custom-lists-btn {
       background: var(--bg);
       border: 1px solid var(--accent);
@@ -854,6 +893,23 @@
       background: var(--accent);
       color: #0b1633;
       border-color: var(--accent);
+    }
+    
+    .cancel-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      border-radius: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .cancel-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
     }
     
     /* Custom Lists Modal */
@@ -870,10 +926,13 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     
     .custom-lists-modal.active {
       display: flex;
+      opacity: 1;
     }
     
     .custom-lists-content {
@@ -890,6 +949,254 @@
       flex-direction: column;
     }
     
+    .lists-header {
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .lists-header h3 {
+      font-size: 22px;
+      color: var(--white);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .lists-header h3 i {
+      color: var(--accent);
+    }
+    
+    .close-lists-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .close-lists-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+    
+    .lists-list-container {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding-right: 10px;
+    }
+    
+    .lists-list-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .lists-list-container::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+    }
+    
+    .lists-list-container::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+    
+    .lists-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .list-item:hover {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--accent);
+      transform: translateX(5px);
+    }
+    
+    .list-item.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--accent);
+    }
+    
+    .list-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    
+    .list-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1633;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .list-name {
+      font-weight: 500;
+      color: var(--white);
+    }
+    
+    .list-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .list-checkbox.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      animation: checkPop 0.3s ease;
+    }
+    
+    @keyframes checkPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .list-checkbox.checked::after {
+      content: "✓";
+      color: #0b1633;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .empty-lists {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    
+    .empty-lists i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+      color: var(--accent);
+    }
+    
+    .empty-lists h4 {
+      margin-bottom: 8px;
+      color: var(--white);
+    }
+    
+    .new-list-section {
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .new-list-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .new-list-input input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .new-list-input input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+    
+    .create-list-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .create-list-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    
+    .create-list-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .lists-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    
+    .lists-save-btn {
+      flex: 1;
+      background: var(--accent);
+      color: #0b1633;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .lists-save-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    
+    .lists-save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
     /* Auth Prompt Modal */
     .auth-prompt-modal {
       display: none;
@@ -904,10 +1211,13 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     
     .auth-prompt-modal.active {
       display: flex;
+      opacity: 1;
     }
     
     .auth-prompt-content {
@@ -920,6 +1230,157 @@
       box-shadow: 0 30px 60px rgba(0,0,0,0.4);
       animation: modalSlideIn 0.3s ease-out;
       text-align: center;
+    }
+    
+    .auth-prompt-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 32px;
+      color: #0b1633;
+    }
+    
+    .auth-prompt-header h3 {
+      font-size: 28px;
+      margin-bottom: 12px;
+      color: var(--white);
+      font-weight: 700;
+    }
+    
+    .auth-prompt-header p {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+    
+    .auth-prompt-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .auth-prompt-btn {
+      padding: 18px 24px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .auth-prompt-primary {
+      background: var(--gradient);
+      color: #0b1633;
+    }
+    
+    .auth-prompt-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+    }
+    
+    .auth-prompt-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid var(--border);
+    }
+    
+    .auth-prompt-secondary:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--accent);
+    }
+    
+    .auth-prompt-close {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      font-size: 15px;
+    }
+    
+    .auth-prompt-close:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
+    }
+    
+    /* Skeleton Loading */
+    .skeleton-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    
+    .skeleton-card {
+      background: var(--card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    
+    .skeleton-image {
+      height: 200px;
+      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    
+    .skeleton-content {
+      padding: 16px;
+    }
+    
+    .skeleton-line {
+      height: 12px;
+      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    
+    .skeleton-line.short {
+      width: 60%;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Empty State */
+    .empty-state { 
+      grid-column: 1 / -1;
+      padding: 60px 20px; 
+      text-align: center; 
+      color: var(--muted); 
+      display: none; 
+    }
+    
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: var(--white);
     }
     
     /* Pagination */
@@ -953,6 +1414,12 @@
       border-color: var(--accent);
     }
     
+    .pagination-btn.active {
+      background: var(--gradient);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
     .pagination-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -980,29 +1447,90 @@
       background: rgba(245, 158, 11, 0.1);
     }
     
-    /* Empty State */
-    .empty-state { 
-      grid-column: 1 / -1;
-      padding: 60px 20px; 
-      text-align: center; 
+    /* Footer */
+    footer { 
+      padding: 30px 20px; 
       color: var(--muted); 
-      display: none; 
+      text-align: center; 
+      border-top: 1px solid var(--border); 
+      margin-top: 60px; 
+      background: var(--card);
     }
     
-    .empty-state i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
+    /* Enhanced Custom Notification */
+    .notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
     }
     
-    .empty-state h3 {
-      margin-bottom: 8px;
-      font-size: 18px;
-      color: var(--white);
+    .custom-notification {
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      transform: translateX(120%);
+      transition: transform 0.4s ease;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      font-weight: 500;
+    }
+    
+    .notification-success {
+      background: rgba(16, 185, 129, 0.95);
+      color: white;
+    }
+    
+    .notification-error {
+      background: rgba(239, 68, 68, 0.95);
+      color: white;
+    }
+    
+    .notification-info {
+      background: rgba(59, 130, 246, 0.95);
+      color: white;
+    }
+    
+    .notification-warning {
+      background: rgba(245, 158, 11, 0.95);
+      color: #0b1633;
+      font-weight: 600;
+    }
+    
+    .notification-show {
+      transform: translateY(0);
+    }
+    
+    .notification-icon {
+      margin-right: 12px;
+      font-size: 1.2rem;
+    }
+    
+    .notification-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 1rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+      padding: 0 0 0 12px;
+    }
+    
+    .notification-close:hover {
+      opacity: 1;
     }
     
     /* Responsive */
     @media (max-width: 768px) {
+      /* Mobile banner adjustments */
       .guest-banner.mobile {
         display: block;
       }
@@ -1011,8 +1539,67 @@
         display: none;
       }
       
+      .guest-banner .banner-content {
+        padding: 6px 12px;
+      }
+      
+      .banner-text {
+        font-size: 12px;
+        margin-right: 4px;
+      }
+      
+      .banner-btn {
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+      
       .has-mobile-banner header {
         top: 34px;
+      }
+      
+      /* Cloud badge mobile adjustments */
+      .cloud-badge {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      
+      .cloud-badge:hover {
+        padding: 0 8px;
+        gap: 4px;
+      }
+      
+      .cloud-badge:hover .cloud-text {
+        font-size: 11px;
+      }
+      
+      .cloud-tooltip {
+        width: 240px;
+        right: 8px;
+      }
+      
+      .menu-btn {
+        top: 56px;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+      }
+      
+      .menu-btn.no-cloud {
+        top: 12px;
+      }
+      
+      /* Grid adjustments */
+      .grid-normal {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      }
+      
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
       
       .search-wrapper {
@@ -1062,86 +1649,104 @@
       header {
         padding: 12px 16px;
         flex-wrap: wrap;
+        backdrop-filter: blur(5px) saturate(180%);
       }
       
-      .grid-normal {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      .guest-banner {
+        width: calc(100% - 32px);
+        padding: 8px 16px;
+        margin: 0 auto 16px auto;
       }
       
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      }
-      
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      }
-      
-      .card-image, .restaurant-image {
+      .card-image {
         height: 180px;
       }
       
-      .cloud-badge {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
+      .restaurant-image {
+        height: 180px;
       }
       
-      .cloud-badge:hover {
-        padding: 0 8px;
-        gap: 4px;
-      }
-      
-      .cloud-badge:hover .cloud-text {
-        font-size: 11px;
-      }
-      
-      .cloud-tooltip {
-        display: none;
+      .logo-overlay {
+        width: 40px;
+        height: 40px;
+        bottom: 10px;
+        left: 10px;
       }
       
       .menu-btn {
-        top: 56px;
-        width: 30px;
-        height: 30px;
-        font-size: 14px;
+        width: 32px;
+        height: 32px;
+        top: 10px;
+        right: 10px;
       }
       
-      .menu-btn.no-cloud {
-        top: 12px;
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .card-title-wrapper {
+        width: 100%;
+      }
+      
+      .custom-lists-content {
+        padding: 20px;
+        margin: 10px;
+        max-height: 70vh;
+      }
+      
+      .auth-prompt-content {
+        padding: 30px 24px;
+      }
+      
+      .auth-prompt-buttons {
+        gap: 12px;
+      }
+      
+      .auth-prompt-btn {
+        padding: 16px 20px;
       }
     }
     
     @media (max-width: 480px) {
-      .grid-normal {
-        grid-template-columns: 1fr;
+      /* Mobile banner adjustments */
+      .guest-banner.mobile .banner-content {
+        flex-direction: row;
+        justify-content: center;
+        padding: 5px 10px;
       }
       
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      }
-      
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      .banner-text {
+        display: none;
       }
       
       .has-mobile-banner header {
         top: 30px;
       }
       
-      .card-image, .restaurant-image {
-        height: 160px;
-      }
-      
+      /* Cloud badge touch-friendly */
       .cloud-badge {
         width: 28px;
         height: 28px;
         font-size: 12px;
-        cursor: pointer;
       }
       
       .cloud-badge:active {
         background: rgba(59, 130, 246, 1);
-        transform: scale(1.05);
+        transform: scale(1.1);
+        width: auto;
+        padding: 0 6px;
+        gap: 3px;
+      }
+      
+      .cloud-badge:active .cloud-text {
+        display: inline;
+        font-size: 10px;
+      }
+      
+      .cloud-tooltip {
+        display: none;
       }
       
       .menu-btn {
@@ -1154,9 +1759,91 @@
       .menu-btn.no-cloud {
         top: 10px;
       }
+      
+      /* Grid adjustments */
+      .grid-normal {
+        grid-template-columns: 1fr;
+      }
+      
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      
+      /* Fix for extra square in dense grid */
+      .grid-dense .restaurant-card {
+        min-height: 200px;
+      }
+      
+      .guest-banner {
+        padding: 6px 12px;
+        width: calc(100% - 24px);
+      }
+      
+      .banner-content {
+        flex-direction: row;
+        gap: 6px;
+        text-align: center;
+      }
+      
+      .banner-text {
+        margin-right: 0;
+      }
+      
+      .banner-actions {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .card-image {
+        height: 160px;
+      }
+      
+      .restaurant-image {
+        height: 160px;
+      }
+      
+      .logo-overlay {
+        width: 36px;
+        height: 36px;
+        bottom: 8px;
+        left: 8px;
+      }
+      
+      .custom-lists-content {
+        padding: 16px;
+      }
+      
+      .list-item {
+        padding: 12px;
+      }
+      
+      .list-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+      }
+      
+      .auth-prompt-content {
+        padding: 24px 20px;
+      }
+      
+      .auth-prompt-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+      }
+      
+      .auth-prompt-header h3 {
+        font-size: 22px;
+      }
     }
     
     @media (min-width: 769px) {
+      /* Desktop banner adjustments */
       .guest-banner.mobile {
         display: none;
       }
@@ -1174,7 +1861,7 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Mobile Guest Banner -->
+  <!-- Mobile Guest Banner - Sticky at top -->
   <div id="guestBannerMobile" class="guest-banner mobile">
     <div class="banner-content">
       <span class="banner-text">Want to save favorites?</span>
@@ -1237,18 +1924,19 @@
         
         <select id="categorySelect" class="sort-select">
           <option value="all">All Categories</option>
+          <!-- Categories populated dynamically -->
         </select>
       </div>
       
       <div class="view-controls">
         <div class="grid-size-buttons">
-          <button class="grid-btn active" data-view="normal" title="Normal View">
+          <button class="grid-btn active" data-view="normal" title="Normal View" aria-label="Normal grid view">
             <i class="fas fa-th"></i>
           </button>
-          <button class="grid-btn" data-view="compact" title="Compact View">
+          <button class="grid-btn" data-view="compact" title="Compact View" aria-label="Compact grid view">
             <i class="fas fa-th-large"></i>
           </button>
-          <button class="grid-btn" data-view="dense" title="Dense View">
+          <button class="grid-btn" data-view="dense" title="Dense View" aria-label="Dense grid view">
             <i class="fas fa-th-list"></i>
           </button>
         </div>
@@ -1256,7 +1944,10 @@
         <div class="items-per-page">
           <label for="itemsPerPage">Show:</label>
           <select id="itemsPerPage" class="items-select">
-            <!-- Dynamically populated based on actual restaurant count -->
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="9999">All</option>
           </select>
         </div>
       </div>
@@ -1276,30 +1967,13 @@
     </div>
   </main>
 
-  <!-- Cloud Kitchen Mobile Modal -->
-  <div id="cloudMobileModal" class="cloud-mobile-modal">
-    <div class="cloud-mobile-content">
-      <button class="cloud-mobile-close" id="closeCloudModal">×</button>
-      <div class="tooltip-header">
-        <i class="fas fa-cloud"></i>
-        <h4>Cloud Kitchen</h4>
-      </div>
-      <div class="tooltip-content">
-        <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
-        <ul>
-          <li>Delivery only - no dine-in option</li>
-          <li>Optimized for online orders</li>
-          <li>Often operates multiple brands from one kitchen</li>
-          <li>Lower overhead costs</li>
-        </ul>
-        <p>These restaurants focus on quality food optimized for delivery.</p>
-      </div>
-    </div>
-  </div>
-
   <!-- Actions Modal -->
   <div id="actionsModal" class="actions-modal">
     <div class="actions-content">
+      <div class="actions-header">
+        <h3 id="modalRestaurantName">Restaurant Name</h3>
+        <p>Add this restaurant to your lists</p>
+      </div>
       <div class="action-buttons">
         <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn">
           <i class="fas fa-heart"></i>
@@ -1319,7 +1993,7 @@
           <i class="fas fa-chevron-right"></i>
         </button>
       </div>
-      <button class="btn" id="modalCancelBtn">Cancel</button>
+      <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
     </div>
   </div>
 
@@ -1373,6 +2047,13 @@
     </div>
   </div>
 
+  <footer>
+    © 2025 Zo2y — Built with ❤️ for food lovers
+  </footer>
+
+  <!-- Notification Container -->
+  <div id="notificationContainer" class="notification-container"></div>
+
   <script>
     (function() {
       'use strict';
@@ -1387,6 +2068,7 @@
           supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       } catch (error) {
           console.error('❌ Failed to initialize Supabase:', error);
+          showNotification('Connection error. Please refresh.', 'error');
           supabase = null;
       }
       
@@ -1395,70 +2077,26 @@
         restaurants: [],
         filteredRestaurants: [],
         categories: new Map(),
-        cloudKitchens: new Set(),
+        cloudKitchens: new Set(), // Set of restaurant IDs that are cloud kitchens
         currentPage: 1,
         pageSize: 20,
+        isLoading: false,
         activeFilters: {
           search: '',
           category: 'all',
           quickFilter: 'all',
           sort: 'rating-desc'
         },
+        restaurantImages: new Map(),
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
+        authChecked: false,
         customLists: [],
         selectedLists: new Set(),
         isViewAll: false,
-        totalRestaurantCount: 0
+        viewAllButtonText: "View All"
       };
-      
-      // ---------- IMAGE LOADING SYSTEM ----------
-      function loadImage(imgElement, url) {
-        if (!url || url === '') {
-          console.log('No image URL for:', imgElement.alt);
-          return;
-        }
-        
-        // Check if URL is relative or absolute
-        let imageUrl = url;
-        if (!url.startsWith('http') && !url.startsWith('data:')) {
-          // If it's a relative path, try to construct a proper URL
-          // Remove any leading slashes
-          imageUrl = url.replace(/^\/+/, '');
-          console.log('Relative image path detected, using:', imageUrl);
-        }
-        
-        const img = new Image();
-        
-        img.onload = () => {
-          console.log('Image loaded successfully:', imageUrl);
-          imgElement.src = imageUrl;
-          imgElement.classList.add('loaded');
-          imgElement.style.opacity = '1';
-        };
-        
-        img.onerror = (err) => {
-          console.warn('Failed to load image:', imageUrl, err);
-          imgElement.classList.add('load-error');
-          
-          // Try fallback approach
-          setTimeout(() => {
-            const fallbackImg = new Image();
-            fallbackImg.onload = () => {
-              imgElement.src = imageUrl;
-              imgElement.classList.add('loaded');
-              imgElement.style.opacity = '1';
-            };
-            fallbackImg.onerror = () => {
-              console.error('Fallback also failed for:', imageUrl);
-            };
-            fallbackImg.src = imageUrl;
-          }, 100);
-        };
-        
-        img.src = imageUrl;
-      }
       
       // ---------- CLOUD KITCHEN MANAGER ----------
       const cloudKitchenManager = {
@@ -1478,6 +2116,7 @@
               cloudKitchens.forEach(ck => {
                 state.cloudKitchens.add(ck.restaurant_id);
               });
+              console.log(`Loaded ${state.cloudKitchens.size} cloud kitchens`);
             }
           } catch (error) {
             console.error('Error loading cloud kitchens:', error);
@@ -1492,8 +2131,7 @@
           if (!this.isCloudKitchen(restaurantId)) return '';
           
           return `
-            <div class="cloud-badge" aria-label="Cloud Kitchen" 
-                 ${window.innerWidth <= 768 ? 'onclick="showCloudMobileModal(event)"' : ''}>
+            <div class="cloud-badge" aria-label="Cloud Kitchen">
               <i class="fas fa-cloud"></i>
               <span class="cloud-text">Cloud Kitchen</span>
               <div class="cloud-tooltip">
@@ -1517,121 +2155,1098 @@
         }
       };
       
-      // Mobile cloud modal
-      window.showCloudMobileModal = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const modal = document.getElementById('cloudMobileModal');
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      };
-      
-      window.hideCloudMobileModal = function() {
-        const modal = document.getElementById('cloudMobileModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      };
-      
-      // ---------- ITEMS PER PAGE SELECTOR ----------
-      function populateItemsPerPage(totalCount) {
-        const select = document.getElementById('itemsPerPage');
-        select.innerHTML = '';
+      // ---------- IMAGE OPTIMIZATION ----------
+      function getOptimizedSupabaseImageUrl(url, options = {}) {
+        if (!url || !url.includes('supabase.co')) return url;
         
-        // Always show these options
-        const standardOptions = [20, 50, 100];
-        
-        standardOptions.forEach(num => {
-          const option = document.createElement('option');
-          option.value = num;
-          option.textContent = num;
-          if (num === 20) option.selected = true;
-          select.appendChild(option);
-        });
-        
-        // Add "All" option
-        const allOption = document.createElement('option');
-        allOption.value = totalCount;
-        allOption.textContent = 'All';
-        select.appendChild(allOption);
-        
-        // Update state
-        state.pageSize = 20;
-        state.totalRestaurantCount = totalCount;
+        try {
+          // Parse the URL
+          const urlObj = new URL(url);
+          const params = new URLSearchParams(urlObj.search);
+          
+          // Set optimization parameters
+          if (!params.has('width')) params.set('width', options.width || '600');
+          if (!params.has('height')) params.set('height', options.height || '400');
+          if (!params.has('quality')) params.set('quality', options.quality || '75');
+          if (!params.has('format')) params.set('format', options.format || 'webp');
+          if (!params.has('resize')) params.set('resize', options.resize || 'cover');
+          
+          // Add cache busting
+          if (!params.has('v')) params.set('v', '1.0');
+          
+          // Reconstruct URL
+          urlObj.search = params.toString();
+          return urlObj.toString();
+        } catch (e) {
+          // If URL parsing fails, return original
+          return url;
+        }
       }
       
+      // ---------- LAZY LOADING SYSTEM ----------
+      let imageObserver;
+      
+      function initLazyLoading() {
+        if ('IntersectionObserver' in window) {
+          imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                loadImage(img, img.dataset.src);
+                observer.unobserve(img);
+              }
+            });
+          }, {
+            rootMargin: '100px 0px',
+            threshold: 0.01
+          });
+        }
+      }
+      
+      function loadImage(imgElement, url) {
+        if (!url || url === '') {
+          imgElement.style.display = 'none';
+          return;
+        }
+        
+        // Optimize Supabase URLs
+        const optimizedUrl = getOptimizedSupabaseImageUrl(url, {
+          width: imgElement.clientWidth > 0 ? Math.ceil(imgElement.clientWidth * 1.5) : '600',
+          height: '400'
+        });
+        
+        const tempImg = new Image();
+        tempImg.onload = () => {
+          imgElement.src = optimizedUrl;
+          imgElement.classList.add('loaded');
+          
+          // Fade in effect
+          imgElement.style.opacity = '0';
+          setTimeout(() => {
+            imgElement.style.transition = 'opacity 0.3s ease';
+            imgElement.style.opacity = '1';
+          }, 10);
+        };
+        
+        tempImg.onerror = () => {
+          // Fallback to original URL if optimized fails
+          imgElement.src = url;
+          imgElement.classList.add('loaded');
+        };
+        
+        // Start loading
+        tempImg.src = optimizedUrl;
+      }
+      
+      function observeImage(imgElement) {
+        if (imageObserver && imgElement.dataset.src) {
+          imageObserver.observe(imgElement);
+        } else if (imgElement.dataset.src) {
+          // Fallback for browsers without IntersectionObserver
+          loadImage(imgElement, imgElement.dataset.src);
+        }
+      }
+      
+      // ---------- CUSTOM LISTS MANAGER ----------
+      const customListsManager = {
+        async init() {
+          if (state.currentUser) {
+            await this.loadCustomLists();
+          }
+        },
+        
+        async loadCustomLists() {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            
+            // Get all custom lists (excluding default lists)
+            const { data: lists, error } = await supabase
+              .from('lists')
+              .select('*')
+              .eq('user_id', user.id)
+              .neq('title', 'Favorites')
+              .neq('title', 'Visited')
+              .neq('title', 'Want to Go')
+              .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            state.customLists = lists || [];
+            
+          } catch (error) {
+            console.error('Error loading custom lists:', error);
+            state.customLists = [];
+          }
+        },
+        
+        async createList(name) {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return null;
+            
+            const { data: newList, error } = await supabase
+              .from('lists')
+              .insert([
+                {
+                  user_id: user.id,
+                  title: name,
+                  description: 'Custom list for restaurants',
+                  created_at: new Date().toISOString()
+                }
+              ])
+              .select()
+              .single();
+            
+            if (error) throw error;
+            
+            state.customLists.unshift(newList);
+            return newList;
+            
+          } catch (error) {
+            console.error('Error creating list:', error);
+            showNotification('Error creating list', 'error');
+            return null;
+          }
+        },
+        
+        async checkRestaurantInList(restaurantId, listId) {
+          try {
+            const { data, error } = await supabase
+              .from('lists_restraunts')
+              .select('*')
+              .eq('list_id', listId)
+              .eq('restraunt_id', restaurantId);
+            
+            if (error) {
+              console.error('Error checking restaurant in list:', error);
+              return false;
+            }
+            
+            return data && data.length > 0;
+            
+          } catch (error) {
+            console.error('Error checking restaurant in list:', error);
+            return false;
+          }
+        },
+        
+        async toggleRestaurantInList(restaurantId, listId) {
+          try {
+            const isInList = await this.checkRestaurantInList(restaurantId, listId);
+            
+            if (isInList) {
+              // Remove from list
+              const { error } = await supabase
+                .from('lists_restraunts')
+                .delete()
+                .eq('list_id', listId)
+                .eq('restraunt_id', restaurantId);
+              
+              if (error) throw error;
+              
+              return false;
+            } else {
+              // Add to list
+              const { error } = await supabase
+                .from('lists_restraunts')
+                .insert([
+                  {
+                    list_id: listId,
+                    restraunt_id: restaurantId,
+                    added_at: new Date().toISOString()
+                  }
+                ]);
+              
+              if (error) throw error;
+              
+              return true;
+            }
+            
+          } catch (error) {
+            console.error('Error toggling restaurant in list:', error);
+            showNotification('Error updating list', 'error');
+            return null;
+          }
+        },
+        
+        async loadRestaurantListsStatus(restaurantId) {
+          if (!state.currentUser || !restaurantId) return {};
+          
+          const status = {};
+          
+          // Check each list
+          const promises = state.customLists.map(async (list) => {
+            status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
+          });
+          
+          await Promise.all(promises);
+          
+          return status;
+        },
+        
+        renderListsList(restaurantId) {
+          const container = document.getElementById('listsListContainer');
+          if (!container) return;
+          
+          if (state.customLists.length === 0) {
+            container.innerHTML = `
+              <div class="empty-lists">
+                <i class="fas fa-list"></i>
+                <h4>No custom lists yet</h4>
+                <p>Create your first list to organize restaurants</p>
+              </div>
+            `;
+            return;
+          }
+          
+          let html = '<div class="lists-list">';
+          
+          state.customLists.forEach(list => {
+            const isChecked = state.selectedLists.has(list.id);
+            const listIcon = list.icon || '📋';
+            html += `
+              <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
+                <div class="list-info">
+                  <div class="list-icon">
+                    ${listIcon}
+                  </div>
+                  <div>
+                    <span class="list-name">${list.title}</span>
+                    ${list.description ? `<div class="text-xs text-muted mt-1">${list.description}</div>` : ''}
+                  </div>
+                </div>
+                <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
+              </div>
+            `;
+          });
+          
+          html += '</div>';
+          container.innerHTML = html;
+          
+          // Add event listeners
+          container.querySelectorAll('.list-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const listId = item.dataset.listId;
+              const checkbox = item.querySelector('.list-checkbox');
+              
+              if (state.selectedLists.has(listId)) {
+                state.selectedLists.delete(listId);
+                item.classList.remove('active');
+                checkbox.classList.remove('checked');
+              } else {
+                state.selectedLists.add(listId);
+                item.classList.add('active');
+                checkbox.classList.add('checked');
+                
+                checkbox.style.animation = 'none';
+                setTimeout(() => {
+                  checkbox.style.animation = 'checkPop 0.3s ease';
+                }, 10);
+              }
+            });
+          });
+        },
+        
+        async refreshLists() {
+          await this.loadCustomLists();
+        }
+      };
+      
+      // ---------- LIST MANAGER ----------
+      const listManager = {
+          userLists: [],
+          currentLists: {
+              favorites: null,
+              visited: null,
+              wantToGo: null
+          },
+          
+          async init() { 
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session) return;
+              
+              await this.loadUserLists();
+              await customListsManager.init();
+          },
+          
+          async loadUserLists() {
+              try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) return;
+
+                  const { data: lists, error } = await supabase
+                      .from('lists')
+                      .select('*')
+                      .eq('user_id', user.id);
+                  
+                  if (error) throw error;
+                  
+                  this.userLists = lists || [];
+                  await this.setupDefaultLists();
+                  await this.loadListRestaurants();
+                  
+              } catch (error) {
+                  console.error('Error loading lists:', error);
+              }
+          },
+          
+          async setupDefaultLists() {
+              const { data: { user } } = await supabase.auth.getUser();
+              
+              this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+              this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+              this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+              
+              if (!this.currentLists.favorites) {
+                  this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+              }
+              if (!this.currentLists.visited) {
+                  this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+              }
+              if (!this.currentLists.wantToGo) {
+                  this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+              }
+          },
+          
+          async createList(title, description) {
+              const { data: { user } } = await supabase.auth.getUser();
+              
+              const { data: newList, error } = await supabase
+                  .from('lists')
+                  .insert([
+                      {
+                          user_id: user.id,
+                          title: title,
+                          description: description
+                      }
+                  ])
+                  .select()
+                  .single();
+              
+              if (error) {
+                  console.error('Error creating list:', error);
+                  return null;
+              }
+              
+              this.userLists.push(newList);
+              return newList;
+          },
+          
+          async loadListRestaurants() {
+              for (const listType in this.currentLists) {
+                  const list = this.currentLists[listType];
+                  if (list) {
+                      const { data: listRestaurants, error } = await supabase
+                          .from('lists_restraunts')
+                          .select('restraunt_id')
+                          .eq('list_id', list.id);
+                      
+                      if (!error && listRestaurants) {
+                          list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                      } else {
+                          list.restaurants = [];
+                      }
+                  }
+              }
+          },
+          
+          async toggleInList(listType, restaurantId) {
+              const list = this.currentLists[listType];
+              if (!list) return false;
+              
+              const isInList = list.restaurants?.includes(restaurantId);
+              
+              try {
+                  if (isInList) {
+                      const { error } = await supabase
+                          .from('lists_restraunts')
+                          .delete()
+                          .match({
+                              list_id: list.id,
+                              restraunt_id: restaurantId
+                          });
+                      
+                      if (error) throw error;
+                      
+                      list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                      showNotification(`Removed from ${list.title}`, 'info');
+                      return false;
+                      
+                  } else {
+                      const { error } = await supabase
+                          .from('lists_restraunts')
+                          .insert([
+                              {
+                                  list_id: list.id,
+                                  restraunt_id: restaurantId,
+                                  added_at: new Date().toISOString()
+                              }
+                          ]);
+                      
+                      if (error) throw error;
+                      
+                      if (!list.restaurants) list.restaurants = [];
+                      list.restaurants.push(restaurantId);
+                      showNotification(`Added to ${list.title}`, 'success');
+                      return true;
+                  }
+                  
+              } catch (error) {
+                  console.error('Error updating list:', error);
+                  showNotification('Failed to update list', 'error');
+                  return isInList;
+              }
+          },
+          
+          isInList(listType, restaurantId) {
+              const list = this.currentLists[listType];
+              return list?.restaurants?.includes(restaurantId) || false;
+          },
+          
+          getRestaurantListStatus(restaurantId) {
+              return {
+                  favorites: this.isInList('favorites', restaurantId),
+                  wantToGo: this.isInList('wantToGo', restaurantId),
+                  visited: this.isInList('visited', restaurantId)
+              };
+          }
+      };
+      
+      // ---------- NOTIFICATION SYSTEM ----------
+      function showNotification(message, type = "info", duration = 2500) {
+        const container = document.getElementById("notificationContainer");
+        if (!container) return;
+        
+        const notification = document.createElement("div");
+        notification.className = `custom-notification notification-${type}`;
+        
+        let iconClass;
+        if (type === "success") {
+            iconClass = "fas fa-check-circle";
+        } else if (type === "error") {
+            iconClass = "fas fa-exclamation-circle";
+        } else if (type === "warning") {
+            iconClass = "fas fa-exclamation-triangle";
+        } else {
+            iconClass = "fas fa-info-circle";
+        }
+        
+        notification.innerHTML = `
+            <i class="notification-icon ${iconClass}"></i>
+            <span class="notification-message">${message}</span>
+            <button class="notification-close" aria-label="Close notification">×</button>
+        `;
+        
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add("notification-show");
+        }, 10);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove("notification-show");
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 400);
+        });
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.classList.remove("notification-show");
+                setTimeout(() => notification.remove(), 400);
+            }
+        }, duration);
+      }
+      
+      // ---------- CUSTOM LISTS MODAL ----------
+      async function showCustomListsModal(restaurantId) {
+        if (!restaurantId) {
+          showNotification('No restaurant selected', 'error');
+          return;
+        }
+        
+        if (!state.isLoggedIn) {
+          showAuthPrompt();
+          return;
+        }
+        
+        const restaurant = state.restaurants.find(r => r.id === restaurantId);
+        if (!restaurant) {
+          showNotification('Restaurant not found', 'error');
+          return;
+        }
+        
+        state.currentModalRestaurant = restaurant;
+        
+        if (!state.customLists || state.customLists.length === 0) {
+          await customListsManager.refreshLists();
+        }
+        
+        try {
+          const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
+          
+          state.selectedLists.clear();
+          for (const [listId, isChecked] of Object.entries(status)) {
+            if (isChecked) {
+              state.selectedLists.add(listId);
+            }
+          }
+          
+          customListsManager.renderListsList(restaurantId);
+          
+          const modal = document.getElementById('customListsModal');
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+          
+          setTimeout(() => {
+            const newListInput = document.getElementById('newListName');
+            if (newListInput) newListInput.focus();
+          }, 300);
+          
+        } catch (error) {
+          console.error('Error loading list status:', error);
+          showNotification('Error loading lists', 'error');
+          
+          const modal = document.getElementById('customListsModal');
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      }
+      
+      function hideCustomListsModal() {
+        const modal = document.getElementById('customListsModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        state.selectedLists.clear();
+      }
+      
+      async function saveListChanges() {
+        if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+          showNotification('No restaurant selected', 'error');
+          hideCustomListsModal();
+          return;
+        }
+        
+        const restaurantId = state.currentModalRestaurant.id;
+        const saveBtn = document.getElementById('saveListsBtn');
+        const originalText = saveBtn.textContent;
+        
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        
+        try {
+          let changesMade = false;
+          
+          for (const list of state.customLists) {
+            const shouldBeInList = state.selectedLists.has(list.id);
+            const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
+            
+            if (shouldBeInList && !isInList) {
+              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+              if (success) {
+                changesMade = true;
+              }
+            } else if (!shouldBeInList && isInList) {
+              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+              if (success !== null) {
+                changesMade = true;
+              }
+            }
+          }
+          
+          if (changesMade) {
+            showNotification('List changes saved successfully!', 'success');
+          } else {
+            showNotification('No changes made', 'info');
+          }
+          
+          hideCustomListsModal();
+          
+          if (state.filteredRestaurants.length > 0) {
+            renderRestaurants();
+          }
+          
+        } catch (error) {
+          console.error('Error saving list changes:', error);
+          showNotification('Error saving changes', 'error');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText;
+        }
+      }
+      
+      // ---------- AUTH PROMPT MODAL ----------
+      function showAuthPrompt() {
+        const modal = document.getElementById('authPromptModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function hideAuthPrompt() {
+        const modal = document.getElementById('authPromptModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+      
+      // ---------- ACTIONS MODAL ----------
+      function showModal(restaurantData) {
+        if (!restaurantData) return;
+        
+        if (!state.isLoggedIn) {
+            showAuthPrompt();
+            return;
+        }
+        
+        state.currentModalRestaurant = restaurantData;
+        document.getElementById('modalRestaurantName').textContent = restaurantData.name;
+        
+        updateModalButtons(restaurantData.id);
+        
+        const modal = document.getElementById('actionsModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function hideModal() {
+        const modal = document.getElementById('actionsModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+      
+      function updateModalButtons(restaurantId) {
+        const status = listManager.getRestaurantListStatus(restaurantId);
+        
+        const favoritesBtn = document.getElementById('modalFavoritesBtn');
+        const wantToGoBtn = document.getElementById('modalWantToGoBtn');
+        const visitedBtn = document.getElementById('modalVisitedBtn');
+        
+        if (favoritesBtn) {
+          favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+          favoritesBtn.classList.toggle('active', status.favorites);
+        }
+        
+        if (wantToGoBtn) {
+          wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+          wantToGoBtn.classList.toggle('active', status.wantToGo);
+        }
+        
+        if (visitedBtn) {
+          visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+          visitedBtn.classList.toggle('active', status.visited);
+        }
+      }
+      
+      // ---------- GUEST BANNER ----------
+      const guestBanner = {
+        init: function() {
+          const mobileSignupBtn = document.getElementById('bannerMobileSignupBtn');
+          const loginBtn = document.getElementById('bannerLoginBtn');
+          const signupBtn = document.getElementById('bannerSignupBtn');
+          
+          if (mobileSignupBtn) {
+            mobileSignupBtn.addEventListener('click', () => {
+              window.location.href = 'sign-up.html';
+            });
+          }
+          
+          if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+              window.location.href = 'login.html';
+            });
+          }
+          
+          if (signupBtn) {
+            signupBtn.addEventListener('click', () => {
+              window.location.href = 'sign-up.html';
+            });
+          }
+          
+          // Add mobile banner class to body for CSS targeting
+          if (window.innerWidth <= 768) {
+            document.body.classList.add('has-mobile-banner');
+          }
+        },
+        
+        show: function() {
+          const mobileBanner = document.getElementById('guestBannerMobile');
+          const desktopBanner = document.getElementById('guestBannerDesktop');
+          
+          if (window.innerWidth <= 768) {
+            // Mobile
+            if (mobileBanner) {
+              mobileBanner.style.display = 'block';
+            }
+            if (desktopBanner) {
+              desktopBanner.style.display = 'none';
+            }
+            document.body.classList.add('has-mobile-banner');
+          } else {
+            // Desktop
+            if (mobileBanner) {
+              mobileBanner.style.display = 'none';
+            }
+            if (desktopBanner) {
+              desktopBanner.style.display = 'block';
+            }
+            document.body.classList.remove('has-mobile-banner');
+          }
+        },
+        
+        hide: function() {
+          const mobileBanner = document.getElementById('guestBannerMobile');
+          const desktopBanner = document.getElementById('guestBannerDesktop');
+          
+          if (mobileBanner) {
+            mobileBanner.style.display = 'none';
+          }
+          if (desktopBanner) {
+            desktopBanner.style.display = 'none';
+          }
+          document.body.classList.remove('has-mobile-banner');
+        }
+      };
+      
       // ---------- DATA LOADING ----------
+      async function loadRestaurantImages() {
+        try {
+          const { data: galleryData, error: galleryError } = await supabase
+            .from('restaurant_gallery')
+            .select('restaurant_slug, image_url, image_type, is_primary')
+            .order('sort_order');
+          
+          if (galleryError) throw galleryError;
+          
+          const { data: restaurantsData, error: restaurantsError } = await supabase
+            .from('restraunts')
+            .select('slug, image, logo_url');
+          
+          if (restaurantsError) throw restaurantsError;
+          
+          state.restaurantImages.clear();
+          
+          if (galleryData && galleryData.length > 0) {
+            galleryData.forEach(item => {
+              if (!state.restaurantImages.has(item.restaurant_slug)) {
+                state.restaurantImages.set(item.restaurant_slug, {
+                  cover: null,
+                  logo: null
+                });
+              }
+              
+              const images = state.restaurantImages.get(item.restaurant_slug);
+              
+              if (item.image_type === 'cover' && item.image_url) {
+                images.cover = item.image_url;
+              }
+              
+              if (item.image_type === 'logo' && item.image_url) {
+                images.logo = item.image_url;
+              }
+            });
+          }
+          
+          if (restaurantsData && restaurantsData.length > 0) {
+            restaurantsData.forEach(restaurant => {
+              if (!state.restaurantImages.has(restaurant.slug)) {
+                state.restaurantImages.set(restaurant.slug, {
+                  cover: restaurant.image || null,
+                  logo: restaurant.logo_url || null
+                });
+              } else {
+                const images = state.restaurantImages.get(restaurant.slug);
+                if (!images.cover && restaurant.image) {
+                  images.cover = restaurant.image;
+                }
+                if (!images.logo && restaurant.logo_url) {
+                  images.logo = restaurant.logo_url;
+                }
+              }
+            });
+          }
+          
+        } catch (error) {
+          console.error('Error loading images:', error);
+        }
+      }
+      
+      function getCoverImageUrl(restaurantSlug) {
+        const images = state.restaurantImages.get(restaurantSlug);
+        return images?.cover || null;
+      }
+      
+      function getLogoUrl(restaurant) {
+        const images = state.restaurantImages.get(restaurant.slug);
+        if (images?.logo) {
+          return images.logo;
+        }
+        
+        if (restaurant.logo_url) {
+          return restaurant.logo_url;
+        }
+        
+        if (restaurant.image) {
+          return restaurant.image;
+        }
+        
+        return null;
+      }
+      
+      async function loadCategories() {
+        try {
+          const { data, error } = await supabase
+            .from('categories')
+            .select('*')
+            .order('sort_order', { ascending: true });
+          
+          if (error) {
+            console.warn('No categories table found, using fallback categories');
+            createFallbackCategories();
+            return;
+          }
+          
+          state.categories.clear();
+          
+          if (data && data.length > 0) {
+            data.forEach(cat => {
+              state.categories.set(cat.id, {
+                id: cat.id,
+                name: cat.name,
+                slug: cat.slug,
+                icon: cat.icon,
+                description: cat.description,
+                sort_order: cat.sort_order || 0
+              });
+            });
+          } else {
+            createFallbackCategories();
+          }
+          
+        } catch (error) {
+          console.error('Error loading categories:', error);
+          createFallbackCategories();
+        }
+      }
+      
+      function createFallbackCategories() {
+        state.categories.clear();
+        const fallbackCategories = [
+          { id: 1, name: 'Burgers', slug: 'burgers', icon: '🍔', sort_order: 1 },
+          { id: 2, name: 'Chicken', slug: 'chicken', icon: '🍗', sort_order: 2 },
+          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: '🥙', sort_order: 3 },
+          { id: 4, name: 'Pizza', slug: 'pizza', icon: '🍕', sort_order: 4 },
+          { id: 5, name: 'Asian', slug: 'asian', icon: '🍜', sort_order: 5 },
+          { id: 6, name: 'Mexican', slug: 'mexican', icon: '🌮', sort_order: 6 },
+          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: '☕', sort_order: 7 },
+          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: '🍟', sort_order: 8 },
+          { id: 9, name: 'Seafood', slug: 'seafood', icon: '🐟', sort_order: 9 },
+          { id: 10, name: 'International', slug: 'international', icon: '🌍', sort_order: 10 }
+        ];
+        
+        fallbackCategories.forEach(cat => {
+          state.categories.set(cat.id, cat);
+        });
+      }
+      
       async function loadRestaurantsData() {
         try {
           // Load cloud kitchens first
           await cloudKitchenManager.loadCloudKitchens();
+          await loadRestaurantImages();
           
-          // Get total count for items per page selector
-          const { count } = await supabase
-            .from('restraunts')
-            .select('*', { count: 'exact', head: true });
-          
-          const totalCount = count || 85;
-          populateItemsPerPage(totalCount);
-          
-          // Load restaurants
+          // First, try to load with categories join
           const { data, error } = await supabase
             .from('restraunts')
-            .select('id, slug, name, category, description, rating, logo_url, image')
+            .select(`
+              id, 
+              slug, 
+              name, 
+              category,
+              category_id,
+              description, 
+              rating, 
+              logo_url, 
+              image,
+              categories!inner (
+                name,
+                icon,
+                slug
+              )
+            `)
             .order('rating', { ascending: false });
           
-          if (error) throw error;
+          if (error) {
+            console.warn('Could not load with categories join, loading basic data');
+            await loadBasicRestaurantData();
+            return;
+          }
           
           if (!data || data.length === 0) {
             showEmptyState();
             return;
           }
           
-          // Process restaurants
+          // Process restaurants with categories
           state.restaurants = data.map(restaurant => ({
             id: restaurant.id,
             slug: restaurant.slug,
             name: restaurant.name,
-            category: restaurant.category || 'Restaurant',
+            category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
+            category_id: restaurant.category_id,
+            category_icon: restaurant.categories ? restaurant.categories.icon : getCategoryIconFallback(restaurant.category),
             description: restaurant.description,
-            rating: restaurant.rating || 0,
-            logo_url: restaurant.logo_url,
-            image: restaurant.image,
+            rating: restaurant.rating,
+            logo_url: getLogoUrl(restaurant),
+            coverImage: getCoverImageUrl(restaurant.slug),
             isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
           }));
           
-          // Extract categories
-          const categorySet = new Set();
-          state.restaurants.forEach(r => {
-            if (r.category) categorySet.add(r.category);
-          });
-          
-          state.categories.clear();
-          Array.from(categorySet).sort().forEach((cat, index) => {
-            state.categories.set(cat, { id: index + 1, name: cat });
-          });
-          
+          await loadCategories();
           populateCategoryDropdown();
+          
           applyFilters();
           updateCounts();
           
         } catch (error) {
           console.error('Error loading restaurants:', error);
+          showNotification('Failed to load restaurants', 'error');
           showEmptyState();
         }
       }
       
+      async function loadBasicRestaurantData() {
+        const { data, error } = await supabase
+          .from('restraunts')
+          .select('id, slug, name, category, description, rating, logo_url, image')
+          .order('rating', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+          showEmptyState();
+          return;
+        }
+        
+        const categoryMap = new Map();
+        data.forEach((restaurant, index) => {
+          let categoryName = restaurant.category || 'Restaurant';
+          categoryName = normalizeCategoryName(categoryName);
+          
+          if (!categoryMap.has(categoryName)) {
+            categoryMap.set(categoryName, {
+              id: categoryMap.size + 1,
+              name: categoryName,
+              icon: getCategoryIconFallback(categoryName),
+              sort_order: categoryMap.size + 1
+            });
+          }
+        });
+        
+        categoryMap.forEach((cat, name) => {
+          state.categories.set(cat.id, cat);
+        });
+        
+        state.restaurants = data.map(restaurant => {
+          const categoryName = normalizeCategoryName(restaurant.category || 'Restaurant');
+          const category = Array.from(state.categories.values()).find(c => c.name === categoryName);
+          
+          return {
+            id: restaurant.id,
+            slug: restaurant.slug,
+            name: restaurant.name,
+            category: categoryName,
+            category_id: category ? category.id : 1,
+            category_icon: category ? category.icon : getCategoryIconFallback(categoryName),
+            description: restaurant.description,
+            rating: restaurant.rating,
+            logo_url: getLogoUrl(restaurant),
+            coverImage: getCoverImageUrl(restaurant.slug),
+            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
+          };
+        });
+        
+        populateCategoryDropdown();
+        applyFilters();
+        updateCounts();
+      }
+      
+      function normalizeCategoryName(categoryName) {
+        if (!categoryName) return 'Restaurant';
+        
+        const lowerName = categoryName.toLowerCase().trim();
+        const corrections = {
+          'burgers': 'Burgers',
+          'burger': 'Burgers',
+          'chicken': 'Chicken',
+          'middle eastern': 'Middle Eastern',
+          'pizza': 'Pizza',
+          'asian': 'Asian',
+          'mexican': 'Mexican',
+          'cafe & bakery': 'Cafe & Bakery',
+          'cafe': 'Cafe & Bakery',
+          'bakery': 'Cafe & Bakery',
+          'fast food': 'Fast Food',
+          'seafood': 'Seafood',
+          'breakfast': 'Breakfast',
+          'desserts': 'Desserts',
+          'indian': 'Indian',
+          'italian': 'Italian',
+          'bbq & ribs': 'BBQ & Ribs',
+          'bbq': 'BBQ & Ribs',
+          'international': 'International',
+          'sushi': 'Asian',
+          'shawerma': 'Middle Eastern'
+        };
+        
+        return corrections[lowerName] || 
+               categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
+      }
+      
+      function getCategoryIconFallback(categoryName) {
+        const icons = {
+          'Burgers': '🍔',
+          'Chicken': '🍗',
+          'Middle Eastern': '🥙',
+          'Pizza': '🍕',
+          'Asian': '🍜',
+          'Mexican': '🌮',
+          'Cafe & Bakery': '☕',
+          'Fast Food': '🍟',
+          'Italian': '🍝',
+          'Seafood': '🐟',
+          'Breakfast': '🥞',
+          'Desserts': '🍰',
+          'Indian': '🍛',
+          'BBQ & Ribs': '🥩',
+          'International': '🌍'
+        };
+        
+        return icons[categoryName] || '🍴';
+      }
+      
       function populateCategoryDropdown() {
         const select = document.getElementById('categorySelect');
+        if (!select) return;
+        
         select.innerHTML = '<option value="all">All Categories</option>';
         
-        Array.from(state.categories.values())
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.id;
-            option.textContent = cat.name;
-            select.appendChild(option);
+        const sortedCategories = Array.from(state.categories.values())
+          .sort((a, b) => {
+            if (a.sort_order !== undefined && b.sort_order !== undefined) {
+              return a.sort_order - b.sort_order;
+            }
+            return a.name.localeCompare(b.name);
           });
+        
+        sortedCategories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.id;
+          option.textContent = `${cat.icon || '🍴'} ${cat.name}`;
+          select.appendChild(option);
+        });
       }
       
       // ---------- FILTERING & SORTING ----------
@@ -1649,10 +3264,7 @@
         
         if (state.activeFilters.category !== 'all') {
           const categoryId = parseInt(state.activeFilters.category);
-          const category = Array.from(state.categories.values()).find(c => c.id === categoryId);
-          if (category) {
-            filtered = filtered.filter(r => r.category === category.name);
-          }
+          filtered = filtered.filter(r => r.category_id === categoryId);
         }
         
         filtered = applyQuickFilter(filtered, state.activeFilters.quickFilter);
@@ -1697,6 +3309,29 @@
       }
       
       // ---------- RENDERING ----------
+      function showLoadingSkeleton() {
+        const grid = document.getElementById('restaurantGrid');
+        if (!grid) return;
+        
+        grid.innerHTML = '';
+        grid.classList.add('skeleton-grid');
+        
+        for (let i = 0; i < 8; i++) {
+          const skeleton = document.createElement('div');
+          skeleton.className = 'skeleton-card';
+          skeleton.innerHTML = `
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-line" style="width: 70%"></div>
+              <div class="skeleton-line short"></div>
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line" style="width: 40%"></div>
+            </div>
+          `;
+          grid.appendChild(skeleton);
+        }
+      }
+      
       async function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
         const emptyState = document.querySelector('.empty-state');
@@ -1712,25 +3347,38 @@
           emptyState.style.display = 'none';
         }
         
-        const startIdx = (state.currentPage - 1) * state.pageSize;
-        const endIdx = startIdx + state.pageSize;
-        const itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
+        grid.classList.remove('skeleton-grid');
         
+        // Determine items to show
+        let itemsToShow;
+        if (state.isViewAll) {
+          itemsToShow = state.filteredRestaurants;
+        } else {
+          const startIdx = (state.currentPage - 1) * state.pageSize;
+          const endIdx = startIdx + state.pageSize;
+          itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
+        }
+        
+        // Clear grid first
         grid.innerHTML = '';
         
-        // Create and append cards
-        itemsToShow.forEach(restaurant => {
+        // Create cards
+        for (const restaurant of itemsToShow) {
           const card = createRestaurantCard(restaurant);
           grid.appendChild(card);
-        });
+          
+          // Set up lazy loading for images in this card
+          setTimeout(() => {
+            const images = card.querySelectorAll('img[data-src]');
+            images.forEach(img => observeImage(img));
+          }, 10);
+        }
         
-        // Load images after cards are in DOM
-        setTimeout(() => {
-          const images = grid.querySelectorAll('.restaurant-image[data-src]');
-          images.forEach(img => {
-            loadImage(img, img.dataset.src);
-          });
-        }, 100);
+        // Fix for extra square in dense grid
+        const gridBtn = document.querySelector('.grid-btn.active');
+        if (gridBtn && gridBtn.dataset.view === 'dense') {
+          grid.classList.add('grid-dense-fixed');
+        }
       }
       
       function createRestaurantCard(restaurant) {
@@ -1739,26 +3387,47 @@
         card.dataset.id = restaurant.id;
         
         const rating = restaurant.rating || 0;
+        const categoryIcon = restaurant.category_icon || getCategoryIconFallback(restaurant.category);
         const category = restaurant.category || 'Restaurant';
+        const logoUrl = getLogoUrl(restaurant);
+        const status = listManager.getRestaurantListStatus(restaurant.id);
         const isTopRated = rating >= 4.5;
+        const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         const isCloudKitchen = restaurant.isCloudKitchen || false;
         const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
+        
+        let badgeText = '';
+        if (status.favorites) badgeText += '❤️ ';
+        if (status.wantToGo) badgeText += '📍 ';
+        if (status.visited) badgeText += '✓ ';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
-              ${restaurant.image ? `
+              ${hasCoverImage ? `
                 <img class="restaurant-image" 
-                     data-src="${restaurant.image}" 
+                     data-src="${restaurant.coverImage}" 
                      alt="${restaurant.name}" 
                      width="300" 
-                     height="200"
-                     style="opacity: 0;">
+                     height="200">
               ` : ''}
-              <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" onclick="event.preventDefault(); showModal(${restaurant.id})">
+              ${logoUrl ? `
+                <div class="logo-overlay">
+                  <img data-src="${logoUrl}" 
+                       alt="${restaurant.name} logo" 
+                       width="48" 
+                       height="48">
+                </div>
+              ` : ''}
+              <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" aria-label="Restaurant actions" title="Save to lists">
                 <i class="fas fa-ellipsis-h"></i>
               </button>
               ${cloudBadge}
+              ${badgeText ? `
+                <div class="badge-container">
+                  <div class="user-list-badge">${badgeText.trim()}</div>
+                </div>
+              ` : ''}
             </div>
             <div class="card-content">
               <div class="card-header">
@@ -1772,7 +3441,7 @@
                 </div>
               </div>
               <div class="card-category">
-                <span>🍴</span>
+                <span>${categoryIcon}</span>
                 ${category}
               </div>
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
@@ -1783,6 +3452,31 @@
           </a>
         `;
         
+        const menuBtn = card.querySelector('.menu-btn');
+        if (menuBtn) {
+          menuBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showModal({
+              id: restaurant.id,
+              name: restaurant.name,
+              slug: restaurant.slug
+            });
+          });
+        }
+        
+        // Mobile: Make cloud badge clickable to show tooltip
+        const cloudBadgeEl = card.querySelector('.cloud-badge');
+        if (cloudBadgeEl && window.innerWidth <= 768) {
+          cloudBadgeEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Show a simple alert for mobile
+            alert('Cloud Kitchen\n\nA delivery-only restaurant that operates without a physical dining space. These kitchens focus on quality food optimized for delivery.');
+          });
+        }
+        
         return card;
       }
       
@@ -1790,24 +3484,36 @@
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
         
-        grid.innerHTML = `
-          <div class="empty-state" style="display: block;">
-            <i class="fas fa-utensils"></i>
-            <h3>No restaurants found</h3>
-            <p>Try adjusting your search or filters</p>
-            <button class="btn" onclick="resetAllFilters()" style="margin-top: 12px;">Reset All Filters</button>
-          </div>
+        grid.innerHTML = '';
+        grid.classList.remove('skeleton-grid');
+        
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = `
+          <i class="fas fa-utensils"></i>
+          <h3>No restaurants found</h3>
+          <p>Try adjusting your search or filters</p>
+          <button class="btn" id="resetEmpty" style="margin-top: 12px;">Reset All Filters</button>
         `;
+        
+        grid.appendChild(emptyState);
+        
+        const resetBtn = document.getElementById('resetEmpty');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', resetAllFilters);
+        }
       }
       
-      // ---------- PAGINATION ----------
+      // ---------- PAGINATION & VIEW ALL ----------
       function updatePagination() {
         const pagination = document.getElementById('pagination');
+        const viewAllBtn = document.getElementById('viewAllBtn');
         if (!pagination) return;
         
         const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
         
-        if (state.filteredRestaurants.length <= state.pageSize) {
+        if (state.filteredRestaurants.length <= state.pageSize || state.isViewAll) {
           pagination.style.display = 'none';
           return;
         }
@@ -1819,89 +3525,91 @@
         const prevBtn = document.getElementById('prevPage');
         const nextBtn = document.getElementById('nextPage');
         
-        prevBtn.disabled = state.currentPage === 1;
-        nextBtn.disabled = state.currentPage === totalPages;
+        if (prevBtn) prevBtn.disabled = state.currentPage === 1;
+        if (nextBtn) nextBtn.disabled = state.currentPage === totalPages;
         
-        prevBtn.onclick = () => {
-          if (state.currentPage > 1) {
-            state.currentPage--;
-            renderRestaurants();
-            updatePagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        };
+        if (prevBtn) {
+          prevBtn.onclick = () => {
+            if (state.currentPage > 1) {
+              state.currentPage--;
+              renderRestaurants();
+              updatePagination();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+        }
         
-        nextBtn.onclick = () => {
-          if (state.currentPage < totalPages) {
-            state.currentPage++;
-            renderRestaurants();
-            updatePagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        };
+        if (nextBtn) {
+          nextBtn.onclick = () => {
+            if (state.currentPage < totalPages) {
+              state.currentPage++;
+              renderRestaurants();
+              updatePagination();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+        }
+        
+        if (viewAllBtn) {
+          viewAllBtn.style.display = 'inline-block';
+          viewAllBtn.textContent = state.isViewAll ? 'Show Less' : 'View All';
+          viewAllBtn.onclick = toggleViewAll;
+        }
       }
       
+      function toggleViewAll() {
+        state.isViewAll = !state.isViewAll;
+        
+        if (state.isViewAll) {
+          state.pageSize = 9999; // Effectively show all
+        } else {
+          // Get current items per page setting
+          const itemsPerPageSelect = document.getElementById('itemsPerPage');
+          if (itemsPerPageSelect) {
+            state.pageSize = parseInt(itemsPerPageSelect.value);
+          } else {
+            state.pageSize = 20;
+          }
+        }
+        
+        renderRestaurants();
+        updatePagination();
+        updateCounts();
+        
+        if (!state.isViewAll) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+      
+      // ---------- UI UPDATES ----------
       function updateCounts() {
-        const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
-        document.getElementById('showingCount').textContent = showing;
-        document.getElementById('totalCount').textContent = state.filteredRestaurants.length;
+        const showingEl = document.getElementById('showingCount');
+        const totalEl = document.getElementById('totalCount');
+        
+        if (state.isViewAll) {
+          if (showingEl) showingEl.textContent = state.filteredRestaurants.length;
+        } else {
+          const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
+          if (showingEl) showingEl.textContent = showing;
+        }
+        
+        if (totalEl) totalEl.textContent = state.filteredRestaurants.length;
       }
-      
-      // ---------- MODAL FUNCTIONS ----------
-      window.showModal = function(restaurantId) {
-        const restaurant = state.restaurants.find(r => r.id === restaurantId);
-        if (!restaurant) return;
-        
-        state.currentModalRestaurant = restaurant;
-        const modal = document.getElementById('actionsModal');
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      };
-      
-      function hideModal() {
-        const modal = document.getElementById('actionsModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      }
-      
-      // ---------- RESET FILTERS ----------
-      window.resetAllFilters = function() {
-        document.getElementById('search').value = '';
-        document.getElementById('clearSearch').style.display = 'none';
-        document.getElementById('categorySelect').value = 'all';
-        document.getElementById('sortSelect').value = 'rating-desc';
-        document.getElementById('itemsPerPage').value = 20;
-        state.pageSize = 20;
-        
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        document.querySelector('[data-filter="all"]').classList.add('active');
-        
-        state.activeFilters = {
-          search: '',
-          category: 'all',
-          quickFilter: 'all',
-          sort: 'rating-desc'
-        };
-        
-        state.currentPage = 1;
-        applyFilters();
-      };
       
       // ---------- EVENT HANDLERS ----------
       function setupEventListeners() {
-        // Search input
         const searchInput = document.getElementById('search');
         const clearSearchBtn = document.getElementById('clearSearch');
         
         if (searchInput && clearSearchBtn) {
-          let searchTimeout;
+          const debouncedSearch = debounce(() => {
+            state.activeFilters.search = searchInput.value.trim();
+            applyFilters();
+          }, 300);
+          
           searchInput.addEventListener('input', () => {
             clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-              state.activeFilters.search = searchInput.value.trim();
-              applyFilters();
-            }, 300);
+            debouncedSearch();
           });
           
           clearSearchBtn.addEventListener('click', () => {
@@ -1912,127 +3620,418 @@
           });
         }
         
-        // Category select
-        document.getElementById('categorySelect').addEventListener('change', (e) => {
-          state.activeFilters.category = e.target.value;
-          applyFilters();
-        });
+        const categorySelect = document.getElementById('categorySelect');
+        if (categorySelect) {
+          categorySelect.addEventListener('change', (e) => {
+            state.activeFilters.category = e.target.value;
+            applyFilters();
+          });
+        }
         
-        // Sort select
-        document.getElementById('sortSelect').addEventListener('change', (e) => {
-          state.activeFilters.sort = e.target.value;
-          applyFilters();
-        });
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+          sortSelect.addEventListener('change', (e) => {
+            state.activeFilters.sort = e.target.value;
+            applyFilters();
+          });
+        }
         
-        // Items per page - FIXED
-        document.getElementById('itemsPerPage').addEventListener('change', (e) => {
-          const value = parseInt(e.target.value);
-          state.pageSize = value;
-          state.currentPage = 1;
-          state.isViewAll = false;
-          applyFilters();
-        });
+        // Items per page selector
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        if (itemsPerPageSelect) {
+          itemsPerPageSelect.addEventListener('change', (e) => {
+            state.pageSize = parseInt(e.target.value);
+            state.currentPage = 1;
+            state.isViewAll = false;
+            applyFilters();
+          });
+          
+          // Load saved preference
+          try {
+            const savedItems = localStorage.getItem('zo2y_items_per_page');
+            if (savedItems) {
+              itemsPerPageSelect.value = savedItems;
+              state.pageSize = parseInt(savedItems);
+            }
+          } catch (e) {}
+        }
         
-        // Quick filters
         document.querySelectorAll('.filter-chip').forEach(chip => {
           chip.addEventListener('click', (e) => {
             const filterType = e.target.dataset.filter;
+            
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
             e.target.classList.add('active');
+            
             state.activeFilters.quickFilter = filterType;
             applyFilters();
           });
         });
         
-        // Grid view buttons - FIXED mobile dense view
-        document.querySelectorAll('.grid-btn').forEach(btn => {
+        const resetBtn = document.getElementById('resetFilters');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', resetAllFilters);
+        }
+        
+        initializeViewControls();
+        
+        // Actions modal buttons
+        const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
+        const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
+        const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+        const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        
+        if (modalFavoritesBtn) {
+          modalFavoritesBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+            renderRestaurants();
+          });
+        }
+        
+        if (modalWantToGoBtn) {
+          modalWantToGoBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+            renderRestaurants();
+          });
+        }
+        
+        if (modalVisitedBtn) {
+          modalVisitedBtn.addEventListener('click', async () => {
+            if (!state.currentModalRestaurant) return;
+            await listManager.toggleInList('visited', state.currentModalRestaurant.id);
+            updateModalButtons(state.currentModalRestaurant.id);
+            renderRestaurants();
+          });
+        }
+        
+        if (modalCustomListsBtn) {
+          modalCustomListsBtn.addEventListener('click', () => {
+            if (!state.currentModalRestaurant) {
+              showNotification('No restaurant selected', 'error');
+              return;
+            }
+            
+            hideModal();
+            
+            setTimeout(() => {
+              showCustomListsModal(state.currentModalRestaurant.id);
+            }, 100);
+          });
+        }
+        
+        if (modalCancelBtn) {
+          modalCancelBtn.addEventListener('click', hideModal);
+        }
+        
+        // Custom lists modal buttons
+        const closeListsBtn = document.getElementById('closeListsBtn');
+        const createListBtn = document.getElementById('createListBtn');
+        const saveListsBtn = document.getElementById('saveListsBtn');
+        const newListNameInput = document.getElementById('newListName');
+        
+        if (closeListsBtn) {
+          closeListsBtn.addEventListener('click', hideCustomListsModal);
+        }
+        
+        if (createListBtn) {
+          createListBtn.addEventListener('click', async () => {
+            const name = newListNameInput.value.trim();
+            if (!name) {
+              showNotification('Please enter a list name', 'warning');
+              return;
+            }
+            
+            const existingList = state.customLists.find(l => 
+              l.title.toLowerCase() === name.toLowerCase()
+            );
+            
+            if (existingList) {
+              showNotification(`"${name}" list already exists`, 'warning');
+              return;
+            }
+            
+            const newList = await customListsManager.createList(name);
+            if (newList) {
+              showNotification(`Created "${name}" list`, 'success');
+              newListNameInput.value = '';
+              
+              await customListsManager.refreshLists();
+              
+              state.selectedLists.add(newList.id);
+              
+              customListsManager.renderListsList(state.currentModalRestaurant?.id);
+            }
+          });
+        }
+        
+        if (saveListsBtn) {
+          saveListsBtn.addEventListener('click', saveListChanges);
+        }
+        
+        if (newListNameInput) {
+          newListNameInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+              createListBtn.click();
+            }
+          });
+        }
+        
+        const customListsModal = document.getElementById('customListsModal');
+        if (customListsModal) {
+          customListsModal.addEventListener('click', (e) => {
+            if (e.target === customListsModal) {
+              hideCustomListsModal();
+            }
+          });
+        }
+        
+        // Auth prompt modal buttons
+        const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
+        const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
+        const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
+        
+        if (authPromptSignupBtn) {
+          authPromptSignupBtn.addEventListener('click', () => {
+            window.location.href = 'sign-up.html';
+          });
+        }
+        
+        if (authPromptLoginBtn) {
+          authPromptLoginBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+          });
+        }
+        
+        if (authPromptCloseBtn) {
+          authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
+        }
+        
+        const authPromptModal = document.getElementById('authPromptModal');
+        if (authPromptModal) {
+          authPromptModal.addEventListener('click', (e) => {
+            if (e.target === authPromptModal) {
+              hideAuthPrompt();
+            }
+          });
+        }
+        
+        // Auth button
+        const authBtn = document.getElementById('authBtn');
+        if (authBtn) {
+          authBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+          });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            hideModal();
+            hideCustomListsModal();
+            hideAuthPrompt();
+          }
+        });
+        
+        // Window resize for banner switching
+        window.addEventListener('resize', () => {
+          if (state.currentUser) {
+            guestBanner.hide();
+          } else {
+            guestBanner.show();
+          }
+        });
+        
+        guestBanner.init();
+      }
+      
+      function initializeViewControls() {
+        const gridButtons = document.querySelectorAll('.grid-btn');
+        const grid = document.getElementById('restaurantGrid');
+        
+        if (!grid || gridButtons.length === 0) return;
+        
+        gridButtons.forEach(btn => {
           btn.addEventListener('click', () => {
             const view = btn.dataset.view;
-            document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
+            
+            gridButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            const grid = document.getElementById('restaurantGrid');
             grid.classList.remove('grid-normal', 'grid-compact', 'grid-dense');
             grid.classList.add(`grid-${view}`);
             
-            // Fix for mobile dense view
-            if (window.innerWidth <= 480 && view === 'dense') {
-              grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
+            try {
+              localStorage.setItem('zo2y_grid_view', view);
+            } catch (e) {}
+            
+            if (state.filteredRestaurants.length > 0) {
+              renderRestaurants();
             }
           });
         });
         
-        // Reset filters
-        document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
-        
-        // Modal cancel
-        document.getElementById('modalCancelBtn').addEventListener('click', hideModal);
-        
-        // Cloud mobile modal close
-        document.getElementById('closeCloudModal').addEventListener('click', hideCloudMobileModal);
-        
-        // Close cloud modal on background click
-        document.getElementById('cloudMobileModal').addEventListener('click', (e) => {
-          if (e.target === e.currentTarget) {
-            hideCloudMobileModal();
+        try {
+          const savedView = localStorage.getItem('zo2y_grid_view') || 'normal';
+          const savedBtn = document.querySelector(`.grid-btn[data-view="${savedView}"]`);
+          if (savedBtn) {
+            savedBtn.click();
           }
-        });
+        } catch (e) {}
+      }
+      
+      function resetAllFilters() {
+        const searchInput = document.getElementById('search');
+        const clearSearchBtn = document.getElementById('clearSearch');
+        const categorySelect = document.getElementById('categorySelect');
+        const sortSelect = document.getElementById('sortSelect');
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
         
-        // Auth button
-        document.getElementById('authBtn').addEventListener('click', () => {
-          window.location.href = 'login.html';
-        });
-        
-        // Banner buttons
-        document.getElementById('bannerMobileSignupBtn')?.addEventListener('click', () => {
-          window.location.href = 'sign-up.html';
-        });
-        
-        document.getElementById('bannerLoginBtn')?.addEventListener('click', () => {
-          window.location.href = 'login.html';
-        });
-        
-        document.getElementById('bannerSignupBtn')?.addEventListener('click', () => {
-          window.location.href = 'sign-up.html';
-        });
-        
-        // Close modals on escape
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            hideModal();
-            hideCloudMobileModal();
-            document.getElementById('customListsModal')?.classList.remove('active');
-            document.getElementById('authPromptModal')?.classList.remove('active');
-            document.body.style.overflow = 'auto';
-          }
-        });
-        
-        // Handle mobile banner
-        if (window.innerWidth <= 768) {
-          document.body.classList.add('has-mobile-banner');
+        if (searchInput) searchInput.value = '';
+        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+        if (categorySelect) categorySelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'rating-desc';
+        if (itemsPerPageSelect) {
+          itemsPerPageSelect.value = '20';
+          state.pageSize = 20;
         }
         
-        window.addEventListener('resize', () => {
-          if (window.innerWidth <= 768) {
-            document.body.classList.add('has-mobile-banner');
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        const allFilter = document.querySelector('[data-filter="all"]');
+        if (allFilter) allFilter.classList.add('active');
+        
+        state.activeFilters = {
+          search: '',
+          category: 'all',
+          quickFilter: 'all',
+          sort: 'rating-desc'
+        };
+        
+        state.isViewAll = false;
+        state.currentPage = 1;
+        
+        applyFilters();
+        showNotification('Filters reset', 'info');
+      }
+      
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+      
+      // ---------- AUTH MANAGEMENT ----------
+      async function updateAuthUI() {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session && session.user) {
+            state.isLoggedIn = true;
+            state.currentUser = session.user;
+            
+            guestBanner.hide();
+            
+            let profile = null;
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('username, full_name, avatar_url')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (!profileError) {
+                profile = profileData;
+              }
+            } catch (err) {
+              console.warn('Profile fetch error:', err);
+            }
+            
+            const displayName = profile?.username || 
+                              profile?.full_name || 
+                              session.user.email?.split('@')[0] || 
+                              'Profile';
+            
+            const authBtn = document.getElementById('authBtn');
+            if (authBtn) {
+              authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+              authBtn.onclick = () => {
+                window.location.href = 'profile.html';
+              };
+            }
+            
+            await listManager.init();
+            await customListsManager.init();
+            
           } else {
-            document.body.classList.remove('has-mobile-banner');
+            state.isLoggedIn = false;
+            state.currentUser = null;
+            
+            guestBanner.show();
+            
+            const authBtn = document.getElementById('authBtn');
+            if (authBtn) {
+              authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
+              authBtn.onclick = () => window.location.href = 'login.html';
+            }
           }
-        });
+          
+          state.authChecked = true;
+          
+          if (state.filteredRestaurants.length > 0) {
+            renderRestaurants();
+          }
+          
+        } catch (error) {
+          console.error('Auth error:', error);
+          state.isLoggedIn = false;
+          state.currentUser = null;
+          state.authChecked = true;
+          
+          guestBanner.show();
+          
+          const authBtn = document.getElementById('authBtn');
+          if (authBtn) {
+            authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
+            authBtn.onclick = () => window.location.href = 'login.html';
+          }
+        }
       }
       
       // ---------- INITIALIZATION ----------
       async function init() {
         if (!supabase) {
-          console.error('Failed to initialize Supabase');
+          showNotification('Failed to connect to server', 'error');
           return;
         }
         
+        initLazyLoading();
+        showLoadingSkeleton();
         setupEventListeners();
         await loadRestaurantsData();
+        await updateAuthUI();
+        
+        supabase.auth.onAuthStateChange(updateAuthUI);
+        
+        // Save items per page preference
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        if (itemsPerPageSelect) {
+          itemsPerPageSelect.addEventListener('change', function() {
+            try {
+              localStorage.setItem('zo2y_items_per_page', this.value);
+            } catch (e) {}
+          });
+        }
       }
       
-      // Start
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
       } else {
