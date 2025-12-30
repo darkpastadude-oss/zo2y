@@ -22,7 +22,7 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Mobile Guest Banner - Sticky at top */
+    /* Guest Banner */
     .guest-banner {
       position: sticky;
       top: 0;
@@ -31,39 +31,15 @@
       z-index: 101;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
       border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 0;
-      margin: 0;
+      padding: 8px 16px;
       text-align: center;
       animation: slideDown 0.3s ease-out;
       backdrop-filter: blur(10px);
     }
     
-    .guest-banner.desktop {
-      display: none;
-      position: static;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 10px 20px;
-      margin: 0 auto 20px auto;
-      border-radius: 12px;
-      max-width: 800px;
-      width: calc(100% - 40px);
-      backdrop-filter: none;
-    }
-    
-    .guest-banner.mobile {
-      display: block;
-    }
-    
     @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .banner-content {
@@ -73,18 +49,6 @@
       gap: 8px;
       color: var(--muted);
       font-size: 14px;
-      padding: 8px 12px;
-    }
-    
-    .banner-text {
-      margin-right: 8px;
-      font-size: 13px;
-    }
-    
-    .banner-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
     }
     
     .banner-btn {
@@ -98,16 +62,6 @@
       white-space: nowrap;
     }
     
-    .banner-btn-outline {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-    }
-    
-    .banner-btn-outline:hover {
-      background: rgba(245, 158, 11, 0.1);
-    }
-    
     .banner-btn-primary {
       background: var(--accent);
       color: #111;
@@ -119,35 +73,7 @@
       transform: translateY(-1px);
     }
     
-    /* Enhanced Image Loading */
-    .restaurant-image {
-      display: block;
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .restaurant-image.loaded {
-      opacity: 1;
-    }
-    
-    .logo-overlay img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 8px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .logo-overlay img.loaded {
-      opacity: 1;
-    }
-    
-    /* Enhanced Header */
+    /* Header */
     header { 
       position: sticky; 
       top: 0; 
@@ -161,7 +87,7 @@
       border-bottom: 1px solid var(--border); 
     } 
     
-    .has-mobile-banner header {
+    .has-banner header {
       top: 40px;
     }
     
@@ -169,10 +95,6 @@
       height: 40px; 
       cursor: pointer; 
       transition: transform 0.3s ease;
-    }
-    
-    .logo:hover {
-      transform: scale(1.05);
     }
     
     .toolbar { 
@@ -183,7 +105,7 @@
       flex-wrap: wrap; 
     } 
     
-    /* Enhanced Search */
+    /* Search */
     .search-wrapper {
       width: 320px;
       position: relative;
@@ -215,23 +137,6 @@
       pointer-events: none;
     }
     
-    .clear-search {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      display: none;
-      padding: 4px;
-    }
-    
-    .clear-search:hover {
-      color: var(--white);
-    }
-    
     .btn { 
       background: var(--card); 
       border: 1px solid var(--border); 
@@ -255,6 +160,101 @@
       border: none;
       color: #0b1633;
       font-weight: 600;
+    }
+    
+    /* Container */
+    .container { 
+      max-width: 1200px; 
+      margin: 24px auto; 
+      padding: 0 20px; 
+      min-height: calc(100vh - 200px);
+    } 
+    
+    .page-header {
+      margin-bottom: 24px;
+    }
+    
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .page-header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    /* Quick Filters */
+    .quick-filters {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 0;
+      margin-bottom: 20px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .quick-filters::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .filter-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    
+    .filter-chip:hover {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--accent);
+    }
+    
+    .filter-chip.active {
+      background: var(--gradient);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
+    /* Controls */
+    .controls { 
+      display: flex; 
+      gap: 12px; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      flex-wrap: wrap; 
+    } 
+    
+    .controls-info { 
+      color: var(--muted); 
+      font-size: 14px; 
+      font-weight: 500; 
+    } 
+    
+    .sort-controls {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    
+    .sort-select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 8px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      cursor: pointer;
+      min-width: 160px;
     }
     
     /* Grid View Controls */
@@ -297,12 +297,10 @@
       color: #0b1633;
     }
     
-    /* Items Per Page Selector */
     .items-per-page {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-left: 8px;
     }
     
     .items-per-page label {
@@ -322,108 +320,7 @@
       min-width: 80px;
     }
     
-    /* Quick Filters */
-    .quick-filters {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 8px 0;
-      margin: 0 -20px;
-      padding-left: 20px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    
-    .quick-filters::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .filter-chip {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    
-    .filter-chip:hover {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: var(--accent);
-    }
-    
-    .filter-chip.active {
-      background: var(--gradient);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    /* Enhanced Container */
-    .container { 
-      max-width: 1200px; 
-      margin: 24px auto; 
-      padding: 0 20px; 
-      min-height: calc(100vh - 200px);
-    } 
-    
-    .page-header {
-      margin-bottom: 24px;
-    }
-    
-    .page-header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    
-    .page-header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
-    /* Controls Bar */
-    .controls { 
-      display: flex; 
-      gap: 12px; 
-      align-items: center; 
-      margin-bottom: 20px; 
-      flex-wrap: wrap; 
-    } 
-    
-    .controls-info { 
-      color: var(--muted); 
-      font-size: 14px; 
-      font-weight: 500; 
-    } 
-    
-    .sort-controls {
-      display: flex;
-      gap: 8px;
-      margin-left: auto;
-    }
-    
-    .sort-select {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 8px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      cursor: pointer;
-      min-width: 160px;
-    }
-    
-    .sort-select:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    
-    /* Enhanced Grid */
+    /* Grid */
     .grid { 
       display: grid; 
       gap: 20px; 
@@ -432,7 +329,6 @@
       align-items: stretch;
     }
     
-    /* Grid variations with FIXED NO-GAP layout */
     .grid-normal {
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
@@ -473,7 +369,22 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Cloud Kitchen Badge - TOP RIGHT */
+    /* Image Loading */
+    .restaurant-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+    }
+    
+    .restaurant-image.loaded {
+      opacity: 1;
+    }
+    
+    /* Cloud Kitchen Badge */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -513,29 +424,22 @@
       display: none;
     }
     
-    /* Cloud Kitchen Info Tooltip */
-    .cloud-tooltip {
-      position: absolute;
-      top: 50px;
-      right: 12px;
+    /* Cloud Kitchen Mobile Tooltip */
+    .cloud-mobile-tooltip {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: var(--card);
       border: 2px solid var(--cloud-color);
       border-radius: 12px;
       padding: 16px;
       width: 280px;
-      z-index: 100;
+      z-index: 1000;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(20px);
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.3s ease;
-      pointer-events: none;
-    }
-    
-    .cloud-badge:hover .cloud-tooltip {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
+      text-align: left;
     }
     
     .tooltip-header {
@@ -571,65 +475,19 @@
       margin-bottom: 4px;
     }
     
-    /* Logo overlay in bottom left */
-    .logo-overlay {
+    .tooltip-close {
       position: absolute;
-      bottom: 12px;
-      left: 12px;
-      width: 48px;
-      height: 48px;
-      background: rgba(11, 22, 51, 0.9);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
       padding: 4px;
-      border: 2px solid var(--accent);
-      backdrop-filter: blur(10px);
-      z-index: 20;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-      pointer-events: none;
     }
     
-    .restaurant-card:hover .logo-overlay {
-      transform: scale(1.1);
-      border-color: var(--accent);
-      background: rgba(245,158,11,0.9);
-      box-shadow: 0 8px 24px rgba(245,158,11,0.4);
-    }
-    
-    /* Badge container */
-    .badge-container {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 25;
-      max-width: calc(100% - 80px);
-    }
-    
-    /* User list badge (Favorites, Visited, Want to Go) */
-    .user-list-badge {
-      background: rgba(11, 22, 51, 0.9);
-      color: var(--accent);
-      padding: 4px 8px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      white-space: nowrap;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    
-    /* Three dots menu button - Moved down when cloud badge is present */
+    /* Menu Button */
     .menu-btn {
       position: absolute;
       top: 60px;
@@ -682,13 +540,6 @@
       gap: 12px;
     }
     
-    .card-title-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    
     .card-title {
       font-size: 16px;
       font-weight: 700;
@@ -715,15 +566,8 @@
     }
     
     @keyframes glow {
-      0% {
-        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
-                    0 0 10px rgba(245, 158, 11, 0.3);
-      }
-      100% {
-        box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
-                    0 0 20px rgba(245, 158, 11, 0.5),
-                    0 0 30px rgba(245, 158, 11, 0.3);
-      }
+      0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+      100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.8); }
     }
     
     .card-rating {
@@ -791,13 +635,10 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
     }
     
     .actions-modal.active {
       display: flex;
-      opacity: 1;
     }
     
     .actions-content {
@@ -813,30 +654,8 @@
     }
     
     @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .actions-header {
-      margin-bottom: 24px;
-    }
-    
-    .actions-header h3 {
-      font-size: 22px;
-      margin-bottom: 8px;
-      color: var(--white);
-      font-weight: 600;
-    }
-    
-    .actions-header p {
-      color: var(--muted);
-      font-size: 14px;
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .action-buttons {
@@ -868,519 +687,12 @@
       color: #0b1633;
       transform: translateY(-2px);
       border-color: var(--accent);
-      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
     }
     
     .action-btn-modal.active {
       background: var(--accent);
       color: #0b1633;
       border-color: var(--accent);
-    }
-    
-    .action-btn-modal i {
-      font-size: 18px;
-      width: 24px;
-    }
-    
-    /* Custom Lists button styling */
-    .custom-lists-btn {
-      background: var(--bg);
-      border: 1px solid var(--accent);
-      color: var(--white);
-    }
-    
-    .custom-lists-btn:hover {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    .cancel-btn {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 14px 20px;
-      border-radius: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-    }
-    
-    .cancel-btn:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--white);
-    }
-    
-    /* Custom Lists Modal */
-    .custom-lists-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: blur(20px);
-      z-index: 1001;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .custom-lists-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .custom-lists-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 500px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-      animation: modalSlideIn 0.3s ease-out;
-      max-height: 80vh;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .lists-header {
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .lists-header h3 {
-      font-size: 22px;
-      color: var(--white);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .lists-header h3 i {
-      color: var(--accent);
-    }
-    
-    .close-lists-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 24px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      transition: all 0.3s ease;
-    }
-    
-    .close-lists-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
-    
-    .lists-list-container {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding-right: 10px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 10px;
-    }
-    
-    .lists-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .list-item:hover {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: var(--accent);
-      transform: translateX(5px);
-    }
-    
-    .list-item.active {
-      background: rgba(245, 158, 11, 0.2);
-      border-color: var(--accent);
-    }
-    
-    .list-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-    }
-    
-    .list-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0b1633;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    
-    .list-name {
-      font-weight: 500;
-      color: var(--white);
-    }
-    
-    .list-checkbox {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    
-    .list-checkbox.checked {
-      background: var(--accent);
-      border-color: var(--accent);
-      animation: checkPop 0.3s ease;
-    }
-    
-    @keyframes checkPop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    
-    .list-checkbox.checked::after {
-      content: "✓";
-      color: #0b1633;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    
-    .empty-lists {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-    }
-    
-    .empty-lists i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-      color: var(--accent);
-    }
-    
-    .empty-lists h4 {
-      margin-bottom: 8px;
-      color: var(--white);
-    }
-    
-    .new-list-section {
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-    }
-    
-    .new-list-input {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    
-    .new-list-input input {
-      flex: 1;
-      padding: 12px 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--white);
-      font-size: 14px;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-    
-    .new-list-input input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-    }
-    
-    .create-list-btn {
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .create-list-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    }
-    
-    .create-list-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    .lists-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 10px;
-    }
-    
-    .lists-save-btn {
-      flex: 1;
-      background: var(--accent);
-      color: #0b1633;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .lists-save-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    }
-    
-    .lists-save-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    /* Auth Prompt Modal */
-    .auth-prompt-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.98);
-      backdrop-filter: blur(20px);
-      z-index: 1002;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .auth-prompt-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .auth-prompt-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 480px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-      animation: modalSlideIn 0.3s ease-out;
-      text-align: center;
-    }
-    
-    .auth-prompt-icon {
-      width: 80px;
-      height: 80px;
-      background: var(--gradient);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      font-size: 32px;
-      color: #0b1633;
-    }
-    
-    .auth-prompt-header h3 {
-      font-size: 28px;
-      margin-bottom: 12px;
-      color: var(--white);
-      font-weight: 700;
-    }
-    
-    .auth-prompt-header p {
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.5;
-      margin-bottom: 32px;
-    }
-    
-    .auth-prompt-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .auth-prompt-btn {
-      padding: 18px 24px;
-      border-radius: 16px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    
-    .auth-prompt-primary {
-      background: var(--gradient);
-      color: #0b1633;
-    }
-    
-    .auth-prompt-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-    }
-    
-    .auth-prompt-secondary {
-      background: transparent;
-      color: var(--white);
-      border: 2px solid var(--border);
-    }
-    
-    .auth-prompt-secondary:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: var(--accent);
-    }
-    
-    .auth-prompt-close {
-      background: transparent;
-      color: var(--muted);
-      border: none;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-      font-size: 15px;
-    }
-    
-    .auth-prompt-close:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--white);
-    }
-    
-    /* Skeleton Loading */
-    .skeleton-grid {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .skeleton-card {
-      background: var(--card);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    
-    .skeleton-image {
-      height: 200px;
-      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-    }
-    
-    .skeleton-content {
-      padding: 16px;
-    }
-    
-    .skeleton-line {
-      height: 12px;
-      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-      margin-bottom: 8px;
-      border-radius: 4px;
-    }
-    
-    .skeleton-line.short {
-      width: 60%;
-    }
-    
-    @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    
-    /* Empty State */
-    .empty-state { 
-      grid-column: 1 / -1;
-      padding: 60px 20px; 
-      text-align: center; 
-      color: var(--muted); 
-      display: none; 
-    }
-    
-    .empty-state i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
-    
-    .empty-state h3 {
-      margin-bottom: 8px;
-      font-size: 18px;
-      color: var(--white);
     }
     
     /* Pagination */
@@ -1414,12 +726,6 @@
       border-color: var(--accent);
     }
     
-    .pagination-btn.active {
-      background: var(--gradient);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
     .pagination-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -1431,175 +737,30 @@
       margin: 0 16px;
     }
     
-    .view-all-btn {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-left: 12px;
-    }
-    
-    .view-all-btn:hover {
-      background: rgba(245, 158, 11, 0.1);
-    }
-    
-    /* Footer */
-    footer { 
-      padding: 30px 20px; 
-      color: var(--muted); 
+    /* Empty State */
+    .empty-state { 
+      grid-column: 1 / -1;
+      padding: 60px 20px; 
       text-align: center; 
-      border-top: 1px solid var(--border); 
-      margin-top: 60px; 
-      background: var(--card);
+      color: var(--muted); 
     }
     
-    /* Enhanced Custom Notification */
-    .notification-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1001;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 400px;
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
     }
     
-    .custom-notification {
-      padding: 16px 20px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      transform: translateX(120%);
-      transition: transform 0.4s ease;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border);
-      font-weight: 500;
-    }
-    
-    .notification-success {
-      background: rgba(16, 185, 129, 0.95);
-      color: white;
-    }
-    
-    .notification-error {
-      background: rgba(239, 68, 68, 0.95);
-      color: white;
-    }
-    
-    .notification-info {
-      background: rgba(59, 130, 246, 0.95);
-      color: white;
-    }
-    
-    .notification-warning {
-      background: rgba(245, 158, 11, 0.95);
-      color: #0b1633;
-      font-weight: 600;
-    }
-    
-    .notification-show {
-      transform: translateY(0);
-    }
-    
-    .notification-icon {
-      margin-right: 12px;
-      font-size: 1.2rem;
-    }
-    
-    .notification-close {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      font-size: 1rem;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-      padding: 0 0 0 12px;
-    }
-    
-    .notification-close:hover {
-      opacity: 1;
+    .empty-state h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: var(--white);
     }
     
     /* Responsive */
     @media (max-width: 768px) {
-      /* Mobile banner adjustments */
-      .guest-banner.mobile {
-        display: block;
-      }
-      
-      .guest-banner.desktop {
-        display: none;
-      }
-      
-      .guest-banner .banner-content {
-        padding: 6px 12px;
-      }
-      
-      .banner-text {
-        font-size: 12px;
-        margin-right: 4px;
-      }
-      
-      .banner-btn {
-        padding: 3px 8px;
-        font-size: 11px;
-      }
-      
-      .has-mobile-banner header {
+      .has-banner header {
         top: 34px;
-      }
-      
-      /* Cloud badge mobile adjustments */
-      .cloud-badge {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-      }
-      
-      .cloud-badge:hover {
-        padding: 0 8px;
-        gap: 4px;
-      }
-      
-      .cloud-badge:hover .cloud-text {
-        font-size: 11px;
-      }
-      
-      .cloud-tooltip {
-        width: 240px;
-        right: 8px;
-      }
-      
-      .menu-btn {
-        top: 56px;
-        width: 30px;
-        height: 30px;
-        font-size: 14px;
-      }
-      
-      .menu-btn.no-cloud {
-        top: 12px;
-      }
-      
-      /* Grid adjustments */
-      .grid-normal {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      }
-      
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      }
-      
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
       
       .search-wrapper {
@@ -1614,18 +775,6 @@
         flex-wrap: wrap;
       }
       
-      .view-controls {
-        order: 4;
-        width: 100%;
-        margin-left: 0;
-        margin-top: 12px;
-        justify-content: space-between;
-      }
-      
-      .items-per-page {
-        margin-left: 0;
-      }
-      
       .sort-controls {
         margin-left: 0;
         width: 100%;
@@ -1637,9 +786,16 @@
         min-width: 0;
       }
       
-      .quick-filters {
-        margin: 0 -16px;
-        padding-left: 16px;
+      .grid-normal {
+        grid-template-columns: 1fr;
+      }
+      
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       }
       
       .container {
@@ -1649,211 +805,63 @@
       header {
         padding: 12px 16px;
         flex-wrap: wrap;
-        backdrop-filter: blur(5px) saturate(180%);
       }
       
       .guest-banner {
-        width: calc(100% - 32px);
-        padding: 8px 16px;
-        margin: 0 auto 16px auto;
+        padding: 6px 12px;
       }
       
       .card-image {
         height: 180px;
       }
       
-      .restaurant-image {
-        height: 180px;
-      }
-      
-      .logo-overlay {
-        width: 40px;
-        height: 40px;
-        bottom: 10px;
-        left: 10px;
-      }
-      
-      .menu-btn {
+      .cloud-badge {
         width: 32px;
         height: 32px;
-        top: 10px;
-        right: 10px;
-      }
-      
-      .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      
-      .card-title-wrapper {
-        width: 100%;
-      }
-      
-      .custom-lists-content {
-        padding: 20px;
-        margin: 10px;
-        max-height: 70vh;
-      }
-      
-      .auth-prompt-content {
-        padding: 30px 24px;
-      }
-      
-      .auth-prompt-buttons {
-        gap: 12px;
-      }
-      
-      .auth-prompt-btn {
-        padding: 16px 20px;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      /* Mobile banner adjustments */
-      .guest-banner.mobile .banner-content {
-        flex-direction: row;
-        justify-content: center;
-        padding: 5px 10px;
-      }
-      
-      .banner-text {
-        display: none;
-      }
-      
-      .has-mobile-banner header {
-        top: 30px;
-      }
-      
-      /* Cloud badge touch-friendly */
-      .cloud-badge {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
+        font-size: 14px;
       }
       
       .cloud-badge:active {
         background: rgba(59, 130, 246, 1);
         transform: scale(1.1);
         width: auto;
-        padding: 0 6px;
-        gap: 3px;
+        padding: 0 8px;
+        gap: 4px;
       }
       
       .cloud-badge:active .cloud-text {
         display: inline;
-        font-size: 10px;
-      }
-      
-      .cloud-tooltip {
-        display: none;
+        font-size: 11px;
       }
       
       .menu-btn {
-        top: 52px;
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
+        top: 56px;
+        width: 32px;
+        height: 32px;
       }
       
       .menu-btn.no-cloud {
-        top: 10px;
+        top: 12px;
       }
-      
-      /* Grid adjustments */
-      .grid-normal {
-        grid-template-columns: 1fr;
-      }
-      
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    @media (max-width: 480px) {
+      .has-banner header {
+        top: 30px;
       }
       
       .grid-dense {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
       
-      /* Fix for extra square in dense grid */
-      .grid-dense .restaurant-card {
-        min-height: 200px;
-      }
-      
-      .guest-banner {
-        padding: 6px 12px;
-        width: calc(100% - 24px);
-      }
-      
-      .banner-content {
-        flex-direction: row;
-        gap: 6px;
-        text-align: center;
-      }
-      
-      .banner-text {
-        margin-right: 0;
-      }
-      
-      .banner-actions {
-        width: 100%;
-        justify-content: center;
-      }
-      
       .card-image {
         height: 160px;
       }
       
-      .restaurant-image {
-        height: 160px;
-      }
-      
-      .logo-overlay {
-        width: 36px;
-        height: 36px;
-        bottom: 8px;
-        left: 8px;
-      }
-      
-      .custom-lists-content {
-        padding: 16px;
-      }
-      
-      .list-item {
-        padding: 12px;
-      }
-      
-      .list-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-      }
-      
-      .auth-prompt-content {
-        padding: 24px 20px;
-      }
-      
-      .auth-prompt-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 24px;
-      }
-      
-      .auth-prompt-header h3 {
-        font-size: 22px;
-      }
-    }
-    
-    @media (min-width: 769px) {
-      /* Desktop banner adjustments */
-      .guest-banner.mobile {
-        display: none;
-      }
-      
-      .guest-banner.desktop {
-        display: block;
-      }
-      
-      .has-mobile-banner header {
-        top: 0;
+      .menu-btn {
+        top: 52px;
+        width: 28px;
+        height: 28px;
       }
     }
   </style>
@@ -1861,24 +869,11 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Mobile Guest Banner - Sticky at top -->
-  <div id="guestBannerMobile" class="guest-banner mobile">
+  <!-- Guest Banner -->
+  <div id="guestBanner" class="guest-banner" style="display: none;">
     <div class="banner-content">
       <span class="banner-text">Want to save favorites?</span>
-      <div class="banner-actions">
-        <button class="banner-btn banner-btn-primary" id="bannerMobileSignupBtn">Sign Up Free</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Desktop Guest Banner -->
-  <div id="guestBannerDesktop" class="guest-banner desktop">
-    <div class="banner-content">
-      <span class="banner-text">Want to save your favorite restaurants?</span>
-      <div class="banner-actions">
-        <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
-        <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
-      </div>
+      <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Sign Up Free</button>
     </div>
   </div>
 
@@ -1888,7 +883,6 @@
       <div class="search-wrapper">
         <span class="search-icon">🔎</span>
         <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
-        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
       </div>
       <button class="btn" id="resetFilters">Clear Filters</button>
       <button class="btn btn-primary" id="authBtn">Sign In</button>
@@ -1924,19 +918,18 @@
         
         <select id="categorySelect" class="sort-select">
           <option value="all">All Categories</option>
-          <!-- Categories populated dynamically -->
         </select>
       </div>
       
       <div class="view-controls">
         <div class="grid-size-buttons">
-          <button class="grid-btn active" data-view="normal" title="Normal View" aria-label="Normal grid view">
+          <button class="grid-btn active" data-view="normal" title="Normal View">
             <i class="fas fa-th"></i>
           </button>
-          <button class="grid-btn" data-view="compact" title="Compact View" aria-label="Compact grid view">
+          <button class="grid-btn" data-view="compact" title="Compact View">
             <i class="fas fa-th-large"></i>
           </button>
-          <button class="grid-btn" data-view="dense" title="Dense View" aria-label="Dense grid view">
+          <button class="grid-btn" data-view="dense" title="Dense View">
             <i class="fas fa-th-list"></i>
           </button>
         </div>
@@ -1944,10 +937,7 @@
         <div class="items-per-page">
           <label for="itemsPerPage">Show:</label>
           <select id="itemsPerPage" class="items-select">
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="9999">All</option>
+            <!-- Will be populated based on actual restaurant count -->
           </select>
         </div>
       </div>
@@ -1963,17 +953,31 @@
       <button class="pagination-btn" id="prevPage" disabled>← Prev</button>
       <span class="pagination-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
       <button class="pagination-btn" id="nextPage" disabled>Next →</button>
-      <button class="view-all-btn" id="viewAllBtn" style="display: none;">View All</button>
     </div>
   </main>
+
+  <!-- Cloud Kitchen Mobile Tooltip -->
+  <div id="cloudMobileTooltip" class="cloud-mobile-tooltip">
+    <button class="tooltip-close">×</button>
+    <div class="tooltip-header">
+      <i class="fas fa-cloud"></i>
+      <h4>Cloud Kitchen</h4>
+    </div>
+    <div class="tooltip-content">
+      <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
+      <ul>
+        <li>Delivery only - no dine-in option</li>
+        <li>Optimized for online orders</li>
+        <li>Often operates multiple brands from one kitchen</li>
+        <li>Lower overhead costs</li>
+      </ul>
+      <p>These restaurants focus on quality food optimized for delivery.</p>
+    </div>
+  </div>
 
   <!-- Actions Modal -->
   <div id="actionsModal" class="actions-modal">
     <div class="actions-content">
-      <div class="actions-header">
-        <h3 id="modalRestaurantName">Restaurant Name</h3>
-        <p>Add this restaurant to your lists</p>
-      </div>
       <div class="action-buttons">
         <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn">
           <i class="fas fa-heart"></i>
@@ -1987,1355 +991,269 @@
           <i class="fas fa-utensils"></i>
           <span id="visitedText">Mark as Visited</span>
         </button>
-        <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
-          <i class="fas fa-list"></i>
-          <span>Custom Lists</span>
-          <i class="fas fa-chevron-right"></i>
-        </button>
       </div>
-      <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
+      <button class="btn" id="modalCancelBtn">Cancel</button>
     </div>
   </div>
-
-  <!-- Custom Lists Modal -->
-  <div id="customListsModal" class="custom-lists-modal">
-    <div class="custom-lists-content">
-      <div class="lists-header">
-        <h3><i class="fas fa-list"></i> Custom Lists</h3>
-        <button class="close-lists-btn" id="closeListsBtn">×</button>
-      </div>
-      
-      <div class="lists-list-container" id="listsListContainer">
-        <!-- Lists will be populated here -->
-      </div>
-      
-      <div class="new-list-section">
-        <div class="new-list-input">
-          <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
-          <button class="create-list-btn" id="createListBtn">
-            <i class="fas fa-plus"></i> Create
-          </button>
-        </div>
-        <div class="lists-actions">
-          <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Auth Prompt Modal -->
-  <div id="authPromptModal" class="auth-prompt-modal">
-    <div class="auth-prompt-content">
-      <div class="auth-prompt-icon">
-        <i class="fas fa-lock"></i>
-      </div>
-      <div class="auth-prompt-header">
-        <h3>Sign In Required</h3>
-        <p>You need to be signed in to save restaurants to your lists. Create an account to save your favorites, mark places you want to visit, and track where you've been!</p>
-      </div>
-      <div class="auth-prompt-buttons">
-        <button class="auth-prompt-btn auth-prompt-primary" id="authPromptSignupBtn">
-          <i class="fas fa-user-plus"></i>
-          Create Free Account
-        </button>
-        <button class="auth-prompt-btn auth-prompt-secondary" id="authPromptLoginBtn">
-          <i class="fas fa-sign-in-alt"></i>
-          Sign In to Existing Account
-        </button>
-      </div>
-      <button class="auth-prompt-close" id="authPromptCloseBtn">Maybe Later</button>
-    </div>
-  </div>
-
-  <footer>
-    © 2025 Zo2y — Built with ❤️ for food lovers
-  </footer>
-
-  <!-- Notification Container -->
-  <div id="notificationContainer" class="notification-container"></div>
 
   <script>
     (function() {
       'use strict';
       
-      // ---------- CONFIG ----------
+      // Supabase Config
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       
       // Initialize Supabase
-      let supabase;
-      try {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      } catch (error) {
-          console.error('❌ Failed to initialize Supabase:', error);
-          showNotification('Connection error. Please refresh.', 'error');
-          supabase = null;
-      }
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       
-      // ---------- GLOBAL STATE ----------
+      // State
       const state = {
         restaurants: [],
         filteredRestaurants: [],
         categories: new Map(),
-        cloudKitchens: new Set(), // Set of restaurant IDs that are cloud kitchens
+        cloudKitchens: new Set(),
         currentPage: 1,
         pageSize: 20,
-        isLoading: false,
         activeFilters: {
           search: '',
           category: 'all',
           quickFilter: 'all',
           sort: 'rating-desc'
         },
-        restaurantImages: new Map(),
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
-        authChecked: false,
-        customLists: [],
-        selectedLists: new Set(),
-        isViewAll: false,
-        viewAllButtonText: "View All"
+        totalRestaurantCount: 0
       };
       
-      // ---------- CLOUD KITCHEN MANAGER ----------
-      const cloudKitchenManager = {
-        async loadCloudKitchens() {
-          try {
-            const { data: cloudKitchens, error } = await supabase
-              .from('cloud_kitchens')
-              .select('restaurant_id');
-            
-            if (error) {
-              console.warn('Error loading cloud kitchens:', error);
-              return;
-            }
-            
-            if (cloudKitchens && cloudKitchens.length > 0) {
-              state.cloudKitchens.clear();
-              cloudKitchens.forEach(ck => {
-                state.cloudKitchens.add(ck.restaurant_id);
-              });
-              console.log(`Loaded ${state.cloudKitchens.size} cloud kitchens`);
-            }
-          } catch (error) {
-            console.error('Error loading cloud kitchens:', error);
-          }
-        },
-        
-        isCloudKitchen(restaurantId) {
-          return state.cloudKitchens.has(restaurantId);
-        },
-        
-        createCloudBadge(restaurantId) {
-          if (!this.isCloudKitchen(restaurantId)) return '';
-          
-          return `
-            <div class="cloud-badge" aria-label="Cloud Kitchen">
-              <i class="fas fa-cloud"></i>
-              <span class="cloud-text">Cloud Kitchen</span>
-              <div class="cloud-tooltip">
-                <div class="tooltip-header">
-                  <i class="fas fa-cloud"></i>
-                  <h4>Cloud Kitchen</h4>
-                </div>
-                <div class="tooltip-content">
-                  <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
-                  <ul>
-                    <li>Delivery only - no dine-in option</li>
-                    <li>Optimized for online orders</li>
-                    <li>Often operates multiple brands from one kitchen</li>
-                    <li>Lower overhead costs</li>
-                  </ul>
-                  <p>These restaurants focus on quality food optimized for delivery.</p>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-      };
-      
-      // ---------- IMAGE OPTIMIZATION ----------
-      function getOptimizedSupabaseImageUrl(url, options = {}) {
+      // Image Optimization
+      function getOptimizedImageUrl(url) {
         if (!url || !url.includes('supabase.co')) return url;
         
         try {
-          // Parse the URL
           const urlObj = new URL(url);
           const params = new URLSearchParams(urlObj.search);
           
-          // Set optimization parameters
-          if (!params.has('width')) params.set('width', options.width || '600');
-          if (!params.has('height')) params.set('height', options.height || '400');
-          if (!params.has('quality')) params.set('quality', options.quality || '75');
-          if (!params.has('format')) params.set('format', options.format || 'webp');
-          if (!params.has('resize')) params.set('resize', options.resize || 'cover');
+          params.set('width', '600');
+          params.set('height', '400');
+          params.set('quality', '80');
+          params.set('format', 'webp');
+          params.set('resize', 'cover');
+          params.set('v', '1.0');
           
-          // Add cache busting
-          if (!params.has('v')) params.set('v', '1.0');
-          
-          // Reconstruct URL
           urlObj.search = params.toString();
           return urlObj.toString();
         } catch (e) {
-          // If URL parsing fails, return original
           return url;
         }
       }
       
-      // ---------- LAZY LOADING SYSTEM ----------
-      let imageObserver;
-      
-      function initLazyLoading() {
-        if ('IntersectionObserver' in window) {
-          imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                const img = entry.target;
-                loadImage(img, img.dataset.src);
-                observer.unobserve(img);
-              }
-            });
-          }, {
-            rootMargin: '100px 0px',
-            threshold: 0.01
-          });
-        }
-      }
-      
-      function loadImage(imgElement, url) {
-        if (!url || url === '') {
-          imgElement.style.display = 'none';
-          return;
-        }
-        
-        // Optimize Supabase URLs
-        const optimizedUrl = getOptimizedSupabaseImageUrl(url, {
-          width: imgElement.clientWidth > 0 ? Math.ceil(imgElement.clientWidth * 1.5) : '600',
-          height: '400'
-        });
-        
-        const tempImg = new Image();
-        tempImg.onload = () => {
-          imgElement.src = optimizedUrl;
-          imgElement.classList.add('loaded');
-          
-          // Fade in effect
-          imgElement.style.opacity = '0';
-          setTimeout(() => {
-            imgElement.style.transition = 'opacity 0.3s ease';
-            imgElement.style.opacity = '1';
-          }, 10);
-        };
-        
-        tempImg.onerror = () => {
-          // Fallback to original URL if optimized fails
-          imgElement.src = url;
-          imgElement.classList.add('loaded');
-        };
-        
-        // Start loading
-        tempImg.src = optimizedUrl;
-      }
-      
-      function observeImage(imgElement) {
-        if (imageObserver && imgElement.dataset.src) {
-          imageObserver.observe(imgElement);
-        } else if (imgElement.dataset.src) {
-          // Fallback for browsers without IntersectionObserver
-          loadImage(imgElement, imgElement.dataset.src);
-        }
-      }
-      
-      // ---------- CUSTOM LISTS MANAGER ----------
-      const customListsManager = {
-        async init() {
-          if (state.currentUser) {
-            await this.loadCustomLists();
-          }
-        },
-        
-        async loadCustomLists() {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-            
-            // Get all custom lists (excluding default lists)
-            const { data: lists, error } = await supabase
-              .from('lists')
-              .select('*')
-              .eq('user_id', user.id)
-              .neq('title', 'Favorites')
-              .neq('title', 'Visited')
-              .neq('title', 'Want to Go')
-              .order('created_at', { ascending: false });
-            
-            if (error) throw error;
-            
-            state.customLists = lists || [];
-            
-          } catch (error) {
-            console.error('Error loading custom lists:', error);
-            state.customLists = [];
-          }
-        },
-        
-        async createList(name) {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return null;
-            
-            const { data: newList, error } = await supabase
-              .from('lists')
-              .insert([
-                {
-                  user_id: user.id,
-                  title: name,
-                  description: 'Custom list for restaurants',
-                  created_at: new Date().toISOString()
-                }
-              ])
-              .select()
-              .single();
-            
-            if (error) throw error;
-            
-            state.customLists.unshift(newList);
-            return newList;
-            
-          } catch (error) {
-            console.error('Error creating list:', error);
-            showNotification('Error creating list', 'error');
-            return null;
-          }
-        },
-        
-        async checkRestaurantInList(restaurantId, listId) {
-          try {
-            const { data, error } = await supabase
-              .from('lists_restraunts')
-              .select('*')
-              .eq('list_id', listId)
-              .eq('restraunt_id', restaurantId);
-            
-            if (error) {
-              console.error('Error checking restaurant in list:', error);
-              return false;
-            }
-            
-            return data && data.length > 0;
-            
-          } catch (error) {
-            console.error('Error checking restaurant in list:', error);
-            return false;
-          }
-        },
-        
-        async toggleRestaurantInList(restaurantId, listId) {
-          try {
-            const isInList = await this.checkRestaurantInList(restaurantId, listId);
-            
-            if (isInList) {
-              // Remove from list
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .delete()
-                .eq('list_id', listId)
-                .eq('restraunt_id', restaurantId);
-              
-              if (error) throw error;
-              
-              return false;
-            } else {
-              // Add to list
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .insert([
-                  {
-                    list_id: listId,
-                    restraunt_id: restaurantId,
-                    added_at: new Date().toISOString()
-                  }
-                ]);
-              
-              if (error) throw error;
-              
-              return true;
-            }
-            
-          } catch (error) {
-            console.error('Error toggling restaurant in list:', error);
-            showNotification('Error updating list', 'error');
-            return null;
-          }
-        },
-        
-        async loadRestaurantListsStatus(restaurantId) {
-          if (!state.currentUser || !restaurantId) return {};
-          
-          const status = {};
-          
-          // Check each list
-          const promises = state.customLists.map(async (list) => {
-            status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
-          });
-          
-          await Promise.all(promises);
-          
-          return status;
-        },
-        
-        renderListsList(restaurantId) {
-          const container = document.getElementById('listsListContainer');
-          if (!container) return;
-          
-          if (state.customLists.length === 0) {
-            container.innerHTML = `
-              <div class="empty-lists">
-                <i class="fas fa-list"></i>
-                <h4>No custom lists yet</h4>
-                <p>Create your first list to organize restaurants</p>
-              </div>
-            `;
-            return;
-          }
-          
-          let html = '<div class="lists-list">';
-          
-          state.customLists.forEach(list => {
-            const isChecked = state.selectedLists.has(list.id);
-            const listIcon = list.icon || '📋';
-            html += `
-              <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
-                <div class="list-info">
-                  <div class="list-icon">
-                    ${listIcon}
-                  </div>
-                  <div>
-                    <span class="list-name">${list.title}</span>
-                    ${list.description ? `<div class="text-xs text-muted mt-1">${list.description}</div>` : ''}
-                  </div>
-                </div>
-                <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
-              </div>
-            `;
-          });
-          
-          html += '</div>';
-          container.innerHTML = html;
-          
-          // Add event listeners
-          container.querySelectorAll('.list-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const listId = item.dataset.listId;
-              const checkbox = item.querySelector('.list-checkbox');
-              
-              if (state.selectedLists.has(listId)) {
-                state.selectedLists.delete(listId);
-                item.classList.remove('active');
-                checkbox.classList.remove('checked');
-              } else {
-                state.selectedLists.add(listId);
-                item.classList.add('active');
-                checkbox.classList.add('checked');
-                
-                checkbox.style.animation = 'none';
-                setTimeout(() => {
-                  checkbox.style.animation = 'checkPop 0.3s ease';
-                }, 10);
-              }
-            });
-          });
-        },
-        
-        async refreshLists() {
-          await this.loadCustomLists();
-        }
-      };
-      
-      // ---------- LIST MANAGER ----------
-      const listManager = {
-          userLists: [],
-          currentLists: {
-              favorites: null,
-              visited: null,
-              wantToGo: null
-          },
-          
-          async init() { 
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) return;
-              
-              await this.loadUserLists();
-              await customListsManager.init();
-          },
-          
-          async loadUserLists() {
-              try {
-                  const { data: { user } } = await supabase.auth.getUser();
-                  if (!user) return;
-
-                  const { data: lists, error } = await supabase
-                      .from('lists')
-                      .select('*')
-                      .eq('user_id', user.id);
-                  
-                  if (error) throw error;
-                  
-                  this.userLists = lists || [];
-                  await this.setupDefaultLists();
-                  await this.loadListRestaurants();
-                  
-              } catch (error) {
-                  console.error('Error loading lists:', error);
-              }
-          },
-          
-          async setupDefaultLists() {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-              this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-              this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-              
-              if (!this.currentLists.favorites) {
-                  this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-              }
-              if (!this.currentLists.visited) {
-                  this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-              }
-              if (!this.currentLists.wantToGo) {
-                  this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-              }
-          },
-          
-          async createList(title, description) {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              const { data: newList, error } = await supabase
-                  .from('lists')
-                  .insert([
-                      {
-                          user_id: user.id,
-                          title: title,
-                          description: description
-                      }
-                  ])
-                  .select()
-                  .single();
-              
-              if (error) {
-                  console.error('Error creating list:', error);
-                  return null;
-              }
-              
-              this.userLists.push(newList);
-              return newList;
-          },
-          
-          async loadListRestaurants() {
-              for (const listType in this.currentLists) {
-                  const list = this.currentLists[listType];
-                  if (list) {
-                      const { data: listRestaurants, error } = await supabase
-                          .from('lists_restraunts')
-                          .select('restraunt_id')
-                          .eq('list_id', list.id);
-                      
-                      if (!error && listRestaurants) {
-                          list.restaurants = listRestaurants.map(item => item.restraunt_id);
-                      } else {
-                          list.restaurants = [];
-                      }
-                  }
-              }
-          },
-          
-          async toggleInList(listType, restaurantId) {
-              const list = this.currentLists[listType];
-              if (!list) return false;
-              
-              const isInList = list.restaurants?.includes(restaurantId);
-              
-              try {
-                  if (isInList) {
-                      const { error } = await supabase
-                          .from('lists_restraunts')
-                          .delete()
-                          .match({
-                              list_id: list.id,
-                              restraunt_id: restaurantId
-                          });
-                      
-                      if (error) throw error;
-                      
-                      list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                      showNotification(`Removed from ${list.title}`, 'info');
-                      return false;
-                      
-                  } else {
-                      const { error } = await supabase
-                          .from('lists_restraunts')
-                          .insert([
-                              {
-                                  list_id: list.id,
-                                  restraunt_id: restaurantId,
-                                  added_at: new Date().toISOString()
-                              }
-                          ]);
-                      
-                      if (error) throw error;
-                      
-                      if (!list.restaurants) list.restaurants = [];
-                      list.restaurants.push(restaurantId);
-                      showNotification(`Added to ${list.title}`, 'success');
-                      return true;
-                  }
-                  
-              } catch (error) {
-                  console.error('Error updating list:', error);
-                  showNotification('Failed to update list', 'error');
-                  return isInList;
-              }
-          },
-          
-          isInList(listType, restaurantId) {
-              const list = this.currentLists[listType];
-              return list?.restaurants?.includes(restaurantId) || false;
-          },
-          
-          getRestaurantListStatus(restaurantId) {
-              return {
-                  favorites: this.isInList('favorites', restaurantId),
-                  wantToGo: this.isInList('wantToGo', restaurantId),
-                  visited: this.isInList('visited', restaurantId)
-              };
-          }
-      };
-      
-      // ---------- NOTIFICATION SYSTEM ----------
-      function showNotification(message, type = "info", duration = 2500) {
-        const container = document.getElementById("notificationContainer");
-        if (!container) return;
-        
-        const notification = document.createElement("div");
-        notification.className = `custom-notification notification-${type}`;
-        
-        let iconClass;
-        if (type === "success") {
-            iconClass = "fas fa-check-circle";
-        } else if (type === "error") {
-            iconClass = "fas fa-exclamation-circle";
-        } else if (type === "warning") {
-            iconClass = "fas fa-exclamation-triangle";
-        } else {
-            iconClass = "fas fa-info-circle";
-        }
-        
-        notification.innerHTML = `
-            <i class="notification-icon ${iconClass}"></i>
-            <span class="notification-message">${message}</span>
-            <button class="notification-close" aria-label="Close notification">×</button>
-        `;
-        
-        container.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add("notification-show");
-        }, 10);
-        
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.remove("notification-show");
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 400);
-        });
-        
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.remove("notification-show");
-                setTimeout(() => notification.remove(), 400);
-            }
-        }, duration);
-      }
-      
-      // ---------- CUSTOM LISTS MODAL ----------
-      async function showCustomListsModal(restaurantId) {
-        if (!restaurantId) {
-          showNotification('No restaurant selected', 'error');
-          return;
-        }
-        
-        if (!state.isLoggedIn) {
-          showAuthPrompt();
-          return;
-        }
-        
-        const restaurant = state.restaurants.find(r => r.id === restaurantId);
-        if (!restaurant) {
-          showNotification('Restaurant not found', 'error');
-          return;
-        }
-        
-        state.currentModalRestaurant = restaurant;
-        
-        if (!state.customLists || state.customLists.length === 0) {
-          await customListsManager.refreshLists();
-        }
-        
+      // Load Cloud Kitchens
+      async function loadCloudKitchens() {
         try {
-          const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
+          const { data } = await supabase
+            .from('cloud_kitchens')
+            .select('restaurant_id');
           
-          state.selectedLists.clear();
-          for (const [listId, isChecked] of Object.entries(status)) {
-            if (isChecked) {
-              state.selectedLists.add(listId);
-            }
+          if (data) {
+            state.cloudKitchens.clear();
+            data.forEach(ck => state.cloudKitchens.add(ck.restaurant_id));
           }
-          
-          customListsManager.renderListsList(restaurantId);
-          
-          const modal = document.getElementById('customListsModal');
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-          
-          setTimeout(() => {
-            const newListInput = document.getElementById('newListName');
-            if (newListInput) newListInput.focus();
-          }, 300);
-          
         } catch (error) {
-          console.error('Error loading list status:', error);
-          showNotification('Error loading lists', 'error');
-          
-          const modal = document.getElementById('customListsModal');
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
+          console.error('Error loading cloud kitchens:', error);
         }
       }
       
-      function hideCustomListsModal() {
-        const modal = document.getElementById('customListsModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-        state.selectedLists.clear();
+      function isCloudKitchen(restaurantId) {
+        return state.cloudKitchens.has(restaurantId);
       }
       
-      async function saveListChanges() {
-        if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
-          showNotification('No restaurant selected', 'error');
-          hideCustomListsModal();
-          return;
-        }
-        
-        const restaurantId = state.currentModalRestaurant.id;
-        const saveBtn = document.getElementById('saveListsBtn');
-        const originalText = saveBtn.textContent;
-        
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-        
-        try {
-          let changesMade = false;
-          
-          for (const list of state.customLists) {
-            const shouldBeInList = state.selectedLists.has(list.id);
-            const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
-            
-            if (shouldBeInList && !isInList) {
-              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-              if (success) {
-                changesMade = true;
-              }
-            } else if (!shouldBeInList && isInList) {
-              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-              if (success !== null) {
-                changesMade = true;
-              }
-            }
-          }
-          
-          if (changesMade) {
-            showNotification('List changes saved successfully!', 'success');
-          } else {
-            showNotification('No changes made', 'info');
-          }
-          
-          hideCustomListsModal();
-          
-          if (state.filteredRestaurants.length > 0) {
-            renderRestaurants();
-          }
-          
-        } catch (error) {
-          console.error('Error saving list changes:', error);
-          showNotification('Error saving changes', 'error');
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.textContent = originalText;
-        }
-      }
-      
-      // ---------- AUTH PROMPT MODAL ----------
-      function showAuthPrompt() {
-        const modal = document.getElementById('authPromptModal');
-        modal.classList.add('active');
+      // Mobile Cloud Tooltip
+      function showCloudTooltip() {
+        const tooltip = document.getElementById('cloudMobileTooltip');
+        tooltip.style.display = 'block';
         document.body.style.overflow = 'hidden';
       }
       
-      function hideAuthPrompt() {
-        const modal = document.getElementById('authPromptModal');
-        modal.classList.remove('active');
+      function hideCloudTooltip() {
+        const tooltip = document.getElementById('cloudMobileTooltip');
+        tooltip.style.display = 'none';
         document.body.style.overflow = 'auto';
       }
       
-      // ---------- ACTIONS MODAL ----------
-      function showModal(restaurantData) {
-        if (!restaurantData) return;
-        
-        if (!state.isLoggedIn) {
-            showAuthPrompt();
-            return;
-        }
-        
-        state.currentModalRestaurant = restaurantData;
-        document.getElementById('modalRestaurantName').textContent = restaurantData.name;
-        
-        updateModalButtons(restaurantData.id);
-        
-        const modal = document.getElementById('actionsModal');
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-      
-      function hideModal() {
-        const modal = document.getElementById('actionsModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      }
-      
-      function updateModalButtons(restaurantId) {
-        const status = listManager.getRestaurantListStatus(restaurantId);
-        
-        const favoritesBtn = document.getElementById('modalFavoritesBtn');
-        const wantToGoBtn = document.getElementById('modalWantToGoBtn');
-        const visitedBtn = document.getElementById('modalVisitedBtn');
-        
-        if (favoritesBtn) {
-          favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
-          favoritesBtn.classList.toggle('active', status.favorites);
-        }
-        
-        if (wantToGoBtn) {
-          wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
-          wantToGoBtn.classList.toggle('active', status.wantToGo);
-        }
-        
-        if (visitedBtn) {
-          visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
-          visitedBtn.classList.toggle('active', status.visited);
-        }
-      }
-      
-      // ---------- GUEST BANNER ----------
-      const guestBanner = {
-        init: function() {
-          const mobileSignupBtn = document.getElementById('bannerMobileSignupBtn');
-          const loginBtn = document.getElementById('bannerLoginBtn');
-          const signupBtn = document.getElementById('bannerSignupBtn');
-          
-          if (mobileSignupBtn) {
-            mobileSignupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-up.html';
-            });
-          }
-          
-          if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-              window.location.href = 'login.html';
-            });
-          }
-          
-          if (signupBtn) {
-            signupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-up.html';
-            });
-          }
-          
-          // Add mobile banner class to body for CSS targeting
-          if (window.innerWidth <= 768) {
-            document.body.classList.add('has-mobile-banner');
-          }
-        },
-        
-        show: function() {
-          const mobileBanner = document.getElementById('guestBannerMobile');
-          const desktopBanner = document.getElementById('guestBannerDesktop');
-          
-          if (window.innerWidth <= 768) {
-            // Mobile
-            if (mobileBanner) {
-              mobileBanner.style.display = 'block';
-            }
-            if (desktopBanner) {
-              desktopBanner.style.display = 'none';
-            }
-            document.body.classList.add('has-mobile-banner');
-          } else {
-            // Desktop
-            if (mobileBanner) {
-              mobileBanner.style.display = 'none';
-            }
-            if (desktopBanner) {
-              desktopBanner.style.display = 'block';
-            }
-            document.body.classList.remove('has-mobile-banner');
-          }
-        },
-        
-        hide: function() {
-          const mobileBanner = document.getElementById('guestBannerMobile');
-          const desktopBanner = document.getElementById('guestBannerDesktop');
-          
-          if (mobileBanner) {
-            mobileBanner.style.display = 'none';
-          }
-          if (desktopBanner) {
-            desktopBanner.style.display = 'none';
-          }
-          document.body.classList.remove('has-mobile-banner');
-        }
-      };
-      
-      // ---------- DATA LOADING ----------
-      async function loadRestaurantImages() {
-        try {
-          const { data: galleryData, error: galleryError } = await supabase
-            .from('restaurant_gallery')
-            .select('restaurant_slug, image_url, image_type, is_primary')
-            .order('sort_order');
-          
-          if (galleryError) throw galleryError;
-          
-          const { data: restaurantsData, error: restaurantsError } = await supabase
-            .from('restraunts')
-            .select('slug, image, logo_url');
-          
-          if (restaurantsError) throw restaurantsError;
-          
-          state.restaurantImages.clear();
-          
-          if (galleryData && galleryData.length > 0) {
-            galleryData.forEach(item => {
-              if (!state.restaurantImages.has(item.restaurant_slug)) {
-                state.restaurantImages.set(item.restaurant_slug, {
-                  cover: null,
-                  logo: null
-                });
-              }
-              
-              const images = state.restaurantImages.get(item.restaurant_slug);
-              
-              if (item.image_type === 'cover' && item.image_url) {
-                images.cover = item.image_url;
-              }
-              
-              if (item.image_type === 'logo' && item.image_url) {
-                images.logo = item.image_url;
-              }
-            });
-          }
-          
-          if (restaurantsData && restaurantsData.length > 0) {
-            restaurantsData.forEach(restaurant => {
-              if (!state.restaurantImages.has(restaurant.slug)) {
-                state.restaurantImages.set(restaurant.slug, {
-                  cover: restaurant.image || null,
-                  logo: restaurant.logo_url || null
-                });
-              } else {
-                const images = state.restaurantImages.get(restaurant.slug);
-                if (!images.cover && restaurant.image) {
-                  images.cover = restaurant.image;
-                }
-                if (!images.logo && restaurant.logo_url) {
-                  images.logo = restaurant.logo_url;
-                }
-              }
-            });
-          }
-          
-        } catch (error) {
-          console.error('Error loading images:', error);
-        }
-      }
-      
-      function getCoverImageUrl(restaurantSlug) {
-        const images = state.restaurantImages.get(restaurantSlug);
-        return images?.cover || null;
-      }
-      
-      function getLogoUrl(restaurant) {
-        const images = state.restaurantImages.get(restaurant.slug);
-        if (images?.logo) {
-          return images.logo;
-        }
-        
-        if (restaurant.logo_url) {
-          return restaurant.logo_url;
-        }
-        
-        if (restaurant.image) {
-          return restaurant.image;
-        }
-        
-        return null;
-      }
-      
-      async function loadCategories() {
-        try {
-          const { data, error } = await supabase
-            .from('categories')
-            .select('*')
-            .order('sort_order', { ascending: true });
-          
-          if (error) {
-            console.warn('No categories table found, using fallback categories');
-            createFallbackCategories();
-            return;
-          }
-          
-          state.categories.clear();
-          
-          if (data && data.length > 0) {
-            data.forEach(cat => {
-              state.categories.set(cat.id, {
-                id: cat.id,
-                name: cat.name,
-                slug: cat.slug,
-                icon: cat.icon,
-                description: cat.description,
-                sort_order: cat.sort_order || 0
-              });
-            });
-          } else {
-            createFallbackCategories();
-          }
-          
-        } catch (error) {
-          console.error('Error loading categories:', error);
-          createFallbackCategories();
-        }
-      }
-      
-      function createFallbackCategories() {
-        state.categories.clear();
-        const fallbackCategories = [
-          { id: 1, name: 'Burgers', slug: 'burgers', icon: '🍔', sort_order: 1 },
-          { id: 2, name: 'Chicken', slug: 'chicken', icon: '🍗', sort_order: 2 },
-          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: '🥙', sort_order: 3 },
-          { id: 4, name: 'Pizza', slug: 'pizza', icon: '🍕', sort_order: 4 },
-          { id: 5, name: 'Asian', slug: 'asian', icon: '🍜', sort_order: 5 },
-          { id: 6, name: 'Mexican', slug: 'mexican', icon: '🌮', sort_order: 6 },
-          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: '☕', sort_order: 7 },
-          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: '🍟', sort_order: 8 },
-          { id: 9, name: 'Seafood', slug: 'seafood', icon: '🐟', sort_order: 9 },
-          { id: 10, name: 'International', slug: 'international', icon: '🌍', sort_order: 10 }
-        ];
-        
-        fallbackCategories.forEach(cat => {
-          state.categories.set(cat.id, cat);
+      // Image Preloading
+      function preloadImage(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(url);
+          img.onerror = () => resolve(null);
+          img.src = getOptimizedImageUrl(url);
         });
       }
       
-      async function loadRestaurantsData() {
+      // Load Restaurants
+      async function loadRestaurants() {
         try {
           // Load cloud kitchens first
-          await cloudKitchenManager.loadCloudKitchens();
-          await loadRestaurantImages();
+          await loadCloudKitchens();
           
-          // First, try to load with categories join
-          const { data, error } = await supabase
+          // Get total count
+          const { count } = await supabase
+            .from('restraunts')
+            .select('*', { count: 'exact', head: true });
+          
+          state.totalRestaurantCount = count || 85;
+          
+          // Load restaurants with categories
+          const { data } = await supabase
             .from('restraunts')
             .select(`
-              id, 
-              slug, 
-              name, 
-              category,
-              category_id,
-              description, 
-              rating, 
-              logo_url, 
-              image,
-              categories!inner (
-                name,
-                icon,
-                slug
-              )
+              id, slug, name, category, description, rating, logo_url, image,
+              categories!inner (name, icon)
             `)
             .order('rating', { ascending: false });
-          
-          if (error) {
-            console.warn('Could not load with categories join, loading basic data');
-            await loadBasicRestaurantData();
-            return;
-          }
           
           if (!data || data.length === 0) {
             showEmptyState();
             return;
           }
           
-          // Process restaurants with categories
+          // Process data
           state.restaurants = data.map(restaurant => ({
             id: restaurant.id,
             slug: restaurant.slug,
             name: restaurant.name,
-            category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
-            category_id: restaurant.category_id,
-            category_icon: restaurant.categories ? restaurant.categories.icon : getCategoryIconFallback(restaurant.category),
+            category: restaurant.categories?.name || restaurant.category || 'Restaurant',
             description: restaurant.description,
-            rating: restaurant.rating,
-            logo_url: getLogoUrl(restaurant),
-            coverImage: getCoverImageUrl(restaurant.slug),
-            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
+            rating: restaurant.rating || 0,
+            logo_url: restaurant.logo_url,
+            image: restaurant.image,
+            isCloudKitchen: isCloudKitchen(restaurant.id)
           }));
           
-          await loadCategories();
-          populateCategoryDropdown();
+          // Extract categories
+          const categorySet = new Set();
+          state.restaurants.forEach(r => {
+            if (r.category) categorySet.add(r.category);
+          });
           
+          state.categories.clear();
+          Array.from(categorySet).sort().forEach((cat, index) => {
+            state.categories.set(cat, { id: index + 1, name: cat });
+          });
+          
+          populateCategoryDropdown();
+          populateItemsPerPage();
           applyFilters();
-          updateCounts();
           
         } catch (error) {
           console.error('Error loading restaurants:', error);
-          showNotification('Failed to load restaurants', 'error');
           showEmptyState();
         }
-      }
-      
-      async function loadBasicRestaurantData() {
-        const { data, error } = await supabase
-          .from('restraunts')
-          .select('id, slug, name, category, description, rating, logo_url, image')
-          .order('rating', { ascending: false });
-        
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          showEmptyState();
-          return;
-        }
-        
-        const categoryMap = new Map();
-        data.forEach((restaurant, index) => {
-          let categoryName = restaurant.category || 'Restaurant';
-          categoryName = normalizeCategoryName(categoryName);
-          
-          if (!categoryMap.has(categoryName)) {
-            categoryMap.set(categoryName, {
-              id: categoryMap.size + 1,
-              name: categoryName,
-              icon: getCategoryIconFallback(categoryName),
-              sort_order: categoryMap.size + 1
-            });
-          }
-        });
-        
-        categoryMap.forEach((cat, name) => {
-          state.categories.set(cat.id, cat);
-        });
-        
-        state.restaurants = data.map(restaurant => {
-          const categoryName = normalizeCategoryName(restaurant.category || 'Restaurant');
-          const category = Array.from(state.categories.values()).find(c => c.name === categoryName);
-          
-          return {
-            id: restaurant.id,
-            slug: restaurant.slug,
-            name: restaurant.name,
-            category: categoryName,
-            category_id: category ? category.id : 1,
-            category_icon: category ? category.icon : getCategoryIconFallback(categoryName),
-            description: restaurant.description,
-            rating: restaurant.rating,
-            logo_url: getLogoUrl(restaurant),
-            coverImage: getCoverImageUrl(restaurant.slug),
-            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
-          };
-        });
-        
-        populateCategoryDropdown();
-        applyFilters();
-        updateCounts();
-      }
-      
-      function normalizeCategoryName(categoryName) {
-        if (!categoryName) return 'Restaurant';
-        
-        const lowerName = categoryName.toLowerCase().trim();
-        const corrections = {
-          'burgers': 'Burgers',
-          'burger': 'Burgers',
-          'chicken': 'Chicken',
-          'middle eastern': 'Middle Eastern',
-          'pizza': 'Pizza',
-          'asian': 'Asian',
-          'mexican': 'Mexican',
-          'cafe & bakery': 'Cafe & Bakery',
-          'cafe': 'Cafe & Bakery',
-          'bakery': 'Cafe & Bakery',
-          'fast food': 'Fast Food',
-          'seafood': 'Seafood',
-          'breakfast': 'Breakfast',
-          'desserts': 'Desserts',
-          'indian': 'Indian',
-          'italian': 'Italian',
-          'bbq & ribs': 'BBQ & Ribs',
-          'bbq': 'BBQ & Ribs',
-          'international': 'International',
-          'sushi': 'Asian',
-          'shawerma': 'Middle Eastern'
-        };
-        
-        return corrections[lowerName] || 
-               categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
-      }
-      
-      function getCategoryIconFallback(categoryName) {
-        const icons = {
-          'Burgers': '🍔',
-          'Chicken': '🍗',
-          'Middle Eastern': '🥙',
-          'Pizza': '🍕',
-          'Asian': '🍜',
-          'Mexican': '🌮',
-          'Cafe & Bakery': '☕',
-          'Fast Food': '🍟',
-          'Italian': '🍝',
-          'Seafood': '🐟',
-          'Breakfast': '🥞',
-          'Desserts': '🍰',
-          'Indian': '🍛',
-          'BBQ & Ribs': '🥩',
-          'International': '🌍'
-        };
-        
-        return icons[categoryName] || '🍴';
       }
       
       function populateCategoryDropdown() {
         const select = document.getElementById('categorySelect');
-        if (!select) return;
-        
         select.innerHTML = '<option value="all">All Categories</option>';
         
-        const sortedCategories = Array.from(state.categories.values())
-          .sort((a, b) => {
-            if (a.sort_order !== undefined && b.sort_order !== undefined) {
-              return a.sort_order - b.sort_order;
-            }
-            return a.name.localeCompare(b.name);
+        Array.from(state.categories.values())
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.name;
+            select.appendChild(option);
           });
-        
-        sortedCategories.forEach(cat => {
-          const option = document.createElement('option');
-          option.value = cat.id;
-          option.textContent = `${cat.icon || '🍴'} ${cat.name}`;
-          select.appendChild(option);
-        });
       }
       
-      // ---------- FILTERING & SORTING ----------
+      function populateItemsPerPage() {
+        const select = document.getElementById('itemsPerPage');
+        select.innerHTML = '';
+        
+        const options = [20, 50, 100];
+        const total = state.totalRestaurantCount;
+        
+        // Add dynamic options based on actual count
+        options.forEach(num => {
+          if (num <= total || num === 100) {
+            const option = document.createElement('option');
+            option.value = num;
+            option.textContent = num;
+            if (num === 20) option.selected = true;
+            select.appendChild(option);
+          }
+        });
+        
+        // Add "All" option
+        const allOption = document.createElement('option');
+        allOption.value = total;
+        allOption.textContent = 'All';
+        select.appendChild(allOption);
+      }
+      
+      // Filtering & Sorting
       function applyFilters() {
         let filtered = [...state.restaurants];
         
+        // Search filter
         if (state.activeFilters.search) {
-          const searchTerm = state.activeFilters.search.toLowerCase();
+          const term = state.activeFilters.search.toLowerCase();
           filtered = filtered.filter(r => 
-            r.name.toLowerCase().includes(searchTerm) ||
-            (r.description && r.description.toLowerCase().includes(searchTerm)) ||
-            (r.category && r.category.toLowerCase().includes(searchTerm))
+            r.name.toLowerCase().includes(term) ||
+            (r.description && r.description.toLowerCase().includes(term)) ||
+            (r.category && r.category.toLowerCase().includes(term))
           );
         }
         
+        // Category filter
         if (state.activeFilters.category !== 'all') {
-          const categoryId = parseInt(state.activeFilters.category);
-          filtered = filtered.filter(r => r.category_id === categoryId);
+          const catId = parseInt(state.activeFilters.category);
+          const category = Array.from(state.categories.values()).find(c => c.id === catId);
+          if (category) {
+            filtered = filtered.filter(r => r.category === category.name);
+          }
         }
         
-        filtered = applyQuickFilter(filtered, state.activeFilters.quickFilter);
-        filtered = sortRestaurants(filtered, state.activeFilters.sort);
+        // Quick filters
+        switch(state.activeFilters.quickFilter) {
+          case 'trending':
+            filtered = filtered.filter(r => r.rating >= 4.3);
+            break;
+          case 'top-rated':
+            filtered = filtered.filter(r => r.rating >= 4.5);
+            break;
+          case 'new':
+            filtered = filtered.filter(r => Math.random() > 0.7);
+            break;
+        }
+        
+        // Sorting
+        switch(state.activeFilters.sort) {
+          case 'rating-desc':
+            filtered.sort((a, b) => b.rating - a.rating);
+            break;
+          case 'rating-asc':
+            filtered.sort((a, b) => a.rating - b.rating);
+            break;
+          case 'name-asc':
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+          case 'name-desc':
+            filtered.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+        }
         
         state.filteredRestaurants = filtered;
         state.currentPage = 1;
-        
         renderRestaurants();
         updatePagination();
         updateCounts();
       }
       
-      function applyQuickFilter(restaurants, filterType) {
-        switch(filterType) {
-          case 'trending':
-            return restaurants.filter(r => (r.rating || 0) >= 4.3);
-          case 'top-rated':
-            return restaurants.filter(r => (r.rating || 0) >= 4.5);
-          case 'new':
-            return restaurants.filter(r => Math.random() > 0.7);
-          default:
-            return restaurants;
-        }
-      }
-      
-      function sortRestaurants(restaurants, sortType) {
-        const sorted = [...restaurants];
-        
-        switch(sortType) {
-          case 'rating-desc':
-            return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-          case 'rating-asc':
-            return sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
-          case 'name-asc':
-            return sorted.sort((a, b) => a.name.localeCompare(b.name));
-          case 'name-desc':
-            return sorted.sort((a, b) => b.name.localeCompare(a.name));
-          default:
-            return sorted;
-        }
-      }
-      
-      // ---------- RENDERING ----------
-      function showLoadingSkeleton() {
+      // Rendering
+      function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
-        if (!grid) return;
-        
-        grid.innerHTML = '';
-        grid.classList.add('skeleton-grid');
-        
-        for (let i = 0; i < 8; i++) {
-          const skeleton = document.createElement('div');
-          skeleton.className = 'skeleton-card';
-          skeleton.innerHTML = `
-            <div class="skeleton-image"></div>
-            <div class="skeleton-content">
-              <div class="skeleton-line" style="width: 70%"></div>
-              <div class="skeleton-line short"></div>
-              <div class="skeleton-line"></div>
-              <div class="skeleton-line" style="width: 40%"></div>
-            </div>
-          `;
-          grid.appendChild(skeleton);
-        }
-      }
-      
-      async function renderRestaurants() {
-        const grid = document.getElementById('restaurantGrid');
-        const emptyState = document.querySelector('.empty-state');
-        
         if (!grid) return;
         
         if (state.filteredRestaurants.length === 0) {
@@ -3343,42 +1261,44 @@
           return;
         }
         
-        if (emptyState) {
-          emptyState.style.display = 'none';
-        }
+        const startIdx = (state.currentPage - 1) * state.pageSize;
+        const endIdx = startIdx + state.pageSize;
+        const itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
         
-        grid.classList.remove('skeleton-grid');
-        
-        // Determine items to show
-        let itemsToShow;
-        if (state.isViewAll) {
-          itemsToShow = state.filteredRestaurants;
-        } else {
-          const startIdx = (state.currentPage - 1) * state.pageSize;
-          const endIdx = startIdx + state.pageSize;
-          itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
-        }
-        
-        // Clear grid first
         grid.innerHTML = '';
         
-        // Create cards
-        for (const restaurant of itemsToShow) {
+        itemsToShow.forEach(restaurant => {
           const card = createRestaurantCard(restaurant);
           grid.appendChild(card);
           
-          // Set up lazy loading for images in this card
+          // Load images after card is added
           setTimeout(() => {
-            const images = card.querySelectorAll('img[data-src]');
-            images.forEach(img => observeImage(img));
+            const img = card.querySelector('.restaurant-image');
+            if (img && img.dataset.src) {
+              loadImage(img);
+            }
           }, 10);
-        }
+        });
+      }
+      
+      async function loadImage(imgElement) {
+        if (!imgElement.dataset.src) return;
         
-        // Fix for extra square in dense grid
-        const gridBtn = document.querySelector('.grid-btn.active');
-        if (gridBtn && gridBtn.dataset.view === 'dense') {
-          grid.classList.add('grid-dense-fixed');
-        }
+        const optimizedUrl = getOptimizedImageUrl(imgElement.dataset.src);
+        const img = new Image();
+        
+        img.onload = () => {
+          imgElement.src = optimizedUrl;
+          imgElement.classList.add('loaded');
+        };
+        
+        img.onerror = () => {
+          // Fallback to original if optimized fails
+          imgElement.src = imgElement.dataset.src;
+          imgElement.classList.add('loaded');
+        };
+        
+        img.src = optimizedUrl;
       }
       
       function createRestaurantCard(restaurant) {
@@ -3386,63 +1306,42 @@
         card.className = 'restaurant-card';
         card.dataset.id = restaurant.id;
         
-        const rating = restaurant.rating || 0;
-        const categoryIcon = restaurant.category_icon || getCategoryIconFallback(restaurant.category);
-        const category = restaurant.category || 'Restaurant';
-        const logoUrl = getLogoUrl(restaurant);
-        const status = listManager.getRestaurantListStatus(restaurant.id);
-        const isTopRated = rating >= 4.5;
-        const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
-        const isCloudKitchen = restaurant.isCloudKitchen || false;
-        const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
-        
-        let badgeText = '';
-        if (status.favorites) badgeText += '❤️ ';
-        if (status.wantToGo) badgeText += '📍 ';
-        if (status.visited) badgeText += '✓ ';
+        const isTopRated = restaurant.rating >= 4.5;
+        const isCloudKitchen = restaurant.isCloudKitchen;
+        const cloudBadge = isCloudKitchen ? `
+          <div class="cloud-badge" onclick="${window.innerWidth <= 768 ? 'showCloudTooltip()' : ''}">
+            <i class="fas fa-cloud"></i>
+            <span class="cloud-text">Cloud Kitchen</span>
+          </div>
+        ` : '';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
-              ${hasCoverImage ? `
+              ${restaurant.image ? `
                 <img class="restaurant-image" 
-                     data-src="${restaurant.coverImage}" 
+                     data-src="${restaurant.image}" 
                      alt="${restaurant.name}" 
                      width="300" 
                      height="200">
               ` : ''}
-              ${logoUrl ? `
-                <div class="logo-overlay">
-                  <img data-src="${logoUrl}" 
-                       alt="${restaurant.name} logo" 
-                       width="48" 
-                       height="48">
-                </div>
-              ` : ''}
-              <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" aria-label="Restaurant actions" title="Save to lists">
+              <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" onclick="event.preventDefault(); showModal(${restaurant.id})">
                 <i class="fas fa-ellipsis-h"></i>
               </button>
               ${cloudBadge}
-              ${badgeText ? `
-                <div class="badge-container">
-                  <div class="user-list-badge">${badgeText.trim()}</div>
-                </div>
-              ` : ''}
             </div>
             <div class="card-content">
               <div class="card-header">
-                <div class="card-title-wrapper">
-                  <h3 class="card-title">${restaurant.name}</h3>
-                  ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
-                </div>
+                <h3 class="card-title">${restaurant.name}</h3>
+                ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
                 <div class="card-rating">
                   <i class="fas fa-star"></i>
-                  ${rating.toFixed(1)}
+                  ${restaurant.rating.toFixed(1)}
                 </div>
               </div>
               <div class="card-category">
-                <span>${categoryIcon}</span>
-                ${category}
+                <span>🍴</span>
+                ${restaurant.category}
               </div>
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
               <div class="card-footer">
@@ -3452,31 +1351,6 @@
           </a>
         `;
         
-        const menuBtn = card.querySelector('.menu-btn');
-        if (menuBtn) {
-          menuBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showModal({
-              id: restaurant.id,
-              name: restaurant.name,
-              slug: restaurant.slug
-            });
-          });
-        }
-        
-        // Mobile: Make cloud badge clickable to show tooltip
-        const cloudBadgeEl = card.querySelector('.cloud-badge');
-        if (cloudBadgeEl && window.innerWidth <= 768) {
-          cloudBadgeEl.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Show a simple alert for mobile
-            alert('Cloud Kitchen\n\nA delivery-only restaurant that operates without a physical dining space. These kitchens focus on quality food optimized for delivery.');
-          });
-        }
-        
         return card;
       }
       
@@ -3484,36 +1358,24 @@
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
         
-        grid.innerHTML = '';
-        grid.classList.remove('skeleton-grid');
-        
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.style.display = 'block';
-        emptyState.innerHTML = `
-          <i class="fas fa-utensils"></i>
-          <h3>No restaurants found</h3>
-          <p>Try adjusting your search or filters</p>
-          <button class="btn" id="resetEmpty" style="margin-top: 12px;">Reset All Filters</button>
+        grid.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-utensils"></i>
+            <h3>No restaurants found</h3>
+            <p>Try adjusting your search or filters</p>
+            <button class="btn" onclick="resetAllFilters()" style="margin-top: 12px;">Reset All Filters</button>
+          </div>
         `;
-        
-        grid.appendChild(emptyState);
-        
-        const resetBtn = document.getElementById('resetEmpty');
-        if (resetBtn) {
-          resetBtn.addEventListener('click', resetAllFilters);
-        }
       }
       
-      // ---------- PAGINATION & VIEW ALL ----------
+      // Pagination
       function updatePagination() {
         const pagination = document.getElementById('pagination');
-        const viewAllBtn = document.getElementById('viewAllBtn');
         if (!pagination) return;
         
         const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
         
-        if (state.filteredRestaurants.length <= state.pageSize || state.isViewAll) {
+        if (state.filteredRestaurants.length <= state.pageSize) {
           pagination.style.display = 'none';
           return;
         }
@@ -3525,383 +1387,61 @@
         const prevBtn = document.getElementById('prevPage');
         const nextBtn = document.getElementById('nextPage');
         
-        if (prevBtn) prevBtn.disabled = state.currentPage === 1;
-        if (nextBtn) nextBtn.disabled = state.currentPage === totalPages;
+        prevBtn.disabled = state.currentPage === 1;
+        nextBtn.disabled = state.currentPage === totalPages;
         
-        if (prevBtn) {
-          prevBtn.onclick = () => {
-            if (state.currentPage > 1) {
-              state.currentPage--;
-              renderRestaurants();
-              updatePagination();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          };
-        }
-        
-        if (nextBtn) {
-          nextBtn.onclick = () => {
-            if (state.currentPage < totalPages) {
-              state.currentPage++;
-              renderRestaurants();
-              updatePagination();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          };
-        }
-        
-        if (viewAllBtn) {
-          viewAllBtn.style.display = 'inline-block';
-          viewAllBtn.textContent = state.isViewAll ? 'Show Less' : 'View All';
-          viewAllBtn.onclick = toggleViewAll;
-        }
-      }
-      
-      function toggleViewAll() {
-        state.isViewAll = !state.isViewAll;
-        
-        if (state.isViewAll) {
-          state.pageSize = 9999; // Effectively show all
-        } else {
-          // Get current items per page setting
-          const itemsPerPageSelect = document.getElementById('itemsPerPage');
-          if (itemsPerPageSelect) {
-            state.pageSize = parseInt(itemsPerPageSelect.value);
-          } else {
-            state.pageSize = 20;
+        prevBtn.onclick = () => {
+          if (state.currentPage > 1) {
+            state.currentPage--;
+            renderRestaurants();
+            updatePagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
-        }
+        };
         
-        renderRestaurants();
-        updatePagination();
-        updateCounts();
-        
-        if (!state.isViewAll) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        nextBtn.onclick = () => {
+          if (state.currentPage < totalPages) {
+            state.currentPage++;
+            renderRestaurants();
+            updatePagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        };
       }
       
-      // ---------- UI UPDATES ----------
       function updateCounts() {
-        const showingEl = document.getElementById('showingCount');
-        const totalEl = document.getElementById('totalCount');
-        
-        if (state.isViewAll) {
-          if (showingEl) showingEl.textContent = state.filteredRestaurants.length;
-        } else {
-          const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
-          if (showingEl) showingEl.textContent = showing;
-        }
-        
-        if (totalEl) totalEl.textContent = state.filteredRestaurants.length;
+        const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
+        document.getElementById('showingCount').textContent = showing;
+        document.getElementById('totalCount').textContent = state.filteredRestaurants.length;
       }
       
-      // ---------- EVENT HANDLERS ----------
-      function setupEventListeners() {
-        const searchInput = document.getElementById('search');
-        const clearSearchBtn = document.getElementById('clearSearch');
+      // Modal Functions
+      function showModal(restaurantId) {
+        const restaurant = state.restaurants.find(r => r.id === restaurantId);
+        if (!restaurant) return;
         
-        if (searchInput && clearSearchBtn) {
-          const debouncedSearch = debounce(() => {
-            state.activeFilters.search = searchInput.value.trim();
-            applyFilters();
-          }, 300);
-          
-          searchInput.addEventListener('input', () => {
-            clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
-            debouncedSearch();
-          });
-          
-          clearSearchBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            clearSearchBtn.style.display = 'none';
-            state.activeFilters.search = '';
-            applyFilters();
-          });
-        }
-        
-        const categorySelect = document.getElementById('categorySelect');
-        if (categorySelect) {
-          categorySelect.addEventListener('change', (e) => {
-            state.activeFilters.category = e.target.value;
-            applyFilters();
-          });
-        }
-        
-        const sortSelect = document.getElementById('sortSelect');
-        if (sortSelect) {
-          sortSelect.addEventListener('change', (e) => {
-            state.activeFilters.sort = e.target.value;
-            applyFilters();
-          });
-        }
-        
-        // Items per page selector
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        if (itemsPerPageSelect) {
-          itemsPerPageSelect.addEventListener('change', (e) => {
-            state.pageSize = parseInt(e.target.value);
-            state.currentPage = 1;
-            state.isViewAll = false;
-            applyFilters();
-          });
-          
-          // Load saved preference
-          try {
-            const savedItems = localStorage.getItem('zo2y_items_per_page');
-            if (savedItems) {
-              itemsPerPageSelect.value = savedItems;
-              state.pageSize = parseInt(savedItems);
-            }
-          } catch (e) {}
-        }
-        
-        document.querySelectorAll('.filter-chip').forEach(chip => {
-          chip.addEventListener('click', (e) => {
-            const filterType = e.target.dataset.filter;
-            
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            e.target.classList.add('active');
-            
-            state.activeFilters.quickFilter = filterType;
-            applyFilters();
-          });
-        });
-        
-        const resetBtn = document.getElementById('resetFilters');
-        if (resetBtn) {
-          resetBtn.addEventListener('click', resetAllFilters);
-        }
-        
-        initializeViewControls();
-        
-        // Actions modal buttons
-        const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
-        const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
-        const modalVisitedBtn = document.getElementById('modalVisitedBtn');
-        const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        
-        if (modalFavoritesBtn) {
-          modalFavoritesBtn.addEventListener('click', async () => {
-            if (!state.currentModalRestaurant) return;
-            await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
-            updateModalButtons(state.currentModalRestaurant.id);
-            renderRestaurants();
-          });
-        }
-        
-        if (modalWantToGoBtn) {
-          modalWantToGoBtn.addEventListener('click', async () => {
-            if (!state.currentModalRestaurant) return;
-            await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
-            updateModalButtons(state.currentModalRestaurant.id);
-            renderRestaurants();
-          });
-        }
-        
-        if (modalVisitedBtn) {
-          modalVisitedBtn.addEventListener('click', async () => {
-            if (!state.currentModalRestaurant) return;
-            await listManager.toggleInList('visited', state.currentModalRestaurant.id);
-            updateModalButtons(state.currentModalRestaurant.id);
-            renderRestaurants();
-          });
-        }
-        
-        if (modalCustomListsBtn) {
-          modalCustomListsBtn.addEventListener('click', () => {
-            if (!state.currentModalRestaurant) {
-              showNotification('No restaurant selected', 'error');
-              return;
-            }
-            
-            hideModal();
-            
-            setTimeout(() => {
-              showCustomListsModal(state.currentModalRestaurant.id);
-            }, 100);
-          });
-        }
-        
-        if (modalCancelBtn) {
-          modalCancelBtn.addEventListener('click', hideModal);
-        }
-        
-        // Custom lists modal buttons
-        const closeListsBtn = document.getElementById('closeListsBtn');
-        const createListBtn = document.getElementById('createListBtn');
-        const saveListsBtn = document.getElementById('saveListsBtn');
-        const newListNameInput = document.getElementById('newListName');
-        
-        if (closeListsBtn) {
-          closeListsBtn.addEventListener('click', hideCustomListsModal);
-        }
-        
-        if (createListBtn) {
-          createListBtn.addEventListener('click', async () => {
-            const name = newListNameInput.value.trim();
-            if (!name) {
-              showNotification('Please enter a list name', 'warning');
-              return;
-            }
-            
-            const existingList = state.customLists.find(l => 
-              l.title.toLowerCase() === name.toLowerCase()
-            );
-            
-            if (existingList) {
-              showNotification(`"${name}" list already exists`, 'warning');
-              return;
-            }
-            
-            const newList = await customListsManager.createList(name);
-            if (newList) {
-              showNotification(`Created "${name}" list`, 'success');
-              newListNameInput.value = '';
-              
-              await customListsManager.refreshLists();
-              
-              state.selectedLists.add(newList.id);
-              
-              customListsManager.renderListsList(state.currentModalRestaurant?.id);
-            }
-          });
-        }
-        
-        if (saveListsBtn) {
-          saveListsBtn.addEventListener('click', saveListChanges);
-        }
-        
-        if (newListNameInput) {
-          newListNameInput.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-              createListBtn.click();
-            }
-          });
-        }
-        
-        const customListsModal = document.getElementById('customListsModal');
-        if (customListsModal) {
-          customListsModal.addEventListener('click', (e) => {
-            if (e.target === customListsModal) {
-              hideCustomListsModal();
-            }
-          });
-        }
-        
-        // Auth prompt modal buttons
-        const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
-        const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
-        const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
-        
-        if (authPromptSignupBtn) {
-          authPromptSignupBtn.addEventListener('click', () => {
-            window.location.href = 'sign-up.html';
-          });
-        }
-        
-        if (authPromptLoginBtn) {
-          authPromptLoginBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
-          });
-        }
-        
-        if (authPromptCloseBtn) {
-          authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
-        }
-        
-        const authPromptModal = document.getElementById('authPromptModal');
-        if (authPromptModal) {
-          authPromptModal.addEventListener('click', (e) => {
-            if (e.target === authPromptModal) {
-              hideAuthPrompt();
-            }
-          });
-        }
-        
-        // Auth button
-        const authBtn = document.getElementById('authBtn');
-        if (authBtn) {
-          authBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
-          });
-        }
-        
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            hideModal();
-            hideCustomListsModal();
-            hideAuthPrompt();
-          }
-        });
-        
-        // Window resize for banner switching
-        window.addEventListener('resize', () => {
-          if (state.currentUser) {
-            guestBanner.hide();
-          } else {
-            guestBanner.show();
-          }
-        });
-        
-        guestBanner.init();
+        state.currentModalRestaurant = restaurant;
+        const modal = document.getElementById('actionsModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
       }
       
-      function initializeViewControls() {
-        const gridButtons = document.querySelectorAll('.grid-btn');
-        const grid = document.getElementById('restaurantGrid');
-        
-        if (!grid || gridButtons.length === 0) return;
-        
-        gridButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const view = btn.dataset.view;
-            
-            gridButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            grid.classList.remove('grid-normal', 'grid-compact', 'grid-dense');
-            grid.classList.add(`grid-${view}`);
-            
-            try {
-              localStorage.setItem('zo2y_grid_view', view);
-            } catch (e) {}
-            
-            if (state.filteredRestaurants.length > 0) {
-              renderRestaurants();
-            }
-          });
-        });
-        
-        try {
-          const savedView = localStorage.getItem('zo2y_grid_view') || 'normal';
-          const savedBtn = document.querySelector(`.grid-btn[data-view="${savedView}"]`);
-          if (savedBtn) {
-            savedBtn.click();
-          }
-        } catch (e) {}
+      function hideModal() {
+        const modal = document.getElementById('actionsModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
       }
       
+      // Reset Filters
       function resetAllFilters() {
-        const searchInput = document.getElementById('search');
-        const clearSearchBtn = document.getElementById('clearSearch');
-        const categorySelect = document.getElementById('categorySelect');
-        const sortSelect = document.getElementById('sortSelect');
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        
-        if (searchInput) searchInput.value = '';
-        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
-        if (categorySelect) categorySelect.value = 'all';
-        if (sortSelect) sortSelect.value = 'rating-desc';
-        if (itemsPerPageSelect) {
-          itemsPerPageSelect.value = '20';
-          state.pageSize = 20;
-        }
+        document.getElementById('search').value = '';
+        document.getElementById('categorySelect').value = 'all';
+        document.getElementById('sortSelect').value = 'rating-desc';
+        document.getElementById('itemsPerPage').value = 20;
+        state.pageSize = 20;
         
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        const allFilter = document.querySelector('[data-filter="all"]');
-        if (allFilter) allFilter.classList.add('active');
+        document.querySelector('[data-filter="all"]').classList.add('active');
         
         state.activeFilters = {
           search: '',
@@ -3910,128 +1450,133 @@
           sort: 'rating-desc'
         };
         
-        state.isViewAll = false;
         state.currentPage = 1;
-        
         applyFilters();
-        showNotification('Filters reset', 'info');
       }
       
-      function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-          const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-          };
-          clearTimeout(timeout);
-          timeout = setTimeout(later, wait);
-        };
-      }
-      
-      // ---------- AUTH MANAGEMENT ----------
-      async function updateAuthUI() {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session && session.user) {
-            state.isLoggedIn = true;
-            state.currentUser = session.user;
-            
-            guestBanner.hide();
-            
-            let profile = null;
-            try {
-              const { data: profileData, error: profileError } = await supabase
-                .from('user_profiles')
-                .select('username, full_name, avatar_url')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (!profileError) {
-                profile = profileData;
-              }
-            } catch (err) {
-              console.warn('Profile fetch error:', err);
-            }
-            
-            const displayName = profile?.username || 
-                              profile?.full_name || 
-                              session.user.email?.split('@')[0] || 
-                              'Profile';
-            
-            const authBtn = document.getElementById('authBtn');
-            if (authBtn) {
-              authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
-              authBtn.onclick = () => {
-                window.location.href = 'profile.html';
-              };
-            }
-            
-            await listManager.init();
-            await customListsManager.init();
-            
-          } else {
-            state.isLoggedIn = false;
-            state.currentUser = null;
-            
-            guestBanner.show();
-            
-            const authBtn = document.getElementById('authBtn');
-            if (authBtn) {
-              authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
-              authBtn.onclick = () => window.location.href = 'login.html';
-            }
-          }
-          
-          state.authChecked = true;
-          
-          if (state.filteredRestaurants.length > 0) {
-            renderRestaurants();
-          }
-          
-        } catch (error) {
-          console.error('Auth error:', error);
-          state.isLoggedIn = false;
-          state.currentUser = null;
-          state.authChecked = true;
-          
-          guestBanner.show();
-          
-          const authBtn = document.getElementById('authBtn');
-          if (authBtn) {
-            authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
-            authBtn.onclick = () => window.location.href = 'login.html';
-          }
-        }
-      }
-      
-      // ---------- INITIALIZATION ----------
-      async function init() {
-        if (!supabase) {
-          showNotification('Failed to connect to server', 'error');
-          return;
-        }
-        
-        initLazyLoading();
-        showLoadingSkeleton();
-        setupEventListeners();
-        await loadRestaurantsData();
-        await updateAuthUI();
-        
-        supabase.auth.onAuthStateChange(updateAuthUI);
-        
-        // Save items per page preference
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        if (itemsPerPageSelect) {
-          itemsPerPageSelect.addEventListener('change', function() {
-            try {
-              localStorage.setItem('zo2y_items_per_page', this.value);
-            } catch (e) {}
+      // Event Listeners
+      function setupEventListeners() {
+        // Search
+        const searchInput = document.getElementById('search');
+        if (searchInput) {
+          let searchTimeout;
+          searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+              state.activeFilters.search = searchInput.value.trim();
+              applyFilters();
+            }, 300);
           });
         }
+        
+        // Category select
+        document.getElementById('categorySelect').addEventListener('change', (e) => {
+          state.activeFilters.category = e.target.value;
+          applyFilters();
+        });
+        
+        // Sort select
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+          state.activeFilters.sort = e.target.value;
+          applyFilters();
+        });
+        
+        // Items per page
+        document.getElementById('itemsPerPage').addEventListener('change', (e) => {
+          state.pageSize = parseInt(e.target.value);
+          state.currentPage = 1;
+          applyFilters();
+        });
+        
+        // Quick filters
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+          chip.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            state.activeFilters.quickFilter = e.target.dataset.filter;
+            applyFilters();
+          });
+        });
+        
+        // Grid view buttons
+        document.querySelectorAll('.grid-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const view = btn.dataset.view;
+            document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const grid = document.getElementById('restaurantGrid');
+            grid.className = `grid grid-${view}`;
+            
+            // Fix for mobile dense view
+            if (window.innerWidth <= 768 && view === 'dense') {
+              grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
+            }
+          });
+        });
+        
+        // Reset filters button
+        document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
+        
+        // Modal cancel button
+        document.getElementById('modalCancelBtn').addEventListener('click', hideModal);
+        
+        // Cloud tooltip close button
+        document.querySelector('.tooltip-close')?.addEventListener('click', hideCloudTooltip);
+        
+        // Close modals on escape
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            hideModal();
+            hideCloudTooltip();
+          }
+        });
+        
+        // Close cloud tooltip on background click
+        document.getElementById('cloudMobileTooltip')?.addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) hideCloudTooltip();
+        });
+        
+        // Guest banner
+        const guestBanner = document.getElementById('guestBanner');
+        const bannerSignupBtn = document.getElementById('bannerSignupBtn');
+        const authBtn = document.getElementById('authBtn');
+        
+        bannerSignupBtn?.addEventListener('click', () => {
+          window.location.href = 'sign-up.html';
+        });
+        
+        authBtn?.addEventListener('click', () => {
+          window.location.href = 'login.html';
+        });
+        
+        // Check auth and show/hide banner
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            state.isLoggedIn = true;
+            state.currentUser = session.user;
+            guestBanner.style.display = 'none';
+            authBtn.textContent = 'Profile';
+            authBtn.onclick = () => window.location.href = 'profile.html';
+          } else {
+            guestBanner.style.display = 'block';
+            document.body.classList.add('has-banner');
+          }
+        });
       }
       
+      // Initialize
+      async function init() {
+        setupEventListeners();
+        await loadRestaurants();
+      }
+      
+      // Make functions globally available
+      window.showModal = showModal;
+      window.showCloudTooltip = showCloudTooltip;
+      window.resetAllFilters = resetAllFilters;
+      
+      // Start
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
       } else {
