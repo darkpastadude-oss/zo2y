@@ -387,7 +387,7 @@
       align-items: stretch;
     }
     
-    /* Grid variations - FIXED FOR MOBILE */
+    /* Grid variations - FIXED FOR DESKTOP */
     .grid-single {
       grid-template-columns: 1fr;
     }
@@ -400,16 +400,12 @@
       grid-template-columns: repeat(3, 1fr);
     }
     
-    .grid-normal {
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    .grid-quad {
+      grid-template-columns: repeat(4, 1fr);
     }
     
-    .grid-compact {
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    }
-    
-    .grid-dense {
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    .grid-quint {
+      grid-template-columns: repeat(5, 1fr);
     }
     
     /* Restaurant Card */
@@ -455,40 +451,38 @@
       opacity: 1;
     }
     
-    /* List badges - MOVED TO TOP LEFT */
+    /* List badges - TOP LEFT (Icon only, text shows on hover) */
     .list-badges-container {
       position: absolute;
       top: 12px;
       left: 12px;
       display: flex;
-      flex-direction: column;
       gap: 6px;
       z-index: 30;
       align-items: flex-start;
+      flex-direction: column;
     }
     
     .list-badge {
       background: rgba(11, 22, 51, 0.95);
       color: var(--accent);
-      padding: 6px 10px;
+      padding: 8px 10px;
       border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 18px;
       border: 1px solid var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 4px;
       cursor: help;
       white-space: nowrap;
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
     }
     
     .list-badge:hover {
-      transform: scale(1.05);
+      transform: scale(1.1);
       background: rgba(245, 158, 11, 0.95);
       color: #0b1633;
     }
@@ -496,14 +490,14 @@
     /* List badge tooltips */
     .list-badge .list-badge-tooltip {
       position: absolute;
-      bottom: 100%;
-      left: 0;
-      transform: translateY(-10px);
+      top: 50%;
+      left: 100%;
+      transform: translateY(-50%) translateX(10px);
       background: var(--card);
       border: 2px solid var(--accent);
       border-radius: 12px;
-      padding: 12px 16px;
-      width: 200px;
+      padding: 10px 14px;
+      width: 140px;
       z-index: 1001;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
@@ -514,105 +508,36 @@
       text-align: left;
       font-size: 12px;
       line-height: 1.4;
-      margin-bottom: 8px;
+      margin-left: 8px;
       color: var(--white);
     }
     
     .list-badge:hover .list-badge-tooltip {
       opacity: 1;
       visibility: visible;
-      transform: translateY(-20px);
+      transform: translateY(-50%) translateX(20px);
       pointer-events: auto;
     }
     
-    /* Menu button - TOP RIGHT */
-    .menu-btn-container {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 30;
-    }
-    
-    .menu-btn {
-      width: 36px;
-      height: 36px;
-      background: rgba(11, 22, 51, 0.9);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      position: relative;
-    }
-    
-    .menu-btn:hover {
-      background: var(--accent);
-      transform: scale(1.1);
-    }
-    
-    .menu-btn i {
-      color: var(--white);
-      font-size: 16px;
-    }
-    
-    .menu-btn:hover i {
-      color: #0b1633;
-    }
-    
-    /* Menu button tooltip */
-    .menu-btn .menu-btn-tooltip {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      margin-top: 8px;
-      background: var(--card);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      padding: 10px 14px;
-      z-index: 1001;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      min-width: 120px;
-      text-align: center;
-      color: var(--white);
-    }
-    
-    .menu-btn:hover .menu-btn-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-    
-    /* Cloud Kitchen Badge */
+    /* Cloud Kitchen Badge - TOP LEFT before menu button */
     .cloud-badge {
       position: absolute;
-      top: 60px;
+      top: 12px;
       right: 56px;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       background: rgba(59, 130, 246, 0.95);
-      border-radius: 12px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: help;
       z-index: 100;
       transition: all 0.3s ease;
-      border: 2px solid var(--cloud-color);
+      border: 1px solid var(--cloud-color);
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       color: white;
-      font-size: 16px;
+      font-size: 20px;
     }
     
     .cloud-badge:hover {
@@ -678,6 +603,75 @@
     
     .tooltip-content li {
       margin-bottom: 4px;
+    }
+    
+    /* Menu button - TOP RIGHT */
+    .menu-btn-container {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 30;
+    }
+    
+    .menu-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(11, 22, 51, 0.9);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    
+    .menu-btn:hover {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+    
+    .menu-btn i {
+      color: var(--white);
+      font-size: 18px;
+    }
+    
+    .menu-btn:hover i {
+      color: #0b1633;
+    }
+    
+    /* Menu button tooltip */
+    .menu-btn .menu-btn-tooltip {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: var(--card);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 10px 14px;
+      z-index: 1001;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      min-width: 120px;
+      text-align: center;
+      color: var(--white);
+    }
+    
+    .menu-btn:hover .menu-btn-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
     }
     
     /* Logo overlay in bottom right */
@@ -831,7 +825,7 @@
       font-weight: 500;
     }
     
-    /* Pagination Container - REDESIGNED FOR MOBILE */
+    /* Pagination Container - BOTTOM ONLY (No sticky prev/next) */
     .pagination {
       display: flex;
       justify-content: center;
@@ -1104,7 +1098,7 @@
         display: none !important;
       }
       
-      /* List badges on mobile - make them smaller */
+      /* List badges on mobile - icon only */
       .list-badges-container {
         top: 10px;
         left: 10px;
@@ -1112,9 +1106,26 @@
       }
       
       .list-badge {
-        padding: 4px 8px;
-        font-size: 11px;
-        max-width: 120px;
+        padding: 6px;
+        font-size: 16px;
+        width: 36px;
+        height: 36px;
+      }
+      
+      /* Cloud badge on mobile */
+      .cloud-badge {
+        top: 10px;
+        right: 52px;
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+      }
+      
+      /* Menu button on mobile */
+      .menu-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
       }
       
       /* Logo overlay bigger on mobile */
@@ -1125,7 +1136,7 @@
         right: 14px;
       }
       
-      /* Grid adjustments for mobile grid options */
+      /* Grid adjustments for mobile - KEEP MOBILE AS IS */
       .grid {
         gap: 12px;
       }
@@ -1144,19 +1155,14 @@
         gap: 8px;
       }
       
-      .grid-normal {
+      .grid-quad {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-      }
-      
-      .grid-compact {
-        grid-template-columns: repeat(4, 1fr);
         gap: 10px;
       }
       
-      .grid-dense {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 8px;
+      .grid-quint {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
       
       /* Adjust card content for smaller screens */
@@ -1166,18 +1172,6 @@
       
       .restaurant-image {
         height: 160px;
-      }
-      
-      .cloud-badge {
-        top: 50px;
-        right: 52px;
-        width: 32px;
-        height: 32px;
-      }
-      
-      .menu-btn {
-        width: 32px;
-        height: 32px;
       }
       
       /* Controls adjustments */
@@ -1263,6 +1257,29 @@
       
       .pagination {
         display: flex !important;
+      }
+      
+      /* Desktop Grid Options */
+      .grid-single {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .grid-double {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+      }
+      
+      .grid-triple {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+      }
+      
+      /* Hide quad and quint classes for desktop since we're using double=4 and triple=5 */
+      .grid-quad,
+      .grid-quint {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
       }
     }
     
@@ -2004,13 +2021,13 @@
       
       <div class="view-controls">
         <div class="grid-size-buttons">
-          <button class="grid-btn" data-view="single" title="Single View" aria-label="Single column view">
+          <button class="grid-btn" data-view="single" title="Single View (1 column)" aria-label="Single column view">
             <i class="fas fa-bars"></i>
           </button>
-          <button class="grid-btn active" data-view="double" title="Double View" aria-label="Double column view">
+          <button class="grid-btn active" data-view="double" title="Quad View (4 columns)" aria-label="Quad column view">
             <i class="fas fa-th-large"></i>
           </button>
-          <button class="grid-btn" data-view="triple" title="Triple View" aria-label="Triple column view">
+          <button class="grid-btn" data-view="triple" title="Quint View (5 columns)" aria-label="Quint column view">
             <i class="fas fa-th"></i>
           </button>
         </div>
@@ -2029,7 +2046,7 @@
       <!-- Content loaded dynamically -->
     </div>
     
-    <!-- Desktop Pagination -->
+    <!-- Desktop Pagination - BOTTOM ONLY (No sticky prev/next) -->
     <div id="pagination" class="pagination" style="display: none;">
       <button class="pagination-btn" id="prevPage" disabled>
         <i class="fas fa-chevron-left"></i> Prev
@@ -3430,41 +3447,34 @@
         const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
         const hasCloudBadge = isCloudKitchen;
         
-        // Create list badges - MOVED TO TOP LEFT
+        // Create list badges - ICON ONLY (text shows on hover)
         let listBadges = '';
-        let listTooltips = [];
         
         if (status.favorites) {
           listBadges += `
             <div class="list-badge">
-              <i class="fas fa-heart"></i>
-              <span>Favorites</span>
+              ❤️
               <div class="list-badge-tooltip">In your Favorites list</div>
             </div>
           `;
-          listTooltips.push('Favorites');
         }
         
         if (status.wantToGo) {
           listBadges += `
             <div class="list-badge">
-              <i class="fas fa-map-marker-alt"></i>
-              <span>Want to Go</span>
+              📍
               <div class="list-badge-tooltip">In your Want to Go list</div>
             </div>
           `;
-          listTooltips.push('Want to Go');
         }
         
         if (status.visited) {
           listBadges += `
             <div class="list-badge">
-              <i class="fas fa-utensils"></i>
-              <span>Visited</span>
+              ✓
               <div class="list-badge-tooltip">In your Visited list</div>
             </div>
           `;
-          listTooltips.push('Visited');
         }
         
         card.innerHTML = `
@@ -3486,8 +3496,10 @@
                 </div>
               ` : ''}
               
-              <!-- List badges container at top left -->
+              <!-- List badges container at top left - ICON ONLY -->
               ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
+              
+              ${cloudBadge}
               
               <div class="menu-btn-container">
                 <button class="menu-btn" aria-label="Restaurant actions">
@@ -3495,7 +3507,6 @@
                   <div class="menu-btn-tooltip">Save to lists</div>
                 </button>
               </div>
-              ${cloudBadge}
             </div>
             <div class="card-content">
               <div class="card-header">
@@ -3637,7 +3648,7 @@
           return;
         }
         
-        // Update desktop pagination
+        // Update desktop pagination (only shows at bottom, not sticky)
         if (pagination) {
           pagination.style.display = 'flex';
           document.getElementById('currentPage').textContent = state.currentPage;
@@ -4032,25 +4043,10 @@
             gridButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            grid.classList.remove('grid-single', 'grid-double', 'grid-triple', 'grid-normal', 'grid-compact', 'grid-dense');
+            grid.classList.remove('grid-single', 'grid-double', 'grid-triple', 'grid-quad', 'grid-quint');
             
-            if (window.innerWidth <= 768) {
-              // On mobile, use the specific grid views
-              grid.classList.add(`grid-${view}`);
-            } else {
-              // On desktop, use the auto-fill layouts
-              switch(view) {
-                case 'single':
-                  grid.classList.add('grid-normal');
-                  break;
-                case 'double':
-                  grid.classList.add('grid-compact');
-                  break;
-                case 'triple':
-                  grid.classList.add('grid-dense');
-                  break;
-              }
-            }
+            // Set grid class based on view
+            grid.classList.add(`grid-${view}`);
             
             try {
               localStorage.setItem('zo2y_grid_view', view);
