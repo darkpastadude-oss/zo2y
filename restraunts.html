@@ -451,7 +451,7 @@
       opacity: 1;
     }
     
-    /* List badges - TOP LEFT (Icon only, text shows on hover) - SMALLER SIZE */
+    /* List badges - TOP LEFT (Icon only, text shows on hover) - BRING BACK ICONS */
     .list-badges-container {
       position: absolute;
       top: 12px;
@@ -466,9 +466,9 @@
     .list-badge {
       background: rgba(11, 22, 51, 0.95);
       color: var(--accent);
-      padding: 6px 8px; /* SMALLER PADDING */
+      padding: 8px 10px;
       border-radius: 8px;
-      font-size: 16px; /* SMALLER FONT SIZE */
+      font-size: 18px;
       border: 1px solid var(--accent);
       cursor: help;
       white-space: nowrap;
@@ -477,8 +477,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 36px; /* SMALLER WIDTH */
-      height: 36px; /* SMALLER HEIGHT */
+      width: 40px;
+      height: 40px;
     }
     
     .list-badge:hover {
@@ -487,7 +487,7 @@
       color: #0b1633;
     }
     
-    /* List badge tooltips */
+    /* List badge tooltips - UPDATED TEXT */
     .list-badge .list-badge-tooltip {
       position: absolute;
       top: 50%;
@@ -545,7 +545,7 @@
       transform: scale(1.05);
     }
     
-    /* Cloud Kitchen Tooltip - UPDATED TEXT */
+    /* Cloud Kitchen Tooltip - SIMPLIFIED */
     .cloud-badge .cloud-tooltip {
       position: absolute;
       top: -10px;
@@ -554,8 +554,8 @@
       background: var(--card);
       border: 2px solid var(--cloud-color);
       border-radius: 12px;
-      padding: 16px;
-      width: 280px;
+      padding: 12px 16px;
+      width: 160px;
       z-index: 1001;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
@@ -564,6 +564,8 @@
       transition: all 0.3s ease;
       pointer-events: none;
       color: var(--white);
+      text-align: center;
+      font-weight: 600;
     }
     
     .cloud-badge:hover .cloud-tooltip {
@@ -589,20 +591,6 @@
       color: var(--white);
       font-size: 16px;
       margin: 0;
-    }
-    
-    .tooltip-content {
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    
-    .tooltip-content ul {
-      margin: 8px 0;
-      padding-left: 20px;
-    }
-    
-    .tooltip-content li {
-      margin-bottom: 4px;
     }
     
     /* Menu button - TOP RIGHT */
@@ -825,71 +813,94 @@
       font-weight: 500;
     }
     
-    /* NEW: Load More Button - Replaces pagination */
-    .load-more-container {
+    /* NEW: Mobile Pagination - For BOTH mobile and desktop */
+    .mobile-pagination {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      z-index: 900;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .mobile-pagination.visible {
+      transform: translateY(0);
+    }
+    
+    .mobile-pagination-controls {
       display: flex;
-      justify-content: center;
-      margin-top: 40px;
-      padding-top: 20px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
       width: 100%;
     }
     
-    .load-more-btn {
-      background: var(--gradient);
-      border: none;
-      color: #0b1633;
-      padding: 14px 32px;
-      border-radius: 16px;
+    .mobile-pagination-btn {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 14px 12px;
+      border-radius: 12px;
       font-weight: 600;
-      font-size: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
       display: flex;
       align-items: center;
-      gap: 10px;
-      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-      position: relative;
-      overflow: hidden;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      font-size: 15px;
     }
     
-    .load-more-btn:hover {
+    .mobile-pagination-btn:hover:not(:disabled) {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
     }
     
-    .load-more-btn:active {
-      transform: translateY(0);
-    }
-    
-    .load-more-btn:disabled {
+    .mobile-pagination-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+      background: var(--card);
+      border-color: var(--border);
+      color: var(--muted);
+    }
+    
+    .mobile-pagination-btn:disabled:hover {
       transform: none;
       box-shadow: none;
+      background: var(--card);
     }
     
-    .load-more-btn.loading {
-      padding-right: 50px;
+    .mobile-pagination-info {
+      flex: 1;
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px;
+      text-align: center;
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
-    .load-more-btn .loading-spinner {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #0b1633;
-      animation: spin 0.8s linear infinite;
-      position: absolute;
-      right: 15px;
-    }
-    
-    .load-more-btn.loading .loading-spinner {
-      display: block;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .mobile-pagination-info .page-number {
+      color: var(--accent);
+      font-weight: 700;
+      margin: 0 4px;
     }
     
     /* Chrome Mobile Scrolling Fix */
@@ -902,6 +913,11 @@
       
       .container {
         min-height: calc(100vh - env(safe-area-inset-bottom) - 200px);
+      }
+      
+      /* Add extra padding for mobile pagination */
+      .mobile-pagination {
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
       }
     }
     
@@ -962,8 +978,10 @@
         font-size: 13px;
       }
       
-      /* Hide mobile pagination, show load more */
-      .mobile-pagination {
+      /* Hide tooltips on mobile */
+      .cloud-tooltip,
+      .list-badge-tooltip,
+      .menu-btn-tooltip {
         display: none !important;
       }
       
@@ -975,10 +993,10 @@
       }
       
       .list-badge {
-        padding: 4px 6px; /* SMALLER PADDING FOR MOBILE */
-        font-size: 14px; /* SMALLER FONT SIZE FOR MOBILE */
-        width: 32px; /* SMALLER WIDTH FOR MOBILE */
-        height: 32px; /* SMALLER HEIGHT FOR MOBILE */
+        padding: 6px;
+        font-size: 16px;
+        width: 36px;
+        height: 36px;
       }
       
       /* Cloud badge on mobile */
@@ -1107,14 +1125,6 @@
       .card-title-wrapper {
         width: 100%;
       }
-      
-      /* Load More button adjustments for mobile */
-      .load-more-btn {
-        padding: 16px 24px;
-        font-size: 15px;
-        width: 100%;
-        max-width: 280px;
-      }
     }
     
     @media (min-width: 769px) {
@@ -1127,10 +1137,9 @@
         display: block;
       }
       
-      /* Hide old pagination on desktop */
-      .pagination,
+      /* Show mobile pagination on desktop too */
       .mobile-pagination {
-        display: none !important;
+        display: block;
       }
       
       /* Desktop Grid Options */
@@ -1919,15 +1928,24 @@
     <div id="restaurantGrid" class="grid grid-double">
       <!-- Content loaded dynamically -->
     </div>
-    
-    <!-- Load More Button - NEW -->
-    <div id="loadMoreContainer" class="load-more-container" style="display: none;">
-      <button class="load-more-btn" id="loadMoreBtn">
-        <i class="fas fa-plus"></i> Load More
-        <div class="loading-spinner"></div>
+  </main>
+
+  <!-- Mobile Pagination - Fixed at bottom, shows when near end, for BOTH mobile and desktop -->
+  <div id="mobilePagination" class="mobile-pagination">
+    <div class="mobile-pagination-controls">
+      <button class="mobile-pagination-btn" id="mobilePrevBtn" disabled>
+        <i class="fas fa-chevron-left"></i>
+        Prev
+      </button>
+      <div class="mobile-pagination-info">
+        <span id="mobilePageInfo">Page <span class="page-number">1</span> of <span class="page-number">1</span></span>
+      </div>
+      <button class="mobile-pagination-btn" id="mobileNextBtn" disabled>
+        Next
+        <i class="fas fa-chevron-right"></i>
       </button>
     </div>
-  </main>
+  </div>
 
   <!-- Actions Modal -->
   <div id="actionsModal" class="actions-modal">
@@ -2056,8 +2074,9 @@
         viewAllButtonText: "View All",
         totalRestaurantCount: 0,
         imageObserver: null,
-        visibleRestaurantCount: 0, // Track how many restaurants are currently visible
-        isLoadingMore: false // Track if we're currently loading more
+        totalPages: 1,
+        isPaginationVisible: false,
+        paginationObserver: null
       };
       
       // ---------- FIXED IMAGE LOADING SYSTEM ----------
@@ -2157,20 +2176,7 @@
             <div class="cloud-badge" aria-label="Cloud Kitchen">
               <i class="fas fa-cloud"></i>
               <div class="cloud-tooltip">
-                <div class="tooltip-header">
-                  <i class="fas fa-cloud"></i>
-                  <h4>Cloud Kitchen</h4>
-                </div>
-                <div class="tooltip-content">
-                  <p><strong>Cloud Kitchen</strong>: A delivery-only restaurant that operates without a physical dining space.</p>
-                  <ul>
-                    <li>Delivery only - no dine-in option</li>
-                    <li>Optimized for online orders</li>
-                    <li>Often operates multiple brands from one kitchen</li>
-                    <li>Lower overhead costs</li>
-                  </ul>
-                  <p>These restaurants focus on quality food optimized for delivery.</p>
-                </div>
+                Cloud Kitchen
               </div>
             </div>
           `;
@@ -3224,10 +3230,9 @@
         
         state.filteredRestaurants = filtered;
         state.currentPage = 1;
-        state.visibleRestaurantCount = 0; // Reset visible count
         
         renderRestaurants();
-        updateLoadMoreButton();
+        updatePagination();
         updateCounts();
       }
       
@@ -3301,14 +3306,14 @@
         const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
         const hasCloudBadge = isCloudKitchen;
         
-        // Create list badges - SMALLER ICONS
+        // Create list badges - BRING BACK ICONS with updated tooltip text
         let listBadges = '';
         
         if (status.favorites) {
           listBadges += `
             <div class="list-badge">
               ❤️
-              <div class="list-badge-tooltip">In your Favorites list</div>
+              <div class="list-badge-tooltip">Favorited</div>
             </div>
           `;
         }
@@ -3317,7 +3322,7 @@
           listBadges += `
             <div class="list-badge">
               📍
-              <div class="list-badge-tooltip">In your Want to Go list</div>
+              <div class="list-badge-tooltip">Want to go to</div>
             </div>
           `;
         }
@@ -3326,7 +3331,7 @@
           listBadges += `
             <div class="list-badge">
               ✓
-              <div class="list-badge-tooltip">In your Visited list</div>
+              <div class="list-badge-tooltip">Visited</div>
             </div>
           `;
         }
@@ -3350,7 +3355,7 @@
                 </div>
               ` : ''}
               
-              <!-- List badges container at top left - SMALLER ICONS -->
+              <!-- List badges container at top left - ICONS BROUGHT BACK -->
               ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
               
               ${cloudBadge}
@@ -3404,7 +3409,7 @@
           cloudBadgeElement.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            alert('Cloud Kitchen: A delivery-only restaurant that operates without a physical dining space.');
+            alert('Cloud Kitchen');
           });
         }
         
@@ -3428,14 +3433,12 @@
         
         grid.classList.remove('skeleton-grid');
         
-        const startIdx = 0;
-        const endIdx = Math.min(state.visibleRestaurantCount, state.filteredRestaurants.length);
-        const itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
+        let itemsToShow;
+        const startIdx = (state.currentPage - 1) * state.pageSize;
+        const endIdx = Math.min(startIdx + state.pageSize, state.filteredRestaurants.length);
+        itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
         
-        // If we're loading the initial batch, clear the grid
-        if (state.visibleRestaurantCount === 0) {
-          grid.innerHTML = '';
-        }
+        grid.innerHTML = '';
         
         // Create document fragment for better performance
         const fragment = document.createDocumentFragment();
@@ -3459,9 +3462,6 @@
             });
           }, 100);
         }
-        
-        // Setup intersection observer for load more button
-        setupLoadMoreObserver();
       }
       
       function showEmptyState() {
@@ -3489,99 +3489,97 @@
         }
       }
       
-      // ---------- LOAD MORE FUNCTIONALITY ----------
-      function updateLoadMoreButton() {
-        const loadMoreContainer = document.getElementById('loadMoreContainer');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
+      // ---------- PAGINATION ----------
+      function updatePagination() {
+        const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
+        state.totalPages = totalPages;
         
-        if (!loadMoreContainer || !loadMoreBtn) return;
-        
-        // Reset visible count when filters change
-        state.visibleRestaurantCount = Math.min(state.pageSize, state.filteredRestaurants.length);
-        
-        if (state.visibleRestaurantCount >= state.filteredRestaurants.length) {
-          loadMoreContainer.style.display = 'none';
-        } else {
-          loadMoreContainer.style.display = 'flex';
-          loadMoreBtn.disabled = false;
-          loadMoreBtn.classList.remove('loading');
-          loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Load More`;
-          
-          // Add click event
-          loadMoreBtn.onclick = loadMoreRestaurants;
+        // Update mobile pagination info
+        const mobilePageInfo = document.getElementById('mobilePageInfo');
+        if (mobilePageInfo) {
+          mobilePageInfo.innerHTML = `Page <span class="page-number">${state.currentPage}</span> of <span class="page-number">${totalPages}</span>`;
         }
+        
+        const mobilePrevBtn = document.getElementById('mobilePrevBtn');
+        const mobileNextBtn = document.getElementById('mobileNextBtn');
+        
+        if (mobilePrevBtn) mobilePrevBtn.disabled = state.currentPage === 1;
+        if (mobileNextBtn) mobileNextBtn.disabled = state.currentPage === totalPages;
+        
+        if (mobilePrevBtn) {
+          mobilePrevBtn.onclick = () => {
+            if (state.currentPage > 1) {
+              state.currentPage--;
+              renderRestaurants();
+              updatePagination();
+              updateCounts();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+        }
+        
+        if (mobileNextBtn) {
+          mobileNextBtn.onclick = () => {
+            if (state.currentPage < totalPages) {
+              state.currentPage++;
+              renderRestaurants();
+              updatePagination();
+              updateCounts();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+        }
+        
+        // Setup intersection observer to show pagination when near bottom
+        setupPaginationObserver();
       }
       
-      async function loadMoreRestaurants() {
-        if (state.isLoadingMore) return;
-        
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (!loadMoreBtn) return;
-        
-        state.isLoadingMore = true;
-        loadMoreBtn.disabled = true;
-        loadMoreBtn.classList.add('loading');
-        
-        // Simulate loading delay
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Increase visible count
-        state.visibleRestaurantCount = Math.min(
-          state.visibleRestaurantCount + state.pageSize,
-          state.filteredRestaurants.length
-        );
-        
-        // Render additional restaurants
-        await renderRestaurants();
-        
-        // Update button
-        if (state.visibleRestaurantCount >= state.filteredRestaurants.length) {
-          document.getElementById('loadMoreContainer').style.display = 'none';
-        } else {
-          loadMoreBtn.disabled = false;
-          loadMoreBtn.classList.remove('loading');
-          loadMoreBtn.innerHTML = `<i class="fas fa-plus"></i> Load More`;
+      function setupPaginationObserver() {
+        // Clean up existing observer
+        if (state.paginationObserver) {
+          state.paginationObserver.disconnect();
         }
         
-        state.isLoadingMore = false;
-        updateCounts();
-        
-        // Scroll to show the newly loaded items
-        const lastCard = document.querySelector('.restaurant-card:last-child');
-        if (lastCard) {
-          lastCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      }
-      
-      function setupLoadMoreObserver() {
-        // Clean up any existing observer
-        if (window.loadMoreObserver) {
-          window.loadMoreObserver.disconnect();
-        }
-        
-        // Create intersection observer to show load more button when near bottom
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (!loadMoreBtn) return;
-        
-        window.loadMoreObserver = new IntersectionObserver(
+        // Create new observer
+        state.paginationObserver = new IntersectionObserver(
           (entries) => {
             entries.forEach(entry => {
-              if (entry.isIntersecting && !state.isLoadingMore) {
-                // Load more when button becomes visible
-                loadMoreRestaurants();
+              if (entry.isIntersecting && state.filteredRestaurants.length > state.pageSize) {
+                // Show pagination when user is near bottom
+                showPagination();
+              } else if (!entry.isIntersecting && state.isPaginationVisible) {
+                // Hide pagination when not near bottom
+                hidePagination();
               }
             });
           },
           {
             root: null,
-            rootMargin: '100px 0px',
+            rootMargin: '200px 0px',
             threshold: 0.1
           }
         );
         
-        // Only observe if we have more items to load
-        if (state.visibleRestaurantCount < state.filteredRestaurants.length) {
-          window.loadMoreObserver.observe(loadMoreBtn);
+        // Observe the last restaurant card
+        const lastCard = document.querySelector('.restaurant-card:last-child');
+        if (lastCard && state.filteredRestaurants.length > state.pageSize) {
+          state.paginationObserver.observe(lastCard);
+        }
+      }
+      
+      function showPagination() {
+        const pagination = document.getElementById('mobilePagination');
+        if (pagination) {
+          pagination.classList.add('visible');
+          state.isPaginationVisible = true;
+        }
+      }
+      
+      function hidePagination() {
+        const pagination = document.getElementById('mobilePagination');
+        if (pagination) {
+          pagination.classList.remove('visible');
+          state.isPaginationVisible = false;
         }
       }
       
@@ -3593,12 +3591,17 @@
         
         const totalFiltered = state.filteredRestaurants.length;
         
-        if (state.visibleRestaurantCount === 0) {
+        if (totalFiltered === 0) {
           showingText.textContent = 'No restaurants found';
-        } else if (state.visibleRestaurantCount >= totalFiltered) {
-          showingText.textContent = `Showing all ${totalFiltered} restaurants`;
         } else {
-          showingText.textContent = `Showing ${state.visibleRestaurantCount} of ${totalFiltered} restaurants`;
+          const startIdx = (state.currentPage - 1) * state.pageSize + 1;
+          const endIdx = Math.min(startIdx + state.pageSize - 1, totalFiltered);
+          
+          if (startIdx === endIdx) {
+            showingText.textContent = `Showing restaurant ${startIdx} of ${totalFiltered}`;
+          } else {
+            showingText.textContent = `Showing ${startIdx}-${endIdx} of ${totalFiltered} restaurants`;
+          }
         }
       }
       
@@ -3646,7 +3649,7 @@
         if (itemsPerPageSelect) {
           itemsPerPageSelect.addEventListener('change', (e) => {
             state.pageSize = parseInt(e.target.value);
-            state.visibleRestaurantCount = 0; // Reset visible count
+            state.currentPage = 1;
             applyFilters();
             
             try {
@@ -3915,7 +3918,7 @@
           sort: 'rating-desc'
         };
         
-        state.visibleRestaurantCount = 0;
+        state.currentPage = 1;
         
         applyFilters();
         showNotification('Filters reset', 'info');
