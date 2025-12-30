@@ -22,16 +22,18 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Guest Banner - NOT sticky */
-    .guest-banner {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 10px 20px;
-      margin: 0 auto;
-      text-align: center;
-      backdrop-filter: none;
-      position: relative;
-      z-index: 99;
+    /* Mobile Guest Banner - STICKY FIX */
+    .guest-banner.mobile {
+      display: block;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      padding: 8px 12px;
+      backdrop-filter: blur(8px) saturate(180%);
+      background: rgba(245, 158, 11, 0.15);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+      margin-bottom: 0;
+      width: 100%;
     }
     
     .guest-banner.desktop {
@@ -41,13 +43,10 @@
       border-radius: 12px;
       margin: 0 auto 20px auto;
       border: 1px solid rgba(245, 158, 11, 0.2);
-    }
-    
-    .guest-banner.mobile {
-      display: block;
-      width: 100%;
-      border-radius: 0;
-      margin-bottom: 20px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 10px 20px;
+      text-align: center;
     }
     
     .banner-content {
@@ -452,7 +451,7 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Cloud Kitchen Badge - TOP RIGHT - Optimized for PC */
+    /* Cloud Kitchen Badge - FIXED SIZE */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -472,27 +471,27 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       color: white;
       font-size: 16px;
+      overflow: hidden;
     }
     
+    /* On hover - subtle effect only */
     .cloud-badge:hover {
       background: rgba(59, 130, 246, 1);
-      transform: scale(1.1);
-      width: auto;
-      padding: 0 12px;
-      gap: 6px;
+      transform: scale(1.05);
+      width: 36px; /* FIX: Keep fixed width */
+      padding: 0; /* FIX: No padding change */
     }
     
+    /* Remove the expanding text effect */
     .cloud-badge:hover .cloud-text {
-      display: inline;
-      font-size: 12px;
-      font-weight: 600;
+      display: none; /* FIX: Don't show text on hover */
     }
     
     .cloud-text {
       display: none;
     }
     
-    /* Cloud Kitchen Info Tooltip - Fixed positioning */
+    /* Cloud Kitchen Info Tooltip */
     .cloud-tooltip {
       position: absolute;
       top: 50px;
@@ -500,11 +499,12 @@
       background: var(--card);
       border: 2px solid var(--cloud-color);
       border-radius: 12px;
-      padding: 16px;
-      width: 280px;
+      padding: 12px;
+      width: 260px;
+      max-width: calc(100vw - 40px);
       z-index: 1000;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      backdrop-filter: none;
+      backdrop-filter: blur(10px);
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
@@ -636,6 +636,65 @@
     .cloud-popup-close:hover {
       background: #2563eb;
       transform: translateY(-2px);
+    }
+    
+    /* Icon Tooltips for Mobile */
+    .menu-btn::after {
+      content: "Save to lists";
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    
+    .cloud-badge::after {
+      content: "Cloud Kitchen Info";
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    
+    /* Show tooltips on hover (desktop) and touch (mobile) */
+    @media (hover: hover) and (pointer: fine) {
+      .menu-btn:hover::after,
+      .cloud-badge:hover::after {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+    
+    /* Show tooltips on touch devices */
+    @media (max-width: 768px) {
+      .menu-btn:active::after,
+      .cloud-badge:active::after {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+      }
     }
     
     /* Logo overlay in bottom left */
@@ -1597,12 +1656,16 @@
     
     /* Responsive */
     @media (max-width: 768px) {
-      /* Guest banner */
+      /* Mobile banner adjustments */
       .guest-banner.mobile {
-        display: block;
-        position: relative;
+        position: sticky;
         top: 0;
-        margin-bottom: 20px;
+        z-index: 200;
+        padding: 8px 12px;
+        backdrop-filter: blur(8px) saturate(180%);
+        background: rgba(245, 158, 11, 0.15);
+        border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+        margin-bottom: 0;
       }
       
       .guest-banner.desktop {
@@ -1623,31 +1686,35 @@
         font-size: 11px;
       }
       
-      /* Cloud badge mobile adjustments */
-      .cloud-badge {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-      }
-      
-      .cloud-badge:hover {
-        padding: 0 8px;
-        gap: 4px;
-      }
-      
-      .cloud-badge:hover .cloud-text {
-        font-size: 11px;
-      }
-      
-      /* Hide tooltip on mobile */
+      /* Mobile tooltip positioning */
       .cloud-tooltip {
-        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) translateY(20px);
+        width: 90%;
+        max-width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      
+      .cloud-badge:hover .cloud-tooltip {
+        transform: translate(-50%, -50%) translateY(0);
+      }
+      
+      .cloud-badge {
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        min-height: 34px;
       }
       
       .menu-btn {
         top: 56px;
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
         font-size: 14px;
       }
       
@@ -1655,39 +1722,24 @@
         top: 12px;
       }
       
-      /* Grid adjustments - Fix third grid option */
+      /* Improved grid spacing */
+      .grid {
+        gap: 12px;
+      }
+      
+      /* Grid adjustments */
       .grid-normal {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: 1fr;
       }
       
       .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
       }
       
       .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      }
-      
-      /* Fix for dense grid */
-      .grid-dense .restaurant-card {
-        min-height: 180px;
-      }
-      
-      .grid-dense .card-image {
-        height: 120px;
-      }
-      
-      .grid-dense .restaurant-image {
-        height: 120px;
-      }
-      
-      .grid-dense .card-content {
-        padding: 12px;
-      }
-      
-      .grid-dense .card-description {
-        -webkit-line-clamp: 2;
-        font-size: 13px;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
       }
       
       .search-wrapper {
@@ -1756,8 +1808,8 @@
       }
       
       .menu-btn {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         top: 10px;
         right: 10px;
       }
@@ -1805,27 +1857,41 @@
       
       /* Cloud badge touch-friendly */
       .cloud-badge {
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
         font-size: 12px;
       }
       
       /* Grid adjustments */
+      .grid {
+        gap: 10px;
+      }
+      
       .grid-normal {
         grid-template-columns: 1fr;
       }
       
       .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
       }
       
       .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
       }
       
-      /* Fix for extra square in dense grid */
-      .grid-dense .restaurant-card {
-        min-height: 200px;
+      /* Better touch targets for small phones */
+      .menu-btn {
+        width: 36px;
+        height: 36px;
+      }
+      
+      .cloud-badge {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
       }
       
       .guest-banner {
@@ -1897,7 +1963,7 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Mobile Guest Banner - Not sticky -->
+  <!-- Mobile Guest Banner - STICKY -->
   <div id="guestBannerMobile" class="guest-banner mobile">
     <div class="banner-content">
       <span class="banner-text">Want to save favorites?</span>
@@ -2238,8 +2304,8 @@
           // Set optimization parameters - Reduced quality for faster loading
           if (!params.has('width')) params.set('width', options.width || '400');
           if (!params.has('height')) params.set('height', options.height || '300');
-          if (!params.has('quality')) params.set('quality', options.quality || '60');
-          if (!params.has('format')) params.set('format', options.format || 'webp');
+          if (!params.has('quality')) params.set('quality', options.quality || '50'); // Reduced for speed
+          if (!params.has('format')) params.set('format', options.format || 'webp'); // Use WebP
           if (!params.has('resize')) params.set('resize', options.resize || 'cover');
           
           // Add cache busting
@@ -2268,7 +2334,7 @@
               }
             });
           }, {
-            rootMargin: '50px 0px', // Reduced from 100px for faster loading
+            rootMargin: '100px 0px', // Load images 100px before they enter viewport
             threshold: 0.01
           });
         }
@@ -2280,15 +2346,25 @@
           return;
         }
         
+        // Use native lazy loading + optimized URLs
+        imgElement.loading = 'lazy';
+        imgElement.decoding = 'async';
+        
         // Optimize Supabase URLs with lower quality for speed
         const optimizedUrl = getOptimizedSupabaseImageUrl(url, {
           width: '400',
           height: '300',
-          quality: '60',
-          format: 'webp'
+          quality: '50', // Reduced from 60 for faster loading
+          format: 'webp' // Use WebP format
         });
         
-        // Direct loading without extra Image object for speed
+        // Use fetch priority for above-the-fold images
+        const rect = imgElement.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 100) {
+          imgElement.fetchPriority = 'high';
+        }
+        
+        // Direct loading
         imgElement.onload = () => {
           imgElement.classList.add('loaded');
           imgElement.style.opacity = '1';
@@ -3605,6 +3681,15 @@
             if (window.innerWidth <= 768) {
               cloudKitchenManager.showMobilePopup();
             }
+          });
+          
+          // Add touch feedback for mobile
+          cloudBadgeEl.addEventListener('touchstart', () => {
+            cloudBadgeEl.style.transform = 'scale(0.95)';
+          });
+          
+          cloudBadgeEl.addEventListener('touchend', () => {
+            cloudBadgeEl.style.transform = 'scale(1)';
           });
         }
         
