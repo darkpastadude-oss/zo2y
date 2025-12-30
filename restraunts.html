@@ -385,6 +385,7 @@
       transition: grid-template-columns 0.3s ease;
       min-height: 200px;
       align-items: stretch;
+      position: relative;
     }
     
     /* Grid variations - FIXED FOR DESKTOP */
@@ -1830,6 +1831,16 @@
       color: var(--white);
       background: rgba(255,255,255,0.1);
     }
+    
+    /* Pagination Sentinel */
+    .pagination-sentinel {
+      position: absolute;
+      bottom: 100px;
+      width: 100%;
+      height: 1px;
+      pointer-events: none;
+      opacity: 0;
+    }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
@@ -2076,7 +2087,8 @@
         imageObserver: null,
         totalPages: 1,
         isPaginationVisible: false,
-        paginationObserver: null
+        paginationObserver: null,
+        lastScrollTop: 0
       };
       
       // ---------- FIXED IMAGE LOADING SYSTEM ----------
@@ -3462,6 +3474,16 @@
             });
           }, 100);
         }
+        
+        // Create sentinel element for pagination detection
+        createSentinelElement();
+        
+        // Show pagination if we have multiple pages
+        if (state.totalPages > 1 && state.currentPage < state.totalPages) {
+          setTimeout(() => {
+            showPagination();
+          }, 300);
+        }
       }
       
       function showEmptyState() {
@@ -3487,6 +3509,8 @@
         if (resetBtn) {
           resetBtn.addEventListener('click', resetAllFilters);
         }
+        
+        hidePagination();
       }
       
       // ---------- PAGINATION ----------
@@ -3514,6 +3538,7 @@
               updatePagination();
               updateCounts();
               window.scrollTo({ top: 0, behavior: 'smooth' });
+              hidePagination();
             }
           };
         }
@@ -3526,50 +3551,89 @@
               updatePagination();
               updateCounts();
               window.scrollTo({ top: 0, behavior: 'smooth' });
+              hidePagination();
             }
           };
         }
         
-        // Setup intersection observer to show pagination when near bottom
+        // Setup intersection observer only if we have enough content
         setupPaginationObserver();
+        
+        // If we have multiple pages and not on "All", show pagination after a delay
+        if (totalPages > 1 && state.pageSize !== state.totalRestaurantCount) {
+          setTimeout(() => {
+            showPagination();
+          }, 500);
+        } else {
+          hidePagination();
+        }
       }
       
       function setupPaginationObserver() {
         // Clean up existing observer
         if (state.paginationObserver) {
           state.paginationObserver.disconnect();
+          state.paginationObserver = null;
         }
         
-        // Create new observer
+        // Only set up observer if we have multiple pages and not showing all
+        if (state.totalPages <= 1 || state.pageSize === state.totalRestaurantCount) {
+          hidePagination();
+          return;
+        }
+        
+        // Create new observer that shows pagination when user is near bottom
         state.paginationObserver = new IntersectionObserver(
           (entries) => {
             entries.forEach(entry => {
-              if (entry.isIntersecting && state.filteredRestaurants.length > state.pageSize) {
-                // Show pagination when user is near bottom
+              // Show pagination when sentinel is near viewport
+              if (entry.isIntersecting && state.currentPage < state.totalPages) {
                 showPagination();
-              } else if (!entry.isIntersecting && state.isPaginationVisible) {
-                // Hide pagination when not near bottom
-                hidePagination();
               }
             });
           },
           {
             root: null,
-            rootMargin: '200px 0px',
+            rootMargin: '200px 0px', // Show 200px before sentinel reaches viewport
             threshold: 0.1
           }
         );
         
-        // Observe the last restaurant card
-        const lastCard = document.querySelector('.restaurant-card:last-child');
-        if (lastCard && state.filteredRestaurants.length > state.pageSize) {
-          state.paginationObserver.observe(lastCard);
+        // Observe the sentinel element
+        const sentinel = document.querySelector('.pagination-sentinel');
+        if (sentinel && state.paginationObserver) {
+          state.paginationObserver.observe(sentinel);
         }
+      }
+      
+      function createSentinelElement() {
+        // Remove existing sentinel if any
+        const existingSentinel = document.querySelector('.pagination-sentinel');
+        if (existingSentinel) {
+          existingSentinel.remove();
+        }
+        
+        // Only create sentinel if we have multiple pages and not showing all
+        if (state.totalPages <= 1 || state.pageSize === state.totalRestaurantCount) {
+          return null;
+        }
+        
+        // Create a sentinel element at the bottom of the grid
+        const grid = document.getElementById('restaurantGrid');
+        if (!grid) return null;
+        
+        const sentinel = document.createElement('div');
+        sentinel.className = 'pagination-sentinel';
+        sentinel.style.height = '1px';
+        sentinel.style.width = '100%';
+        
+        grid.appendChild(sentinel);
+        return sentinel;
       }
       
       function showPagination() {
         const pagination = document.getElementById('mobilePagination');
-        if (pagination) {
+        if (pagination && state.totalPages > 1 && state.currentPage < state.totalPages) {
           pagination.classList.add('visible');
           state.isPaginationVisible = true;
         }
@@ -3593,6 +3657,7 @@
         
         if (totalFiltered === 0) {
           showingText.textContent = 'No restaurants found';
+          hidePagination();
         } else {
           const startIdx = (state.currentPage - 1) * state.pageSize + 1;
           const endIdx = Math.min(startIdx + state.pageSize - 1, totalFiltered);
@@ -3648,7 +3713,8 @@
         const itemsPerPageSelect = document.getElementById('itemsPerPage');
         if (itemsPerPageSelect) {
           itemsPerPageSelect.addEventListener('change', (e) => {
-            state.pageSize = parseInt(e.target.value);
+            const newPageSize = parseInt(e.target.value);
+            state.pageSize = newPageSize;
             state.currentPage = 1;
             applyFilters();
             
@@ -3838,6 +3904,9 @@
           }
         });
         
+        // Scroll event to show/hide pagination based on scroll position
+        window.addEventListener('scroll', handleScroll);
+        
         // Window resize for banner switching and responsive adjustments
         window.addEventListener('resize', () => {
           if (state.currentUser) {
@@ -3852,6 +3921,25 @@
         });
         
         guestBanner.init();
+      }
+      
+      function handleScroll() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        const scrollBottom = scrollHeight - scrollTop - clientHeight;
+        
+        // Hide pagination when scrolling up near the top
+        if (scrollTop < 100 && state.isPaginationVisible) {
+          hidePagination();
+        }
+        
+        // Show pagination when near bottom (100px from bottom) and we have more pages
+        if (scrollBottom < 100 && state.totalPages > 1 && state.currentPage < state.totalPages) {
+          showPagination();
+        }
+        
+        state.lastScrollTop = scrollTop;
       }
       
       function initializeViewControls() {
