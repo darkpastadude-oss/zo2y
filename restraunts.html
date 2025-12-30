@@ -22,7 +22,7 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Mobile Guest Banner */
+    /* Mobile Guest Banner - Sticky at top */
     .guest-banner {
       position: sticky;
       top: 0;
@@ -56,8 +56,14 @@
     }
     
     @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
     .banner-content {
@@ -70,9 +76,16 @@
       padding: 8px 12px;
     }
     
-    .banner-text { margin-right: 8px; font-size: 13px; }
+    .banner-text {
+      margin-right: 8px;
+      font-size: 13px;
+    }
     
-    .banner-actions { display: flex; gap: 6px; align-items: center; }
+    .banner-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
     
     .banner-btn {
       padding: 4px 10px;
@@ -91,7 +104,9 @@
       border: 1px solid var(--accent);
     }
     
-    .banner-btn-outline:hover { background: rgba(245, 158, 11, 0.1); }
+    .banner-btn-outline:hover {
+      background: rgba(245, 158, 11, 0.1);
+    }
     
     .banner-btn-primary {
       background: var(--accent);
@@ -99,9 +114,12 @@
       border: 1px solid var(--accent);
     }
     
-    .banner-btn-primary:hover { background: #ffb84d; transform: translateY(-1px); }
+    .banner-btn-primary:hover {
+      background: #ffb84d;
+      transform: translateY(-1px);
+    }
     
-    /* Header */
+    /* Enhanced Header */
     header { 
       position: sticky; 
       top: 0; 
@@ -115,10 +133,19 @@
       border-bottom: 1px solid var(--border); 
     } 
     
-    .has-mobile-banner header { top: 40px; }
+    .has-mobile-banner header {
+      top: 40px;
+    }
     
-    .logo { height: 40px; cursor: pointer; transition: transform 0.3s ease; }
-    .logo:hover { transform: scale(1.05); }
+    .logo { 
+      height: 40px; 
+      cursor: pointer; 
+      transition: transform 0.3s ease;
+    }
+    
+    .logo:hover {
+      transform: scale(1.05);
+    }
     
     .toolbar { 
       display: flex; 
@@ -128,8 +155,11 @@
       flex-wrap: wrap; 
     } 
     
-    /* Search */
-    .search-wrapper { width: 320px; position: relative; }
+    /* Enhanced Search */
+    .search-wrapper {
+      width: 320px;
+      position: relative;
+    }
     
     .search { 
       width: 100%; 
@@ -143,7 +173,10 @@
       transition: all 0.3s ease;
     } 
     
-    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); } 
+    .search:focus { 
+      border-color: var(--accent); 
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
+    } 
     
     .search-icon { 
       position: absolute; 
@@ -152,6 +185,23 @@
       transform: translateY(-50%); 
       opacity: 0.6; 
       pointer-events: none;
+    }
+    
+    .clear-search {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+    }
+    
+    .clear-search:hover {
+      color: var(--white);
     }
     
     .btn { 
@@ -167,64 +217,24 @@
       white-space: nowrap;
     } 
     
-    .btn:hover { background: var(--accent); color: #0b1633; }
-    .btn-primary { background: var(--gradient); border: none; color: #0b1633; font-weight: 600; }
-    
-    /* Container */
-    .container { max-width: 1200px; margin: 24px auto; padding: 0 20px; min-height: calc(100vh - 200px); }
-    .page-header { margin-bottom: 24px; }
-    .page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-    .page-header p { color: var(--muted); font-size: 14px; }
-    
-    /* Quick Filters */
-    .quick-filters {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 8px 0;
-      margin: 0 -20px 20px -20px;
-      padding-left: 20px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+    .btn:hover { 
+      background: var(--accent); 
+      color: #0b1633; 
     }
     
-    .quick-filters::-webkit-scrollbar { display: none; }
-    
-    .filter-chip {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    
-    .filter-chip:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); }
-    .filter-chip.active { background: var(--gradient); color: #0b1633; border-color: var(--accent); }
-    
-    /* Controls */
-    .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; } 
-    .controls-info { color: var(--muted); font-size: 14px; font-weight: 500; } 
-    .sort-controls { display: flex; gap: 8px; margin-left: auto; }
-    
-    .sort-select {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 8px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      cursor: pointer;
-      min-width: 160px;
+    .btn-primary {
+      background: var(--gradient);
+      border: none;
+      color: #0b1633;
+      font-weight: 600;
     }
     
     /* Grid View Controls */
-    .view-controls { display: flex; align-items: center; gap: 12px; }
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
     
     .grid-size-buttons {
       display: flex;
@@ -249,11 +259,29 @@
       transition: all 0.3s ease;
     }
     
-    .grid-btn:hover { background: rgba(255,255,255,0.1); color: var(--white); }
-    .grid-btn.active { background: var(--accent); color: #0b1633; }
+    .grid-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
     
-    .items-per-page { display: flex; align-items: center; gap: 8px; }
-    .items-per-page label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .grid-btn.active {
+      background: var(--accent);
+      color: #0b1633;
+    }
+    
+    /* Items Per Page Selector - FIXED */
+    .items-per-page {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 8px;
+    }
+    
+    .items-per-page label {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
     
     .items-select {
       background: var(--card);
@@ -266,12 +294,128 @@
       min-width: 80px;
     }
     
-    /* Grid */
-    .grid { display: grid; gap: 20px; transition: grid-template-columns 0.3s ease; min-height: 200px; align-items: stretch; }
+    /* Quick Filters */
+    .quick-filters {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 0;
+      margin: 0 -20px;
+      padding-left: 20px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
     
-    .grid-normal { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-    .grid-compact { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-    .grid-dense { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .quick-filters::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .filter-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    
+    .filter-chip:hover {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--accent);
+    }
+    
+    .filter-chip.active {
+      background: var(--gradient);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
+    /* Enhanced Container */
+    .container { 
+      max-width: 1200px; 
+      margin: 24px auto; 
+      padding: 0 20px; 
+      min-height: calc(100vh - 200px);
+    } 
+    
+    .page-header {
+      margin-bottom: 24px;
+    }
+    
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .page-header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    
+    /* Controls Bar */
+    .controls { 
+      display: flex; 
+      gap: 12px; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      flex-wrap: wrap; 
+    } 
+    
+    .controls-info { 
+      color: var(--muted); 
+      font-size: 14px; 
+      font-weight: 500; 
+    } 
+    
+    .sort-controls {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    
+    .sort-select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 8px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      cursor: pointer;
+      min-width: 160px;
+    }
+    
+    .sort-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    /* Enhanced Grid */
+    .grid { 
+      display: grid; 
+      gap: 20px; 
+      transition: grid-template-columns 0.3s ease;
+      min-height: 200px;
+      align-items: stretch;
+    }
+    
+    /* Grid variations */
+    .grid-normal {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    
+    .grid-compact {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    
+    .grid-dense {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
     
     /* Restaurant Card */
     .restaurant-card { 
@@ -301,16 +445,26 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Image Loading - FIXED */
+    /* Enhanced Image Loading - FIXED */
     .restaurant-image {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
     
-    /* Cloud Kitchen Badge - FIXED */
+    .restaurant-image.loaded {
+      opacity: 1;
+    }
+    
+    .restaurant-image.load-error {
+      display: none;
+    }
+    
+    /* Cloud Kitchen Badge - IMPROVED */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -340,10 +494,17 @@
       gap: 6px;
     }
     
-    .cloud-badge:hover .cloud-text { display: inline; font-size: 12px; font-weight: 600; }
-    .cloud-text { display: none; }
+    .cloud-badge:hover .cloud-text {
+      display: inline;
+      font-size: 12px;
+      font-weight: 600;
+    }
     
-    /* Cloud Kitchen Tooltip - FIXED */
+    .cloud-text {
+      display: none;
+    }
+    
+    /* Cloud Kitchen Info Tooltip - FIXED CONTENT */
     .cloud-tooltip {
       position: absolute;
       top: 50px;
@@ -368,14 +529,97 @@
       pointer-events: auto;
     }
     
-    .tooltip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .tooltip-header i { color: var(--cloud-color); font-size: 18px; }
-    .tooltip-header h4 { color: var(--white); font-size: 16px; margin: 0; }
-    .tooltip-content { color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .tooltip-content ul { margin: 8px 0; padding-left: 20px; }
-    .tooltip-content li { margin-bottom: 4px; }
+    .tooltip-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
     
-    /* Menu Button */
+    .tooltip-header i {
+      color: var(--cloud-color);
+      font-size: 18px;
+    }
+    
+    .tooltip-header h4 {
+      color: var(--white);
+      font-size: 16px;
+      margin: 0;
+    }
+    
+    .tooltip-content {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .tooltip-content p {
+      margin-bottom: 10px;
+    }
+    
+    .tooltip-content ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    
+    .tooltip-content li {
+      margin-bottom: 4px;
+    }
+    
+    /* Cloud Kitchen Mobile Modal */
+    .cloud-mobile-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 1003;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .cloud-mobile-modal.active {
+      display: flex;
+    }
+    
+    .cloud-mobile-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 320px;
+      width: 100%;
+      border: 2px solid var(--cloud-color);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    .cloud-mobile-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    
+    .cloud-mobile-close:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+    
+    /* Menu button */
     .menu-btn {
       position: absolute;
       top: 60px;
@@ -395,15 +639,53 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     
-    .menu-btn.no-cloud { top: 12px; }
-    .menu-btn:hover { background: var(--accent); transform: scale(1.1); }
-    .menu-btn i { color: var(--white); font-size: 16px; }
-    .menu-btn:hover i { color: #0b1633; }
+    .menu-btn.no-cloud {
+      top: 12px;
+    }
     
-    .card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-    .card-header { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-    .card-title-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .card-title { font-size: 16px; font-weight: 700; line-height: 1.3; margin: 0; flex: 1; }
+    .menu-btn:hover {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+    
+    .menu-btn i {
+      color: var(--white);
+      font-size: 16px;
+    }
+    
+    .menu-btn:hover i {
+      color: #0b1633;
+    }
+    
+    .card-content {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card-header {
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .card-title-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0;
+      flex: 1;
+    }
     
     /* Top rated badge */
     .top-rated-badge {
@@ -423,8 +705,12 @@
     }
     
     @keyframes glow {
-      0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
-      100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.8); }
+      0% {
+        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+      }
+      100% {
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+      }
     }
     
     .card-rating {
@@ -441,7 +727,15 @@
       flex-shrink: 0;
     }
     
-    .card-category { color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .card-category {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
     
     .card-description {
       color: var(--muted);
@@ -464,6 +758,12 @@
       align-items: center;
     }
     
+    .card-location {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
     /* Actions Modal */
     .actions-modal {
       display: none;
@@ -480,7 +780,9 @@
       padding: 20px;
     }
     
-    .actions-modal.active { display: flex; }
+    .actions-modal.active {
+      display: flex;
+    }
     
     .actions-content {
       background: var(--card);
@@ -495,11 +797,22 @@
     }
     
     @keyframes modalSlideIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     
-    .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
     
     .action-btn-modal {
       background: var(--bg);
@@ -518,11 +831,30 @@
       justify-content: space-between;
     }
     
-    .action-btn-modal:hover { background: var(--accent); color: #0b1633; transform: translateY(-2px); border-color: var(--accent); }
-    .action-btn-modal.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+    .action-btn-modal:hover {
+      background: var(--accent);
+      color: #0b1633;
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
     
-    .custom-lists-btn { background: var(--bg); border: 1px solid var(--accent); color: var(--white); }
-    .custom-lists-btn:hover { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+    .action-btn-modal.active {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
+    .custom-lists-btn {
+      background: var(--bg);
+      border: 1px solid var(--accent);
+      color: var(--white);
+    }
+    
+    .custom-lists-btn:hover {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
     
     /* Custom Lists Modal */
     .custom-lists-modal {
@@ -540,7 +872,9 @@
       padding: 20px;
     }
     
-    .custom-lists-modal.active { display: flex; }
+    .custom-lists-modal.active {
+      display: flex;
+    }
     
     .custom-lists-content {
       background: var(--card);
@@ -555,146 +889,6 @@
       display: flex;
       flex-direction: column;
     }
-    
-    .lists-header { margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
-    .lists-header h3 { font-size: 22px; color: var(--white); font-weight: 600; display: flex; align-items: center; gap: 10px; }
-    .lists-header h3 i { color: var(--accent); }
-    
-    .close-lists-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 24px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      transition: all 0.3s ease;
-    }
-    
-    .close-lists-btn:hover { background: rgba(255,255,255,0.1); color: var(--white); }
-    
-    .lists-list-container { flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; }
-    
-    .lists-list-container::-webkit-scrollbar { width: 8px; }
-    .lists-list-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
-    .lists-list-container::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-    
-    .lists-list { display: flex; flex-direction: column; gap: 8px; }
-    
-    .list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .list-item:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); transform: translateX(5px); }
-    .list-item.active { background: rgba(245, 158, 11, 0.2); border-color: var(--accent); }
-    
-    .list-info { display: flex; align-items: center; gap: 12px; flex: 1; }
-    
-    .list-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0b1633;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    
-    .list-name { font-weight: 500; color: var(--white); }
-    
-    .list-checkbox {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    
-    .list-checkbox.checked { background: var(--accent); border-color: var(--accent); animation: checkPop 0.3s ease; }
-    @keyframes checkPop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    
-    .list-checkbox.checked::after { content: "✓"; color: #0b1633; font-size: 12px; font-weight: bold; }
-    
-    .empty-lists { text-align: center; padding: 40px 20px; color: var(--muted); }
-    .empty-lists i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; color: var(--accent); }
-    .empty-lists h4 { margin-bottom: 8px; color: var(--white); }
-    
-    .new-list-section { padding-top: 20px; border-top: 1px solid var(--border); }
-    
-    .new-list-input { display: flex; gap: 10px; margin-bottom: 15px; }
-    
-    .new-list-input input {
-      flex: 1;
-      padding: 12px 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--white);
-      font-size: 14px;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-    
-    .new-list-input input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
-    
-    .create-list-btn {
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .create-list-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
-    .create-list-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    
-    .lists-actions { display: flex; gap: 12px; margin-top: 10px; }
-    
-    .lists-save-btn {
-      flex: 1;
-      background: var(--accent);
-      color: #0b1633;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .lists-save-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
-    .lists-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     
     /* Auth Prompt Modal */
     .auth-prompt-modal {
@@ -712,7 +906,9 @@
       padding: 20px;
     }
     
-    .auth-prompt-modal.active { display: flex; }
+    .auth-prompt-modal.active {
+      display: flex;
+    }
     
     .auth-prompt-content {
       background: var(--card);
@@ -751,11 +947,22 @@
       font-weight: 500;
     }
     
-    .pagination-btn:hover:not(:disabled) { background: var(--accent); color: #0b1633; border-color: var(--accent); }
-    .pagination-btn.active { background: var(--gradient); color: #0b1633; border-color: var(--accent); }
-    .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
     
-    .pagination-info { color: var(--muted); font-size: 13px; margin: 0 16px; }
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination-info {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 16px;
+    }
     
     .view-all-btn {
       background: transparent;
@@ -769,7 +976,9 @@
       margin-left: 12px;
     }
     
-    .view-all-btn:hover { background: rgba(245, 158, 11, 0.1); }
+    .view-all-btn:hover {
+      background: rgba(245, 158, 11, 0.1);
+    }
     
     /* Empty State */
     .empty-state { 
@@ -780,76 +989,185 @@
       display: none; 
     }
     
-    .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-    .empty-state h3 { margin-bottom: 8px; font-size: 18px; color: var(--white); }
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
     
-    /* Responsive Fixes */
+    .empty-state h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: var(--white);
+    }
+    
+    /* Responsive */
     @media (max-width: 768px) {
-      .guest-banner.mobile { display: block; }
-      .guest-banner.desktop { display: none; }
+      .guest-banner.mobile {
+        display: block;
+      }
       
-      .has-mobile-banner header { top: 34px; }
+      .guest-banner.desktop {
+        display: none;
+      }
       
-      .search-wrapper { width: 100%; order: 3; margin-top: 12px; }
-      .toolbar { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+      .has-mobile-banner header {
+        top: 34px;
+      }
       
-      .view-controls { order: 4; width: 100%; margin-left: 0; margin-top: 12px; justify-content: space-between; }
-      .items-per-page { margin-left: 0; }
+      .search-wrapper {
+        width: 100%;
+        order: 3;
+        margin-top: 12px;
+      }
       
-      .sort-controls { margin-left: 0; width: 100%; justify-content: flex-start; }
-      .sort-select { flex: 1; min-width: 0; }
+      .toolbar {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
       
-      .quick-filters { margin: 0 -16px; padding-left: 16px; }
-      .container { padding: 0 16px; }
-      header { padding: 12px 16px; flex-wrap: wrap; }
+      .view-controls {
+        order: 4;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 12px;
+        justify-content: space-between;
+      }
       
-      .grid-normal { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-      .grid-compact { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-      .grid-dense { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+      .items-per-page {
+        margin-left: 0;
+      }
       
-      .card-image, .restaurant-image { height: 180px; }
+      .sort-controls {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+      }
       
-      .cloud-badge { width: 32px; height: 32px; font-size: 14px; }
-      .cloud-badge:hover { padding: 0 8px; gap: 4px; }
-      .cloud-badge:hover .cloud-text { font-size: 11px; }
+      .sort-select {
+        flex: 1;
+        min-width: 0;
+      }
       
-      .cloud-tooltip { width: 240px; right: 8px; }
+      .quick-filters {
+        margin: 0 -16px;
+        padding-left: 16px;
+      }
       
-      .menu-btn { top: 56px; width: 30px; height: 30px; font-size: 14px; }
-      .menu-btn.no-cloud { top: 12px; }
+      .container {
+        padding: 0 16px;
+      }
+      
+      header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+      }
+      
+      .grid-normal {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      }
+      
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+      
+      .card-image, .restaurant-image {
+        height: 180px;
+      }
+      
+      .cloud-badge {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      
+      .cloud-badge:hover {
+        padding: 0 8px;
+        gap: 4px;
+      }
+      
+      .cloud-badge:hover .cloud-text {
+        font-size: 11px;
+      }
+      
+      .cloud-tooltip {
+        display: none;
+      }
+      
+      .menu-btn {
+        top: 56px;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+      }
+      
+      .menu-btn.no-cloud {
+        top: 12px;
+      }
     }
     
     @media (max-width: 480px) {
-      .grid-normal { grid-template-columns: 1fr; }
-      .grid-compact { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-      .grid-dense { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-      
-      .grid-dense .restaurant-card { min-height: 200px; }
-      
-      .has-mobile-banner header { top: 30px; }
-      .guest-banner .banner-content { padding: 5px 10px; }
-      .banner-text { display: none; }
-      
-      .card-image, .restaurant-image { height: 160px; }
-      
-      .cloud-badge { width: 28px; height: 28px; font-size: 12px; }
-      .cloud-badge:active { 
-        background: rgba(59, 130, 246, 1); 
-        transform: scale(1.1); 
-        width: auto; 
-        padding: 0 6px; 
-        gap: 3px; 
+      .grid-normal {
+        grid-template-columns: 1fr;
       }
-      .cloud-badge:active .cloud-text { display: inline; font-size: 10px; }
       
-      .menu-btn { top: 52px; width: 28px; height: 28px; font-size: 12px; }
-      .menu-btn.no-cloud { top: 10px; }
+      .grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+      
+      .has-mobile-banner header {
+        top: 30px;
+      }
+      
+      .card-image, .restaurant-image {
+        height: 160px;
+      }
+      
+      .cloud-badge {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      
+      .cloud-badge:active {
+        background: rgba(59, 130, 246, 1);
+        transform: scale(1.05);
+      }
+      
+      .menu-btn {
+        top: 52px;
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+      
+      .menu-btn.no-cloud {
+        top: 10px;
+      }
     }
     
     @media (min-width: 769px) {
-      .guest-banner.mobile { display: none; }
-      .guest-banner.desktop { display: block; }
-      .has-mobile-banner header { top: 0; }
+      .guest-banner.mobile {
+        display: none;
+      }
+      
+      .guest-banner.desktop {
+        display: block;
+      }
+      
+      .has-mobile-banner header {
+        top: 0;
+      }
     }
   </style>
   
@@ -883,6 +1201,7 @@
       <div class="search-wrapper">
         <span class="search-icon">🔎</span>
         <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
+        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
       </div>
       <button class="btn" id="resetFilters">Clear Filters</button>
       <button class="btn btn-primary" id="authBtn">Sign In</button>
@@ -937,7 +1256,7 @@
         <div class="items-per-page">
           <label for="itemsPerPage">Show:</label>
           <select id="itemsPerPage" class="items-select">
-            <!-- Will be populated based on actual restaurant count -->
+            <!-- Dynamically populated based on actual restaurant count -->
           </select>
         </div>
       </div>
@@ -956,6 +1275,27 @@
       <button class="view-all-btn" id="viewAllBtn" style="display: none;">View All</button>
     </div>
   </main>
+
+  <!-- Cloud Kitchen Mobile Modal -->
+  <div id="cloudMobileModal" class="cloud-mobile-modal">
+    <div class="cloud-mobile-content">
+      <button class="cloud-mobile-close" id="closeCloudModal">×</button>
+      <div class="tooltip-header">
+        <i class="fas fa-cloud"></i>
+        <h4>Cloud Kitchen</h4>
+      </div>
+      <div class="tooltip-content">
+        <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
+        <ul>
+          <li>Delivery only - no dine-in option</li>
+          <li>Optimized for online orders</li>
+          <li>Often operates multiple brands from one kitchen</li>
+          <li>Lower overhead costs</li>
+        </ul>
+        <p>These restaurants focus on quality food optimized for delivery.</p>
+      </div>
+    </div>
+  </div>
 
   <!-- Actions Modal -->
   <div id="actionsModal" class="actions-modal">
@@ -1037,11 +1377,20 @@
     (function() {
       'use strict';
       
+      // ---------- CONFIG ----------
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // Initialize Supabase
+      let supabase;
+      try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (error) {
+          console.error('❌ Failed to initialize Supabase:', error);
+          supabase = null;
+      }
       
+      // ---------- GLOBAL STATE ----------
       const state = {
         restaurants: [],
         filteredRestaurants: [],
@@ -1060,49 +1409,163 @@
         isLoggedIn: false,
         customLists: [],
         selectedLists: new Set(),
-        isViewAll: false
+        isViewAll: false,
+        totalRestaurantCount: 0
       };
       
-      // IMAGE LOADING FIX
-      function loadImageWithFallback(imgElement, url) {
-        if (!url) {
-          console.log('No image URL provided');
+      // ---------- IMAGE LOADING SYSTEM ----------
+      function loadImage(imgElement, url) {
+        if (!url || url === '') {
+          console.log('No image URL for:', imgElement.alt);
           return;
         }
         
+        // Check if URL is relative or absolute
+        let imageUrl = url;
+        if (!url.startsWith('http') && !url.startsWith('data:')) {
+          // If it's a relative path, try to construct a proper URL
+          // Remove any leading slashes
+          imageUrl = url.replace(/^\/+/, '');
+          console.log('Relative image path detected, using:', imageUrl);
+        }
+        
         const img = new Image();
+        
         img.onload = () => {
-          console.log('Image loaded successfully:', url);
-          imgElement.src = url;
+          console.log('Image loaded successfully:', imageUrl);
+          imgElement.src = imageUrl;
+          imgElement.classList.add('loaded');
           imgElement.style.opacity = '1';
         };
         
-        img.onerror = () => {
-          console.warn('Failed to load image:', url);
-          // Try without any optimization if it fails
-          if (url.includes('supabase.co')) {
-            const fallbackUrl = url.split('?')[0]; // Remove query params
-            console.log('Trying fallback URL:', fallbackUrl);
-            imgElement.src = fallbackUrl;
-          }
+        img.onerror = (err) => {
+          console.warn('Failed to load image:', imageUrl, err);
+          imgElement.classList.add('load-error');
+          
+          // Try fallback approach
+          setTimeout(() => {
+            const fallbackImg = new Image();
+            fallbackImg.onload = () => {
+              imgElement.src = imageUrl;
+              imgElement.classList.add('loaded');
+              imgElement.style.opacity = '1';
+            };
+            fallbackImg.onerror = () => {
+              console.error('Fallback also failed for:', imageUrl);
+            };
+            fallbackImg.src = imageUrl;
+          }, 100);
         };
         
-        img.src = url;
+        img.src = imageUrl;
       }
       
-      // LOAD RESTAURANTS WITH IMAGES
-      async function loadRestaurants() {
-        try {
-          // Load cloud kitchens
-          const { data: cloudKitchens } = await supabase
-            .from('cloud_kitchens')
-            .select('restaurant_id');
-          
-          if (cloudKitchens) {
-            cloudKitchens.forEach(ck => state.cloudKitchens.add(ck.restaurant_id));
+      // ---------- CLOUD KITCHEN MANAGER ----------
+      const cloudKitchenManager = {
+        async loadCloudKitchens() {
+          try {
+            const { data: cloudKitchens, error } = await supabase
+              .from('cloud_kitchens')
+              .select('restaurant_id');
+            
+            if (error) {
+              console.warn('Error loading cloud kitchens:', error);
+              return;
+            }
+            
+            if (cloudKitchens && cloudKitchens.length > 0) {
+              state.cloudKitchens.clear();
+              cloudKitchens.forEach(ck => {
+                state.cloudKitchens.add(ck.restaurant_id);
+              });
+            }
+          } catch (error) {
+            console.error('Error loading cloud kitchens:', error);
           }
+        },
+        
+        isCloudKitchen(restaurantId) {
+          return state.cloudKitchens.has(restaurantId);
+        },
+        
+        createCloudBadge(restaurantId) {
+          if (!this.isCloudKitchen(restaurantId)) return '';
           
-          // Get restaurant count for items per page selector
+          return `
+            <div class="cloud-badge" aria-label="Cloud Kitchen" 
+                 ${window.innerWidth <= 768 ? 'onclick="showCloudMobileModal(event)"' : ''}>
+              <i class="fas fa-cloud"></i>
+              <span class="cloud-text">Cloud Kitchen</span>
+              <div class="cloud-tooltip">
+                <div class="tooltip-header">
+                  <i class="fas fa-cloud"></i>
+                  <h4>Cloud Kitchen</h4>
+                </div>
+                <div class="tooltip-content">
+                  <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
+                  <ul>
+                    <li>Delivery only - no dine-in option</li>
+                    <li>Optimized for online orders</li>
+                    <li>Often operates multiple brands from one kitchen</li>
+                    <li>Lower overhead costs</li>
+                  </ul>
+                  <p>These restaurants focus on quality food optimized for delivery.</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      };
+      
+      // Mobile cloud modal
+      window.showCloudMobileModal = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const modal = document.getElementById('cloudMobileModal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+      
+      window.hideCloudMobileModal = function() {
+        const modal = document.getElementById('cloudMobileModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      };
+      
+      // ---------- ITEMS PER PAGE SELECTOR ----------
+      function populateItemsPerPage(totalCount) {
+        const select = document.getElementById('itemsPerPage');
+        select.innerHTML = '';
+        
+        // Always show these options
+        const standardOptions = [20, 50, 100];
+        
+        standardOptions.forEach(num => {
+          const option = document.createElement('option');
+          option.value = num;
+          option.textContent = num;
+          if (num === 20) option.selected = true;
+          select.appendChild(option);
+        });
+        
+        // Add "All" option
+        const allOption = document.createElement('option');
+        allOption.value = totalCount;
+        allOption.textContent = 'All';
+        select.appendChild(allOption);
+        
+        // Update state
+        state.pageSize = 20;
+        state.totalRestaurantCount = totalCount;
+      }
+      
+      // ---------- DATA LOADING ----------
+      async function loadRestaurantsData() {
+        try {
+          // Load cloud kitchens first
+          await cloudKitchenManager.loadCloudKitchens();
+          
+          // Get total count for items per page selector
           const { count } = await supabase
             .from('restraunts')
             .select('*', { count: 'exact', head: true });
@@ -1110,30 +1573,30 @@
           const totalCount = count || 85;
           populateItemsPerPage(totalCount);
           
-          // Load restaurants with their images
-          const { data: restaurants } = await supabase
+          // Load restaurants
+          const { data, error } = await supabase
             .from('restraunts')
-            .select(`
-              id, slug, name, category, description, rating, logo_url, image
-            `)
+            .select('id, slug, name, category, description, rating, logo_url, image')
             .order('rating', { ascending: false });
           
-          if (!restaurants) {
+          if (error) throw error;
+          
+          if (!data || data.length === 0) {
             showEmptyState();
             return;
           }
           
           // Process restaurants
-          state.restaurants = restaurants.map(r => ({
-            id: r.id,
-            slug: r.slug,
-            name: r.name,
-            category: r.category || 'Restaurant',
-            description: r.description,
-            rating: r.rating || 0,
-            logo_url: r.logo_url,
-            image: r.image,
-            isCloudKitchen: state.cloudKitchens.has(r.id)
+          state.restaurants = data.map(restaurant => ({
+            id: restaurant.id,
+            slug: restaurant.slug,
+            name: restaurant.name,
+            category: restaurant.category || 'Restaurant',
+            description: restaurant.description,
+            rating: restaurant.rating || 0,
+            logo_url: restaurant.logo_url,
+            image: restaurant.image,
+            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
           }));
           
           // Extract categories
@@ -1149,38 +1612,12 @@
           
           populateCategoryDropdown();
           applyFilters();
+          updateCounts();
           
         } catch (error) {
           console.error('Error loading restaurants:', error);
           showEmptyState();
         }
-      }
-      
-      // FIXED: Items per page selector
-      function populateItemsPerPage(totalCount) {
-        const select = document.getElementById('itemsPerPage');
-        select.innerHTML = '';
-        
-        // Add options based on actual count
-        const options = [20, 50, 100];
-        const availableOptions = options.filter(num => num <= totalCount);
-        
-        availableOptions.forEach(num => {
-          const option = document.createElement('option');
-          option.value = num;
-          option.textContent = num;
-          if (num === 20) option.selected = true;
-          select.appendChild(option);
-        });
-        
-        // Always add "All" option
-        const allOption = document.createElement('option');
-        allOption.value = totalCount;
-        allOption.textContent = 'All';
-        select.appendChild(allOption);
-        
-        // Update initial page size
-        state.pageSize = 20;
       }
       
       function populateCategoryDropdown() {
@@ -1197,73 +1634,82 @@
           });
       }
       
-      // FILTERING
+      // ---------- FILTERING & SORTING ----------
       function applyFilters() {
         let filtered = [...state.restaurants];
         
-        // Search
         if (state.activeFilters.search) {
-          const term = state.activeFilters.search.toLowerCase();
+          const searchTerm = state.activeFilters.search.toLowerCase();
           filtered = filtered.filter(r => 
-            r.name.toLowerCase().includes(term) ||
-            (r.description && r.description.toLowerCase().includes(term)) ||
-            (r.category && r.category.toLowerCase().includes(term))
+            r.name.toLowerCase().includes(searchTerm) ||
+            (r.description && r.description.toLowerCase().includes(searchTerm)) ||
+            (r.category && r.category.toLowerCase().includes(searchTerm))
           );
         }
         
-        // Category
         if (state.activeFilters.category !== 'all') {
-          const catId = parseInt(state.activeFilters.category);
-          const category = Array.from(state.categories.values()).find(c => c.id === catId);
+          const categoryId = parseInt(state.activeFilters.category);
+          const category = Array.from(state.categories.values()).find(c => c.id === categoryId);
           if (category) {
             filtered = filtered.filter(r => r.category === category.name);
           }
         }
         
-        // Quick filters
-        switch(state.activeFilters.quickFilter) {
-          case 'trending':
-            filtered = filtered.filter(r => r.rating >= 4.3);
-            break;
-          case 'top-rated':
-            filtered = filtered.filter(r => r.rating >= 4.5);
-            break;
-          case 'new':
-            filtered = filtered.filter(r => Math.random() > 0.7);
-            break;
-        }
-        
-        // Sorting
-        switch(state.activeFilters.sort) {
-          case 'rating-desc':
-            filtered.sort((a, b) => b.rating - a.rating);
-            break;
-          case 'rating-asc':
-            filtered.sort((a, b) => a.rating - b.rating);
-            break;
-          case 'name-asc':
-            filtered.sort((a, b) => a.name.localeCompare(b.name));
-            break;
-          case 'name-desc':
-            filtered.sort((a, b) => b.name.localeCompare(a.name));
-            break;
-        }
+        filtered = applyQuickFilter(filtered, state.activeFilters.quickFilter);
+        filtered = sortRestaurants(filtered, state.activeFilters.sort);
         
         state.filteredRestaurants = filtered;
         state.currentPage = 1;
+        
         renderRestaurants();
         updatePagination();
         updateCounts();
       }
       
-      // RENDER RESTAURANTS WITH PROPER IMAGE LOADING
-      function renderRestaurants() {
+      function applyQuickFilter(restaurants, filterType) {
+        switch(filterType) {
+          case 'trending':
+            return restaurants.filter(r => (r.rating || 0) >= 4.3);
+          case 'top-rated':
+            return restaurants.filter(r => (r.rating || 0) >= 4.5);
+          case 'new':
+            return restaurants.filter(r => Math.random() > 0.7);
+          default:
+            return restaurants;
+        }
+      }
+      
+      function sortRestaurants(restaurants, sortType) {
+        const sorted = [...restaurants];
+        
+        switch(sortType) {
+          case 'rating-desc':
+            return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+          case 'rating-asc':
+            return sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+          case 'name-asc':
+            return sorted.sort((a, b) => a.name.localeCompare(b.name));
+          case 'name-desc':
+            return sorted.sort((a, b) => b.name.localeCompare(a.name));
+          default:
+            return sorted;
+        }
+      }
+      
+      // ---------- RENDERING ----------
+      async function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
+        const emptyState = document.querySelector('.empty-state');
+        
         if (!grid) return;
         
         if (state.filteredRestaurants.length === 0) {
           showEmptyState();
           return;
+        }
+        
+        if (emptyState) {
+          emptyState.style.display = 'none';
         }
         
         const startIdx = (state.currentPage - 1) * state.pageSize;
@@ -1272,18 +1718,19 @@
         
         grid.innerHTML = '';
         
+        // Create and append cards
         itemsToShow.forEach(restaurant => {
           const card = createRestaurantCard(restaurant);
           grid.appendChild(card);
-          
-          // Load images after card is in DOM
-          setTimeout(() => {
-            const img = card.querySelector('.restaurant-image');
-            if (img && img.dataset.src) {
-              loadImageWithFallback(img, img.dataset.src);
-            }
-          }, 0);
         });
+        
+        // Load images after cards are in DOM
+        setTimeout(() => {
+          const images = grid.querySelectorAll('.restaurant-image[data-src]');
+          images.forEach(img => {
+            loadImage(img, img.dataset.src);
+          });
+        }, 100);
       }
       
       function createRestaurantCard(restaurant) {
@@ -1291,37 +1738,11 @@
         card.className = 'restaurant-card';
         card.dataset.id = restaurant.id;
         
-        const isTopRated = restaurant.rating >= 4.5;
-        const isCloudKitchen = restaurant.isCloudKitchen;
-        
-        const cloudBadge = isCloudKitchen ? `
-          <div class="cloud-badge" aria-label="Cloud Kitchen">
-            <i class="fas fa-cloud"></i>
-            <span class="cloud-text">Cloud Kitchen</span>
-            <div class="cloud-tooltip">
-              <div class="tooltip-header">
-                <i class="fas fa-cloud"></i>
-                <h4>Cloud Kitchen</h4>
-              </div>
-              <div class="tooltip-content">
-                <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
-                <ul>
-                  <li>Delivery only - no dine-in option</li>
-                  <li>Optimized for online orders</li>
-                  <li>Often operates multiple brands from one kitchen</li>
-                  <li>Lower overhead costs</li>
-                </ul>
-                <p>These restaurants focus on quality food optimized for delivery.</p>
-              </div>
-            </div>
-          </div>
-        ` : '';
-        
-        // Mobile touch fix for cloud badge
-        let mobileTouchHandler = '';
-        if (window.innerWidth <= 768 && isCloudKitchen) {
-          mobileTouchHandler = `onclick="event.preventDefault(); event.stopPropagation(); showMobileCloudTooltip()"`;
-        }
+        const rating = restaurant.rating || 0;
+        const category = restaurant.category || 'Restaurant';
+        const isTopRated = rating >= 4.5;
+        const isCloudKitchen = restaurant.isCloudKitchen || false;
+        const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -1332,7 +1753,7 @@
                      alt="${restaurant.name}" 
                      width="300" 
                      height="200"
-                     style="opacity: 0; transition: opacity 0.3s ease;">
+                     style="opacity: 0;">
               ` : ''}
               <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" onclick="event.preventDefault(); showModal(${restaurant.id})">
                 <i class="fas fa-ellipsis-h"></i>
@@ -1347,12 +1768,12 @@
                 </div>
                 <div class="card-rating">
                   <i class="fas fa-star"></i>
-                  ${restaurant.rating.toFixed(1)}
+                  ${rating.toFixed(1)}
                 </div>
               </div>
               <div class="card-category">
                 <span>🍴</span>
-                ${restaurant.category}
+                ${category}
               </div>
               <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
               <div class="card-footer">
@@ -1364,11 +1785,6 @@
         
         return card;
       }
-      
-      // Mobile cloud tooltip
-      window.showMobileCloudTooltip = function() {
-        alert('Cloud Kitchen\n\nA delivery-only restaurant that operates without a physical dining space. These kitchens focus on quality food optimized for delivery.');
-      };
       
       function showEmptyState() {
         const grid = document.getElementById('restaurantGrid');
@@ -1384,7 +1800,7 @@
         `;
       }
       
-      // PAGINATION
+      // ---------- PAGINATION ----------
       function updatePagination() {
         const pagination = document.getElementById('pagination');
         if (!pagination) return;
@@ -1431,7 +1847,7 @@
         document.getElementById('totalCount').textContent = state.filteredRestaurants.length;
       }
       
-      // MODAL FUNCTIONS (restored)
+      // ---------- MODAL FUNCTIONS ----------
       window.showModal = function(restaurantId) {
         const restaurant = state.restaurants.find(r => r.id === restaurantId);
         if (!restaurant) return;
@@ -1448,9 +1864,10 @@
         document.body.style.overflow = 'auto';
       }
       
-      // RESET FILTERS
+      // ---------- RESET FILTERS ----------
       window.resetAllFilters = function() {
         document.getElementById('search').value = '';
+        document.getElementById('clearSearch').style.display = 'none';
         document.getElementById('categorySelect').value = 'all';
         document.getElementById('sortSelect').value = 'rating-desc';
         document.getElementById('itemsPerPage').value = 20;
@@ -1470,18 +1887,28 @@
         applyFilters();
       };
       
-      // EVENT LISTENERS
+      // ---------- EVENT HANDLERS ----------
       function setupEventListeners() {
-        // Search
+        // Search input
         const searchInput = document.getElementById('search');
-        if (searchInput) {
+        const clearSearchBtn = document.getElementById('clearSearch');
+        
+        if (searchInput && clearSearchBtn) {
           let searchTimeout;
           searchInput.addEventListener('input', () => {
+            clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
               state.activeFilters.search = searchInput.value.trim();
               applyFilters();
             }, 300);
+          });
+          
+          clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            state.activeFilters.search = '';
+            applyFilters();
           });
         }
         
@@ -1499,17 +1926,20 @@
         
         // Items per page - FIXED
         document.getElementById('itemsPerPage').addEventListener('change', (e) => {
-          state.pageSize = parseInt(e.target.value);
+          const value = parseInt(e.target.value);
+          state.pageSize = value;
           state.currentPage = 1;
+          state.isViewAll = false;
           applyFilters();
         });
         
         // Quick filters
         document.querySelectorAll('.filter-chip').forEach(chip => {
           chip.addEventListener('click', (e) => {
+            const filterType = e.target.dataset.filter;
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
             e.target.classList.add('active');
-            state.activeFilters.quickFilter = e.target.dataset.filter;
+            state.activeFilters.quickFilter = filterType;
             applyFilters();
           });
         });
@@ -1522,15 +1952,12 @@
             btn.classList.add('active');
             
             const grid = document.getElementById('restaurantGrid');
-            grid.className = `grid grid-${view}`;
+            grid.classList.remove('grid-normal', 'grid-compact', 'grid-dense');
+            grid.classList.add(`grid-${view}`);
             
             // Fix for mobile dense view
             if (window.innerWidth <= 480 && view === 'dense') {
-              grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))';
-            } else if (window.innerWidth <= 768 && view === 'dense') {
               grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
-            } else {
-              grid.style.gridTemplateColumns = '';
             }
           });
         });
@@ -1540,6 +1967,16 @@
         
         // Modal cancel
         document.getElementById('modalCancelBtn').addEventListener('click', hideModal);
+        
+        // Cloud mobile modal close
+        document.getElementById('closeCloudModal').addEventListener('click', hideCloudMobileModal);
+        
+        // Close cloud modal on background click
+        document.getElementById('cloudMobileModal').addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            hideCloudMobileModal();
+          }
+        });
         
         // Auth button
         document.getElementById('authBtn').addEventListener('click', () => {
@@ -1563,6 +2000,7 @@
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
+            hideCloudMobileModal();
             document.getElementById('customListsModal')?.classList.remove('active');
             document.getElementById('authPromptModal')?.classList.remove('active');
             document.body.style.overflow = 'auto';
@@ -1583,13 +2021,18 @@
         });
       }
       
-      // INITIALIZE
+      // ---------- INITIALIZATION ----------
       async function init() {
+        if (!supabase) {
+          console.error('Failed to initialize Supabase');
+          return;
+        }
+        
         setupEventListeners();
-        await loadRestaurants();
+        await loadRestaurantsData();
       }
       
-      // START
+      // Start
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
       } else {
