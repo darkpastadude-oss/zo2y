@@ -451,7 +451,7 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Cloud Kitchen Badge - FIXED SIZE */
+    /* Cloud Kitchen Badge - FIXED with external tooltip */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -471,51 +471,43 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       color: white;
       font-size: 16px;
-      overflow: hidden;
     }
     
-    /* On hover - subtle effect only */
     .cloud-badge:hover {
       background: rgba(59, 130, 246, 1);
       transform: scale(1.05);
-      width: 36px; /* FIX: Keep fixed width */
-      padding: 0; /* FIX: No padding change */
     }
     
-    /* Remove the expanding text effect */
-    .cloud-badge:hover .cloud-text {
-      display: none; /* FIX: Don't show text on hover */
+    /* Cloud Kitchen Tooltip - POSITIONED OUTSIDE IMAGE */
+    .cloud-badge-container {
+      position: relative;
+      display: inline-block;
     }
     
-    .cloud-text {
-      display: none;
-    }
-    
-    /* Cloud Kitchen Info Tooltip */
     .cloud-tooltip {
       position: absolute;
-      top: 50px;
-      right: 12px;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100%);
       background: var(--card);
       border: 2px solid var(--cloud-color);
       border-radius: 12px;
-      padding: 12px;
-      width: 260px;
-      max-width: calc(100vw - 40px);
+      padding: 16px;
+      width: 280px;
       z-index: 1000;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-10px);
       transition: all 0.3s ease;
       pointer-events: none;
+      margin-bottom: 10px;
     }
     
     .cloud-badge:hover .cloud-tooltip {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(-120%);
       pointer-events: auto;
     }
     
@@ -552,149 +544,134 @@
       margin-bottom: 4px;
     }
     
-    /* Cloud Kitchen Mobile Popup */
-    .cloud-mobile-popup {
-      display: none;
-      position: fixed;
+    /* User List Badge with external tooltip */
+    .badge-container {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 25;
+    }
+    
+    .user-list-badge {
+      position: relative;
+      background: rgba(11, 22, 51, 0.9);
+      color: var(--accent);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: help;
+      white-space: nowrap;
+    }
+    
+    /* Badge tooltips - POSITIONED OUTSIDE IMAGE */
+    .badge-tooltip {
+      position: absolute;
       top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.95);
-      z-index: 1003;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100%);
+      background: var(--card);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px 16px;
+      width: 200px;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    
+    .user-list-badge:hover .badge-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(-120%);
+      pointer-events: auto;
+    }
+    
+    /* Menu button with external tooltip */
+    .menu-btn-container {
+      position: absolute;
+      top: 60px;
+      right: 12px;
+      z-index: 30;
+    }
+    
+    .menu-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(11, 22, 51, 0.9);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .cloud-mobile-popup.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .cloud-popup-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 400px;
-      width: 100%;
-      border: 2px solid var(--cloud-color);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-      animation: modalSlideIn 0.3s ease-out;
-      text-align: left;
-    }
-    
-    .cloud-popup-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    
-    .cloud-popup-header i {
-      color: var(--cloud-color);
-      font-size: 24px;
-    }
-    
-    .cloud-popup-header h4 {
-      color: var(--white);
-      font-size: 20px;
-      margin: 0;
-    }
-    
-    .cloud-popup-body {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-    
-    .cloud-popup-body ul {
-      margin: 12px 0;
-      padding-left: 20px;
-    }
-    
-    .cloud-popup-body li {
-      margin-bottom: 6px;
-    }
-    
-    .cloud-popup-close {
-      background: var(--cloud-color);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
       cursor: pointer;
+      backdrop-filter: none;
       transition: all 0.3s ease;
-      width: 100%;
-      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
     }
     
-    .cloud-popup-close:hover {
-      background: #2563eb;
-      transform: translateY(-2px);
+    .menu-btn.no-cloud {
+      top: 12px;
     }
     
-    /* Icon Tooltips for Mobile */
-    .menu-btn::after {
-      content: "Save to lists";
+    .menu-btn:hover {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+    
+    .menu-btn i {
+      color: var(--white);
+      font-size: 16px;
+    }
+    
+    .menu-btn:hover i {
+      color: #0b1633;
+    }
+    
+    /* Menu button tooltip - POSITIONED OUTSIDE IMAGE */
+    .menu-btn-tooltip {
       position: absolute;
-      bottom: -30px;
+      top: 0;
       left: 50%;
-      transform: translateX(-50%) scale(0.9);
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
+      transform: translateX(-50%) translateY(-100%);
+      background: var(--card);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 10px 14px;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
       opacity: 0;
       visibility: hidden;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       pointer-events: none;
-      z-index: 1000;
-    }
-    
-    .cloud-badge::after {
-      content: "Cloud Kitchen Info";
-      position: absolute;
-      bottom: -30px;
-      left: 50%;
-      transform: translateX(-50%) scale(0.9);
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
       white-space: nowrap;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.2s ease;
-      pointer-events: none;
-      z-index: 1000;
+      margin-bottom: 10px;
     }
     
-    /* Show tooltips on hover (desktop) and touch (mobile) */
-    @media (hover: hover) and (pointer: fine) {
-      .menu-btn:hover::after,
-      .cloud-badge:hover::after {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-50%) translateY(0);
-      }
-    }
-    
-    /* Show tooltips on touch devices */
-    @media (max-width: 768px) {
-      .menu-btn:active::after,
-      .cloud-badge:active::after {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-50%) translateY(0);
-      }
+    .menu-btn:hover .menu-btn-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(-120%);
+      pointer-events: auto;
     }
     
     /* Logo overlay in bottom left */
@@ -723,74 +700,6 @@
       border-color: var(--accent);
       background: rgba(245,158,11,0.9);
       box-shadow: 0 8px 24px rgba(245,158,11,0.4);
-    }
-    
-    /* Badge container */
-    .badge-container {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 25;
-      max-width: calc(100% - 80px);
-    }
-    
-    /* User list badge (Favorites, Visited, Want to Go) */
-    .user-list-badge {
-      background: rgba(11, 22, 51, 0.9);
-      color: var(--accent);
-      padding: 4px 8px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      backdrop-filter: none;
-      border: 1px solid var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      white-space: nowrap;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    
-    /* Three dots menu button */
-    .menu-btn {
-      position: absolute;
-      top: 60px;
-      right: 12px;
-      width: 36px;
-      height: 36px;
-      background: rgba(11, 22, 51, 0.9);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 30;
-      backdrop-filter: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    
-    .menu-btn.no-cloud {
-      top: 12px;
-    }
-    
-    .menu-btn:hover {
-      background: var(--accent);
-      transform: scale(1.1);
-    }
-    
-    .menu-btn i {
-      color: var(--white);
-      font-size: 16px;
-    }
-    
-    .menu-btn:hover i {
-      color: #0b1633;
     }
     
     .card-content {
@@ -1686,40 +1595,21 @@
         font-size: 11px;
       }
       
-      /* Mobile tooltip positioning */
-      .cloud-tooltip {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) translateY(20px);
-        width: 90%;
-        max-width: 320px;
-        max-height: 80vh;
-        overflow-y: auto;
-      }
-      
-      .cloud-badge:hover .cloud-tooltip {
-        transform: translate(-50%, -50%) translateY(0);
+      /* Tooltip adjustments for mobile */
+      .cloud-tooltip,
+      .badge-tooltip,
+      .menu-btn-tooltip {
+        display: none !important;
       }
       
       .cloud-badge {
         width: 34px;
         height: 34px;
-        min-width: 34px;
-        min-height: 34px;
       }
       
       .menu-btn {
-        top: 56px;
         width: 40px;
         height: 40px;
-        min-width: 40px;
-        min-height: 40px;
-        font-size: 14px;
-      }
-      
-      .menu-btn.no-cloud {
-        top: 12px;
       }
       
       /* Improved grid spacing */
@@ -1807,11 +1697,13 @@
         left: 10px;
       }
       
+      .menu-btn-container {
+        top: 56px;
+      }
+      
       .menu-btn {
         width: 40px;
         height: 40px;
-        top: 10px;
-        right: 10px;
       }
       
       .card-header {
@@ -1859,9 +1751,6 @@
       .cloud-badge {
         width: 32px;
         height: 32px;
-        min-width: 32px;
-        min-height: 32px;
-        font-size: 12px;
       }
       
       /* Grid adjustments */
@@ -1890,8 +1779,6 @@
       .cloud-badge {
         width: 30px;
         height: 30px;
-        min-width: 30px;
-        min-height: 30px;
       }
       
       .guest-banner {
@@ -2146,27 +2033,6 @@
     </div>
   </div>
 
-  <!-- Cloud Kitchen Mobile Popup -->
-  <div id="cloudMobilePopup" class="cloud-mobile-popup">
-    <div class="cloud-popup-content">
-      <div class="cloud-popup-header">
-        <i class="fas fa-cloud"></i>
-        <h4>Cloud Kitchen</h4>
-      </div>
-      <div class="cloud-popup-body">
-        <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
-        <ul>
-          <li>Delivery only - no dine-in option</li>
-          <li>Optimized for online orders</li>
-          <li>Often operates multiple brands from one kitchen</li>
-          <li>Lower overhead costs</li>
-        </ul>
-        <p>These restaurants focus on quality food optimized for delivery.</p>
-      </div>
-      <button class="cloud-popup-close" id="cloudPopupCloseBtn">Got It</button>
-    </div>
-  </div>
-
   <footer>
     © 2025 Zo2y — Built with ❤️ for food lovers
   </footer>
@@ -2197,7 +2063,7 @@
         restaurants: [],
         filteredRestaurants: [],
         categories: new Map(),
-        cloudKitchens: new Set(), // Set of restaurant IDs that are cloud kitchens
+        cloudKitchens: new Set(),
         currentPage: 1,
         pageSize: 20,
         isLoading: false,
@@ -2216,8 +2082,91 @@
         selectedLists: new Set(),
         isViewAll: false,
         viewAllButtonText: "View All",
-        totalRestaurantCount: 0
+        totalRestaurantCount: 0,
+        preloader: null // Image preloader instance
       };
+      
+      // ---------- IMAGE LOADING SYSTEM ----------
+      function initFastImageLoader() {
+        state.preloader = {
+          queue: [],
+          loading: 0,
+          maxConcurrent: 6,
+          
+          addImage(url) {
+            if (!url) return;
+            this.queue.push(url);
+            this.processQueue();
+          },
+          
+          processQueue() {
+            while (this.loading < this.maxConcurrent && this.queue.length > 0) {
+              const url = this.queue.shift();
+              this.loadImage(url);
+            }
+          },
+          
+          loadImage(url) {
+            this.loading++;
+            const img = new Image();
+            img.onload = img.onerror = () => {
+              this.loading--;
+              this.processQueue();
+            };
+            img.src = url;
+          }
+        };
+      }
+      
+      function loadImage(imgElement, url) {
+        if (!url || url === '' || !imgElement) {
+          console.warn('Invalid image element or URL:', { imgElement, url });
+          imgElement.style.display = 'none';
+          return;
+        }
+        
+        // Add to preloader queue
+        if (state.preloader) {
+          state.preloader.addImage(url);
+        }
+        
+        imgElement.src = url;
+        imgElement.onload = () => {
+          imgElement.classList.add('loaded');
+          imgElement.style.opacity = '0';
+          setTimeout(() => {
+            imgElement.style.transition = 'opacity 0.3s ease';
+            imgElement.style.opacity = '1';
+          }, 10);
+        };
+        
+        imgElement.onerror = () => {
+          console.error('Failed to load image:', url);
+          imgElement.style.display = 'none';
+        };
+      }
+      
+      function getOptimizedSupabaseImageUrl(url, options = {}) {
+        if (!url || !url.includes('supabase.co')) return url;
+        
+        try {
+          const urlObj = new URL(url);
+          const params = new URLSearchParams(urlObj.search);
+          
+          if (!params.has('width')) params.set('width', options.width || '400');
+          if (!params.has('height')) params.set('height', options.height || '300');
+          if (!params.has('quality')) params.set('quality', options.quality || '50');
+          if (!params.has('format')) params.set('format', options.format || 'webp');
+          if (!params.has('resize')) params.set('resize', options.resize || 'cover');
+          
+          if (!params.has('v')) params.set('v', '1.0');
+          
+          urlObj.search = params.toString();
+          return urlObj.toString();
+        } catch (e) {
+          return url;
+        }
+      }
       
       // ---------- CLOUD KITCHEN MANAGER ----------
       const cloudKitchenManager = {
@@ -2254,7 +2203,6 @@
           return `
             <div class="cloud-badge" aria-label="Cloud Kitchen">
               <i class="fas fa-cloud"></i>
-              <span class="cloud-text">Cloud Kitchen</span>
               <div class="cloud-tooltip">
                 <div class="tooltip-header">
                   <i class="fas fa-cloud"></i>
@@ -2273,123 +2221,55 @@
               </div>
             </div>
           `;
-        },
-        
-        showMobilePopup() {
-          const popup = document.getElementById('cloudMobilePopup');
-          if (popup) {
-            popup.classList.add('active');
-            document.body.style.overflow = 'hidden';
-          }
-        },
-        
-        hideMobilePopup() {
-          const popup = document.getElementById('cloudMobilePopup');
-          if (popup) {
-            popup.classList.remove('active');
-            document.body.style.overflow = 'auto';
-          }
         }
       };
       
-      // ---------- IMAGE OPTIMIZATION - FASTER LOADING ----------
-      function getOptimizedSupabaseImageUrl(url, options = {}) {
-        if (!url || !url.includes('supabase.co')) return url;
+      // ---------- NOTIFICATION SYSTEM ----------
+      function showNotification(message, type = "info", duration = 2500) {
+        const container = document.getElementById("notificationContainer");
+        if (!container) return;
         
-        try {
-          // Parse the URL
-          const urlObj = new URL(url);
-          const params = new URLSearchParams(urlObj.search);
-          
-          // Set optimization parameters - Reduced quality for faster loading
-          if (!params.has('width')) params.set('width', options.width || '400');
-          if (!params.has('height')) params.set('height', options.height || '300');
-          if (!params.has('quality')) params.set('quality', options.quality || '50'); // Reduced for speed
-          if (!params.has('format')) params.set('format', options.format || 'webp'); // Use WebP
-          if (!params.has('resize')) params.set('resize', options.resize || 'cover');
-          
-          // Add cache busting
-          if (!params.has('v')) params.set('v', '1.0');
-          
-          // Reconstruct URL
-          urlObj.search = params.toString();
-          return urlObj.toString();
-        } catch (e) {
-          // If URL parsing fails, return original
-          return url;
-        }
-      }
-      
-      // ---------- FASTER LAZY LOADING SYSTEM ----------
-      let imageObserver;
-      
-      function initLazyLoading() {
-        if ('IntersectionObserver' in window) {
-          imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                const img = entry.target;
-                loadImageFast(img, img.dataset.src);
-                observer.unobserve(img);
-              }
-            });
-          }, {
-            rootMargin: '100px 0px', // Load images 100px before they enter viewport
-            threshold: 0.01
-          });
-        }
-      }
-      
-      function loadImageFast(imgElement, url) {
-        if (!url || url === '') {
-          imgElement.style.display = 'none';
-          return;
+        const notification = document.createElement("div");
+        notification.className = `custom-notification notification-${type}`;
+        
+        let iconClass;
+        if (type === "success") {
+            iconClass = "fas fa-check-circle";
+        } else if (type === "error") {
+            iconClass = "fas fa-exclamation-circle";
+        } else if (type === "warning") {
+            iconClass = "fas fa-exclamation-triangle";
+        } else {
+            iconClass = "fas fa-info-circle";
         }
         
-        // Use native lazy loading + optimized URLs
-        imgElement.loading = 'lazy';
-        imgElement.decoding = 'async';
+        notification.innerHTML = `
+            <i class="notification-icon ${iconClass}"></i>
+            <span class="notification-message">${message}</span>
+            <button class="notification-close" aria-label="Close notification">×</button>
+        `;
         
-        // Optimize Supabase URLs with lower quality for speed
-        const optimizedUrl = getOptimizedSupabaseImageUrl(url, {
-          width: '400',
-          height: '300',
-          quality: '50', // Reduced from 60 for faster loading
-          format: 'webp' // Use WebP format
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add("notification-show");
+        }, 10);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove("notification-show");
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 400);
         });
         
-        // Use fetch priority for above-the-fold images
-        const rect = imgElement.getBoundingClientRect();
-        if (rect.top < window.innerHeight + 100) {
-          imgElement.fetchPriority = 'high';
-        }
-        
-        // Direct loading
-        imgElement.onload = () => {
-          imgElement.classList.add('loaded');
-          imgElement.style.opacity = '1';
-        };
-        
-        imgElement.onerror = () => {
-          // Fallback to original URL if optimized fails
-          imgElement.src = url;
-          imgElement.classList.add('loaded');
-          imgElement.style.opacity = '1';
-        };
-        
-        // Start loading immediately
-        imgElement.src = optimizedUrl;
-        imgElement.style.opacity = '0';
-        imgElement.style.transition = 'opacity 0.2s ease';
-      }
-      
-      function observeImage(imgElement) {
-        if (imageObserver && imgElement.dataset.src) {
-          imageObserver.observe(imgElement);
-        } else if (imgElement.dataset.src) {
-          // Fallback for browsers without IntersectionObserver
-          loadImageFast(imgElement, imgElement.dataset.src);
-        }
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.classList.remove("notification-show");
+                setTimeout(() => notification.remove(), 400);
+            }
+        }, duration);
       }
       
       // ---------- CUSTOM LISTS MANAGER ----------
@@ -2405,7 +2285,6 @@
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
             
-            // Get all custom lists (excluding default lists)
             const { data: lists, error } = await supabase
               .from('lists')
               .select('*')
@@ -2481,7 +2360,6 @@
             const isInList = await this.checkRestaurantInList(restaurantId, listId);
             
             if (isInList) {
-              // Remove from list
               const { error } = await supabase
                 .from('lists_restraunts')
                 .delete()
@@ -2492,7 +2370,6 @@
               
               return false;
             } else {
-              // Add to list
               const { error } = await supabase
                 .from('lists_restraunts')
                 .insert([
@@ -2520,7 +2397,6 @@
           
           const status = {};
           
-          // Check each list
           const promises = state.customLists.map(async (list) => {
             status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
           });
@@ -2569,7 +2445,6 @@
           html += '</div>';
           container.innerHTML = html;
           
-          // Add event listeners
           container.querySelectorAll('.list-item').forEach(item => {
             item.addEventListener('click', (e) => {
               e.stopPropagation();
@@ -2758,54 +2633,6 @@
               };
           }
       };
-      
-      // ---------- NOTIFICATION SYSTEM ----------
-      function showNotification(message, type = "info", duration = 2500) {
-        const container = document.getElementById("notificationContainer");
-        if (!container) return;
-        
-        const notification = document.createElement("div");
-        notification.className = `custom-notification notification-${type}`;
-        
-        let iconClass;
-        if (type === "success") {
-            iconClass = "fas fa-check-circle";
-        } else if (type === "error") {
-            iconClass = "fas fa-exclamation-circle";
-        } else if (type === "warning") {
-            iconClass = "fas fa-exclamation-triangle";
-        } else {
-            iconClass = "fas fa-info-circle";
-        }
-        
-        notification.innerHTML = `
-            <i class="notification-icon ${iconClass}"></i>
-            <span class="notification-message">${message}</span>
-            <button class="notification-close" aria-label="Close notification">×</button>
-        `;
-        
-        container.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add("notification-show");
-        }, 10);
-        
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.remove("notification-show");
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 400);
-        });
-        
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.remove("notification-show");
-                setTimeout(() => notification.remove(), 400);
-            }
-        }, duration);
-      }
       
       // ---------- CUSTOM LISTS MODAL ----------
       async function showCustomListsModal(restaurantId) {
@@ -3010,7 +2837,6 @@
             });
           }
           
-          // Show/hide based on screen size
           this.show();
         },
         
@@ -3019,21 +2845,11 @@
           const desktopBanner = document.getElementById('guestBannerDesktop');
           
           if (window.innerWidth <= 768) {
-            // Mobile
-            if (mobileBanner) {
-              mobileBanner.style.display = 'block';
-            }
-            if (desktopBanner) {
-              desktopBanner.style.display = 'none';
-            }
+            if (mobileBanner) mobileBanner.style.display = 'block';
+            if (desktopBanner) desktopBanner.style.display = 'none';
           } else {
-            // Desktop
-            if (mobileBanner) {
-              mobileBanner.style.display = 'none';
-            }
-            if (desktopBanner) {
-              desktopBanner.style.display = 'block';
-            }
+            if (mobileBanner) mobileBanner.style.display = 'none';
+            if (desktopBanner) desktopBanner.style.display = 'block';
           }
         },
         
@@ -3041,12 +2857,8 @@
           const mobileBanner = document.getElementById('guestBannerMobile');
           const desktopBanner = document.getElementById('guestBannerDesktop');
           
-          if (mobileBanner) {
-            mobileBanner.style.display = 'none';
-          }
-          if (desktopBanner) {
-            desktopBanner.style.display = 'none';
-          }
+          if (mobileBanner) mobileBanner.style.display = 'none';
+          if (desktopBanner) desktopBanner.style.display = 'none';
         }
       };
       
@@ -3193,11 +3005,9 @@
       
       async function loadRestaurantsData() {
         try {
-          // Load cloud kitchens first
           await cloudKitchenManager.loadCloudKitchens();
           await loadRestaurantImages();
           
-          // First, try to load with categories join
           const { data, error } = await supabase
             .from('restraunts')
             .select(`
@@ -3229,13 +3039,9 @@
             return;
           }
           
-          // Store total count
           state.totalRestaurantCount = data.length;
-          
-          // Update items per page dropdown
           updateItemsPerPageDropdown();
           
-          // Process restaurants with categories
           state.restaurants = data.map(restaurant => ({
             id: restaurant.id,
             slug: restaurant.slug,
@@ -3267,19 +3073,15 @@
         const select = document.getElementById('itemsPerPage');
         if (!select) return;
         
-        // Clear existing options
         select.innerHTML = '';
         
-        // Always show 20 as default
         const option20 = document.createElement('option');
         option20.value = '20';
         option20.textContent = '20';
         select.appendChild(option20);
         
-        // Calculate appropriate values based on total count
         const total = state.totalRestaurantCount;
         
-        // Add 50 if total is 50 or more
         if (total >= 50) {
           const option50 = document.createElement('option');
           option50.value = '50';
@@ -3287,7 +3089,6 @@
           select.appendChild(option50);
         }
         
-        // Add 100 if total is 100 or more
         if (total >= 100) {
           const option100 = document.createElement('option');
           option100.value = '100';
@@ -3295,17 +3096,14 @@
           select.appendChild(option100);
         }
         
-        // Always add "All" option
         const optionAll = document.createElement('option');
         optionAll.value = total.toString();
         optionAll.textContent = 'All';
         select.appendChild(optionAll);
         
-        // Load saved preference
         try {
           const savedItems = localStorage.getItem('zo2y_items_per_page');
           if (savedItems) {
-            // Check if saved value is valid
             const validOptions = Array.from(select.options).map(opt => opt.value);
             if (validOptions.includes(savedItems)) {
               select.value = savedItems;
@@ -3331,10 +3129,7 @@
           return;
         }
         
-        // Store total count
         state.totalRestaurantCount = data.length;
-        
-        // Update items per page dropdown
         updateItemsPerPageDropdown();
         
         const categoryMap = new Map();
@@ -3556,7 +3351,6 @@
         
         grid.classList.remove('skeleton-grid');
         
-        // Determine items to show
         let itemsToShow;
         if (state.isViewAll) {
           itemsToShow = state.filteredRestaurants;
@@ -3566,21 +3360,17 @@
           itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
         }
         
-        // Clear grid first
         grid.innerHTML = '';
         
-        // Create cards
         for (const restaurant of itemsToShow) {
           const card = createRestaurantCard(restaurant);
           grid.appendChild(card);
           
-          // Set up lazy loading for images in this card - faster loading
           setTimeout(() => {
             const images = card.querySelectorAll('img[data-src]');
             images.forEach(img => {
-              // Load images immediately for faster display
               if (img.getBoundingClientRect().top < window.innerHeight + 100) {
-                observeImage(img);
+                loadImage(img, img.dataset.src);
               }
             });
           }, 0);
@@ -3603,9 +3393,21 @@
         const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
         
         let badgeText = '';
-        if (status.favorites) badgeText += '❤️ ';
-        if (status.wantToGo) badgeText += '📍 ';
-        if (status.visited) badgeText += '✓ ';
+        let tooltipText = '';
+        if (status.favorites) {
+          badgeText += '❤️ ';
+          tooltipText += 'Favorites • ';
+        }
+        if (status.wantToGo) {
+          badgeText += '📍 ';
+          tooltipText += 'Want to Go • ';
+        }
+        if (status.visited) {
+          badgeText += '✓ ';
+          tooltipText += 'Visited • ';
+        }
+        
+        tooltipText = tooltipText.slice(0, -3); // Remove last " • "
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -3625,13 +3427,19 @@
                        height="48">
                 </div>
               ` : ''}
-              <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" aria-label="Restaurant actions" title="Save to lists">
-                <i class="fas fa-ellipsis-h"></i>
-              </button>
+              <div class="menu-btn-container">
+                <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" aria-label="Restaurant actions">
+                  <i class="fas fa-ellipsis-h"></i>
+                  <div class="menu-btn-tooltip">Save to lists</div>
+                </button>
+              </div>
               ${cloudBadge}
               ${badgeText ? `
                 <div class="badge-container">
-                  <div class="user-list-badge">${badgeText.trim()}</div>
+                  <div class="user-list-badge" title="${tooltipText}">
+                    ${badgeText.trim()}
+                    <div class="badge-tooltip">${tooltipText}</div>
+                  </div>
                 </div>
               ` : ''}
             </div>
@@ -3668,28 +3476,6 @@
               name: restaurant.name,
               slug: restaurant.slug
             });
-          });
-        }
-        
-        // Mobile: Make cloud badge clickable to show custom popup
-        const cloudBadgeEl = card.querySelector('.cloud-badge');
-        if (cloudBadgeEl) {
-          cloudBadgeEl.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (window.innerWidth <= 768) {
-              cloudKitchenManager.showMobilePopup();
-            }
-          });
-          
-          // Add touch feedback for mobile
-          cloudBadgeEl.addEventListener('touchstart', () => {
-            cloudBadgeEl.style.transform = 'scale(0.95)';
-          });
-          
-          cloudBadgeEl.addEventListener('touchend', () => {
-            cloudBadgeEl.style.transform = 'scale(1)';
           });
         }
         
@@ -3779,7 +3565,6 @@
         if (state.isViewAll) {
           state.pageSize = state.filteredRestaurants.length;
         } else {
-          // Get current items per page setting
           const itemsPerPageSelect = document.getElementById('itemsPerPage');
           if (itemsPerPageSelect) {
             state.pageSize = parseInt(itemsPerPageSelect.value);
@@ -3853,7 +3638,6 @@
           });
         }
         
-        // Items per page selector
         const itemsPerPageSelect = document.getElementById('itemsPerPage');
         if (itemsPerPageSelect) {
           itemsPerPageSelect.addEventListener('change', (e) => {
@@ -4032,23 +3816,6 @@
           });
         }
         
-        // Cloud kitchen popup close button
-        const cloudPopupCloseBtn = document.getElementById('cloudPopupCloseBtn');
-        if (cloudPopupCloseBtn) {
-          cloudPopupCloseBtn.addEventListener('click', () => {
-            cloudKitchenManager.hideMobilePopup();
-          });
-        }
-        
-        const cloudMobilePopup = document.getElementById('cloudMobilePopup');
-        if (cloudMobilePopup) {
-          cloudMobilePopup.addEventListener('click', (e) => {
-            if (e.target === cloudMobilePopup) {
-              cloudKitchenManager.hideMobilePopup();
-            }
-          });
-        }
-        
         // Auth button
         const authBtn = document.getElementById('authBtn');
         if (authBtn) {
@@ -4062,7 +3829,6 @@
             hideModal();
             hideCustomListsModal();
             hideAuthPrompt();
-            cloudKitchenManager.hideMobilePopup();
           }
         });
         
@@ -4074,7 +3840,6 @@
             guestBanner.show();
           }
           
-          // Re-render to adjust grid layout if needed
           if (state.filteredRestaurants.length > 0) {
             renderRestaurants();
           }
@@ -4248,7 +4013,7 @@
           return;
         }
         
-        initLazyLoading();
+        initFastImageLoader();
         showLoadingSkeleton();
         setupEventListeners();
         await loadRestaurantsData();
