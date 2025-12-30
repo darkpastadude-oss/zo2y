@@ -19,10 +19,10 @@
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; } 
-    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; position: relative; } 
+    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Fixed Mobile Guest Banner - NON-STICKY */
+    /* Mobile Guest Banner - NON-STICKY */
     .guest-banner.mobile {
       display: block;
       position: relative;
@@ -424,7 +424,7 @@
     .restaurant-card { 
       background: var(--card); 
       border-radius: 16px; 
-      overflow: visible; /* CHANGED from hidden to visible for tooltips */
+      overflow: hidden; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
       border: 1px solid var(--border);
       cursor: pointer; 
@@ -448,15 +448,11 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Cloud Kitchen Badge - FIXED POSITION */
-    .cloud-badge-container {
+    /* Cloud Kitchen Badge - RESTORED with proper positioning */
+    .cloud-badge {
       position: absolute;
       top: 12px;
       right: 12px;
-      z-index: 30;
-    }
-    
-    .cloud-badge {
       width: 36px;
       height: 36px;
       background: rgba(59, 130, 246, 0.95);
@@ -465,14 +461,12 @@
       align-items: center;
       justify-content: center;
       cursor: help;
-      z-index: 25;
-      backdrop-filter: none;
+      z-index: 100; /* Higher z-index */
       transition: all 0.3s ease;
       border: 2px solid var(--cloud-color);
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       color: white;
       font-size: 16px;
-      position: relative;
     }
     
     .cloud-badge:hover {
@@ -481,7 +475,7 @@
     }
     
     /* Cloud Kitchen Tooltip - FIXED POSITION OUTSIDE */
-    .cloud-tooltip {
+    .cloud-badge .cloud-tooltip {
       position: absolute;
       top: -10px;
       left: 50%;
@@ -491,7 +485,7 @@
       border-radius: 12px;
       padding: 16px;
       width: 280px;
-      z-index: 1000;
+      z-index: 1001; /* Higher than everything */
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
       opacity: 0;
@@ -540,7 +534,7 @@
       margin-bottom: 4px;
     }
     
-    /* User List Badge - FIXED POSITION */
+    /* User List Badge */
     .badge-container {
       position: absolute;
       top: 12px;
@@ -548,7 +542,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      z-index: 25;
+      z-index: 100; /* Higher z-index */
     }
     
     .user-list-badge {
@@ -568,7 +562,7 @@
     }
     
     /* Badge tooltips - FIXED POSITION OUTSIDE */
-    .badge-tooltip {
+    .user-list-badge .badge-tooltip {
       position: absolute;
       top: -10px;
       left: 50%;
@@ -578,7 +572,7 @@
       border-radius: 12px;
       padding: 12px 16px;
       width: 200px;
-      z-index: 1000;
+      z-index: 1001; /* Higher than everything */
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
       opacity: 0;
@@ -597,12 +591,16 @@
       pointer-events: auto;
     }
     
-    /* Menu button - FIXED POSITION (top right on desktop) */
+    /* Menu button - RESTORED to original position */
     .menu-btn-container {
       position: absolute;
-      top: 12px; /* FIXED: Always top, right adjusts for cloud badge */
+      top: 60px; /* Below cloud badge */
       right: 12px;
       z-index: 30;
+    }
+    
+    .menu-btn.no-cloud {
+      top: 12px; /* If no cloud badge, move up */
     }
     
     .menu-btn {
@@ -621,10 +619,6 @@
       position: relative;
     }
     
-    .menu-btn.has-cloud {
-      top: 50px; /* Moves down if there's a cloud badge */
-    }
-    
     .menu-btn:hover {
       background: var(--accent);
       transform: scale(1.1);
@@ -640,7 +634,7 @@
     }
     
     /* Menu button tooltip - FIXED POSITION OUTSIDE */
-    .menu-btn-tooltip {
+    .menu-btn .menu-btn-tooltip {
       position: absolute;
       top: -10px;
       left: 50%;
@@ -649,7 +643,7 @@
       border: 2px solid var(--accent);
       border-radius: 12px;
       padding: 10px 14px;
-      z-index: 1000;
+      z-index: 1001; /* Higher than everything */
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
       opacity: 0;
@@ -806,19 +800,7 @@
       font-weight: 500;
     }
     
-    /* Remove Chrome's autofill banner */
-    .chromeframe {
-      display: none !important;
-    }
-    
-    /* Fix for iOS Safari bottom bar */
-    @supports (-webkit-touch-callout: none) {
-      body {
-        min-height: -webkit-fill-available;
-      }
-    }
-    
-    /* Actions Modal */
+    /* Actions Modal - FIXED to hide by default */
     .actions-modal {
       display: none;
       position: fixed;
@@ -864,28 +846,503 @@
       }
     }
     
-    /* Add descriptions to cloud icon */
-    .cloud-description {
-      display: none;
-      position: absolute;
-      top: 50px;
-      right: 0;
-      background: var(--card);
-      border: 1px solid var(--cloud-color);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 12px;
+    .actions-header {
+      margin-bottom: 24px;
+    }
+    
+    .actions-header h3 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: var(--white);
+      font-weight: 600;
+    }
+    
+    .actions-header p {
       color: var(--muted);
-      width: 200px;
-      z-index: 100;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-size: 14px;
     }
     
-    .cloud-badge:hover .cloud-description {
-      display: block;
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
     }
     
-    /* Skeleton Loading - FIXED */
+    .action-btn-modal {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 16px 20px;
+      border-radius: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      font-size: 15px;
+      justify-content: space-between;
+    }
+    
+    .action-btn-modal:hover {
+      background: var(--accent);
+      color: #0b1633;
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+    }
+    
+    .action-btn-modal.active {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
+    .action-btn-modal i {
+      font-size: 18px;
+      width: 24px;
+    }
+    
+    /* Custom Lists button styling */
+    .custom-lists-btn {
+      background: var(--bg);
+      border: 1px solid var(--accent);
+      color: var(--white);
+    }
+    
+    .custom-lists-btn:hover {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
+    }
+    
+    .cancel-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      border-radius: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .cancel-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
+    }
+    
+    /* Custom Lists Modal - FIXED to hide by default */
+    .custom-lists-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.95);
+      backdrop-filter: none;
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .custom-lists-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .custom-lists-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .lists-header {
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .lists-header h3 {
+      font-size: 22px;
+      color: var(--white);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .lists-header h3 i {
+      color: var(--accent);
+    }
+    
+    .close-lists-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .close-lists-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+    
+    .lists-list-container {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding-right: 10px;
+    }
+    
+    .lists-list-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .lists-list-container::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+    }
+    
+    .lists-list-container::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+    
+    .lists-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .list-item:hover {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--accent);
+      transform: translateX(5px);
+    }
+    
+    .list-item.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--accent);
+    }
+    
+    .list-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    
+    .list-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1633;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .list-name {
+      font-weight: 500;
+      color: var(--white);
+    }
+    
+    .list-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .list-checkbox.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      animation: checkPop 0.3s ease;
+    }
+    
+    @keyframes checkPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .list-checkbox.checked::after {
+      content: "✓";
+      color: #0b1633;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .empty-lists {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    
+    .empty-lists i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+      color: var(--accent);
+    }
+    
+    .empty-lists h4 {
+      margin-bottom: 8px;
+      color: var(--white);
+    }
+    
+    .new-list-section {
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .new-list-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .new-list-input input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .new-list-input input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+    
+    .create-list-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .create-list-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    
+    .create-list-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .lists-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    
+    .lists-save-btn {
+      flex: 1;
+      background: var(--accent);
+      color: #0b1633;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .lists-save-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    
+    .lists-save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Auth Prompt Modal - FIXED to hide by default */
+    .auth-prompt-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.98);
+      backdrop-filter: none;
+      z-index: 1002;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .auth-prompt-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .auth-prompt-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: center;
+    }
+    
+    .auth-prompt-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 32px;
+      color: #0b1633;
+    }
+    
+    .auth-prompt-header h3 {
+      font-size: 28px;
+      margin-bottom: 12px;
+      color: var(--white);
+      font-weight: 700;
+    }
+    
+    .auth-prompt-header p {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+    
+    .auth-prompt-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .auth-prompt-btn {
+      padding: 18px 24px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    
+    .auth-prompt-primary {
+      background: var(--gradient);
+      color: #0b1633;
+    }
+    
+    .auth-prompt-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+    }
+    
+    .auth-prompt-secondary {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid var(--border);
+    }
+    
+    .auth-prompt-secondary:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--accent);
+    }
+    
+    .auth-prompt-close {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      font-size: 15px;
+    }
+    
+    .auth-prompt-close:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--white);
+    }
+    
+    /* Skeleton Loading */
     .skeleton-grid {
       display: grid;
       gap: 20px;
@@ -1065,12 +1522,11 @@
       
       /* Adjust menu button position on mobile */
       .menu-btn-container {
-        top: 12px;
-        right: 12px;
+        top: 56px;
       }
       
-      .menu-btn.has-cloud {
-        top: 50px;
+      .menu-btn.no-cloud {
+        top: 12px;
       }
       
       .menu-btn {
@@ -1089,78 +1545,6 @@
       }
     }
     
-    @media (max-width: 480px) {
-      /* Mobile banner adjustments */
-      .guest-banner.mobile .banner-content {
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px;
-      }
-      
-      .banner-text {
-        font-size: 12px;
-      }
-      
-      /* Cloud badge touch-friendly */
-      .cloud-badge {
-        width: 32px;
-        height: 32px;
-      }
-      
-      /* Grid adjustments */
-      .grid {
-        gap: 10px;
-      }
-      
-      .grid-normal {
-        grid-template-columns: 1fr;
-      }
-      
-      .grid-compact {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .grid-dense {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      
-      /* Better touch targets for small phones */
-      .menu-btn {
-        width: 36px;
-        height: 36px;
-      }
-      
-      .cloud-badge {
-        width: 30px;
-        height: 30px;
-      }
-      
-      .guest-banner {
-        padding: 6px 12px;
-      }
-      
-      .banner-content {
-        flex-direction: column;
-        gap: 6px;
-        text-align: center;
-      }
-      
-      .card-image {
-        height: 160px;
-      }
-      
-      .restaurant-image {
-        height: 160px;
-      }
-      
-      .logo-overlay {
-        width: 36px;
-        height: 36px;
-        bottom: 8px;
-        left: 8px;
-      }
-    }
-    
     @media (min-width: 769px) {
       /* Desktop banner adjustments */
       .guest-banner.mobile {
@@ -1169,17 +1553,6 @@
       
       .guest-banner.desktop {
         display: block;
-      }
-      
-      /* Fix menu button position on desktop */
-      .menu-btn.has-cloud {
-        top: 50px;
-        right: 12px;
-      }
-      
-      .menu-btn:not(.has-cloud) {
-        top: 12px;
-        right: 12px;
       }
     }
   </style>
@@ -1290,7 +1663,7 @@
     </div>
   </main>
 
-  <!-- Actions Modal -->
+  <!-- Actions Modal - PROPERLY HIDDEN -->
   <div id="actionsModal" class="actions-modal">
     <div class="actions-content">
       <div class="actions-header">
@@ -1320,7 +1693,7 @@
     </div>
   </div>
 
-  <!-- Custom Lists Modal -->
+  <!-- Custom Lists Modal - PROPERLY HIDDEN -->
   <div id="customListsModal" class="custom-lists-modal">
     <div class="custom-lists-content">
       <div class="lists-header">
@@ -1346,7 +1719,7 @@
     </div>
   </div>
 
-  <!-- Auth Prompt Modal -->
+  <!-- Auth Prompt Modal - PROPERLY HIDDEN -->
   <div id="authPromptModal" class="auth-prompt-modal">
     <div class="auth-prompt-content">
       <div class="auth-prompt-icon">
@@ -1420,7 +1793,7 @@
         isViewAll: false,
         viewAllButtonText: "View All",
         totalRestaurantCount: 0,
-        imageObserver: null // IntersectionObserver instance
+        imageObserver: null
       };
       
       // ---------- FIXED IMAGE LOADING SYSTEM ----------
@@ -1432,17 +1805,14 @@
             if (entry.isIntersecting) {
               const img = entry.target;
               if (img.dataset.src) {
-                // Load image with delay for smooth loading
-                setTimeout(() => {
-                  img.src = img.dataset.src;
-                  img.classList.add('loaded');
-                  observer.unobserve(img);
-                }, Math.random() * 200); // Stagger loading
+                img.src = img.dataset.src;
+                img.classList.add('loaded');
+                observer.unobserve(img);
               }
             }
           });
         }, {
-          rootMargin: '100px 0px', // Load images before they're visible
+          rootMargin: '100px 0px',
           threshold: 0.01
         });
         
@@ -1468,22 +1838,16 @@
         setTimeout(observeNewImages, 100);
       }
       
-      // ---------- FIX BOTTOM GOOGLE BANNER ----------
-      function fixIOSBottomBanner() {
-        // Fix for iOS Safari bottom bar
+      // ---------- FIX SCROLLING ISSUE ----------
+      function fixMobileScrolling() {
+        // Fix for iOS Safari scrolling issues
         if (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {
-          const viewport = document.querySelector('meta[name=viewport]');
-          if (viewport) {
-            let content = viewport.getAttribute('content');
-            content += ', viewport-fit=cover';
-            viewport.setAttribute('content', content);
-          }
+          // Prevent elastic scrolling issues
+          document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) { e.preventDefault(); }
+          }, { passive: false });
           
-          // Prevent elastic scrolling that reveals bottom bar
-          document.body.style.overflow = 'hidden';
-          document.body.style.height = '100%';
-          
-          // Fix for safari's 100vh issue
+          // Fix 100vh issue
           const setVH = () => {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -1492,18 +1856,16 @@
           setVH();
           window.addEventListener('resize', setVH);
           
-          // Fix for address bar hiding
+          // Prevent address bar hiding from breaking layout
           let lastScrollTop = 0;
-          window.addEventListener('scroll', () => {
+          window.addEventListener('scroll', function() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
-            
-            if (scrollTop > lastScrollTop) {
-              // Scrolling down - hide address bar
-              document.body.style.height = 'calc(100% + 60px)';
-            } else {
-              // Scrolling up
-              document.body.style.height = '100%';
+            if (Math.abs(scrollTop - lastScrollTop) > 50) {
+              // Force reflow to fix layout
+              document.body.style.height = 'auto';
+              setTimeout(() => {
+                document.body.style.height = '100%';
+              }, 100);
             }
             lastScrollTop = scrollTop;
           });
@@ -1528,7 +1890,6 @@
               cloudKitchens.forEach(ck => {
                 state.cloudKitchens.add(ck.restaurant_id);
               });
-              console.log(`Loaded ${state.cloudKitchens.size} cloud kitchens`);
             }
           } catch (error) {
             console.error('Error loading cloud kitchens:', error);
@@ -1557,9 +1918,8 @@
                     <li>Optimized for online orders</li>
                     <li>Often operates multiple brands from one kitchen</li>
                     <li>Lower overhead costs</li>
-                    <li>Focus on quality food optimized for delivery</li>
                   </ul>
-                  <p>Perfect for takeout and delivery orders!</p>
+                  <p>These restaurants focus on quality food optimized for delivery.</p>
                 </div>
               </div>
             </div>
@@ -2710,7 +3070,7 @@
         
         tooltipText = tooltipText.slice(0, -3); // Remove last " • "
         
-        const menuBtnClass = hasCloudBadge ? 'menu-btn has-cloud' : 'menu-btn';
+        const menuBtnClass = hasCloudBadge ? 'menu-btn' : 'menu-btn no-cloud';
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -3380,7 +3740,7 @@
         
         // Initialize fixes
         initFixedImageLoader();
-        fixIOSBottomBanner();
+        fixMobileScrolling();
         
         showLoadingSkeleton();
         setupEventListeners();
