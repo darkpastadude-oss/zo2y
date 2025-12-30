@@ -98,35 +98,7 @@
       transform: translateY(-1px);
     }
     
-    /* Enhanced Image Loading - FIXED */
-    .restaurant-image {
-      display: block;
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    .restaurant-image.loaded {
-      opacity: 1;
-    }
-    
-    .logo-overlay img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 8px;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    .logo-overlay img.loaded {
-      opacity: 1;
-    }
-    
-    /* Enhanced Header - FIXED POSITION */
+    /* Enhanced Header - NON-STICKY on mobile */
     header { 
       position: sticky; 
       top: 0; 
@@ -139,6 +111,14 @@
       background: var(--surface); 
       border-bottom: 1px solid var(--border); 
     } 
+    
+    /* Non-sticky header on mobile */
+    @media (max-width: 768px) {
+      header {
+        position: relative;
+        backdrop-filter: none;
+      }
+    }
     
     .logo { 
       height: 40px; 
@@ -407,7 +387,7 @@
       align-items: stretch;
     }
     
-    /* Grid variations */
+    /* Grid variations - FIXED FOR MOBILE */
     .grid-normal {
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
@@ -448,7 +428,22 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Menu button - MOVED TO TOP RIGHT */
+    /* Enhanced Image Loading */
+    .restaurant-image {
+      display: block;
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    .restaurant-image.loaded {
+      opacity: 1;
+    }
+    
+    /* Menu button - TOP RIGHT */
     .menu-btn-container {
       position: absolute;
       top: 12px;
@@ -486,7 +481,7 @@
       color: #0b1633;
     }
     
-    /* Menu button tooltip - FIXED POSITION BELOW */
+    /* Menu button tooltip - PLAIN WHITE TEXT */
     .menu-btn .menu-btn-tooltip {
       position: absolute;
       top: 100%;
@@ -508,6 +503,7 @@
       white-space: nowrap;
       min-width: 120px;
       text-align: center;
+      color: var(--white); /* PLAIN WHITE TEXT */
     }
     
     .menu-btn:hover .menu-btn-tooltip {
@@ -516,7 +512,7 @@
       transform: translateY(0);
     }
     
-    /* Cloud Kitchen Badge - MOVED BELOW MENU BUTTON */
+    /* Cloud Kitchen Badge */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -542,7 +538,7 @@
       transform: scale(1.05);
     }
     
-    /* Cloud Kitchen Tooltip - FIXED POSITION OUTSIDE */
+    /* Cloud Kitchen Tooltip - PLAIN WHITE TEXT */
     .cloud-badge .cloud-tooltip {
       position: absolute;
       top: -10px;
@@ -560,6 +556,7 @@
       visibility: hidden;
       transition: all 0.3s ease;
       pointer-events: none;
+      color: var(--white); /* PLAIN WHITE TEXT */
     }
     
     .cloud-badge:hover .cloud-tooltip {
@@ -588,7 +585,6 @@
     }
     
     .tooltip-content {
-      color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
     }
@@ -602,7 +598,7 @@
       margin-bottom: 4px;
     }
     
-    /* User List Badge - MOVED TO BOTTOM LEFT */
+    /* User List Badge */
     .badge-container {
       position: absolute;
       bottom: 12px;
@@ -629,7 +625,7 @@
       white-space: nowrap;
     }
     
-    /* Badge tooltips - FIXED POSITION OUTSIDE */
+    /* Badge tooltips - PLAIN WHITE TEXT */
     .user-list-badge .badge-tooltip {
       position: absolute;
       bottom: 100%;
@@ -651,6 +647,7 @@
       font-size: 12px;
       line-height: 1.4;
       margin-bottom: 8px;
+      color: var(--white); /* PLAIN WHITE TEXT */
     }
     
     .user-list-badge:hover .badge-tooltip {
@@ -660,7 +657,7 @@
       pointer-events: auto;
     }
     
-    /* Logo overlay in bottom right */
+    /* Logo overlay in bottom right - BIGGER ON MOBILE */
     .logo-overlay {
       position: absolute;
       bottom: 12px;
@@ -679,6 +676,19 @@
       transition: all 0.3s ease;
       box-shadow: 0 6px 20px rgba(0,0,0,0.4);
       pointer-events: none;
+    }
+    
+    .logo-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    .logo-overlay img.loaded {
+      opacity: 1;
     }
     
     .restaurant-card:hover .logo-overlay {
@@ -874,7 +884,278 @@
       font-size: 12px;
     }
     
-    /* Actions Modal - FIXED to hide by default */
+    /* Chrome Mobile Scrolling Fix */
+    @supports (padding: max(0px)) {
+      body, .container, main {
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+      
+      .container {
+        min-height: calc(100vh - env(safe-area-inset-bottom) - 200px);
+      }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      /* Header non-sticky on mobile */
+      header {
+        position: relative;
+        top: 0;
+        backdrop-filter: none;
+        padding: 12px 16px;
+        flex-wrap: wrap;
+      }
+      
+      /* Chrome Mobile Safe Area Fix */
+      @supports (padding: max(0px)) {
+        .container {
+          padding-bottom: max(16px, env(safe-area-inset-bottom));
+          padding-left: max(16px, env(safe-area-inset-left));
+          padding-right: max(16px, env(safe-area-inset-right));
+          min-height: calc(100vh - env(safe-area-inset-bottom) - 180px);
+        }
+      }
+      
+      /* Mobile banner adjustments */
+      .guest-banner.mobile {
+        position: relative;
+        top: 0;
+        z-index: 100;
+        padding: 10px 12px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
+        border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+        margin-bottom: 0;
+      }
+      
+      .guest-banner.desktop {
+        display: none;
+      }
+      
+      .banner-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
+      
+      .banner-text {
+        font-size: 13px;
+        margin-right: 0;
+      }
+      
+      .banner-actions {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .banner-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+      
+      /* Hide tooltips on mobile */
+      .cloud-tooltip,
+      .badge-tooltip,
+      .menu-btn-tooltip {
+        display: none !important;
+      }
+      
+      /* Logo overlay bigger on mobile */
+      .logo-overlay {
+        width: 56px;
+        height: 56px;
+        bottom: 14px;
+        right: 14px;
+      }
+      
+      /* Grid adjustments for 4 and 5 columns */
+      .grid {
+        gap: 12px;
+      }
+      
+      .grid-normal {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .grid-compact {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+      
+      .grid-dense {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      
+      /* Adjust card content for smaller screens */
+      .card-image {
+        height: 160px;
+      }
+      
+      .restaurant-image {
+        height: 160px;
+      }
+      
+      .cloud-badge {
+        top: 10px;
+        right: 52px;
+        width: 32px;
+        height: 32px;
+      }
+      
+      .menu-btn {
+        width: 32px;
+        height: 32px;
+      }
+      
+      /* Controls adjustments */
+      .controls-info {
+        font-size: 13px;
+        order: 1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      
+      .sort-controls {
+        order: 2;
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+      }
+      
+      .sort-select {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .view-controls {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 12px;
+        justify-content: space-between;
+      }
+      
+      .items-per-page {
+        margin-left: 0;
+      }
+      
+      .search-wrapper {
+        width: 100%;
+        order: 4;
+        margin-top: 12px;
+      }
+      
+      .toolbar {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      
+      /* Pagination adjustments for mobile */
+      .pagination {
+        flex-direction: column;
+        gap: 12px;
+        padding-top: 16px;
+        margin-top: 30px;
+      }
+      
+      .pagination-btn {
+        width: 100%;
+        max-width: 200px;
+        padding: 12px 16px;
+      }
+      
+      .view-all-btn {
+        width: 100%;
+        max-width: 200px;
+        padding: 12px 16px;
+      }
+      
+      .pagination-info {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+      }
+      
+      .quick-filters {
+        margin: 0 -16px;
+        padding-left: 16px;
+      }
+      
+      .container {
+        padding: 0 16px;
+      }
+      
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .card-title-wrapper {
+        width: 100%;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      /* Desktop banner adjustments */
+      .guest-banner.mobile {
+        display: none;
+      }
+      
+      .guest-banner.desktop {
+        display: block;
+      }
+    }
+    
+    /* Skeleton Loading */
+    .skeleton-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    
+    .skeleton-card {
+      background: var(--card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    
+    .skeleton-image {
+      height: 200px;
+      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    
+    .skeleton-content {
+      padding: 16px;
+    }
+    
+    .skeleton-line {
+      height: 12px;
+      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+    
+    .skeleton-line.short {
+      width: 60%;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    /* Actions Modal */
     .actions-modal {
       display: none;
       position: fixed;
@@ -1009,7 +1290,7 @@
       color: var(--white);
     }
     
-    /* Custom Lists Modal - FIXED to hide by default */
+    /* Custom Lists Modal */
     .custom-lists-modal {
       display: none;
       position: fixed;
@@ -1294,7 +1575,7 @@
       transform: none;
     }
     
-    /* Auth Prompt Modal - FIXED to hide by default */
+    /* Auth Prompt Modal */
     .auth-prompt-modal {
       display: none;
       position: fixed;
@@ -1415,268 +1696,6 @@
       background: rgba(255,255,255,0.05);
       color: var(--white);
     }
-    
-    /* Skeleton Loading */
-    .skeleton-grid {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .skeleton-card {
-      background: var(--card);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    
-    .skeleton-image {
-      height: 200px;
-      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-    }
-    
-    .skeleton-content {
-      padding: 16px;
-    }
-    
-    .skeleton-line {
-      height: 12px;
-      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-      margin-bottom: 8px;
-      border-radius: 4px;
-    }
-    
-    .skeleton-line.short {
-      width: 60%;
-    }
-    
-    @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    
-    /* Chrome Mobile Scrolling Fix */
-    @supports (padding: max(0px)) {
-      body, .container, main {
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-      }
-      
-      .container {
-        min-height: calc(100vh - env(safe-area-inset-bottom) - 200px);
-      }
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-      /* Chrome Mobile Safe Area Fix */
-      @supports (padding: max(0px)) {
-        .container {
-          padding-bottom: max(16px, env(safe-area-inset-bottom));
-          padding-left: max(16px, env(safe-area-inset-left));
-          padding-right: max(16px, env(safe-area-inset-right));
-          min-height: calc(100vh - env(safe-area-inset-bottom) - 180px);
-        }
-      }
-      
-      /* Mobile banner adjustments - NON-STICKY */
-      .guest-banner.mobile {
-        position: relative;
-        top: 0;
-        z-index: 100;
-        padding: 10px 12px;
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
-        border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-        margin-bottom: 0;
-      }
-      
-      .guest-banner.desktop {
-        display: none;
-      }
-      
-      .banner-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-      }
-      
-      .banner-text {
-        font-size: 13px;
-        margin-right: 0;
-      }
-      
-      .banner-actions {
-        width: 100%;
-        justify-content: center;
-      }
-      
-      .banner-btn {
-        padding: 8px 16px;
-        font-size: 13px;
-      }
-      
-      /* Hide tooltips on mobile */
-      .cloud-tooltip,
-      .badge-tooltip,
-      .menu-btn-tooltip {
-        display: none !important;
-      }
-      
-      /* Show tap description for cloud icon on mobile */
-      .cloud-description {
-        display: none !important;
-      }
-      
-      /* Improved grid spacing */
-      .grid {
-        gap: 12px;
-      }
-      
-      /* Grid adjustments */
-      .grid-normal {
-        grid-template-columns: 1fr;
-      }
-      
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 12px;
-      }
-      
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 10px;
-      }
-      
-      /* Pagination adjustments for mobile */
-      .pagination {
-        flex-direction: column;
-        gap: 12px;
-        padding-top: 16px;
-        margin-top: 30px;
-      }
-      
-      .pagination-btn {
-        width: 100%;
-        max-width: 200px;
-        padding: 12px 16px;
-      }
-      
-      .view-all-btn {
-        width: 100%;
-        max-width: 200px;
-        padding: 12px 16px;
-      }
-      
-      .pagination-info {
-        order: -1;
-        width: 100%;
-        text-align: center;
-        padding: 10px;
-      }
-      
-      .search-wrapper {
-        width: 100%;
-        order: 3;
-        margin-top: 12px;
-      }
-      
-      .toolbar {
-        width: 100%;
-        justify-content: space-between;
-        flex-wrap: wrap;
-      }
-      
-      .view-controls {
-        order: 4;
-        width: 100%;
-        margin-left: 0;
-        margin-top: 12px;
-        justify-content: space-between;
-      }
-      
-      .items-per-page {
-        margin-left: 0;
-      }
-      
-      .sort-controls {
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-start;
-      }
-      
-      .sort-select {
-        flex: 1;
-        min-width: 0;
-      }
-      
-      .quick-filters {
-        margin: 0 -16px;
-        padding-left: 16px;
-      }
-      
-      .container {
-        padding: 0 16px;
-      }
-      
-      header {
-        padding: 12px 16px;
-        flex-wrap: wrap;
-        backdrop-filter: blur(5px) saturate(180%);
-      }
-      
-      .card-image {
-        height: 180px;
-      }
-      
-      .restaurant-image {
-        height: 180px;
-      }
-      
-      .logo-overlay {
-        width: 40px;
-        height: 40px;
-        bottom: 10px;
-        right: 10px;
-      }
-      
-      .cloud-badge {
-        top: 12px;
-        right: 56px;
-        width: 32px;
-        height: 32px;
-      }
-      
-      .menu-btn {
-        width: 32px;
-        height: 32px;
-      }
-      
-      .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      
-      .card-title-wrapper {
-        width: 100%;
-      }
-    }
-    
-    @media (min-width: 769px) {
-      /* Desktop banner adjustments */
-      .guest-banner.mobile {
-        display: none;
-      }
-      
-      .guest-banner.desktop {
-        display: block;
-      }
-    }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
@@ -1732,7 +1751,7 @@
     
     <div class="controls">
       <div class="controls-info">
-        Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> restaurants
+        <span id="showingText">Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> restaurants</span>
       </div>
       
       <div class="sort-controls">
@@ -2899,19 +2918,16 @@
         
         const total = state.totalRestaurantCount;
         
-        if (total >= 50) {
-          const option50 = document.createElement('option');
-          option50.value = '50';
-          option50.textContent = '50';
-          select.appendChild(option50);
-        }
+        // Fixed options: 20, 40, 60, All
+        const option40 = document.createElement('option');
+        option40.value = '40';
+        option40.textContent = '40';
+        select.appendChild(option40);
         
-        if (total >= 100) {
-          const option100 = document.createElement('option');
-          option100.value = '100';
-          option100.textContent = '100';
-          select.appendChild(option100);
-        }
+        const option60 = document.createElement('option');
+        option60.value = '60';
+        option60.textContent = '60';
+        select.appendChild(option60);
         
         const optionAll = document.createElement('option');
         optionAll.value = total.toString();
@@ -3423,16 +3439,23 @@
       function updateCounts() {
         const showingEl = document.getElementById('showingCount');
         const totalEl = document.getElementById('totalCount');
+        const showingText = document.getElementById('showingText');
+        
+        if (!showingEl || !totalEl || !showingText) return;
+        
+        totalEl.textContent = state.filteredRestaurants.length;
         
         if (state.isViewAll) {
-          if (showingEl) showingEl.textContent = state.filteredRestaurants.length;
+          showingEl.textContent = state.filteredRestaurants.length;
+          showingText.textContent = `Showing ${state.filteredRestaurants.length} of ${state.filteredRestaurants.length} restaurants`;
         } else {
           const startIdx = (state.currentPage - 1) * state.pageSize;
           const endIdx = Math.min(startIdx + state.pageSize, state.filteredRestaurants.length);
-          if (showingEl) showingEl.textContent = `${startIdx + 1}-${endIdx}`;
+          showingEl.textContent = endIdx;
+          
+          // Show the correct range based on current page
+          showingText.textContent = `Showing ${startIdx + 1}-${endIdx} of ${state.filteredRestaurants.length} restaurants`;
         }
-        
-        if (totalEl) totalEl.textContent = state.filteredRestaurants.length;
       }
       
       // ---------- EVENT HANDLERS ----------
