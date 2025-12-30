@@ -448,11 +448,79 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Cloud Kitchen Badge - RESTORED with proper positioning */
-    .cloud-badge {
+    /* Menu button - MOVED TO TOP RIGHT */
+    .menu-btn-container {
       position: absolute;
       top: 12px;
       right: 12px;
+      z-index: 30;
+    }
+    
+    .menu-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(11, 22, 51, 0.9);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    
+    .menu-btn:hover {
+      background: var(--accent);
+      transform: scale(1.1);
+    }
+    
+    .menu-btn i {
+      color: var(--white);
+      font-size: 16px;
+    }
+    
+    .menu-btn:hover i {
+      color: #0b1633;
+    }
+    
+    /* Menu button tooltip - FIXED POSITION BELOW */
+    .menu-btn .menu-btn-tooltip {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: var(--card);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 10px 14px;
+      z-index: 1001;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      min-width: 120px;
+      text-align: center;
+    }
+    
+    .menu-btn:hover .menu-btn-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    /* Cloud Kitchen Badge - MOVED BELOW MENU BUTTON */
+    .cloud-badge {
+      position: absolute;
+      top: 12px;
+      right: 56px;
       width: 36px;
       height: 36px;
       background: rgba(59, 130, 246, 0.95);
@@ -461,7 +529,7 @@
       align-items: center;
       justify-content: center;
       cursor: help;
-      z-index: 100; /* Higher z-index */
+      z-index: 100;
       transition: all 0.3s ease;
       border: 2px solid var(--cloud-color);
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -478,14 +546,14 @@
     .cloud-badge .cloud-tooltip {
       position: absolute;
       top: -10px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-100%);
+      right: 0;
+      transform: translateX(0) translateY(-100%);
       background: var(--card);
       border: 2px solid var(--cloud-color);
       border-radius: 12px;
       padding: 16px;
       width: 280px;
-      z-index: 1001; /* Higher than everything */
+      z-index: 1001;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
       opacity: 0;
@@ -497,7 +565,7 @@
     .cloud-badge:hover .cloud-tooltip {
       opacity: 1;
       visibility: visible;
-      transform: translateX(-50%) translateY(-120%);
+      transform: translateX(0) translateY(-120%);
       pointer-events: auto;
     }
     
@@ -534,15 +602,15 @@
       margin-bottom: 4px;
     }
     
-    /* User List Badge */
+    /* User List Badge - MOVED TO BOTTOM LEFT */
     .badge-container {
       position: absolute;
-      top: 12px;
+      bottom: 12px;
       left: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      z-index: 100; /* Higher z-index */
+      z-index: 100;
     }
     
     .user-list-badge {
@@ -564,15 +632,15 @@
     /* Badge tooltips - FIXED POSITION OUTSIDE */
     .user-list-badge .badge-tooltip {
       position: absolute;
-      top: -10px;
+      bottom: 100%;
       left: 50%;
-      transform: translateX(-50%) translateY(-100%);
+      transform: translateX(-50%) translateY(-10px);
       background: var(--card);
       border: 2px solid var(--accent);
       border-radius: 12px;
       padding: 12px 16px;
       width: 200px;
-      z-index: 1001; /* Higher than everything */
+      z-index: 1001;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(10px);
       opacity: 0;
@@ -582,91 +650,21 @@
       text-align: left;
       font-size: 12px;
       line-height: 1.4;
+      margin-bottom: 8px;
     }
     
     .user-list-badge:hover .badge-tooltip {
       opacity: 1;
       visibility: visible;
-      transform: translateX(-50%) translateY(-120%);
+      transform: translateX(-50%) translateY(-20px);
       pointer-events: auto;
     }
     
-    /* Menu button - RESTORED to original position */
-    .menu-btn-container {
-      position: absolute;
-      top: 60px; /* Below cloud badge */
-      right: 12px;
-      z-index: 30;
-    }
-    
-    .menu-btn.no-cloud {
-      top: 12px; /* If no cloud badge, move up */
-    }
-    
-    .menu-btn {
-      width: 36px;
-      height: 36px;
-      background: rgba(11, 22, 51, 0.9);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      position: relative;
-    }
-    
-    .menu-btn:hover {
-      background: var(--accent);
-      transform: scale(1.1);
-    }
-    
-    .menu-btn i {
-      color: var(--white);
-      font-size: 16px;
-    }
-    
-    .menu-btn:hover i {
-      color: #0b1633;
-    }
-    
-    /* Menu button tooltip - FIXED POSITION OUTSIDE */
-    .menu-btn .menu-btn-tooltip {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-100%);
-      background: var(--card);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      padding: 10px 14px;
-      z-index: 1001; /* Higher than everything */
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    
-    .menu-btn:hover .menu-btn-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(-120%);
-      pointer-events: auto;
-    }
-    
-    /* Logo overlay in bottom left */
+    /* Logo overlay in bottom right */
     .logo-overlay {
       position: absolute;
       bottom: 12px;
-      left: 12px;
+      right: 12px;
       width: 48px;
       height: 48px;
       background: rgba(11, 22, 51, 0.9);
@@ -798,6 +796,82 @@
       color: var(--muted);
       font-size: 13px;
       font-weight: 500;
+    }
+    
+    /* Pagination Container - BOTTOM POSITION */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    
+    .pagination-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--accent);
+      color: #0b1633;
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination-info {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .view-all-btn {
+      background: var(--gradient);
+      border: none;
+      color: #0b1633;
+      padding: 10px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .view-all-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    
+    .view-all-btn i {
+      font-size: 12px;
     }
     
     /* Actions Modal - FIXED to hide by default */
@@ -1385,8 +1459,31 @@
       100% { background-position: -200% 0; }
     }
     
+    /* Chrome Mobile Scrolling Fix */
+    @supports (padding: max(0px)) {
+      body, .container, main {
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+      
+      .container {
+        min-height: calc(100vh - env(safe-area-inset-bottom) - 200px);
+      }
+    }
+    
     /* Responsive */
     @media (max-width: 768px) {
+      /* Chrome Mobile Safe Area Fix */
+      @supports (padding: max(0px)) {
+        .container {
+          padding-bottom: max(16px, env(safe-area-inset-bottom));
+          padding-left: max(16px, env(safe-area-inset-left));
+          padding-right: max(16px, env(safe-area-inset-right));
+          min-height: calc(100vh - env(safe-area-inset-bottom) - 180px);
+        }
+      }
+      
       /* Mobile banner adjustments - NON-STICKY */
       .guest-banner.mobile {
         position: relative;
@@ -1455,6 +1552,33 @@
         gap: 10px;
       }
       
+      /* Pagination adjustments for mobile */
+      .pagination {
+        flex-direction: column;
+        gap: 12px;
+        padding-top: 16px;
+        margin-top: 30px;
+      }
+      
+      .pagination-btn {
+        width: 100%;
+        max-width: 200px;
+        padding: 12px 16px;
+      }
+      
+      .view-all-btn {
+        width: 100%;
+        max-width: 200px;
+        padding: 12px 16px;
+      }
+      
+      .pagination-info {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+      }
+      
       .search-wrapper {
         width: 100%;
         order: 3;
@@ -1517,21 +1641,19 @@
         width: 40px;
         height: 40px;
         bottom: 10px;
-        left: 10px;
+        right: 10px;
       }
       
-      /* Adjust menu button position on mobile */
-      .menu-btn-container {
-        top: 56px;
-      }
-      
-      .menu-btn.no-cloud {
+      .cloud-badge {
         top: 12px;
+        right: 56px;
+        width: 32px;
+        height: 32px;
       }
       
       .menu-btn {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
       }
       
       .card-header {
@@ -1654,12 +1776,18 @@
       <!-- Content loaded dynamically -->
     </div>
     
-    <!-- Pagination -->
+    <!-- Pagination - BOTTOM POSITION -->
     <div id="pagination" class="pagination" style="display: none;">
-      <button class="pagination-btn" id="prevPage" disabled>← Prev</button>
+      <button class="pagination-btn" id="prevPage" disabled>
+        <i class="fas fa-chevron-left"></i> Prev
+      </button>
       <span class="pagination-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
-      <button class="pagination-btn" id="nextPage" disabled>Next →</button>
-      <button class="view-all-btn" id="viewAllBtn" style="display: none;">View All</button>
+      <button class="view-all-btn" id="viewAllBtn" style="display: none;">
+        View All <i class="fas fa-chevron-down"></i>
+      </button>
+      <button class="pagination-btn" id="nextPage" disabled>
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
     </div>
   </main>
 
@@ -1855,20 +1983,6 @@
           
           setVH();
           window.addEventListener('resize', setVH);
-          
-          // Prevent address bar hiding from breaking layout
-          let lastScrollTop = 0;
-          window.addEventListener('scroll', function() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            if (Math.abs(scrollTop - lastScrollTop) > 50) {
-              // Force reflow to fix layout
-              document.body.style.height = 'auto';
-              setTimeout(() => {
-                document.body.style.height = '100%';
-              }, 100);
-            }
-            lastScrollTop = scrollTop;
-          });
         }
       }
       
@@ -3070,8 +3184,6 @@
         
         tooltipText = tooltipText.slice(0, -3); // Remove last " • "
         
-        const menuBtnClass = hasCloudBadge ? 'menu-btn' : 'menu-btn no-cloud';
-        
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
             <div class="card-image">
@@ -3091,7 +3203,7 @@
                 </div>
               ` : ''}
               <div class="menu-btn-container">
-                <button class="${menuBtnClass}" aria-label="Restaurant actions">
+                <button class="menu-btn" aria-label="Restaurant actions">
                   <i class="fas fa-ellipsis-h"></i>
                   <div class="menu-btn-tooltip">Save to lists</div>
                 </button>
@@ -3261,7 +3373,7 @@
               state.currentPage--;
               renderRestaurants();
               updatePagination();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             }
           };
         }
@@ -3272,7 +3384,7 @@
               state.currentPage++;
               renderRestaurants();
               updatePagination();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             }
           };
         }
