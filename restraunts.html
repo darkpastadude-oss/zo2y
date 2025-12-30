@@ -22,48 +22,32 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Mobile Guest Banner - Sticky at top */
+    /* Guest Banner - NOT sticky */
     .guest-banner {
-      position: sticky;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 101;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
       border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 0;
-      margin: 0;
+      padding: 10px 20px;
+      margin: 0 auto;
       text-align: center;
-      animation: slideDown 0.3s ease-out;
-      backdrop-filter: blur(10px);
+      backdrop-filter: none;
+      position: relative;
+      z-index: 99;
     }
     
     .guest-banner.desktop {
       display: none;
-      position: static;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 10px 20px;
-      margin: 0 auto 20px auto;
-      border-radius: 12px;
       max-width: 800px;
       width: calc(100% - 40px);
-      backdrop-filter: none;
+      border-radius: 12px;
+      margin: 0 auto 20px auto;
+      border: 1px solid rgba(245, 158, 11, 0.2);
     }
     
     .guest-banner.mobile {
       display: block;
-    }
-    
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      width: 100%;
+      border-radius: 0;
+      margin-bottom: 20px;
     }
     
     .banner-content {
@@ -73,7 +57,6 @@
       gap: 8px;
       color: var(--muted);
       font-size: 14px;
-      padding: 8px 12px;
     }
     
     .banner-text {
@@ -119,7 +102,7 @@
       transform: translateY(-1px);
     }
     
-    /* Enhanced Image Loading */
+    /* Enhanced Image Loading - Optimized for speed */
     .restaurant-image {
       display: block;
       width: 100%;
@@ -127,7 +110,7 @@
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.2s ease;
     }
     
     .restaurant-image.loaded {
@@ -140,7 +123,7 @@
       object-fit: contain;
       border-radius: 8px;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.2s ease;
     }
     
     .logo-overlay img.loaded {
@@ -160,10 +143,6 @@
       background: var(--surface); 
       border-bottom: 1px solid var(--border); 
     } 
-    
-    .has-mobile-banner header {
-      top: 40px;
-    }
     
     .logo { 
       height: 40px; 
@@ -432,7 +411,7 @@
       align-items: stretch;
     }
     
-    /* Grid variations with FIXED NO-GAP layout */
+    /* Grid variations */
     .grid-normal {
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
@@ -473,7 +452,7 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Cloud Kitchen Badge - TOP RIGHT */
+    /* Cloud Kitchen Badge - TOP RIGHT - Optimized for PC */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -487,7 +466,7 @@
       justify-content: center;
       cursor: help;
       z-index: 25;
-      backdrop-filter: blur(10px);
+      backdrop-filter: none;
       transition: all 0.3s ease;
       border: 2px solid var(--cloud-color);
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -513,7 +492,7 @@
       display: none;
     }
     
-    /* Cloud Kitchen Info Tooltip */
+    /* Cloud Kitchen Info Tooltip - Fixed positioning */
     .cloud-tooltip {
       position: absolute;
       top: 50px;
@@ -523,10 +502,11 @@
       border-radius: 12px;
       padding: 16px;
       width: 280px;
-      z-index: 100;
+      z-index: 1000;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      backdrop-filter: blur(20px);
+      backdrop-filter: none;
       opacity: 0;
+      visibility: hidden;
       transform: translateY(-10px);
       transition: all 0.3s ease;
       pointer-events: none;
@@ -534,6 +514,7 @@
     
     .cloud-badge:hover .cloud-tooltip {
       opacity: 1;
+      visibility: visible;
       transform: translateY(0);
       pointer-events: auto;
     }
@@ -571,6 +552,92 @@
       margin-bottom: 4px;
     }
     
+    /* Cloud Kitchen Mobile Popup */
+    .cloud-mobile-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.95);
+      z-index: 1003;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .cloud-mobile-popup.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .cloud-popup-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      border: 2px solid var(--cloud-color);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: left;
+    }
+    
+    .cloud-popup-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .cloud-popup-header i {
+      color: var(--cloud-color);
+      font-size: 24px;
+    }
+    
+    .cloud-popup-header h4 {
+      color: var(--white);
+      font-size: 20px;
+      margin: 0;
+    }
+    
+    .cloud-popup-body {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .cloud-popup-body ul {
+      margin: 12px 0;
+      padding-left: 20px;
+    }
+    
+    .cloud-popup-body li {
+      margin-bottom: 6px;
+    }
+    
+    .cloud-popup-close {
+      background: var(--cloud-color);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      font-size: 15px;
+    }
+    
+    .cloud-popup-close:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+    
     /* Logo overlay in bottom left */
     .logo-overlay {
       position: absolute;
@@ -585,7 +652,7 @@
       justify-content: center;
       padding: 4px;
       border: 2px solid var(--accent);
-      backdrop-filter: blur(10px);
+      backdrop-filter: none;
       z-index: 20;
       transition: all 0.3s ease;
       box-shadow: 0 6px 20px rgba(0,0,0,0.4);
@@ -619,7 +686,7 @@
       border-radius: 8px;
       font-size: 11px;
       font-weight: 600;
-      backdrop-filter: blur(10px);
+      backdrop-filter: none;
       border: 1px solid var(--accent);
       display: flex;
       align-items: center;
@@ -629,7 +696,7 @@
       overflow: hidden;
     }
     
-    /* Three dots menu button - Moved down when cloud badge is present */
+    /* Three dots menu button */
     .menu-btn {
       position: absolute;
       top: 60px;
@@ -644,7 +711,7 @@
       justify-content: center;
       cursor: pointer;
       z-index: 30;
-      backdrop-filter: blur(10px);
+      backdrop-filter: none;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
@@ -786,7 +853,7 @@
       right: 0;
       bottom: 0;
       background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: blur(20px);
+      backdrop-filter: none;
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -921,7 +988,7 @@
       right: 0;
       bottom: 0;
       background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: blur(20px);
+      backdrop-filter: none;
       z-index: 1001;
       align-items: center;
       justify-content: center;
@@ -1206,7 +1273,7 @@
       right: 0;
       bottom: 0;
       background: rgba(11, 22, 51, 0.98);
-      backdrop-filter: blur(20px);
+      backdrop-filter: none;
       z-index: 1002;
       align-items: center;
       justify-content: center;
@@ -1477,7 +1544,7 @@
       align-items: center;
       transform: translateX(120%);
       transition: transform 0.4s ease;
-      backdrop-filter: blur(10px);
+      backdrop-filter: none;
       border: 1px solid var(--border);
       font-weight: 500;
     }
@@ -1530,9 +1597,12 @@
     
     /* Responsive */
     @media (max-width: 768px) {
-      /* Mobile banner adjustments */
+      /* Guest banner */
       .guest-banner.mobile {
         display: block;
+        position: relative;
+        top: 0;
+        margin-bottom: 20px;
       }
       
       .guest-banner.desktop {
@@ -1540,7 +1610,7 @@
       }
       
       .guest-banner .banner-content {
-        padding: 6px 12px;
+        padding: 8px 12px;
       }
       
       .banner-text {
@@ -1551,10 +1621,6 @@
       .banner-btn {
         padding: 3px 8px;
         font-size: 11px;
-      }
-      
-      .has-mobile-banner header {
-        top: 34px;
       }
       
       /* Cloud badge mobile adjustments */
@@ -1573,9 +1639,9 @@
         font-size: 11px;
       }
       
+      /* Hide tooltip on mobile */
       .cloud-tooltip {
-        width: 240px;
-        right: 8px;
+        display: none;
       }
       
       .menu-btn {
@@ -1589,17 +1655,39 @@
         top: 12px;
       }
       
-      /* Grid adjustments */
+      /* Grid adjustments - Fix third grid option */
       .grid-normal {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       }
       
       .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       }
       
       .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+      
+      /* Fix for dense grid */
+      .grid-dense .restaurant-card {
+        min-height: 180px;
+      }
+      
+      .grid-dense .card-image {
+        height: 120px;
+      }
+      
+      .grid-dense .restaurant-image {
+        height: 120px;
+      }
+      
+      .grid-dense .card-content {
+        padding: 12px;
+      }
+      
+      .grid-dense .card-description {
+        -webkit-line-clamp: 2;
+        font-size: 13px;
       }
       
       .search-wrapper {
@@ -1650,12 +1738,6 @@
         padding: 12px 16px;
         flex-wrap: wrap;
         backdrop-filter: blur(5px) saturate(180%);
-      }
-      
-      .guest-banner {
-        width: calc(100% - 32px);
-        padding: 8px 16px;
-        margin: 0 auto 16px auto;
       }
       
       .card-image {
@@ -1714,15 +1796,11 @@
       .guest-banner.mobile .banner-content {
         flex-direction: row;
         justify-content: center;
-        padding: 5px 10px;
+        padding: 6px 10px;
       }
       
       .banner-text {
-        display: none;
-      }
-      
-      .has-mobile-banner header {
-        top: 30px;
+        font-size: 11px;
       }
       
       /* Cloud badge touch-friendly */
@@ -1730,34 +1808,6 @@
         width: 28px;
         height: 28px;
         font-size: 12px;
-      }
-      
-      .cloud-badge:active {
-        background: rgba(59, 130, 246, 1);
-        transform: scale(1.1);
-        width: auto;
-        padding: 0 6px;
-        gap: 3px;
-      }
-      
-      .cloud-badge:active .cloud-text {
-        display: inline;
-        font-size: 10px;
-      }
-      
-      .cloud-tooltip {
-        display: none;
-      }
-      
-      .menu-btn {
-        top: 52px;
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-      }
-      
-      .menu-btn.no-cloud {
-        top: 10px;
       }
       
       /* Grid adjustments */
@@ -1780,22 +1830,12 @@
       
       .guest-banner {
         padding: 6px 12px;
-        width: calc(100% - 24px);
       }
       
       .banner-content {
         flex-direction: row;
         gap: 6px;
         text-align: center;
-      }
-      
-      .banner-text {
-        margin-right: 0;
-      }
-      
-      .banner-actions {
-        width: 100%;
-        justify-content: center;
       }
       
       .card-image {
@@ -1851,17 +1891,13 @@
       .guest-banner.desktop {
         display: block;
       }
-      
-      .has-mobile-banner header {
-        top: 0;
-      }
     }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Mobile Guest Banner - Sticky at top -->
+  <!-- Mobile Guest Banner - Not sticky -->
   <div id="guestBannerMobile" class="guest-banner mobile">
     <div class="banner-content">
       <span class="banner-text">Want to save favorites?</span>
@@ -1944,10 +1980,7 @@
         <div class="items-per-page">
           <label for="itemsPerPage">Show:</label>
           <select id="itemsPerPage" class="items-select">
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="9999">All</option>
+            <!-- Options will be populated dynamically -->
           </select>
         </div>
       </div>
@@ -2047,6 +2080,27 @@
     </div>
   </div>
 
+  <!-- Cloud Kitchen Mobile Popup -->
+  <div id="cloudMobilePopup" class="cloud-mobile-popup">
+    <div class="cloud-popup-content">
+      <div class="cloud-popup-header">
+        <i class="fas fa-cloud"></i>
+        <h4>Cloud Kitchen</h4>
+      </div>
+      <div class="cloud-popup-body">
+        <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
+        <ul>
+          <li>Delivery only - no dine-in option</li>
+          <li>Optimized for online orders</li>
+          <li>Often operates multiple brands from one kitchen</li>
+          <li>Lower overhead costs</li>
+        </ul>
+        <p>These restaurants focus on quality food optimized for delivery.</p>
+      </div>
+      <button class="cloud-popup-close" id="cloudPopupCloseBtn">Got It</button>
+    </div>
+  </div>
+
   <footer>
     © 2025 Zo2y — Built with ❤️ for food lovers
   </footer>
@@ -2095,7 +2149,8 @@
         customLists: [],
         selectedLists: new Set(),
         isViewAll: false,
-        viewAllButtonText: "View All"
+        viewAllButtonText: "View All",
+        totalRestaurantCount: 0
       };
       
       // ---------- CLOUD KITCHEN MANAGER ----------
@@ -2152,10 +2207,26 @@
               </div>
             </div>
           `;
+        },
+        
+        showMobilePopup() {
+          const popup = document.getElementById('cloudMobilePopup');
+          if (popup) {
+            popup.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
+        },
+        
+        hideMobilePopup() {
+          const popup = document.getElementById('cloudMobilePopup');
+          if (popup) {
+            popup.classList.remove('active');
+            document.body.style.overflow = 'auto';
+          }
         }
       };
       
-      // ---------- IMAGE OPTIMIZATION ----------
+      // ---------- IMAGE OPTIMIZATION - FASTER LOADING ----------
       function getOptimizedSupabaseImageUrl(url, options = {}) {
         if (!url || !url.includes('supabase.co')) return url;
         
@@ -2164,10 +2235,10 @@
           const urlObj = new URL(url);
           const params = new URLSearchParams(urlObj.search);
           
-          // Set optimization parameters
-          if (!params.has('width')) params.set('width', options.width || '600');
-          if (!params.has('height')) params.set('height', options.height || '400');
-          if (!params.has('quality')) params.set('quality', options.quality || '75');
+          // Set optimization parameters - Reduced quality for faster loading
+          if (!params.has('width')) params.set('width', options.width || '400');
+          if (!params.has('height')) params.set('height', options.height || '300');
+          if (!params.has('quality')) params.set('quality', options.quality || '60');
           if (!params.has('format')) params.set('format', options.format || 'webp');
           if (!params.has('resize')) params.set('resize', options.resize || 'cover');
           
@@ -2183,7 +2254,7 @@
         }
       }
       
-      // ---------- LAZY LOADING SYSTEM ----------
+      // ---------- FASTER LAZY LOADING SYSTEM ----------
       let imageObserver;
       
       function initLazyLoading() {
@@ -2192,50 +2263,48 @@
             entries.forEach(entry => {
               if (entry.isIntersecting) {
                 const img = entry.target;
-                loadImage(img, img.dataset.src);
+                loadImageFast(img, img.dataset.src);
                 observer.unobserve(img);
               }
             });
           }, {
-            rootMargin: '100px 0px',
+            rootMargin: '50px 0px', // Reduced from 100px for faster loading
             threshold: 0.01
           });
         }
       }
       
-      function loadImage(imgElement, url) {
+      function loadImageFast(imgElement, url) {
         if (!url || url === '') {
           imgElement.style.display = 'none';
           return;
         }
         
-        // Optimize Supabase URLs
+        // Optimize Supabase URLs with lower quality for speed
         const optimizedUrl = getOptimizedSupabaseImageUrl(url, {
-          width: imgElement.clientWidth > 0 ? Math.ceil(imgElement.clientWidth * 1.5) : '600',
-          height: '400'
+          width: '400',
+          height: '300',
+          quality: '60',
+          format: 'webp'
         });
         
-        const tempImg = new Image();
-        tempImg.onload = () => {
-          imgElement.src = optimizedUrl;
+        // Direct loading without extra Image object for speed
+        imgElement.onload = () => {
           imgElement.classList.add('loaded');
-          
-          // Fade in effect
-          imgElement.style.opacity = '0';
-          setTimeout(() => {
-            imgElement.style.transition = 'opacity 0.3s ease';
-            imgElement.style.opacity = '1';
-          }, 10);
+          imgElement.style.opacity = '1';
         };
         
-        tempImg.onerror = () => {
+        imgElement.onerror = () => {
           // Fallback to original URL if optimized fails
           imgElement.src = url;
           imgElement.classList.add('loaded');
+          imgElement.style.opacity = '1';
         };
         
-        // Start loading
-        tempImg.src = optimizedUrl;
+        // Start loading immediately
+        imgElement.src = optimizedUrl;
+        imgElement.style.opacity = '0';
+        imgElement.style.transition = 'opacity 0.2s ease';
       }
       
       function observeImage(imgElement) {
@@ -2243,7 +2312,7 @@
           imageObserver.observe(imgElement);
         } else if (imgElement.dataset.src) {
           // Fallback for browsers without IntersectionObserver
-          loadImage(imgElement, imgElement.dataset.src);
+          loadImageFast(imgElement, imgElement.dataset.src);
         }
       }
       
@@ -2865,10 +2934,8 @@
             });
           }
           
-          // Add mobile banner class to body for CSS targeting
-          if (window.innerWidth <= 768) {
-            document.body.classList.add('has-mobile-banner');
-          }
+          // Show/hide based on screen size
+          this.show();
         },
         
         show: function() {
@@ -2883,7 +2950,6 @@
             if (desktopBanner) {
               desktopBanner.style.display = 'none';
             }
-            document.body.classList.add('has-mobile-banner');
           } else {
             // Desktop
             if (mobileBanner) {
@@ -2892,7 +2958,6 @@
             if (desktopBanner) {
               desktopBanner.style.display = 'block';
             }
-            document.body.classList.remove('has-mobile-banner');
           }
         },
         
@@ -2906,7 +2971,6 @@
           if (desktopBanner) {
             desktopBanner.style.display = 'none';
           }
-          document.body.classList.remove('has-mobile-banner');
         }
       };
       
@@ -3089,6 +3153,12 @@
             return;
           }
           
+          // Store total count
+          state.totalRestaurantCount = data.length;
+          
+          // Update items per page dropdown
+          updateItemsPerPageDropdown();
+          
           // Process restaurants with categories
           state.restaurants = data.map(restaurant => ({
             id: restaurant.id,
@@ -3117,6 +3187,61 @@
         }
       }
       
+      function updateItemsPerPageDropdown() {
+        const select = document.getElementById('itemsPerPage');
+        if (!select) return;
+        
+        // Clear existing options
+        select.innerHTML = '';
+        
+        // Always show 20 as default
+        const option20 = document.createElement('option');
+        option20.value = '20';
+        option20.textContent = '20';
+        select.appendChild(option20);
+        
+        // Calculate appropriate values based on total count
+        const total = state.totalRestaurantCount;
+        
+        // Add 50 if total is 50 or more
+        if (total >= 50) {
+          const option50 = document.createElement('option');
+          option50.value = '50';
+          option50.textContent = '50';
+          select.appendChild(option50);
+        }
+        
+        // Add 100 if total is 100 or more
+        if (total >= 100) {
+          const option100 = document.createElement('option');
+          option100.value = '100';
+          option100.textContent = '100';
+          select.appendChild(option100);
+        }
+        
+        // Always add "All" option
+        const optionAll = document.createElement('option');
+        optionAll.value = total.toString();
+        optionAll.textContent = 'All';
+        select.appendChild(optionAll);
+        
+        // Load saved preference
+        try {
+          const savedItems = localStorage.getItem('zo2y_items_per_page');
+          if (savedItems) {
+            // Check if saved value is valid
+            const validOptions = Array.from(select.options).map(opt => opt.value);
+            if (validOptions.includes(savedItems)) {
+              select.value = savedItems;
+              state.pageSize = parseInt(savedItems);
+            } else if (parseInt(savedItems) > total) {
+              select.value = total.toString();
+              state.pageSize = total;
+            }
+          }
+        } catch (e) {}
+      }
+      
       async function loadBasicRestaurantData() {
         const { data, error } = await supabase
           .from('restraunts')
@@ -3129,6 +3254,12 @@
           showEmptyState();
           return;
         }
+        
+        // Store total count
+        state.totalRestaurantCount = data.length;
+        
+        // Update items per page dropdown
+        updateItemsPerPageDropdown();
         
         const categoryMap = new Map();
         data.forEach((restaurant, index) => {
@@ -3367,17 +3498,16 @@
           const card = createRestaurantCard(restaurant);
           grid.appendChild(card);
           
-          // Set up lazy loading for images in this card
+          // Set up lazy loading for images in this card - faster loading
           setTimeout(() => {
             const images = card.querySelectorAll('img[data-src]');
-            images.forEach(img => observeImage(img));
-          }, 10);
-        }
-        
-        // Fix for extra square in dense grid
-        const gridBtn = document.querySelector('.grid-btn.active');
-        if (gridBtn && gridBtn.dataset.view === 'dense') {
-          grid.classList.add('grid-dense-fixed');
+            images.forEach(img => {
+              // Load images immediately for faster display
+              if (img.getBoundingClientRect().top < window.innerHeight + 100) {
+                observeImage(img);
+              }
+            });
+          }, 0);
         }
       }
       
@@ -3465,15 +3595,16 @@
           });
         }
         
-        // Mobile: Make cloud badge clickable to show tooltip
+        // Mobile: Make cloud badge clickable to show custom popup
         const cloudBadgeEl = card.querySelector('.cloud-badge');
-        if (cloudBadgeEl && window.innerWidth <= 768) {
+        if (cloudBadgeEl) {
           cloudBadgeEl.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            // Show a simple alert for mobile
-            alert('Cloud Kitchen\n\nA delivery-only restaurant that operates without a physical dining space. These kitchens focus on quality food optimized for delivery.');
+            if (window.innerWidth <= 768) {
+              cloudKitchenManager.showMobilePopup();
+            }
           });
         }
         
@@ -3561,7 +3692,7 @@
         state.isViewAll = !state.isViewAll;
         
         if (state.isViewAll) {
-          state.pageSize = 9999; // Effectively show all
+          state.pageSize = state.filteredRestaurants.length;
         } else {
           // Get current items per page setting
           const itemsPerPageSelect = document.getElementById('itemsPerPage');
@@ -3589,8 +3720,9 @@
         if (state.isViewAll) {
           if (showingEl) showingEl.textContent = state.filteredRestaurants.length;
         } else {
-          const showing = Math.min(state.currentPage * state.pageSize, state.filteredRestaurants.length);
-          if (showingEl) showingEl.textContent = showing;
+          const startIdx = (state.currentPage - 1) * state.pageSize;
+          const endIdx = Math.min(startIdx + state.pageSize, state.filteredRestaurants.length);
+          if (showingEl) showingEl.textContent = `${startIdx + 1}-${endIdx}`;
         }
         
         if (totalEl) totalEl.textContent = state.filteredRestaurants.length;
@@ -3644,16 +3776,11 @@
             state.currentPage = 1;
             state.isViewAll = false;
             applyFilters();
+            
+            try {
+              localStorage.setItem('zo2y_items_per_page', e.target.value);
+            } catch (e) {}
           });
-          
-          // Load saved preference
-          try {
-            const savedItems = localStorage.getItem('zo2y_items_per_page');
-            if (savedItems) {
-              itemsPerPageSelect.value = savedItems;
-              state.pageSize = parseInt(savedItems);
-            }
-          } catch (e) {}
         }
         
         document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -3820,6 +3947,23 @@
           });
         }
         
+        // Cloud kitchen popup close button
+        const cloudPopupCloseBtn = document.getElementById('cloudPopupCloseBtn');
+        if (cloudPopupCloseBtn) {
+          cloudPopupCloseBtn.addEventListener('click', () => {
+            cloudKitchenManager.hideMobilePopup();
+          });
+        }
+        
+        const cloudMobilePopup = document.getElementById('cloudMobilePopup');
+        if (cloudMobilePopup) {
+          cloudMobilePopup.addEventListener('click', (e) => {
+            if (e.target === cloudMobilePopup) {
+              cloudKitchenManager.hideMobilePopup();
+            }
+          });
+        }
+        
         // Auth button
         const authBtn = document.getElementById('authBtn');
         if (authBtn) {
@@ -3833,15 +3977,21 @@
             hideModal();
             hideCustomListsModal();
             hideAuthPrompt();
+            cloudKitchenManager.hideMobilePopup();
           }
         });
         
-        // Window resize for banner switching
+        // Window resize for banner switching and responsive adjustments
         window.addEventListener('resize', () => {
           if (state.currentUser) {
             guestBanner.hide();
           } else {
             guestBanner.show();
+          }
+          
+          // Re-render to adjust grid layout if needed
+          if (state.filteredRestaurants.length > 0) {
+            renderRestaurants();
           }
         });
         
@@ -4020,16 +4170,6 @@
         await updateAuthUI();
         
         supabase.auth.onAuthStateChange(updateAuthUI);
-        
-        // Save items per page preference
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        if (itemsPerPageSelect) {
-          itemsPerPageSelect.addEventListener('change', function() {
-            try {
-              localStorage.setItem('zo2y_items_per_page', this.value);
-            } catch (e) {}
-          });
-        }
       }
       
       if (document.readyState === 'loading') {
