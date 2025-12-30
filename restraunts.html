@@ -22,7 +22,7 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Guest Banner */
+    /* Mobile Guest Banner */
     .guest-banner {
       position: sticky;
       top: 0;
@@ -31,10 +31,28 @@
       z-index: 101;
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
       border-bottom: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 8px 16px;
+      padding: 0;
+      margin: 0;
       text-align: center;
       animation: slideDown 0.3s ease-out;
       backdrop-filter: blur(10px);
+    }
+    
+    .guest-banner.desktop {
+      display: none;
+      position: static;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 10px 20px;
+      margin: 0 auto 20px auto;
+      border-radius: 12px;
+      max-width: 800px;
+      width: calc(100% - 40px);
+      backdrop-filter: none;
+    }
+    
+    .guest-banner.mobile {
+      display: block;
     }
     
     @keyframes slideDown {
@@ -49,7 +67,12 @@
       gap: 8px;
       color: var(--muted);
       font-size: 14px;
+      padding: 8px 12px;
     }
+    
+    .banner-text { margin-right: 8px; font-size: 13px; }
+    
+    .banner-actions { display: flex; gap: 6px; align-items: center; }
     
     .banner-btn {
       padding: 4px 10px;
@@ -62,16 +85,21 @@
       white-space: nowrap;
     }
     
+    .banner-btn-outline {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    
+    .banner-btn-outline:hover { background: rgba(245, 158, 11, 0.1); }
+    
     .banner-btn-primary {
       background: var(--accent);
       color: #111;
       border: 1px solid var(--accent);
     }
     
-    .banner-btn-primary:hover {
-      background: #ffb84d;
-      transform: translateY(-1px);
-    }
+    .banner-btn-primary:hover { background: #ffb84d; transform: translateY(-1px); }
     
     /* Header */
     header { 
@@ -87,15 +115,10 @@
       border-bottom: 1px solid var(--border); 
     } 
     
-    .has-banner header {
-      top: 40px;
-    }
+    .has-mobile-banner header { top: 40px; }
     
-    .logo { 
-      height: 40px; 
-      cursor: pointer; 
-      transition: transform 0.3s ease;
-    }
+    .logo { height: 40px; cursor: pointer; transition: transform 0.3s ease; }
+    .logo:hover { transform: scale(1.05); }
     
     .toolbar { 
       display: flex; 
@@ -106,10 +129,7 @@
     } 
     
     /* Search */
-    .search-wrapper {
-      width: 320px;
-      position: relative;
-    }
+    .search-wrapper { width: 320px; position: relative; }
     
     .search { 
       width: 100%; 
@@ -123,10 +143,7 @@
       transition: all 0.3s ease;
     } 
     
-    .search:focus { 
-      border-color: var(--accent); 
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
-    } 
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); } 
     
     .search-icon { 
       position: absolute; 
@@ -150,40 +167,14 @@
       white-space: nowrap;
     } 
     
-    .btn:hover { 
-      background: var(--accent); 
-      color: #0b1633; 
-    }
-    
-    .btn-primary {
-      background: var(--gradient);
-      border: none;
-      color: #0b1633;
-      font-weight: 600;
-    }
+    .btn:hover { background: var(--accent); color: #0b1633; }
+    .btn-primary { background: var(--gradient); border: none; color: #0b1633; font-weight: 600; }
     
     /* Container */
-    .container { 
-      max-width: 1200px; 
-      margin: 24px auto; 
-      padding: 0 20px; 
-      min-height: calc(100vh - 200px);
-    } 
-    
-    .page-header {
-      margin-bottom: 24px;
-    }
-    
-    .page-header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    
-    .page-header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 20px; min-height: calc(100vh - 200px); }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .page-header p { color: var(--muted); font-size: 14px; }
     
     /* Quick Filters */
     .quick-filters {
@@ -191,14 +182,13 @@
       gap: 8px;
       overflow-x: auto;
       padding: 8px 0;
-      margin-bottom: 20px;
+      margin: 0 -20px 20px -20px;
+      padding-left: 20px;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
     
-    .quick-filters::-webkit-scrollbar {
-      display: none;
-    }
+    .quick-filters::-webkit-scrollbar { display: none; }
     
     .filter-chip {
       background: var(--card);
@@ -214,37 +204,13 @@
       flex-shrink: 0;
     }
     
-    .filter-chip:hover {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: var(--accent);
-    }
-    
-    .filter-chip.active {
-      background: var(--gradient);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
+    .filter-chip:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); }
+    .filter-chip.active { background: var(--gradient); color: #0b1633; border-color: var(--accent); }
     
     /* Controls */
-    .controls { 
-      display: flex; 
-      gap: 12px; 
-      align-items: center; 
-      margin-bottom: 20px; 
-      flex-wrap: wrap; 
-    } 
-    
-    .controls-info { 
-      color: var(--muted); 
-      font-size: 14px; 
-      font-weight: 500; 
-    } 
-    
-    .sort-controls {
-      display: flex;
-      gap: 8px;
-      margin-left: auto;
-    }
+    .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; } 
+    .controls-info { color: var(--muted); font-size: 14px; font-weight: 500; } 
+    .sort-controls { display: flex; gap: 8px; margin-left: auto; }
     
     .sort-select {
       background: var(--card);
@@ -258,11 +224,7 @@
     }
     
     /* Grid View Controls */
-    .view-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .view-controls { display: flex; align-items: center; gap: 12px; }
     
     .grid-size-buttons {
       display: flex;
@@ -287,27 +249,11 @@
       transition: all 0.3s ease;
     }
     
-    .grid-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
+    .grid-btn:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .grid-btn.active { background: var(--accent); color: #0b1633; }
     
-    .grid-btn.active {
-      background: var(--accent);
-      color: #0b1633;
-    }
-    
-    .items-per-page {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .items-per-page label {
-      font-size: 13px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
+    .items-per-page { display: flex; align-items: center; gap: 8px; }
+    .items-per-page label { font-size: 13px; color: var(--muted); white-space: nowrap; }
     
     .items-select {
       background: var(--card);
@@ -321,25 +267,11 @@
     }
     
     /* Grid */
-    .grid { 
-      display: grid; 
-      gap: 20px; 
-      transition: grid-template-columns 0.3s ease;
-      min-height: 200px;
-      align-items: stretch;
-    }
+    .grid { display: grid; gap: 20px; transition: grid-template-columns 0.3s ease; min-height: 200px; align-items: stretch; }
     
-    .grid-normal {
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .grid-compact {
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    }
-    
-    .grid-dense {
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    }
+    .grid-normal { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .grid-compact { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    .grid-dense { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
     
     /* Restaurant Card */
     .restaurant-card { 
@@ -369,22 +301,16 @@
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    /* Image Loading */
+    /* Image Loading - FIXED */
     .restaurant-image {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0;
-      transition: opacity 0.5s ease;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
     }
     
-    .restaurant-image.loaded {
-      opacity: 1;
-    }
-    
-    /* Cloud Kitchen Badge */
+    /* Cloud Kitchen Badge - FIXED */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -414,78 +340,40 @@
       gap: 6px;
     }
     
-    .cloud-badge:hover .cloud-text {
-      display: inline;
-      font-size: 12px;
-      font-weight: 600;
-    }
+    .cloud-badge:hover .cloud-text { display: inline; font-size: 12px; font-weight: 600; }
+    .cloud-text { display: none; }
     
-    .cloud-text {
-      display: none;
-    }
-    
-    /* Cloud Kitchen Mobile Tooltip */
-    .cloud-mobile-tooltip {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+    /* Cloud Kitchen Tooltip - FIXED */
+    .cloud-tooltip {
+      position: absolute;
+      top: 50px;
+      right: 12px;
       background: var(--card);
       border: 2px solid var(--cloud-color);
       border-radius: 12px;
       padding: 16px;
       width: 280px;
-      z-index: 1000;
+      z-index: 100;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       backdrop-filter: blur(20px);
-      text-align: left;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
     }
     
-    .tooltip-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
+    .cloud-badge:hover .cloud-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
     
-    .tooltip-header i {
-      color: var(--cloud-color);
-      font-size: 18px;
-    }
-    
-    .tooltip-header h4 {
-      color: var(--white);
-      font-size: 16px;
-      margin: 0;
-    }
-    
-    .tooltip-content {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    
-    .tooltip-content ul {
-      margin: 8px 0;
-      padding-left: 20px;
-    }
-    
-    .tooltip-content li {
-      margin-bottom: 4px;
-    }
-    
-    .tooltip-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 18px;
-      cursor: pointer;
-      padding: 4px;
-    }
+    .tooltip-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .tooltip-header i { color: var(--cloud-color); font-size: 18px; }
+    .tooltip-header h4 { color: var(--white); font-size: 16px; margin: 0; }
+    .tooltip-content { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .tooltip-content ul { margin: 8px 0; padding-left: 20px; }
+    .tooltip-content li { margin-bottom: 4px; }
     
     /* Menu Button */
     .menu-btn {
@@ -507,46 +395,15 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     
-    .menu-btn.no-cloud {
-      top: 12px;
-    }
+    .menu-btn.no-cloud { top: 12px; }
+    .menu-btn:hover { background: var(--accent); transform: scale(1.1); }
+    .menu-btn i { color: var(--white); font-size: 16px; }
+    .menu-btn:hover i { color: #0b1633; }
     
-    .menu-btn:hover {
-      background: var(--accent);
-      transform: scale(1.1);
-    }
-    
-    .menu-btn i {
-      color: var(--white);
-      font-size: 16px;
-    }
-    
-    .menu-btn:hover i {
-      color: #0b1633;
-    }
-    
-    .card-content {
-      padding: 16px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .card-header {
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    
-    .card-title {
-      font-size: 16px;
-      font-weight: 700;
-      line-height: 1.3;
-      margin: 0;
-      flex: 1;
-    }
+    .card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .card-header { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .card-title-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .card-title { font-size: 16px; font-weight: 700; line-height: 1.3; margin: 0; flex: 1; }
     
     /* Top rated badge */
     .top-rated-badge {
@@ -584,15 +441,7 @@
       flex-shrink: 0;
     }
     
-    .card-category {
-      color: var(--accent);
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .card-category { color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
     
     .card-description {
       color: var(--muted);
@@ -615,12 +464,6 @@
       align-items: center;
     }
     
-    .card-location {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
-    }
-    
     /* Actions Modal */
     .actions-modal {
       display: none;
@@ -637,9 +480,7 @@
       padding: 20px;
     }
     
-    .actions-modal.active {
-      display: flex;
-    }
+    .actions-modal.active { display: flex; }
     
     .actions-content {
       background: var(--card);
@@ -658,12 +499,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
+    .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
     
     .action-btn-modal {
       background: var(--bg);
@@ -682,17 +518,212 @@
       justify-content: space-between;
     }
     
-    .action-btn-modal:hover {
-      background: var(--accent);
-      color: #0b1633;
-      transform: translateY(-2px);
-      border-color: var(--accent);
+    .action-btn-modal:hover { background: var(--accent); color: #0b1633; transform: translateY(-2px); border-color: var(--accent); }
+    .action-btn-modal.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+    
+    .custom-lists-btn { background: var(--bg); border: 1px solid var(--accent); color: var(--white); }
+    .custom-lists-btn:hover { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+    
+    /* Custom Lists Modal */
+    .custom-lists-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
     
-    .action-btn-modal.active {
+    .custom-lists-modal.active { display: flex; }
+    
+    .custom-lists-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .lists-header { margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+    .lists-header h3 { font-size: 22px; color: var(--white); font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .lists-header h3 i { color: var(--accent); }
+    
+    .close-lists-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .close-lists-btn:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    
+    .lists-list-container { flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; }
+    
+    .lists-list-container::-webkit-scrollbar { width: 8px; }
+    .lists-list-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
+    .lists-list-container::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+    
+    .lists-list { display: flex; flex-direction: column; gap: 8px; }
+    
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .list-item:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); transform: translateX(5px); }
+    .list-item.active { background: rgba(245, 158, 11, 0.2); border-color: var(--accent); }
+    
+    .list-info { display: flex; align-items: center; gap: 12px; flex: 1; }
+    
+    .list-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1633;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .list-name { font-weight: 500; color: var(--white); }
+    
+    .list-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .list-checkbox.checked { background: var(--accent); border-color: var(--accent); animation: checkPop 0.3s ease; }
+    @keyframes checkPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .list-checkbox.checked::after { content: "✓"; color: #0b1633; font-size: 12px; font-weight: bold; }
+    
+    .empty-lists { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty-lists i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; color: var(--accent); }
+    .empty-lists h4 { margin-bottom: 8px; color: var(--white); }
+    
+    .new-list-section { padding-top: 20px; border-top: 1px solid var(--border); }
+    
+    .new-list-input { display: flex; gap: 10px; margin-bottom: 15px; }
+    
+    .new-list-input input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .new-list-input input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
+    
+    .create-list-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .create-list-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
+    .create-list-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    
+    .lists-actions { display: flex; gap: 12px; margin-top: 10px; }
+    
+    .lists-save-btn {
+      flex: 1;
       background: var(--accent);
       color: #0b1633;
-      border-color: var(--accent);
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .lists-save-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
+    .lists-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    
+    /* Auth Prompt Modal */
+    .auth-prompt-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 22, 51, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 1002;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .auth-prompt-modal.active { display: flex; }
+    
+    .auth-prompt-content {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      border: 2px solid var(--accent);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      animation: modalSlideIn 0.3s ease-out;
+      text-align: center;
     }
     
     /* Pagination */
@@ -720,22 +751,25 @@
       font-weight: 500;
     }
     
-    .pagination-btn:hover:not(:disabled) {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
+    .pagination-btn:hover:not(:disabled) { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+    .pagination-btn.active { background: var(--gradient); color: #0b1633; border-color: var(--accent); }
+    .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .pagination-info { color: var(--muted); font-size: 13px; margin: 0 16px; }
+    
+    .view-all-btn {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-left: 12px;
     }
     
-    .pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .pagination-info {
-      color: var(--muted);
-      font-size: 13px;
-      margin: 0 16px;
-    }
+    .view-all-btn:hover { background: rgba(245, 158, 11, 0.1); }
     
     /* Empty State */
     .empty-state { 
@@ -743,137 +777,103 @@
       padding: 60px 20px; 
       text-align: center; 
       color: var(--muted); 
+      display: none; 
     }
     
-    .empty-state i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
+    .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state h3 { margin-bottom: 8px; font-size: 18px; color: var(--white); }
     
-    .empty-state h3 {
-      margin-bottom: 8px;
-      font-size: 18px;
-      color: var(--white);
-    }
-    
-    /* Responsive */
+    /* Responsive Fixes */
     @media (max-width: 768px) {
-      .has-banner header {
-        top: 34px;
-      }
+      .guest-banner.mobile { display: block; }
+      .guest-banner.desktop { display: none; }
       
-      .search-wrapper {
-        width: 100%;
-        order: 3;
-        margin-top: 12px;
-      }
+      .has-mobile-banner header { top: 34px; }
       
-      .toolbar {
-        width: 100%;
-        justify-content: space-between;
-        flex-wrap: wrap;
-      }
+      .search-wrapper { width: 100%; order: 3; margin-top: 12px; }
+      .toolbar { width: 100%; justify-content: space-between; flex-wrap: wrap; }
       
-      .sort-controls {
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-start;
-      }
+      .view-controls { order: 4; width: 100%; margin-left: 0; margin-top: 12px; justify-content: space-between; }
+      .items-per-page { margin-left: 0; }
       
-      .sort-select {
-        flex: 1;
-        min-width: 0;
-      }
+      .sort-controls { margin-left: 0; width: 100%; justify-content: flex-start; }
+      .sort-select { flex: 1; min-width: 0; }
       
-      .grid-normal {
-        grid-template-columns: 1fr;
-      }
+      .quick-filters { margin: 0 -16px; padding-left: 16px; }
+      .container { padding: 0 16px; }
+      header { padding: 12px 16px; flex-wrap: wrap; }
       
-      .grid-compact {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      }
+      .grid-normal { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+      .grid-compact { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+      .grid-dense { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
       
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      }
+      .card-image, .restaurant-image { height: 180px; }
       
-      .container {
-        padding: 0 16px;
-      }
+      .cloud-badge { width: 32px; height: 32px; font-size: 14px; }
+      .cloud-badge:hover { padding: 0 8px; gap: 4px; }
+      .cloud-badge:hover .cloud-text { font-size: 11px; }
       
-      header {
-        padding: 12px 16px;
-        flex-wrap: wrap;
-      }
+      .cloud-tooltip { width: 240px; right: 8px; }
       
-      .guest-banner {
-        padding: 6px 12px;
-      }
-      
-      .card-image {
-        height: 180px;
-      }
-      
-      .cloud-badge {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-      }
-      
-      .cloud-badge:active {
-        background: rgba(59, 130, 246, 1);
-        transform: scale(1.1);
-        width: auto;
-        padding: 0 8px;
-        gap: 4px;
-      }
-      
-      .cloud-badge:active .cloud-text {
-        display: inline;
-        font-size: 11px;
-      }
-      
-      .menu-btn {
-        top: 56px;
-        width: 32px;
-        height: 32px;
-      }
-      
-      .menu-btn.no-cloud {
-        top: 12px;
-      }
+      .menu-btn { top: 56px; width: 30px; height: 30px; font-size: 14px; }
+      .menu-btn.no-cloud { top: 12px; }
     }
     
     @media (max-width: 480px) {
-      .has-banner header {
-        top: 30px;
-      }
+      .grid-normal { grid-template-columns: 1fr; }
+      .grid-compact { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+      .grid-dense { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
       
-      .grid-dense {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      }
+      .grid-dense .restaurant-card { min-height: 200px; }
       
-      .card-image {
-        height: 160px;
-      }
+      .has-mobile-banner header { top: 30px; }
+      .guest-banner .banner-content { padding: 5px 10px; }
+      .banner-text { display: none; }
       
-      .menu-btn {
-        top: 52px;
-        width: 28px;
-        height: 28px;
+      .card-image, .restaurant-image { height: 160px; }
+      
+      .cloud-badge { width: 28px; height: 28px; font-size: 12px; }
+      .cloud-badge:active { 
+        background: rgba(59, 130, 246, 1); 
+        transform: scale(1.1); 
+        width: auto; 
+        padding: 0 6px; 
+        gap: 3px; 
       }
+      .cloud-badge:active .cloud-text { display: inline; font-size: 10px; }
+      
+      .menu-btn { top: 52px; width: 28px; height: 28px; font-size: 12px; }
+      .menu-btn.no-cloud { top: 10px; }
+    }
+    
+    @media (min-width: 769px) {
+      .guest-banner.mobile { display: none; }
+      .guest-banner.desktop { display: block; }
+      .has-mobile-banner header { top: 0; }
     }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Guest Banner -->
-  <div id="guestBanner" class="guest-banner" style="display: none;">
+  <!-- Mobile Guest Banner -->
+  <div id="guestBannerMobile" class="guest-banner mobile">
     <div class="banner-content">
       <span class="banner-text">Want to save favorites?</span>
-      <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Sign Up Free</button>
+      <div class="banner-actions">
+        <button class="banner-btn banner-btn-primary" id="bannerMobileSignupBtn">Sign Up Free</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop Guest Banner -->
+  <div id="guestBannerDesktop" class="guest-banner desktop">
+    <div class="banner-content">
+      <span class="banner-text">Want to save your favorite restaurants?</span>
+      <div class="banner-actions">
+        <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
+        <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
+      </div>
     </div>
   </div>
 
@@ -953,27 +953,9 @@
       <button class="pagination-btn" id="prevPage" disabled>← Prev</button>
       <span class="pagination-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
       <button class="pagination-btn" id="nextPage" disabled>Next →</button>
+      <button class="view-all-btn" id="viewAllBtn" style="display: none;">View All</button>
     </div>
   </main>
-
-  <!-- Cloud Kitchen Mobile Tooltip -->
-  <div id="cloudMobileTooltip" class="cloud-mobile-tooltip">
-    <button class="tooltip-close">×</button>
-    <div class="tooltip-header">
-      <i class="fas fa-cloud"></i>
-      <h4>Cloud Kitchen</h4>
-    </div>
-    <div class="tooltip-content">
-      <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
-      <ul>
-        <li>Delivery only - no dine-in option</li>
-        <li>Optimized for online orders</li>
-        <li>Often operates multiple brands from one kitchen</li>
-        <li>Lower overhead costs</li>
-      </ul>
-      <p>These restaurants focus on quality food optimized for delivery.</p>
-    </div>
-  </div>
 
   <!-- Actions Modal -->
   <div id="actionsModal" class="actions-modal">
@@ -991,8 +973,63 @@
           <i class="fas fa-utensils"></i>
           <span id="visitedText">Mark as Visited</span>
         </button>
+        <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
+          <i class="fas fa-list"></i>
+          <span>Custom Lists</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
       <button class="btn" id="modalCancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Custom Lists Modal -->
+  <div id="customListsModal" class="custom-lists-modal">
+    <div class="custom-lists-content">
+      <div class="lists-header">
+        <h3><i class="fas fa-list"></i> Custom Lists</h3>
+        <button class="close-lists-btn" id="closeListsBtn">×</button>
+      </div>
+      
+      <div class="lists-list-container" id="listsListContainer">
+        <!-- Lists will be populated here -->
+      </div>
+      
+      <div class="new-list-section">
+        <div class="new-list-input">
+          <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
+          <button class="create-list-btn" id="createListBtn">
+            <i class="fas fa-plus"></i> Create
+          </button>
+        </div>
+        <div class="lists-actions">
+          <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Prompt Modal -->
+  <div id="authPromptModal" class="auth-prompt-modal">
+    <div class="auth-prompt-content">
+      <div class="auth-prompt-icon">
+        <i class="fas fa-lock"></i>
+      </div>
+      <div class="auth-prompt-header">
+        <h3>Sign In Required</h3>
+        <p>You need to be signed in to save restaurants to your lists. Create an account to save your favorites, mark places you want to visit, and track where you've been!</p>
+      </div>
+      <div class="auth-prompt-buttons">
+        <button class="auth-prompt-btn auth-prompt-primary" id="authPromptSignupBtn">
+          <i class="fas fa-user-plus"></i>
+          Create Free Account
+        </button>
+        <button class="auth-prompt-btn auth-prompt-secondary" id="authPromptLoginBtn">
+          <i class="fas fa-sign-in-alt"></i>
+          Sign In to Existing Account
+        </button>
+      </div>
+      <button class="auth-prompt-close" id="authPromptCloseBtn">Maybe Later</button>
     </div>
   </div>
 
@@ -1000,14 +1037,11 @@
     (function() {
       'use strict';
       
-      // Supabase Config
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       
-      // Initialize Supabase
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       
-      // State
       const state = {
         restaurants: [],
         filteredRestaurants: [],
@@ -1024,112 +1058,82 @@
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
-        totalRestaurantCount: 0
+        customLists: [],
+        selectedLists: new Set(),
+        isViewAll: false
       };
       
-      // Image Optimization
-      function getOptimizedImageUrl(url) {
-        if (!url || !url.includes('supabase.co')) return url;
-        
-        try {
-          const urlObj = new URL(url);
-          const params = new URLSearchParams(urlObj.search);
-          
-          params.set('width', '600');
-          params.set('height', '400');
-          params.set('quality', '80');
-          params.set('format', 'webp');
-          params.set('resize', 'cover');
-          params.set('v', '1.0');
-          
-          urlObj.search = params.toString();
-          return urlObj.toString();
-        } catch (e) {
-          return url;
+      // IMAGE LOADING FIX
+      function loadImageWithFallback(imgElement, url) {
+        if (!url) {
+          console.log('No image URL provided');
+          return;
         }
+        
+        const img = new Image();
+        img.onload = () => {
+          console.log('Image loaded successfully:', url);
+          imgElement.src = url;
+          imgElement.style.opacity = '1';
+        };
+        
+        img.onerror = () => {
+          console.warn('Failed to load image:', url);
+          // Try without any optimization if it fails
+          if (url.includes('supabase.co')) {
+            const fallbackUrl = url.split('?')[0]; // Remove query params
+            console.log('Trying fallback URL:', fallbackUrl);
+            imgElement.src = fallbackUrl;
+          }
+        };
+        
+        img.src = url;
       }
       
-      // Load Cloud Kitchens
-      async function loadCloudKitchens() {
+      // LOAD RESTAURANTS WITH IMAGES
+      async function loadRestaurants() {
         try {
-          const { data } = await supabase
+          // Load cloud kitchens
+          const { data: cloudKitchens } = await supabase
             .from('cloud_kitchens')
             .select('restaurant_id');
           
-          if (data) {
-            state.cloudKitchens.clear();
-            data.forEach(ck => state.cloudKitchens.add(ck.restaurant_id));
+          if (cloudKitchens) {
+            cloudKitchens.forEach(ck => state.cloudKitchens.add(ck.restaurant_id));
           }
-        } catch (error) {
-          console.error('Error loading cloud kitchens:', error);
-        }
-      }
-      
-      function isCloudKitchen(restaurantId) {
-        return state.cloudKitchens.has(restaurantId);
-      }
-      
-      // Mobile Cloud Tooltip
-      function showCloudTooltip() {
-        const tooltip = document.getElementById('cloudMobileTooltip');
-        tooltip.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-      }
-      
-      function hideCloudTooltip() {
-        const tooltip = document.getElementById('cloudMobileTooltip');
-        tooltip.style.display = 'none';
-        document.body.style.overflow = 'auto';
-      }
-      
-      // Image Preloading
-      function preloadImage(url) {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(url);
-          img.onerror = () => resolve(null);
-          img.src = getOptimizedImageUrl(url);
-        });
-      }
-      
-      // Load Restaurants
-      async function loadRestaurants() {
-        try {
-          // Load cloud kitchens first
-          await loadCloudKitchens();
           
-          // Get total count
+          // Get restaurant count for items per page selector
           const { count } = await supabase
             .from('restraunts')
             .select('*', { count: 'exact', head: true });
           
-          state.totalRestaurantCount = count || 85;
+          const totalCount = count || 85;
+          populateItemsPerPage(totalCount);
           
-          // Load restaurants with categories
-          const { data } = await supabase
+          // Load restaurants with their images
+          const { data: restaurants } = await supabase
             .from('restraunts')
             .select(`
-              id, slug, name, category, description, rating, logo_url, image,
-              categories!inner (name, icon)
+              id, slug, name, category, description, rating, logo_url, image
             `)
             .order('rating', { ascending: false });
           
-          if (!data || data.length === 0) {
+          if (!restaurants) {
             showEmptyState();
             return;
           }
           
-          // Process data
-          state.restaurants = data.map(restaurant => ({
-            id: restaurant.id,
-            slug: restaurant.slug,
-            name: restaurant.name,
-            category: restaurant.categories?.name || restaurant.category || 'Restaurant',
-            description: restaurant.description,
-            rating: restaurant.rating || 0,
-            logo_url: restaurant.logo_url,
-            image: restaurant.image,
-            isCloudKitchen: isCloudKitchen(restaurant.id)
+          // Process restaurants
+          state.restaurants = restaurants.map(r => ({
+            id: r.id,
+            slug: r.slug,
+            name: r.name,
+            category: r.category || 'Restaurant',
+            description: r.description,
+            rating: r.rating || 0,
+            logo_url: r.logo_url,
+            image: r.image,
+            isCloudKitchen: state.cloudKitchens.has(r.id)
           }));
           
           // Extract categories
@@ -1144,13 +1148,39 @@
           });
           
           populateCategoryDropdown();
-          populateItemsPerPage();
           applyFilters();
           
         } catch (error) {
           console.error('Error loading restaurants:', error);
           showEmptyState();
         }
+      }
+      
+      // FIXED: Items per page selector
+      function populateItemsPerPage(totalCount) {
+        const select = document.getElementById('itemsPerPage');
+        select.innerHTML = '';
+        
+        // Add options based on actual count
+        const options = [20, 50, 100];
+        const availableOptions = options.filter(num => num <= totalCount);
+        
+        availableOptions.forEach(num => {
+          const option = document.createElement('option');
+          option.value = num;
+          option.textContent = num;
+          if (num === 20) option.selected = true;
+          select.appendChild(option);
+        });
+        
+        // Always add "All" option
+        const allOption = document.createElement('option');
+        allOption.value = totalCount;
+        allOption.textContent = 'All';
+        select.appendChild(allOption);
+        
+        // Update initial page size
+        state.pageSize = 20;
       }
       
       function populateCategoryDropdown() {
@@ -1167,36 +1197,11 @@
           });
       }
       
-      function populateItemsPerPage() {
-        const select = document.getElementById('itemsPerPage');
-        select.innerHTML = '';
-        
-        const options = [20, 50, 100];
-        const total = state.totalRestaurantCount;
-        
-        // Add dynamic options based on actual count
-        options.forEach(num => {
-          if (num <= total || num === 100) {
-            const option = document.createElement('option');
-            option.value = num;
-            option.textContent = num;
-            if (num === 20) option.selected = true;
-            select.appendChild(option);
-          }
-        });
-        
-        // Add "All" option
-        const allOption = document.createElement('option');
-        allOption.value = total;
-        allOption.textContent = 'All';
-        select.appendChild(allOption);
-      }
-      
-      // Filtering & Sorting
+      // FILTERING
       function applyFilters() {
         let filtered = [...state.restaurants];
         
-        // Search filter
+        // Search
         if (state.activeFilters.search) {
           const term = state.activeFilters.search.toLowerCase();
           filtered = filtered.filter(r => 
@@ -1206,7 +1211,7 @@
           );
         }
         
-        // Category filter
+        // Category
         if (state.activeFilters.category !== 'all') {
           const catId = parseInt(state.activeFilters.category);
           const category = Array.from(state.categories.values()).find(c => c.id === catId);
@@ -1251,7 +1256,7 @@
         updateCounts();
       }
       
-      // Rendering
+      // RENDER RESTAURANTS WITH PROPER IMAGE LOADING
       function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
@@ -1271,34 +1276,14 @@
           const card = createRestaurantCard(restaurant);
           grid.appendChild(card);
           
-          // Load images after card is added
+          // Load images after card is in DOM
           setTimeout(() => {
             const img = card.querySelector('.restaurant-image');
             if (img && img.dataset.src) {
-              loadImage(img);
+              loadImageWithFallback(img, img.dataset.src);
             }
-          }, 10);
+          }, 0);
         });
-      }
-      
-      async function loadImage(imgElement) {
-        if (!imgElement.dataset.src) return;
-        
-        const optimizedUrl = getOptimizedImageUrl(imgElement.dataset.src);
-        const img = new Image();
-        
-        img.onload = () => {
-          imgElement.src = optimizedUrl;
-          imgElement.classList.add('loaded');
-        };
-        
-        img.onerror = () => {
-          // Fallback to original if optimized fails
-          imgElement.src = imgElement.dataset.src;
-          imgElement.classList.add('loaded');
-        };
-        
-        img.src = optimizedUrl;
       }
       
       function createRestaurantCard(restaurant) {
@@ -1308,12 +1293,35 @@
         
         const isTopRated = restaurant.rating >= 4.5;
         const isCloudKitchen = restaurant.isCloudKitchen;
+        
         const cloudBadge = isCloudKitchen ? `
-          <div class="cloud-badge" onclick="${window.innerWidth <= 768 ? 'showCloudTooltip()' : ''}">
+          <div class="cloud-badge" aria-label="Cloud Kitchen">
             <i class="fas fa-cloud"></i>
             <span class="cloud-text">Cloud Kitchen</span>
+            <div class="cloud-tooltip">
+              <div class="tooltip-header">
+                <i class="fas fa-cloud"></i>
+                <h4>Cloud Kitchen</h4>
+              </div>
+              <div class="tooltip-content">
+                <p>A cloud kitchen is a delivery-only restaurant that operates without a physical dining space.</p>
+                <ul>
+                  <li>Delivery only - no dine-in option</li>
+                  <li>Optimized for online orders</li>
+                  <li>Often operates multiple brands from one kitchen</li>
+                  <li>Lower overhead costs</li>
+                </ul>
+                <p>These restaurants focus on quality food optimized for delivery.</p>
+              </div>
+            </div>
           </div>
         ` : '';
+        
+        // Mobile touch fix for cloud badge
+        let mobileTouchHandler = '';
+        if (window.innerWidth <= 768 && isCloudKitchen) {
+          mobileTouchHandler = `onclick="event.preventDefault(); event.stopPropagation(); showMobileCloudTooltip()"`;
+        }
         
         card.innerHTML = `
           <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
@@ -1323,7 +1331,8 @@
                      data-src="${restaurant.image}" 
                      alt="${restaurant.name}" 
                      width="300" 
-                     height="200">
+                     height="200"
+                     style="opacity: 0; transition: opacity 0.3s ease;">
               ` : ''}
               <button class="menu-btn ${!isCloudKitchen ? 'no-cloud' : ''}" onclick="event.preventDefault(); showModal(${restaurant.id})">
                 <i class="fas fa-ellipsis-h"></i>
@@ -1332,8 +1341,10 @@
             </div>
             <div class="card-content">
               <div class="card-header">
-                <h3 class="card-title">${restaurant.name}</h3>
-                ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
+                <div class="card-title-wrapper">
+                  <h3 class="card-title">${restaurant.name}</h3>
+                  ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
+                </div>
                 <div class="card-rating">
                   <i class="fas fa-star"></i>
                   ${restaurant.rating.toFixed(1)}
@@ -1354,12 +1365,17 @@
         return card;
       }
       
+      // Mobile cloud tooltip
+      window.showMobileCloudTooltip = function() {
+        alert('Cloud Kitchen\n\nA delivery-only restaurant that operates without a physical dining space. These kitchens focus on quality food optimized for delivery.');
+      };
+      
       function showEmptyState() {
         const grid = document.getElementById('restaurantGrid');
         if (!grid) return;
         
         grid.innerHTML = `
-          <div class="empty-state">
+          <div class="empty-state" style="display: block;">
             <i class="fas fa-utensils"></i>
             <h3>No restaurants found</h3>
             <p>Try adjusting your search or filters</p>
@@ -1368,7 +1384,7 @@
         `;
       }
       
-      // Pagination
+      // PAGINATION
       function updatePagination() {
         const pagination = document.getElementById('pagination');
         if (!pagination) return;
@@ -1415,8 +1431,8 @@
         document.getElementById('totalCount').textContent = state.filteredRestaurants.length;
       }
       
-      // Modal Functions
-      function showModal(restaurantId) {
+      // MODAL FUNCTIONS (restored)
+      window.showModal = function(restaurantId) {
         const restaurant = state.restaurants.find(r => r.id === restaurantId);
         if (!restaurant) return;
         
@@ -1424,7 +1440,7 @@
         const modal = document.getElementById('actionsModal');
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-      }
+      };
       
       function hideModal() {
         const modal = document.getElementById('actionsModal');
@@ -1432,8 +1448,8 @@
         document.body.style.overflow = 'auto';
       }
       
-      // Reset Filters
-      function resetAllFilters() {
+      // RESET FILTERS
+      window.resetAllFilters = function() {
         document.getElementById('search').value = '';
         document.getElementById('categorySelect').value = 'all';
         document.getElementById('sortSelect').value = 'rating-desc';
@@ -1452,9 +1468,9 @@
         
         state.currentPage = 1;
         applyFilters();
-      }
+      };
       
-      // Event Listeners
+      // EVENT LISTENERS
       function setupEventListeners() {
         // Search
         const searchInput = document.getElementById('search');
@@ -1481,7 +1497,7 @@
           applyFilters();
         });
         
-        // Items per page
+        // Items per page - FIXED
         document.getElementById('itemsPerPage').addEventListener('change', (e) => {
           state.pageSize = parseInt(e.target.value);
           state.currentPage = 1;
@@ -1498,7 +1514,7 @@
           });
         });
         
-        // Grid view buttons
+        // Grid view buttons - FIXED mobile dense view
         document.querySelectorAll('.grid-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const view = btn.dataset.view;
@@ -1509,74 +1525,71 @@
             grid.className = `grid grid-${view}`;
             
             // Fix for mobile dense view
-            if (window.innerWidth <= 768 && view === 'dense') {
+            if (window.innerWidth <= 480 && view === 'dense') {
+              grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))';
+            } else if (window.innerWidth <= 768 && view === 'dense') {
               grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
+            } else {
+              grid.style.gridTemplateColumns = '';
             }
           });
         });
         
-        // Reset filters button
+        // Reset filters
         document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
         
-        // Modal cancel button
+        // Modal cancel
         document.getElementById('modalCancelBtn').addEventListener('click', hideModal);
         
-        // Cloud tooltip close button
-        document.querySelector('.tooltip-close')?.addEventListener('click', hideCloudTooltip);
+        // Auth button
+        document.getElementById('authBtn').addEventListener('click', () => {
+          window.location.href = 'login.html';
+        });
+        
+        // Banner buttons
+        document.getElementById('bannerMobileSignupBtn')?.addEventListener('click', () => {
+          window.location.href = 'sign-up.html';
+        });
+        
+        document.getElementById('bannerLoginBtn')?.addEventListener('click', () => {
+          window.location.href = 'login.html';
+        });
+        
+        document.getElementById('bannerSignupBtn')?.addEventListener('click', () => {
+          window.location.href = 'sign-up.html';
+        });
         
         // Close modals on escape
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             hideModal();
-            hideCloudTooltip();
+            document.getElementById('customListsModal')?.classList.remove('active');
+            document.getElementById('authPromptModal')?.classList.remove('active');
+            document.body.style.overflow = 'auto';
           }
         });
         
-        // Close cloud tooltip on background click
-        document.getElementById('cloudMobileTooltip')?.addEventListener('click', (e) => {
-          if (e.target === e.currentTarget) hideCloudTooltip();
-        });
+        // Handle mobile banner
+        if (window.innerWidth <= 768) {
+          document.body.classList.add('has-mobile-banner');
+        }
         
-        // Guest banner
-        const guestBanner = document.getElementById('guestBanner');
-        const bannerSignupBtn = document.getElementById('bannerSignupBtn');
-        const authBtn = document.getElementById('authBtn');
-        
-        bannerSignupBtn?.addEventListener('click', () => {
-          window.location.href = 'sign-up.html';
-        });
-        
-        authBtn?.addEventListener('click', () => {
-          window.location.href = 'login.html';
-        });
-        
-        // Check auth and show/hide banner
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            state.isLoggedIn = true;
-            state.currentUser = session.user;
-            guestBanner.style.display = 'none';
-            authBtn.textContent = 'Profile';
-            authBtn.onclick = () => window.location.href = 'profile.html';
+        window.addEventListener('resize', () => {
+          if (window.innerWidth <= 768) {
+            document.body.classList.add('has-mobile-banner');
           } else {
-            guestBanner.style.display = 'block';
-            document.body.classList.add('has-banner');
+            document.body.classList.remove('has-mobile-banner');
           }
         });
       }
       
-      // Initialize
+      // INITIALIZE
       async function init() {
         setupEventListeners();
         await loadRestaurants();
       }
       
-      // Make functions globally available
-      window.showModal = showModal;
-      window.showCloudTooltip = showCloudTooltip;
-      window.resetAllFilters = resetAllFilters;
-      
-      // Start
+      // START
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
       } else {
