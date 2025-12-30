@@ -828,10 +828,12 @@
       backdrop-filter: blur(10px);
       transform: translateY(100%);
       transition: transform 0.3s ease;
+      display: none; /* Initially hidden */
     }
     
     .mobile-pagination.visible {
       transform: translateY(0);
+      display: block; /* Show when visible */
     }
     
     .mobile-pagination-controls {
@@ -1135,11 +1137,6 @@
       }
       
       .guest-banner.desktop {
-        display: block;
-      }
-      
-      /* Show mobile pagination on desktop too */
-      .mobile-pagination {
         display: block;
       }
       
@@ -2088,7 +2085,8 @@
         totalPages: 1,
         isPaginationVisible: false,
         paginationObserver: null,
-        lastScrollTop: 0
+        lastScrollTop: 0,
+        showAllRestaurants: false
       };
       
       // ---------- FIXED IMAGE LOADING SYSTEM ----------
@@ -3076,9 +3074,11 @@
             if (validOptions.includes(savedItems)) {
               select.value = savedItems;
               state.pageSize = parseInt(savedItems);
+              state.showAllRestaurants = (savedItems === total.toString());
             } else if (parseInt(savedItems) > total) {
               select.value = total.toString();
               state.pageSize = total;
+              state.showAllRestaurants = true;
             }
           }
         } catch (e) {}
@@ -3475,15 +3475,13 @@
           }, 100);
         }
         
-        // Create sentinel element for pagination detection
-        createSentinelElement();
-        
-        // Show pagination if we have multiple pages
-        if (state.totalPages > 1 && state.currentPage < state.totalPages) {
-          setTimeout(() => {
-            showPagination();
-          }, 300);
+        // Create sentinel element for pagination detection only if NOT showing all
+        if (!state.showAllRestaurants) {
+          createSentinelElement();
         }
+        
+        // Hide pagination initially - it will show when user scrolls near the end
+        hidePagination();
       }
       
       function showEmptyState() {
@@ -3518,6 +3516,11 @@
         const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
         state.totalPages = totalPages;
         
+        // Check if we're showing "All" restaurants
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        const showingAll = itemsPerPageSelect && itemsPerPageSelect.value === state.totalRestaurantCount.toString();
+        state.showAllRestaurants = showingAll;
+        
         // Update mobile pagination info
         const mobilePageInfo = document.getElementById('mobilePageInfo');
         if (mobilePageInfo) {
@@ -3528,7 +3531,7 @@
         const mobileNextBtn = document.getElementById('mobileNextBtn');
         
         if (mobilePrevBtn) mobilePrevBtn.disabled = state.currentPage === 1;
-        if (mobileNextBtn) mobileNextBtn.disabled = state.currentPage === totalPages;
+        if (mobileNextBtn) mobileNextBtn.disabled = state.currentPage === totalPages || showingAll;
         
         if (mobilePrevBtn) {
           mobilePrevBtn.onclick = () => {
@@ -3545,7 +3548,7 @@
         
         if (mobileNextBtn) {
           mobileNextBtn.onclick = () => {
-            if (state.currentPage < totalPages) {
+            if (state.currentPage < totalPages && !showingAll) {
               state.currentPage++;
               renderRestaurants();
               updatePagination();
@@ -3556,15 +3559,11 @@
           };
         }
         
-        // Setup intersection observer only if we have enough content
-        setupPaginationObserver();
-        
-        // If we have multiple pages and not on "All", show pagination after a delay
-        if (totalPages > 1 && state.pageSize !== state.totalRestaurantCount) {
-          setTimeout(() => {
-            showPagination();
-          }, 500);
+        // Setup intersection observer only if we have enough content and NOT showing all
+        if (!showingAll && totalPages > 1 && state.currentPage < totalPages) {
+          setupPaginationObserver();
         } else {
+          // Hide pagination if showing all or only one page
           hidePagination();
         }
       }
@@ -3577,7 +3576,7 @@
         }
         
         // Only set up observer if we have multiple pages and not showing all
-        if (state.totalPages <= 1 || state.pageSize === state.totalRestaurantCount) {
+        if (state.totalPages <= 1 || state.showAllRestaurants) {
           hidePagination();
           return;
         }
@@ -3586,9 +3585,11 @@
         state.paginationObserver = new IntersectionObserver(
           (entries) => {
             entries.forEach(entry => {
-              // Show pagination when sentinel is near viewport
-              if (entry.isIntersecting && state.currentPage < state.totalPages) {
+              // Show pagination when sentinel is near viewport AND we have more pages
+              if (entry.isIntersecting && state.currentPage < state.totalPages && !state.showAllRestaurants) {
                 showPagination();
+              } else {
+                hidePagination();
               }
             });
           },
@@ -3614,7 +3615,7 @@
         }
         
         // Only create sentinel if we have multiple pages and not showing all
-        if (state.totalPages <= 1 || state.pageSize === state.totalRestaurantCount) {
+        if (state.totalPages <= 1 || state.showAllRestaurants) {
           return null;
         }
         
@@ -3632,6 +3633,12 @@
       }
       
       function showPagination() {
+        // Don't show pagination if we're showing all restaurants or only have one page
+        if (state.showAllRestaurants || state.totalPages <= 1 || state.currentPage >= state.totalPages) {
+          hidePagination();
+          return;
+        }
+        
         const pagination = document.getElementById('mobilePagination');
         if (pagination && state.totalPages > 1 && state.currentPage < state.totalPages) {
           pagination.classList.add('visible');
@@ -3662,7 +3669,9 @@
           const startIdx = (state.currentPage - 1) * state.pageSize + 1;
           const endIdx = Math.min(startIdx + state.pageSize - 1, totalFiltered);
           
-          if (startIdx === endIdx) {
+          if (state.showAllRestaurants || state.pageSize >= totalFiltered) {
+            showingText.textContent = `Showing all ${totalFiltered} restaurants`;
+          } else if (startIdx === endIdx) {
             showingText.textContent = `Showing restaurant ${startIdx} of ${totalFiltered}`;
           } else {
             showingText.textContent = `Showing ${startIdx}-${endIdx} of ${totalFiltered} restaurants`;
@@ -3716,6 +3725,8 @@
             const newPageSize = parseInt(e.target.value);
             state.pageSize = newPageSize;
             state.currentPage = 1;
+            state.showAllRestaurants = (e.target.value === state.totalRestaurantCount.toString());
+            
             applyFilters();
             
             try {
@@ -3924,6 +3935,12 @@
       }
       
       function handleScroll() {
+        // Don't show pagination if showing all restaurants
+        if (state.showAllRestaurants) {
+          hidePagination();
+          return;
+        }
+        
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         const scrollHeight = document.documentElement.scrollHeight;
         const clientHeight = document.documentElement.clientHeight;
@@ -3937,6 +3954,8 @@
         // Show pagination when near bottom (100px from bottom) and we have more pages
         if (scrollBottom < 100 && state.totalPages > 1 && state.currentPage < state.totalPages) {
           showPagination();
+        } else if (scrollBottom >= 100 && state.isPaginationVisible) {
+          hidePagination();
         }
         
         state.lastScrollTop = scrollTop;
@@ -3993,6 +4012,7 @@
         if (itemsPerPageSelect) {
           itemsPerPageSelect.value = '20';
           state.pageSize = 20;
+          state.showAllRestaurants = false;
         }
         
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
