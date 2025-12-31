@@ -4,65 +4,58 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Zo2y - Sign Up</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --primary: #f59e0b;
-  --bg: #0b1633;
-  --card: #132347;
+  --bg: #0b0f1a;
+  --card-bg: #141a2b;
   --text: #ffffff;
-  --text-muted: #cbd5e1;
-  --border: rgba(255,255,255,0.1);
-  --shadow: 0 10px 30px rgba(0,0,0,0.3);
-  --transition: all 0.3s ease;
-  --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+  --text-muted: #a0aec0;
+  --border: #2c3348;
+  --shadow: 0 10px 30px rgba(0,0,0,0.4);
+  --transition: 0.3s ease;
 }
-* { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif;}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
 body {
   background: var(--bg);
   color: var(--text);
   display:flex;
-  flex-direction:column;
-  min-height:100vh;
   justify-content:center;
   align-items:center;
+  min-height:100vh;
   padding:20px;
 }
 .container {
-  background: var(--card);
-  padding:40px;
-  border-radius:20px;
-  box-shadow: var(--shadow);
+  background: var(--card-bg);
+  border-radius:16px;
+  padding:50px 30px;
   max-width:400px;
   width:100%;
+  box-shadow: var(--shadow);
 }
 h1 {
-  text-align:center;
-  margin-bottom:20px;
   font-size:2rem;
-  background: var(--gradient);
+  text-align:center;
+  margin-bottom:30px;
+  background: linear-gradient(135deg, #f59e0b, #ffb84d);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.input-group { margin-bottom:20px; position:relative; }
+.input-group {
+  margin-bottom:20px;
+  position:relative;
+}
 .input-group input {
   width:100%;
   padding:14px 15px;
   border-radius:10px;
   border:1px solid var(--border);
-  background: rgba(11,22,51,0.7);
+  background: #0f1425;
   color: var(--text);
   font-size:1rem;
   outline:none;
   transition: var(--transition);
-}
-.input-group i {
-  position:absolute;
-  top:50%;
-  left:12px;
-  transform:translateY(-50%);
-  color: var(--text-muted);
 }
 .input-group input:focus {
   border-color: var(--primary);
@@ -73,12 +66,13 @@ button {
   padding:14px;
   border:none;
   border-radius:10px;
-  background: var(--gradient);
-  color:#0b1633;
+  background: linear-gradient(135deg, #f59e0b, #ffb84d);
+  color: #0b0f1a;
   font-weight:600;
   cursor:pointer;
   font-size:1rem;
   transition: var(--transition);
+  margin-top:10px;
 }
 button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245,158,11,0.4); }
 .social-btn {
@@ -88,17 +82,22 @@ button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245,158,
   align-items:center;
   gap:10px;
   padding:12px;
-  border:1px solid var(--border);
   border-radius:10px;
-  background: rgba(11,22,51,0.7);
+  background: #0f1425;
   color: var(--text);
   cursor:pointer;
   transition: var(--transition);
-  margin-top:10px;
+  margin-top:15px;
 }
-.social-btn:hover { background: var(--primary); color:#0b1633; }
+.social-btn:hover { background: #1e2440; }
 .social-btn i { font-size:1.2rem; }
-.link { text-align:center; margin-top:15px; color: var(--primary); text-decoration:none; display:block; }
+.link {
+  text-align:center;
+  margin-top:20px;
+  display:block;
+  color: var(--primary);
+  text-decoration:none;
+}
 .link:hover { text-decoration: underline; }
 .notification {
   position: fixed; top:20px; right:20px;
@@ -119,21 +118,18 @@ button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245,158,
 <body>
 
 <div class="container">
-  <h1>Join Zo2y</h1>
+  <h1>Sign Up to Zo2y</h1>
   
   <div class="input-group">
-    <i class="fas fa-user"></i>
     <input type="text" placeholder="Full Name" id="fullName" required>
   </div>
   <div class="input-group">
-    <i class="fas fa-envelope"></i>
     <input type="email" placeholder="Email" id="email" required>
   </div>
   <div class="input-group">
-    <i class="fas fa-lock"></i>
     <input type="password" placeholder="Password" id="password" required>
   </div>
-  <button id="signupBtn">Sign Up</button>
+  <button id="signupBtn">Create Account</button>
   
   <div class="social-btn" id="googleBtn">
     <i class="fab fa-google"></i> Sign up with Google
@@ -148,9 +144,8 @@ button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245,158,
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-// init supabase
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+const supabaseKey = 'YOUR_ANON_KEY_HERE'; // replace with your anon key
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 const showNotification = (msg, type='success')=>{
@@ -184,6 +179,5 @@ document.getElementById('googleBtn').addEventListener('click', async ()=>{
   if(error){ showNotification(error.message,'error'); }
 });
 </script>
-
 </body>
 </html>
