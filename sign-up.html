@@ -1,922 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zo2y - Sign Up</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary-color: #f59e0b; --primary-dark: #d97706; --primary-light: #fbbf24;
-      --bg-color: #0b1633; --card-color: #132347; --text-primary: #ffffff; 
-      --text-secondary: #cbd5e1; --border-color: rgba(255,255,255,0.1);
-      --shadow: 0 10px 30px rgba(0,0,0,0.3); --transition: all 0.3s ease;
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-    body {
-      background: var(--bg-color); min-height: 100vh; padding: 20px;
-      transition: var(--transition); color: var(--text-primary);
-      display: flex; flex-direction: column;
-      background-image: radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 50%),
-                       radial-gradient(ellipse at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
-    }
-    
-    /* Header */
-    .header {
-      display: flex; justify-content: space-between; align-items: center; 
-      padding: 15px 0; margin-bottom: 20px; position: sticky; top: 0;
-      background: var(--bg-color); z-index: 100;
-    }
-    .logo { 
-      display: flex; align-items: center; font-size: 1.5rem; font-weight: 700; 
-      color: var(--primary-color); cursor: pointer;
-      transition: var(--transition);
-    }
-    .logo:hover {
-      transform: scale(1.05);
-      filter: drop-shadow(0 4px 8px rgba(245,158,11,0.3));
-    }
-    .logo img { width: 35px; margin-right: 10px; transition: var(--transition); }
-    .logo:hover img {
-      transform: rotate(-5deg);
-    }
-    .theme-toggle {
-      background: var(--card-color); border: 1px solid var(--border-color); border-radius: 20px;
-      padding: 8px 15px; cursor: pointer; display: flex; align-items: center;
-      color: var(--text-primary); transition: var(--transition); font-size: 0.9rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .theme-toggle::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      transition: left 0.5s;
-    }
-    .theme-toggle:hover::before {
-      left: 100%;
-    }
-    .theme-toggle:hover { 
-      background: var(--primary-color); color: #0b1633; 
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(245,158,11,0.3);
-    }
-    .theme-toggle i { margin-right: 8px; }
-    
-    /* Main Content */
-    .main-content {
-      max-width: 500px; width: 100%; margin: 0 auto; flex: 1;
-    }
-    .welcome-section { text-align: center; margin-bottom: 40px; }
-    .welcome-section h1 { 
-      font-size: 2.2rem; margin-bottom: 10px; font-weight: 700;
-      background: var(--gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .welcome-section p { color: var(--text-secondary); font-size: 1.1rem; }
-    
-    /* Form */
-    .form-container { 
-      background: var(--card-color); padding: 30px; border-radius: 20px; 
-      box-shadow: var(--shadow); border: 1px solid var(--border-color);
-      backdrop-filter: blur(10px);
-      transition: var(--transition);
-    }
-    .form-container:hover {
-      box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-      transform: translateY(-5px);
-    }
-    .form-container h2 { 
-      font-size: 1.8rem; margin-bottom: 25px; text-align: center;
-      font-weight: 600;
-    }
-    
-    .input-group { position: relative; margin-bottom: 20px; }
-    .input-group i { 
-      position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-      color: var(--text-secondary); transition: var(--transition); 
-      z-index: 2;
-    }
-    .form-container input {
-      width: 100%; padding: 16px 15px 16px 45px; border: 1px solid var(--border-color);
-      border-radius: 12px; font-size: 1rem; outline: none; transition: var(--transition);
-      background-color: rgba(11, 22, 51, 0.7); color: var(--text-primary);
-      position: relative;
-      z-index: 1;
-    }
-    .form-container input:focus { 
-      border-color: var(--primary-color); 
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); 
-      transform: translateY(-2px);
-    }
-    .form-container input:focus + i { color: var(--primary-color); }
-    
-    .name-group { display: flex; gap: 15px; }
-    .name-group .input-group { flex: 1; }
-    
-    .terms { display: flex; align-items: flex-start; margin-bottom: 25px; font-size: 0.9rem; }
-    .terms input { margin-right: 10px; margin-top: 3px; }
-    .terms label { color: var(--text-secondary); line-height: 1.4; }
-    .terms a { 
-      color: var(--primary-color); text-decoration: none; 
-      position: relative;
-    }
-    .terms a::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 0;
-      height: 1px;
-      background: var(--primary-color);
-      transition: width 0.3s ease;
-    }
-    .terms a:hover::after {
-      width: 100%;
-    }
-    
-    .form-container button {
-      width: 100%; padding: 16px; background: var(--gradient);
-      border: none; border-radius: 12px; color: #0b1633; font-size: 1rem; font-weight: 600;
-      cursor: pointer; transition: var(--transition); display: flex; justify-content: center; align-items: center;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 25px rgba(245,158,11,0.3);
-    }
-    .form-container button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      transition: left 0.6s;
-    }
-    .form-container button:hover::before {
-      left: 100%;
-    }
-    .form-container button:hover { 
-      transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4); 
-    }
-    .form-container button i { margin-left: 8px; transition: var(--transition); }
-    .form-container button:hover i {
-      transform: translateX(5px);
-    }
-    
-    .divider { 
-      display: flex; align-items: center; margin: 25px 0; color: var(--text-secondary); 
-    }
-    .divider::before, .divider::after { 
-      content: ""; flex: 1; border-bottom: 1px solid var(--border-color); 
-    }
-    .divider span { padding: 0 15px; font-size: 0.9rem; }
-    
-    .social-login { display: flex; gap: 15px; margin-bottom: 25px; }
-    .social-btn {
-      flex: 1; padding: 14px; border: 1px solid var(--border-color); border-radius: 12px;
-      background: rgba(11, 22, 51, 0.7); color: var(--text-primary); display: flex;
-      justify-content: center; align-items: center; cursor: pointer; transition: var(--transition);
-      font-size: 0.9rem; position: relative;
-      overflow: hidden;
-    }
-    .social-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      transition: left 0.5s;
-    }
-    .social-btn:hover::before {
-      left: 100%;
-    }
-    .social-btn:hover { 
-      background: var(--primary-color); color: #0b1633; border-color: var(--primary-color); 
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(245,158,11,0.3);
-    }
-    .social-btn i { font-size: 1.1rem; margin-right: 8px; transition: var(--transition); }
-    .social-btn:hover i {
-      transform: scale(1.2);
-    }
-    
-    .link { 
-      text-align: center; color: var(--primary-color); text-decoration: none;
-      font-size: 0.95rem; transition: var(--transition); display: block; margin-top: 20px;
-      position: relative;
-      padding: 5px 0;
-    }
-    .link::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 1px;
-      background: var(--primary-color);
-      transition: width 0.3s ease;
-    }
-    .link:hover::after {
-      width: 100%;
-    }
-    
-    /* Features */
-    .features-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 30px;
-    }
-    .feature-card {
-      background: var(--card-color); padding: 20px; border-radius: 12px; 
-      text-align: center; transition: var(--transition); border: 1px solid var(--border-color);
-      position: relative;
-      overflow: hidden;
-    }
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--gradient);
-      transform: scaleX(0);
-      transition: transform 0.4s ease;
-    }
-    .feature-card:hover::before {
-      transform: scaleX(1);
-    }
-    .feature-card:hover {
-      transform: translateY(-5px); border-color: var(--primary-color);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .feature-icon {
-      width: 50px; height: 50px; background: var(--gradient); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;
-      transition: var(--transition);
-      box-shadow: 0 5px 15px rgba(245,158,11,0.3);
-    }
-    .feature-card:hover .feature-icon {
-      transform: scale(1.1) rotate(5deg);
-    }
-    .feature-icon i { color: #0b1633; font-size: 1.2rem; }
-    .feature-card h3 { font-size: 0.95rem; margin-bottom: 5px; font-weight: 600; }
-    .feature-card p { font-size: 0.8rem; color: var(--text-secondary); }
-    
-    /* Notifications */
-    .custom-notification {
-      position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); z-index: 1000; display: flex;
-      align-items: center; max-width: 400px; transform: translateX(120%);
-      transition: transform 0.4s ease;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border-color);
-    }
-    .notification-success { background: rgba(16, 185, 129, 0.9); color: white; }
-    .notification-error { background: rgba(239, 68, 68, 0.9); color: white; }
-    .notification-show { transform: translateX(0); }
-    .notification-icon { margin-right: 10px; font-size: 1.2rem; }
-    
-    /* Welcome Popup */
-    .welcome-popup {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 22, 51, 0.95); display: flex; justify-content: center;
-      align-items: center; z-index: 2000; opacity: 0; visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease; padding: 20px;
-    }
-    .welcome-popup.show { opacity: 1; visibility: visible; }
-    .welcome-content {
-      background: var(--card-color); border-radius: 20px; padding: 30px;
-      max-width: 500px; width: 100%; box-shadow: var(--shadow);
-      transform: translateY(20px); transition: transform 0.4s ease;
-      border: 1px solid var(--border-color);
-      backdrop-filter: blur(10px);
-    }
-    .welcome-popup.show .welcome-content { transform: translateY(0); }
-    .welcome-close {
-      position: absolute; top: 15px; right: 15px; background: none;
-      border: none; color: var(--text-secondary); font-size: 1.3rem;
-      cursor: pointer; transition: var(--transition);
-      width: 40px; height: 40px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .welcome-close:hover { 
-      color: var(--primary-color); 
-      background: rgba(255,255,255,0.1);
-    }
-    .welcome-header { text-align: center; margin-bottom: 25px; }
-    .welcome-title { 
-      font-size: 1.8rem; color: var(--primary-color); margin-bottom: 10px;
-      font-weight: 700;
-    }
-    .welcome-subtitle { color: var(--text-secondary); }
-    .welcome-actions {
-      display: flex; gap: 15px; margin-top: 25px; flex-direction: column;
-    }
-    .welcome-btn {
-      padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer;
-      transition: var(--transition); border: none; font-size: 1rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .welcome-primary {
-      background: var(--gradient); color: #0b1633;
-      box-shadow: 0 5px 15px rgba(245,158,11,0.3);
-    }
-    .welcome-primary:hover { 
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(245,158,11,0.4);
-    }
-    .welcome-secondary {
-      background: transparent; color: var(--text-primary); border: 1px solid var(--border-color);
-    }
-    .welcome-secondary:hover { 
-      background: rgba(255, 255, 255, 0.1); 
-      transform: translateY(-2px);
-    }
-    
-    /* Floating Elements */
-    .floating-element {
-      position: fixed; border-radius: 50%; background: var(--gradient); 
-      opacity: 0.05; filter: blur(40px); z-index: -1; 
-      animation: float 8s ease-in-out infinite;
-    }
-    .float-1 {
-      width: 200px; height: 200px; top: 10%; right: 5%; 
-      animation-delay: 0s;
-    }
-    .float-2 {
-      width: 150px; height: 150px; bottom: 20%; left: 5%; 
-      animation-delay: 4s;
-    }
-    .float-3 {
-      width: 120px; height: 120px; top: 60%; right: 20%; 
-      animation-delay: 2s;
-    }
-    
-    @keyframes float {
-      0% {
-        transform: translateY(0px) rotate(0deg);
-      }
-      50% {
-        transform: translateY(-20px) rotate(180deg);
-      }
-      100% {
-        transform: translateY(0px) rotate(360deg);
-      }
-    }
-    
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-      body { padding: 15px; }
-      .header { margin-bottom: 15px; }
-      .welcome-section h1 { font-size: 1.8rem; }
-      .welcome-section p { font-size: 1rem; }
-      .form-container { padding: 25px 20px; }
-      .name-group { flex-direction: column; gap: 0; }
-      .features-grid { grid-template-columns: 1fr; gap: 10px; }
-      .feature-card { padding: 15px; }
-      .social-login { flex-direction: column; }
-      .welcome-content { padding: 25px 20px; }
-    }
-    
-    @media (max-width: 480px) {
-      .logo { font-size: 1.3rem; }
-      .logo img { width: 30px; }
-      .theme-toggle { padding: 6px 12px; font-size: 0.8rem; }
-      .welcome-section h1 { font-size: 1.6rem; }
-      .form-container h2 { font-size: 1.5rem; }
-    }
-  </style>
-  
-  
-  <link rel="icon" type="image/png" href="images/logo.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zo2y - Sign Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+  --primary-color: #f59e0b; --primary-dark: #d97706; --primary-light: #fbbf24;
+  --bg-color: #0b1633; --card-color: #132347; --text-primary: #ffffff; 
+  --text-secondary: #cbd5e1; --border-color: rgba(255,255,255,0.1);
+  --shadow: 0 10px 30px rgba(0,0,0,0.3); --transition: all 0.3s ease;
+  --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+body {
+  background: var(--bg-color);
+  min-height: 100vh;
+  padding: 20px;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, rgba(59,130,246,0.1) 0%, transparent 50%);
+}
+
+/* Header */
+.header { display:flex; justify-content:space-between; align-items:center; padding:15px 0; margin-bottom:20px; background: var(--bg-color); position: sticky; top:0; z-index:100; }
+.logo { display:flex; align-items:center; font-size:1.5rem; font-weight:700; color: var(--primary-color); cursor:pointer; transition: var(--transition); }
+.logo:hover { transform: scale(1.05); filter: drop-shadow(0 4px 8px rgba(245,158,11,0.3)); }
+.logo img { width:35px; margin-right:10px; transition: var(--transition); }
+.logo:hover img { transform: rotate(-5deg); }
+.theme-toggle { background: var(--card-color); border: 1px solid var(--border-color); border-radius:20px; padding:8px 15px; cursor:pointer; display:flex; align-items:center; color: var(--text-primary); transition: var(--transition); font-size:0.9rem; position:relative; overflow:hidden; }
+.theme-toggle::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transition:left 0.5s; }
+.theme-toggle:hover::before { left:100%; }
+.theme-toggle:hover { background: var(--primary-color); color:#0b1633; transform: translateY(-2px); box-shadow:0 5px 15px rgba(245,158,11,0.3); }
+.theme-toggle i { margin-right:8px; }
+
+/* Main content */
+.main-content { max-width:500px; width:100%; margin:0 auto; flex:1; }
+.welcome-section { text-align:center; margin-bottom:40px; }
+.welcome-section h1 { font-size:2.2rem; margin-bottom:10px; font-weight:700; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip:text; }
+.welcome-section p { color: var(--text-secondary); font-size:1.1rem; }
+
+/* Form */
+.form-container { background: var(--card-color); padding:30px; border-radius:20px; box-shadow: var(--shadow); border:1px solid var(--border-color); backdrop-filter: blur(10px); transition: var(--transition); }
+.form-container:hover { box-shadow:0 15px 40px rgba(0,0,0,0.4); transform: translateY(-5px); }
+.form-container h2 { font-size:1.8rem; margin-bottom:25px; text-align:center; font-weight:600; }
+.input-group { position: relative; margin-bottom:20px; }
+.input-group i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color: var(--text-secondary); transition: var(--transition); z-index:2; }
+.form-container input { width:100%; padding:16px 15px 16px 45px; border:1px solid var(--border-color); border-radius:12px; font-size:1rem; outline:none; transition: var(--transition); background-color: rgba(11,22,51,0.7); color: var(--text-primary); position:relative; z-index:1; }
+.form-container input:focus { border-color: var(--primary-color); box-shadow:0 0 0 3px rgba(245,158,11,0.2); transform: translateY(-2px); }
+.form-container input:focus + i { color: var(--primary-color); }
+.name-group { display:flex; gap:15px; }
+.name-group .input-group { flex:1; }
+.terms { display:flex; align-items:flex-start; margin-bottom:25px; font-size:0.9rem; }
+.terms input { margin-right:10px; margin-top:3px; }
+.terms label { color: var(--text-secondary); line-height:1.4; }
+.terms a { color: var(--primary-color); text-decoration:none; position:relative; }
+.terms a::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:1px; background: var(--primary-color); transition: width 0.3s ease; }
+.terms a:hover::after { width:100%; }
+.form-container button { width:100%; padding:16px; background: var(--gradient); border:none; border-radius:12px; color:#0b1633; font-size:1rem; font-weight:600; cursor:pointer; transition: var(--transition); display:flex; justify-content:center; align-items:center; position:relative; overflow:hidden; box-shadow:0 8px 25px rgba(245,158,11,0.3); }
+.form-container button::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition:left 0.6s; }
+.form-container button:hover::before { left:100%; }
+.form-container button:hover { transform: translateY(-3px); box-shadow:0 12px 30px rgba(245,158,11,0.4); }
+.form-container button i { margin-left:8px; transition: var(--transition); }
+.form-container button:hover i { transform: translateX(5px); }
+.divider { display:flex; align-items:center; margin:25px 0; color: var(--text-secondary); }
+.divider::before, .divider::after { content:""; flex:1; border-bottom:1px solid var(--border-color); }
+.divider span { padding:0 15px; font-size:0.9rem; }
+.social-login { display:flex; gap:15px; margin-bottom:25px; }
+.social-btn { flex:1; padding:14px; border:1px solid var(--border-color); border-radius:12px; background:rgba(11,22,51,0.7); color:var(--text-primary); display:flex; justify-content:center; align-items:center; cursor:pointer; transition:var(--transition); font-size:0.9rem; position:relative; overflow:hidden; }
+.social-btn::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transition:left 0.5s; }
+.social-btn:hover::before { left:100%; }
+.social-btn:hover { background:var(--primary-color); color:#0b1633; border-color: var(--primary-color); transform: translateY(-3px); box-shadow:0 5px 15px rgba(245,158,11,0.3); }
+.social-btn i { font-size:1.1rem; margin-right:8px; transition: var(--transition); }
+.social-btn:hover i { transform: scale(1.2); }
+.link { text-align:center; color:var(--primary-color); text-decoration:none; font-size:0.95rem; transition: var(--transition); display:block; margin-top:20px; position:relative; padding:5px 0; }
+.link::after { content:''; position:absolute; bottom:0; left:0; width:0; height:1px; background:var(--primary-color); transition:width 0.3s ease; }
+.link:hover::after { width:100%; }
+
+/* Notification */
+.custom-notification { position:fixed; top:20px; right:20px; padding:15px 20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); z-index:1000; display:flex; align-items:center; max-width:400px; transform: translateX(120%); transition: transform 0.4s ease; backdrop-filter: blur(10px); border:1px solid var(--border-color); }
+.notification-success { background: rgba(16,185,129,0.9); color:white; }
+.notification-error { background: rgba(239,68,68,0.9); color:white; }
+.notification-show { transform: translateX(0); }
+.notification-icon { margin-right:10px; font-size:1.2rem; }
+
+/* Mobile */
+@media(max-width:768px){.main-content{padding:0 10px}.name-group{flex-direction:column;gap:0}.social-login{flex-direction:column}}
+</style>
+
 </head>
-
 <body>
-  <!-- Floating Elements -->
-  <div class="floating-element float-1"></div>
-  <div class="floating-element float-2"></div>
-  <div class="floating-element float-3"></div>
 
-  <!-- Header -->
-  <div class="header">
-    <div class="logo" onclick="location.href='index.html'">
-      <img src="images/logo.png" alt="Zo2y Logo" />
-      <span>Zo2y</span>
-    </div>
-    <div class="theme-toggle" id="themeToggle">
-      <i class="fas fa-sun"></i>
-      <span>Light Mode</span>
-    </div>
+<div class="header">
+  <div class="logo" onclick="location.href='index.html'">
+    <img src="images/logo.png" alt="Zo2y Logo">
+    <span>Zo2y</span>
+  </div>
+  <div class="theme-toggle" id="themeToggle"><i class="fas fa-sun"></i><span>Light Mode</span></div>
+</div>
+
+<div class="main-content">
+  <div class="welcome-section">
+    <h1>Join Zo2y 🍔</h1>
+    <p>Create your account and start your food journey</p>
   </div>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <div class="welcome-section">
-      <h1>Join Zo2y 🍔</h1>
-      <p>Create your account and start your food journey</p>
+  <div class="form-container">
+    <h2>Create Account</h2>
+    <form id="signupForm">
+      <div class="name-group">
+        <div class="input-group"><i class="fas fa-user"></i><input type="text" placeholder="First Name" id="firstName" required></div>
+        <div class="input-group"><i class="fas fa-user"></i><input type="text" placeholder="Last Name" id="lastName" required></div>
+      </div>
+      <div class="input-group"><i class="fas fa-envelope"></i><input type="email" placeholder="Email" id="email" required></div>
+      <div class="input-group"><i class="fas fa-lock"></i><input type="password" placeholder="Password" id="password" required></div>
+      <div class="input-group"><i class="fas fa-lock"></i><input type="password" placeholder="Confirm Password" id="confirmPassword" required></div>
+      <div class="terms"><input type="checkbox" id="terms" required><label for="terms">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></label></div>
+      <button type="submit" id="signupButton"><span>Create Account</span><i class="fas fa-arrow-right"></i></button>
+    </form>
+
+    <div class="divider"><span>or continue with</span></div>
+    <div class="social-login">
+      <div class="social-btn" id="googleSignup"><i class="fab fa-google"></i><span>Google</span></div>
+      <div class="social-btn" id="facebookSignup"><i class="fab fa-facebook-f"></i><span>Facebook</span></div>
     </div>
-
-    <div class="form-container">
-      <h2>Create Account</h2>
-
-      <form id="signupForm">
-        <div class="name-group">
-          <div class="input-group">
-            <i class="fas fa-user"></i>
-            <input type="text" placeholder="First Name" id="firstName" required />
-          </div>
-          <div class="input-group">
-            <i class="fas fa-user"></i>
-            <input type="text" placeholder="Last Name" id="lastName" required />
-          </div>
-        </div>
-
-        <div class="input-group">
-          <i class="fas fa-envelope"></i>
-          <input type="email" placeholder="Email" id="email" required />
-        </div>
-
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input type="password" placeholder="Password" id="password" required />
-        </div>
-
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input type="password" placeholder="Confirm Password" id="confirmPassword" required />
-        </div>
-
-        <div class="terms">
-          <input type="checkbox" id="terms" required />
-          <label for="terms">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></label>
-        </div>
-
-        <button type="submit" id="signupButton">
-          <span>Create Account</span>
-          <i class="fas fa-arrow-right"></i>
-        </button>
-      </form>
-
-      <div class="divider"><span>or continue with</span></div>
-
-      <div class="social-login">
-        <div class="social-btn" id="googleSignup">
-          <i class="fab fa-google"></i>
-          <span>Google</span>
-        </div>
-        <div class="social-btn" id="facebookSignup">
-          <i class="fab fa-facebook-f"></i>
-          <span>Facebook</span>
-        </div>
-      </div>
-
-      <a href="login.html" class="link">Already have an account? Sign in</a>
-    </div>
-
-    <!-- Features Grid -->
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-utensils"></i>
-        </div>
-        <h3>Discover</h3>
-        <p>Find amazing restaurants</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-heart"></i>
-        </div>
-        <h3>Save</h3>
-        <p>Bookmark favorites</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-star"></i>
-        </div>
-        <h3>Review</h3>
-        <p>Share experiences</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-users"></i>
-        </div>
-        <h3>Connect</h3>
-        <p>Meet food lovers</p>
-      </div>
-    </div>
+    <a href="login.html" class="link">Already have an account? Sign in</a>
   </div>
+</div>
 
-  <!-- Notification -->
-  <div id="customNotification" class="custom-notification">
-    <i class="notification-icon"></i>
-    <span class="notification-message"></span>
-  </div>
+<div id="customNotification" class="custom-notification">
+  <i class="notification-icon"></i><span class="notification-message"></span>
+</div>
 
-  <!-- Welcome Popup -->
-  <div class="welcome-popup" id="welcomePopup">
-    <div class="welcome-content">
-      <button class="welcome-close" id="welcomeClose">
-        <i class="fas fa-times"></i>
-      </button>
-      
-      <div class="welcome-header">
-        <h2 class="welcome-title">Welcome to Zo2y! 🎉</h2>
-        <p class="welcome-subtitle">Your food adventure begins now</p>
-      </div>
-      
-      <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
-        Check your email to verify your account and unlock all features.
-      </p>
-      
-      <div class="welcome-actions">
-        <button class="welcome-btn welcome-primary" id="exploreBtn">
-          Start Exploring Restaurants
-        </button>
-        <button class="welcome-btn welcome-secondary" id="profileBtn">
-          Complete Your Profile
-        </button>
-      </div>
-    </div>
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+<script>
+const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  <!-- Using Supabase v2 CDN (stable version) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
-  <script>
-    // Initialize Supabase
-    const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-    
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    
-    // Notification function
-    function showNotification(message, type) {
-      const notification = document.getElementById("customNotification");
-      const icon = notification.querySelector(".notification-icon");
-      const messageEl = notification.querySelector(".notification-message");
-      
-      notification.className = "custom-notification";
-      notification.classList.add(`notification-${type}`);
-      
-      if (type === "success") {
-        icon.className = "notification-icon fas fa-check-circle";
-      } else {
-        icon.className = "notification-icon fas fa-exclamation-circle";
-      }
-      
-      messageEl.textContent = message;
-      notification.classList.add("notification-show");
-      
-      setTimeout(() => {
-        notification.classList.remove("notification-show");
-      }, 5000);
+function showNotification(msg, type){
+  const notif = document.getElementById('customNotification');
+  notif.className = 'custom-notification notification-'+type;
+  notif.querySelector('.notification-icon').className = 'notification-icon '+(type==='success'?'fas fa-check-circle':'fas fa-exclamation-circle');
+  notif.querySelector('.notification-message').textContent = msg;
+  notif.classList.add('notification-show');
+  setTimeout(()=>notif.classList.remove('notification-show'),5000);
+}
+
+document.getElementById('signupForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('confirmPassword').value;
+  const terms = document.getElementById('terms').checked;
+  
+  if(!firstName||!lastName||!email||!password||!confirm){showNotification('Fill all fields','error');return;}
+  if(password!==confirm){showNotification('Passwords do not match','error');return;}
+  if(password.length<6){showNotification('Password must be 6+ chars','error');return;}
+  if(!terms){showNotification('Agree to terms','error');return;}
+
+  const {data,error} = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data:{first_name:firstName,last_name:lastName,full_name:firstName+' '+lastName},
+      emailRedirectTo:'https://zo2y.com'
     }
+  });
+  if(error) showNotification(error.message,'error');
+  else showNotification('Account created! Check email to verify','success');
+});
 
-    // Function to check if email already exists
-    async function checkEmailExists(email) {
-      try {
-        // Try to sign in with a dummy password
-        // This will fail but will tell us if user exists
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: 'dummy_password_check_123!@#'
-        });
-        
-        // If error message indicates wrong password (not "User not found"), email exists
-        if (error) {
-          if (error.message && (
-            error.message.includes('Invalid login credentials') ||
-            error.message.includes('Email not confirmed') ||
-            error.message.includes('incorrect') ||
-            error.message.toLowerCase().includes('password')
-          )) {
-            return true; // User exists (wrong password error)
-          }
-          
-          if (error.message && error.message.includes('User not found')) {
-            return false; // User doesn't exist
-          }
-          
-          // Check for other auth errors
-          console.log("Email check auth error:", error.message);
-          return false;
-        }
-        
-        // No error means login succeeded (shouldn't happen with dummy password)
-        return true;
-      } catch (error) {
-        console.error("Error checking email:", error);
-        return false;
-      }
-    }
+// Google login
+document.getElementById('googleSignup').addEventListener('click', async ()=>{
+  const {error} = await supabase.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:'https://zo2y.com'}
+  });
+  if(error) showNotification(error.message,'error');
+});
 
-    document.addEventListener("DOMContentLoaded", async function() {
-      console.log("Signup page loaded");
-      
-      // Check if user is already logged in
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-      }
-      
-      if (session) {
-        showNotification("✅ Already logged in! Redirecting...", "success");
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1000);
-        return;
-      }
-      
-      // Theme toggle
-      const themeToggle = document.getElementById("themeToggle");
-      const themeIcon = themeToggle.querySelector("i");
-      const themeText = themeToggle.querySelector("span");
-      
-      document.body.classList.add("dark-theme");
-      themeIcon.className = "fas fa-sun";
-      themeText.textContent = "Light Mode";
-      
-      themeToggle.addEventListener("click", () => {
-        document.body.classList.toggle("dark-theme");
-        if (document.body.classList.contains("dark-theme")) {
-          localStorage.setItem("theme", "dark");
-          themeIcon.className = "fas fa-sun";
-          themeText.textContent = "Light Mode";
-        } else {
-          localStorage.setItem("theme", "light");
-          themeIcon.className = "fas fa-moon";
-          themeText.textContent = "Dark Mode";
-        }
-      });
-
-      // Sign-up form handler
-      const signupForm = document.getElementById("signupForm");
-      const signupButton = document.getElementById("signupButton");
-      const emailInput = document.getElementById("email");
-      
-      // Store previous email to avoid repeated checks
-      let lastCheckedEmail = '';
-      
-      // Add email validation on blur
-      emailInput.addEventListener('blur', async function() {
-        const email = emailInput.value.trim();
-        if (!email || email === lastCheckedEmail) return;
-        
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          return; // Don't check invalid emails
-        }
-        
-        lastCheckedEmail = email;
-        console.log("Checking email availability:", email);
-        
-        // Show checking notification
-        const originalNotification = showNotification("Checking email availability...", "success");
-        
-        const emailExists = await checkEmailExists(email);
-        
-        if (emailExists) {
-          showNotification("⚠️ This email is already registered. Please sign in instead.", "error");
-          // Highlight the email field
-          emailInput.style.borderColor = "#ef4444";
-          emailInput.style.boxShadow = "0 0 0 3px rgba(239, 68, 68, 0.2)";
-        } else {
-          // Reset email field styling
-          emailInput.style.borderColor = "";
-          emailInput.style.boxShadow = "";
-        }
-      });
-
-      signupForm.addEventListener("submit", async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const firstName = document.getElementById("firstName").value.trim();
-        const lastName = document.getElementById("lastName").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
-        const terms = document.getElementById("terms").checked;
-        
-        console.log("Signup attempt for:", email);
-        
-        // Validation
-        if (!firstName || !lastName || !email || !password || !confirmPassword) {
-          showNotification("Please fill in all fields", "error");
-          return;
-        }
-        
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          showNotification("Please enter a valid email address", "error");
-          return;
-        }
-        
-        if (password !== confirmPassword) {
-          showNotification("Passwords do not match", "error");
-          return;
-        }
-        
-        if (password.length < 6) {
-          showNotification("Password must be at least 6 characters", "error");
-          return;
-        }
-        
-        if (!terms) {
-          showNotification("Please agree to the Terms and Privacy Policy", "error");
-          return;
-        }
-
-        // Check if email already exists (final check)
-        const emailExists = await checkEmailExists(email);
-        
-        if (emailExists) {
-          showNotification("❌ This email is already registered. Please use a different email or sign in.", "error");
-          return;
-        }
-
-        // Disable button and show loading
-        const originalButtonText = signupButton.innerHTML;
-        signupButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-        signupButton.disabled = true;
-        
-        try {
-          const { data, error } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-              data: {
-                first_name: firstName,
-                last_name: lastName,
-                full_name: firstName + ' ' + lastName
-              },
-              emailRedirectTo: window.location.origin + '/index.html'
-            }
-          });
-          
-          if (error) {
-            console.error("Signup error:", error);
-            
-            // Check for specific errors
-            if (error.message.includes('already registered') || 
-                error.message.includes('User already registered') ||
-                error.message.includes('already exists')) {
-              showNotification("❌ This email is already registered. Please sign in instead.", "error");
-            } else if (error.message.includes('rate limit')) {
-              showNotification("❌ Too many attempts. Please try again later.", "error");
-            } else {
-              showNotification("❌ Signup failed: " + error.message, "error");
-            }
-          } else {
-            console.log("Signup successful:", data);
-            
-            // Check if user was actually created
-            if (data.user) {
-              // User created successfully
-              showNotification("✅ Account created! Please check your email to verify your account.", "success");
-              
-              // Update welcome popup message for email verification
-              document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent = "Please verify your email first!";
-              document.getElementById("welcomePopup").querySelector("p").textContent = "We've sent a verification link to your email. Please click it to activate your account.";
-              
-              // Show welcome popup
-              setTimeout(() => {
-                document.getElementById("welcomePopup").classList.add("show");
-              }, 1500);
-              
-              // Clear form
-              signupForm.reset();
-            } else {
-              showNotification("❌ Account creation failed. Please try again.", "error");
-            }
-          }
-        } catch (error) {
-          console.error("Unexpected error:", error);
-          showNotification("❌ An unexpected error occurred", "error");
-        }
-        
-        // Re-enable button
-        signupButton.innerHTML = originalButtonText;
-        signupButton.disabled = false;
-      });
-
-      // Social sign-up - Google
-      document.getElementById("googleSignup").addEventListener("click", async function() {
-        try {
-          // First, try to get the current session to check if user exists
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session) {
-            showNotification("You're already logged in!", "error");
-            return;
-          }
-          
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: window.location.origin + "/auth-callback.html",
-              queryParams: {
-                access_type: 'offline',
-                prompt: 'consent'
-              }
-            }
-          });
-          
-          if (error) {
-            showNotification("Google sign-up failed: " + error.message, "error");
-          }
-        } catch (error) {
-          console.error("Google signup error:", error);
-          showNotification("❌ Google sign-up failed", "error");
-        }
-      });
-
-      // Social sign-up - Facebook
-      document.getElementById("facebookSignup").addEventListener("click", async function() {
-        try {
-          // First, try to get the current session to check if user exists
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session) {
-            showNotification("You're already logged in!", "error");
-            return;
-          }
-          
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'facebook',
-            options: {
-              redirectTo: window.location.origin + "/auth-callback.html",
-              scopes: 'email,public_profile'
-            }
-          });
-          
-          if (error) {
-            showNotification("Facebook sign-up failed: " + error.message, "error");
-          }
-        } catch (error) {
-          console.error("Facebook signup error:", error);
-          showNotification("❌ Facebook sign-up failed", "error");
-        }
-      });
-
-      // Welcome popup handlers
-      document.getElementById("welcomeClose").addEventListener("click", () => {
-        document.getElementById("welcomePopup").classList.remove("show");
-        // Don't redirect if email needs verification
-        const userNeedsVerification = document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent.includes("verify");
-        if (!userNeedsVerification) {
-          window.location.href = "index.html";
-        } else {
-          window.location.href = "login.html";
-        }
-      });
-
-      document.getElementById("exploreBtn").addEventListener("click", () => {
-        document.getElementById("welcomePopup").classList.remove("show");
-        const userNeedsVerification = document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent.includes("verify");
-        if (!userNeedsVerification) {
-          window.location.href = "index.html";
-        } else {
-          window.location.href = "login.html";
-        }
-      });
-
-      document.getElementById("profileBtn").addEventListener("click", () => {
-        document.getElementById("welcomePopup").classList.remove("show");
-        const userNeedsVerification = document.getElementById("welcomePopup").querySelector(".welcome-subtitle").textContent.includes("verify");
-        if (!userNeedsVerification) {
-          window.location.href = "profile.html";
-        } else {
-          window.location.href = "login.html";
-        }
-      });
-      
-      // Listen for auth state changes
-      supabase.auth.onAuthStateChange((event, session) => {
-        console.log("Auth state changed:", event, session ? "User logged in" : "No user");
-        
-        // If user signs in via social, redirect to index
-        if (event === 'SIGNED_IN' && session) {
-          showNotification("✅ Signed in successfully!", "success");
-          setTimeout(() => {
-            window.location.href = "index.html";
-          }, 1000);
-        }
-      });
-    });
-  </script>
+// Facebook login
+document.getElementById('facebookSignup').addEventListener('click', async ()=>{
+  const {error} = await supabase.auth.signInWithOAuth({
+    provider:'facebook',
+    options:{redirectTo:'https://zo2y.com'}
+  });
+  if(error) showNotification(error.message,'error');
+});
+</script>
 </body>
 </html>
