@@ -157,38 +157,79 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
+  // Initialize Supabase client first
   const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const supabaseKey = 'YOUR_ANON_KEY';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s'; // Replace with your actual anon key
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  const signupForm = document.getElementById('signupForm');
-  const googleBtn = document.getElementById('googleSignup');
+  // Wait for DOM to be fully loaded before attaching event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    const signupForm = document.getElementById('signupForm');
+    const googleBtn = document.getElementById('googleSignup');
 
-  signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fullName = document.getElementById('fullName').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    // Email/password signup
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
 
-    if(!fullName || !email || !password) return alert('Fill all fields');
+      if(!fullName || !email || !password) {
+        alert('Please fill all fields');
+        return;
+      }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: window.location.origin + '/index.html'
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: window.location.origin + '/index.html'
+          }
+        });
+
+        if(error) {
+          alert('Error: ' + error.message);
+          return;
+        }
+        
+        // Check if email confirmation is required
+        if(data.user && data.user.identities && data.user.identities.length === 0) {
+          alert('A user with this email already exists. Please log in instead.');
+          return;
+        }
+        
+        if(data.session) {
+          // User is signed in (if email confirmations are disabled)
+          window.location.href = 'index.html';
+        } else {
+          // Email confirmation required
+          alert('Please check your email for the confirmation link to complete your signup.');
+        }
+      } catch (err) {
+        console.error('Signup error:', err);
+        alert('An unexpected error occurred. Please try again.');
       }
     });
 
-    if(error) return alert(error.message);
-    window.location.href = 'index.html';
-  });
-
-  googleBtn.addEventListener('click', async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + '/index.html' }
+    // Google OAuth signup
+    googleBtn.addEventListener('click', async () => {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { 
+            redirectTo: window.location.origin + '/index.html'
+          }
+        });
+        
+        if(error) {
+          alert('Error with Google sign in: ' + error.message);
+        }
+      } catch (err) {
+        console.error('Google OAuth error:', err);
+        alert('An unexpected error occurred with Google sign in.');
+      }
     });
   });
 </script>
