@@ -155,20 +155,23 @@
   </div>
 </div>
 
+<!-- At the bottom of your body, replace the script with this: -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-  // Initialize Supabase client first
-  const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s'; // Replace with your actual anon key
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  // Wait for everything to load
+  window.addEventListener('DOMContentLoaded', function() {
+    // Give a small delay to ensure Supabase is loaded
+    setTimeout(initSupabase, 100);
+  });
 
-  // Wait for DOM to be fully loaded before attaching event listeners
-  document.addEventListener('DOMContentLoaded', function() {
-    const signupForm = document.getElementById('signupForm');
-    const googleBtn = document.getElementById('googleSignup');
+  function initSupabase() {
+    // Initialize Supabase
+    const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Email/password signup
-    signupForm.addEventListener('submit', async (e) => {
+    // Setup event handlers
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fullName = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
@@ -194,17 +197,14 @@
           return;
         }
         
-        // Check if email confirmation is required
         if(data.user && data.user.identities && data.user.identities.length === 0) {
           alert('A user with this email already exists. Please log in instead.');
           return;
         }
         
         if(data.session) {
-          // User is signed in (if email confirmations are disabled)
           window.location.href = 'index.html';
         } else {
-          // Email confirmation required
           alert('Please check your email for the confirmation link to complete your signup.');
         }
       } catch (err) {
@@ -213,8 +213,7 @@
       }
     });
 
-    // Google OAuth signup
-    googleBtn.addEventListener('click', async () => {
+    document.getElementById('googleSignup').addEventListener('click', async () => {
       try {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
@@ -231,8 +230,7 @@
         alert('An unexpected error occurred with Google sign in.');
       }
     });
-  });
+  }
 </script>
-
 </body>
 </html>
