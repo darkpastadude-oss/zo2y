@@ -1,222 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y - Sign Up</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <style>
-    :root {
-      --primary-color: #f59e0b;
-      --primary-dark: #d97706;
-      --primary-light: #fbbf24;
-      --bg-color: #0b1633;
-      --card-color: #132347;
-      --text-primary: #fff;
-      --text-secondary: #cbd5e1;
-      --border-color: rgba(255,255,255,0.1);
-      --shadow: 0 10px 30px rgba(0,0,0,0.3);
-      --transition: all 0.3s ease;
-      --gradient: linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);
-    }
-
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
-    body { 
-      background: var(--bg-color); color: var(--text-primary);
-      display:flex; flex-direction:column; min-height:100vh; padding:20px;
-      background-image: radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 50%),
-                       radial-gradient(ellipse at 20% 80%, rgba(59,130,246,0.1) 0%, transparent 50%);
-      transition: var(--transition);
-    }
-
-    /* Header */
-    .header { display:flex; justify-content:space-between; align-items:center; padding:15px 0; margin-bottom:20px; position:sticky; top:0; background: var(--bg-color); z-index:100; }
-    .logo { display:flex; align-items:center; font-size:1.5rem; font-weight:700; color: var(--primary-color); cursor:pointer; transition: var(--transition);}
-    .logo img { width:35px; margin-right:10px; transition: var(--transition);}
-    .logo:hover img { transform:rotate(-5deg);}
-    .theme-toggle { background: var(--card-color); border:1px solid var(--border-color); border-radius:20px; padding:8px 15px; cursor:pointer; display:flex; align-items:center; color: var(--text-primary); transition: var(--transition); font-size:0.9rem; position:relative; overflow:hidden;}
-    .theme-toggle:hover { background: var(--primary-color); color:#0b1633; transform: translateY(-2px); box-shadow:0 5px 15px rgba(245,158,11,0.3);}
-    .theme-toggle i { margin-right:8px;}
-
-    /* Main Content */
-    .main-content { max-width:500px; width:100%; margin:0 auto; flex:1; }
-    .welcome-section { text-align:center; margin-bottom:40px; }
-    .welcome-section h1 { font-size:2.2rem; margin-bottom:10px; font-weight:700; background: var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .welcome-section p { color: var(--text-secondary); font-size:1.1rem; }
-
-    /* Form */
-    .form-container { background: var(--card-color); padding:30px; border-radius:20px; box-shadow:var(--shadow); border:1px solid var(--border-color); backdrop-filter:blur(10px); transition: var(--transition);}
-    .form-container:hover { box-shadow:0 15px 40px rgba(0,0,0,0.4); transform:translateY(-5px);}
-    .form-container h2 { font-size:1.8rem; margin-bottom:25px; text-align:center; font-weight:600; }
-
-    .input-group { position:relative; margin-bottom:20px;}
-    .input-group i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text-secondary); z-index:2; transition:var(--transition);}
-    .form-container input { width:100%; padding:16px 15px 16px 45px; border-radius:12px; border:1px solid var(--border-color); font-size:1rem; outline:none; transition:var(--transition); background-color:rgba(11,22,51,0.7); color: var(--text-primary); }
-    .form-container input:focus { border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(245,158,11,0.2); transform: translateY(-2px);}
-    .form-container input:focus + i { color:var(--primary-color); }
-
-    .name-group { display:flex; gap:15px; }
-    .name-group .input-group { flex:1; }
-
-    .terms { display:flex; align-items:flex-start; margin-bottom:25px; font-size:0.9rem; }
-    .terms input { margin-right:10px; margin-top:3px; }
-    .terms label { color:var(--text-secondary); line-height:1.4; }
-    .terms a { color:var(--primary-color); text-decoration:none; position:relative;}
-    .terms a::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:1px; background:var(--primary-color); transition:width 0.3s ease;}
-    .terms a:hover::after { width:100%; }
-
-    .form-container button { width:100%; padding:16px; background:var(--gradient); border:none; border-radius:12px; color:#0b1633; font-size:1rem; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; position:relative; overflow:hidden; box-shadow:0 8px 25px rgba(245,158,11,0.3); transition:var(--transition);}
-    .form-container button:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(245,158,11,0.4);}
-    .form-container button i { margin-left:8px; transition:var(--transition); }
-
-    .divider { display:flex; align-items:center; margin:25px 0; color:var(--text-secondary);}
-    .divider::before, .divider::after { content:""; flex:1; border-bottom:1px solid var(--border-color);}
-    .divider span { padding:0 15px; font-size:0.9rem; }
-
-    .social-login { display:flex; gap:15px; margin-bottom:25px;}
-    .social-btn { flex:1; padding:14px; border:1px solid var(--border-color); border-radius:12px; background: rgba(11,22,51,0.7); color:var(--text-primary); display:flex; justify-content:center; align-items:center; cursor:pointer; transition:var(--transition); font-size:0.9rem; position:relative; overflow:hidden;}
-    .social-btn:hover { background: var(--primary-color); color:#0b1633; border-color:var(--primary-color); transform:translateY(-3px); box-shadow:0 5px 15px rgba(245,158,11,0.3);}
-    .social-btn i { font-size:1.1rem; margin-right:8px; }
-
-    .link { text-align:center; color: var(--primary-color); text-decoration:none; display:block; margin-top:20px; position:relative; padding:5px 0;}
-    .link::after { content:''; position:absolute; bottom:0; left:0; width:0; height:1px; background:var(--primary-color); transition:width 0.3s ease;}
-    .link:hover::after { width:100%; }
-
-    /* Notifications */
-    .custom-notification { position:fixed; top:20px; right:20px; padding:15px 20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); z-index:1000; display:flex; align-items:center; max-width:400px; transform:translateX(120%); transition:transform 0.4s ease; backdrop-filter:blur(10px); border:1px solid var(--border-color);}
-    .notification-success { background: rgba(16,185,129,0.9); color:#fff; }
-    .notification-error { background: rgba(239,68,68,0.9); color:#fff; }
-    .notification-show { transform:translateX(0);}
-    .notification-icon { margin-right:10px; font-size:1.2rem; }
-
-    /* Floating elements */
-    .floating-element { position:fixed; border-radius:50%; background:var(--gradient); opacity:0.05; filter:blur(40px); z-index:-1; animation:float 8s ease-in-out infinite; }
-    .float-1 { width:200px; height:200px; top:10%; right:5%; animation-delay:0s;}
-    .float-2 { width:150px; height:150px; bottom:20%; left:5%; animation-delay:4s;}
-    .float-3 { width:120px; height:120px; top:60%; right:20%; animation-delay:2s;}
-    @keyframes float { 0%{transform:translateY(0px) rotate(0deg);} 50%{transform:translateY(-20px) rotate(180deg);} 100%{transform:translateY(0px) rotate(360deg);} }
-
-    @media (max-width:768px){ .main-content{padding:0 10px;} .name-group{flex-direction:column; gap:0;} .social-login{flex-direction:column;} }
-    @media (max-width:480px){ .logo{font-size:1.3rem;} .logo img{width:30px;} }
-  </style>
-
-  <link rel="icon" type="image/png" href="images/logo.png">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zo2y - Sign Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --primary: #f59e0b;
+  --bg: #0b1633;
+  --card: #132347;
+  --text: #ffffff;
+  --text-muted: #cbd5e1;
+  --border: rgba(255,255,255,0.1);
+  --shadow: 0 10px 30px rgba(0,0,0,0.3);
+  --transition: all 0.3s ease;
+  --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif;}
+body {
+  background: var(--bg);
+  color: var(--text);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+.container {
+  background: var(--card);
+  padding:40px;
+  border-radius:20px;
+  box-shadow: var(--shadow);
+  max-width:400px;
+  width:100%;
+}
+h1 {
+  text-align:center;
+  margin-bottom:20px;
+  font-size:2rem;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.input-group { margin-bottom:20px; position:relative; }
+.input-group input {
+  width:100%;
+  padding:14px 15px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background: rgba(11,22,51,0.7);
+  color: var(--text);
+  font-size:1rem;
+  outline:none;
+  transition: var(--transition);
+}
+.input-group i {
+  position:absolute;
+  top:50%;
+  left:12px;
+  transform:translateY(-50%);
+  color: var(--text-muted);
+}
+.input-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+}
+button {
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  background: var(--gradient);
+  color:#0b1633;
+  font-weight:600;
+  cursor:pointer;
+  font-size:1rem;
+  transition: var(--transition);
+}
+button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245,158,11,0.4); }
+.social-btn {
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background: rgba(11,22,51,0.7);
+  color: var(--text);
+  cursor:pointer;
+  transition: var(--transition);
+  margin-top:10px;
+}
+.social-btn:hover { background: var(--primary); color:#0b1633; }
+.social-btn i { font-size:1.2rem; }
+.link { text-align:center; margin-top:15px; color: var(--primary); text-decoration:none; display:block; }
+.link:hover { text-decoration: underline; }
+.notification {
+  position: fixed; top:20px; right:20px;
+  padding:15px 20px; border-radius:10px;
+  display:flex; align-items:center;
+  gap:10px;
+  font-size:0.95rem;
+  color:#fff;
+  z-index:1000;
+  transform: translateX(120%);
+  transition: transform 0.4s ease;
+}
+.notification.show { transform: translateX(0); }
+.notification.success { background: rgba(16,185,129,0.9); }
+.notification.error { background: rgba(239,68,68,0.9); }
+</style>
 </head>
 <body>
 
-  <div class="floating-element float-1"></div>
-  <div class="floating-element float-2"></div>
-  <div class="floating-element float-3"></div>
-
-  <div class="header">
-    <div class="logo" onclick="location.href='index.html'"><img src="images/logo.png" alt="Zo2y Logo">Zo2y</div>
-    <div class="theme-toggle" id="themeToggle"><i class="fas fa-sun"></i> <span>Light Mode</span></div>
+<div class="container">
+  <h1>Join Zo2y</h1>
+  
+  <div class="input-group">
+    <i class="fas fa-user"></i>
+    <input type="text" placeholder="Full Name" id="fullName" required>
   </div>
-
-  <div class="main-content">
-    <div class="welcome-section">
-      <h1>Join Zo2y 🍔</h1>
-      <p>Create your account and start your food journey</p>
-    </div>
-
-    <div class="form-container">
-      <h2>Create Account</h2>
-      <form id="signupForm">
-        <div class="name-group">
-          <div class="input-group"><i class="fas fa-user"></i><input type="text" placeholder="First Name" id="firstName" required></div>
-          <div class="input-group"><i class="fas fa-user"></i><input type="text" placeholder="Last Name" id="lastName" required></div>
-        </div>
-        <div class="input-group"><i class="fas fa-envelope"></i><input type="email" placeholder="Email" id="email" required></div>
-        <div class="input-group"><i class="fas fa-lock"></i><input type="password" placeholder="Password" id="password" required></div>
-        <div class="input-group"><i class="fas fa-lock"></i><input type="password" placeholder="Confirm Password" id="confirmPassword" required></div>
-        <div class="terms"><input type="checkbox" id="terms" required><label for="terms">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></label></div>
-        <button type="submit" id="signupButton"><span>Create Account</span> <i class="fas fa-arrow-right"></i></button>
-      </form>
-
-      <div class="divider"><span>or continue with</span></div>
-      <div class="social-login">
-        <div class="social-btn" id="googleSignup"><i class="fab fa-google"></i> <span>Google</span></div>
-      </div>
-
-      <a href="login.html" class="link">Already have an account? Sign in</a>
-    </div>
+  <div class="input-group">
+    <i class="fas fa-envelope"></i>
+    <input type="email" placeholder="Email" id="email" required>
   </div>
+  <div class="input-group">
+    <i class="fas fa-lock"></i>
+    <input type="password" placeholder="Password" id="password" required>
+  </div>
+  <button id="signupBtn">Sign Up</button>
+  
+  <div class="social-btn" id="googleBtn">
+    <i class="fab fa-google"></i> Sign up with Google
+  </div>
+  
+  <a href="login.html" class="link">Already have an account? Sign in</a>
+</div>
 
-  <div id="customNotification" class="custom-notification"><i class="notification-icon"></i><span class="notification-message"></span></div>
+<div id="notification" class="notification">
+  <span id="notifMsg"></span>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
-  <script>
-    const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-    const supabase = window.supabase.createClient(supabaseUrl,supabaseKey);
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+<script>
+// init supabase
+const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    function showNotification(msg,type){
-      const n = document.getElementById('customNotification');
-      const icon = n.querySelector('.notification-icon');
-      const txt = n.querySelector('.notification-message');
-      n.className='custom-notification notification-'+type;
-      icon.className = type==='success'? 'notification-icon fas fa-check-circle':'notification-icon fas fa-exclamation-circle';
-      txt.textContent=msg;
-      n.classList.add('notification-show');
-      setTimeout(()=>{n.classList.remove('notification-show');},5000);
-    }
+const showNotification = (msg, type='success')=>{
+  const notif = document.getElementById('notification');
+  notif.className = 'notification show ' + type;
+  document.getElementById('notifMsg').textContent = msg;
+  setTimeout(()=>{ notif.className = 'notification ' + type; }, 4000);
+}
 
-    document.addEventListener('DOMContentLoaded',()=>{
-      // Theme toggle
-      const themeToggle = document.getElementById('themeToggle');
-      const themeIcon = themeToggle.querySelector('i');
-      const themeText = themeToggle.querySelector('span');
-      document.body.classList.add('dark-theme');
-      themeToggle.addEventListener('click',()=>{
-        document.body.classList.toggle('dark-theme');
-        if(document.body.classList.contains('dark-theme')){
-          themeIcon.className='fas fa-sun'; themeText.textContent='Light Mode';
-        } else { themeIcon.className='fas fa-moon'; themeText.textContent='Dark Mode'; }
-      });
+// normal signup
+document.getElementById('signupBtn').addEventListener('click', async ()=>{
+  const fullName = document.getElementById('fullName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if(!fullName || !email || !password){ showNotification('Fill all fields','error'); return; }
+  
+  const { data, error } = await supabase.auth.signUp({
+    email, password, options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin + '/index.html' }
+  });
+  
+  if(error){ showNotification(error.message,'error'); return; }
+  showNotification('✅ Account created! Check your email to verify.', 'success');
+});
 
-      // Signup form
-      const signupForm = document.getElementById('signupForm');
-      const signupButton = document.getElementById('signupButton');
+// google oauth
+document.getElementById('googleBtn').addEventListener('click', async ()=>{
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider:'google',
+    options:{ redirectTo: window.location.origin + '/index.html' }
+  });
+  if(error){ showNotification(error.message,'error'); }
+});
+</script>
 
-      signupForm.addEventListener('submit',async(e)=>{
-        e.preventDefault();
-        const firstName = document.getElementById('firstName').value.trim();
-        const lastName = document.getElementById('lastName').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        const terms = document.getElementById('terms').checked;
-
-        if(!firstName||!lastName||!email||!password||!confirmPassword){showNotification('Fill all fields','error');return;}
-        if(password!==confirmPassword){showNotification('Passwords do not match','error');return;}
-        if(!terms){showNotification('Agree to Terms','error');return;}
-
-        signupButton.disabled=true;
-        signupButton.innerHTML='<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-
-        const {data,error} = await supabase.auth.signUp({
-          email: email,
-          password: password,
-          options:{data:{first_name:firstName,last_name:lastName,full_name:firstName+' '+lastName},emailRedirectTo:'https://zo2y.com'}
-        });
-
-        if(error){showNotification(error.message,'error');}
-        else{showNotification('✅ Account created! Check your email.','success'); signupForm.reset();}
-        signupButton.disabled=false;
-        signupButton.innerHTML='<span>Create Account</span> <i class="fas fa-arrow-right"></i>';
-      });
-
-      // Google OAuth
-      document.getElementById('googleSignup').addEventListener('click',async()=>{
-        const {error} = await supabase.auth.signInWithOAuth({
-          provider:'google',
-          options:{redirectTo:'https://zo2y.com'}
-        });
-        if(error){showNotification('Google sign-in failed: '+error.message,'error');}
-      });
-    });
-  </script>
 </body>
 </html>
