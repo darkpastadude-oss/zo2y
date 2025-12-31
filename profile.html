@@ -50,872 +50,111 @@
             padding: 0 20px;
         }
 
-        /* === HOME BUTTON === */
+        /* === IMPROVED HOME BUTTON (FIXED) === */
         .home-button {
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 1000;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: var(--transition);
             text-decoration: none;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
         .home-button img {
             width: 32px;
             height: 32px;
             object-fit: contain;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .home-button:hover {
-            transform: scale(1.1);
-            filter: drop-shadow(0 6px 12px rgba(245,158,11,0.3));
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(245,158,11,0.3);
+            border-color: var(--accent);
         }
 
-        /* === MOBILE-ONLY STYLES === */
-        @media (max-width: 768px) {
-            body {
-                padding-top: 16px;
-                background: var(--bg);
-            }
-
-            .container {
-                padding: 0 12px;
-                max-width: 100%;
-            }
-
-            /* MOBILE: SIMPLIFIED HOME BUTTON */
-            .home-button {
-                top: 12px;
-                left: 12px;
-                background: rgba(19, 35, 71, 0.9);
-                backdrop-filter: blur(10px);
-                border: 1px solid var(--border);
-                width: 44px;
-                height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                padding: 8px;
-            }
-
-            .home-button img {
-                width: 24px;
-                height: 24px;
-            }
-
-            /* MOBILE: COMPACT PROFILE HEADER */
-            .profile-header {
-                padding: 16px 0 12px 0;
-                border-bottom: 1px solid var(--border);
-                margin-bottom: 0;
-                background: var(--bg);
-            }
-
-            .profile-top {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-                margin-bottom: 0;
-            }
-
-            .avatar-container {
-                display: flex;
-                justify-content: center;
-                margin-bottom: 12px;
-            }
-
-            .profile-avatar {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                background: var(--accent);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 32px;
-                border: 3px solid var(--accent);
-                cursor: pointer;
-                transition: var(--transition);
-                color: #0b1633;
-            }
-
-            .profile-info {
-                text-align: center;
-                width: 100%;
-            }
-
-            .profile-name {
-                font-size: 20px;
-                font-weight: 700;
-                margin-bottom: 4px;
-            }
-
-            .profile-username {
-                font-size: 14px;
-                color: var(--muted);
-                margin-bottom: 12px;
-            }
-
-            .profile-bio {
-                font-size: 14px;
-                color: var(--muted);
-                margin-bottom: 16px;
-                padding: 0 8px;
-                line-height: 1.4;
-            }
-
-            /* MOBILE: INLINE STATS (Instagram style) */
-            .profile-meta {
-                display: flex;
-                justify-content: center;
-                gap: 24px;
-                margin-bottom: 20px;
-            }
-
-            .meta-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
-            }
-
-            .meta-item i {
-                display: none; /* Hide icons on mobile */
-            }
-
-            .meta-item span {
-                font-size: 16px;
-                font-weight: 600;
-                color: var(--white);
-            }
-
-            .meta-label {
-                font-size: 12px;
-                color: var(--muted);
-                font-weight: 400;
-            }
-
-            /* MOBILE: COMPACT PROFILE ACTIONS */
-            .profile-actions {
-                display: flex;
-                gap: 8px;
-                justify-content: center;
-                margin-bottom: 16px;
-            }
-
-            .profile-actions .btn {
-                flex: 1;
-                max-width: 120px;
-                padding: 10px 12px;
-                font-size: 13px;
-                border-radius: 8px;
-            }
-
-            /* REMOVE STATS GRID ON MOBILE */
-            .stats-grid {
-                display: none;
-            }
-
-            /* MOBILE: TABS NAVIGATION */
-            .nav-tabs {
-                display: flex;
-                background: var(--bg);
-                border-radius: 0;
-                padding: 0;
-                margin: 0 -12px 20px -12px;
-                border: none;
-                border-top: 1px solid var(--border);
-                border-bottom: 1px solid var(--border);
-                position: sticky;
-                top: 0;
-                z-index: 100;
-                background: var(--bg);
-                backdrop-filter: blur(10px);
-            }
-
-            .nav-tab {
-                flex: 1;
-                padding: 16px 12px;
-                border-radius: 0;
-                font-weight: 500;
-                cursor: pointer;
-                transition: var(--transition);
-                white-space: nowrap;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                font-size: 14px;
-                border-bottom: 2px solid transparent;
-            }
-
-            .nav-tab.active {
-                background: transparent;
-                color: var(--accent);
-                border-bottom: 2px solid var(--accent);
-            }
-
-            .nav-tab i {
-                font-size: 16px;
-            }
-
-            /* MOBILE: COMPACT CONTENT */
-            .section {
-                margin-bottom: 24px;
-                animation: fadeIn 0.3s ease;
-            }
-
-            .section-header {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-
-            .section-title {
-                font-size: 18px;
-                font-weight: 700;
-            }
-
-            .section-subtitle {
-                font-size: 13px;
-                color: var(--muted);
-            }
-
-            .section-actions {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-
-            /* MOBILE: SIMPLIFIED JOURNAL ENTRIES */
-            .journal-entry {
-                background: var(--card);
-                border-radius: var(--radius-sm);
-                padding: 16px;
-                border: 1px solid var(--border);
-                margin-bottom: 12px;
-                cursor: pointer;
-            }
-
-            .entry-header {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 12px;
-            }
-
-            .restaurant-info {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                flex: 1;
-            }
-
-            .restaurant-image {
-                width: 48px;
-                height: 48px;
-                border-radius: 8px;
-                background: var(--bg);
-                overflow: hidden;
-                flex-shrink: 0;
-            }
-
-            .restaurant-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .restaurant-details h3 {
-                font-size: 16px;
-                margin-bottom: 2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .restaurant-category {
-                color: var(--muted);
-                font-size: 12px;
-            }
-
-            .entry-rating {
-                font-weight: 600;
-                font-size: 14px;
-            }
-
-            .entry-meta {
-                display: flex;
-                gap: 8px;
-                margin-bottom: 12px;
-                flex-wrap: wrap;
-            }
-
-            .meta-badge {
-                background: var(--bg);
-                padding: 4px 8px;
-                border-radius: 6px;
-                font-size: 11px;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-            }
-
-            .entry-notes {
-                font-size: 14px;
-                line-height: 1.4;
-                margin-bottom: 12px;
-                color: var(--muted);
-            }
-
-            .entry-tags {
-                display: flex;
-                gap: 6px;
-                flex-wrap: wrap;
-                margin-bottom: 12px;
-            }
-
-            .tag {
-                background: var(--accent);
-                color: #0b1633;
-                padding: 3px 8px;
-                border-radius: 10px;
-                font-size: 11px;
-                font-weight: 500;
-            }
-
-            .entry-actions {
-                display: flex;
-                gap: 8px;
-                justify-content: flex-end;
-            }
-
-            /* MOBILE: SIMPLIFIED LISTS */
-            .lists-grid {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 12px;
-                margin-top: 16px;
-            }
-
-            .list-card {
-                background: var(--card);
-                border-radius: var(--radius-sm);
-                border: 1px solid var(--border);
-                padding: 16px;
-                transition: var(--transition);
-                cursor: pointer;
-            }
-
-            .list-card-title {
-                font-size: 16px;
-                font-weight: 600;
-                margin-bottom: 8px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .list-card-description {
-                color: var(--muted);
-                font-size: 13px;
-                margin-bottom: 12px;
-            }
-
-            .list-preview-grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 6px;
-                margin-bottom: 12px;
-            }
-
-            .list-preview-item {
-                height: 60px;
-                background: var(--bg);
-                border-radius: 6px;
-                overflow: hidden;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .list-preview-item img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .list-card-button {
-                width: 100%;
-                background: var(--bg);
-                border: 1px solid var(--border);
-                color: var(--white);
-                padding: 10px;
-                border-radius: 6px;
-                font-size: 13px;
-                cursor: pointer;
-                transition: var(--transition);
-                font-family: inherit;
-                text-align: center;
-            }
-
-            /* MOBILE: SIMPLIFIED COMMUNITY */
-            .community-card {
-                background: var(--card);
-                border-radius: var(--radius-sm);
-                padding: 16px;
-                border: 1px solid var(--border);
-                margin-bottom: 12px;
-            }
-
-            .community-header {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 12px;
-            }
-
-            .community-avatar {
-                width: 48px;
-                height: 48px;
-                border-radius: 50%;
-                background: var(--accent);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 20px;
-                color: #0b1633;
-                flex-shrink: 0;
-            }
-
-            .community-info {
-                flex: 1;
-                min-width: 0;
-            }
-
-            .community-name {
-                font-weight: 600;
-                margin-bottom: 2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                font-size: 15px;
-            }
-
-            .community-username {
-                color: var(--muted);
-                font-size: 13px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .community-stats {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 12px;
-            }
-
-            .community-stat {
-                text-align: center;
-                flex: 1;
-            }
-
-            .community-stat-number {
-                font-size: 16px;
-                font-weight: 600;
-                color: var(--accent);
-            }
-
-            .community-stat-label {
-                font-size: 11px;
-                color: var(--muted);
-            }
-
-            .community-actions {
-                display: flex;
-                gap: 8px;
-            }
-
-            .community-actions .btn {
-                flex: 1;
-                font-size: 13px;
-                padding: 8px 12px;
-            }
-
-            /* MOBILE: SIMPLIFIED ACHIEVEMENTS */
-            .achievements-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-
-            .achievement-card {
-                background: var(--card);
-                border-radius: var(--radius-sm);
-                padding: 16px;
-                border: 1px solid var(--border);
-                transition: var(--transition);
-            }
-
-            .achievement-icon {
-                font-size: 28px;
-                margin-bottom: 8px;
-                position: relative;
-            }
-
-            .achievement-title {
-                font-size: 14px;
-                font-weight: 600;
-                margin-bottom: 6px;
-            }
-
-            .achievement-desc {
-                font-size: 12px;
-                color: var(--muted);
-                margin-bottom: 12px;
-            }
-
-            .achievement-progress {
-                background: var(--bg);
-                border-radius: 20px;
-                height: 4px;
-                overflow: hidden;
-                margin-bottom: 6px;
-            }
-
-            /* MOBILE: COMPACT MODALS */
-            .modal {
-                padding: 16px;
-            }
-
-            .modal-content {
-                border-radius: var(--radius-sm);
-                max-height: 85vh;
-            }
-
-            .modal-header {
-                padding: 16px;
-                border-bottom: 1px solid var(--border);
-            }
-
-            .modal-title {
-                font-size: 18px;
-            }
-
-            .modal-body {
-                padding: 16px;
-            }
-
-            /* MOBILE: COMPACT FORMS */
-            .form-group {
-                margin-bottom: 16px;
-            }
-
-            .form-label {
-                font-size: 14px;
-                margin-bottom: 6px;
-            }
-
-            .form-input, .form-select, .form-textarea {
-                padding: 10px;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-
-            .form-textarea {
-                min-height: 80px;
-            }
-
-            /* MOBILE: COMPACT BUTTONS */
-            .btn {
-                padding: 10px 16px;
-                font-size: 13px;
-                border-radius: 8px;
-            }
-
-            .btn-sm {
-                padding: 8px 12px;
-                font-size: 12px;
-            }
-
-            .btn-lg {
-                padding: 12px 20px;
-                font-size: 14px;
-            }
-
-            /* MOBILE: HIDE VIEWING OTHER PROFILE INDICATOR (we'll show it differently) */
-            .viewing-other-profile {
-                background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
-                color: #0b1633;
-                padding: 12px;
-                border-radius: var(--radius-sm);
-                margin: 0 -12px 16px -12px;
-                display: none;
-                align-items: center;
-                justify-content: space-between;
-                animation: fadeIn 0.3s ease;
-                font-size: 14px;
-            }
-
-            .viewing-indicator {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-weight: 600;
-                flex: 1;
-            }
-
-            .viewing-other-profile .btn {
-                font-size: 12px;
-                padding: 6px 12px;
-                white-space: nowrap;
-            }
-
-            /* MOBILE: EMPTY STATES */
-            .empty-state {
-                text-align: center;
-                padding: 40px 16px;
-            }
-
-            .empty-icon {
-                font-size: 48px;
-                margin-bottom: 12px;
-                opacity: 0.5;
-            }
-
-            .empty-title {
-                font-size: 16px;
-                font-weight: 600;
-                margin-bottom: 8px;
-            }
-
-            .empty-description {
-                font-size: 14px;
-                margin-bottom: 20px;
-                max-width: 300px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            /* MOBILE: FOOTER */
-            .profile-footer {
-                padding: 24px 0;
-                margin-top: 32px;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-                gap: 16px;
-            }
-
-            .footer-links {
-                justify-content: center;
-                gap: 16px;
-            }
-
-            .footer-link {
-                font-size: 13px;
-            }
-
-            .copyright {
-                font-size: 13px;
-            }
-
-            /* MOBILE: SEARCH BOX */
-            .search-box .search-input {
-                padding: 10px 10px 10px 36px;
-            }
-
-            .search-icon {
-                left: 10px;
-            }
-
-            /* MOBILE: LIST DETAIL VIEW */
-            #list-detail-view .section-header {
-                position: sticky;
-                top: 0;
-                background: var(--bg);
-                padding: 16px 0;
-                margin: -16px -12px 16px -12px;
-                padding: 16px 12px;
-                border-bottom: 1px solid var(--border);
-                z-index: 50;
-            }
-
-            /* MOBILE: REMOVE UNNECESSARY ELEMENTS */
-            .nav-tab-badge {
-                display: none !important;
-            }
-
-            /* MOBILE: FIX AVATAR GRID */
-            .avatar-icon-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 8px;
-            }
-
-            .avatar-icon-option {
-                width: 44px;
-                height: 44px;
-                font-size: 20px;
-                border-radius: 8px;
-            }
-
-            /* MOBILE: RATING STARS */
-            .rating-star {
-                font-size: 20px;
-            }
-        }
-
-        /* === DESKTOP STYLES (keep original) === */
-        @media (min-width: 769px) {
-            .container {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 0 20px;
-            }
-
-            /* Desktop: Keep original stats grid */
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 16px;
-                margin-bottom: 30px;
-            }
-
-            /* Desktop: Original profile layout */
-            .profile-top {
-                display: flex;
-                align-items: flex-start;
-                gap: 24px;
-                margin-bottom: 24px;
-            }
-
-            .avatar-container {
-                position: relative;
-            }
-
-            .profile-avatar {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                background: var(--accent);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 32px;
-                border: 3px solid var(--accent);
-                cursor: pointer;
-                transition: var(--transition);
-                color: #0b1633;
-            }
-
-            .profile-info {
-                flex: 1;
-                text-align: left;
-            }
-
-            .profile-name {
-                font-size: 28px;
-                font-weight: 700;
-                margin-bottom: 4px;
-            }
-
-            .profile-username {
-                font-size: 16px;
-                color: var(--muted);
-                margin-bottom: 12px;
-            }
-
-            .profile-bio {
-                font-size: 16px;
-                color: var(--muted);
-                margin-bottom: 16px;
-                max-width: 500px;
-            }
-
-            .profile-meta {
-                display: flex;
-                gap: 20px;
-                font-size: 14px;
-                color: var(--muted);
-            }
-
-            .meta-item {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-
-            /* Desktop: Original meta icons */
-            .meta-item i {
-                display: inline-block !important;
-            }
-
-            /* Desktop: Original tabs */
-            .nav-tabs {
-                display: flex;
-                background: var(--card);
-                border-radius: var(--radius);
-                padding: 8px;
-                margin-bottom: 30px;
-                border: 1px solid var(--border);
-            }
-
-            .nav-tab {
-                padding: 12px 20px;
-                border-radius: var(--radius-sm);
-                font-weight: 500;
-                cursor: pointer;
-                transition: var(--transition);
-                white-space: nowrap;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-shrink: 0;
-                user-select: none;
-                border-bottom: none !important;
-            }
-
-            .nav-tab.active {
-                background: var(--accent);
-                color: #0b1633;
-                border-bottom: none !important;
-            }
-
-            /* Desktop: Original home button */
-            .home-button {
-                position: fixed;
-                top: 20px;
-                left: 20px;
-                z-index: 1000;
-                transition: var(--transition);
-                text-decoration: none;
-            }
-
-            .home-button img {
-                width: 32px;
-                height: 32px;
-                object-fit: contain;
-                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-            }
-
-            /* Desktop: Show badge */
-            .nav-tab-badge {
-                display: inline-block !important;
-            }
-        }
-
-        /* === COMMON STYLES (both mobile and desktop) === */
+        /* === PROFILE HEADER === */
         .profile-header {
             background: var(--card);
             padding: 40px 0;
             border-bottom: 1px solid var(--border);
             margin-bottom: 30px;
+        }
+
+        .profile-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .avatar-container {
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            border: 3px solid var(--accent);
+            cursor: pointer;
+            transition: var(--transition);
+            color: #0b1633;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            border-color: #e69500;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-username {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .profile-bio {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            max-width: 500px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .profile-actions {
@@ -924,6 +163,27 @@
             flex-wrap: wrap;
         }
 
+        /* === VIEWING OTHER PROFILE INDICATOR === */
+        .viewing-other-profile {
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .viewing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        /* === BUTTONS === */
         .btn {
             padding: 10px 20px;
             border-radius: var(--radius-sm);
@@ -991,13 +251,450 @@
             transform: translateY(-2px);
         }
 
-        .tab-content {
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 16px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+
+        /* === STATS GRID === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* === NAVIGATION TABS === */
+        .nav-tabs {
+            display: flex;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
             display: none;
         }
 
-        .tab-content.active {
-            display: block;
+        .nav-tab {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .nav-tab:hover {
+            background: var(--bg-hover);
+        }
+
+        .nav-tab.active {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
+        .nav-tab-badge {
+            background: var(--error);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* === CONTENT SECTIONS === */
+        .section {
+            margin-bottom: 40px;
             animation: fadeIn 0.3s ease;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: -8px;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* === CARDS GRID === */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        /* === JOURNAL ENTRIES === */
+        .journal-entry {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .journal-entry:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .restaurant-image {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .restaurant-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-details h3 {
+            margin-bottom: 4px;
+            font-size: 18px;
+        }
+
+        .restaurant-category {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .entry-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .entry-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: var(--bg);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .entry-notes {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .entry-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            background: var(--accent);
+            color: #0b1633;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .entry-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* === ACHIEVEMENTS === */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .achievement-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .achievement-card.locked {
+            opacity: 0.6;
+        }
+
+        .achievement-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .achievement-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .achievement-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .achievement-desc {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .achievement-progress {
+            background: var(--bg);
+            border-radius: 20px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .achievement-progress-bar {
+            background: var(--accent);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        /* === FOLLOWER/COMMUNITY CARDS === */
+        .community-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
+        }
+
+        .community-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .community-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .community-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #0b1633;
+            flex-shrink: 0;
+        }
+
+        .community-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .community-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .community-username {
+            color: var(--muted);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .community-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .community-stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .community-stat-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .community-stat-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .community-actions {
+            display: flex;
+            gap: 8px;
         }
 
         /* === MODALS === */
@@ -1012,6 +709,7 @@
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            padding: 20px;
         }
 
         .modal.active {
@@ -1061,6 +759,67 @@
             color: var(--white);
         }
 
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* === FORMS === */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--white);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .rating-star {
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            opacity: 0.3;
+        }
+
+        .rating-star.active, .rating-star:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
         /* === TOAST NOTIFICATIONS === */
         .toast-container {
             position: fixed;
@@ -1082,21 +841,195 @@
             animation: slideInRight 0.3s ease;
         }
 
-        /* === UTILITY CLASSES === */
-        .d-flex { display: flex; }
-        .d-none { display: none; }
-        .d-block { display: block; }
-        .flex-column { flex-direction: column; }
-        .align-center { align-items: center; }
-        .justify-center { justify-content: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-sm { gap: 12px; }
-        .gap-md { gap: 16px; }
-        .w-100 { width: 100%; }
-        .text-center { text-align: center; }
-        .text-muted { color: var(--muted); }
-        .mt-md { margin-top: 16px; }
-        .mb-md { margin-bottom: 16px; }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--error); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--error); }
+        .toast.warning .toast-icon { color: var(--warning); }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--muted);
+            line-height: 1;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast-close:hover {
+            color: var(--white);
+        }
+
+        /* === EMPTY STATES === */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+
+        .empty-description {
+            font-size: 16px;
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* === NEW LIST LAYOUT STYLES === */
+        .lists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .list-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 20px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .list-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .list-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .list-card-description {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .list-preview-item {
+            height: 80px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-card-button {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .list-card-button:hover {
+            background: var(--bg-hover);
+        }
+
+        /* === COMMUNITY SECTIONS === */
+        .community-section {
+            display: none;
+        }
+
+        .community-section.active {
+            display: block;
+        }
+
+        /* === TAB CONTENT === */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* === LOADING STATES === */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -1112,10 +1045,706 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+
+        /* === SEARCH BOX === */
+        .search-box {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* === RESTAURANT TILES === */
+        .restaurant-tile {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .restaurant-tile:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .restaurant-tile-image {
+            width: 100%;
+            height: 200px;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        .restaurant-tile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-tile-content {
+            padding: 16px;
+        }
+
+        .restaurant-tile-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .restaurant-tile-category {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .restaurant-tile-rating {
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .restaurant-tile-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* === LIST ICONS === */
+        .list-icon-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 20px;
+            border: 1px solid transparent;
+        }
+
+        .list-icon-option:hover {
+            background: var(--bg-hover);
+        }
+
+        .avatar-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 12px;
+        }
+
+        .avatar-icon-option {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 24px;
+            border: 2px solid transparent;
+        }
+
+        .avatar-icon-option:hover {
+            background: var(--bg-hover);
+        }
+
+        .avatar-icon-option.selected {
+            background: var(--accent);
+            color: #0b1633;
+            border-color: var(--accent);
+        }
+
+        /* === FOOTER STYLES === */
+        .profile-footer {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 30px 0;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--accent);
+        }
+
+        .copyright {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* === UTILITY CLASSES === */
+        .d-flex { display: flex; }
+        .d-grid { display: grid; }
+        .d-none { display: none; }
+        .d-block { display: block; }
+        .flex-column { flex-direction: column; }
+        .flex-row { flex-direction: row; }
+        .flex-wrap { flex-wrap: wrap; }
+        .align-center { align-items: center; }
+        .align-start { align-items: flex-start; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-start { justify-content: flex-start; }
+        .gap-xs { gap: 8px; }
+        .gap-sm { gap: 12px; }
+        .gap-md { gap: 16px; }
+        .gap-lg { gap: 24px; }
+        .gap-xl { gap: 32px; }
+        .w-100 { width: 100%; }
+        .h-100 { height: 100%; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .font-light { font-weight: 300; }
+        .font-normal { font-weight: 400; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .text-muted { color: var(--muted); }
+        .text-light { color: var(--muted); }
+        .text-primary { color: var(--accent); }
+        .text-success { color: var(--success); }
+        .text-error { color: var(--error); }
+        .mt-xs { margin-top: 8px; }
+        .mt-sm { margin-top: 12px; }
+        .mt-md { margin-top: 16px; }
+        .mt-lg { margin-top: 24px; }
+        .mt-xl { margin-top: 32px; }
+        .mb-xs { margin-bottom: 8px; }
+        .mb-sm { margin-bottom: 12px; }
+        .mb-md { margin-bottom: 16px; }
+        .mb-lg { margin-bottom: 24px; }
+        .mb-xl { margin-bottom: 32px; }
+        .p-xs { padding: 8px; }
+        .p-sm { padding: 12px; }
+        .p-md { padding: 16px; }
+        .p-lg { padding: 24px; }
+        .p-xl { padding: 32px; }
+
+        /* === MOBILE RESPONSIVE === */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px; /* Space for home button */
+            }
+            
+            .container {
+                padding: 0 16px;
+            }
+
+            .home-button {
+                width: 46px;
+                height: 46px;
+                top: 12px;
+                left: 12px;
+                padding: 8px;
+                border-radius: 10px;
+            }
+
+            .home-button img {
+                width: 28px;
+                height: 28px;
+            }
+
+            .profile-header {
+                padding: 24px 0;
+                margin-bottom: 20px;
+            }
+
+            .profile-top {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+
+            /* MOBILE AVATAR CENTERING FIX */
+            .avatar-container {
+                margin: 0 auto !important; /* Force center on mobile */
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .profile-avatar {
+                width: 100px; /* Slightly larger on mobile */
+                height: 100px;
+                font-size: 42px;
+                margin: 0 auto; /* Center the avatar */
+            }
+
+            .profile-info {
+                width: 100%;
+                text-align: center;
+            }
+
+            .profile-name {
+                font-size: 24px;
+            }
+
+            .profile-username {
+                font-size: 16px;
+            }
+
+            .profile-bio {
+                font-size: 15px;
+                margin-bottom: 20px;
+                padding: 0 10px;
+            }
+
+            .profile-meta {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .profile-actions {
+                justify-content: center;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .profile-actions .btn {
+                flex: 1;
+                justify-content: center;
+                min-width: 120px;
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-icon {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            .stat-number {
+                font-size: 28px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            .nav-tabs {
+                padding: 6px;
+                margin-bottom: 20px;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+                margin-bottom: 20px;
+            }
+
+            .section-actions {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .list-preview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .lists-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .community-card {
+                padding: 16px;
+            }
+
+            .community-stats {
+                gap: 12px;
+            }
+
+            .community-stat-number {
+                font-size: 16px;
+            }
+
+            .community-actions {
+                flex-direction: column;
+            }
+
+            .community-actions .btn {
+                width: 100%;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+
+            .footer-links {
+                justify-content: center;
+                gap: 16px;
+            }
+        }
+
+        /* === MOBILE-ONLY STYLES (Applied only on small screens) === */
+        @media (max-width: 480px) {
+            /* MOBILE-ONLY LAYOUT */
+            body.mobile-view {
+                padding-top: 56px;
+                padding-bottom: 56px;
+            }
+            
+            body.mobile-view .desktop-only {
+                display: none !important;
+            }
+            
+            /* MOBILE TOP BAR */
+            .mobile-topbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 56px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 16px;
+                background: var(--bg);
+                border-bottom: 1px solid var(--border);
+                z-index: 1000;
+            }
+            
+            .mobile-topbar span {
+                font-weight: 600;
+                font-size: 18px;
+            }
+            
+            .mobile-topbar i {
+                font-size: 22px;
+                color: var(--accent);
+            }
+            
+            /* MOBILE PROFILE SECTION */
+            .mobile-profile {
+                padding: 16px;
+                text-align: center;
+                margin-top: 10px;
+            }
+            
+            .mobile-avatar {
+                width: 96px;
+                height: 96px;
+                border-radius: 50%;
+                background: var(--accent);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 40px;
+                margin: 0 auto 10px;
+                color: #0b1633;
+                border: 3px solid var(--accent);
+            }
+            
+            .mobile-bio {
+                margin-top: 8px;
+                font-size: 14px;
+                color: var(--muted);
+                padding: 0 10px;
+            }
+            
+            /* MOBILE STATS */
+            .mobile-stats {
+                display: flex;
+                justify-content: space-around;
+                margin: 20px 0;
+                padding: 0 16px;
+            }
+            
+            .mobile-stat {
+                text-align: center;
+            }
+            
+            .mobile-stat strong {
+                display: block;
+                font-size: 20px;
+                color: var(--accent);
+            }
+            
+            .mobile-stat span {
+                font-size: 12px;
+                color: var(--muted);
+            }
+            
+            /* MOBILE FEED */
+            .mobile-feed {
+                padding: 0 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .mobile-post {
+                background: var(--card);
+                border-radius: 14px;
+                overflow: hidden;
+                border: 1px solid var(--border);
+            }
+            
+            .mobile-post img {
+                width: 100%;
+                height: 220px;
+                object-fit: cover;
+            }
+            
+            .mobile-post-body {
+                padding: 12px;
+            }
+            
+            .mobile-post-head {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            
+            .mobile-post-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: var(--accent);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #0b1633;
+                font-size: 16px;
+            }
+            
+            .mobile-post-title {
+                font-weight: 600;
+                font-size: 16px;
+            }
+            
+            .mobile-post-rating {
+                color: var(--accent);
+                font-size: 13px;
+            }
+            
+            .mobile-post-text {
+                font-size: 14px;
+                margin-top: 8px;
+                color: var(--muted);
+            }
+            
+            .mobile-post-actions {
+                display: flex;
+                justify-content: space-between;
+                padding: 12px;
+                border-top: 1px solid var(--border);
+            }
+            
+            .mobile-post-actions i {
+                font-size: 20px;
+                color: var(--muted);
+            }
+            
+            .mobile-post-actions i.active {
+                color: var(--accent);
+            }
+            
+            /* MOBILE BOTTOM NAV */
+            .mobile-bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 56px;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                background: var(--bg);
+                border-top: 1px solid var(--border);
+                z-index: 1000;
+            }
+            
+            .mobile-bottom-nav i {
+                font-size: 22px;
+                color: var(--muted);
+                transition: var(--transition);
+            }
+            
+            .mobile-bottom-nav i.active {
+                color: var(--accent);
+            }
+            
+            .mobile-bottom-nav i:hover {
+                color: var(--accent);
+            }
+            
+            /* MOBILE BUTTON */
+            .mobile-btn {
+                width: 90%;
+                margin: 0 auto;
+                padding: 14px;
+                border-radius: 12px;
+                border: none;
+                font-weight: 600;
+                background: var(--accent);
+                color: #0b1633;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 15px;
+                transition: var(--transition);
+            }
+            
+            .mobile-btn:hover {
+                background: #e69500;
+                transform: translateY(-2px);
+            }
+            
+            /* HIDE DESKTOP ELEMENTS ON MOBILE */
+            .desktop-only {
+                display: none;
+            }
+            
+            .mobile-only {
+                display: block;
+            }
+        }
+
+        @media (min-width: 481px) {
+            /* HIDE MOBILE ELEMENTS ON DESKTOP */
+            .mobile-only {
+                display: none;
+            }
+            
+            .desktop-only {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+            }
+
+            .profile-actions .btn {
+                width: 100%;
+            }
+
+            .section-actions {
+                flex-direction: column;
+            }
+
+            .section-actions .btn {
+                width: 100%;
+            }
+
+            .entry-actions {
+                flex-direction: column;
+            }
+
+            .entry-actions .btn {
+                width: 100%;
+            }
+
+            .community-actions {
+                flex-direction: column;
+            }
+
+            .community-actions .btn {
+                width: 100%;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+            }
+        }
     </style>
     <link rel="icon" type="image/png" href="images/logo.png">
 </head>
-<body>
+<body class="desktop-only">
     <!-- Home Button -->
     <a href="index.html" class="home-button">
         <img src="images/logo.png" alt="Zo2y Logo">
@@ -1126,10 +1755,10 @@
         <div class="viewing-other-profile" id="viewingOtherProfile">
             <div class="viewing-indicator">
                 <i class="fas fa-eye"></i>
-                <span>Viewing another profile</span>
+                <span>You are viewing another user's profile</span>
             </div>
             <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="ProfileManager.goToMyProfile()">
-                <i class="fas fa-user"></i> My Profile
+                <i class="fas fa-user"></i> Back to My Profile
             </button>
         </div>
     </div>
@@ -1152,39 +1781,31 @@
                     <div class="profile-bio" id="profileBio">
                         No bio yet. Click edit to add one!
                     </div>
-                    
-                    <!-- Stats Row -->
                     <div class="profile-meta">
                         <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="profileLocation">Location not set</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span id="memberSince">Member since 2023</span>
+                        </div>
+                        <div class="meta-item">
                             <i class="fas fa-utensils"></i>
-                            <div>
-                                <span id="visitedCountMeta">0</span>
-                                <div class="meta-label">Visited</div>
-                            </div>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-users"></i>
-                            <div>
-                                <span id="followersCountMeta">0</span>
-                                <div class="meta-label">Followers</div>
-                            </div>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-list"></i>
-                            <div>
-                                <span id="listsCountMeta">0</span>
-                                <div class="meta-label">Lists</div>
-                            </div>
+                            <span id="visitedCountMeta">0 restaurants visited</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="profile-actions">
                     <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                        <i class="fas fa-edit"></i> Edit
+                        <i class="fas fa-edit"></i> Edit Profile
                     </button>
                     <button class="btn btn-primary" onclick="ProfileManager.showModal('addEntryModal')" id="addEntryBtn">
-                        <i class="fas fa-plus"></i> Add
+                        <i class="fas fa-plus"></i> Add Journal
+                    </button>
+                    <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
+                        <i class="fas fa-cog"></i> Settings
                     </button>
                     <button class="btn btn-secondary d-none" id="followButton">
                         Follow
@@ -1195,7 +1816,7 @@
     </div>
 
     <div class="container">
-        <!-- Stats Grid - Hidden on mobile, shown on desktop -->
+        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">🍽️</div>
@@ -1219,19 +1840,20 @@
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
+        <!-- Navigation Tabs - Reordered with Achievements last -->
         <div class="nav-tabs">
             <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
-                <i class="fas fa-book"></i> <span class="tab-text">Journal</span>
+                <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
             </div>
             <div class="nav-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
-                <i class="fas fa-list"></i> <span class="tab-text">Lists</span>
+                <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
             </div>
             <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
-                <i class="fas fa-users"></i> <span class="tab-text">Community</span>
+                <i class="fas fa-users"></i> Community
+                <span class="nav-tab-badge d-none" id="followersBadge">0</span>
             </div>
             <div class="nav-tab" data-tab="achievements" onclick="ProfileManager.showTab('achievements')">
-                <i class="fas fa-trophy"></i> <span class="tab-text">Achievements</span>
+                <i class="fas fa-trophy"></i> <span id="achievementsTabText">Achievements</span>
             </div>
         </div>
 
@@ -1240,12 +1862,17 @@
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Food Journal</h2>
-                        <p class="section-subtitle">Your restaurant reviews</p>
+                        <h2 class="section-title" id="journalTitle">Food Journal</h2>
+                        <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews and experiences</p>
                     </div>
                     <div class="section-actions">
+                        <div class="d-flex gap-sm">
+                            <button class="btn btn-secondary btn-sm active filter-btn" data-filter="all">All</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
+                        </div>
                         <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addJournalBtn">
-                            <i class="fas fa-plus"></i> New
+                            <i class="fas fa-plus"></i> New Entry
                         </button>
                     </div>
                 </div>
@@ -1254,7 +1881,7 @@
                     <div class="empty-state">
                         <div class="empty-icon">📝</div>
                         <h3 class="empty-title">No Reviews Yet</h3>
-                        <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
+                        <p class="empty-description">Start reviewing restaurants to build your food journey! Your reviews will appear here.</p>
                         <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
                             <i class="fas fa-utensils"></i> Browse Restaurants
                         </button>
@@ -1268,10 +1895,13 @@
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">My Lists</h2>
-                        <p class="section-subtitle">Organize your favorites</p>
+                        <h2 class="section-title" id="listsTitle">My Lists</h2>
+                        <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
                     </div>
                     <div class="section-actions">
+                        <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="ProfileManager.toggleSortLists()">
+                            <i class="fas fa-sort"></i> Sort
+                        </button>
                         <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createListBtn">
                             <i class="fas fa-plus"></i> New List
                         </button>
@@ -1299,8 +1929,11 @@
                         </div>
                     </div>
                     <div class="section-actions">
+                        <button class="btn btn-secondary btn-sm" id="editListBtn">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
                         <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addToListBtn">
-                            <i class="fas fa-plus"></i> Add
+                            <i class="fas fa-plus"></i> Add Restaurant
                         </button>
                     </div>
                 </div>
@@ -1311,7 +1944,7 @@
                         <h3 class="empty-title">No Restaurants Yet</h3>
                         <p class="empty-description">Start adding restaurants to this list!</p>
                         <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
-                            <i class="fas fa-plus"></i> Add Restaurant
+                            <i class="fas fa-plus"></i> Add Your First Restaurant
                         </button>
                     </div>
                 </div>
@@ -1323,10 +1956,18 @@
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Community</h2>
-                        <p class="section-subtitle">Connect with food lovers</p>
+                        <h2 class="section-title" id="communityTitle">Community</h2>
+                        <p class="section-subtitle" id="communitySubtitle">Connect with other food lovers</p>
                     </div>
                     <div class="section-actions">
+                        <div class="d-flex gap-sm">
+                            <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
+                                Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="ProfileManager.showCommunitySection('following')">
+                                Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
+                            </button>
+                        </div>
                         <button class="btn btn-primary" onclick="ProfileManager.showModal('communitySearchModal')" id="addCommunityBtn">
                             <i class="fas fa-user-plus"></i> Find Users
                         </button>
@@ -1336,13 +1977,17 @@
                 <!-- Followers Section -->
                 <div class="community-section active" id="followersSection">
                     <div class="section-header">
-                        <h3 class="section-title">Your Followers</h3>
+                        <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
+                        <p class="section-subtitle">People who follow your food journey</p>
                     </div>
                     <div id="followersList">
                         <div class="empty-state">
                             <div class="empty-icon">👥</div>
                             <h3 class="empty-title">No followers yet</h3>
-                            <p class="empty-description">Share your profile to get followers!</p>
+                            <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
+                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1350,26 +1995,35 @@
                 <!-- Following Section -->
                 <div class="community-section" id="followingSection">
                     <div class="section-header">
-                        <h3 class="section-title">You're Following</h3>
+                        <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
+                        <p class="section-subtitle">People whose food journey you follow</p>
                     </div>
                     <div id="followingList">
                         <div class="empty-state">
                             <div class="empty-icon">👥</div>
                             <h3 class="empty-title">Not following anyone yet</h3>
-                            <p class="empty-description">Discover and follow other food lovers!</p>
+                            <p class="empty-description">Discover and follow other food lovers to see their restaurant adventures!</p>
+                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Achievements Tab Content -->
+        <!-- Achievements Tab Content - Now last -->
         <div class="tab-content" id="achievements-tab">
             <div class="section">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Achievements</h2>
-                        <p class="section-subtitle">Track your progress</p>
+                        <h2 class="section-title" id="achievementsTitle">Achievements</h2>
+                        <p class="section-subtitle" id="achievementsSubtitle">Track your food journey progress</p>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" onclick="ProfileManager.refreshAchievements()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
                     </div>
                 </div>
                 
@@ -1386,10 +2040,55 @@
             <div class="footer-content">
                 <div class="footer-links">
                     <a href="#" class="footer-link" onclick="ProfileManager.showModal('editProfileModal'); return false;">Settings</a>
+                    <a href="#" class="footer-link">Privacy</a>
+                    <a href="#" class="footer-link">Support</a>
+                    <a href="#" class="footer-link">About</a>
                     <a href="#" class="footer-link" id="logoutBtn">Logout</a>
                 </div>
                 <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
             </div>
+        </div>
+    </div>
+
+    <!-- MOBILE VIEW (hidden on desktop) -->
+    <div class="mobile-only">
+        <div class="mobile-topbar">
+            <span id="mobileUsername">@user</span>
+            <i class="fas fa-bars" onclick="MobileProfile.showMenu()"></i>
+        </div>
+
+        <div class="mobile-profile">
+            <div class="mobile-avatar" id="mobileAvatar" onclick="MobileProfile.showAvatarModal()">🍔</div>
+            <h2 id="mobileName">Loading</h2>
+            <div class="mobile-bio" id="mobileBio"></div>
+
+            <div class="mobile-stats">
+                <div class="mobile-stat">
+                    <strong id="mobilePosts">0</strong>
+                    <span>posts</span>
+                </div>
+                <div class="mobile-stat">
+                    <strong id="mobileFollowers">0</strong>
+                    <span>followers</span>
+                </div>
+                <div class="mobile-stat">
+                    <strong id="mobileLists">0</strong>
+                    <span>lists</span>
+                </div>
+            </div>
+
+            <button class="mobile-btn" onclick="MobileProfile.editProfile()">
+                <i class="fas fa-edit"></i> edit profile
+            </button>
+        </div>
+
+        <div class="mobile-feed" id="mobileFeed"></div>
+
+        <div class="mobile-bottom-nav">
+            <i class="fas fa-home" onclick="window.location.href='index.html'"></i>
+            <i class="fas fa-search" onclick="MobileProfile.showSearch()"></i>
+            <i class="fas fa-plus-square" onclick="MobileProfile.addEntry()"></i>
+            <i class="fas fa-user active"></i>
         </div>
     </div>
 
@@ -1520,6 +2219,17 @@
                         <label class="form-label">Location</label>
                         <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Account Privacy</label>
+                        <div class="d-flex gap-md align-center">
+                            <input type="checkbox" id="editIsPrivate" class="form-input" style="width: auto;">
+                            <label for="editIsPrivate" class="form-label" style="margin-bottom: 0;">Private Account</label>
+                        </div>
+                        <div class="text-xs text-muted mt-xs">
+                            Private accounts require approval for follow requests
+                        </div>
+                    </div>
                     
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
@@ -1587,6 +2297,7 @@
 
             // Initialize Supabase client
             let supabase = null;
+            let supabaseInitialized = false;
 
             // Global state
             let currentUser = null;
@@ -1597,6 +2308,7 @@
             let restaurants = [];
             let customLists = [];
             let currentTab = 'journal';
+            let journalFilter = 'all';
             let currentActiveList = null;
             let selectedAvatarIcon = null;
             let currentEditingJournalEntry = null;
@@ -1609,7 +2321,13 @@
             async function initialize() {
                 try {
                     // Initialize Supabase
+                    if (!window.supabase) {
+                        console.error('Supabase library not loaded');
+                        return;
+                    }
+                    
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    supabaseInitialized = true;
                     
                     // Check authentication
                     const { data: { user }, error } = await supabase.auth.getUser();
@@ -1620,7 +2338,15 @@
                     
                     currentUser = user;
                     
-                    // Load profile data
+                    // Check if mobile view should be shown
+                    const isMobile = window.innerWidth <= 480;
+                    if (isMobile) {
+                        document.body.classList.add('mobile-view');
+                        MobileProfile.initialize();
+                        return;
+                    }
+                    
+                    // Load profile data for desktop
                     await loadProfile();
                     
                     // Load restaurants dynamically
@@ -1637,7 +2363,7 @@
                     setupEventListeners();
                     
                     if (isViewingOwnProfile) {
-                        showToast('Welcome back!', 'success');
+                        showToast('Welcome back to your profile!', 'success');
                     }
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
@@ -1693,14 +2419,18 @@
             async function loadOwnProfile() {
                 // Show own profile elements
                 const editProfileBtn = document.getElementById('editProfileBtn');
+                const settingsBtn = document.getElementById('settingsBtn');
                 const followButton = document.getElementById('followButton');
+                const logoutBtn = document.getElementById('logoutBtn');
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
                 const addEntryBtn = document.getElementById('addEntryBtn');
                 const createListBtn = document.getElementById('createListBtn');
                 const addJournalBtn = document.getElementById('addJournalBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'flex';
+                if (settingsBtn) settingsBtn.style.display = 'flex';
                 if (followButton) followButton.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'block';
                 if (viewingIndicator) viewingIndicator.style.display = 'none';
                 if (addEntryBtn) addEntryBtn.style.display = 'flex';
                 if (createListBtn) createListBtn.style.display = 'flex';
@@ -1713,6 +2443,7 @@
                 document.getElementById('profileUsername').textContent = `@${userProfile?.username || currentUser.email.split('@')[0]}`;
                 document.getElementById('profileBio').textContent = userProfile?.bio || "No bio yet. Click edit to add one!";
                 document.getElementById('profileLocation').textContent = userProfile?.location || "Location not set";
+                document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 
                 // Set avatar
                 const avatar = document.getElementById('profileAvatar');
@@ -1727,6 +2458,8 @@
             async function loadOtherUserProfile() {
                 // Hide elements for other users' profiles
                 const editProfileBtn = document.getElementById('editProfileBtn');
+                const settingsBtn = document.getElementById('settingsBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
                 const followButton = document.getElementById('followButton');
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
                 const addEntryBtn = document.getElementById('addEntryBtn');
@@ -1734,6 +2467,8 @@
                 const addJournalBtn = document.getElementById('addJournalBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'none';
+                if (settingsBtn) settingsBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
                 if (followButton) followButton.style.display = 'block';
                 if (viewingIndicator) viewingIndicator.style.display = 'flex';
                 if (addEntryBtn) addEntryBtn.style.display = 'none';
@@ -1760,6 +2495,7 @@
                 document.getElementById('profileUsername').textContent = `@${profile.username || 'user'}`;
                 document.getElementById('profileBio').textContent = profile.bio || "No bio yet";
                 document.getElementById('profileLocation').textContent = profile.location || "Location not set";
+                document.getElementById('memberSince').textContent = `Member since ${new Date(profile.created_at).getFullYear()}`;
 
                 // Set avatar
                 const avatar = document.getElementById('profileAvatar');
@@ -1767,6 +2503,9 @@
                     avatar.textContent = profile.avatar_icon || "🍔";
                 }
 
+                // Update tab titles for other user's profile
+                updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
+                
                 // Load follow status
                 await loadFollowStatus();
                 await updateStats(targetUserId);
@@ -1893,17 +2632,13 @@
 
                     const followersCount = followers ? followers.length : 0;
                     
-                    // Get lists count - ONLY COUNT CUSTOM LISTS, NOT DEFAULT LISTS
+                    // Get lists count
                     const { data: userLists, error: listsError } = await supabase
                         .from('lists')
-                        .select('id, is_default')
+                        .select('id')
                         .eq('user_id', targetId);
 
-                    let listsCount = 0;
-                    if (userLists) {
-                        // Only count custom lists (not default lists)
-                        listsCount = userLists.filter(list => !list.is_default).length;
-                    }
+                    const listsCount = userLists ? userLists.length : 0;
                     
                     // Get journal entries count
                     const { data: userJournalEntries, error: journalCountError } = await supabase
@@ -1913,16 +2648,12 @@
 
                     const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
                     
-                    // Update UI - Desktop stats grid
+                    // Update UI
                     document.getElementById('visitedCount').textContent = visitedCount;
                     document.getElementById('followersCount').textContent = followersCount;
                     document.getElementById('listsCount').textContent = listsCount;
                     document.getElementById('reviewsCount').textContent = reviewsCount;
-                    
-                    // Update UI - Mobile inline stats
-                    document.getElementById('visitedCountMeta').textContent = visitedCount;
-                    document.getElementById('followersCountMeta').textContent = followersCount;
-                    document.getElementById('listsCountMeta').textContent = listsCount;
+                    document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
                     
                 } catch (error) {
                     console.error('Error updating stats:', error);
@@ -1931,17 +2662,14 @@
                     document.getElementById('followersCount').textContent = 0;
                     document.getElementById('listsCount').textContent = 0;
                     document.getElementById('reviewsCount').textContent = 0;
-                    
-                    document.getElementById('visitedCountMeta').textContent = 0;
-                    document.getElementById('followersCountMeta').textContent = 0;
-                    document.getElementById('listsCountMeta').textContent = 0;
+                    document.getElementById('visitedCountMeta').textContent = '0 restaurants visited';
                 }
             }
 
             // ===== LIST MANAGER =====
             const listManager = {
                 userLists: [],
-                defaultLists: {
+                currentLists: {
                     favorites: null,
                     visited: null,
                     wantToGo: null
@@ -1952,6 +2680,7 @@
                     if (!targetId) return;
                     
                     await this.loadUserLists(targetId);
+                    await this.loadListRestaurants();
                     await this.loadCustomLists(targetId);
                     this.renderListsGrid();
                 },
@@ -1966,8 +2695,6 @@
                         if (error) throw error;
                         
                         this.userLists = lists || [];
-                        
-                        // Set up default lists
                         await this.setupDefaultLists(userId);
                         
                     } catch (error) {
@@ -1976,50 +2703,86 @@
                 },
                 
                 async setupDefaultLists(userId) {
-                    // Find existing default lists
-                    this.defaultLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-                    this.defaultLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-                    this.defaultLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                    this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+                    this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+                    this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
                     
-                    // Only create missing default lists if viewing own profile
                     if (isViewingOwnProfile) {
-                        if (!this.defaultLists.favorites) {
-                            this.defaultLists.favorites = await this.createDefaultList('Favorites', 'My favorite restaurants', userId);
-                        }
-                        if (!this.defaultLists.visited) {
-                            this.defaultLists.visited = await this.createDefaultList('Visited', 'Restaurants I have visited', userId);
-                        }
-                        if (!this.defaultLists.wantToGo) {
-                            this.defaultLists.wantToGo = await this.createDefaultList('Want to Go', 'Restaurants I want to try', userId);
+                        // Check for duplicate lists
+                        const duplicateLists = this.userLists.filter(list => 
+                            ['Favorites', 'Visited', 'Want to Go'].includes(list.title) && 
+                            list.title !== 'default'
+                        );
+                        
+                        // Keep only the colored emoji versions (non-default flag)
+                        for (const listType of ['favorites', 'visited', 'wantToGo']) {
+                            const listTitle = listType === 'favorites' ? 'Favorites' : 
+                                            listType === 'visited' ? 'Visited' : 'Want to Go';
+                            
+                            const coloredLists = duplicateLists.filter(l => l.title === listTitle && l.icon);
+                            const defaultLists = duplicateLists.filter(l => l.title === listTitle && !l.icon);
+                            
+                            // Delete duplicate default lists (no colored emojis)
+                            if (defaultLists.length > 1) {
+                                for (let i = 1; i < defaultLists.length; i++) {
+                                    await supabase
+                                        .from('lists')
+                                        .delete()
+                                        .eq('id', defaultLists[i].id);
+                                }
+                            }
                         }
                         
-                        // Reload user lists after creating defaults
-                        if (!this.defaultLists.favorites || !this.defaultLists.visited || !this.defaultLists.wantToGo) {
-                            await this.loadUserLists(userId);
+                        if (!this.currentLists.favorites) {
+                            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId, '❤️');
+                        }
+                        if (!this.currentLists.visited) {
+                            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId, '✅');
+                        }
+                        if (!this.currentLists.wantToGo) {
+                            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId, '📍');
                         }
                     }
                 },
                 
-                async createDefaultList(title, description, userId) {
-                    try {
-                        const { data: newList, error } = await supabase
-                            .from('lists')
-                            .insert([{ 
-                                user_id: userId, 
-                                title: title, 
-                                description: description,
-                                is_default: true,
-                                created_at: new Date().toISOString()
-                            }])
-                            .select()
-                            .single();
-                        
-                        if (error) throw error;
-                        
-                        return newList;
-                    } catch (error) {
-                        console.error('Error creating default list:', error);
+                async createList(title, description, userId = currentUser.id, icon = '📋') {
+                    const { data: newList, error } = await supabase
+                        .from('lists')
+                        .insert([{ 
+                            user_id: userId, 
+                            title: title, 
+                            description: description,
+                            icon: icon,
+                            is_default: true,
+                            created_at: new Date().toISOString()
+                        }])
+                        .select()
+                        .single();
+                    
+                    if (error) {
+                        console.error('Error creating list:', error);
                         return null;
+                    }
+                    
+                    this.userLists.push(newList);
+                    return newList;
+                },
+                
+                async loadListRestaurants() {
+                    for (const listType in this.currentLists) {
+                        const list = this.currentLists[listType];
+                        if (list) {
+                            const { data: listRestraunts, error } = await supabase
+                                .from('lists_restraunts')
+                                .select('restraunt_id')
+                                .eq('list_id', list.id);
+                            
+                            if (!error && listRestraunts) {
+                                list.restaurants = listRestraunts.map(item => item.restraunt_id);
+                            } else {
+                                list.restaurants = [];
+                            }
+                        }
                     }
                 },
                 
@@ -2031,46 +2794,97 @@
                             .from('lists')
                             .select('*')
                             .eq('user_id', userId)
-                            .eq('is_default', false);
+                            .neq('title', 'Favorites')
+                            .neq('title', 'Visited')
+                            .neq('title', 'Want to Go');
                         
                         if (error) throw error;
                         
                         customLists = lists || [];
                         
-                        // Load restaurant counts for each list
                         for (const list of customLists) {
-                            const { data: listRestaurants, error } = await supabase
+                            const { data: listRestraunts, error } = await supabase
                                 .from('lists_restraunts')
                                 .select('restraunt_id')
                                 .eq('list_id', list.id);
                             
-                            if (!error && listRestaurants) {
-                                list.restaurantCount = listRestaurants.length;
+                            if (!error && listRestraunts) {
+                                list.restaurants = listRestraunts.map(item => item.restraunt_id);
                             } else {
-                                list.restaurantCount = 0;
+                                list.restaurants = [];
                             }
                         }
                         
                     } catch (error) {
                         console.error('Error loading custom lists:', error);
-                        customLists = [];
                     }
                 },
-                
-                async loadListRestaurants(listId) {
-                    try {
-                        const { data: listRestaurants, error } = await supabase
-                            .from('lists_restraunts')
-                            .select('restraunt_id')
-                            .eq('list_id', listId);
-                        
-                        if (error) throw error;
-                        
-                        return listRestaurants ? listRestaurants.map(item => item.restraunt_id) : [];
-                    } catch (error) {
-                        console.error('Error loading list restaurants:', error);
-                        return [];
+
+                async toggleInList(listType, restrauntId) {
+                    let list;
+                    
+                    if (typeof listType === 'number') {
+                        list = customLists.find(l => l.id === listType);
+                        if (!list) return false;
+                    } else {
+                        list = this.currentLists[listType];
+                        if (!list) return false;
                     }
+                    
+                    const isInList = list.restaurants?.includes(restrauntId);
+                    
+                    try {
+                        if (isInList) {
+                            const { error } = await supabase
+                                .from('lists_restraunts')
+                                .delete()
+                                .match({ 
+                                    list_id: list.id, 
+                                    restraunt_id: restrauntId
+                                });
+                            
+                            if (error) throw error;
+                            
+                            list.restaurants = list.restaurants.filter(id => id !== restrauntId);
+                            showToast(`Removed from ${list.title}`, "info");
+                            
+                        } else {
+                            const { error } = await supabase
+                                .from('lists_restraunts')
+                                .insert([{ 
+                                    list_id: list.id, 
+                                    restraunt_id: restrauntId,
+                                    user_id: currentUser.id,
+                                    added_at: new Date().toISOString()
+                                }]);
+                            
+                            if (error) throw error;
+                            
+                            if (!list.restaurants) list.restaurants = [];
+                            list.restaurants.push(restrauntId);
+                            showToast(`Added to ${list.title}`, "success");
+                        }
+                        
+                        updateStats();
+                        return !isInList;
+                        
+                    } catch (error) {
+                        console.error('Error updating list:', error);
+                        showToast('Error saving changes', 'error');
+                        return isInList;
+                    }
+                },
+
+                isInList(listType, restrauntId) {
+                    let list;
+                    
+                    if (typeof listType === 'number') {
+                        list = customLists.find(l => l.id === listType);
+                    } else {
+                        list = this.currentLists[listType];
+                    }
+                    
+                    return list?.restaurants?.includes(restrauntId) || false;
                 },
 
                 // Render lists in grid layout
@@ -2080,134 +2894,116 @@
                     
                     listsGrid.innerHTML = '';
                     
-                    // Get default lists with their data
-                    const defaultListsData = [];
-                    
-                    if (this.defaultLists.favorites) {
-                        defaultListsData.push({
+                    const defaultLists = [
+                        {
                             id: 'favorites',
-                            list: this.defaultLists.favorites,
-                            icon: 'fas fa-heart',
+                            title: 'Favorites',
+                            description: 'Your top picks.',
+                            icon: '❤️',
                             color: 'var(--error)',
-                            description: 'Your top picks'
-                        });
-                    }
-                    
-                    if (this.defaultLists.visited) {
-                        defaultListsData.push({
+                            restaurants: this.currentLists.favorites?.restaurants || [],
+                            isDefault: true
+                        },
+                        {
                             id: 'visited',
-                            list: this.defaultLists.visited,
-                            icon: 'fas fa-check-circle',
+                            title: 'Visited',
+                            description: 'Restaurants you have checked out.',
+                            icon: '✅',
                             color: 'var(--success)',
-                            description: 'Restaurants you have checked out'
-                        });
-                    }
-                    
-                    if (this.defaultLists.wantToGo) {
-                        defaultListsData.push({
+                            restaurants: this.currentLists.visited?.restaurants || [],
+                            isDefault: true
+                        },
+                        {
                             id: 'wantToGo',
-                            list: this.defaultLists.wantToGo,
-                            icon: 'fas fa-bookmark',
+                            title: 'Want To Go',
+                            description: 'Saved for later.',
+                            icon: '📍',
                             color: 'var(--accent)',
-                            description: 'Saved for later'
-                        });
-                    }
-                    
-                    const allLists = [
-                        ...defaultListsData.map(item => ({
-                            id: item.id,
-                            title: item.list.title,
-                            description: item.description,
-                            icon: item.icon,
-                            color: item.color,
-                            isDefault: true,
-                            listId: item.list.id,
-                            restaurantCount: 0 // Will be loaded dynamically
-                        })),
-                        ...customLists.map(list => ({
-                            id: list.id,
-                            title: list.title,
-                            description: list.description || 'Your custom-made collection.',
-                            icon: 'fas fa-utensils',
-                            color: 'var(--accent)',
-                            isDefault: false,
-                            listId: list.id,
-                            restaurantCount: list.restaurantCount || 0
-                        }))
+                            restaurants: this.currentLists.wantToGo?.restaurants || [],
+                            isDefault: true
+                        }
                     ];
+                    
+                    const allLists = [...defaultLists, ...customLists.map(list => ({
+                        id: list.id,
+                        title: list.title,
+                        description: list.description || 'Your custom-made collection.',
+                        icon: list.icon || '📋',
+                        color: 'var(--accent)',
+                        restaurants: list.restaurants || [],
+                        isDefault: false
+                    }))];
                     
                     if (allLists.length === 0) {
                         listsGrid.innerHTML = `
                             <div class="empty-state">
                                 <div class="empty-icon">📋</div>
                                 <h3 class="empty-title">No Lists Yet</h3>
-                                <p class="empty-description">Create your first list to organize restaurants!</p>
-                                ${isViewingOwnProfile ? `
-                                    <button class="btn btn-primary mt-md" onclick="ProfileManager.showCreateListModal()">
-                                        <i class="fas fa-plus"></i> Create Your First List
-                                    </button>
-                                ` : ''}
+                                <p class="empty-description">Create your first list to organize restaurants by occasion, cuisine, or mood!</p>
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showCreateListModal()">
+                                    <i class="fas fa-plus"></i> Create Your First List
+                                </button>
                             </div>
                         `;
                         return;
                     }
                     
-                    allLists.forEach(async (list) => {
+                    allLists.forEach(list => {
                         const listCard = document.createElement('div');
                         listCard.className = 'list-card';
                         
-                        // Load restaurant preview images
-                        const restaurantIds = await this.loadListRestaurants(list.listId);
-                        const previewRestaurants = restaurantIds.slice(0, 4);
+                        const previewItems = [];
+                        const restrauntIds = list.restaurants || [];
+                        const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
                         
-                        const previewItems = previewRestaurants.map(restaurantId => {
-                            const restaurant = restaurants.find(r => r.id === restaurantId);
-                            if (restaurant && restaurant.image) {
-                                return `
-                                    <div class="list-preview-item">
-                                        <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy">
-                                    </div>
-                                `;
+                        for (let i = 0; i < 4; i++) {
+                            if (shuffledIds[i]) {
+                                const restrauntId = shuffledIds[i];
+                                const restraunt = restaurants.find(r => r.id === restrauntId);
+                                if (restraunt) {
+                                    previewItems.push(`
+                                        <div class="list-preview-item">
+                                            <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                                        </div>
+                                    `);
+                                } else {
+                                    previewItems.push(`
+                                        <div class="list-preview-item">
+                                            <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                                🍽️
+                                            </div>
+                                        </div>
+                                    `);
+                                }
                             } else {
-                                return `
+                                previewItems.push(`
                                     <div class="list-preview-item">
                                         <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                             🍽️
                                         </div>
                                     </div>
-                                `;
+                                `);
                             }
-                        }).join('');
-                        
-                        // Fill remaining slots if needed
-                        for (let i = previewRestaurants.length; i < 4; i++) {
-                            previewItems += `
-                                <div class="list-preview-item">
-                                    <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                        🍽️
-                                    </div>
-                                </div>
-                            `;
                         }
                         
                         listCard.innerHTML = `
                             <div class="list-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <h3 class="list-card-title">
-                                    <i class="${list.icon}" style="color: ${list.color};"></i>
+                                    <span style="font-size: 20px;">${list.icon}</span>
                                     ${list.title}
                                 </h3>
                                 ${!list.isDefault && isViewingOwnProfile ? `
-                                    <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); listManager.deleteList(${list.id})" style="background: transparent; border: none; color: var(--muted);">
-                                        <i class="fas fa-trash"></i>
+                                    <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); listManager.showEditListModal(${JSON.stringify(list).replace(/"/g, '&quot;')})" style="background: transparent; border: none; color: var(--muted);">
+                                        <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                 ` : ''}
                             </div>
                             <p class="list-card-description">${list.description}</p>
                             <div class="list-preview-grid">
-                                ${previewItems}
+                                ${previewItems.join('')}
                             </div>
                             <div class="d-flex justify-between align-center mt-md">
-                                <span class="text-sm text-muted">${restaurantIds.length} places</span>
+                                <span class="text-sm text-muted">${restrauntIds.length} places</span>
                                 <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')">View List</button>
                             </div>
                         `;
@@ -2215,59 +3011,22 @@
                         listCard.onclick = () => ProfileManager.showList(list.id);
                         listsGrid.appendChild(listCard);
                     });
-                },
-                
-                async deleteList(listId) {
-                    if (!confirm('Are you sure you want to delete this list?')) return;
-                    
-                    try {
-                        // First delete all restaurant associations
-                        const { error: deleteAssocError } = await supabase
-                            .from('lists_restraunts')
-                            .delete()
-                            .eq('list_id', listId);
-                        
-                        if (deleteAssocError) throw deleteAssocError;
-                        
-                        // Then delete the list itself
-                        const { error: deleteListError } = await supabase
-                            .from('lists')
-                            .delete()
-                            .eq('id', listId);
-                        
-                        if (deleteListError) throw deleteListError;
-                        
-                        // Remove from local state
-                        customLists = customLists.filter(list => list.id !== listId);
-                        
-                        showToast('List deleted successfully', 'success');
-                        this.renderListsGrid();
-                        updateStats();
-                        
-                    } catch (error) {
-                        console.error('Error deleting list:', error);
-                        showToast('Error deleting list', 'error');
-                    }
                 }
             };
 
             // ===== LIST DISPLAY FUNCTIONS =====
             async function showList(listId) {
                 let list;
-                let isDefault = false;
                 
                 if (listId === 'favorites') {
-                    list = listManager.defaultLists.favorites;
-                    isDefault = true;
+                    list = listManager.currentLists.favorites;
                 } else if (listId === 'visited') {
-                    list = listManager.defaultLists.visited;
-                    isDefault = true;
+                    list = listManager.currentLists.visited;
                 } else if (listId === 'wantToGo') {
-                    list = listManager.defaultLists.wantToGo;
-                    isDefault = true;
+                    list = listManager.currentLists.wantToGo;
                 } else {
-                    list = customLists.find(l => l.id === listId);
-                    isDefault = false;
+                    list = customLists.find(l => l.id === listId) || 
+                           listManager.userLists.find(l => l.id === listId);
                 }
                 
                 if (!list) {
@@ -2289,10 +3048,15 @@
                 document.getElementById('listDetailTitle').textContent = list.title;
                 document.getElementById('listDetailDescription').textContent = list.description || '';
                 
+                const editListBtn = document.getElementById('editListBtn');
                 const addToListBtn = document.getElementById('addToListBtn');
+                
+                if (editListBtn) {
+                    editListBtn.style.display = isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listId) ? 'flex' : 'none';
+                }
                 if (addToListBtn) addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
                 
-                await renderListRestaurants(list.id);
+                await renderListRestaurants(list.restaurants || [], list);
             }
 
             function hideListDetail() {
@@ -2308,125 +3072,87 @@
                 currentActiveList = null;
             }
 
-            async function renderListRestaurants(listId) {
+            async function renderListRestaurants(restrauntIds, list) {
                 const grid = document.getElementById('listRestaurantsGrid');
                 if (!grid) return;
                 
-                grid.innerHTML = '<div class="loading-spinner" style="text-align: center; padding: 40px;">Loading...</div>';
+                grid.innerHTML = '';
                 
-                try {
-                    // Get restaurant IDs from list
-                    const { data: listRestaurants, error } = await supabase
-                        .from('lists_restraunts')
-                        .select('restraunt_id')
-                        .eq('list_id', listId);
+                const numericIds = restrauntIds.map(id => Number(id));
+                const listRestraunts = restaurants.filter(r => numericIds.includes(r.id));
+                
+                if (listRestraunts.length === 0) {
+                    const emptyStateText = isViewingOwnProfile ? 
+                        'Start adding restaurants to your list!' :
+                        'This list is currently empty.';
                     
-                    if (error) throw error;
-                    
-                    const restaurantIds = listRestaurants.map(item => item.restraunt_id);
-                    
-                    if (restaurantIds.length === 0) {
-                        grid.innerHTML = `
-                            <div class="empty-state w-100">
-                                <div class="empty-icon">🍽️</div>
-                                <h3 class="empty-title">No Restaurants Yet</h3>
-                                <p class="empty-description">${isViewingOwnProfile ? 'Start adding restaurants to your list!' : 'This list is currently empty.'}</p>
-                                ${isViewingOwnProfile ? `
-                                    <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
-                                        <i class="fas fa-plus"></i> Add Your First Restaurant
-                                    </button>
-                                ` : ''}
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    // Get restaurant details
-                    const listRestraunts = restaurants.filter(r => restaurantIds.includes(r.id));
-                    
-                    grid.innerHTML = '';
-                    
-                    listRestraunts.forEach(restraunt => {
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.style.marginBottom = '16px';
-                        
-                        const clickableContent = document.createElement('a');
-                        clickableContent.href = `restaurant.html?slug=${restraunt.slug || restraunt.id}`;
-                        clickableContent.style.textDecoration = 'none';
-                        clickableContent.style.color = 'inherit';
-                        clickableContent.style.display = 'block';
-                        clickableContent.style.height = '100%';
-                        
-                        clickableContent.innerHTML = `
-                            <div class="card-body">
-                                <div class="d-flex align-center gap-md">
-                                    <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                        ${restraunt.image ? 
-                                            `<img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
-                                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restraunt.name.charAt(0)}</div>`
-                                        }
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <h3 style="margin-bottom: 4px;">${restraunt.name}</h3>
-                                        <div class="text-sm text-muted">${restraunt.category}</div>
-                                        <div class="text-sm" style="margin-top: 4px;">⭐ ${restraunt.rating || 'N/A'}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        card.appendChild(clickableContent);
-                        
-                        if (isViewingOwnProfile) {
-                            const removeBtn = document.createElement('button');
-                            removeBtn.className = 'btn btn-secondary btn-sm';
-                            removeBtn.style.position = 'absolute';
-                            removeBtn.style.top = '10px';
-                            removeBtn.style.right = '10px';
-                            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                            removeBtn.onclick = async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                
-                                try {
-                                    const { error } = await supabase
-                                        .from('lists_restraunts')
-                                        .delete()
-                                        .match({ 
-                                            list_id: currentActiveList.id, 
-                                            restraunt_id: restraunt.id
-                                        });
-                                    
-                                    if (error) throw error;
-                                    
-                                    showToast(`Removed from ${currentActiveList.title}`, "info");
-                                    await renderListRestaurants(currentActiveList.id);
-                                    listManager.renderListsGrid();
-                                    updateStats();
-                                    
-                                } catch (error) {
-                                    console.error('Error removing restaurant from list:', error);
-                                    showToast('Error removing restaurant', 'error');
-                                }
-                            };
-                            card.style.position = 'relative';
-                            card.appendChild(removeBtn);
-                        }
-                        
-                        grid.appendChild(card);
-                    });
-                    
-                } catch (error) {
-                    console.error('Error loading list restaurants:', error);
                     grid.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <h3 class="empty-title">Unable to Load List</h3>
-                            <p class="empty-description">There was an error loading the list contents.</p>
+                        <div class="empty-state w-100">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <p class="empty-description">${emptyStateText}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
+                                    <i class="fas fa-plus"></i> Add Your First Restaurant
+                                </button>
+                            ` : ''}
                         </div>
                     `;
+                    return;
                 }
+                
+                const listDetailTitle = document.getElementById('listDetailTitle');
+                if (listDetailTitle) {
+                    listDetailTitle.textContent = `${list.title} (${listRestraunts.length} places)`;
+                }
+                
+                listRestraunts.forEach(restraunt => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    const clickableContent = document.createElement('a');
+                    clickableContent.href = `restaurant.html?slug=${restraunt.slug}`;
+                    clickableContent.style.textDecoration = 'none';
+                    clickableContent.style.color = 'inherit';
+                    clickableContent.style.display = 'block';
+                    clickableContent.style.height = '100%';
+                    
+                    clickableContent.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex align-center gap-md">
+                                <div class="restaurant-image" style="width: 60px; height: 60px;">
+                                    <img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin-bottom: 4px;">${restraunt.name}</h3>
+                                    <div class="text-sm text-muted">${restraunt.category}</div>
+                                    <div class="text-sm" style="margin-top: 4px;">⭐ ${restraunt.rating}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    card.appendChild(clickableContent);
+                    
+                    if (isViewingOwnProfile) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'btn btn-secondary btn-sm';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '10px';
+                        removeBtn.style.right = '10px';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.onclick = async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            await listManager.toggleInList(list.id, restraunt.id);
+                            await renderListRestaurants(list.restaurants || [], list);
+                        };
+                        card.style.position = 'relative';
+                        card.appendChild(removeBtn);
+                    }
+                    
+                    grid.appendChild(card);
+                });
             }
 
             // ===== FOOD JOURNAL =====
@@ -2447,17 +3173,20 @@
                             .from('journal_entries')
                             .select('*')
                             .eq('user_id', targetId)
-                            .order('visit_date', { ascending: false })
-                            .limit(10);
+                            .order('created_at', { ascending: false });
 
                         if (error) throw error;
                         
                         if (!entries || entries.length === 0) {
+                            const emptyStateText = isViewingOwnProfile ? 
+                                'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
+                                'This user hasn\'t reviewed any restaurants yet.';
+                            
                             journalEntries.innerHTML = `
                                 <div class="empty-state">
                                     <div class="empty-icon">📝</div>
                                     <h3 class="empty-title">No Reviews Yet</h3>
-                                    <p class="empty-description">${isViewingOwnProfile ? 'Start reviewing restaurants to build your food journey!' : 'This user hasn\'t reviewed any restaurants yet.'}</p>
+                                    <p class="empty-description">${emptyStateText}</p>
                                     ${isViewingOwnProfile ? `
                                         <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
                                             <i class="fas fa-utensils"></i> Browse Restaurants
@@ -2470,7 +3199,14 @@
                         
                         journalEntries.innerHTML = '';
                         
-                        for (const entry of entries) {
+                        let entriesToShow = entries;
+                        if (journalFilter === 'recent') {
+                            entriesToShow = entries.slice(0, 5);
+                        } else if (journalFilter === 'favorites') {
+                            entriesToShow = entries.filter(entry => entry.rating >= 4);
+                        }
+                        
+                        for (const entry of entriesToShow) {
                             const restaurantId = entry.restaurant_id;
                             const restaurant = restaurants.find(r => r.id === restaurantId);
                             
@@ -2485,7 +3221,7 @@
                             <div class="empty-state">
                                 <div class="empty-icon">⚠️</div>
                                 <h3 class="empty-title">Unable to Load Reviews</h3>
-                                <p class="empty-description">There was an error loading your reviews.</p>
+                                <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
                             </div>
                         `;
                     }
@@ -2496,24 +3232,24 @@
                     const entryElement = document.createElement('div');
                     entryElement.className = 'journal-entry';
                     entryElement.style.cursor = 'pointer';
-                    entryElement.onclick = () => this.showJournalEntryDetail(entry, restaurant);
+                    entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
                     
-                    const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : `restaurant.html?id=${restaurant.id}`;
+                    const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
                     const restaurantImage = restaurant.image ? 
                         `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                        `<div style="width: 48px; height: 48px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                        `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
                     
                     entryElement.innerHTML = `
                         <div class="entry-header">
                             <div class="restaurant-info">
                                 <div class="restaurant-image">
-                                    <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" onclick="event.stopPropagation();">
+                                    <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
                                         ${restaurantImage}
                                     </a>
                                 </div>
                                 <div class="restaurant-details">
                                     <h3>
-                                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;" onclick="event.stopPropagation();">
+                                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
                                             ${restaurant.name}
                                         </a>
                                     </h3>
@@ -2534,6 +3270,10 @@
                                 <i class="fas fa-utensils"></i>
                                 ${restaurant.category}
                             </div>
+                            <div class="meta-badge">
+                                <i class="fas fa-star"></i>
+                                ${entry.rating}/5
+                            </div>
                         </div>
                         <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
                         ${entry.tags ? `
@@ -2546,8 +3286,8 @@
                                 <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
-                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.deleteJournalEntry(${entry.id})">
-                                    <i class="fas fa-trash"></i> Delete
+                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', ${restaurant.id})">
+                                    <i class="fas fa-heart"></i> Favorite
                                 </button>
                             </div>
                         ` : ''}
@@ -2582,79 +3322,7 @@
                     
                     ProfileManager.showModal('addEntryModal');
                 },
-                
-                async deleteJournalEntry(entryId) {
-                    if (!confirm('Are you sure you want to delete this journal entry?')) return;
-                    
-                    try {
-                        const { error } = await supabase
-                            .from('journal_entries')
-                            .delete()
-                            .eq('id', entryId);
-                        
-                        if (error) throw error;
-                        
-                        showToast('Journal entry deleted', 'success');
-                        await this.loadJournalEntries();
-                        await updateStats();
-                        
-                    } catch (error) {
-                        console.error('Error deleting journal entry:', error);
-                        showToast('Error deleting journal entry', 'error');
-                    }
-                },
-                
-                showJournalEntryDetail(entry, restaurant) {
-                    // Create a modal to show journal entry details
-                    const detailModal = document.createElement('div');
-                    detailModal.className = 'modal active';
-                    detailModal.style.display = 'flex';
-                    detailModal.innerHTML = `
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h3 class="modal-title">${restaurant.name}</h3>
-                                <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="d-flex align-center gap-md mb-md">
-                                    <div style="font-size: 24px;">
-                                        ${'⭐'.repeat(Math.floor(entry.rating))}
-                                    </div>
-                                    <span style="font-weight: 600;">${entry.rating}/5</span>
-                                </div>
-                                <div class="mb-md">
-                                    <div class="text-sm text-muted mb-xs">Visit Date</div>
-                                    <div>${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}</div>
-                                </div>
-                                <div class="mb-md">
-                                    <div class="text-sm text-muted mb-xs">Notes</div>
-                                    <div>${entry.notes || 'No notes provided'}</div>
-                                </div>
-                                ${entry.tags ? `
-                                    <div class="mb-md">
-                                        <div class="text-sm text-muted mb-xs">Tags</div>
-                                        <div class="d-flex gap-xs flex-wrap">
-                                            ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-                                <div class="form-actions mt-lg">
-                                    <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(detailModal);
-                    
-                    // Close modal when clicking outside
-                    detailModal.addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            this.remove();
-                        }
-                    });
-                },
-                
+
                 async saveJournalEntry() {
                     const restaurantId = parseInt(document.getElementById('restaurantSelect')?.value);
                     const visitDate = document.getElementById('visitDate')?.value;
@@ -2669,7 +3337,6 @@
                     
                     try {
                         if (currentEditingJournalEntry) {
-                            // Update existing entry
                             const { error } = await supabase
                                 .from('journal_entries')
                                 .update({
@@ -2688,7 +3355,6 @@
                             currentEditingJournalEntry = null;
                             
                         } else {
-                            // Create new entry
                             const { error } = await supabase
                                 .from('journal_entries')
                                 .insert({
@@ -2703,26 +3369,7 @@
                             
                             if (error) throw error;
                             
-                            // Also add to Visited list
-                            try {
-                                if (listManager.defaultLists.visited) {
-                                    const { error: listError } = await supabase
-                                        .from('lists_restraunts')
-                                        .insert({
-                                            list_id: listManager.defaultLists.visited.id,
-                                            restraunt_id: restaurantId,
-                                            user_id: currentUser.id,
-                                            added_at: new Date().toISOString()
-                                        });
-                                    
-                                    if (listError && listError.code !== '23505') { // Ignore duplicate errors
-                                        console.error('Error adding to visited list:', listError);
-                                    }
-                                }
-                            } catch (listError) {
-                                console.error('Error adding to visited list:', listError);
-                            }
-                            
+                            await listManager.toggleInList('visited', restaurantId);
                             const restaurant = restaurants.find(r => r.id === restaurantId);
                             showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
                         }
@@ -2741,11 +3388,6 @@
                         
                         await this.loadJournalEntries();
                         await updateStats();
-                        
-                        // Refresh lists if needed
-                        if (listManager.defaultLists.visited) {
-                            listManager.renderListsGrid();
-                        }
                         
                     } catch (error) {
                         console.error('Error saving journal entry:', error);
@@ -2774,9 +3416,6 @@
                             }, 300);
                         });
                     }
-                    
-                    // Load initial followers/following
-                    await this.loadFollowers();
                 },
 
                 async loadFollowStats() {
@@ -3113,7 +3752,6 @@
 
                         await this.loadFollowStats();
                         this.refreshCurrentView();
-                        updateStats();
 
                     } catch (error) {
                         console.error('Error toggling follow:', error);
@@ -3132,20 +3770,6 @@
                             this.loadFollowing();
                         }
                     }
-                },
-
-                showFollowers() {
-                    this.currentSection = 'followers';
-                    document.getElementById('followersSection').classList.add('active');
-                    document.getElementById('followingSection').classList.remove('active');
-                    this.loadFollowers();
-                },
-
-                showFollowing() {
-                    this.currentSection = 'following';
-                    document.getElementById('followingSection').classList.add('active');
-                    document.getElementById('followersSection').classList.remove('active');
-                    this.loadFollowing();
                 }
             };
 
@@ -3245,6 +3869,147 @@
                 }
             };
 
+            // ===== MOBILE PROFILE MANAGER =====
+            const MobileProfile = {
+                async initialize() {
+                    try {
+                        if (!supabase) {
+                            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                        }
+                        
+                        const { data: { user }, error } = await supabase.auth.getUser();
+                        if (error || !user) { 
+                            window.location.href = "login.html"; 
+                            return; 
+                        }
+                        
+                        currentUser = user;
+                        await this.loadMobileProfile(user.id);
+                        await this.loadMobileFeed(user.id);
+                        
+                        showToast('Welcome to your mobile profile!', 'success');
+                    } catch (error) {
+                        console.error('Error initializing mobile profile:', error);
+                        showToast('Error loading profile', 'error');
+                    }
+                },
+                
+                async loadMobileProfile(uid) {
+                    const { data: profile } = await supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", uid)
+                        .single();
+                    
+                    if (!profile) {
+                        await supabase
+                            .from("user_profiles")
+                            .insert({
+                                id: uid,
+                                username: currentUser.email.split('@')[0],
+                                full_name: currentUser.email.split('@')[0],
+                                bio: "",
+                                location: "",
+                                avatar_icon: "🍔",
+                                is_private: false,
+                                created_at: new Date().toISOString()
+                            });
+                        
+                        const { data: newProfile } = await supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("id", uid)
+                            .single();
+                        
+                        userProfile = newProfile || {};
+                    } else {
+                        userProfile = profile;
+                    }
+                    
+                    document.getElementById("mobileName").textContent = userProfile.full_name || userProfile.username || currentUser.email.split('@')[0];
+                    document.getElementById("mobileUsername").textContent = "@" + (userProfile.username || currentUser.email.split('@')[0]);
+                    document.getElementById("mobileBio").textContent = userProfile.bio || "";
+                    document.getElementById("mobileAvatar").textContent = userProfile.avatar_icon || "🍔";
+                    
+                    const posts = await supabase.from("journal_entries").select("id", {count: "exact"}).eq("user_id", uid);
+                    document.getElementById("mobilePosts").textContent = posts.count || 0;
+                    
+                    const followers = await supabase.from("follows").select("id", {count: "exact"}).eq("followed_id", uid);
+                    document.getElementById("mobileFollowers").textContent = followers.count || 0;
+                    
+                    const lists = await supabase.from("lists").select("id", {count: "exact"}).eq("user_id", uid);
+                    document.getElementById("mobileLists").textContent = lists.count || 0;
+                },
+                
+                async loadMobileFeed(uid) {
+                    const { data } = await supabase
+                        .from("journal_entries")
+                        .select("*, restraunts(name, image, category)")
+                        .eq("user_id", uid)
+                        .order("created_at", {ascending: false})
+                        .limit(10);
+                    
+                    const feed = document.getElementById("mobileFeed");
+                    feed.innerHTML = "";
+                    
+                    if (!data || data.length === 0) {
+                        feed.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📝</div>
+                                <h3 class="empty-title">No Reviews Yet</h3>
+                                <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
+                                <button class="mobile-btn mt-md" onclick="window.location.href='index.html'">
+                                    <i class="fas fa-utensils"></i> Browse Restaurants
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    data.forEach(e => {
+                        const div = document.createElement("div");
+                        div.className = "mobile-post";
+                        div.innerHTML = `
+                            <img src="images/${e.restraunts?.image || 'placeholder.jpg'}" alt="${e.restraunts?.name || 'Restaurant'}" loading="lazy">
+                            <div class="mobile-post-body">
+                                <div class="mobile-post-head">
+                                    <div class="mobile-post-avatar">${e.rating >= 4 ? "🔥" : "🍴"}</div>
+                                    <div>
+                                        <div class="mobile-post-title">${e.restraunts?.name || "Restaurant"}</div>
+                                        <div class="mobile-post-rating">${"⭐".repeat(e.rating)}</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-post-text">${e.notes || ""}</div>
+                            </div>
+                            <div class="mobile-post-actions">
+                                <i class="far fa-heart"></i>
+                                <i class="far fa-bookmark"></i>
+                            </div>`;
+                        feed.appendChild(div);
+                    });
+                },
+                
+                showMenu() {
+                    showToast('Menu feature coming soon!', 'info');
+                },
+                
+                showSearch() {
+                    showModal('communitySearchModal');
+                },
+                
+                addEntry() {
+                    showModal('addEntryModal');
+                },
+                
+                editProfile() {
+                    showModal('editProfileModal');
+                },
+                
+                showAvatarModal() {
+                    showModal('avatarModal');
+                }
+            };
+
             // ===== FOLLOW FUNCTIONALITY =====
             async function loadFollowStatus() {
                 if (isViewingOwnProfile) return;
@@ -3336,6 +4101,42 @@
                 return id ? id.trim() : null;
             }
 
+            function updateTabTitlesForOtherUser(userName) {
+                const journalTabText = document.getElementById('journalTabText');
+                const listsTabText = document.getElementById('listsTabText');
+                const achievementsTabText = document.getElementById('achievementsTabText');
+                
+                if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
+                if (listsTabText) listsTabText.textContent = `${userName}'s Lists`;
+                if (achievementsTabText) achievementsTabText.textContent = `${userName}'s Achievements`;
+                
+                // Update section titles
+                const journalTitle = document.getElementById('journalTitle');
+                const listsTitle = document.getElementById('listsTitle');
+                const communityTitle = document.getElementById('communityTitle');
+                const achievementsTitle = document.getElementById('achievementsTitle');
+                const followersSectionTitle = document.getElementById('followersSectionTitle');
+                const followingSectionTitle = document.getElementById('followingSectionTitle');
+                
+                if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
+                if (listsTitle) listsTitle.textContent = `${userName}'s Lists`;
+                if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
+                if (achievementsTitle) achievementsTitle.textContent = `${userName}'s Achievements`;
+                if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
+                if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
+                
+                // Update subtitles
+                const journalSubtitle = document.getElementById('journalSubtitle');
+                const listsSubtitle = document.getElementById('listsSubtitle');
+                const communitySubtitle = document.getElementById('communitySubtitle');
+                const achievementsSubtitle = document.getElementById('achievementsSubtitle');
+                
+                if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
+                if (listsSubtitle) listsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
+                if (achievementsSubtitle) achievementsSubtitle.textContent = `${userName}'s food journey progress`;
+            }
+
             function goToMyProfile() {
                 window.location.href = 'profile.html';
             }
@@ -3373,7 +4174,7 @@
                         listManager.renderListsGrid();
                         break;
                     case 'community':
-                        communitySystem.showFollowers();
+                        showCommunitySection('followers');
                         break;
                     case 'achievements':
                         achievementsSystem.loadAchievements();
@@ -3428,15 +4229,7 @@
                         document.getElementById('editUsername').value = userProfile.username || '';
                         document.getElementById('editBio').value = userProfile.bio || '';
                         document.getElementById('editLocation').value = userProfile.location || '';
-                    }
-                    
-                    if (modalId === 'createListModal') {
-                        // Reset icon selection
-                        document.querySelectorAll('.list-icon-option').forEach(icon => {
-                            icon.style.background = 'transparent';
-                            icon.style.border = '1px solid transparent';
-                        });
-                        document.getElementById('selectedIcon').value = '📋';
+                        document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
                     }
                     
                     if (modalId === 'avatarModal') {
@@ -3504,6 +4297,7 @@
             // ===== AVATAR FUNCTIONS =====
             function showAvatarModal() {
                 if (!isViewingOwnProfile) return;
+                
                 showModal('avatarModal');
             }
 
@@ -3521,9 +4315,16 @@
 
                     if (error) throw error;
 
+                    // Update desktop avatar
                     const avatar = document.getElementById('profileAvatar');
                     if (avatar) {
                         avatar.textContent = selectedAvatarIcon;
+                    }
+                    
+                    // Update mobile avatar
+                    const mobileAvatar = document.getElementById('mobileAvatar');
+                    if (mobileAvatar) {
+                        mobileAvatar.textContent = selectedAvatarIcon;
                     }
                     
                     userProfile.avatar_icon = selectedAvatarIcon;
@@ -3559,6 +4360,16 @@
                     btn.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
                         showTab(tabName);
+                    });
+                });
+                
+                // Filter buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        journalFilter = this.getAttribute('data-filter');
+                        foodJournal.loadJournalEntries();
                     });
                 });
                 
@@ -3653,22 +4464,6 @@
                         });
                     }
                 });
-                
-                // Community section buttons
-                const showFollowersBtn = document.getElementById('showFollowersBtn');
-                const showFollowingBtn = document.getElementById('showFollowingBtn');
-                
-                if (showFollowersBtn) {
-                    showFollowersBtn.addEventListener('click', () => {
-                        communitySystem.showFollowers();
-                    });
-                }
-                
-                if (showFollowingBtn) {
-                    showFollowingBtn.addEventListener('click', () => {
-                        communitySystem.showFollowing();
-                    });
-                }
             }
 
             // ===== CREATE CUSTOM LIST =====
@@ -3707,9 +4502,6 @@
                     const createListForm = document.getElementById('createListForm');
                     if (createListForm) createListForm.reset();
                     
-                    // Update stats
-                    await updateStats();
-                    
                 } catch (error) {
                     console.error('Error creating list:', error);
                     showToast('Error creating list', 'error');
@@ -3722,6 +4514,7 @@
                 const username = document.getElementById('editUsername')?.value;
                 const bio = document.getElementById('editBio')?.value;
                 const location = document.getElementById('editLocation')?.value;
+                const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
                 if (!displayName || !username) {
                     showToast('Please enter display name and username', 'error');
@@ -3736,23 +4529,31 @@
                             username: username,
                             bio: bio,
                             location: location,
+                            is_private: isPrivate,
                             updated_at: new Date().toISOString()
                         })
                         .eq('id', currentUser.id);
                     
                     if (error) throw error;
                     
+                    // Update desktop view
                     document.getElementById('profileName').textContent = displayName;
                     document.getElementById('profileUsername').textContent = `@${username}`;
                     document.getElementById('profileBio').textContent = bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = location || "Location not set";
+                    
+                    // Update mobile view
+                    document.getElementById('mobileName').textContent = displayName;
+                    document.getElementById('mobileUsername').textContent = `@${username}`;
+                    document.getElementById('mobileBio').textContent = bio || "";
                     
                     userProfile = {
                         ...userProfile,
                         full_name: displayName,
                         username: username,
                         bio: bio,
-                        location: location
+                        location: location,
+                        is_private: isPrivate
                     };
                     
                     closeModal('editProfileModal');
@@ -3764,6 +4565,16 @@
                 }
             }
 
+            // ===== UTILITY FUNCTIONS =====
+            function toggleSortLists() {
+                showToast('List sorting feature coming soon!', 'info');
+            }
+
+            function refreshAchievements() {
+                achievementsSystem.loadAchievements();
+                showToast('Achievements refreshed!', 'success');
+            }
+
             // ===== PUBLIC API =====
             return {
                 // Initialization
@@ -3772,6 +4583,7 @@
                 // Navigation
                 showTab,
                 goToMyProfile,
+                showCommunitySection,
                 viewUserProfile,
                 
                 // Modals
@@ -3788,8 +4600,9 @@
                 saveAvatar,
                 setRating,
                 
-                // Community
-                showCommunitySection
+                // Utilities
+                toggleSortLists,
+                refreshAchievements
             };
         })();
 
