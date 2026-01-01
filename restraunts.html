@@ -1455,7 +1455,7 @@
         @media (max-width: 480px) {
             /* Mobile body padding for home button */
             body {
-                padding-top: 70px;
+                padding-top: 0;
             }
             
             .mobile-only {
@@ -1496,7 +1496,7 @@
             .mobile-profile {
                 padding: 16px;
                 text-align: center;
-                margin-top: 10px;
+                margin-top: 70px;
             }
             
             .mobile-avatar {
@@ -2143,8 +2143,126 @@
         </div>
     </div>
 
-    <!-- Other modals (createListModal, editProfileModal, avatarModal, communitySearchModal) remain the same -->
-    <!-- ... -->
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('editProfileModal')">&times;</button>
+            </div>
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" id="editDisplayName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" id="editUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" placeholder="Tell us about your food journey"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="City, State">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="editIsPrivate">
+                            Make profile private
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Avatar Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Avatar</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-icon-grid" id="avatarIconGrid">
+                    <!-- Food icons will be populated here -->
+                </div>
+                <div class="form-actions mt-md">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New List</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
+            </div>
+            <form id="createListForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="listName" placeholder="e.g., Date Night Spots" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="listDescription" placeholder="What's this list about?"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div class="d-flex gap-sm flex-wrap">
+                            <div class="list-icon-option" data-icon="📋" onclick="ProfileManager.selectListIcon('📋')">📋</div>
+                            <div class="list-icon-option" data-icon="❤️" onclick="ProfileManager.selectListIcon('❤️')">❤️</div>
+                            <div class="list-icon-option" data-icon="⭐" onclick="ProfileManager.selectListIcon('⭐')">⭐</div>
+                            <div class="list-icon-option" data-icon="🍽️" onclick="ProfileManager.selectListIcon('🍽️')">🍽️</div>
+                            <div class="list-icon-option" data-icon="📍" onclick="ProfileManager.selectListIcon('📍')">📍</div>
+                        </div>
+                        <input type="hidden" id="selectedIcon" value="📋">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Community Search Modal -->
+    <div class="modal" id="communitySearchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('communitySearchModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="userSearch" placeholder="Search by username or name...">
+                    </div>
+                </div>
+                <div id="searchResults">
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Search for users</h3>
+                        <p class="empty-description">Enter a username or name to search</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
@@ -2181,6 +2299,7 @@
                     // Initialize Supabase
                     if (!window.supabase) {
                         console.error('Supabase library not loaded');
+                        showToast('Error: Supabase library not loaded', 'error');
                         return;
                     }
                     
@@ -2199,30 +2318,29 @@
                     // Check if we're on mobile
                     const isMobile = window.innerWidth <= 480;
                     
-                    if (isMobile) {
-                        // Initialize mobile profile
-                        MobileProfile.initialize();
-                        return; // Stop here for mobile
-                    }
-                    
-                    // Load profile data for desktop
+                    // Initialize both desktop and mobile profiles
                     await loadProfile();
                     
-                    // Load restaurants dynamically
-                    await loadRestaurants();
-                    
-                    // Initialize systems
-                    await Promise.all([
-                        listManager.init(),
-                        communitySystem.init(),
-                        foodJournal.init(),
-                        achievementsSystem.init()
-                    ]);
-                    
-                    setupEventListeners();
-                    
-                    if (isViewingOwnProfile) {
-                        showToast('Welcome back to your profile!', 'success');
+                    if (isMobile) {
+                        // Initialize mobile profile
+                        await MobileProfile.initialize();
+                    } else {
+                        // Load restaurants dynamically for desktop
+                        await loadRestaurants();
+                        
+                        // Initialize desktop systems
+                        await Promise.all([
+                            listManager.init(),
+                            communitySystem.init(),
+                            foodJournal.init(),
+                            achievementsSystem.init()
+                        ]);
+                        
+                        setupEventListeners();
+                        
+                        if (isViewingOwnProfile) {
+                            showToast('Welcome back to your profile!', 'success');
+                        }
                     }
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
@@ -2238,15 +2356,18 @@
                             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                         }
                         
-                        const { data: { user }, error } = await supabase.auth.getUser();
-                        if (error || !user) { 
-                            window.location.href = "login.html"; 
-                            return; 
+                        // Already have currentUser from main initialize
+                        if (!currentUser) {
+                            const { data: { user }, error } = await supabase.auth.getUser();
+                            if (error || !user) { 
+                                window.location.href = "login.html"; 
+                                return; 
+                            }
+                            currentUser = user;
                         }
                         
-                        currentUser = user;
-                        await this.loadMobileProfile(user.id);
-                        await this.loadMobileFeed(user.id);
+                        await this.loadMobileProfile(currentUser.id);
+                        await this.loadMobileFeed(currentUser.id);
                         
                         // Setup mobile event listeners
                         this.setupEventListeners();
@@ -4471,6 +4592,22 @@
                 showToast('Achievements refreshed!', 'success');
             }
 
+            function selectListIcon(icon) {
+                const selectedIcon = document.getElementById('selectedIcon');
+                if (selectedIcon) selectedIcon.value = icon;
+                
+                document.querySelectorAll('.list-icon-option').forEach(iconEl => {
+                    iconEl.style.background = 'transparent';
+                    iconEl.style.border = '1px solid transparent';
+                });
+                
+                const selectedEl = document.querySelector(`.list-icon-option[data-icon="${icon}"]`);
+                if (selectedEl) {
+                    selectedEl.style.background = 'rgba(245, 158, 11, 0.1)';
+                    selectedEl.style.border = '1px solid var(--accent)';
+                }
+            }
+
             // ===== PUBLIC API =====
             return {
                 // Initialization
@@ -4495,6 +4632,7 @@
                 // Profile
                 saveAvatar,
                 setRating,
+                selectListIcon,
                 
                 // Utilities
                 toggleSortLists,
