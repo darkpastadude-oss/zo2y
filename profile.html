@@ -56,21 +56,30 @@
             top: 20px;
             left: 20px;
             z-index: 1000;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: var(--transition);
             text-decoration: none;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
         .home-button img {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             object-fit: contain;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-            border-radius: 0;
-            background: transparent;
         }
 
         .home-button:hover {
             transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(245,158,11,0.3);
+            border-color: var(--accent);
         }
 
         /* === PROFILE HEADER === */
@@ -532,6 +541,77 @@
             display: flex;
             gap: 8px;
             justify-content: flex-end;
+        }
+
+        /* === ACHIEVEMENTS === */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .achievement-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .achievement-card.locked {
+            opacity: 0.6;
+        }
+
+        .achievement-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .achievement-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .achievement-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .achievement-desc {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .achievement-progress {
+            background: var(--bg);
+            border-radius: 20px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .achievement-progress-bar {
+            background: var(--accent);
+            height: 100%;
+            transition: width 0.5s ease;
         }
 
         /* === FOLLOWER/COMMUNITY CARDS === */
@@ -1715,6 +1795,63 @@
                 color: var(--muted);
             }
 
+            /* Mobile Achievements */
+            .mobile-achievement-card {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .mobile-achievement-card.locked {
+                opacity: 0.6;
+            }
+
+            .mobile-achievement-icon {
+                font-size: 32px;
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+            }
+
+            .mobile-achievement-info {
+                flex: 1;
+            }
+
+            .mobile-achievement-title {
+                font-weight: 600;
+                margin-bottom: 4px;
+                font-size: 15px;
+            }
+
+            .mobile-achievement-desc {
+                font-size: 13px;
+                color: var(--muted);
+                margin-bottom: 8px;
+            }
+
+            .mobile-achievement-progress {
+                background: var(--bg);
+                border-radius: 20px;
+                height: 6px;
+                overflow: hidden;
+                margin-bottom: 4px;
+            }
+
+            .mobile-achievement-progress-bar {
+                background: var(--accent);
+                height: 100%;
+                transition: width 0.5s ease;
+            }
+
             /* Mobile Action Buttons */
             .mobile-action-btn {
                 width: 100%;
@@ -1904,7 +2041,7 @@
                     <i class="fas fa-eye"></i>
                     <span>You are viewing another user's profile</span>
                 </div>
-                <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="goToMyProfile()">
+                <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="ProfileManager.goToMyProfile()">
                     <i class="fas fa-user"></i> Back to My Profile
                 </button>
             </div>
@@ -1915,7 +2052,7 @@
             <div class="container">
                 <div class="profile-top">
                     <div class="avatar-container">
-                        <div class="profile-avatar" onclick="showAvatarModal()" id="profileAvatar">
+                        <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
                             🍔
                         </div>
                     </div>
@@ -1945,10 +2082,10 @@
                     </div>
                     
                     <div class="profile-actions">
-                        <button class="btn btn-outline" onclick="showModal('editProfileModal')" id="editProfileBtn">
+                        <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
                             <i class="fas fa-edit"></i> Edit Profile
                         </button>
-                        <button class="btn btn-primary" onclick="showModal('addEntryModal')" id="addEntryBtn">
+                        <button class="btn btn-primary" onclick="ProfileManager.showModal('addEntryModal')" id="addEntryBtn">
                             <i class="fas fa-plus"></i> Add Journal
                         </button>
                         <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
@@ -1989,15 +2126,18 @@
 
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
-                <div class="nav-tab active" data-tab="journal" onclick="showTab('journal')">
+                <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
                     <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
                 </div>
-                <div class="nav-tab" data-tab="lists" onclick="showTab('lists')">
+                <div class="nav-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
                     <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
                 </div>
-                <div class="nav-tab" data-tab="community" onclick="showTab('community')">
+                <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                     <i class="fas fa-users"></i> Community
                     <span class="nav-tab-badge d-none" id="followersBadge">0</span>
+                </div>
+                <div class="nav-tab" data-tab="achievements" onclick="ProfileManager.showTab('achievements')">
+                    <i class="fas fa-trophy"></i> <span id="achievementsTabText">Achievements</span>
                 </div>
             </div>
 
@@ -2015,7 +2155,7 @@
                                 <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
                                 <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')" id="addJournalBtn">
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addJournalBtn">
                                 <i class="fas fa-plus"></i> New Entry
                             </button>
                         </div>
@@ -2043,10 +2183,10 @@
                             <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
                         </div>
                         <div class="section-actions">
-                            <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="toggleSortLists()">
+                            <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="ProfileManager.toggleSortLists()">
                                 <i class="fas fa-sort"></i> Sort
                             </button>
-                            <button class="btn btn-primary btn-sm" onclick="showCreateListModal()" id="createListBtn">
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createListBtn">
                                 <i class="fas fa-plus"></i> New List
                             </button>
                         </div>
@@ -2064,7 +2204,7 @@
                 <div class="section">
                     <div class="section-header">
                         <div class="d-flex align-center gap-md">
-                            <button class="btn btn-secondary btn-sm" onclick="hideListDetail()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                             <div>
@@ -2076,7 +2216,7 @@
                             <button class="btn btn-secondary btn-sm" id="editListBtn">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
-                            <button class="btn btn-primary btn-sm" onclick="showModal('addEntryModal')" id="addToListBtn">
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addToListBtn">
                                 <i class="fas fa-plus"></i> Add Restaurant
                             </button>
                         </div>
@@ -2087,7 +2227,7 @@
                             <div class="empty-icon">🍽️</div>
                             <h3 class="empty-title">No Restaurants Yet</h3>
                             <p class="empty-description">Start adding restaurants to this list!</p>
-                            <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
                                 <i class="fas fa-plus"></i> Add Your First Restaurant
                             </button>
                         </div>
@@ -2105,14 +2245,14 @@
                         </div>
                         <div class="section-actions">
                             <div class="d-flex gap-sm">
-                                <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="showCommunitySection('followers')">
+                                <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
                                     Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
                                 </button>
-                                <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="showCommunitySection('following')">
+                                <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="ProfileManager.showCommunitySection('following')">
                                     Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
                                 </button>
                             </div>
-                            <button class="btn btn-primary" onclick="showModal('communitySearchModal')" id="addCommunityBtn">
+                            <button class="btn btn-primary" onclick="ProfileManager.showModal('communitySearchModal')" id="addCommunityBtn">
                                 <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
@@ -2129,7 +2269,7 @@
                                 <div class="empty-icon">👥</div>
                                 <h3 class="empty-title">No followers yet</h3>
                                 <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
-                                <button class="btn btn-primary mt-md" onclick="showModal('communitySearchModal')">
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
                                     <i class="fas fa-user-plus"></i> Find Users
                                 </button>
                             </div>
@@ -2147,11 +2287,32 @@
                                 <div class="empty-icon">👥</div>
                                 <h3 class="empty-title">Not following anyone yet</h3>
                                 <p class="empty-description">Discover and follow other food lovers to see their restaurant adventures!</p>
-                                <button class="btn btn-primary mt-md" onclick="showModal('communitySearchModal')">
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
                                     <i class="fas fa-user-plus"></i> Find Users
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements Tab Content -->
+            <div class="tab-content" id="achievements-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="achievementsTitle">Achievements</h2>
+                            <p class="section-subtitle" id="achievementsSubtitle">Track your food journey progress</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary" onclick="ProfileManager.refreshAchievements()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="achievements-grid" id="achievementsList">
+                        <!-- Achievements will be populated here -->
                     </div>
                 </div>
             </div>
@@ -2162,7 +2323,7 @@
             <div class="container">
                 <div class="footer-content">
                     <div class="footer-links">
-                        <a href="#" class="footer-link" onclick="showModal('editProfileModal'); return false;">Settings</a>
+                        <a href="#" class="footer-link" onclick="ProfileManager.showModal('editProfileModal'); return false;">Settings</a>
                         <a href="#" class="footer-link">Privacy</a>
                         <a href="#" class="footer-link">Support</a>
                         <a href="#" class="footer-link">About</a>
@@ -2179,7 +2340,7 @@
         <!-- Mobile Top Bar -->
         <div class="mobile-topbar">
             <div class="mobile-topbar-title">Profile</div>
-            <button class="mobile-menu-btn" onclick="showMenu()">
+            <button class="mobile-menu-btn" onclick="MobileProfile.showMenu()">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
@@ -2188,28 +2349,32 @@
         <div class="mobile-side-menu" id="mobileSideMenu">
             <div class="mobile-menu-header">
                 <div class="mobile-menu-title">Menu</div>
-                <button class="mobile-menu-close" onclick="hideMenu()">
+                <button class="mobile-menu-close" onclick="MobileProfile.hideMenu()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Navigation</div>
-                <div class="mobile-menu-item" onclick="goHome()">
+                <div class="mobile-menu-item" onclick="MobileProfile.goHome()">
                     <i class="fas fa-home"></i>
                     <span>Home</span>
                 </div>
-                <div class="mobile-menu-item" onclick="showSection('journal')">
+                <div class="mobile-menu-item" onclick="MobileProfile.showSection('journal')">
                     <i class="fas fa-book"></i>
                     <span>Food Journal</span>
                 </div>
-                <div class="mobile-menu-item" onclick="showSection('lists')">
+                <div class="mobile-menu-item" onclick="MobileProfile.showSection('lists')">
                     <i class="fas fa-list"></i>
                     <span>My Lists</span>
                 </div>
-                <div class="mobile-menu-item" onclick="showSection('community')">
+                <div class="mobile-menu-item" onclick="MobileProfile.showSection('community')">
                     <i class="fas fa-users"></i>
                     <span>Community</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.showSection('achievements')">
+                    <i class="fas fa-trophy"></i>
+                    <span>Achievements</span>
                 </div>
             </div>
 
@@ -2217,15 +2382,15 @@
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Account</div>
-                <div class="mobile-menu-item" onclick="editProfile()">
+                <div class="mobile-menu-item" onclick="MobileProfile.editProfile()">
                     <i class="fas fa-user-edit"></i>
                     <span>Edit Profile</span>
                 </div>
-                <div class="mobile-menu-item" onclick="showSettings()">
+                <div class="mobile-menu-item" onclick="MobileProfile.showSettings()">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </div>
-                <div class="mobile-menu-item" onclick="showAvatarModal()">
+                <div class="mobile-menu-item" onclick="MobileProfile.showAvatarModal()">
                     <i class="fas fa-user-circle"></i>
                     <span>Change Avatar</span>
                 </div>
@@ -2235,15 +2400,15 @@
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Actions</div>
-                <div class="mobile-menu-item" onclick="addJournalEntry()">
+                <div class="mobile-menu-item" onclick="MobileProfile.addJournalEntry()">
                     <i class="fas fa-plus-circle"></i>
                     <span>Add Journal Entry</span>
                 </div>
-                <div class="mobile-menu-item" onclick="createList()">
+                <div class="mobile-menu-item" onclick="MobileProfile.createList()">
                     <i class="fas fa-plus-square"></i>
                     <span>Create New List</span>
                 </div>
-                <div class="mobile-menu-item" onclick="searchUsers()">
+                <div class="mobile-menu-item" onclick="MobileProfile.searchUsers()">
                     <i class="fas fa-search"></i>
                     <span>Find Users</span>
                 </div>
@@ -2252,19 +2417,19 @@
             <div class="mobile-menu-divider"></div>
 
             <div class="mobile-menu-section">
-                <div class="mobile-menu-item" onclick="logout()" style="color: var(--error);">
+                <div class="mobile-menu-item" onclick="MobileProfile.logout()" style="color: var(--error);">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Log Out</span>
                 </div>
             </div>
         </div>
 
-        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="hideMenu()"></div>
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="MobileProfile.hideMenu()"></div>
 
         <!-- Mobile Profile Header -->
         <div class="mobile-profile-header">
             <div class="mobile-avatar-container">
-                <div class="mobile-avatar" id="mobileAvatar" onclick="showAvatarModal()">
+                <div class="mobile-avatar" id="mobileAvatar" onclick="MobileProfile.showAvatarModal()">
                     🍔
                 </div>
             </div>
@@ -2297,18 +2462,22 @@
 
         <!-- Mobile Tabs Navigation -->
         <div class="mobile-tabs">
-            <div class="mobile-tab active" data-tab="journal" onclick="showSection('journal')">
+            <div class="mobile-tab active" data-tab="journal" onclick="MobileProfile.showSection('journal')">
                 <i class="fas fa-book"></i>
                 <span>Journal</span>
             </div>
-            <div class="mobile-tab" data-tab="lists" onclick="showSection('lists')">
+            <div class="mobile-tab" data-tab="lists" onclick="MobileProfile.showSection('lists')">
                 <i class="fas fa-list"></i>
                 <span>Lists</span>
             </div>
-            <div class="mobile-tab" data-tab="community" onclick="showSection('community')">
+            <div class="mobile-tab" data-tab="community" onclick="MobileProfile.showSection('community')">
                 <i class="fas fa-users"></i>
                 <span>Community</span>
                 <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
+            </div>
+            <div class="mobile-tab" data-tab="achievements" onclick="MobileProfile.showSection('achievements')">
+                <i class="fas fa-trophy"></i>
+                <span>Achievements</span>
             </div>
         </div>
 
@@ -2318,7 +2487,7 @@
             <div class="mobile-section active" id="mobileJournalSection">
                 <div class="mobile-section-title">
                     Food Journal
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="addJournalEntry()">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.addJournalEntry()">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
@@ -2329,7 +2498,7 @@
                         <div class="mobile-empty-icon">📝</div>
                         <div class="mobile-empty-title">No Reviews Yet</div>
                         <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
-                        <button class="mobile-action-btn" onclick="addJournalEntry()">
+                        <button class="mobile-action-btn" onclick="MobileProfile.addJournalEntry()">
                             <i class="fas fa-plus"></i> Add First Review
                         </button>
                     </div>
@@ -2340,7 +2509,7 @@
             <div class="mobile-section" id="mobileListsSection">
                 <div class="mobile-section-title">
                     My Lists
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="createList()">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.createList()">
                         <i class="fas fa-plus"></i> New
                     </button>
                 </div>
@@ -2356,10 +2525,10 @@
                 <div class="mobile-section-title">
                     Community
                     <div style="display: flex; gap: 8px;">
-                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="showCommunityTab('followers')" id="mobileFollowersTabBtn">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.showCommunityTab('followers')" id="mobileFollowersTabBtn">
                             Followers
                         </button>
-                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="showCommunityTab('following')" id="mobileFollowingTabBtn">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.showCommunityTab('following')" id="mobileFollowingTabBtn">
                             Following
                         </button>
                     </div>
@@ -2373,7 +2542,7 @@
                             <div class="mobile-empty-icon">👥</div>
                             <div class="mobile-empty-title">No followers yet</div>
                             <div class="mobile-empty-description">Share your profile to get followers!</div>
-                            <button class="mobile-action-btn" onclick="searchUsers()">
+                            <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
                                 <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
@@ -2387,10 +2556,29 @@
                             <div class="mobile-empty-icon">👥</div>
                             <div class="mobile-empty-title">Not following anyone</div>
                             <div class="mobile-empty-description">Discover and follow other food lovers!</div>
-                            <button class="mobile-action-btn" onclick="searchUsers()">
+                            <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
                                 <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements Section -->
+            <div class="mobile-section" id="mobileAchievementsSection">
+                <div class="mobile-section-title">
+                    Achievements
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.refreshAchievements()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="mobile-section-subtitle">Track your food journey progress</div>
+                
+                <div id="mobileAchievements">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">🏆</div>
+                        <div class="mobile-empty-title">No achievements yet</div>
+                        <div class="mobile-empty-description">Keep exploring restaurants to earn achievements!</div>
                     </div>
                 </div>
             </div>
@@ -2402,19 +2590,19 @@
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <div class="mobile-bottom-nav-item" onclick="addJournalEntry()">
+            <div class="mobile-bottom-nav-item" onclick="MobileProfile.addJournalEntry()">
                 <i class="fas fa-plus-circle"></i>
                 <span>Add</span>
             </div>
-            <div class="mobile-bottom-nav-item active" onclick="showSection('journal')">
+            <div class="mobile-bottom-nav-item active" onclick="MobileProfile.showSection('journal')">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
             </div>
-            <div class="mobile-bottom-nav-item" onclick="searchUsers()">
+            <div class="mobile-bottom-nav-item" onclick="MobileProfile.searchUsers()">
                 <i class="fas fa-search"></i>
                 <span>Search</span>
             </div>
-            <div class="mobile-bottom-nav-item" onclick="showMenu()">
+            <div class="mobile-bottom-nav-item" onclick="MobileProfile.showMenu()">
                 <i class="fas fa-bars"></i>
                 <span>Menu</span>
             </div>
@@ -2614,586 +2802,1552 @@
     </div>
 
     <script>
-        // ===== SUPABASE CONFIGURATION =====
+        // ===== GLOBAL VARIABLES =====
         const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
         
-        // Initialize Supabase client ONCE globally
-        let supabase;
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch (error) {
-            console.error('Failed to initialize Supabase:', error);
-            alert('Failed to connect to server. Please refresh the page.');
-        }
-        
-        // ===== GLOBAL VARIABLES =====
+        let supabase = null;
         let currentUser = null;
         let userProfile = null;
         let restaurants = [];
         let foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
         let selectedAvatarIcon = null;
         
-        // ===== APPLICATION STATE =====
-        const appState = {
+        // ===== DESKTOP PROFILE MANAGER =====
+        const ProfileManager = {
             targetUserId: null,
             isViewingOwnProfile: true,
             targetUser: null,
             currentTab: 'journal',
-            isMobile: window.innerWidth <= 768,
-            communityTab: 'followers'
-        };
-        
-        // ===== CORE FUNCTIONS =====
-        
-        async function initialize() {
-            if (!supabase) {
-                showToast('Connection error. Please refresh the page.', 'error');
-                return;
-            }
             
-            try {
-                // Check authentication
-                const { data: { user }, error: authError } = await supabase.auth.getUser();
-                if (authError || !user) { 
-                    window.location.href = "login.html"; 
-                    return; 
+            async initialize() {
+                if (window.innerWidth <= 768) {
+                    // Mobile view - let MobileProfile handle it
+                    return;
                 }
                 
-                currentUser = user;
-                
-                // Get target user ID from URL
-                appState.targetUserId = getUserIdFromUrl();
-                appState.isViewingOwnProfile = !appState.targetUserId || appState.targetUserId === currentUser.id;
-                
-                if (appState.isViewingOwnProfile) {
-                    await loadOwnProfile();
-                } else {
-                    await loadOtherUserProfile();
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    if (error || !user) { 
+                        window.location.href = "login.html"; 
+                        return; 
+                    }
+                    
+                    currentUser = user;
+                    this.targetUserId = this.getUserIdFromUrl();
+                    this.isViewingOwnProfile = !this.targetUserId || this.targetUserId === currentUser.id;
+                    
+                    if (this.isViewingOwnProfile) {
+                        await this.loadOwnProfile();
+                    } else {
+                        await this.loadOtherUserProfile();
+                    }
+                    
+                    await this.loadRestaurants();
+                    await this.updateStats();
+                    
+                    // Load initial tab data
+                    await this.loadJournalEntries();
+                    
+                    this.setupEventListeners();
+                    
+                } catch (error) {
+                    console.error('Error initializing profile:', error);
+                    this.showToast('Error loading profile', 'error');
                 }
+            },
+            
+            getUserIdFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                return id ? id.trim() : null;
+            },
+            
+            async loadOwnProfile() {
+                document.getElementById('editProfileBtn').style.display = 'flex';
+                document.getElementById('settingsBtn').style.display = 'flex';
+                document.getElementById('followButton').style.display = 'none';
+                document.getElementById('viewingOtherProfile').style.display = 'none';
+                document.getElementById('addEntryBtn').style.display = 'flex';
+                document.getElementById('createListBtn').style.display = 'flex';
+                document.getElementById('addJournalBtn').style.display = 'flex';
                 
-                await loadRestaurants();
-                await updateStats();
+                await this.loadUserProfile();
+                this.updateProfileUI();
+            },
+            
+            async loadOtherUserProfile() {
+                document.getElementById('editProfileBtn').style.display = 'none';
+                document.getElementById('settingsBtn').style.display = 'none';
+                document.getElementById('followButton').style.display = 'block';
+                document.getElementById('viewingOtherProfile').style.display = 'flex';
+                document.getElementById('addEntryBtn').style.display = 'none';
+                document.getElementById('createListBtn').style.display = 'none';
+                document.getElementById('addJournalBtn').style.display = 'none';
                 
-                // Load initial tab data
-                await loadJournalEntries();
-                
-                setupEventListeners();
-                
-                // Initialize mobile if needed
-                if (appState.isMobile) {
-                    initializeMobile();
-                }
-                
-            } catch (error) {
-                console.error('Error initializing profile:', error);
-                showToast('Error loading profile', 'error');
-            }
-        }
-        
-        function getUserIdFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-            return id ? id.trim() : null;
-        }
-        
-        async function loadOwnProfile() {
-            document.getElementById('editProfileBtn').style.display = 'flex';
-            document.getElementById('settingsBtn').style.display = 'flex';
-            document.getElementById('followButton').style.display = 'none';
-            document.getElementById('viewingOtherProfile').style.display = 'none';
-            document.getElementById('addEntryBtn').style.display = 'flex';
-            document.getElementById('createListBtn').style.display = 'flex';
-            document.getElementById('addJournalBtn').style.display = 'flex';
-            
-            await loadUserProfile();
-            updateProfileUI();
-        }
-        
-        async function loadOtherUserProfile() {
-            document.getElementById('editProfileBtn').style.display = 'none';
-            document.getElementById('settingsBtn').style.display = 'none';
-            document.getElementById('followButton').style.display = 'block';
-            document.getElementById('viewingOtherProfile').style.display = 'flex';
-            document.getElementById('addEntryBtn').style.display = 'none';
-            document.getElementById('createListBtn').style.display = 'none';
-            document.getElementById('addJournalBtn').style.display = 'none';
-            
-            const { data: profile, error } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', appState.targetUserId)
-                .single();
-            
-            if (error || !profile) {
-                showToast('User not found', 'error');
-                setTimeout(() => window.location.href = 'profile.html', 1500);
-                return;
-            }
-            
-            appState.targetUser = profile;
-            userProfile = profile;
-            updateProfileUI();
-            
-            // Update tab titles for other user
-            updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
-        }
-        
-        async function loadUserProfile() {
-            const { data: profile, error } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
-            
-            if (error && error.code !== 'PGRST116') {
-                console.error('Error loading profile:', error);
-            }
-            
-            userProfile = profile || {};
-            
-            if (!profile) {
-                await supabase
+                const { data: profile, error } = await supabase
                     .from('user_profiles')
-                    .insert({
-                        id: currentUser.id,
-                        username: currentUser.email.split('@')[0],
-                        full_name: currentUser.email.split('@')[0],
-                        bio: '',
-                        location: '',
-                        avatar_icon: '🍔',
-                        is_private: false,
-                        created_at: new Date().toISOString()
-                    });
+                    .select('*')
+                    .eq('id', this.targetUserId)
+                    .single();
                 
-                const { data: newProfile } = await supabase
+                if (error || !profile) {
+                    this.showToast('User not found', 'error');
+                    setTimeout(() => window.location.href = 'profile.html', 1500);
+                    return;
+                }
+                
+                this.targetUser = profile;
+                userProfile = profile;
+                this.updateProfileUI();
+                
+                // Update tab titles for other user
+                this.updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
+            },
+            
+            async loadUserProfile() {
+                const { data: profile, error } = await supabase
                     .from('user_profiles')
                     .select('*')
                     .eq('id', currentUser.id)
                     .single();
                 
-                userProfile = newProfile || {};
-            }
-        }
-        
-        function updateProfileUI() {
-            const profile = appState.isViewingOwnProfile ? userProfile : appState.targetUser;
-            
-            // Desktop UI
-            document.getElementById('profileName').textContent = profile?.full_name || 
-                                                               profile?.username || 
-                                                               currentUser.email.split('@')[0];
-            document.getElementById('profileUsername').textContent = '@' + (profile?.username || 
-                                                                          currentUser.email.split('@')[0]);
-            document.getElementById('profileBio').textContent = profile?.bio || 'No bio yet. Click edit to add one!';
-            document.getElementById('profileLocation').textContent = profile?.location || 'Location not set';
-            document.getElementById('memberSince').textContent = `Member since ${new Date(profile?.created_at || currentUser.created_at).getFullYear()}`;
-            document.getElementById('profileAvatar').textContent = profile?.avatar_icon || '🍔';
-            
-            // Mobile UI
-            if (appState.isMobile) {
-                document.getElementById('mobileProfileName').textContent = profile?.full_name || 
-                                                                         profile?.username || 
-                                                                         currentUser.email.split('@')[0];
-                document.getElementById('mobileProfileUsername').textContent = '@' + (profile?.username || 
-                                                                                    currentUser.email.split('@')[0]);
-                document.getElementById('mobileProfileBio').textContent = profile?.bio || 'No bio yet. Tap edit to add one!';
-                document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || '🍔';
-            }
-        }
-        
-        async function loadRestaurants() {
-            try {
-                const { data, error } = await supabase
-                    .from('restraunts')
-                    .select('*')
-                    .order('name');
-                
-                if (error) throw error;
-                
-                restaurants = data || [];
-                populateRestaurantSelect();
-                
-            } catch (error) {
-                console.error('Error loading restaurants:', error);
-                restaurants = [];
-            }
-        }
-        
-        function populateRestaurantSelect() {
-            const restaurantSelect = document.getElementById('restaurantSelect');
-            if (!restaurantSelect) return;
-            
-            restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
-            
-            restaurants.forEach(restaurant => {
-                const option = document.createElement('option');
-                option.value = restaurant.id;
-                option.textContent = `${restaurant.name} (${restaurant.category})`;
-                restaurantSelect.appendChild(option);
-            });
-        }
-        
-        async function updateStats() {
-            const targetId = appState.isViewingOwnProfile ? currentUser.id : appState.targetUserId;
-            if (!targetId) return;
-            
-            try {
-                // Get visited count from journal entries
-                const { data: journalEntries } = await supabase
-                    .from('journal_entries')
-                    .select('restaurant_id')
-                    .eq('user_id', targetId);
-                
-                let allRestaurantIds = [];
-                if (journalEntries) {
-                    allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
+                if (error && error.code !== 'PGRST116') {
+                    console.error('Error loading profile:', error);
                 }
                 
-                // Get followers count
-                const { data: followers } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('followed_id', targetId);
+                userProfile = profile || {};
                 
-                const followersCount = followers ? followers.length : 0;
+                if (!profile) {
+                    await supabase
+                        .from('user_profiles')
+                        .insert({
+                            id: currentUser.id,
+                            username: currentUser.email.split('@')[0],
+                            full_name: currentUser.email.split('@')[0],
+                            bio: '',
+                            location: '',
+                            avatar_icon: '🍔',
+                            is_private: false,
+                            created_at: new Date().toISOString()
+                        });
+                    
+                    const { data: newProfile } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+                    
+                    userProfile = newProfile || {};
+                }
+            },
+            
+            updateProfileUI() {
+                const profile = this.isViewingOwnProfile ? userProfile : this.targetUser;
                 
-                // Get lists count
-                const { data: userLists } = await supabase
-                    .from('lists')
-                    .select('id')
-                    .eq('user_id', targetId);
+                document.getElementById('profileName').textContent = profile?.full_name || 
+                                                                   profile?.username || 
+                                                                   currentUser.email.split('@')[0];
+                document.getElementById('profileUsername').textContent = '@' + (profile?.username || 
+                                                                              currentUser.email.split('@')[0]);
+                document.getElementById('profileBio').textContent = profile?.bio || 'No bio yet. Click edit to add one!';
+                document.getElementById('profileLocation').textContent = profile?.location || 'Location not set';
+                document.getElementById('memberSince').textContent = `Member since ${new Date(profile?.created_at || currentUser.created_at).getFullYear()}`;
+                document.getElementById('profileAvatar').textContent = profile?.avatar_icon || '🍔';
+            },
+            
+            async loadRestaurants() {
+                try {
+                    const { data, error } = await supabase
+                        .from('restraunts')
+                        .select('*')
+                        .order('name');
+                    
+                    if (error) throw error;
+                    
+                    restaurants = data || [];
+                    this.populateRestaurantSelect();
+                    
+                } catch (error) {
+                    console.error('Error loading restaurants:', error);
+                    restaurants = [];
+                }
+            },
+            
+            populateRestaurantSelect() {
+                const restaurantSelect = document.getElementById('restaurantSelect');
+                if (!restaurantSelect) return;
                 
-                const listsCount = userLists ? userLists.length : 0;
+                restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
                 
-                // Get journal entries count
-                const { data: userJournalEntries } = await supabase
-                    .from('journal_entries')
-                    .select('id')
-                    .eq('user_id', targetId);
+                restaurants.forEach(restaurant => {
+                    const option = document.createElement('option');
+                    option.value = restaurant.id;
+                    option.textContent = `${restaurant.name} (${restaurant.category})`;
+                    restaurantSelect.appendChild(option);
+                });
+            },
+            
+            async updateStats() {
+                const targetId = this.isViewingOwnProfile ? currentUser.id : this.targetUserId;
+                if (!targetId) return;
                 
-                const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
+                try {
+                    // Get visited count from journal entries
+                    const { data: journalEntries } = await supabase
+                        .from('journal_entries')
+                        .select('restaurant_id')
+                        .eq('user_id', targetId);
+                    
+                    let allRestaurantIds = [];
+                    if (journalEntries) {
+                        allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
+                    }
+                    
+                    // Get followers count
+                    const { data: followers } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('followed_id', targetId);
+                    
+                    const followersCount = followers ? followers.length : 0;
+                    
+                    // Get lists count
+                    const { data: userLists } = await supabase
+                        .from('lists')
+                        .select('id')
+                        .eq('user_id', targetId);
+                    
+                    const listsCount = userLists ? userLists.length : 0;
+                    
+                    // Get journal entries count
+                    const { data: userJournalEntries } = await supabase
+                        .from('journal_entries')
+                        .select('id')
+                        .eq('user_id', targetId);
+                    
+                    const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
+                    
+                    const visitedCount = new Set(allRestaurantIds).size;
+                    
+                    // Update UI
+                    document.getElementById('visitedCount').textContent = visitedCount;
+                    document.getElementById('followersCount').textContent = followersCount;
+                    document.getElementById('listsCount').textContent = listsCount;
+                    document.getElementById('reviewsCount').textContent = reviewsCount;
+                    document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
+                    
+                } catch (error) {
+                    console.error('Error updating stats:', error);
+                }
+            },
+            
+            async loadJournalEntries() {
+                const container = document.getElementById('journalEntries');
+                if (!container) return;
                 
-                const visitedCount = new Set(allRestaurantIds).size;
+                const targetId = this.isViewingOwnProfile ? currentUser.id : this.targetUserId;
+                if (!targetId) return;
                 
-                // Update desktop UI
-                document.getElementById('visitedCount').textContent = visitedCount;
-                document.getElementById('followersCount').textContent = followersCount;
-                document.getElementById('listsCount').textContent = listsCount;
-                document.getElementById('reviewsCount').textContent = reviewsCount;
-                document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
+                try {
+                    const { data: entries, error } = await supabase
+                        .from('journal_entries')
+                        .select('*, restraunts(name, category, image, slug)')
+                        .eq('user_id', targetId)
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    
+                    if (!entries || entries.length === 0) {
+                        const emptyText = this.isViewingOwnProfile ? 
+                            'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
+                            'This user hasn\'t reviewed any restaurants yet.';
+                        
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📝</div>
+                                <h3 class="empty-title">No Reviews Yet</h3>
+                                <p class="empty-description">${emptyText}</p>
+                                ${this.isViewingOwnProfile ? `
+                                    <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                        <i class="fas fa-utensils"></i> Browse Restaurants
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    
+                    entries.forEach(entry => {
+                        const restaurant = entry.restraunts;
+                        if (!restaurant) return;
+                        
+                        const entryElement = document.createElement('div');
+                        entryElement.className = 'journal-entry';
+                        entryElement.style.cursor = 'pointer';
+                        entryElement.onclick = () => this.viewRestaurant(restaurant.slug);
+                        
+                        const ratingStars = '⭐'.repeat(Math.floor(entry.rating));
+                        const visitDate = new Date(entry.visit_date || entry.created_at).toLocaleDateString();
+                        
+                        entryElement.innerHTML = `
+                            <div class="entry-header">
+                                <div class="restaurant-info">
+                                    <div class="restaurant-image">
+                                        <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                    </div>
+                                    <div class="restaurant-details">
+                                        <h3>${restaurant.name}</h3>
+                                        <div class="restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="entry-rating">
+                                    ${ratingStars}
+                                    <span>${entry.rating}/5</span>
+                                </div>
+                            </div>
+                            <div class="entry-meta">
+                                <div class="meta-badge">
+                                    <i class="fas fa-calendar"></i>
+                                    ${visitDate}
+                                </div>
+                                <div class="meta-badge">
+                                    <i class="fas fa-utensils"></i>
+                                    ${restaurant.category}
+                                </div>
+                            </div>
+                            <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
+                            ${entry.tags ? `
+                                <div class="entry-tags">
+                                    ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${this.isViewingOwnProfile ? `
+                                <div class="entry-actions">
+                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); ProfileManager.editJournalEntry(${entry.id})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${restaurant.slug}'">
+                                        <i class="fas fa-external-link-alt"></i> View
+                                    </button>
+                                </div>
+                            ` : ''}
+                        `;
+                        
+                        container.appendChild(entryElement);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading journal entries:', error);
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Unable to Load Reviews</h3>
+                            <p class="empty-description">There was an error loading reviews.</p>
+                        </div>
+                    `;
+                }
+            },
+            
+            viewRestaurant(slug) {
+                window.location.href = `restaurant.html?slug=${slug}`;
+            },
+            
+            updateTabTitlesForOtherUser(userName) {
+                document.getElementById('journalTabText').textContent = `${userName}'s Journal`;
+                document.getElementById('listsTabText').textContent = `${userName}'s Lists`;
+                document.getElementById('achievementsTabText').textContent = `${userName}'s Achievements`;
+            },
+            
+            showTab(tabName) {
+                this.currentTab = tabName;
                 
-                // Update mobile UI
-                if (appState.isMobile) {
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Show selected tab content
+                const tabContent = document.getElementById(`${tabName}-tab`);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                }
+                
+                // Update active tab button
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                const activeTabBtn = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+                if (activeTabBtn) {
+                    activeTabBtn.classList.add('active');
+                }
+                
+                // Load tab data
+                switch(tabName) {
+                    case 'journal':
+                        this.loadJournalEntries();
+                        break;
+                    case 'lists':
+                        this.loadLists();
+                        break;
+                    case 'community':
+                        this.loadCommunityData();
+                        break;
+                    case 'achievements':
+                        this.loadAchievements();
+                        break;
+                }
+            },
+            
+            async loadLists() {
+                // Implementation for lists loading
+                console.log('Loading lists...');
+            },
+            
+            async loadCommunityData() {
+                // Implementation for community data loading
+                console.log('Loading community data...');
+            },
+            
+            async loadAchievements() {
+                // Implementation for achievements loading
+                console.log('Loading achievements...');
+            },
+            
+            showModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    if (modalId === 'addEntryModal') {
+                        const visitDate = document.getElementById('visitDate');
+                        if (visitDate) {
+                            const today = new Date().toISOString().split('T')[0];
+                            visitDate.value = today;
+                            visitDate.max = today;
+                        }
+                        this.setRating(0);
+                    }
+                    
+                    if (modalId === 'editProfileModal' && userProfile) {
+                        document.getElementById('editDisplayName').value = userProfile.full_name || '';
+                        document.getElementById('editUsername').value = userProfile.username || '';
+                        document.getElementById('editBio').value = userProfile.bio || '';
+                        document.getElementById('editLocation').value = userProfile.location || '';
+                        document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
+                    }
+                    
+                    if (modalId === 'avatarModal') {
+                        this.showAvatarSelector();
+                    }
+                }
+            },
+            
+            showAvatarSelector() {
+                const container = document.getElementById('avatarIconGrid');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                foodIcons.forEach(icon => {
+                    const iconElement = document.createElement('div');
+                    iconElement.className = 'avatar-icon-option';
+                    iconElement.textContent = icon;
+                    iconElement.onclick = () => {
+                        document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        iconElement.classList.add('selected');
+                        selectedAvatarIcon = icon;
+                    };
+                    
+                    if (icon === (userProfile?.avatar_icon || '🍔')) {
+                        iconElement.classList.add('selected');
+                        selectedAvatarIcon = icon;
+                    }
+                    
+                    container.appendChild(iconElement);
+                });
+            },
+            
+            setRating(stars) {
+                const starsElements = document.querySelectorAll('#ratingStars span');
+                starsElements.forEach((star, index) => {
+                    if (index < stars) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+                
+                const selectedRating = document.getElementById('selectedRating');
+                if (selectedRating) selectedRating.value = stars;
+            },
+            
+            showToast(message, type = 'info') {
+                const toastContainer = document.getElementById('toastContainer') || document.getElementById('mobileToastContainer');
+                if (!toastContainer) return;
+                
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    info: 'fas fa-info-circle'
+                };
+                
+                toast.innerHTML = `
+                    <i class="${icons[type]} toast-icon"></i>
+                    <div class="toast-content">
+                        <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                    <button class="toast-close">&times;</button>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                const closeBtn = toast.querySelector('.toast-close');
+                closeBtn.addEventListener('click', () => toast.remove());
+                
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 3000);
+            },
+            
+            setupEventListeners() {
+                // Journal entry form
+                const journalForm = document.getElementById('journalEntryForm');
+                if (journalForm) {
+                    journalForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.saveJournalEntry();
+                    });
+                }
+                
+                // Edit profile form
+                const profileForm = document.getElementById('editProfileForm');
+                if (profileForm) {
+                    profileForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.saveProfile();
+                    });
+                }
+                
+                // Rating stars
+                document.querySelectorAll('.rating-star').forEach(star => {
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        ProfileManager.setRating(rating);
+                    });
+                });
+                
+                // List icons
+                document.querySelectorAll('.list-icon-option').forEach(icon => {
+                    icon.addEventListener('click', function() {
+                        document.querySelectorAll('.list-icon-option').forEach(i => {
+                            i.style.background = 'transparent';
+                            i.style.border = '1px solid transparent';
+                        });
+                        this.style.background = 'rgba(245, 158, 11, 0.1)';
+                        this.style.border = '1px solid var(--accent)';
+                        const selectedIcon = document.getElementById('selectedIcon');
+                        if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
+                    });
+                });
+                
+                // Logout button
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        if (confirm('Are you sure you want to logout?')) {
+                            await supabase.auth.signOut();
+                            window.location.href = 'login.html';
+                        }
+                    });
+                }
+                
+                // Modal close buttons
+                document.querySelectorAll('.modal-close').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const modal = this.closest('.modal');
+                        if (modal) {
+                            closeModal(modal.id);
+                        }
+                    });
+                });
+                
+                // Close modal on overlay click
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeModal(this.id);
+                        }
+                    });
+                });
+                
+                // Escape key to close modals
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        document.querySelectorAll('.modal.active').forEach(modal => {
+                            closeModal(modal.id);
+                        });
+                    }
+                });
+            },
+            
+            async saveJournalEntry() {
+                const restaurantId = document.getElementById('restaurantSelect').value;
+                const visitDate = document.getElementById('visitDate').value;
+                const rating = document.getElementById('selectedRating').value;
+                const notes = document.getElementById('visitNotes').value;
+                const tags = document.getElementById('visitTags').value;
+                
+                if (!restaurantId || !visitDate || !rating || rating === '0') {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase
+                        .from('journal_entries')
+                        .insert({
+                            user_id: currentUser.id,
+                            restaurant_id: restaurantId,
+                            visit_date: visitDate,
+                            rating: rating,
+                            notes: notes,
+                            tags: tags,
+                            created_at: new Date().toISOString()
+                        });
+                    
+                    if (error) throw error;
+                    
+                    this.showToast('Journal entry saved!', 'success');
+                    closeModal('addEntryModal');
+                    
+                    // Refresh data
+                    this.loadJournalEntries();
+                    this.updateStats();
+                    
+                } catch (error) {
+                    console.error('Error saving journal entry:', error);
+                    this.showToast('Error saving entry', 'error');
+                }
+            },
+            
+            async saveProfile() {
+                const displayName = document.getElementById('editDisplayName').value;
+                const username = document.getElementById('editUsername').value;
+                const bio = document.getElementById('editBio').value;
+                const location = document.getElementById('editLocation').value;
+                const isPrivate = document.getElementById('editIsPrivate').checked;
+                
+                if (!displayName || !username) {
+                    this.showToast('Display name and username are required', 'error');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase
+                        .from('user_profiles')
+                        .update({
+                            full_name: displayName,
+                            username: username,
+                            bio: bio,
+                            location: location,
+                            is_private: isPrivate,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    userProfile.full_name = displayName;
+                    userProfile.username = username;
+                    userProfile.bio = bio;
+                    userProfile.location = location;
+                    userProfile.is_private = isPrivate;
+                    
+                    this.updateProfileUI();
+                    this.showToast('Profile updated!', 'success');
+                    closeModal('editProfileModal');
+                    
+                } catch (error) {
+                    console.error('Error saving profile:', error);
+                    this.showToast('Error saving profile', 'error');
+                }
+            },
+            
+            // Other methods
+            goToMyProfile() {
+                window.location.href = 'profile.html';
+            },
+            
+            showCommunitySection(section) {
+                console.log('Show community section:', section);
+            },
+            
+            toggleSortLists() {
+                this.showToast('Sort feature coming soon!', 'info');
+            },
+            
+            showCreateListModal() {
+                this.showModal('createListModal');
+            },
+            
+            hideListDetail() {
+                console.log('Hide list detail');
+            },
+            
+            refreshAchievements() {
+                this.showToast('Achievements refreshed!', 'success');
+            },
+            
+            editJournalEntry(entryId) {
+                console.log('Edit journal entry:', entryId);
+                this.showToast('Edit feature coming soon!', 'info');
+            }
+        };
+        
+        // ===== MOBILE PROFILE MANAGER =====
+        const MobileProfile = {
+            currentSection: 'journal',
+            communityTab: 'followers',
+            
+            async initialize() {
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    if (error || !user) { 
+                        window.location.href = "login.html"; 
+                        return; 
+                    }
+                    
+                    currentUser = user;
+                    
+                    await this.loadProfile();
+                    await this.loadRestaurants();
+                    await this.loadStats();
+                    await this.loadJournalEntries();
+                    await this.loadLists();
+                    await this.loadCommunityData();
+                    await this.loadAchievements();
+                    
+                    this.setupEventListeners();
+                    this.showToast('Welcome to your profile!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error initializing mobile profile:', error);
+                    this.showToast('Error loading profile', 'error');
+                }
+            },
+            
+            async loadProfile() {
+                try {
+                    const { data: profile, error } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .eq('id', currentUser.id)
+                        .single();
+                    
+                    if (error && error.code !== 'PGRST116') {
+                        console.error('Error loading profile:', error);
+                    }
+                    
+                    userProfile = profile || {};
+                    
+                    if (!profile) {
+                        await supabase
+                            .from('user_profiles')
+                            .insert({
+                                id: currentUser.id,
+                                username: currentUser.email.split('@')[0],
+                                full_name: currentUser.email.split('@')[0],
+                                bio: '',
+                                location: '',
+                                avatar_icon: '🍔',
+                                is_private: false,
+                                created_at: new Date().toISOString()
+                            });
+                        
+                        const { data: newProfile } = await supabase
+                            .from('user_profiles')
+                            .select('*')
+                            .eq('id', currentUser.id)
+                            .single();
+                        
+                        userProfile = newProfile || {};
+                    }
+                    
+                    this.updateProfileUI();
+                    
+                } catch (error) {
+                    console.error('Error in loadProfile:', error);
+                }
+            },
+            
+            updateProfileUI() {
+                document.getElementById('mobileProfileName').textContent = userProfile?.full_name || 
+                                                                         userProfile?.username || 
+                                                                         currentUser.email.split('@')[0];
+                document.getElementById('mobileProfileUsername').textContent = '@' + (userProfile?.username || 
+                                                                                    currentUser.email.split('@')[0]);
+                document.getElementById('mobileProfileBio').textContent = userProfile?.bio || 'No bio yet. Tap edit to add one!';
+                document.getElementById('mobileAvatar').textContent = userProfile?.avatar_icon || '🍔';
+            },
+            
+            async loadRestaurants() {
+                try {
+                    const { data, error } = await supabase
+                        .from('restraunts')
+                        .select('*')
+                        .order('name');
+                    
+                    if (error) throw error;
+                    
+                    restaurants = data || [];
+                    
+                } catch (error) {
+                    console.error('Error loading restaurants:', error);
+                    restaurants = [];
+                }
+            },
+            
+            async loadStats() {
+                try {
+                    const { data: journalEntries } = await supabase
+                        .from('journal_entries')
+                        .select('restaurant_id')
+                        .eq('user_id', currentUser.id);
+                    
+                    let allRestaurantIds = [];
+                    if (journalEntries) {
+                        allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
+                    }
+                    
+                    const { data: followers } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('followed_id', currentUser.id);
+                    
+                    const followersCount = followers ? followers.length : 0;
+                    
+                    const { data: userLists } = await supabase
+                        .from('lists')
+                        .select('id')
+                        .eq('user_id', currentUser.id);
+                    
+                    const listsCount = userLists ? userLists.length : 0;
+                    
+                    const { data: userJournalEntries } = await supabase
+                        .from('journal_entries')
+                        .select('id')
+                        .eq('user_id', currentUser.id);
+                    
+                    const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
+                    
+                    const visitedCount = new Set(allRestaurantIds).size;
+                    
                     document.getElementById('mobileVisitedCount').textContent = visitedCount;
                     document.getElementById('mobileFollowersCount').textContent = followersCount;
                     document.getElementById('mobileListsCount').textContent = listsCount;
                     document.getElementById('mobileReviewsCount').textContent = reviewsCount;
+                    
+                } catch (error) {
+                    console.error('Error loading stats:', error);
                 }
-                
-            } catch (error) {
-                console.error('Error updating stats:', error);
-            }
-        }
-        
-        async function loadJournalEntries() {
-            const targetId = appState.isViewingOwnProfile ? currentUser.id : appState.targetUserId;
-            if (!targetId) return;
+            },
             
-            try {
-                const { data: entries, error } = await supabase
-                    .from('journal_entries')
-                    .select('*, restraunts(name, category, image, slug)')
-                    .eq('user_id', targetId)
-                    .order('created_at', { ascending: false });
+            async loadJournalEntries() {
+                const container = document.getElementById('mobileJournalEntries');
+                if (!container) return;
                 
-                if (error) throw error;
-                
-                renderJournalEntries(entries);
-                
-            } catch (error) {
-                console.error('Error loading journal entries:', error);
-                showErrorState('journal', 'Unable to load reviews');
-            }
-        }
-        
-        function renderJournalEntries(entries) {
-            const container = appState.isMobile ? 
-                document.getElementById('mobileJournalEntries') : 
-                document.getElementById('journalEntries');
-            
-            if (!container) return;
-            
-            if (!entries || entries.length === 0) {
-                const emptyText = appState.isViewingOwnProfile ? 
-                    'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
-                    'This user hasn\'t reviewed any restaurants yet.';
-                
-                if (appState.isMobile) {
-                    container.innerHTML = `
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon">📝</div>
-                            <div class="mobile-empty-title">No Reviews Yet</div>
-                            <div class="mobile-empty-description">${emptyText}</div>
-                            ${appState.isViewingOwnProfile ? `
-                                <button class="mobile-action-btn" onclick="addJournalEntry()">
+                try {
+                    const { data: entries, error } = await supabase
+                        .from('journal_entries')
+                        .select('*, restraunts(name, category, image, slug)')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(10);
+                    
+                    if (error) throw error;
+                    
+                    if (!entries || entries.length === 0) {
+                        container.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">📝</div>
+                                <div class="mobile-empty-title">No Reviews Yet</div>
+                                <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
+                                <button class="mobile-action-btn" onclick="MobileProfile.addJournalEntry()">
                                     <i class="fas fa-plus"></i> Add First Review
                                 </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    
+                    entries.forEach(entry => {
+                        const restaurant = entry.restraunts;
+                        if (!restaurant) return;
+                        
+                        const entryElement = document.createElement('div');
+                        entryElement.className = 'mobile-journal-entry';
+                        
+                        const ratingStars = '⭐'.repeat(Math.floor(entry.rating));
+                        const visitDate = new Date(entry.visit_date || entry.created_at).toLocaleDateString();
+                        
+                        entryElement.innerHTML = `
+                            <div class="mobile-entry-header">
+                                <div class="mobile-restaurant-info">
+                                    <div class="mobile-restaurant-image">
+                                        <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                    </div>
+                                    <div class="mobile-restaurant-details">
+                                        <div class="mobile-restaurant-name">${restaurant.name}</div>
+                                        <div class="mobile-restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-entry-rating">${ratingStars} ${entry.rating}/5</div>
+                            </div>
+                            <div class="mobile-entry-meta">
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-calendar"></i> ${visitDate}
+                                </div>
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-utensils"></i> ${restaurant.category}
+                                </div>
+                            </div>
+                            ${entry.notes ? `
+                                <div class="mobile-entry-notes">${entry.notes}</div>
                             ` : ''}
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">No Reviews Yet</h3>
-                            <p class="empty-description">${emptyText}</p>
-                            ${appState.isViewingOwnProfile ? `
-                                <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-utensils"></i> Browse Restaurants
+                            ${entry.tags ? `
+                                <div class="mobile-entry-tags">
+                                    ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            <div class="mobile-entry-actions">
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.editJournalEntry('${entry.id}')">
+                                    <i class="fas fa-edit"></i> Edit
                                 </button>
-                            ` : ''}
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="window.location.href='restaurant.html?slug=${restaurant.slug}'">
+                                    <i class="fas fa-external-link-alt"></i> View
+                                </button>
+                            </div>
+                        `;
+                        
+                        container.appendChild(entryElement);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading journal entries:', error);
+                    container.innerHTML = `
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">⚠️</div>
+                            <div class="mobile-empty-title">Unable to Load Reviews</div>
+                            <div class="mobile-empty-description">There was an error loading your reviews.</div>
                         </div>
                     `;
                 }
-                return;
-            }
+            },
             
-            container.innerHTML = '';
-            
-            entries.forEach(entry => {
-                const restaurant = entry.restraunts;
-                if (!restaurant) return;
+            async loadLists() {
+                const container = document.getElementById('mobileLists');
+                if (!container) return;
                 
-                if (appState.isMobile) {
-                    const entryElement = createMobileJournalEntry(entry, restaurant);
-                    container.appendChild(entryElement);
-                } else {
-                    const entryElement = createDesktopJournalEntry(entry, restaurant);
-                    container.appendChild(entryElement);
+                try {
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    
+                    if (!lists || lists.length === 0) {
+                        container.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">📋</div>
+                                <div class="mobile-empty-title">No Lists Yet</div>
+                                <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                                <button class="mobile-action-btn" onclick="MobileProfile.createList()">
+                                    <i class="fas fa-plus"></i> Create First List
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    
+                    for (const list of lists) {
+                        const { data: listRestaurants } = await supabase
+                            .from('lists_restraunts')
+                            .select('restraunt_id')
+                            .eq('list_id', list.id);
+                        
+                        const restaurantCount = listRestaurants ? listRestaurants.length : 0;
+                        
+                        const listElement = document.createElement('div');
+                        listElement.className = 'mobile-list-card';
+                        listElement.innerHTML = `
+                            <div class="mobile-list-header">
+                                <div class="mobile-list-icon">${list.icon || '📋'}</div>
+                                <div class="mobile-list-info">
+                                    <div class="mobile-list-title">${list.title}</div>
+                                    <div class="mobile-list-count">${restaurantCount} places</div>
+                                </div>
+                            </div>
+                            ${list.description ? `
+                                <div class="mobile-list-description">${list.description}</div>
+                            ` : ''}
+                            <div class="mobile-entry-actions">
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.viewList('${list.id}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.editList('${list.id}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </div>
+                        `;
+                        
+                        container.appendChild(listElement);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading lists:', error);
+                    container.innerHTML = `
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">⚠️</div>
+                            <div class="mobile-empty-title">Unable to Load Lists</div>
+                            <div class="mobile-empty-description">There was an error loading your lists.</div>
+                        </div>
+                    `;
                 }
-            });
-        }
-        
-        function createDesktopJournalEntry(entry, restaurant) {
-            const entryElement = document.createElement('div');
-            entryElement.className = 'journal-entry';
-            entryElement.style.cursor = 'pointer';
-            entryElement.onclick = () => viewRestaurant(restaurant.slug);
+            },
             
-            const ratingStars = '⭐'.repeat(Math.floor(entry.rating));
-            const visitDate = new Date(entry.visit_date || entry.created_at).toLocaleDateString();
+            async loadCommunityData() {
+                await this.loadFollowers();
+                await this.loadFollowing();
+            },
             
-            entryElement.innerHTML = `
-                <div class="entry-header">
-                    <div class="restaurant-info">
-                        <div class="restaurant-image">
-                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+            async loadFollowers() {
+                const container = document.getElementById('mobileFollowersList');
+                if (!container) return;
+                
+                try {
+                    const { data: follows, error } = await supabase
+                        .from('follows')
+                        .select('follower_id')
+                        .eq('followed_id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    if (!follows || follows.length === 0) {
+                        container.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">👥</div>
+                                <div class="mobile-empty-title">No followers yet</div>
+                                <div class="mobile-empty-description">Share your profile to get followers!</div>
+                                <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const followerIds = follows.map(f => f.follower_id);
+                    const uniqueFollowerIds = [...new Set(followerIds)];
+                    
+                    const { data: users, error: usersError } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .in('id', uniqueFollowerIds);
+                    
+                    if (usersError) throw usersError;
+                    
+                    container.innerHTML = '';
+                    
+                    users.forEach(user => {
+                        const userElement = document.createElement('div');
+                        userElement.className = 'mobile-community-card';
+                        userElement.innerHTML = `
+                            <div class="mobile-community-header">
+                                <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                                <div class="mobile-community-info">
+                                    <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
+                                    <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                </div>
+                            </div>
+                            <div class="mobile-community-stats">
+                                <div class="mobile-community-stat">
+                                    <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                    <span class="mobile-community-stat-label">Visited</span>
+                                </div>
+                                <div class="mobile-community-stat">
+                                    <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                    <span class="mobile-community-stat-label">Favorites</span>
+                                </div>
+                            </div>
+                            <div class="mobile-entry-actions">
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> Profile
+                                </button>
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.unfollowUser('${user.id}')">
+                                    <i class="fas fa-user-minus"></i> Remove
+                                </button>
+                            </div>
+                        `;
+                        
+                        container.appendChild(userElement);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading followers:', error);
+                }
+            },
+            
+            async loadFollowing() {
+                const container = document.getElementById('mobileFollowingList');
+                if (!container) return;
+                
+                try {
+                    const { data: follows, error } = await supabase
+                        .from('follows')
+                        .select('followed_id')
+                        .eq('follower_id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    if (!follows || follows.length === 0) {
+                        container.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">👥</div>
+                                <div class="mobile-empty-title">Not following anyone</div>
+                                <div class="mobile-empty-description">Discover and follow other food lovers!</div>
+                                <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const followingIds = follows.map(f => f.followed_id);
+                    const uniqueFollowingIds = [...new Set(followingIds)];
+                    
+                    const { data: users, error: usersError } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .in('id', uniqueFollowingIds);
+                    
+                    if (usersError) throw usersError;
+                    
+                    container.innerHTML = '';
+                    
+                    users.forEach(user => {
+                        const userElement = document.createElement('div');
+                        userElement.className = 'mobile-community-card';
+                        userElement.innerHTML = `
+                            <div class="mobile-community-header">
+                                <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                                <div class="mobile-community-info">
+                                    <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
+                                    <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                </div>
+                            </div>
+                            <div class="mobile-community-stats">
+                                <div class="mobile-community-stat">
+                                    <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                    <span class="mobile-community-stat-label">Visited</span>
+                                </div>
+                                <div class="mobile-community-stat">
+                                    <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                    <span class="mobile-community-stat-label">Favorites</span>
+                                </div>
+                            </div>
+                            <div class="mobile-entry-actions">
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> Profile
+                                </button>
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.unfollowUser('${user.id}')">
+                                    <i class="fas fa-user-minus"></i> Unfollow
+                                </button>
+                            </div>
+                        `;
+                        
+                        container.appendChild(userElement);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading following:', error);
+                }
+            },
+            
+            async loadAchievements() {
+                const container = document.getElementById('mobileAchievements');
+                if (!container) return;
+                
+                const sampleAchievements = [
+                    { id: 1, name: "Food Explorer", description: "Visit 10 different restaurants", icon: "🗺️", progress: 7, goal: 10 },
+                    { id: 2, name: "Cuisine Connoisseur", description: "Try 5 different cuisines", icon: "🌍", progress: 3, goal: 5 },
+                    { id: 3, name: "Review Master", description: "Write 15 reviews", icon: "📝", progress: 12, goal: 15 },
+                    { id: 4, name: "Social Foodie", description: "Get 10 followers", icon: "👥", progress: 8, goal: 10 },
+                    { id: 5, name: "List Creator", description: "Create 5 lists", icon: "📋", progress: 2, goal: 5 },
+                    { id: 6, name: "Five Star Foodie", description: "Give 5 five-star reviews", icon: "⭐⭐⭐⭐⭐", progress: 3, goal: 5 }
+                ];
+                
+                container.innerHTML = '';
+                
+                sampleAchievements.forEach(achievement => {
+                    const progressPercent = Math.min((achievement.progress / achievement.goal) * 100, 100);
+                    const isUnlocked = achievement.progress >= achievement.goal;
+                    
+                    const achievementElement = document.createElement('div');
+                    achievementElement.className = `mobile-achievement-card ${isUnlocked ? '' : 'locked'}`;
+                    achievementElement.innerHTML = `
+                        <div class="mobile-achievement-icon">${achievement.icon}</div>
+                        <div class="mobile-achievement-info">
+                            <div class="mobile-achievement-title">${achievement.name}</div>
+                            <div class="mobile-achievement-desc">${achievement.description}</div>
+                            <div class="mobile-achievement-progress">
+                                <div class="mobile-achievement-progress-bar" style="width: ${progressPercent}%"></div>
+                            </div>
+                            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
+                                ${achievement.progress}/${achievement.goal} • ${isUnlocked ? '✓ Unlocked' : 'In Progress'}
+                            </div>
                         </div>
-                        <div class="restaurant-details">
-                            <h3>${restaurant.name}</h3>
-                            <div class="restaurant-category">${restaurant.category}</div>
-                        </div>
-                    </div>
-                    <div class="entry-rating">
-                        ${ratingStars}
-                        <span>${entry.rating}/5</span>
-                    </div>
-                </div>
-                <div class="entry-meta">
-                    <div class="meta-badge">
-                        <i class="fas fa-calendar"></i>
-                        ${visitDate}
-                    </div>
-                    <div class="meta-badge">
-                        <i class="fas fa-utensils"></i>
-                        ${restaurant.category}
-                    </div>
-                </div>
-                <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
-                ${entry.tags ? `
-                    <div class="entry-tags">
-                        ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                    </div>
-                ` : ''}
-                ${appState.isViewingOwnProfile ? `
-                    <div class="entry-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editJournalEntry(${entry.id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${restaurant.slug}'">
-                            <i class="fas fa-external-link-alt"></i> View
-                        </button>
-                    </div>
-                ` : ''}
-            `;
+                    `;
+                    
+                    container.appendChild(achievementElement);
+                });
+            },
             
-            return entryElement;
-        }
-        
-        function createMobileJournalEntry(entry, restaurant) {
-            const entryElement = document.createElement('div');
-            entryElement.className = 'mobile-journal-entry';
+            // ===== UI CONTROLS =====
             
-            const ratingStars = '⭐'.repeat(Math.floor(entry.rating));
-            const visitDate = new Date(entry.visit_date || entry.created_at).toLocaleDateString();
+            showSection(section) {
+                this.currentSection = section;
+                
+                // Update tabs
+                document.querySelectorAll('.mobile-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                const activeTab = document.querySelector(`.mobile-tab[data-tab="${section}"]`);
+                if (activeTab) activeTab.classList.add('active');
+                
+                // Update sections
+                document.querySelectorAll('.mobile-section').forEach(sectionElement => {
+                    sectionElement.classList.remove('active');
+                });
+                
+                const activeSection = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`);
+                if (activeSection) activeSection.classList.add('active');
+                
+                // Load section data if needed
+                switch(section) {
+                    case 'journal':
+                        this.loadJournalEntries();
+                        break;
+                    case 'lists':
+                        this.loadLists();
+                        break;
+                    case 'community':
+                        this.showCommunityTab(this.communityTab);
+                        break;
+                }
+            },
             
-            entryElement.innerHTML = `
-                <div class="mobile-entry-header">
-                    <div class="mobile-restaurant-info">
-                        <div class="mobile-restaurant-image">
-                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                        </div>
-                        <div class="mobile-restaurant-details">
-                            <div class="mobile-restaurant-name">${restaurant.name}</div>
-                            <div class="mobile-restaurant-category">${restaurant.category}</div>
-                        </div>
-                    </div>
-                    <div class="mobile-entry-rating">${ratingStars} ${entry.rating}/5</div>
-                </div>
-                <div class="mobile-entry-meta">
-                    <div class="mobile-meta-badge">
-                        <i class="fas fa-calendar"></i> ${visitDate}
-                    </div>
-                    <div class="mobile-meta-badge">
-                        <i class="fas fa-utensils"></i> ${restaurant.category}
-                    </div>
-                </div>
-                ${entry.notes ? `
-                    <div class="mobile-entry-notes">${entry.notes}</div>
-                ` : ''}
-                ${entry.tags ? `
-                    <div class="mobile-entry-tags">
-                        ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
-                    </div>
-                ` : ''}
-                <div class="mobile-entry-actions">
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="editJournalEntry(${entry.id})">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="window.location.href='restaurant.html?slug=${restaurant.slug}'">
-                        <i class="fas fa-external-link-alt"></i> View
-                    </button>
-                </div>
-            `;
+            showCommunityTab(tab) {
+                this.communityTab = tab;
+                
+                document.getElementById('mobileFollowersTabBtn').classList.toggle('active', tab === 'followers');
+                document.getElementById('mobileFollowingTabBtn').classList.toggle('active', tab === 'following');
+                
+                document.getElementById('mobileFollowersTab').classList.toggle('active', tab === 'followers');
+                document.getElementById('mobileFollowingTab').classList.toggle('active', tab === 'following');
+                
+                if (tab === 'followers') {
+                    this.loadFollowers();
+                } else {
+                    this.loadFollowing();
+                }
+            },
             
-            return entryElement;
-        }
-        
-        function viewRestaurant(slug) {
-            window.location.href = `restaurant.html?slug=${slug}`;
-        }
-        
-        function updateTabTitlesForOtherUser(userName) {
-            document.getElementById('journalTabText').textContent = `${userName}'s Journal`;
-            document.getElementById('listsTabText').textContent = `${userName}'s Lists`;
-        }
-        
-        function showTab(tabName) {
-            appState.currentTab = tabName;
+            showMenu() {
+                document.getElementById('mobileSideMenu').classList.add('active');
+                document.getElementById('mobileMenuOverlay').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            },
             
-            if (appState.isMobile) {
-                showMobileSection(tabName);
-            } else {
-                showDesktopTab(tabName);
+            hideMenu() {
+                document.getElementById('mobileSideMenu').classList.remove('active');
+                document.getElementById('mobileMenuOverlay').classList.remove('active');
+                document.body.style.overflow = '';
+            },
+            
+            addJournalEntry() {
+                showModal('addEntryModal');
+                this.hideMenu();
+            },
+            
+            createList() {
+                showModal('createListModal');
+                this.hideMenu();
+            },
+            
+            searchUsers() {
+                showModal('communitySearchModal');
+                this.hideMenu();
+            },
+            
+            editProfile() {
+                showModal('editProfileModal');
+                this.hideMenu();
+            },
+            
+            showSettings() {
+                window.location.href = 'settings.html';
+                this.hideMenu();
+            },
+            
+            showAvatarModal() {
+                showModal('avatarModal');
+                this.hideMenu();
+            },
+            
+            goHome() {
+                window.location.href = 'index.html';
+                this.hideMenu();
+            },
+            
+            async logout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        await supabase.auth.signOut();
+                        window.location.href = 'login.html';
+                    } catch (error) {
+                        console.error('Error logging out:', error);
+                        this.showToast('Error logging out', 'error');
+                    }
+                }
+                this.hideMenu();
+            },
+            
+            refreshAchievements() {
+                this.loadAchievements();
+                this.showToast('Achievements refreshed!', 'success');
+            },
+            
+            viewList(listId) {
+                this.showToast(`Viewing list ${listId}`, 'info');
+            },
+            
+            editList(listId) {
+                this.showToast(`Editing list ${listId}`, 'info');
+            },
+            
+            viewUserProfile(userId) {
+                window.location.href = `profile.html?id=${userId}`;
+            },
+            
+            async unfollowUser(userId) {
+                if (confirm('Are you sure you want to unfollow this user?')) {
+                    try {
+                        const { error } = await supabase
+                            .from('follows')
+                            .delete()
+                            .eq('follower_id', currentUser.id)
+                            .eq('followed_id', userId);
+                        
+                        if (error) throw error;
+                        
+                        this.showToast('Unfollowed user', 'success');
+                        this.loadCommunityData();
+                        this.loadStats();
+                        
+                    } catch (error) {
+                        console.error('Error unfollowing user:', error);
+                        this.showToast('Error unfollowing user', 'error');
+                    }
+                }
+            },
+            
+            editJournalEntry(entryId) {
+                this.showToast('Edit feature coming soon!', 'info');
+            },
+            
+            showToast(message, type = 'info') {
+                const toastContainer = document.getElementById('mobileToastContainer');
+                if (!toastContainer) return;
+                
+                const toast = document.createElement('div');
+                toast.className = `mobile-toast ${type}`;
+                toast.style.borderLeftColor = type === 'success' ? 'var(--success)' : 
+                                             type === 'error' ? 'var(--error)' : 
+                                             type === 'warning' ? 'var(--warning)' : 'var(--accent)';
+                
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    info: 'fas fa-info-circle'
+                };
+                
+                toast.innerHTML = `
+                    <i class="${icons[type]}" style="color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent)'}; font-size: 20px;"></i>
+                    <div style="flex: 1; font-size: 14px;">${message}</div>
+                    <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">×</button>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 3000);
+            },
+            
+            setupEventListeners() {
+                // Journal entry form
+                const journalForm = document.getElementById('journalEntryForm');
+                if (journalForm) {
+                    journalForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.saveJournalEntry();
+                    });
+                }
+                
+                // Edit profile form
+                const profileForm = document.getElementById('editProfileForm');
+                if (profileForm) {
+                    profileForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.saveProfile();
+                    });
+                }
+                
+                // Rating stars
+                document.querySelectorAll('.rating-star').forEach(star => {
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        setRating(rating);
+                    });
+                });
+                
+                // List icons
+                document.querySelectorAll('.list-icon-option').forEach(icon => {
+                    icon.addEventListener('click', function() {
+                        document.querySelectorAll('.list-icon-option').forEach(i => {
+                            i.style.background = 'transparent';
+                            i.style.border = '1px solid transparent';
+                        });
+                        this.style.background = 'rgba(245, 158, 11, 0.1)';
+                        this.style.border = '1px solid var(--accent)';
+                        const selectedIcon = document.getElementById('selectedIcon');
+                        if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
+                    });
+                });
+            },
+            
+            async saveJournalEntry() {
+                const restaurantId = document.getElementById('restaurantSelect').value;
+                const visitDate = document.getElementById('visitDate').value;
+                const rating = document.getElementById('selectedRating').value;
+                const notes = document.getElementById('visitNotes').value;
+                const tags = document.getElementById('visitTags').value;
+                
+                if (!restaurantId || !visitDate || !rating || rating === '0') {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase
+                        .from('journal_entries')
+                        .insert({
+                            user_id: currentUser.id,
+                            restaurant_id: restaurantId,
+                            visit_date: visitDate,
+                            rating: rating,
+                            notes: notes,
+                            tags: tags,
+                            created_at: new Date().toISOString()
+                        });
+                    
+                    if (error) throw error;
+                    
+                    this.showToast('Journal entry saved!', 'success');
+                    closeModal('addEntryModal');
+                    
+                    // Refresh data
+                    this.loadJournalEntries();
+                    this.loadStats();
+                    
+                } catch (error) {
+                    console.error('Error saving journal entry:', error);
+                    this.showToast('Error saving entry', 'error');
+                }
+            },
+            
+            async saveProfile() {
+                const displayName = document.getElementById('editDisplayName').value;
+                const username = document.getElementById('editUsername').value;
+                const bio = document.getElementById('editBio').value;
+                const location = document.getElementById('editLocation').value;
+                const isPrivate = document.getElementById('editIsPrivate').checked;
+                
+                if (!displayName || !username) {
+                    this.showToast('Display name and username are required', 'error');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase
+                        .from('user_profiles')
+                        .update({
+                            full_name: displayName,
+                            username: username,
+                            bio: bio,
+                            location: location,
+                            is_private: isPrivate,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    userProfile.full_name = displayName;
+                    userProfile.username = username;
+                    userProfile.bio = bio;
+                    userProfile.location = location;
+                    userProfile.is_private = isPrivate;
+                    
+                    this.updateProfileUI();
+                    this.showToast('Profile updated!', 'success');
+                    closeModal('editProfileModal');
+                    
+                } catch (error) {
+                    console.error('Error saving profile:', error);
+                    this.showToast('Error saving profile', 'error');
+                }
             }
-            
-            // Load tab data
-            switch(tabName) {
-                case 'journal':
-                    loadJournalEntries();
-                    break;
-                case 'lists':
-                    loadLists();
-                    break;
-                case 'community':
-                    loadCommunityData();
-                    break;
-            }
-        }
-        
-        function showDesktopTab(tabName) {
-            // Hide all tab content
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected tab content
-            const tabContent = document.getElementById(`${tabName}-tab`);
-            if (tabContent) {
-                tabContent.classList.add('active');
-            }
-            
-            // Update active tab button
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            const activeTabBtn = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
-            if (activeTabBtn) {
-                activeTabBtn.classList.add('active');
-            }
-        }
-        
-        // ===== MOBILE FUNCTIONS =====
-        function initializeMobile() {
-            setupMobileEventListeners();
-        }
-        
-        function showMobileSection(section) {
-            appState.currentTab = section;
-            
-            // Update tabs
-            document.querySelectorAll('.mobile-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            const activeTab = document.querySelector(`.mobile-tab[data-tab="${section}"]`);
-            if (activeTab) activeTab.classList.add('active');
-            
-            // Update sections
-            document.querySelectorAll('.mobile-section').forEach(sectionElement => {
-                sectionElement.classList.remove('active');
-            });
-            
-            const activeSection = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`);
-            if (activeSection) activeSection.classList.add('active');
-        }
-        
-        function showMenu() {
-            document.getElementById('mobileSideMenu').classList.add('active');
-            document.getElementById('mobileMenuOverlay').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function hideMenu() {
-            document.getElementById('mobileSideMenu').classList.remove('active');
-            document.getElementById('mobileMenuOverlay').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        
-        function goHome() {
-            window.location.href = 'index.html';
-            hideMenu();
-        }
-        
-        function showCommunityTab(tab) {
-            appState.communityTab = tab;
-            
-            document.getElementById('mobileFollowersTabBtn').classList.toggle('active', tab === 'followers');
-            document.getElementById('mobileFollowingTabBtn').classList.toggle('active', tab === 'following');
-            
-            document.getElementById('mobileFollowersTab').classList.toggle('active', tab === 'followers');
-            document.getElementById('mobileFollowingTab').classList.toggle('active', tab === 'following');
-            
-            if (tab === 'followers') {
-                loadFollowers();
-            } else {
-                loadFollowing();
-            }
-        }
+        };
         
         // ===== SHARED FUNCTIONS =====
+        
         function showModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
@@ -3302,267 +4456,38 @@
                 
                 userProfile.avatar_icon = selectedAvatarIcon;
                 
-                // Update UI
+                // Update desktop UI
                 document.getElementById('profileAvatar').textContent = selectedAvatarIcon;
                 
-                if (appState.isMobile) {
-                    document.getElementById('mobileAvatar').textContent = selectedAvatarIcon;
+                // Update mobile UI
+                document.getElementById('mobileAvatar').textContent = selectedAvatarIcon;
+                
+                if (window.innerWidth <= 768) {
+                    MobileProfile.showToast('Avatar updated!', 'success');
+                } else {
+                    ProfileManager.showToast('Avatar updated!', 'success');
                 }
                 
-                showToast('Avatar updated!', 'success');
                 closeModal('avatarModal');
                 
             } catch (error) {
                 console.error('Error saving avatar:', error);
-                showToast('Error saving avatar', 'error');
-            }
-        }
-        
-        function showToast(message, type = 'info') {
-            const container = appState.isMobile ? 
-                document.getElementById('mobileToastContainer') : 
-                document.getElementById('toastContainer');
-            
-            if (!container) return;
-            
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icons = {
-                success: 'fas fa-check-circle',
-                error: 'fas fa-exclamation-circle',
-                warning: 'fas fa-exclamation-triangle',
-                info: 'fas fa-info-circle'
-            };
-            
-            toast.innerHTML = `
-                <i class="${icons[type]} toast-icon"></i>
-                <div class="toast-content">
-                    <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close">&times;</button>
-            `;
-            
-            container.appendChild(toast);
-            
-            const closeBtn = toast.querySelector('.toast-close');
-            closeBtn.addEventListener('click', () => toast.remove());
-            
-            setTimeout(() => {
-                if (toast.parentNode) toast.remove();
-            }, 3000);
-        }
-        
-        function showErrorState(section, message) {
-            const container = appState.isMobile ? 
-                document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}`) : 
-                document.getElementById(`${section}`);
-            
-            if (!container) return;
-            
-            container.innerHTML = `
-                <div class="${appState.isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                    <div class="${appState.isMobile ? 'mobile-empty-icon' : 'empty-icon'}">⚠️</div>
-                    <${appState.isMobile ? 'div' : 'h3'} class="${appState.isMobile ? 'mobile-empty-title' : 'empty-title'}">Unable to Load</${appState.isMobile ? 'div' : 'h3'}>
-                    <${appState.isMobile ? 'div' : 'p'} class="${appState.isMobile ? 'mobile-empty-description' : 'empty-description'}">${message}</${appState.isMobile ? 'div' : 'p'}>
-                </div>
-            `;
-        }
-        
-        // ===== EVENT LISTENERS =====
-        function setupEventListeners() {
-            // Journal entry form
-            const journalForm = document.getElementById('journalEntryForm');
-            if (journalForm) {
-                journalForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await saveJournalEntry();
-                });
-            }
-            
-            // Edit profile form
-            const profileForm = document.getElementById('editProfileForm');
-            if (profileForm) {
-                profileForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await saveProfile();
-                });
-            }
-            
-            // Rating stars
-            document.querySelectorAll('.rating-star').forEach(star => {
-                star.addEventListener('click', function() {
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    setRating(rating);
-                });
-            });
-            
-            // List icons
-            document.querySelectorAll('.list-icon-option').forEach(icon => {
-                icon.addEventListener('click', function() {
-                    document.querySelectorAll('.list-icon-option').forEach(i => {
-                        i.style.background = 'transparent';
-                        i.style.border = '1px solid transparent';
-                    });
-                    this.style.background = 'rgba(245, 158, 11, 0.1)';
-                    this.style.border = '1px solid var(--accent)';
-                    const selectedIcon = document.getElementById('selectedIcon');
-                    if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
-                });
-            });
-            
-            // Logout button
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    if (confirm('Are you sure you want to logout?')) {
-                        await supabase.auth.signOut();
-                        window.location.href = 'login.html';
-                    }
-                });
-            }
-            
-            // Modal close buttons
-            document.querySelectorAll('.modal-close').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const modal = this.closest('.modal');
-                    if (modal) {
-                        closeModal(modal.id);
-                    }
-                });
-            });
-            
-            // Close modal on overlay click
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeModal(this.id);
-                    }
-                });
-            });
-            
-            // Escape key to close modals
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal.active').forEach(modal => {
-                        closeModal(modal.id);
-                    });
-                }
-            });
-        }
-        
-        function setupMobileEventListeners() {
-            // Mobile menu items
-            document.querySelectorAll('.mobile-menu-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    hideMenu();
-                });
-            });
-            
-            // Window resize
-            window.addEventListener('resize', () => {
-                appState.isMobile = window.innerWidth <= 768;
-            });
-        }
-        
-        // ===== PLACEHOLDER FUNCTIONS =====
-        async function saveJournalEntry() {
-            // Implementation needed
-            showToast('Save journal entry - Not implemented yet', 'info');
-        }
-        
-        async function saveProfile() {
-            // Implementation needed
-            showToast('Save profile - Not implemented yet', 'info');
-        }
-        
-        function editJournalEntry(entryId) {
-            showToast('Edit feature coming soon!', 'info');
-        }
-        
-        function showCreateListModal() {
-            showModal('createListModal');
-        }
-        
-        function toggleSortLists() {
-            showToast('Sort feature coming soon!', 'info');
-        }
-        
-        function hideListDetail() {
-            showToast('Hide list detail - Not implemented yet', 'info');
-        }
-        
-        function showCommunitySection(section) {
-            showToast(`Show ${section} - Not implemented yet`, 'info');
-        }
-        
-        function loadCommunityData() {
-            showToast('Load community data - Not implemented yet', 'info');
-        }
-        
-        function loadLists() {
-            showToast('Load lists - Not implemented yet', 'info');
-        }
-        
-        function loadFollowers() {
-            showToast('Load followers - Not implemented yet', 'info');
-        }
-        
-        function loadFollowing() {
-            showToast('Load following - Not implemented yet', 'info');
-        }
-        
-        function goToMyProfile() {
-            window.location.href = 'profile.html';
-        }
-        
-        function addJournalEntry() {
-            showModal('addEntryModal');
-            if (appState.isMobile) hideMenu();
-        }
-        
-        function createList() {
-            showModal('createListModal');
-            if (appState.isMobile) hideMenu();
-        }
-        
-        function editProfile() {
-            showModal('editProfileModal');
-            if (appState.isMobile) hideMenu();
-        }
-        
-        function showSettings() {
-            window.location.href = 'settings.html';
-            if (appState.isMobile) hideMenu();
-        }
-        
-        function showAvatarModal() {
-            showModal('avatarModal');
-            if (appState.isMobile) hideMenu();
-        }
-        
-        function searchUsers() {
-            showModal('communitySearchModal');
-            if (appState.isMobile) hideMenu();
-        }
-        
-        async function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    await supabase.auth.signOut();
-                    window.location.href = 'login.html';
-                } catch (error) {
-                    console.error('Error logging out:', error);
-                    showToast('Error logging out', 'error');
+                if (window.innerWidth <= 768) {
+                    MobileProfile.showToast('Error saving avatar', 'error');
+                } else {
+                    ProfileManager.showToast('Error saving avatar', 'error');
                 }
             }
-            if (appState.isMobile) hideMenu();
         }
         
-        // ===== INITIALIZATION =====
-        document.addEventListener('DOMContentLoaded', initialize);
+        // ===== INITIALIZE =====
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth <= 768) {
+                MobileProfile.initialize();
+            } else {
+                ProfileManager.initialize();
+            }
+        });
     </script>
 </body>
 </html>
