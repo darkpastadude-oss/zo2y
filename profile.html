@@ -50,36 +50,25 @@
             padding: 0 20px;
         }
 
-        /* === IMPROVED HOME BUTTON (FIXED) === */
+        /* === FIXED HOME BUTTON === */
         .home-button {
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 100;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            z-index: 1000;
             transition: var(--transition);
             text-decoration: none;
-            background: var(--card);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
         }
 
         .home-button img {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             object-fit: contain;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .home-button:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(245,158,11,0.3);
-            border-color: var(--accent);
         }
 
         /* === PROFILE HEADER === */
@@ -543,77 +532,6 @@
             justify-content: flex-end;
         }
 
-        /* === ACHIEVEMENTS === */
-        .achievements-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .achievement-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 20px;
-            border: 1px solid var(--border);
-            transition: var(--transition);
-        }
-
-        .achievement-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent);
-        }
-
-        .achievement-card.locked {
-            opacity: 0.6;
-        }
-
-        .achievement-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-            position: relative;
-        }
-
-        .achievement-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--success);
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        .achievement-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .achievement-desc {
-            font-size: 14px;
-            color: var(--muted);
-            margin-bottom: 16px;
-        }
-
-        .achievement-progress {
-            background: var(--bg);
-            border-radius: 20px;
-            height: 6px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .achievement-progress-bar {
-            background: var(--accent);
-            height: 100%;
-            transition: width 0.5s ease;
-        }
-
         /* === FOLLOWER/COMMUNITY CARDS === */
         .community-card {
             background: var(--card);
@@ -708,7 +626,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
             padding: 20px;
         }
 
@@ -825,7 +743,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 1100;
+            z-index: 2100;
         }
 
         .toast {
@@ -1214,888 +1132,1299 @@
             font-size: 14px;
         }
 
-        /* === UTILITY CLASSES === */
-        .d-flex { display: flex; }
-        .d-grid { display: grid; }
-        .d-none { display: none; }
-        .d-block { display: block; }
-        .flex-column { flex-direction: column; }
-        .flex-row { flex-direction: row; }
-        .flex-wrap { flex-wrap: wrap; }
-        .align-center { align-items: center; }
-        .align-start { align-items: flex-start; }
-        .justify-center { justify-content: center; }
-        .justify-between { justify-content: space-between; }
-        .justify-start { justify-content: flex-start; }
-        .gap-xs { gap: 8px; }
-        .gap-sm { gap: 12px; }
-        .gap-md { gap: 16px; }
-        .gap-lg { gap: 24px; }
-        .gap-xl { gap: 32px; }
-        .w-100 { width: 100%; }
-        .h-100 { height: 100%; }
-        .text-center { text-align: center; }
-        .text-left { text-align: left; }
-        .text-right { text-align: right; }
-        .text-xs { font-size: 0.75rem; }
-        .text-sm { font-size: 0.875rem; }
-        .text-base { font-size: 1rem; }
-        .text-lg { font-size: 1.125rem; }
-        .text-xl { font-size: 1.25rem; }
-        .text-2xl { font-size: 1.5rem; }
-        .text-3xl { font-size: 1.875rem; }
-        .font-light { font-weight: 300; }
-        .font-normal { font-weight: 400; }
-        .font-medium { font-weight: 500; }
-        .font-semibold { font-weight: 600; }
-        .font-bold { font-weight: 700; }
-        .text-muted { color: var(--muted); }
-        .text-light { color: var(--muted); }
-        .text-primary { color: var(--accent); }
-        .text-success { color: var(--success); }
-        .text-error { color: var(--error); }
-        .mt-xs { margin-top: 8px; }
-        .mt-sm { margin-top: 12px; }
-        .mt-md { margin-top: 16px; }
-        .mt-lg { margin-top: 24px; }
-        .mt-xl { margin-top: 32px; }
-        .mb-xs { margin-bottom: 8px; }
-        .mb-sm { margin-bottom: 12px; }
-        .mb-md { margin-bottom: 16px; }
-        .mb-lg { margin-bottom: 24px; }
-        .mb-xl { margin-bottom: 32px; }
-        .p-xs { padding: 8px; }
-        .p-sm { padding: 12px; }
-        .p-md { padding: 16px; }
-        .p-lg { padding: 24px; }
-        .p-xl { padding: 32px; }
-
-        /* === MOBILE RESPONSIVE === */
+        /* === MOBILE STYLES === */
         @media (max-width: 768px) {
-            body {
-                padding-top: 70px; /* Space for home button */
-            }
-            
-            .container {
-                padding: 0 16px;
-            }
-
-            .home-button {
-                width: 46px;
-                height: 46px;
-                top: 12px;
-                left: 12px;
-                padding: 8px;
-                border-radius: 10px;
-            }
-
-            .home-button img {
-                width: 28px;
-                height: 28px;
-            }
-
-            .profile-header {
-                padding: 24px 0;
-                margin-bottom: 20px;
-            }
-
-            .profile-top {
-                flex-direction: column;
-                text-align: center;
-                gap: 16px;
-            }
-
-            /* MOBILE AVATAR CENTERING FIX */
-            .avatar-container {
-                margin: 0 auto !important; /* Force center on mobile */
-                display: flex;
-                justify-content: center;
-                width: 100%;
-            }
-
-            .profile-avatar {
-                width: 100px; /* Slightly larger on mobile */
-                height: 100px;
-                font-size: 42px;
-                margin: 0 auto; /* Center the avatar */
-            }
-
-            .profile-info {
-                width: 100%;
-                text-align: center;
-            }
-
-            .profile-name {
-                font-size: 24px;
-            }
-
-            .profile-username {
-                font-size: 16px;
-            }
-
-            .profile-bio {
-                font-size: 15px;
-                margin-bottom: 20px;
-                padding: 0 10px;
-            }
-
-            .profile-meta {
-                flex-direction: column;
-                gap: 12px;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-
-            .profile-actions {
-                justify-content: center;
-                width: 100%;
-                gap: 10px;
-            }
-
-            .profile-actions .btn {
-                flex: 1;
-                justify-content: center;
-                min-width: 120px;
-                padding: 12px 16px;
-                font-size: 13px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-                margin-bottom: 20px;
-            }
-
-            .stat-card {
-                padding: 16px;
-            }
-
-            .stat-icon {
-                font-size: 24px;
-                margin-bottom: 8px;
-            }
-
-            .stat-number {
-                font-size: 28px;
-            }
-
-            .stat-label {
-                font-size: 12px;
-            }
-
-            .nav-tabs {
-                padding: 6px;
-                margin-bottom: 20px;
-            }
-
-            .nav-tab {
-                padding: 10px 16px;
-                font-size: 14px;
-            }
-
-            .section-header {
-                flex-direction: column;
-                gap: 16px;
-                align-items: flex-start;
-                margin-bottom: 20px;
-            }
-
-            .section-actions {
-                width: 100%;
-                justify-content: flex-start;
-                flex-wrap: wrap;
-            }
-
-            .cards-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .list-preview-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .lists-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .community-card {
-                padding: 16px;
-            }
-
-            .community-stats {
-                gap: 12px;
-            }
-
-            .community-stat-number {
-                font-size: 16px;
-            }
-
-            .community-actions {
-                flex-direction: column;
-            }
-
-            .community-actions .btn {
-                width: 100%;
-            }
-
-            .achievements-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-                gap: 16px;
-            }
-
-            .footer-links {
-                justify-content: center;
-                gap: 16px;
-            }
-        }
-
-        /* === MOBILE-ONLY STYLES (Applied only on small screens) === */
-        @media (max-width: 480px) {
-            /* MOBILE-ONLY LAYOUT */
-            body.mobile-view {
-                padding-top: 56px;
-                padding-bottom: 56px;
-            }
-            
-            body.mobile-view .desktop-only {
+            .desktop-only {
                 display: none !important;
             }
             
-            /* MOBILE TOP BAR */
+            /* Mobile Base */
+            .mobile-only {
+                display: block;
+            }
+            
+            body {
+                padding: 0;
+                background: var(--bg);
+            }
+            
+            /* Mobile Top Bar */
             .mobile-topbar {
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
-                height: 56px;
+                height: 60px;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 padding: 0 16px;
-                background: var(--bg);
+                background: var(--card);
                 border-bottom: 1px solid var(--border);
                 z-index: 1000;
+                backdrop-filter: blur(10px);
             }
-            
-            .mobile-topbar span {
-                font-weight: 600;
-                font-size: 18px;
-            }
-            
-            .mobile-topbar i {
-                font-size: 22px;
+
+            .mobile-topbar-title {
+                font-weight: 700;
+                font-size: 20px;
                 color: var(--accent);
             }
-            
-            /* MOBILE PROFILE SECTION */
-            .mobile-profile {
-                padding: 16px;
-                text-align: center;
-                margin-top: 10px;
+
+            .mobile-menu-btn {
+                background: none;
+                border: none;
+                color: var(--white);
+                font-size: 22px;
+                cursor: pointer;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-sm);
+                transition: var(--transition);
             }
-            
+
+            .mobile-menu-btn:hover {
+                background: var(--bg-hover);
+            }
+
+            /* Mobile Side Menu */
+            .mobile-side-menu {
+                position: fixed;
+                top: 0;
+                right: -300px;
+                width: 300px;
+                height: 100%;
+                background: var(--card);
+                z-index: 2000;
+                padding: 20px;
+                border-left: 1px solid var(--border);
+                transition: var(--transition);
+                overflow-y: auto;
+            }
+
+            .mobile-side-menu.active {
+                right: 0;
+            }
+
+            .mobile-menu-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 1999;
+                display: none;
+            }
+
+            .mobile-menu-overlay.active {
+                display: block;
+            }
+
+            .mobile-menu-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-menu-title {
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--accent);
+            }
+
+            .mobile-menu-close {
+                background: none;
+                border: none;
+                color: var(--muted);
+                font-size: 24px;
+                cursor: pointer;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-sm);
+            }
+
+            .mobile-menu-close:hover {
+                color: var(--white);
+                background: var(--bg-hover);
+            }
+
+            .mobile-menu-section {
+                margin-bottom: 25px;
+            }
+
+            .mobile-menu-section-title {
+                font-size: 14px;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 12px;
+                font-weight: 600;
+            }
+
+            .mobile-menu-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px;
+                border-radius: var(--radius-sm);
+                text-decoration: none;
+                color: var(--white);
+                margin-bottom: 8px;
+                transition: var(--transition);
+                cursor: pointer;
+            }
+
+            .mobile-menu-item:hover {
+                background: var(--bg-hover);
+            }
+
+            .mobile-menu-item.active {
+                background: var(--accent);
+                color: #0b1633;
+            }
+
+            .mobile-menu-item i {
+                width: 24px;
+                text-align: center;
+                font-size: 18px;
+            }
+
+            .mobile-menu-divider {
+                height: 1px;
+                background: var(--border);
+                margin: 20px 0;
+            }
+
+            /* Mobile Profile Header */
+            .mobile-profile-header {
+                padding: 80px 16px 20px;
+                background: var(--card);
+                text-align: center;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-avatar-container {
+                position: relative;
+                margin-bottom: 16px;
+            }
+
             .mobile-avatar {
-                width: 96px;
-                height: 96px;
+                width: 100px;
+                height: 100px;
                 border-radius: 50%;
                 background: var(--accent);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 40px;
-                margin: 0 auto 10px;
-                color: #0b1633;
+                font-size: 48px;
+                margin: 0 auto;
                 border: 3px solid var(--accent);
+                cursor: pointer;
+                transition: var(--transition);
+                color: #0b1633;
             }
-            
-            .mobile-bio {
-                margin-top: 8px;
+
+            .mobile-avatar:hover {
+                transform: scale(1.05);
+                border-color: #e69500;
+            }
+
+            .mobile-profile-name {
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+
+            .mobile-profile-username {
+                font-size: 16px;
+                color: var(--accent);
+                margin-bottom: 12px;
+            }
+
+            .mobile-profile-bio {
                 font-size: 14px;
                 color: var(--muted);
-                padding: 0 10px;
+                margin-bottom: 20px;
+                line-height: 1.5;
             }
-            
-            /* MOBILE STATS */
+
+            /* Mobile Stats */
             .mobile-stats {
                 display: flex;
                 justify-content: space-around;
-                margin: 20px 0;
-                padding: 0 16px;
+                background: var(--card);
+                padding: 16px;
+                border-bottom: 1px solid var(--border);
             }
-            
+
             .mobile-stat {
                 text-align: center;
+                flex: 1;
             }
-            
-            .mobile-stat strong {
+
+            .mobile-stat-number {
                 display: block;
-                font-size: 20px;
+                font-size: 22px;
+                font-weight: 700;
                 color: var(--accent);
+                margin-bottom: 4px;
             }
-            
-            .mobile-stat span {
+
+            .mobile-stat-label {
+                font-size: 12px;
+                color: var(--muted);
+                font-weight: 500;
+            }
+
+            /* Mobile Tabs Navigation */
+            .mobile-tabs {
+                display: flex;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                position: sticky;
+                top: 60px;
+                z-index: 900;
+            }
+
+            .mobile-tab {
+                flex: 1;
+                padding: 16px;
+                text-align: center;
+                font-weight: 500;
+                color: var(--muted);
+                border-bottom: 3px solid transparent;
+                transition: var(--transition);
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .mobile-tab.active {
+                color: var(--accent);
+                border-bottom-color: var(--accent);
+            }
+
+            .mobile-tab i {
+                font-size: 20px;
+                margin-bottom: 2px;
+            }
+
+            .mobile-tab span {
+                font-size: 12px;
+            }
+
+            .mobile-tab-badge {
+                background: var(--error);
+                color: white;
+                border-radius: 10px;
+                padding: 2px 6px;
+                font-size: 10px;
+                font-weight: 600;
+                margin-left: 4px;
+            }
+
+            /* Mobile Content Sections */
+            .mobile-content {
+                padding: 16px;
+                padding-bottom: 80px; /* Space for bottom nav */
+            }
+
+            .mobile-section {
+                display: none;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .mobile-section.active {
+                display: block;
+            }
+
+            .mobile-section-title {
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .mobile-section-subtitle {
+                font-size: 14px;
+                color: var(--muted);
+                margin-bottom: 20px;
+            }
+
+            /* Mobile Journal Entries */
+            .mobile-journal-entry {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
+            }
+
+            .mobile-journal-entry:hover {
+                border-color: var(--accent);
+            }
+
+            .mobile-entry-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 12px;
+            }
+
+            .mobile-restaurant-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .mobile-restaurant-image {
+                width: 50px;
+                height: 50px;
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+                flex-shrink: 0;
+            }
+
+            .mobile-restaurant-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .mobile-restaurant-details {
+                flex: 1;
+            }
+
+            .mobile-restaurant-name {
+                font-weight: 600;
+                margin-bottom: 2px;
+                font-size: 16px;
+            }
+
+            .mobile-restaurant-category {
                 font-size: 12px;
                 color: var(--muted);
             }
-            
-            /* MOBILE FEED */
-            .mobile-feed {
-                padding: 0 16px;
+
+            .mobile-entry-rating {
+                color: var(--accent);
+                font-weight: 700;
+                font-size: 14px;
+            }
+
+            .mobile-entry-meta {
                 display: flex;
-                flex-direction: column;
-                gap: 16px;
-                margin-bottom: 20px;
+                gap: 8px;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
             }
-            
-            .mobile-post {
+
+            .mobile-meta-badge {
+                background: var(--bg);
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                color: var(--muted);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .mobile-entry-notes {
+                font-size: 14px;
+                color: var(--muted);
+                line-height: 1.5;
+                margin-bottom: 12px;
+            }
+
+            .mobile-entry-tags {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+
+            .mobile-tag {
+                background: var(--accent);
+                color: #0b1633;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            .mobile-entry-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            /* Mobile Lists */
+            .mobile-list-card {
                 background: var(--card);
-                border-radius: 14px;
-                overflow: hidden;
+                border-radius: var(--radius);
+                padding: 16px;
                 border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
             }
-            
-            .mobile-post img {
+
+            .mobile-list-card:hover {
+                border-color: var(--accent);
+            }
+
+            .mobile-list-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .mobile-list-icon {
+                font-size: 24px;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+            }
+
+            .mobile-list-info {
+                flex: 1;
+            }
+
+            .mobile-list-title {
+                font-weight: 600;
+                font-size: 16px;
+                margin-bottom: 4px;
+            }
+
+            .mobile-list-count {
+                font-size: 12px;
+                color: var(--muted);
+            }
+
+            .mobile-list-preview {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .mobile-preview-item {
+                height: 60px;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+            }
+
+            .mobile-preview-item img {
                 width: 100%;
-                height: 220px;
+                height: 100%;
                 object-fit: cover;
             }
-            
-            .mobile-post-body {
-                padding: 12px;
+
+            .mobile-list-description {
+                font-size: 13px;
+                color: var(--muted);
+                margin-bottom: 12px;
             }
-            
-            .mobile-post-head {
+
+            /* Mobile Community */
+            .mobile-community-card {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+            }
+
+            .mobile-community-header {
                 display: flex;
-                gap: 10px;
                 align-items: center;
-                margin-bottom: 8px;
+                gap: 12px;
+                margin-bottom: 12px;
             }
-            
-            .mobile-post-avatar {
-                width: 32px;
-                height: 32px;
+
+            .mobile-community-avatar {
+                width: 50px;
+                height: 50px;
                 border-radius: 50%;
                 background: var(--accent);
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                font-size: 24px;
                 color: #0b1633;
-                font-size: 16px;
+                flex-shrink: 0;
             }
-            
-            .mobile-post-title {
+
+            .mobile-community-info {
+                flex: 1;
+            }
+
+            .mobile-community-name {
+                font-weight: 600;
+                margin-bottom: 2px;
+            }
+
+            .mobile-community-username {
+                font-size: 13px;
+                color: var(--muted);
+            }
+
+            .mobile-community-stats {
+                display: flex;
+                gap: 16px;
+                margin-bottom: 12px;
+            }
+
+            .mobile-community-stat {
+                text-align: center;
+                flex: 1;
+            }
+
+            .mobile-community-stat-number {
+                display: block;
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--accent);
+                margin-bottom: 2px;
+            }
+
+            .mobile-community-stat-label {
+                font-size: 11px;
+                color: var(--muted);
+            }
+
+            /* Mobile Action Buttons */
+            .mobile-action-btn {
+                width: 100%;
+                padding: 16px;
+                background: var(--accent);
+                color: #0b1633;
+                border: none;
+                border-radius: var(--radius);
                 font-weight: 600;
                 font-size: 16px;
-            }
-            
-            .mobile-post-rating {
-                color: var(--accent);
-                font-size: 13px;
-            }
-            
-            .mobile-post-text {
-                font-size: 14px;
-                margin-top: 8px;
-                color: var(--muted);
-            }
-            
-            .mobile-post-actions {
+                cursor: pointer;
+                transition: var(--transition);
                 display: flex;
-                justify-content: space-between;
-                padding: 12px;
-                border-top: 1px solid var(--border);
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-bottom: 12px;
             }
-            
-            .mobile-post-actions i {
-                font-size: 20px;
-                color: var(--muted);
+
+            .mobile-action-btn:hover {
+                background: #e69500;
+                transform: translateY(-2px);
             }
-            
-            .mobile-post-actions i.active {
-                color: var(--accent);
+
+            .mobile-action-btn.secondary {
+                background: var(--card);
+                color: var(--white);
+                border: 1px solid var(--border);
             }
-            
-            /* MOBILE BOTTOM NAV */
+
+            .mobile-action-btn.secondary:hover {
+                background: var(--bg-hover);
+            }
+
+            /* Mobile Bottom Navigation */
             .mobile-bottom-nav {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                height: 56px;
+                height: 70px;
                 display: flex;
                 justify-content: space-around;
                 align-items: center;
-                background: var(--bg);
+                background: var(--card);
                 border-top: 1px solid var(--border);
                 z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom);
             }
-            
-            .mobile-bottom-nav i {
-                font-size: 22px;
-                color: var(--muted);
-                transition: var(--transition);
-            }
-            
-            .mobile-bottom-nav i.active {
-                color: var(--accent);
-            }
-            
-            .mobile-bottom-nav i:hover {
-                color: var(--accent);
-            }
-            
-            /* MOBILE BUTTON */
-            .mobile-btn {
-                width: 90%;
-                margin: 0 auto;
-                padding: 14px;
-                border-radius: 12px;
-                border: none;
-                font-weight: 600;
-                background: var(--accent);
-                color: #0b1633;
+
+            .mobile-bottom-nav-item {
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 8px;
-                font-size: 15px;
+                gap: 4px;
+                color: var(--muted);
+                text-decoration: none;
                 transition: var(--transition);
+                cursor: pointer;
+                flex: 1;
+                height: 100%;
             }
-            
-            .mobile-btn:hover {
-                background: #e69500;
-                transform: translateY(-2px);
+
+            .mobile-bottom-nav-item.active {
+                color: var(--accent);
             }
-            
-            /* HIDE DESKTOP ELEMENTS ON MOBILE */
-            .desktop-only {
+
+            .mobile-bottom-nav-item i {
+                font-size: 22px;
+            }
+
+            .mobile-bottom-nav-item span {
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            /* Mobile Community Tabs */
+            .mobile-community-tab {
                 display: none;
             }
-            
+
+            .mobile-community-tab.active {
+                display: block;
+            }
+
+            /* Mobile Empty States */
+            .mobile-empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: var(--muted);
+            }
+
+            .mobile-empty-icon {
+                font-size: 64px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+
+            .mobile-empty-title {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: var(--white);
+            }
+
+            .mobile-empty-description {
+                font-size: 16px;
+                margin-bottom: 24px;
+            }
+
+            /* Mobile Toast */
+            .mobile-toast-container {
+                position: fixed;
+                top: 80px;
+                left: 16px;
+                right: 16px;
+                z-index: 4000;
+            }
+
+            .mobile-toast {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border-left: 4px solid var(--accent);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+                border: 1px solid var(--border);
+                animation: slideInDown 0.3s ease;
+            }
+
+            /* Hide home button on mobile */
+            .home-button {
+                display: none;
+            }
+        }
+
+        /* Desktop-only styles */
+        @media (min-width: 769px) {
             .mobile-only {
+                display: none !important;
+            }
+            
+            .desktop-only {
                 display: block;
             }
         }
 
-        @media (min-width: 481px) {
-            /* HIDE MOBILE ELEMENTS ON DESKTOP */
-            .mobile-only {
-                display: none;
-            }
-            
-            .desktop-only {
-                display: block;
-            }
-        }
-
+        /* Small mobile adjustments */
         @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
+            .mobile-tab span {
+                font-size: 10px;
             }
+            
+            .mobile-section-title {
+                font-size: 18px;
+            }
+            
+            .mobile-action-btn {
+                padding: 14px;
+                font-size: 14px;
+            }
+        }
 
-            .profile-actions {
-                flex-direction: column;
-            }
-
-            .profile-actions .btn {
-                width: 100%;
-            }
-
-            .section-actions {
-                flex-direction: column;
-            }
-
-            .section-actions .btn {
-                width: 100%;
-            }
-
-            .entry-actions {
-                flex-direction: column;
-            }
-
-            .entry-actions .btn {
-                width: 100%;
-            }
-
-            .community-actions {
-                flex-direction: column;
-            }
-
-            .community-actions .btn {
-                width: 100%;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .form-actions .btn {
-                width: 100%;
-            }
+        /* Additional animations */
+        @keyframes slideInDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
     <link rel="icon" type="image/png" href="images/logo.png">
 </head>
-<body class="desktop-only">
-    <!-- Home Button -->
-    <a href="index.html" class="home-button">
-        <img src="images/logo.png" alt="Zo2y Logo">
-    </a>
+<body>
+    <!-- Desktop View -->
+    <div class="desktop-only">
+        <!-- Home Button - Simple logo without box -->
+        <a href="index.html" class="home-button">
+            <img src="images/logo.png" alt="Zo2y Logo">
+        </a>
 
-    <!-- Viewing Other Profile Indicator -->
-    <div class="container">
-        <div class="viewing-other-profile" id="viewingOtherProfile">
-            <div class="viewing-indicator">
-                <i class="fas fa-eye"></i>
-                <span>You are viewing another user's profile</span>
-            </div>
-            <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="ProfileManager.goToMyProfile()">
-                <i class="fas fa-user"></i> Back to My Profile
-            </button>
-        </div>
-    </div>
-
-    <!-- Profile Header -->
-    <div class="profile-header">
+        <!-- Viewing Other Profile Indicator -->
         <div class="container">
-            <div class="profile-top">
-                <div class="avatar-container">
-                    <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
-                        🍔
-                    </div>
+            <div class="viewing-other-profile" id="viewingOtherProfile">
+                <div class="viewing-indicator">
+                    <i class="fas fa-eye"></i>
+                    <span>You are viewing another user's profile</span>
                 </div>
-                
-                <div class="profile-info">
-                    <div class="profile-name" id="profileName">
-                        Loading...
-                    </div>
-                    <div class="profile-username" id="profileUsername">@username</div>
-                    <div class="profile-bio" id="profileBio">
-                        No bio yet. Click edit to add one!
-                    </div>
-                    <div class="profile-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span id="profileLocation">Location not set</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-calendar"></i>
-                            <span id="memberSince">Member since 2023</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-utensils"></i>
-                            <span id="visitedCountMeta">0 restaurants visited</span>
+                <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="ProfileManager.goToMyProfile()">
+                    <i class="fas fa-user"></i> Back to My Profile
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="container">
+                <div class="profile-top">
+                    <div class="avatar-container">
+                        <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
+                            🍔
                         </div>
                     </div>
-                </div>
-                
-                <div class="profile-actions">
-                    <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                        <i class="fas fa-edit"></i> Edit Profile
-                    </button>
-                    <button class="btn btn-primary" onclick="ProfileManager.showModal('addEntryModal')" id="addEntryBtn">
-                        <i class="fas fa-plus"></i> Add Journal
-                    </button>
-                    <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
-                        <i class="fas fa-cog"></i> Settings
-                    </button>
-                    <button class="btn btn-secondary d-none" id="followButton">
-                        Follow
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🍽️</div>
-                <div class="stat-number" id="visitedCount">0</div>
-                <div class="stat-label">Restaurants Visited</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-number" id="followersCount">0</div>
-                <div class="stat-label">Followers</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📋</div>
-                <div class="stat-number" id="listsCount">0</div>
-                <div class="stat-label">Lists Created</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⭐</div>
-                <div class="stat-number" id="reviewsCount">0</div>
-                <div class="stat-label">Reviews Written</div>
-            </div>
-        </div>
-
-        <!-- Navigation Tabs - Reordered with Achievements last -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
-                <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
-            </div>
-            <div class="nav-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
-                <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
-            </div>
-            <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
-                <i class="fas fa-users"></i> Community
-                <span class="nav-tab-badge d-none" id="followersBadge">0</span>
-            </div>
-            <div class="nav-tab" data-tab="achievements" onclick="ProfileManager.showTab('achievements')">
-                <i class="fas fa-trophy"></i> <span id="achievementsTabText">Achievements</span>
-            </div>
-        </div>
-
-        <!-- Journal Tab Content -->
-        <div class="tab-content active" id="journal-tab">
-            <div class="section">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title" id="journalTitle">Food Journal</h2>
-                        <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews and experiences</p>
-                    </div>
-                    <div class="section-actions">
-                        <div class="d-flex gap-sm">
-                            <button class="btn btn-secondary btn-sm active filter-btn" data-filter="all">All</button>
-                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
-                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
+                    
+                    <div class="profile-info">
+                        <div class="profile-name" id="profileName">
+                            Loading...
                         </div>
-                        <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addJournalBtn">
-                            <i class="fas fa-plus"></i> New Entry
-                        </button>
+                        <div class="profile-username" id="profileUsername">@username</div>
+                        <div class="profile-bio" id="profileBio">
+                            No bio yet. Click edit to add one!
+                        </div>
+                        <div class="profile-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="profileLocation">Location not set</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span id="memberSince">Member since 2023</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-utensils"></i>
+                                <span id="visitedCountMeta">0 restaurants visited</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
-                <div id="journalEntries">
-                    <div class="empty-state">
-                        <div class="empty-icon">📝</div>
-                        <h3 class="empty-title">No Reviews Yet</h3>
-                        <p class="empty-description">Start reviewing restaurants to build your food journey! Your reviews will appear here.</p>
-                        <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                            <i class="fas fa-utensils"></i> Browse Restaurants
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button class="btn btn-primary" onclick="ProfileManager.showModal('addEntryModal')" id="addEntryBtn">
+                            <i class="fas fa-plus"></i> Add Journal
+                        </button>
+                        <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="btn btn-secondary d-none" id="followButton">
+                            Follow
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Lists Tab Content -->
-        <div class="tab-content" id="lists-tab">
-            <div class="section">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title" id="listsTitle">My Lists</h2>
-                        <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
-                    </div>
-                    <div class="section-actions">
-                        <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="ProfileManager.toggleSortLists()">
-                            <i class="fas fa-sort"></i> Sort
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createListBtn">
-                            <i class="fas fa-plus"></i> New List
-                        </button>
-                    </div>
+        <div class="container">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🍽️</div>
+                    <div class="stat-number" id="visitedCount">0</div>
+                    <div class="stat-label">Restaurants Visited</div>
                 </div>
-
-                <!-- Lists Grid -->
-                <div class="lists-grid" id="listsGrid">
-                    <!-- Lists will be populated here -->
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number" id="followersCount">0</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-number" id="listsCount">0</div>
+                    <div class="stat-label">Lists Created</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-number" id="reviewsCount">0</div>
+                    <div class="stat-label">Reviews Written</div>
                 </div>
             </div>
-        </div>
 
-        <!-- List Detail View -->
-        <div class="tab-content" id="list-detail-view">
-            <div class="section">
-                <div class="section-header">
-                    <div class="d-flex align-center gap-md">
-                        <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
+            <!-- Navigation Tabs - Removed Achievements -->
+            <div class="nav-tabs">
+                <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
+                    <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
+                </div>
+                <div class="nav-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
+                    <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
+                </div>
+                <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
+                    <i class="fas fa-users"></i> Community
+                    <span class="nav-tab-badge d-none" id="followersBadge">0</span>
+                </div>
+            </div>
+
+            <!-- Journal Tab Content -->
+            <div class="tab-content active" id="journal-tab">
+                <div class="section">
+                    <div class="section-header">
                         <div>
-                            <h2 class="section-title" id="listDetailTitle">List Title</h2>
-                            <p class="section-subtitle" id="listDetailDescription">List description</p>
+                            <h2 class="section-title" id="journalTitle">Food Journal</h2>
+                            <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews and experiences</p>
+                        </div>
+                        <div class="section-actions">
+                            <div class="d-flex gap-sm">
+                                <button class="btn btn-secondary btn-sm active filter-btn" data-filter="all">All</button>
+                                <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
+                                <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addJournalBtn">
+                                <i class="fas fa-plus"></i> New Entry
+                            </button>
                         </div>
                     </div>
-                    <div class="section-actions">
-                        <button class="btn btn-secondary btn-sm" id="editListBtn">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addToListBtn">
-                            <i class="fas fa-plus"></i> Add Restaurant
-                        </button>
-                    </div>
-                </div>
 
-                <div class="cards-grid" id="listRestaurantsGrid">
-                    <div class="empty-state">
-                        <div class="empty-icon">🍽️</div>
-                        <h3 class="empty-title">No Restaurants Yet</h3>
-                        <p class="empty-description">Start adding restaurants to this list!</p>
-                        <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
-                            <i class="fas fa-plus"></i> Add Your First Restaurant
-                        </button>
+                    <div id="journalEntries">
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <h3 class="empty-title">No Reviews Yet</h3>
+                            <p class="empty-description">Start reviewing restaurants to build your food journey! Your reviews will appear here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                <i class="fas fa-utensils"></i> Browse Restaurants
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Community Tab Content -->
-        <div class="tab-content" id="community-tab">
-            <div class="section">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title" id="communityTitle">Community</h2>
-                        <p class="section-subtitle" id="communitySubtitle">Connect with other food lovers</p>
-                    </div>
-                    <div class="section-actions">
-                        <div class="d-flex gap-sm">
-                            <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
-                                Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
+            <!-- Lists Tab Content -->
+            <div class="tab-content" id="lists-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="listsTitle">My Lists</h2>
+                            <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="ProfileManager.toggleSortLists()">
+                                <i class="fas fa-sort"></i> Sort
                             </button>
-                            <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="ProfileManager.showCommunitySection('following')">
-                                Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createListBtn">
+                                <i class="fas fa-plus"></i> New List
                             </button>
                         </div>
-                        <button class="btn btn-primary" onclick="ProfileManager.showModal('communitySearchModal')" id="addCommunityBtn">
-                            <i class="fas fa-user-plus"></i> Find Users
-                        </button>
+                    </div>
+
+                    <!-- Lists Grid -->
+                    <div class="lists-grid" id="listsGrid">
+                        <!-- Lists will be populated here -->
                     </div>
                 </div>
+            </div>
 
-                <!-- Followers Section -->
-                <div class="community-section active" id="followersSection">
+            <!-- List Detail View -->
+            <div class="tab-content" id="list-detail-view">
+                <div class="section">
                     <div class="section-header">
-                        <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
-                        <p class="section-subtitle">People who follow your food journey</p>
+                        <div class="d-flex align-center gap-md">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <div>
+                                <h2 class="section-title" id="listDetailTitle">List Title</h2>
+                                <p class="section-subtitle" id="listDetailDescription">List description</p>
+                            </div>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary btn-sm" id="editListBtn">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addToListBtn">
+                                <i class="fas fa-plus"></i> Add Restaurant
+                            </button>
+                        </div>
                     </div>
-                    <div id="followersList">
+
+                    <div class="cards-grid" id="listRestaurantsGrid">
                         <div class="empty-state">
-                            <div class="empty-icon">👥</div>
-                            <h3 class="empty-title">No followers yet</h3>
-                            <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
-                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <p class="empty-description">Start adding restaurants to this list!</p>
+                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
+                                <i class="fas fa-plus"></i> Add Your First Restaurant
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Tab Content -->
+            <div class="tab-content" id="community-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="communityTitle">Community</h2>
+                            <p class="section-subtitle" id="communitySubtitle">Connect with other food lovers</p>
+                        </div>
+                        <div class="section-actions">
+                            <div class="d-flex gap-sm">
+                                <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
+                                    Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="ProfileManager.showCommunitySection('following')">
+                                    Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-primary" onclick="ProfileManager.showModal('communitySearchModal')" id="addCommunityBtn">
                                 <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Following Section -->
-                <div class="community-section" id="followingSection">
-                    <div class="section-header">
-                        <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
-                        <p class="section-subtitle">People whose food journey you follow</p>
+                    <!-- Followers Section -->
+                    <div class="community-section active" id="followersSection">
+                        <div class="section-header">
+                            <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
+                            <p class="section-subtitle">People who follow your food journey</p>
+                        </div>
+                        <div id="followersList">
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">No followers yet</h3>
+                                <p class="empty-description">Share your profile to get followers and connect with other food enthusiasts!</p>
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div id="followingList">
-                        <div class="empty-state">
-                            <div class="empty-icon">👥</div>
-                            <h3 class="empty-title">Not following anyone yet</h3>
-                            <p class="empty-description">Discover and follow other food lovers to see their restaurant adventures!</p>
-                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                <i class="fas fa-user-plus"></i> Find Users
-                            </button>
+
+                    <!-- Following Section -->
+                    <div class="community-section" id="followingSection">
+                        <div class="section-header">
+                            <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
+                            <p class="section-subtitle">People whose food journey you follow</p>
+                        </div>
+                        <div id="followingList">
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">Not following anyone yet</h3>
+                                <p class="empty-description">Discover and follow other food lovers to see their restaurant adventures!</p>
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Achievements Tab Content - Now last -->
-        <div class="tab-content" id="achievements-tab">
-            <div class="section">
-                <div class="section-header">
-                    <div>
-                        <h2 class="section-title" id="achievementsTitle">Achievements</h2>
-                        <p class="section-subtitle" id="achievementsSubtitle">Track your food journey progress</p>
+        
+        <!-- Footer -->
+        <div class="profile-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-links">
+                        <a href="#" class="footer-link" onclick="ProfileManager.showModal('editProfileModal'); return false;">Settings</a>
+                        <a href="#" class="footer-link">Privacy</a>
+                        <a href="#" class="footer-link">Support</a>
+                        <a href="#" class="footer-link">About</a>
+                        <a href="#" class="footer-link" id="logoutBtn">Logout</a>
                     </div>
-                    <div class="section-actions">
-                        <button class="btn btn-secondary" onclick="ProfileManager.refreshAchievements()">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="achievements-grid" id="achievementsList">
-                    <!-- Achievements will be populated here -->
+                    <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Footer -->
-    <div class="profile-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-links">
-                    <a href="#" class="footer-link" onclick="ProfileManager.showModal('editProfileModal'); return false;">Settings</a>
-                    <a href="#" class="footer-link">Privacy</a>
-                    <a href="#" class="footer-link">Support</a>
-                    <a href="#" class="footer-link">About</a>
-                    <a href="#" class="footer-link" id="logoutBtn">Logout</a>
-                </div>
-                <div class="copyright">© 2023 Zo2y. All rights reserved.</div>
-            </div>
-        </div>
-    </div>
 
-    <!-- MOBILE VIEW (hidden on desktop) -->
+    <!-- Mobile View -->
     <div class="mobile-only">
+        <!-- Mobile Top Bar -->
         <div class="mobile-topbar">
-            <span id="mobileUsername">@user</span>
-            <i class="fas fa-bars" onclick="MobileProfile.showMenu()"></i>
-        </div>
-
-        <div class="mobile-profile">
-            <div class="mobile-avatar" id="mobileAvatar" onclick="MobileProfile.showAvatarModal()">🍔</div>
-            <h2 id="mobileName">Loading</h2>
-            <div class="mobile-bio" id="mobileBio"></div>
-
-            <div class="mobile-stats">
-                <div class="mobile-stat">
-                    <strong id="mobilePosts">0</strong>
-                    <span>posts</span>
-                </div>
-                <div class="mobile-stat">
-                    <strong id="mobileFollowers">0</strong>
-                    <span>followers</span>
-                </div>
-                <div class="mobile-stat">
-                    <strong id="mobileLists">0</strong>
-                    <span>lists</span>
-                </div>
-            </div>
-
-            <button class="mobile-btn" onclick="MobileProfile.editProfile()">
-                <i class="fas fa-edit"></i> edit profile
+            <div class="mobile-topbar-title">Profile</div>
+            <button class="mobile-menu-btn" onclick="MobileProfile.showMenu()">
+                <i class="fas fa-bars"></i>
             </button>
         </div>
 
-        <div class="mobile-feed" id="mobileFeed"></div>
+        <!-- Mobile Side Menu -->
+        <div class="mobile-side-menu" id="mobileSideMenu">
+            <div class="mobile-menu-header">
+                <div class="mobile-menu-title">Menu</div>
+                <button class="mobile-menu-close" onclick="MobileProfile.hideMenu()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-        <div class="mobile-bottom-nav">
-            <i class="fas fa-home" onclick="window.location.href='index.html'"></i>
-            <i class="fas fa-search" onclick="MobileProfile.showSearch()"></i>
-            <i class="fas fa-plus-square" onclick="MobileProfile.addEntry()"></i>
-            <i class="fas fa-user active"></i>
+            <div class="mobile-menu-section">
+                <div class="mobile-menu-section-title">Navigation</div>
+                <div class="mobile-menu-item" onclick="MobileProfile.goHome()">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.showSection('journal')">
+                    <i class="fas fa-book"></i>
+                    <span>Food Journal</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.showSection('lists')">
+                    <i class="fas fa-list"></i>
+                    <span>My Lists</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.showSection('community')">
+                    <i class="fas fa-users"></i>
+                    <span>Community</span>
+                </div>
+            </div>
+
+            <div class="mobile-menu-divider"></div>
+
+            <div class="mobile-menu-section">
+                <div class="mobile-menu-section-title">Account</div>
+                <div class="mobile-menu-item" onclick="MobileProfile.editProfile()">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Edit Profile</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.showSettings()">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.showAvatarModal()">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Change Avatar</span>
+                </div>
+            </div>
+
+            <div class="mobile-menu-divider"></div>
+
+            <div class="mobile-menu-section">
+                <div class="mobile-menu-section-title">Actions</div>
+                <div class="mobile-menu-item" onclick="MobileProfile.addJournalEntry()">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add Journal Entry</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.createList()">
+                    <i class="fas fa-plus-square"></i>
+                    <span>Create New List</span>
+                </div>
+                <div class="mobile-menu-item" onclick="MobileProfile.searchUsers()">
+                    <i class="fas fa-search"></i>
+                    <span>Find Users</span>
+                </div>
+            </div>
+
+            <div class="mobile-menu-divider"></div>
+
+            <div class="mobile-menu-section">
+                <div class="mobile-menu-item" onclick="MobileProfile.logout()" style="color: var(--error);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Log Out</span>
+                </div>
+            </div>
         </div>
+
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="MobileProfile.hideMenu()"></div>
+
+        <!-- Mobile Profile Header -->
+        <div class="mobile-profile-header">
+            <div class="mobile-avatar-container">
+                <div class="mobile-avatar" id="mobileAvatar" onclick="MobileProfile.showAvatarModal()">
+                    🍔
+                </div>
+            </div>
+            <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
+            <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
+            <div class="mobile-profile-bio" id="mobileProfileBio">
+                No bio yet. Tap edit to add one!
+            </div>
+        </div>
+
+        <!-- Mobile Stats -->
+        <div class="mobile-stats">
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
+                <span class="mobile-stat-label">Visited</span>
+            </div>
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
+                <span class="mobile-stat-label">Followers</span>
+            </div>
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileListsCount">0</span>
+                <span class="mobile-stat-label">Lists</span>
+            </div>
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileReviewsCount">0</span>
+                <span class="mobile-stat-label">Reviews</span>
+            </div>
+        </div>
+
+        <!-- Mobile Tabs Navigation - Removed Achievements -->
+        <div class="mobile-tabs">
+            <div class="mobile-tab active" data-tab="journal" onclick="MobileProfile.showSection('journal')">
+                <i class="fas fa-book"></i>
+                <span>Journal</span>
+            </div>
+            <div class="mobile-tab" data-tab="lists" onclick="MobileProfile.showSection('lists')">
+                <i class="fas fa-list"></i>
+                <span>Lists</span>
+            </div>
+            <div class="mobile-tab" data-tab="community" onclick="MobileProfile.showSection('community')">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+                <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
+            </div>
+        </div>
+
+        <!-- Mobile Content Area -->
+        <div class="mobile-content">
+            <!-- Journal Section -->
+            <div class="mobile-section active" id="mobileJournalSection">
+                <div class="mobile-section-title">
+                    Food Journal
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.addJournalEntry()">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                <div class="mobile-section-subtitle">Your restaurant reviews and experiences</div>
+                
+                <div id="mobileJournalEntries">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📝</div>
+                        <div class="mobile-empty-title">No Reviews Yet</div>
+                        <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
+                        <button class="mobile-action-btn" onclick="MobileProfile.addJournalEntry()">
+                            <i class="fas fa-plus"></i> Add First Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lists Section -->
+            <div class="mobile-section" id="mobileListsSection">
+                <div class="mobile-section-title">
+                    My Lists
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.createList()">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                </div>
+                <div class="mobile-section-subtitle">Organize your favorite restaurants</div>
+                
+                <div id="mobileLists">
+                    <!-- Lists will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Community Section -->
+            <div class="mobile-section" id="mobileCommunitySection">
+                <div class="mobile-section-title">
+                    Community
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.showCommunityTab('followers')" id="mobileFollowersTabBtn">
+                            Followers
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.showCommunityTab('following')" id="mobileFollowingTabBtn">
+                            Following
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle">Connect with other food lovers</div>
+                
+                <!-- Followers Tab -->
+                <div class="mobile-community-tab active" id="mobileFollowersTab">
+                    <div id="mobileFollowersList">
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">No followers yet</div>
+                            <div class="mobile-empty-description">Share your profile to get followers!</div>
+                            <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Following Tab -->
+                <div class="mobile-community-tab" id="mobileFollowingTab">
+                    <div id="mobileFollowingList">
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">Not following anyone</div>
+                            <div class="mobile-empty-description">Discover and follow other food lovers!</div>
+                            <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="mobile-bottom-nav">
+            <a href="index.html" class="mobile-bottom-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <div class="mobile-bottom-nav-item" onclick="MobileProfile.addJournalEntry()">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add</span>
+            </div>
+            <div class="mobile-bottom-nav-item active" onclick="MobileProfile.showSection('journal')">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+            <div class="mobile-bottom-nav-item" onclick="MobileProfile.searchUsers()">
+                <i class="fas fa-search"></i>
+                <span>Search</span>
+            </div>
+            <div class="mobile-bottom-nav-item" onclick="MobileProfile.showMenu()">
+                <i class="fas fa-bars"></i>
+                <span>Menu</span>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div class="mobile-toast-container" id="mobileToastContainer"></div>
     </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- ===== MODALS (Shared by both Desktop and Mobile) ===== -->
 
-    <!-- Add Journal Entry Modal -->
+    <!-- Add Entry Modal -->
     <div class="modal" id="addEntryModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2148,48 +2477,6 @@
         </div>
     </div>
 
-    <!-- Create List Modal -->
-    <div class="modal" id="createListModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Create New List</h3>
-                <button class="modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
-            </div>
-            
-            <form id="createListForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">List Name</label>
-                        <input type="text" class="form-input" id="listName" placeholder="e.g., Date Night Spots" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-textarea" id="listDescription" placeholder="What kind of restaurants go in this list?"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Icon</label>
-                        <div class="d-flex gap-md flex-wrap">
-                            <div class="list-icon-option" data-icon="💑">💑</div>
-                            <div class="list-icon-option" data-icon="🥪">🥪</div>
-                            <div class="list-icon-option" data-icon="🍳">🍳</div>
-                            <div class="list-icon-option" data-icon="💼">💼</div>
-                            <div class="list-icon-option" data-icon="🌮">🌮</div>
-                            <div class="list-icon-option" data-icon="🍕">🍕</div>
-                        </div>
-                        <input type="hidden" id="selectedIcon" value="📋">
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create List</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Edit Profile Modal -->
     <div class="modal" id="editProfileModal">
         <div class="modal-content">
@@ -2212,23 +2499,19 @@
                     
                     <div class="form-group">
                         <label class="form-label">Bio</label>
-                        <textarea class="form-textarea" id="editBio" placeholder="Tell others about your food journey"></textarea>
+                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us about your food journey"></textarea>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Location</label>
-                        <input type="text" class="form-input" id="editLocation" placeholder="Where are you based?">
+                        <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
                     </div>
-
+                    
                     <div class="form-group">
-                        <label class="form-label">Account Privacy</label>
-                        <div class="d-flex gap-md align-center">
-                            <input type="checkbox" id="editIsPrivate" class="form-input" style="width: auto;">
-                            <label for="editIsPrivate" class="form-label" style="margin-bottom: 0;">Private Account</label>
-                        </div>
-                        <div class="text-xs text-muted mt-xs">
-                            Private accounts require approval for follow requests
-                        </div>
+                        <label class="form-label">
+                            <input type="checkbox" id="editIsPrivate"> Private Account
+                        </label>
+                        <small style="color: var(--muted); display: block; margin-top: 4px;">Private accounts require approval for followers</small>
                     </div>
                     
                     <div class="form-actions">
@@ -2240,23 +2523,62 @@
         </div>
     </div>
 
-    <!-- Avatar Selection Modal -->
+    <!-- Create List Modal -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New List</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
+            </div>
+            
+            <form id="createListForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="listName" required placeholder="e.g., Date Night Spots">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <div class="list-icon-option" data-icon="📋">📋</div>
+                            <div class="list-icon-option" data-icon="❤️">❤️</div>
+                            <div class="list-icon-option" data-icon="⭐">⭐</div>
+                            <div class="list-icon-option" data-icon="📍">📍</div>
+                            <div class="list-icon-option" data-icon="🍽️">🍽️</div>
+                            <div class="list-icon-option" data-icon="🔥">🔥</div>
+                        </div>
+                        <input type="hidden" id="selectedIcon" value="📋">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Avatar Modal -->
     <div class="modal" id="avatarModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Choose Your Avatar</h3>
+                <h3 class="modal-title">Choose Avatar</h3>
                 <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
             </div>
             
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Select a food icon</label>
-                    <div class="avatar-icon-grid" id="avatarIconGrid">
-                        <!-- Avatar icons will be populated here -->
-                    </div>
+                <div class="avatar-icon-grid" id="avatarIconGrid">
+                    <!-- Icons will be populated here -->
                 </div>
                 
-                <div class="form-actions">
+                <div class="form-actions" style="margin-top: 20px;">
                     <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
                 </div>
@@ -2274,15 +2596,16 @@
             
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Search for users</label>
-                    <div class="search-box">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="search-input" id="userSearch" placeholder="Search by username or name...">
-                    </div>
+                    <input type="text" class="form-input" id="userSearch" placeholder="Search by username or name..." style="padding-left: 40px;">
+                    <i class="fas fa-search" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--muted);"></i>
                 </div>
                 
-                <div id="searchResults" class="user-grid" style="margin-top: 20px;">
-                    <!-- Search results will be populated here -->
+                <div id="searchResults" style="margin-top: 20px;">
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Search for users</h3>
+                        <p class="empty-description">Enter a username or name to search</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2339,9 +2662,8 @@
                     currentUser = user;
                     
                     // Check if mobile view should be shown
-                    const isMobile = window.innerWidth <= 480;
+                    const isMobile = window.innerWidth <= 768;
                     if (isMobile) {
-                        document.body.classList.add('mobile-view');
                         MobileProfile.initialize();
                         return;
                     }
@@ -2356,8 +2678,7 @@
                     await Promise.all([
                         listManager.init(),
                         communitySystem.init(),
-                        foodJournal.init(),
-                        achievementsSystem.init()
+                        foodJournal.init()
                     ]);
                     
                     setupEventListeners();
@@ -2373,11 +2694,11 @@
 
             // ===== TOAST SYSTEM =====
             function showToast(message, type = 'info', duration = 3000) {
-                const toastContainer = document.getElementById('toastContainer');
+                const toastContainer = document.getElementById('toastContainer') || document.getElementById('mobileToastContainer');
                 if (!toastContainer) return;
                 
                 const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
+                toast.className = window.innerWidth <= 768 ? `mobile-toast ${type}` : `toast ${type}`;
                 
                 const icons = {
                     success: 'fas fa-check-circle',
@@ -2386,18 +2707,26 @@
                     info: 'fas fa-info-circle'
                 };
                 
-                toast.innerHTML = `
-                    <i class="${icons[type]} toast-icon"></i>
-                    <div class="toast-content">
-                        <div class="toast-message">${message}</div>
-                    </div>
-                    <button class="toast-close">&times;</button>
-                `;
+                if (window.innerWidth <= 768) {
+                    toast.innerHTML = `
+                        <i class="${icons[type]}" style="color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent)'}; font-size: 20px;"></i>
+                        <div style="flex: 1; font-size: 14px;">${message}</div>
+                        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">×</button>
+                    `;
+                } else {
+                    toast.innerHTML = `
+                        <i class="${icons[type]} toast-icon"></i>
+                        <div class="toast-content">
+                            <div class="toast-message">${message}</div>
+                        </div>
+                        <button class="toast-close">&times;</button>
+                    `;
+                    
+                    const closeBtn = toast.querySelector('.toast-close');
+                    closeBtn.addEventListener('click', () => toast.remove());
+                }
                 
                 toastContainer.appendChild(toast);
-                
-                const closeBtn = toast.querySelector('.toast-close');
-                closeBtn.addEventListener('click', () => toast.remove());
                 
                 setTimeout(() => {
                     if (toast.parentNode) toast.remove();
@@ -2708,31 +3037,6 @@
                     this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
                     
                     if (isViewingOwnProfile) {
-                        // Check for duplicate lists
-                        const duplicateLists = this.userLists.filter(list => 
-                            ['Favorites', 'Visited', 'Want to Go'].includes(list.title) && 
-                            list.title !== 'default'
-                        );
-                        
-                        // Keep only the colored emoji versions (non-default flag)
-                        for (const listType of ['favorites', 'visited', 'wantToGo']) {
-                            const listTitle = listType === 'favorites' ? 'Favorites' : 
-                                            listType === 'visited' ? 'Visited' : 'Want to Go';
-                            
-                            const coloredLists = duplicateLists.filter(l => l.title === listTitle && l.icon);
-                            const defaultLists = duplicateLists.filter(l => l.title === listTitle && !l.icon);
-                            
-                            // Delete duplicate default lists (no colored emojis)
-                            if (defaultLists.length > 1) {
-                                for (let i = 1; i < defaultLists.length; i++) {
-                                    await supabase
-                                        .from('lists')
-                                        .delete()
-                                        .eq('id', defaultLists[i].id);
-                                }
-                            }
-                        }
-                        
                         if (!this.currentLists.favorites) {
                             this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId, '❤️');
                         }
@@ -3773,102 +4077,6 @@
                 }
             };
 
-            // ===== ACHIEVEMENTS SYSTEM =====
-            const achievementsSystem = {
-                async init() {
-                    await this.loadAchievements();
-                },
-
-                async loadAchievements() {
-                    const achievementsList = document.getElementById('achievementsList');
-                    if (!achievementsList) return;
-
-                    this.displaySampleAchievements();
-                },
-
-                displaySampleAchievements() {
-                    const sampleAchievements = [
-                        { 
-                            id: 1, 
-                            name: "Food Explorer", 
-                            description: "Visit 10 different restaurants", 
-                            icon: "🗺️", 
-                            goal: 10,
-                            points: 50
-                        },
-                        { 
-                            id: 2, 
-                            name: "Cuisine Connoisseur", 
-                            description: "Try 5 different cuisines", 
-                            icon: "🌍", 
-                            goal: 5,
-                            points: 75
-                        },
-                        { 
-                            id: 3, 
-                            name: "Review Master", 
-                            description: "Write 15 reviews", 
-                            icon: "📝", 
-                            goal: 15,
-                            points: 100
-                        },
-                        { 
-                            id: 4, 
-                            name: "Social Foodie", 
-                            description: "Get 10 followers", 
-                            icon: "👥", 
-                            goal: 10,
-                            points: 60
-                        },
-                        { 
-                            id: 5, 
-                            name: "List Creator", 
-                            description: "Create 5 lists", 
-                            icon: "📋", 
-                            goal: 5,
-                            points: 40
-                        },
-                        { 
-                            id: 6, 
-                            name: "Five Star Foodie", 
-                            description: "Give 5 five-star reviews", 
-                            icon: "⭐⭐⭐⭐⭐", 
-                            goal: 5,
-                            points: 80
-                        }
-                    ];
-
-                    const achievementsList = document.getElementById('achievementsList');
-                    if (!achievementsList) return;
-
-                    achievementsList.innerHTML = '';
-
-                    sampleAchievements.forEach(achievement => {
-                        const progress = Math.floor(Math.random() * (achievement.goal + 2));
-                        const unlocked = progress >= achievement.goal;
-                        const progressPercentage = Math.min((progress / achievement.goal) * 100, 100);
-
-                        const achievementElement = document.createElement('div');
-                        achievementElement.className = `achievement-card ${unlocked ? '' : 'locked'}`;
-                        achievementElement.innerHTML = `
-                            <div class="achievement-icon">
-                                ${achievement.icon}
-                                ${unlocked ? '<div class="achievement-badge">✓</div>' : ''}
-                            </div>
-                            <div class="achievement-title">${achievement.name}</div>
-                            <div class="achievement-desc">${achievement.description}</div>
-                            <div class="achievement-progress">
-                                <div class="achievement-progress-bar" style="width: ${progressPercentage}%"></div>
-                            </div>
-                            <div class="text-xs text-muted mt-sm">
-                                ${progress}/${achievement.goal} • ${achievement.points} pts
-                            </div>
-                        `;
-                        achievementsList.appendChild(achievementElement);
-                    });
-                }
-            };
-
             // ===== MOBILE PROFILE MANAGER =====
             const MobileProfile = {
                 async initialize() {
@@ -3926,19 +4134,22 @@
                         userProfile = profile;
                     }
                     
-                    document.getElementById("mobileName").textContent = userProfile.full_name || userProfile.username || currentUser.email.split('@')[0];
-                    document.getElementById("mobileUsername").textContent = "@" + (userProfile.username || currentUser.email.split('@')[0]);
-                    document.getElementById("mobileBio").textContent = userProfile.bio || "";
+                    document.getElementById("mobileProfileName").textContent = userProfile.full_name || userProfile.username || currentUser.email.split('@')[0];
+                    document.getElementById("mobileProfileUsername").textContent = "@" + (userProfile.username || currentUser.email.split('@')[0]);
+                    document.getElementById("mobileProfileBio").textContent = userProfile.bio || "";
                     document.getElementById("mobileAvatar").textContent = userProfile.avatar_icon || "🍔";
                     
                     const posts = await supabase.from("journal_entries").select("id", {count: "exact"}).eq("user_id", uid);
-                    document.getElementById("mobilePosts").textContent = posts.count || 0;
+                    document.getElementById("mobileVisitedCount").textContent = posts.count || 0;
                     
                     const followers = await supabase.from("follows").select("id", {count: "exact"}).eq("followed_id", uid);
-                    document.getElementById("mobileFollowers").textContent = followers.count || 0;
+                    document.getElementById("mobileFollowersCount").textContent = followers.count || 0;
                     
                     const lists = await supabase.from("lists").select("id", {count: "exact"}).eq("user_id", uid);
-                    document.getElementById("mobileLists").textContent = lists.count || 0;
+                    document.getElementById("mobileListsCount").textContent = lists.count || 0;
+                    
+                    const reviews = await supabase.from("journal_entries").select("id", {count: "exact"}).eq("user_id", uid);
+                    document.getElementById("mobileReviewsCount").textContent = reviews.count || 0;
                 },
                 
                 async loadMobileFeed(uid) {
@@ -3949,17 +4160,19 @@
                         .order("created_at", {ascending: false})
                         .limit(10);
                     
-                    const feed = document.getElementById("mobileFeed");
+                    const feed = document.getElementById("mobileJournalEntries");
+                    if (!feed) return;
+                    
                     feed.innerHTML = "";
                     
                     if (!data || data.length === 0) {
                         feed.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📝</div>
-                                <h3 class="empty-title">No Reviews Yet</h3>
-                                <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
-                                <button class="mobile-btn mt-md" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-utensils"></i> Browse Restaurants
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">📝</div>
+                                <div class="mobile-empty-title">No Reviews Yet</div>
+                                <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
+                                <button class="mobile-action-btn" onclick="MobileProfile.addJournalEntry()">
+                                    <i class="fas fa-plus"></i> Add First Review
                                 </button>
                             </div>
                         `;
@@ -3968,45 +4181,140 @@
                     
                     data.forEach(e => {
                         const div = document.createElement("div");
-                        div.className = "mobile-post";
+                        div.className = "mobile-journal-entry";
                         div.innerHTML = `
-                            <img src="images/${e.restraunts?.image || 'placeholder.jpg'}" alt="${e.restraunts?.name || 'Restaurant'}" loading="lazy">
-                            <div class="mobile-post-body">
-                                <div class="mobile-post-head">
-                                    <div class="mobile-post-avatar">${e.rating >= 4 ? "🔥" : "🍴"}</div>
-                                    <div>
-                                        <div class="mobile-post-title">${e.restraunts?.name || "Restaurant"}</div>
-                                        <div class="mobile-post-rating">${"⭐".repeat(e.rating)}</div>
+                            <div class="mobile-entry-header">
+                                <div class="mobile-restaurant-info">
+                                    <div class="mobile-restaurant-image">
+                                        <img src="images/${e.restraunts?.image || 'placeholder.jpg'}" alt="${e.restraunts?.name || 'Restaurant'}" loading="lazy">
+                                    </div>
+                                    <div class="mobile-restaurant-details">
+                                        <div class="mobile-restaurant-name">${e.restraunts?.name || "Restaurant"}</div>
+                                        <div class="mobile-restaurant-category">${e.restraunts?.category || ""}</div>
                                     </div>
                                 </div>
-                                <div class="mobile-post-text">${e.notes || ""}</div>
+                                <div class="mobile-entry-rating">${"⭐".repeat(e.rating)} ${e.rating}/5</div>
                             </div>
-                            <div class="mobile-post-actions">
-                                <i class="far fa-heart"></i>
-                                <i class="far fa-bookmark"></i>
-                            </div>`;
+                            <div class="mobile-entry-meta">
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-calendar"></i> ${new Date(e.visit_date || e.created_at).toLocaleDateString()}
+                                </div>
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-utensils"></i> ${e.restraunts?.category || ""}
+                                </div>
+                            </div>
+                            ${e.notes ? `
+                                <div class="mobile-entry-notes">${e.notes}</div>
+                            ` : ''}
+                            ${e.tags ? `
+                                <div class="mobile-entry-tags">
+                                    ${e.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            <div class="mobile-entry-actions">
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.editJournalEntry('${e.id}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="window.location.href='restaurant.html?slug=${e.restraunts?.slug || ''}'">
+                                    <i class="fas fa-external-link-alt"></i> View
+                                </button>
+                            </div>
+                        `;
                         feed.appendChild(div);
                     });
                 },
                 
                 showMenu() {
-                    showToast('Menu feature coming soon!', 'info');
+                    document.getElementById('mobileSideMenu').classList.add('active');
+                    document.getElementById('mobileMenuOverlay').classList.add('active');
+                    document.body.style.overflow = 'hidden';
                 },
                 
-                showSearch() {
-                    showModal('communitySearchModal');
+                hideMenu() {
+                    document.getElementById('mobileSideMenu').classList.remove('active');
+                    document.getElementById('mobileMenuOverlay').classList.remove('active');
+                    document.body.style.overflow = '';
                 },
                 
-                addEntry() {
-                    showModal('addEntryModal');
+                showSection(section) {
+                    const sections = ['journal', 'lists', 'community'];
+                    sections.forEach(s => {
+                        const element = document.getElementById(`mobile${s.charAt(0).toUpperCase() + s.slice(1)}Section`);
+                        if (element) element.classList.remove('active');
+                        
+                        const tab = document.querySelector(`.mobile-tab[data-tab="${s}"]`);
+                        if (tab) tab.classList.remove('active');
+                    });
+                    
+                    const activeSection = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`);
+                    if (activeSection) activeSection.classList.add('active');
+                    
+                    const activeTab = document.querySelector(`.mobile-tab[data-tab="${section}"]`);
+                    if (activeTab) activeTab.classList.add('active');
+                    
+                    if (section === 'journal') {
+                        this.loadMobileFeed(currentUser.id);
+                    }
+                },
+                
+                showCommunityTab(tab) {
+                    document.getElementById('mobileFollowersTabBtn').classList.toggle('active', tab === 'followers');
+                    document.getElementById('mobileFollowingTabBtn').classList.toggle('active', tab === 'following');
+                    
+                    document.getElementById('mobileFollowersTab').classList.toggle('active', tab === 'followers');
+                    document.getElementById('mobileFollowingTab').classList.toggle('active', tab === 'following');
+                },
+                
+                addJournalEntry() {
+                    ProfileManager.showModal('addEntryModal');
+                    this.hideMenu();
+                },
+                
+                createList() {
+                    ProfileManager.showModal('createListModal');
+                    this.hideMenu();
+                },
+                
+                searchUsers() {
+                    ProfileManager.showModal('communitySearchModal');
+                    this.hideMenu();
                 },
                 
                 editProfile() {
-                    showModal('editProfileModal');
+                    ProfileManager.showModal('editProfileModal');
+                    this.hideMenu();
+                },
+                
+                showSettings() {
+                    window.location.href = 'settings.html';
+                    this.hideMenu();
                 },
                 
                 showAvatarModal() {
-                    showModal('avatarModal');
+                    ProfileManager.showModal('avatarModal');
+                    this.hideMenu();
+                },
+                
+                goHome() {
+                    window.location.href = 'index.html';
+                    this.hideMenu();
+                },
+                
+                async logout() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        try {
+                            await supabase.auth.signOut();
+                            window.location.href = 'login.html';
+                        } catch (error) {
+                            console.error('Error logging out:', error);
+                            showToast('Error logging out', 'error');
+                        }
+                    }
+                    this.hideMenu();
+                },
+                
+                editJournalEntry(entryId) {
+                    showToast('Edit feature coming soon!', 'info');
                 }
             };
 
@@ -4104,24 +4412,20 @@
             function updateTabTitlesForOtherUser(userName) {
                 const journalTabText = document.getElementById('journalTabText');
                 const listsTabText = document.getElementById('listsTabText');
-                const achievementsTabText = document.getElementById('achievementsTabText');
                 
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
                 if (listsTabText) listsTabText.textContent = `${userName}'s Lists`;
-                if (achievementsTabText) achievementsTabText.textContent = `${userName}'s Achievements`;
                 
                 // Update section titles
                 const journalTitle = document.getElementById('journalTitle');
                 const listsTitle = document.getElementById('listsTitle');
                 const communityTitle = document.getElementById('communityTitle');
-                const achievementsTitle = document.getElementById('achievementsTitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
                 
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (listsTitle) listsTitle.textContent = `${userName}'s Lists`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
-                if (achievementsTitle) achievementsTitle.textContent = `${userName}'s Achievements`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
                 
@@ -4129,12 +4433,10 @@
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const listsSubtitle = document.getElementById('listsSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
-                const achievementsSubtitle = document.getElementById('achievementsSubtitle');
                 
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (listsSubtitle) listsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
-                if (achievementsSubtitle) achievementsSubtitle.textContent = `${userName}'s food journey progress`;
             }
 
             function goToMyProfile() {
@@ -4148,13 +4450,11 @@
             function showTab(tabName) {
                 document.querySelectorAll('.tab-content').forEach(tab => {
                     tab.classList.remove('active');
-                    tab.style.display = 'none';
                 });
                 
                 const tabElement = document.getElementById(`${tabName}-tab`);
                 if (tabElement) {
                     tabElement.classList.add('active');
-                    tabElement.style.display = 'block';
                 }
                 
                 document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -4175,9 +4475,6 @@
                         break;
                     case 'community':
                         showCommunitySection('followers');
-                        break;
-                    case 'achievements':
-                        achievementsSystem.loadAchievements();
                         break;
                 }
             }
@@ -4222,6 +4519,7 @@
                             visitDate.value = today;
                             visitDate.max = today;
                         }
+                        setRating(0);
                     }
                     
                     if (modalId === 'editProfileModal' && userProfile) {
@@ -4543,9 +4841,9 @@
                     document.getElementById('profileLocation').textContent = location || "Location not set";
                     
                     // Update mobile view
-                    document.getElementById('mobileName').textContent = displayName;
-                    document.getElementById('mobileUsername').textContent = `@${username}`;
-                    document.getElementById('mobileBio').textContent = bio || "";
+                    document.getElementById('mobileProfileName').textContent = displayName;
+                    document.getElementById('mobileProfileUsername').textContent = `@${username}`;
+                    document.getElementById('mobileProfileBio').textContent = bio || "";
                     
                     userProfile = {
                         ...userProfile,
@@ -4568,11 +4866,6 @@
             // ===== UTILITY FUNCTIONS =====
             function toggleSortLists() {
                 showToast('List sorting feature coming soon!', 'info');
-            }
-
-            function refreshAchievements() {
-                achievementsSystem.loadAchievements();
-                showToast('Achievements refreshed!', 'success');
             }
 
             // ===== PUBLIC API =====
@@ -4601,8 +4894,7 @@
                 setRating,
                 
                 // Utilities
-                toggleSortLists,
-                refreshAchievements
+                toggleSortLists
             };
         })();
 
