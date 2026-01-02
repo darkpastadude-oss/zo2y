@@ -4982,6 +4982,39 @@ window.MobileProfile = {
         }
     }
 };
+// ===== GLOBAL ACCESS TO MOBILE PROFILE =====
+// This exposes the MobileProfile object to inline onclick handlers
+(function() {
+    // Wait for ProfileManager to be initialized
+    const checkInterval = setInterval(() => {
+        if (window.ProfileManager && typeof ProfileManager.getMobileProfile === 'function') {
+            window.MobileProfile = ProfileManager.getMobileProfile();
+            clearInterval(checkInterval);
+        }
+    }, 100);
+    
+    // Fallback basic functions in case ProfileManager isn't ready yet
+    window.MobileProfile = window.MobileProfile || {
+        showMenu: function() {
+            document.getElementById('mobileSideMenu')?.classList.add('active');
+            document.getElementById('mobileMenuOverlay')?.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        },
+        hideMenu: function() {
+            document.getElementById('mobileSideMenu')?.classList.remove('active');
+            document.getElementById('mobileMenuOverlay')?.classList.remove('active');
+            document.body.style.overflow = '';
+        },
+        showSection: function(section) {
+            console.log('Loading section:', section);
+            // This will be replaced by the real function
+        },
+        showCommunityTab: function(tab) {
+            console.log('Switching to tab:', tab);
+            // This will be replaced by the real function
+        }
+    };
+})();
     </script>
 </body>
 </html>
