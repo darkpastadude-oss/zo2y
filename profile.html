@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* === DARK BLUE THEME VARIABLES === */
         :root {
@@ -56,30 +55,19 @@
             top: 20px;
             left: 20px;
             z-index: 1000;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             transition: var(--transition);
             text-decoration: none;
-            background: var(--card);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
         }
 
         .home-button img {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             object-fit: contain;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .home-button:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(245,158,11,0.3);
-            border-color: var(--accent);
         }
 
         /* === PROFILE HEADER === */
@@ -541,77 +529,6 @@
             display: flex;
             gap: 8px;
             justify-content: flex-end;
-        }
-
-        /* === ACHIEVEMENTS === */
-        .achievements-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .achievement-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 20px;
-            border: 1px solid var(--border);
-            transition: var(--transition);
-        }
-
-        .achievement-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent);
-        }
-
-        .achievement-card.locked {
-            opacity: 0.6;
-        }
-
-        .achievement-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-            position: relative;
-        }
-
-        .achievement-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--success);
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        .achievement-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .achievement-desc {
-            font-size: 14px;
-            color: var(--muted);
-            margin-bottom: 16px;
-        }
-
-        .achievement-progress {
-            background: var(--bg);
-            border-radius: 20px;
-            height: 6px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .achievement-progress-bar {
-            background: var(--accent);
-            height: 100%;
-            transition: width 0.5s ease;
         }
 
         /* === FOLLOWER/COMMUNITY CARDS === */
@@ -1795,63 +1712,6 @@
                 color: var(--muted);
             }
 
-            /* Mobile Achievements */
-            .mobile-achievement-card {
-                background: var(--card);
-                border-radius: var(--radius);
-                padding: 16px;
-                border: 1px solid var(--border);
-                margin-bottom: 12px;
-                display: flex;
-                align-items: center;
-                gap: 16px;
-            }
-
-            .mobile-achievement-card.locked {
-                opacity: 0.6;
-            }
-
-            .mobile-achievement-icon {
-                font-size: 32px;
-                width: 50px;
-                height: 50px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: var(--bg);
-                border-radius: var(--radius-sm);
-            }
-
-            .mobile-achievement-info {
-                flex: 1;
-            }
-
-            .mobile-achievement-title {
-                font-weight: 600;
-                margin-bottom: 4px;
-                font-size: 15px;
-            }
-
-            .mobile-achievement-desc {
-                font-size: 13px;
-                color: var(--muted);
-                margin-bottom: 8px;
-            }
-
-            .mobile-achievement-progress {
-                background: var(--bg);
-                border-radius: 20px;
-                height: 6px;
-                overflow: hidden;
-                margin-bottom: 4px;
-            }
-
-            .mobile-achievement-progress-bar {
-                background: var(--accent);
-                height: 100%;
-                transition: width 0.5s ease;
-            }
-
             /* Mobile Action Buttons */
             .mobile-action-btn {
                 width: 100%;
@@ -2029,7 +1889,7 @@
 <body>
     <!-- Desktop View -->
     <div class="desktop-only">
-        <!-- Home Button -->
+        <!-- Home Button - Simple logo without box -->
         <a href="index.html" class="home-button">
             <img src="images/logo.png" alt="Zo2y Logo">
         </a>
@@ -2124,7 +1984,7 @@
                 </div>
             </div>
 
-            <!-- Navigation Tabs -->
+            <!-- Navigation Tabs - Removed Achievements -->
             <div class="nav-tabs">
                 <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
                     <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
@@ -2135,9 +1995,6 @@
                 <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                     <i class="fas fa-users"></i> Community
                     <span class="nav-tab-badge d-none" id="followersBadge">0</span>
-                </div>
-                <div class="nav-tab" data-tab="achievements" onclick="ProfileManager.showTab('achievements')">
-                    <i class="fas fa-trophy"></i> <span id="achievementsTabText">Achievements</span>
                 </div>
             </div>
 
@@ -2295,27 +2152,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Achievements Tab Content -->
-            <div class="tab-content" id="achievements-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title" id="achievementsTitle">Achievements</h2>
-                            <p class="section-subtitle" id="achievementsSubtitle">Track your food journey progress</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-secondary" onclick="ProfileManager.refreshAchievements()">
-                                <i class="fas fa-sync-alt"></i> Refresh
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="achievements-grid" id="achievementsList">
-                        <!-- Achievements will be populated here -->
-                    </div>
-                </div>
-            </div>
         </div>
         
         <!-- Footer -->
@@ -2371,10 +2207,6 @@
                 <div class="mobile-menu-item" onclick="MobileProfile.showSection('community')">
                     <i class="fas fa-users"></i>
                     <span>Community</span>
-                </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.showSection('achievements')">
-                    <i class="fas fa-trophy"></i>
-                    <span>Achievements</span>
                 </div>
             </div>
 
@@ -2460,7 +2292,7 @@
             </div>
         </div>
 
-        <!-- Mobile Tabs Navigation -->
+        <!-- Mobile Tabs Navigation - Removed Achievements -->
         <div class="mobile-tabs">
             <div class="mobile-tab active" data-tab="journal" onclick="MobileProfile.showSection('journal')">
                 <i class="fas fa-book"></i>
@@ -2474,10 +2306,6 @@
                 <i class="fas fa-users"></i>
                 <span>Community</span>
                 <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
-            </div>
-            <div class="mobile-tab" data-tab="achievements" onclick="MobileProfile.showSection('achievements')">
-                <i class="fas fa-trophy"></i>
-                <span>Achievements</span>
             </div>
         </div>
 
@@ -2560,25 +2388,6 @@
                                 <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Achievements Section -->
-            <div class="mobile-section" id="mobileAchievementsSection">
-                <div class="mobile-section-title">
-                    Achievements
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.refreshAchievements()">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </div>
-                <div class="mobile-section-subtitle">Track your food journey progress</div>
-                
-                <div id="mobileAchievements">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon">🏆</div>
-                        <div class="mobile-empty-title">No achievements yet</div>
-                        <div class="mobile-empty-description">Keep exploring restaurants to earn achievements!</div>
                     </div>
                 </div>
             </div>
@@ -2813,6 +2622,183 @@
         let foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
         let selectedAvatarIcon = null;
         
+        // ===== SHARED HELPER FUNCTIONS =====
+        
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                if (modalId === 'addEntryModal') {
+                    const visitDate = document.getElementById('visitDate');
+                    if (visitDate) {
+                        const today = new Date().toISOString().split('T')[0];
+                        visitDate.value = today;
+                        visitDate.max = today;
+                    }
+                    setRating(0);
+                }
+                
+                if (modalId === 'editProfileModal' && userProfile) {
+                    document.getElementById('editDisplayName').value = userProfile.full_name || '';
+                    document.getElementById('editUsername').value = userProfile.username || '';
+                    document.getElementById('editBio').value = userProfile.bio || '';
+                    document.getElementById('editLocation').value = userProfile.location || '';
+                    document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
+                }
+                
+                if (modalId === 'avatarModal') {
+                    showAvatarSelector();
+                }
+            }
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Reset forms
+                if (modalId === 'addEntryModal') {
+                    const form = document.getElementById('journalEntryForm');
+                    if (form) form.reset();
+                    setRating(0);
+                }
+                
+                if (modalId === 'createListModal') {
+                    const form = document.getElementById('createListForm');
+                    if (form) form.reset();
+                    document.getElementById('selectedIcon').value = '📋';
+                }
+            }
+        }
+        
+        function setRating(stars) {
+            const starsElements = document.querySelectorAll('#ratingStars span');
+            starsElements.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            
+            const selectedRating = document.getElementById('selectedRating');
+            if (selectedRating) selectedRating.value = stars;
+        }
+        
+        function showAvatarSelector() {
+            const container = document.getElementById('avatarIconGrid');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            foodIcons.forEach(icon => {
+                const iconElement = document.createElement('div');
+                iconElement.className = 'avatar-icon-option';
+                iconElement.textContent = icon;
+                iconElement.onclick = () => {
+                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    iconElement.classList.add('selected');
+                    selectedAvatarIcon = icon;
+                };
+                
+                if (icon === (userProfile?.avatar_icon || '🍔')) {
+                    iconElement.classList.add('selected');
+                    selectedAvatarIcon = icon;
+                }
+                
+                container.appendChild(iconElement);
+            });
+        }
+        
+        async function saveAvatar() {
+            if (!selectedAvatarIcon) {
+                alert('Please select an avatar');
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update({ avatar_icon: selectedAvatarIcon })
+                    .eq('id', currentUser.id);
+                
+                if (error) throw error;
+                
+                userProfile.avatar_icon = selectedAvatarIcon;
+                
+                // Update desktop UI
+                document.getElementById('profileAvatar').textContent = selectedAvatarIcon;
+                
+                // Update mobile UI
+                document.getElementById('mobileAvatar').textContent = selectedAvatarIcon;
+                
+                showToast('Avatar updated!', 'success');
+                closeModal('avatarModal');
+                
+            } catch (error) {
+                console.error('Error saving avatar:', error);
+                showToast('Error saving avatar', 'error');
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer') || document.getElementById('mobileToastContainer');
+            if (!toastContainer) return;
+            
+            const toast = document.createElement('div');
+            toast.className = window.innerWidth <= 768 ? `mobile-toast ${type}` : `toast ${type}`;
+            
+            if (window.innerWidth <= 768) {
+                toast.style.borderLeftColor = type === 'success' ? 'var(--success)' : 
+                                             type === 'error' ? 'var(--error)' : 
+                                             type === 'warning' ? 'var(--warning)' : 'var(--accent)';
+                
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    info: 'fas fa-info-circle'
+                };
+                
+                toast.innerHTML = `
+                    <i class="${icons[type]}" style="color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent)'}; font-size: 20px;"></i>
+                    <div style="flex: 1; font-size: 14px;">${message}</div>
+                    <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">×</button>
+                `;
+            } else {
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    info: 'fas fa-info-circle'
+                };
+                
+                toast.innerHTML = `
+                    <i class="${icons[type]} toast-icon"></i>
+                    <div class="toast-content">
+                        <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                    <button class="toast-close">&times;</button>
+                `;
+                
+                const closeBtn = toast.querySelector('.toast-close');
+                closeBtn.addEventListener('click', () => toast.remove());
+            }
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 3000);
+        }
+        
         // ===== DESKTOP PROFILE MANAGER =====
         const ProfileManager = {
             targetUserId: null,
@@ -2826,6 +2812,24 @@
                     return;
                 }
                 
+                try {
+                    // Load Supabase from CDN if not already loaded
+                    if (!window.supabase) {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+                        script.onload = () => this.initSupabase();
+                        document.head.appendChild(script);
+                    } else {
+                        await this.initSupabase();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error initializing profile:', error);
+                    this.showToast('Error loading profile', 'error');
+                }
+            },
+            
+            async initSupabase() {
                 try {
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
@@ -2854,8 +2858,8 @@
                     this.setupEventListeners();
                     
                 } catch (error) {
-                    console.error('Error initializing profile:', error);
-                    this.showToast('Error loading profile', 'error');
+                    console.error('Error initializing Supabase:', error);
+                    this.showToast('Error connecting to server', 'error');
                 }
             },
             
@@ -3160,7 +3164,6 @@
             updateTabTitlesForOtherUser(userName) {
                 document.getElementById('journalTabText').textContent = `${userName}'s Journal`;
                 document.getElementById('listsTabText').textContent = `${userName}'s Lists`;
-                document.getElementById('achievementsTabText').textContent = `${userName}'s Achievements`;
             },
             
             showTab(tabName) {
@@ -3198,129 +3201,33 @@
                     case 'community':
                         this.loadCommunityData();
                         break;
-                    case 'achievements':
-                        this.loadAchievements();
-                        break;
                 }
             },
             
             async loadLists() {
-                // Implementation for lists loading
                 console.log('Loading lists...');
+                // Implementation for lists loading
             },
             
             async loadCommunityData() {
-                // Implementation for community data loading
                 console.log('Loading community data...');
-            },
-            
-            async loadAchievements() {
-                // Implementation for achievements loading
-                console.log('Loading achievements...');
+                // Implementation for community data loading
             },
             
             showModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    
-                    if (modalId === 'addEntryModal') {
-                        const visitDate = document.getElementById('visitDate');
-                        if (visitDate) {
-                            const today = new Date().toISOString().split('T')[0];
-                            visitDate.value = today;
-                            visitDate.max = today;
-                        }
-                        this.setRating(0);
-                    }
-                    
-                    if (modalId === 'editProfileModal' && userProfile) {
-                        document.getElementById('editDisplayName').value = userProfile.full_name || '';
-                        document.getElementById('editUsername').value = userProfile.username || '';
-                        document.getElementById('editBio').value = userProfile.bio || '';
-                        document.getElementById('editLocation').value = userProfile.location || '';
-                        document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
-                    }
-                    
-                    if (modalId === 'avatarModal') {
-                        this.showAvatarSelector();
-                    }
-                }
+                showModal(modalId);
             },
             
             showAvatarSelector() {
-                const container = document.getElementById('avatarIconGrid');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                foodIcons.forEach(icon => {
-                    const iconElement = document.createElement('div');
-                    iconElement.className = 'avatar-icon-option';
-                    iconElement.textContent = icon;
-                    iconElement.onclick = () => {
-                        document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                            opt.classList.remove('selected');
-                        });
-                        iconElement.classList.add('selected');
-                        selectedAvatarIcon = icon;
-                    };
-                    
-                    if (icon === (userProfile?.avatar_icon || '🍔')) {
-                        iconElement.classList.add('selected');
-                        selectedAvatarIcon = icon;
-                    }
-                    
-                    container.appendChild(iconElement);
-                });
+                showAvatarSelector();
             },
             
             setRating(stars) {
-                const starsElements = document.querySelectorAll('#ratingStars span');
-                starsElements.forEach((star, index) => {
-                    if (index < stars) {
-                        star.classList.add('active');
-                    } else {
-                        star.classList.remove('active');
-                    }
-                });
-                
-                const selectedRating = document.getElementById('selectedRating');
-                if (selectedRating) selectedRating.value = stars;
+                setRating(stars);
             },
             
             showToast(message, type = 'info') {
-                const toastContainer = document.getElementById('toastContainer') || document.getElementById('mobileToastContainer');
-                if (!toastContainer) return;
-                
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                
-                const icons = {
-                    success: 'fas fa-check-circle',
-                    error: 'fas fa-exclamation-circle',
-                    warning: 'fas fa-exclamation-triangle',
-                    info: 'fas fa-info-circle'
-                };
-                
-                toast.innerHTML = `
-                    <i class="${icons[type]} toast-icon"></i>
-                    <div class="toast-content">
-                        <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
-                        <div class="toast-message">${message}</div>
-                    </div>
-                    <button class="toast-close">&times;</button>
-                `;
-                
-                toastContainer.appendChild(toast);
-                
-                const closeBtn = toast.querySelector('.toast-close');
-                closeBtn.addEventListener('click', () => toast.remove());
-                
-                setTimeout(() => {
-                    if (toast.parentNode) toast.remove();
-                }, 3000);
+                showToast(message, type);
             },
             
             setupEventListeners() {
@@ -3346,7 +3253,7 @@
                 document.querySelectorAll('.rating-star').forEach(star => {
                     star.addEventListener('click', function() {
                         const rating = parseInt(this.getAttribute('data-rating'));
-                        ProfileManager.setRating(rating);
+                        setRating(rating);
                     });
                 });
                 
@@ -3375,34 +3282,6 @@
                         }
                     });
                 }
-                
-                // Modal close buttons
-                document.querySelectorAll('.modal-close').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const modal = this.closest('.modal');
-                        if (modal) {
-                            closeModal(modal.id);
-                        }
-                    });
-                });
-                
-                // Close modal on overlay click
-                document.querySelectorAll('.modal').forEach(modal => {
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            closeModal(this.id);
-                        }
-                    });
-                });
-                
-                // Escape key to close modals
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        document.querySelectorAll('.modal.active').forEach(modal => {
-                            closeModal(modal.id);
-                        });
-                    }
-                });
             },
             
             async saveJournalEntry() {
@@ -3509,10 +3388,6 @@
                 console.log('Hide list detail');
             },
             
-            refreshAchievements() {
-                this.showToast('Achievements refreshed!', 'success');
-            },
-            
             editJournalEntry(entryId) {
                 console.log('Edit journal entry:', entryId);
                 this.showToast('Edit feature coming soon!', 'info');
@@ -3525,6 +3400,24 @@
             communityTab: 'followers',
             
             async initialize() {
+                try {
+                    // Load Supabase from CDN if not already loaded
+                    if (!window.supabase) {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+                        script.onload = () => this.initMobile();
+                        document.head.appendChild(script);
+                    } else {
+                        await this.initMobile();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error initializing mobile profile:', error);
+                    this.showToast('Error loading profile', 'error');
+                }
+            },
+            
+            async initMobile() {
                 try {
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
@@ -3540,15 +3433,12 @@
                     await this.loadRestaurants();
                     await this.loadStats();
                     await this.loadJournalEntries();
-                    await this.loadLists();
-                    await this.loadCommunityData();
-                    await this.loadAchievements();
                     
                     this.setupEventListeners();
                     this.showToast('Welcome to your profile!', 'success');
                     
                 } catch (error) {
-                    console.error('Error initializing mobile profile:', error);
+                    console.error('Error initializing mobile:', error);
                     this.showToast('Error loading profile', 'error');
                 }
             },
@@ -3763,279 +3653,6 @@
                 }
             },
             
-            async loadLists() {
-                const container = document.getElementById('mobileLists');
-                if (!container) return;
-                
-                try {
-                    const { data: lists, error } = await supabase
-                        .from('lists')
-                        .select('*')
-                        .eq('user_id', currentUser.id)
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) throw error;
-                    
-                    if (!lists || lists.length === 0) {
-                        container.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">📋</div>
-                                <div class="mobile-empty-title">No Lists Yet</div>
-                                <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
-                                <button class="mobile-action-btn" onclick="MobileProfile.createList()">
-                                    <i class="fas fa-plus"></i> Create First List
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    container.innerHTML = '';
-                    
-                    for (const list of lists) {
-                        const { data: listRestaurants } = await supabase
-                            .from('lists_restraunts')
-                            .select('restraunt_id')
-                            .eq('list_id', list.id);
-                        
-                        const restaurantCount = listRestaurants ? listRestaurants.length : 0;
-                        
-                        const listElement = document.createElement('div');
-                        listElement.className = 'mobile-list-card';
-                        listElement.innerHTML = `
-                            <div class="mobile-list-header">
-                                <div class="mobile-list-icon">${list.icon || '📋'}</div>
-                                <div class="mobile-list-info">
-                                    <div class="mobile-list-title">${list.title}</div>
-                                    <div class="mobile-list-count">${restaurantCount} places</div>
-                                </div>
-                            </div>
-                            ${list.description ? `
-                                <div class="mobile-list-description">${list.description}</div>
-                            ` : ''}
-                            <div class="mobile-entry-actions">
-                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.viewList('${list.id}')">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.editList('${list.id}')">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                            </div>
-                        `;
-                        
-                        container.appendChild(listElement);
-                    }
-                    
-                } catch (error) {
-                    console.error('Error loading lists:', error);
-                    container.innerHTML = `
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon">⚠️</div>
-                            <div class="mobile-empty-title">Unable to Load Lists</div>
-                            <div class="mobile-empty-description">There was an error loading your lists.</div>
-                        </div>
-                    `;
-                }
-            },
-            
-            async loadCommunityData() {
-                await this.loadFollowers();
-                await this.loadFollowing();
-            },
-            
-            async loadFollowers() {
-                const container = document.getElementById('mobileFollowersList');
-                if (!container) return;
-                
-                try {
-                    const { data: follows, error } = await supabase
-                        .from('follows')
-                        .select('follower_id')
-                        .eq('followed_id', currentUser.id);
-                    
-                    if (error) throw error;
-                    
-                    if (!follows || follows.length === 0) {
-                        container.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">👥</div>
-                                <div class="mobile-empty-title">No followers yet</div>
-                                <div class="mobile-empty-description">Share your profile to get followers!</div>
-                                <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
-                                    <i class="fas fa-user-plus"></i> Find Users
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    const followerIds = follows.map(f => f.follower_id);
-                    const uniqueFollowerIds = [...new Set(followerIds)];
-                    
-                    const { data: users, error: usersError } = await supabase
-                        .from('user_profiles')
-                        .select('*')
-                        .in('id', uniqueFollowerIds);
-                    
-                    if (usersError) throw usersError;
-                    
-                    container.innerHTML = '';
-                    
-                    users.forEach(user => {
-                        const userElement = document.createElement('div');
-                        userElement.className = 'mobile-community-card';
-                        userElement.innerHTML = `
-                            <div class="mobile-community-header">
-                                <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
-                                <div class="mobile-community-info">
-                                    <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
-                                    <div class="mobile-community-username">@${user.username || 'user'}</div>
-                                </div>
-                            </div>
-                            <div class="mobile-community-stats">
-                                <div class="mobile-community-stat">
-                                    <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                    <span class="mobile-community-stat-label">Visited</span>
-                                </div>
-                                <div class="mobile-community-stat">
-                                    <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                    <span class="mobile-community-stat-label">Favorites</span>
-                                </div>
-                            </div>
-                            <div class="mobile-entry-actions">
-                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.viewUserProfile('${user.id}')">
-                                    <i class="fas fa-eye"></i> Profile
-                                </button>
-                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.unfollowUser('${user.id}')">
-                                    <i class="fas fa-user-minus"></i> Remove
-                                </button>
-                            </div>
-                        `;
-                        
-                        container.appendChild(userElement);
-                    });
-                    
-                } catch (error) {
-                    console.error('Error loading followers:', error);
-                }
-            },
-            
-            async loadFollowing() {
-                const container = document.getElementById('mobileFollowingList');
-                if (!container) return;
-                
-                try {
-                    const { data: follows, error } = await supabase
-                        .from('follows')
-                        .select('followed_id')
-                        .eq('follower_id', currentUser.id);
-                    
-                    if (error) throw error;
-                    
-                    if (!follows || follows.length === 0) {
-                        container.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">👥</div>
-                                <div class="mobile-empty-title">Not following anyone</div>
-                                <div class="mobile-empty-description">Discover and follow other food lovers!</div>
-                                <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
-                                    <i class="fas fa-user-plus"></i> Find Users
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    const followingIds = follows.map(f => f.followed_id);
-                    const uniqueFollowingIds = [...new Set(followingIds)];
-                    
-                    const { data: users, error: usersError } = await supabase
-                        .from('user_profiles')
-                        .select('*')
-                        .in('id', uniqueFollowingIds);
-                    
-                    if (usersError) throw usersError;
-                    
-                    container.innerHTML = '';
-                    
-                    users.forEach(user => {
-                        const userElement = document.createElement('div');
-                        userElement.className = 'mobile-community-card';
-                        userElement.innerHTML = `
-                            <div class="mobile-community-header">
-                                <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
-                                <div class="mobile-community-info">
-                                    <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
-                                    <div class="mobile-community-username">@${user.username || 'user'}</div>
-                                </div>
-                            </div>
-                            <div class="mobile-community-stats">
-                                <div class="mobile-community-stat">
-                                    <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                    <span class="mobile-community-stat-label">Visited</span>
-                                </div>
-                                <div class="mobile-community-stat">
-                                    <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                    <span class="mobile-community-stat-label">Favorites</span>
-                                </div>
-                            </div>
-                            <div class="mobile-entry-actions">
-                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.viewUserProfile('${user.id}')">
-                                    <i class="fas fa-eye"></i> Profile
-                                </button>
-                                <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="MobileProfile.unfollowUser('${user.id}')">
-                                    <i class="fas fa-user-minus"></i> Unfollow
-                                </button>
-                            </div>
-                        `;
-                        
-                        container.appendChild(userElement);
-                    });
-                    
-                } catch (error) {
-                    console.error('Error loading following:', error);
-                }
-            },
-            
-            async loadAchievements() {
-                const container = document.getElementById('mobileAchievements');
-                if (!container) return;
-                
-                const sampleAchievements = [
-                    { id: 1, name: "Food Explorer", description: "Visit 10 different restaurants", icon: "🗺️", progress: 7, goal: 10 },
-                    { id: 2, name: "Cuisine Connoisseur", description: "Try 5 different cuisines", icon: "🌍", progress: 3, goal: 5 },
-                    { id: 3, name: "Review Master", description: "Write 15 reviews", icon: "📝", progress: 12, goal: 15 },
-                    { id: 4, name: "Social Foodie", description: "Get 10 followers", icon: "👥", progress: 8, goal: 10 },
-                    { id: 5, name: "List Creator", description: "Create 5 lists", icon: "📋", progress: 2, goal: 5 },
-                    { id: 6, name: "Five Star Foodie", description: "Give 5 five-star reviews", icon: "⭐⭐⭐⭐⭐", progress: 3, goal: 5 }
-                ];
-                
-                container.innerHTML = '';
-                
-                sampleAchievements.forEach(achievement => {
-                    const progressPercent = Math.min((achievement.progress / achievement.goal) * 100, 100);
-                    const isUnlocked = achievement.progress >= achievement.goal;
-                    
-                    const achievementElement = document.createElement('div');
-                    achievementElement.className = `mobile-achievement-card ${isUnlocked ? '' : 'locked'}`;
-                    achievementElement.innerHTML = `
-                        <div class="mobile-achievement-icon">${achievement.icon}</div>
-                        <div class="mobile-achievement-info">
-                            <div class="mobile-achievement-title">${achievement.name}</div>
-                            <div class="mobile-achievement-desc">${achievement.description}</div>
-                            <div class="mobile-achievement-progress">
-                                <div class="mobile-achievement-progress-bar" style="width: ${progressPercent}%"></div>
-                            </div>
-                            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
-                                ${achievement.progress}/${achievement.goal} • ${isUnlocked ? '✓ Unlocked' : 'In Progress'}
-                            </div>
-                        </div>
-                    `;
-                    
-                    container.appendChild(achievementElement);
-                });
-            },
-            
             // ===== UI CONTROLS =====
             
             showSection(section) {
@@ -4062,12 +3679,6 @@
                     case 'journal':
                         this.loadJournalEntries();
                         break;
-                    case 'lists':
-                        this.loadLists();
-                        break;
-                    case 'community':
-                        this.showCommunityTab(this.communityTab);
-                        break;
                 }
             },
             
@@ -4079,12 +3690,6 @@
                 
                 document.getElementById('mobileFollowersTab').classList.toggle('active', tab === 'followers');
                 document.getElementById('mobileFollowingTab').classList.toggle('active', tab === 'following');
-                
-                if (tab === 'followers') {
-                    this.loadFollowers();
-                } else {
-                    this.loadFollowing();
-                }
             },
             
             showMenu() {
@@ -4147,77 +3752,12 @@
                 this.hideMenu();
             },
             
-            refreshAchievements() {
-                this.loadAchievements();
-                this.showToast('Achievements refreshed!', 'success');
-            },
-            
-            viewList(listId) {
-                this.showToast(`Viewing list ${listId}`, 'info');
-            },
-            
-            editList(listId) {
-                this.showToast(`Editing list ${listId}`, 'info');
-            },
-            
-            viewUserProfile(userId) {
-                window.location.href = `profile.html?id=${userId}`;
-            },
-            
-            async unfollowUser(userId) {
-                if (confirm('Are you sure you want to unfollow this user?')) {
-                    try {
-                        const { error } = await supabase
-                            .from('follows')
-                            .delete()
-                            .eq('follower_id', currentUser.id)
-                            .eq('followed_id', userId);
-                        
-                        if (error) throw error;
-                        
-                        this.showToast('Unfollowed user', 'success');
-                        this.loadCommunityData();
-                        this.loadStats();
-                        
-                    } catch (error) {
-                        console.error('Error unfollowing user:', error);
-                        this.showToast('Error unfollowing user', 'error');
-                    }
-                }
-            },
-            
             editJournalEntry(entryId) {
                 this.showToast('Edit feature coming soon!', 'info');
             },
             
             showToast(message, type = 'info') {
-                const toastContainer = document.getElementById('mobileToastContainer');
-                if (!toastContainer) return;
-                
-                const toast = document.createElement('div');
-                toast.className = `mobile-toast ${type}`;
-                toast.style.borderLeftColor = type === 'success' ? 'var(--success)' : 
-                                             type === 'error' ? 'var(--error)' : 
-                                             type === 'warning' ? 'var(--warning)' : 'var(--accent)';
-                
-                const icons = {
-                    success: 'fas fa-check-circle',
-                    error: 'fas fa-exclamation-circle',
-                    warning: 'fas fa-exclamation-triangle',
-                    info: 'fas fa-info-circle'
-                };
-                
-                toast.innerHTML = `
-                    <i class="${icons[type]}" style="color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent)'}; font-size: 20px;"></i>
-                    <div style="flex: 1; font-size: 14px;">${message}</div>
-                    <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">×</button>
-                `;
-                
-                toastContainer.appendChild(toast);
-                
-                setTimeout(() => {
-                    if (toast.parentNode) toast.remove();
-                }, 3000);
+                showToast(message, type);
             },
             
             setupEventListeners() {
@@ -4345,140 +3885,6 @@
                 }
             }
         };
-        
-        // ===== SHARED FUNCTIONS =====
-        
-        function showModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                
-                if (modalId === 'addEntryModal') {
-                    const visitDate = document.getElementById('visitDate');
-                    if (visitDate) {
-                        const today = new Date().toISOString().split('T')[0];
-                        visitDate.value = today;
-                        visitDate.max = today;
-                    }
-                    setRating(0);
-                }
-                
-                if (modalId === 'editProfileModal' && userProfile) {
-                    document.getElementById('editDisplayName').value = userProfile.full_name || '';
-                    document.getElementById('editUsername').value = userProfile.username || '';
-                    document.getElementById('editBio').value = userProfile.bio || '';
-                    document.getElementById('editLocation').value = userProfile.location || '';
-                    document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
-                }
-                
-                if (modalId === 'avatarModal') {
-                    showAvatarSelector();
-                }
-            }
-        }
-        
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-                
-                // Reset forms
-                if (modalId === 'addEntryModal') {
-                    const form = document.getElementById('journalEntryForm');
-                    if (form) form.reset();
-                    setRating(0);
-                }
-                
-                if (modalId === 'createListModal') {
-                    const form = document.getElementById('createListForm');
-                    if (form) form.reset();
-                    document.getElementById('selectedIcon').value = '📋';
-                }
-            }
-        }
-        
-        function setRating(stars) {
-            const starsElements = document.querySelectorAll('#ratingStars span');
-            starsElements.forEach((star, index) => {
-                if (index < stars) {
-                    star.classList.add('active');
-                } else {
-                    star.classList.remove('active');
-                }
-            });
-            
-            const selectedRating = document.getElementById('selectedRating');
-            if (selectedRating) selectedRating.value = stars;
-        }
-        
-        function showAvatarSelector() {
-            const container = document.getElementById('avatarIconGrid');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            foodIcons.forEach(icon => {
-                const iconElement = document.createElement('div');
-                iconElement.className = 'avatar-icon-option';
-                iconElement.textContent = icon;
-                iconElement.onclick = () => {
-                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    iconElement.classList.add('selected');
-                    selectedAvatarIcon = icon;
-                };
-                
-                if (icon === (userProfile?.avatar_icon || '🍔')) {
-                    iconElement.classList.add('selected');
-                    selectedAvatarIcon = icon;
-                }
-                
-                container.appendChild(iconElement);
-            });
-        }
-        
-        async function saveAvatar() {
-            if (!selectedAvatarIcon) {
-                alert('Please select an avatar');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('user_profiles')
-                    .update({ avatar_icon: selectedAvatarIcon })
-                    .eq('id', currentUser.id);
-                
-                if (error) throw error;
-                
-                userProfile.avatar_icon = selectedAvatarIcon;
-                
-                // Update desktop UI
-                document.getElementById('profileAvatar').textContent = selectedAvatarIcon;
-                
-                // Update mobile UI
-                document.getElementById('mobileAvatar').textContent = selectedAvatarIcon;
-                
-                if (window.innerWidth <= 768) {
-                    MobileProfile.showToast('Avatar updated!', 'success');
-                } else {
-                    ProfileManager.showToast('Avatar updated!', 'success');
-                }
-                
-                closeModal('avatarModal');
-                
-            } catch (error) {
-                console.error('Error saving avatar:', error);
-                if (window.innerWidth <= 768) {
-                    MobileProfile.showToast('Error saving avatar', 'error');
-                } else {
-                    ProfileManager.showToast('Error saving avatar', 'error');
-                }
-            }
-        }
         
         // ===== INITIALIZE =====
         document.addEventListener('DOMContentLoaded', function() {
