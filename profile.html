@@ -2345,7 +2345,14 @@
                 <div class="mobile-section-subtitle">Organize your favorite restaurants</div>
                 
                 <div id="mobileLists">
-                    <!-- Lists will be loaded here -->
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📋</div>
+                        <div class="mobile-empty-title">No Lists Yet</div>
+                        <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                        <button class="mobile-action-btn" onclick="MobileProfile.createList()">
+                            <i class="fas fa-plus"></i> Create List
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -3938,7 +3945,7 @@
                                 <div class="empty-icon">🔍</div>
                                 <h3 class="empty-title">No users found</h3>
                                 <p class="empty-description">Try searching with a different name or username</p>
-                            </div>
+                        </div>
                         `;
                         return;
                     }
@@ -4094,6 +4101,8 @@
                         currentUser = user;
                         await this.loadMobileProfile(user.id);
                         await this.loadMobileFeed(user.id);
+                        await this.loadMobileLists(user.id);
+                        await this.loadMobileCommunity();
                         
                         showToast('Welcome to your mobile profile!', 'success');
                     } catch (error) {
@@ -4139,23 +4148,83 @@
                     document.getElementById("mobileProfileBio").textContent = userProfile.bio || "";
                     document.getElementById("mobileAvatar").textContent = userProfile.avatar_icon || "🍔";
                     
-                    const posts = await supabase.from("journal_entries").select("id", {count: "exact"}).eq("user_id", uid);
-                    document.getElementById("mobileVisitedCount").textContent = posts.count || 0;
-                    
-                    const followers = await supabase.from("follows").select("id", {count: "exact"}).eq("followed_id", uid);
-                    document.getElementById("mobileFollowersCount").textContent = followers.count || 0;
-                    
-                    const lists = await supabase.from("lists").select("id", {count: "exact"}).eq("user_id", uid);
-                    document.getElementById("mobileListsCount").textContent = lists.count || 0;
-                    
-                    const reviews = await supabase.from("journal_entries").select("id", {count: "exact"}).eq("user_id", uid);
-                    document.getElementById("mobileReviewsCount").textContent = reviews.count || 0;
+                    // Update stats
+                    await this.updateMobileStats(uid);
+                },
+                
+                async updateMobileStats(uid) {
+                    try {
+                        // Get visited count
+                        const { data: journalEntries } = await supabase
+                            .from('journal_entries')
+                            .select('restaurant_id')
+                            .eq('user_id', uid);
+                        
+                        let allRestaurantIds = [];
+                        if (journalEntries) {
+                            allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
+                        }
+                        
+                        const { data: visitedList } = await supabase
+                            .from('lists')
+                            .select('id')
+                            .eq('user_id', uid)
+                            .eq('title', 'Visited')
+                            .single();
+                        
+                        if (visitedList) {
+                            const { data: listRestaurants } = await supabase
+                                .from('lists_restraunts')
+                                .select('restraunt_id')
+                                .eq('list_id', visitedList.id);
+                            
+                            if (listRestaurants) {
+                                const listIds = listRestaurants.map(item => item.restraunt_id);
+                                allRestaurantIds = [...allRestaurantIds, ...listIds];
+                            }
+                        }
+                        
+                        const visitedCount = new Set(allRestaurantIds).size;
+                        
+                        // Get followers count
+                        const { data: followers } = await supabase
+                            .from('follows')
+                            .select('id')
+                            .eq('followed_id', uid);
+                        
+                        const followersCount = followers ? followers.length : 0;
+                        
+                        // Get lists count
+                        const { data: userLists } = await supabase
+                            .from('lists')
+                            .select('id')
+                            .eq('user_id', uid);
+                        
+                        const listsCount = userLists ? userLists.length : 0;
+                        
+                        // Get journal entries count
+                        const { data: userJournalEntries } = await supabase
+                            .from('journal_entries')
+                            .select('id')
+                            .eq('user_id', uid);
+                        
+                        const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
+                        
+                        // Update UI
+                        document.getElementById("mobileVisitedCount").textContent = visitedCount;
+                        document.getElementById("mobileFollowersCount").textContent = followersCount;
+                        document.getElementById("mobileListsCount").textContent = listsCount;
+                        document.getElementById("mobileReviewsCount").textContent = reviewsCount;
+                        
+                    } catch (error) {
+                        console.error('Error updating mobile stats:', error);
+                    }
                 },
                 
                 async loadMobileFeed(uid) {
                     const { data } = await supabase
                         .from("journal_entries")
-                        .select("*, restraunts(name, image, category)")
+                        .select("*, restraunts(name, image, category, slug)")
                         .eq("user_id", uid)
                         .order("created_at", {ascending: false})
                         .limit(10);
@@ -4224,6 +4293,235 @@
                     });
                 },
                 
+                async loadMobileLists(uid) {
+                    const listsContainer = document.getElementById('mobileLists');
+                    if (!listsContainer) return;
+                    
+                    try {
+                        const { data: lists, error } = await supabase
+                            .from('lists')
+                            .select('*')
+                            .eq('user_id', uid);
+                        
+                        if (error) throw error;
+                        
+                        listsContainer.innerHTML = '';
+                        
+                        if (!lists || lists.length === 0) {
+                            listsContainer.innerHTML = `
+                                <div class="mobile-empty-state">
+                                    <div class="mobile-empty-icon">📋</div>
+                                    <div class="mobile-empty-title">No Lists Yet</div>
+                                    <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                                    <button class="mobile-action-btn" onclick="MobileProfile.createList()">
+                                        <i class="fas fa-plus"></i> Create List
+                                    </button>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        lists.forEach(list => {
+                            const listCard = document.createElement('div');
+                            listCard.className = 'mobile-list-card';
+                            
+                            listCard.innerHTML = `
+                                <div class="mobile-list-header">
+                                    <div class="mobile-list-icon" style="background: var(--accent); color: #0b1633; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                        ${list.icon || '📋'}
+                                    </div>
+                                    <div class="mobile-list-info">
+                                        <div class="mobile-list-title">${list.title}</div>
+                                        <div class="mobile-list-count">0 places</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-list-description">${list.description || 'Your custom list'}</div>
+                                <button class="mobile-action-btn secondary" onclick="alert('View list ${list.title}')" style="width: 100%;">
+                                    <i class="fas fa-eye"></i> View List
+                                </button>
+                            `;
+                            
+                            listsContainer.appendChild(listCard);
+                        });
+                        
+                    } catch (error) {
+                        console.error('Error loading mobile lists:', error);
+                        listsContainer.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">⚠️</div>
+                                <div class="mobile-empty-title">Error Loading Lists</div>
+                                <div class="mobile-empty-description">There was an error loading your lists.</div>
+                            </div>
+                        `;
+                    }
+                },
+                
+                async loadMobileCommunity() {
+                    // Load followers and following
+                    await this.loadMobileFollowers();
+                    await this.loadMobileFollowing();
+                },
+                
+                async loadMobileFollowers() {
+                    const followersContainer = document.getElementById('mobileFollowersList');
+                    if (!followersContainer) return;
+                    
+                    try {
+                        const { data: followers, error } = await supabase
+                            .from('follows')
+                            .select('follower_id')
+                            .eq('followed_id', currentUser.id);
+                        
+                        if (error) throw error;
+                        
+                        followersContainer.innerHTML = '';
+                        
+                        if (!followers || followers.length === 0) {
+                            followersContainer.innerHTML = `
+                                <div class="mobile-empty-state">
+                                    <div class="mobile-empty-icon">👥</div>
+                                    <div class="mobile-empty-title">No followers yet</div>
+                                    <div class="mobile-empty-description">Share your profile to get followers!</div>
+                                    <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                                        <i class="fas fa-user-plus"></i> Find Users
+                                    </button>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        // Get user details for each follower
+                        const followerIds = followers.map(f => f.follower_id);
+                        const { data: users } = await supabase
+                            .from('user_profiles')
+                            .select('*')
+                            .in('id', followerIds)
+                            .limit(10);
+                        
+                        if (users) {
+                            users.forEach(user => {
+                                const userCard = document.createElement('div');
+                                userCard.className = 'mobile-community-card';
+                                
+                                userCard.innerHTML = `
+                                    <div class="mobile-community-header">
+                                        <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                                        <div class="mobile-community-info">
+                                            <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
+                                            <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-community-stats">
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Visited</span>
+                                        </div>
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Favorites</span>
+                                        </div>
+                                    </div>
+                                    <button class="mobile-action-btn secondary" onclick="window.location.href='profile.html?id=${user.id}'" style="width: 100%;">
+                                        <i class="fas fa-user"></i> View Profile
+                                    </button>
+                                `;
+                                
+                                followersContainer.appendChild(userCard);
+                            });
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error loading mobile followers:', error);
+                        followersContainer.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">⚠️</div>
+                                <div class="mobile-empty-title">Error Loading</div>
+                                <div class="mobile-empty-description">Could not load followers.</div>
+                            </div>
+                        `;
+                    }
+                },
+                
+                async loadMobileFollowing() {
+                    const followingContainer = document.getElementById('mobileFollowingList');
+                    if (!followingContainer) return;
+                    
+                    try {
+                        const { data: following, error } = await supabase
+                            .from('follows')
+                            .select('followed_id')
+                            .eq('follower_id', currentUser.id);
+                        
+                        if (error) throw error;
+                        
+                        followingContainer.innerHTML = '';
+                        
+                        if (!following || following.length === 0) {
+                            followingContainer.innerHTML = `
+                                <div class="mobile-empty-state">
+                                    <div class="mobile-empty-icon">👥</div>
+                                    <div class="mobile-empty-title">Not following anyone</div>
+                                    <div class="mobile-empty-description">Discover and follow other food lovers!</div>
+                                    <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                                        <i class="fas fa-user-plus"></i> Find Users
+                                    </button>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        // Get user details for each followed user
+                        const followingIds = following.map(f => f.followed_id);
+                        const { data: users } = await supabase
+                            .from('user_profiles')
+                            .select('*')
+                            .in('id', followingIds)
+                            .limit(10);
+                        
+                        if (users) {
+                            users.forEach(user => {
+                                const userCard = document.createElement('div');
+                                userCard.className = 'mobile-community-card';
+                                
+                                userCard.innerHTML = `
+                                    <div class="mobile-community-header">
+                                        <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                                        <div class="mobile-community-info">
+                                            <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
+                                            <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-community-stats">
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Visited</span>
+                                        </div>
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Favorites</span>
+                                        </div>
+                                    </div>
+                                    <button class="mobile-action-btn secondary" onclick="window.location.href='profile.html?id=${user.id}'" style="width: 100%;">
+                                        <i class="fas fa-user"></i> View Profile
+                                    </button>
+                                `;
+                                
+                                followingContainer.appendChild(userCard);
+                            });
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error loading mobile following:', error);
+                        followingContainer.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">⚠️</div>
+                                <div class="mobile-empty-title">Error Loading</div>
+                                <div class="mobile-empty-description">Could not load following list.</div>
+                            </div>
+                        `;
+                    }
+                },
+                
                 showMenu() {
                     document.getElementById('mobileSideMenu').classList.add('active');
                     document.getElementById('mobileMenuOverlay').classList.add('active');
@@ -4237,32 +4535,63 @@
                 },
                 
                 showSection(section) {
-                    const sections = ['journal', 'lists', 'community'];
-                    sections.forEach(s => {
-                        const element = document.getElementById(`mobile${s.charAt(0).toUpperCase() + s.slice(1)}Section`);
-                        if (element) element.classList.remove('active');
-                        
-                        const tab = document.querySelector(`.mobile-tab[data-tab="${s}"]`);
-                        if (tab) tab.classList.remove('active');
+                    // Hide all sections
+                    document.querySelectorAll('.mobile-section').forEach(el => {
+                        el.classList.remove('active');
                     });
                     
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.mobile-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Show selected section
                     const activeSection = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`);
-                    if (activeSection) activeSection.classList.add('active');
+                    if (activeSection) {
+                        activeSection.classList.add('active');
+                    }
                     
+                    // Activate selected tab
                     const activeTab = document.querySelector(`.mobile-tab[data-tab="${section}"]`);
-                    if (activeTab) activeTab.classList.add('active');
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                    }
                     
-                    if (section === 'journal') {
-                        this.loadMobileFeed(currentUser.id);
+                    // Load data for the section if needed
+                    switch(section) {
+                        case 'journal':
+                            this.loadMobileFeed(currentUser.id);
+                            break;
+                        case 'lists':
+                            this.loadMobileLists(currentUser.id);
+                            break;
+                        case 'community':
+                            this.showCommunityTab('followers');
+                            break;
                     }
                 },
                 
                 showCommunityTab(tab) {
-                    document.getElementById('mobileFollowersTabBtn').classList.toggle('active', tab === 'followers');
-                    document.getElementById('mobileFollowingTabBtn').classList.toggle('active', tab === 'following');
+                    // Update button states
+                    const followersBtn = document.getElementById('mobileFollowersTabBtn');
+                    const followingBtn = document.getElementById('mobileFollowingTabBtn');
                     
-                    document.getElementById('mobileFollowersTab').classList.toggle('active', tab === 'followers');
-                    document.getElementById('mobileFollowingTab').classList.toggle('active', tab === 'following');
+                    if (followersBtn) followersBtn.classList.toggle('active', tab === 'followers');
+                    if (followingBtn) followingBtn.classList.toggle('active', tab === 'following');
+                    
+                    // Update tab visibility
+                    const followersTab = document.getElementById('mobileFollowersTab');
+                    const followingTab = document.getElementById('mobileFollowingTab');
+                    
+                    if (followersTab) followersTab.classList.toggle('active', tab === 'followers');
+                    if (followingTab) followingTab.classList.toggle('active', tab === 'following');
+                    
+                    // Load data for the selected tab
+                    if (tab === 'followers') {
+                        this.loadMobileFollowers();
+                    } else {
+                        this.loadMobileFollowing();
+                    }
                 },
                 
                 addJournalEntry() {
@@ -4905,7 +5234,6 @@
         // ===== GLOBAL EXPOSURE FOR INLINE HANDLERS =====
 window.MobileProfile = {
     showMenu: function() {
-        // Find and trigger the mobile menu
         document.getElementById('mobileSideMenu')?.classList.add('active');
         document.getElementById('mobileMenuOverlay')?.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -4918,9 +5246,27 @@ window.MobileProfile = {
     },
     
     showSection: function(section) {
-        // Basic section switching
-        document.querySelectorAll('.mobile-section').forEach(el => el.classList.remove('active'));
-        document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`)?.classList.add('active');
+        // Hide all sections
+        document.querySelectorAll('.mobile-section').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.mobile-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected section
+        const activeSection = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`);
+        if (activeSection) {
+            activeSection.classList.add('active');
+        }
+        
+        // Activate selected tab
+        const activeTab = document.querySelector(`.mobile-tab[data-tab="${section}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
     },
     
     addJournalEntry: function() {
@@ -4968,7 +5314,6 @@ window.MobileProfile = {
     },
     
     showCommunityTab: function(tab) {
-        // Basic tab switching
         const followersTab = document.getElementById('mobileFollowersTab');
         const followingTab = document.getElementById('mobileFollowingTab');
         const followersBtn = document.getElementById('mobileFollowersTabBtn');
@@ -4982,39 +5327,6 @@ window.MobileProfile = {
         }
     }
 };
-// ===== GLOBAL ACCESS TO MOBILE PROFILE =====
-// This exposes the MobileProfile object to inline onclick handlers
-(function() {
-    // Wait for ProfileManager to be initialized
-    const checkInterval = setInterval(() => {
-        if (window.ProfileManager && typeof ProfileManager.getMobileProfile === 'function') {
-            window.MobileProfile = ProfileManager.getMobileProfile();
-            clearInterval(checkInterval);
-        }
-    }, 100);
-    
-    // Fallback basic functions in case ProfileManager isn't ready yet
-    window.MobileProfile = window.MobileProfile || {
-        showMenu: function() {
-            document.getElementById('mobileSideMenu')?.classList.add('active');
-            document.getElementById('mobileMenuOverlay')?.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        },
-        hideMenu: function() {
-            document.getElementById('mobileSideMenu')?.classList.remove('active');
-            document.getElementById('mobileMenuOverlay')?.classList.remove('active');
-            document.body.style.overflow = '';
-        },
-        showSection: function(section) {
-            console.log('Loading section:', section);
-            // This will be replaced by the real function
-        },
-        showCommunityTab: function(tab) {
-            console.log('Switching to tab:', tab);
-            // This will be replaced by the real function
-        }
-    };
-})();
     </script>
 </body>
 </html>
