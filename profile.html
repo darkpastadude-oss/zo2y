@@ -393,7 +393,7 @@
         .section-subtitle {
             font-size: 14px;
             color: var(--muted);
-            margin-top: -8px;
+            margin-top: 4px;
         }
 
         .section-actions {
@@ -2147,6 +2147,38 @@
         .mobile-list-restaurant-card:hover .remove-restaurant-btn {
             opacity: 1;
         }
+        
+        /* List Detail Header Fix */
+        .list-detail-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .list-detail-title-section {
+            flex: 1;
+        }
+        
+        .list-detail-title-section .section-title {
+            margin-bottom: 4px;
+        }
+        
+        .list-detail-title-section .section-subtitle {
+            margin-top: 0;
+        }
+        
+        /* Mobile list detail header fix */
+        .mobile-list-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .mobile-list-detail-title-section {
+            flex: 1;
+        }
     </style>
     <link rel="icon" type="image/png" href="images/logo.png">
 </head>
@@ -2304,9 +2336,6 @@
                             <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
                         </div>
                         <div class="section-actions">
-                            <button class="btn btn-secondary btn-sm" id="sortListsBtn" onclick="ProfileManager.toggleSortLists()">
-                                <i class="fas fa-sort"></i> Sort
-                            </button>
                             <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createListBtn">
                                 <i class="fas fa-plus"></i> New List
                             </button>
@@ -2323,15 +2352,13 @@
             <!-- List Detail View -->
             <div class="tab-content" id="list-detail-view">
                 <div class="section">
-                    <div class="section-header">
-                        <div class="d-flex align-center gap-md">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                            <div>
-                                <h2 class="section-title" id="listDetailTitle">List Title</h2>
-                                <p class="section-subtitle" id="listDetailDescription">List description</p>
-                            </div>
+                    <div class="list-detail-header">
+                        <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <div class="list-detail-title-section">
+                            <h2 class="section-title" id="listDetailTitle">List Title</h2>
+                            <p class="section-subtitle" id="listDetailDescription">List description</p>
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-secondary btn-sm" id="editListBtn">
@@ -2614,12 +2641,12 @@
 
             <!-- List Detail View for Mobile -->
             <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
-                <div class="mobile-section-title">
+                <div class="mobile-list-detail-header">
                     <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.hideMobileListDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
-                    <div style="flex: 1; text-align: center;">
-                        <div id="mobileListDetailTitle">List Title</div>
+                    <div class="mobile-list-detail-title-section" style="text-align: center;">
+                        <div id="mobileListDetailTitle" style="font-weight: 600; font-size: 18px;">List Title</div>
                         <div class="text-sm text-muted" id="mobileListDetailDescription">List description</div>
                     </div>
                     <div style="width: 60px;"></div> <!-- Spacer for alignment -->
@@ -3494,20 +3521,18 @@
                     }
                 },
 
-                async toggleInList(listType, restaurantId) {
+                async toggleInList(listId, restaurantId) {
                     let list;
                     
-                    if (typeof listType === 'number') {
-                        list = customLists.find(l => l.id === listType);
-                        if (!list) {
-                            // Check if it's a default list
-                            if (listType === 'favorites') list = this.currentLists.favorites;
-                            else if (listType === 'visited') list = this.currentLists.visited;
-                            else if (listType === 'wantToGo') list = this.currentLists.wantToGo;
-                        }
+                    if (typeof listId === 'string') {
+                        // Handle default lists by name
+                        if (listId === 'favorites') list = this.currentLists.favorites;
+                        else if (listId === 'visited') list = this.currentLists.visited;
+                        else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
                     } else {
-                        list = this.currentLists[listType];
-                        if (!list) return false;
+                        // Handle custom lists by ID
+                        list = customLists.find(l => l.id === listId) || 
+                               this.userLists.find(l => l.id === listId);
                     }
                     
                     if (!list) return false;
@@ -3516,6 +3541,7 @@
                     
                     try {
                         if (isInList) {
+                            // Remove from list
                             const { error } = await supabase
                                 .from('lists_restraunts')
                                 .delete()
@@ -3526,28 +3552,31 @@
                             
                             if (error) throw error;
                             
-                            list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                            showToast(`Removed from ${list.title}`, "info");
+                            // Update local state
+                            if (list.restaurants) {
+                                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                            }
                             
+                            showToast(`Removed from ${list.title}`, "info");
+                            return false;
                         } else {
+                            // Add to list
                             const { error } = await supabase
                                 .from('lists_restraunts')
                                 .insert([{ 
                                     list_id: list.id, 
                                     restraunt_id: restaurantId,
-                                    user_id: currentUser.id,
                                     added_at: new Date().toISOString()
                                 }]);
                             
                             if (error) throw error;
                             
+                            // Update local state
                             if (!list.restaurants) list.restaurants = [];
                             list.restaurants.push(restaurantId);
                             showToast(`Added to ${list.title}`, "success");
+                            return true;
                         }
-                        
-                        updateStats();
-                        return !isInList;
                         
                     } catch (error) {
                         console.error('Error updating list:', error);
@@ -3559,10 +3588,10 @@
                 isInList(listType, restaurantId) {
                     let list;
                     
-                    if (typeof listType === 'number') {
-                        list = customLists.find(l => l.id === listType);
-                    } else {
+                    if (typeof listType === 'string') {
                         list = this.currentLists[listType];
+                    } else {
+                        list = customLists.find(l => l.id === listType);
                     }
                     
                     return list?.restaurants?.includes(restaurantId) || false;
@@ -4025,8 +4054,10 @@
                         removeBtn.onclick = async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            await listManager.toggleInList(currentActiveList.id, restaurant.id);
-                            await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                            if (confirm(`Remove ${restaurant.name} from this list?`)) {
+                                await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                                await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                            }
                         };
                         card.appendChild(removeBtn);
                     }
@@ -4102,8 +4133,10 @@
                         removeBtn.style.right = '10px';
                         removeBtn.onclick = async (e) => {
                             e.stopPropagation();
-                            await listManager.toggleInList(currentActiveList.id, restaurant.id);
-                            await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                            if (confirm(`Remove ${restaurant.name} from this list?`)) {
+                                await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                                await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                            }
                         };
                         restaurantCard.appendChild(removeBtn);
                     }
@@ -4797,7 +4830,7 @@
                                         <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.viewUserProfile('${user.id}')">
                                             <i class="fas fa-eye"></i> View Profile
                                         </button>
-                                        <button class="mobile-action-btn ${isFollowing ? 'secondary' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="communitySystem.toggleFollow('${user.id}', this)">
+                                        <button class="mobile-action-btn ${isFollowing ? 'btn-error' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px; ${isFollowing ? 'background: var(--error); color: white;' : ''}" onclick="communitySystem.toggleFollow('${user.id}', this)">
                                             ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
                                         </button>
                                     ` : `
@@ -4878,6 +4911,8 @@
                                 if (isMobile) {
                                     buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
                                     buttonElement.className = 'mobile-action-btn primary';
+                                    buttonElement.style.background = 'var(--accent)';
+                                    buttonElement.style.color = '#0b1633';
                                 } else {
                                     buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
                                     buttonElement.className = 'btn btn-primary btn-sm';
@@ -4899,7 +4934,9 @@
                                 const isMobile = window.innerWidth <= 768;
                                 if (isMobile) {
                                     buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
-                                    buttonElement.className = 'mobile-action-btn secondary';
+                                    buttonElement.className = 'mobile-action-btn';
+                                    buttonElement.style.background = 'var(--error)';
+                                    buttonElement.style.color = 'white';
                                 } else {
                                     buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
                                     buttonElement.className = 'btn btn-error btn-sm';
@@ -5008,6 +5045,7 @@
 
                     await updateStats(targetUserId);
                     await communitySystem.loadFollowStats();
+                    communitySystem.refreshCurrentView();
 
                 } catch (error) {
                     console.error('Error toggling follow:', error);
