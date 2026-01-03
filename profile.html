@@ -868,10 +868,12 @@
             background: var(--card);
             border-radius: var(--radius);
             border: 1px solid var(--border);
-            padding: 20px;
+            padding: 24px;
             transition: var(--transition);
             cursor: pointer;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .list-card:hover {
@@ -879,26 +881,36 @@
             border-color: var(--accent);
         }
 
+        .list-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
         .list-card-title {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
             margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            color: var(--accent);
         }
 
         .list-card-description {
             color: var(--muted);
-            font-size: 14px;
-            margin-bottom: 16px;
+            font-size: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
 
         .list-preview-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            flex-grow: 1;
         }
 
         .list-preview-item {
@@ -917,21 +929,35 @@
             object-fit: cover;
         }
 
+        .list-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .list-card-count {
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
         .list-card-button {
-            width: 100%;
             background: var(--bg);
             border: 1px solid var(--border);
             color: var(--white);
-            padding: 12px;
+            padding: 10px 20px;
             border-radius: var(--radius-sm);
             font-size: 14px;
             cursor: pointer;
             transition: var(--transition);
             font-family: inherit;
+            font-weight: 500;
         }
 
         .list-card-button:hover {
             background: var(--bg-hover);
+            border-color: var(--accent);
         }
 
         /* === COMMUNITY SECTIONS === */
@@ -1632,6 +1658,7 @@
                 justify-content: center;
                 background: var(--bg);
                 border-radius: var(--radius-sm);
+                color: var(--accent);
             }
 
             .mobile-list-info {
@@ -1639,13 +1666,14 @@
             }
 
             .mobile-list-title {
-                font-weight: 600;
-                font-size: 16px;
+                font-weight: 700;
+                font-size: 18px;
                 margin-bottom: 4px;
+                color: var(--accent);
             }
 
             .mobile-list-count {
-                font-size: 12px;
+                font-size: 13px;
                 color: var(--muted);
             }
 
@@ -1654,7 +1682,7 @@
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
                 gap: 6px;
-                margin-bottom: 12px;
+                margin-bottom: 16px;
             }
 
             .mobile-preview-item {
@@ -1676,19 +1704,19 @@
             }
 
             .mobile-list-description {
-                font-size: 13px;
+                font-size: 14px;
                 color: var(--muted);
-                margin-bottom: 12px;
+                margin-bottom: 16px;
+                line-height: 1.4;
             }
 
-            /* Mobile Community */
+            /* Mobile Community Cards with Follow Buttons */
             .mobile-community-card {
                 background: var(--card);
                 border-radius: var(--radius);
                 padding: 16px;
                 border: 1px solid var(--border);
                 margin-bottom: 12px;
-                cursor: pointer;
                 transition: var(--transition);
             }
 
@@ -1724,6 +1752,7 @@
             .mobile-community-name {
                 font-weight: 600;
                 margin-bottom: 2px;
+                font-size: 16px;
             }
 
             .mobile-community-username {
@@ -1734,7 +1763,7 @@
             .mobile-community-stats {
                 display: flex;
                 gap: 16px;
-                margin-bottom: 12px;
+                margin-bottom: 16px;
             }
 
             .mobile-community-stat {
@@ -1753,6 +1782,12 @@
             .mobile-community-stat-label {
                 font-size: 11px;
                 color: var(--muted);
+            }
+
+            .mobile-community-actions {
+                display: flex;
+                gap: 8px;
+                margin-top: 12px;
             }
 
             /* Mobile Action Buttons */
@@ -1912,6 +1947,11 @@
                 align-items: center;
                 justify-content: space-between;
                 cursor: pointer;
+                transition: var(--transition);
+            }
+            
+            .mobile-list-restaurant-card:hover {
+                border-color: var(--accent);
             }
             
             .mobile-list-restaurant-info {
@@ -2081,6 +2121,31 @@
         
         .w-100 {
             width: 100%;
+        }
+        
+        /* Remove restaurant button */
+        .remove-restaurant-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--error);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .card:hover .remove-restaurant-btn,
+        .mobile-list-restaurant-card:hover .remove-restaurant-btn {
+            opacity: 1;
         }
     </style>
     <link rel="icon" type="image/png" href="images/logo.png">
@@ -2830,7 +2895,7 @@
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
-            // Supabase configuration
+            // Supabase configuration - KEEP THIS UNCHANGED
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
             const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 
@@ -2889,8 +2954,6 @@
                     ]);
                     
                     setupEventListeners();
-                    
-                    // REMOVED: "Welcome back to your profile!" toast
                     
                     // Initialize mobile if needed
                     if (window.innerWidth <= 768) {
@@ -3431,18 +3494,25 @@
                     }
                 },
 
-                async toggleInList(listType, restrauntId) {
+                async toggleInList(listType, restaurantId) {
                     let list;
                     
                     if (typeof listType === 'number') {
                         list = customLists.find(l => l.id === listType);
-                        if (!list) return false;
+                        if (!list) {
+                            // Check if it's a default list
+                            if (listType === 'favorites') list = this.currentLists.favorites;
+                            else if (listType === 'visited') list = this.currentLists.visited;
+                            else if (listType === 'wantToGo') list = this.currentLists.wantToGo;
+                        }
                     } else {
                         list = this.currentLists[listType];
                         if (!list) return false;
                     }
                     
-                    const isInList = list.restaurants?.includes(restrauntId);
+                    if (!list) return false;
+                    
+                    const isInList = list.restaurants?.includes(restaurantId);
                     
                     try {
                         if (isInList) {
@@ -3451,12 +3521,12 @@
                                 .delete()
                                 .match({ 
                                     list_id: list.id, 
-                                    restraunt_id: restrauntId
+                                    restraunt_id: restaurantId
                                 });
                             
                             if (error) throw error;
                             
-                            list.restaurants = list.restaurants.filter(id => id !== restrauntId);
+                            list.restaurants = list.restaurants.filter(id => id !== restaurantId);
                             showToast(`Removed from ${list.title}`, "info");
                             
                         } else {
@@ -3464,7 +3534,7 @@
                                 .from('lists_restraunts')
                                 .insert([{ 
                                     list_id: list.id, 
-                                    restraunt_id: restrauntId,
+                                    restraunt_id: restaurantId,
                                     user_id: currentUser.id,
                                     added_at: new Date().toISOString()
                                 }]);
@@ -3472,7 +3542,7 @@
                             if (error) throw error;
                             
                             if (!list.restaurants) list.restaurants = [];
-                            list.restaurants.push(restrauntId);
+                            list.restaurants.push(restaurantId);
                             showToast(`Added to ${list.title}`, "success");
                         }
                         
@@ -3486,7 +3556,7 @@
                     }
                 },
 
-                isInList(listType, restrauntId) {
+                isInList(listType, restaurantId) {
                     let list;
                     
                     if (typeof listType === 'number') {
@@ -3495,7 +3565,7 @@
                         list = this.currentLists[listType];
                     }
                     
-                    return list?.restaurants?.includes(restrauntId) || false;
+                    return list?.restaurants?.includes(restaurantId) || false;
                 },
 
                 // Render lists in appropriate view
@@ -3574,17 +3644,17 @@
                         listCard.className = 'list-card';
                         
                         const previewItems = [];
-                        const restrauntIds = list.restaurants || [];
-                        const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
+                        const restaurantIds = list.restaurants || [];
+                        const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
                         
                         for (let i = 0; i < 4; i++) {
                             if (shuffledIds[i]) {
-                                const restrauntId = shuffledIds[i];
-                                const restraunt = restaurants.find(r => r.id === restrauntId);
-                                if (restraunt) {
+                                const restaurantId = shuffledIds[i];
+                                const restaurant = restaurants.find(r => r.id === restaurantId);
+                                if (restaurant) {
                                     previewItems.push(`
                                         <div class="list-preview-item">
-                                            <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
                                         </div>
                                     `);
                                 } else {
@@ -3608,23 +3678,18 @@
                         }
                         
                         listCard.innerHTML = `
-                            <div class="list-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <h3 class="list-card-title">
-                                    <span style="font-size: 20px;">${list.icon}</span>
+                            <div class="list-card-header">
+                                <div class="list-card-title">
+                                    <span style="font-size: 24px;">${list.icon}</span>
                                     ${list.title}
-                                </h3>
-                                ${!list.isDefault && isViewingOwnProfile ? `
-                                    <button class="btn btn-icon btn-sm" onclick="event.stopPropagation();" style="background: transparent; border: none; color: var(--muted);">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                ` : ''}
+                                </div>
                             </div>
                             <p class="list-card-description">${list.description}</p>
                             <div class="list-preview-grid">
                                 ${previewItems.join('')}
                             </div>
-                            <div class="d-flex justify-between align-center mt-md">
-                                <span class="text-sm text-muted">${restrauntIds.length} places</span>
+                            <div class="list-card-footer">
+                                <span class="list-card-count">${restaurantIds.length} places</span>
                                 <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')">View List</button>
                             </div>
                         `;
@@ -3699,17 +3764,17 @@
                         listCard.className = 'mobile-list-card';
                         
                         const previewItems = [];
-                        const restrauntIds = list.restaurants || [];
-                        const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
+                        const restaurantIds = list.restaurants || [];
+                        const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
                         
                         for (let i = 0; i < 4; i++) {
                             if (shuffledIds[i]) {
-                                const restrauntId = shuffledIds[i];
-                                const restraunt = restaurants.find(r => r.id === restrauntId);
-                                if (restraunt) {
+                                const restaurantId = shuffledIds[i];
+                                const restaurant = restaurants.find(r => r.id === restaurantId);
+                                if (restaurant) {
                                     previewItems.push(`
                                         <div class="mobile-preview-item">
-                                            <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
                                         </div>
                                     `);
                                 } else {
@@ -3734,12 +3799,12 @@
                         
                         listCard.innerHTML = `
                             <div class="mobile-list-header">
-                                <div class="mobile-list-icon" style="background: var(--bg); color: ${list.icon === '❤️' ? 'var(--error)' : list.icon === '✅' ? 'var(--success)' : 'var(--accent)'}; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <div class="mobile-list-icon">
                                     ${list.icon || '📋'}
                                 </div>
                                 <div class="mobile-list-info">
                                     <div class="mobile-list-title">${list.title}</div>
-                                    <div class="mobile-list-count">${restrauntIds.length} places</div>
+                                    <div class="mobile-list-count">${restaurantIds.length} places</div>
                                 </div>
                             </div>
                             ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
@@ -3768,8 +3833,8 @@
                 } else if (listId === 'wantToGo') {
                     list = listManager.currentLists.wantToGo;
                 } else {
-                    list = customLists.find(l => l.id === listId) || 
-                           listManager.userLists.find(l => l.id === listId);
+                    list = customLists.find(l => l.id == listId) || 
+                           listManager.userLists.find(l => l.id == listId);
                 }
                 
                 if (!list) {
@@ -3821,8 +3886,8 @@
                 } else if (listId === 'wantToGo') {
                     list = listManager.currentLists.wantToGo;
                 } else {
-                    list = customLists.find(l => l.id === listId) || 
-                           listManager.userLists.find(l => l.id === listId);
+                    list = customLists.find(l => l.id == listId) || 
+                           listManager.userLists.find(l => l.id == listId);
                 }
                 
                 if (!list) {
@@ -3890,16 +3955,16 @@
                 currentActiveList = null;
             }
 
-            async function renderListRestaurants(restrauntIds, list) {
+            async function renderListRestaurants(restaurantIds, list) {
                 const grid = document.getElementById('listRestaurantsGrid');
                 if (!grid) return;
                 
                 grid.innerHTML = '';
                 
-                const numericIds = restrauntIds.map(id => Number(id));
-                const listRestraunts = restaurants.filter(r => numericIds.includes(r.id));
+                const numericIds = restaurantIds.map(id => Number(id));
+                const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
                 
-                if (listRestraunts.length === 0) {
+                if (listRestaurants.length === 0) {
                     const emptyStateText = isViewingOwnProfile ? 
                         'Start adding restaurants to your list!' :
                         'This list is currently empty.';
@@ -3921,16 +3986,16 @@
                 
                 const listDetailTitle = document.getElementById('listDetailTitle');
                 if (listDetailTitle) {
-                    listDetailTitle.textContent = `${list.title} (${listRestraunts.length} ${listRestraunts.length === 1 ? 'place' : 'places'})`;
+                    listDetailTitle.textContent = `${list.title} (${listRestaurants.length} ${listRestaurants.length === 1 ? 'place' : 'places'})`;
                 }
                 
-                listRestraunts.forEach(restraunt => {
+                listRestaurants.forEach(restaurant => {
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.style.position = 'relative';
                     
                     const clickableContent = document.createElement('a');
-                    clickableContent.href = `restaurant.html?slug=${restraunt.slug}`;
+                    clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
                     clickableContent.style.textDecoration = 'none';
                     clickableContent.style.color = 'inherit';
                     clickableContent.style.display = 'block';
@@ -3940,12 +4005,12 @@
                         <div class="card-body">
                             <div class="d-flex align-center gap-md">
                                 <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                    <img src="images/${restraunt.image}" alt="${restraunt.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                    <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                                 </div>
                                 <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 4px;">${restraunt.name}</h3>
-                                    <div class="text-sm text-muted">${restraunt.category}</div>
-                                    <div class="text-sm" style="margin-top: 4px;">⭐ ${restraunt.rating}</div>
+                                    <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
+                                    <div class="text-sm text-muted">${restaurant.category}</div>
+                                    <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating}</div>
                                 </div>
                             </div>
                         </div>
@@ -3955,16 +4020,13 @@
                     
                     if (isViewingOwnProfile) {
                         const removeBtn = document.createElement('button');
-                        removeBtn.className = 'btn btn-secondary btn-sm';
-                        removeBtn.style.position = 'absolute';
-                        removeBtn.style.top = '10px';
-                        removeBtn.style.right = '10px';
+                        removeBtn.className = 'remove-restaurant-btn';
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
                         removeBtn.onclick = async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            await listManager.toggleInList(list.id, restraunt.id);
-                            await renderListRestaurants(list.restaurants || [], list);
+                            await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                            await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
                         };
                         card.appendChild(removeBtn);
                     }
@@ -3973,16 +4035,16 @@
                 });
             }
 
-            async function renderMobileListRestaurants(restrauntIds, list) {
+            async function renderMobileListRestaurants(restaurantIds, list) {
                 const container = document.getElementById('mobileListRestaurants');
                 if (!container) return;
                 
                 container.innerHTML = '';
                 
-                const numericIds = restrauntIds.map(id => Number(id));
-                const listRestraunts = restaurants.filter(r => numericIds.includes(r.id));
+                const numericIds = restaurantIds.map(id => Number(id));
+                const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
                 
-                if (listRestraunts.length === 0) {
+                if (listRestaurants.length === 0) {
                     const emptyStateText = isViewingOwnProfile ? 
                         'Start adding restaurants to your list!' :
                         'This list is currently empty.';
@@ -4005,40 +4067,43 @@
                 // Update title with count
                 const listDetailTitle = document.getElementById('mobileListDetailTitle');
                 if (listDetailTitle) {
-                    listDetailTitle.textContent = `${list.title} (${listRestraunts.length} ${listRestraunts.length === 1 ? 'place' : 'places'})`;
+                    listDetailTitle.textContent = `${list.title} (${listRestaurants.length} ${listRestaurants.length === 1 ? 'place' : 'places'})`;
                 }
                 
-                listRestraunts.forEach(restraunt => {
+                listRestaurants.forEach(restaurant => {
                     const restaurantCard = document.createElement('div');
                     restaurantCard.className = 'mobile-list-restaurant-card';
+                    restaurantCard.style.position = 'relative';
                     
                     restaurantCard.innerHTML = `
                         <div class="mobile-list-restaurant-info">
                             <div class="mobile-list-restaurant-image">
-                                <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                                <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
                             </div>
                             <div>
-                                <div style="font-weight: 600; margin-bottom: 2px;">${restraunt.name}</div>
-                                <div style="font-size: 12px; color: var(--muted);">${restraunt.category}</div>
-                                <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restraunt.rating}</div>
+                                <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
+                                <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
+                                <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restaurant.rating}</div>
                             </div>
                         </div>
                     `;
                     
                     // Make the card clickable to go to restaurant page
                     restaurantCard.onclick = () => {
-                        window.location.href = `restaurant.html?slug=${restraunt.slug}`;
+                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
                     };
                     
                     if (isViewingOwnProfile) {
                         const removeBtn = document.createElement('button');
-                        removeBtn.className = 'btn btn-secondary btn-sm';
+                        removeBtn.className = 'remove-restaurant-btn';
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        removeBtn.style.marginLeft = '8px';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '10px';
+                        removeBtn.style.right = '10px';
                         removeBtn.onclick = async (e) => {
                             e.stopPropagation();
-                            await listManager.toggleInList(list.id, restraunt.id);
-                            await renderMobileListRestaurants(list.restaurants || [], list);
+                            await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                            await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
                         };
                         restaurantCard.appendChild(removeBtn);
                     }
@@ -4704,10 +4769,9 @@
                         if (isMobile) {
                             const userCard = document.createElement('div');
                             userCard.className = 'mobile-community-card';
-                            userCard.onclick = () => ProfileManager.viewUserProfile(user.id);
                             
                             userCard.innerHTML = `
-                                <div class="mobile-community-header">
+                                <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
                                     <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
                                     <div class="mobile-community-info">
                                         <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
@@ -4727,6 +4791,20 @@
                                         <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
                                         <span class="mobile-community-stat-label">Followers</span>
                                     </div>
+                                </div>
+                                <div class="mobile-community-actions">
+                                    ${!isCurrentUser ? `
+                                        <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.viewUserProfile('${user.id}')">
+                                            <i class="fas fa-eye"></i> View Profile
+                                        </button>
+                                        <button class="mobile-action-btn ${isFollowing ? 'secondary' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="communitySystem.toggleFollow('${user.id}', this)">
+                                            ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                        </button>
+                                    ` : `
+                                        <button class="mobile-action-btn secondary" style="width: 100%;" disabled>
+                                            <i class="fas fa-user"></i> This is you
+                                        </button>
+                                    `}
                                 </div>
                             `;
                             
@@ -4796,8 +4874,14 @@
                             if (error) throw error;
                             
                             if (buttonElement) {
-                                buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-                                buttonElement.className = 'btn btn-primary btn-sm';
+                                const isMobile = window.innerWidth <= 768;
+                                if (isMobile) {
+                                    buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                                    buttonElement.className = 'mobile-action-btn primary';
+                                } else {
+                                    buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                                    buttonElement.className = 'btn btn-primary btn-sm';
+                                }
                             }
                             showToast('Unfollowed user', 'info');
                         } else {
@@ -4812,8 +4896,14 @@
                             if (error) throw error;
                             
                             if (buttonElement) {
-                                buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
-                                buttonElement.className = 'btn btn-error btn-sm';
+                                const isMobile = window.innerWidth <= 768;
+                                if (isMobile) {
+                                    buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                                    buttonElement.className = 'mobile-action-btn secondary';
+                                } else {
+                                    buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                                    buttonElement.className = 'btn btn-error btn-sm';
+                                }
                             }
                             showToast('Started following user', 'success');
                         }
