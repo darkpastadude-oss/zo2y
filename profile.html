@@ -414,6 +414,7 @@
             border: 1px solid var(--border);
             overflow: hidden;
             transition: var(--transition);
+            position: relative;
         }
 
         .card:hover {
@@ -1049,6 +1050,7 @@
             border: 1px solid var(--border);
             overflow: hidden;
             transition: var(--transition);
+            position: relative;
         }
 
         .restaurant-tile:hover {
@@ -1182,6 +1184,117 @@
             font-size: 14px;
         }
 
+        /* === CUSTOM CONFIRMATION MODAL === */
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 20px;
+        }
+
+        .confirm-modal.active {
+            display: flex;
+        }
+
+        .confirm-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        .confirm-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .confirm-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--error);
+        }
+
+        .confirm-body {
+            padding: 20px;
+        }
+
+        .confirm-message {
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* === REMOVE RESTAURANT BUTTON === */
+        .remove-restaurant-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--error);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .remove-restaurant-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .card:hover .remove-restaurant-btn,
+        .mobile-list-restaurant-card:hover .remove-restaurant-btn {
+            opacity: 1;
+        }
+
+        /* === LIST DETAIL HEADER FIX === */
+        .list-detail-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .list-detail-title-section {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .list-detail-title-section .section-title {
+            margin-bottom: 4px;
+            font-size: 24px;
+        }
+
+        .list-detail-title-section .section-subtitle {
+            margin-top: 0;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
         /* === MOBILE STYLES === */
         @media (max-width: 768px) {
             .desktop-only {
@@ -1240,7 +1353,7 @@
                 background: var(--bg-hover);
             }
 
-            /* Mobile Side Menu - SIMPLIFIED VERSION */
+            /* Mobile Side Menu */
             .mobile-side-menu {
                 position: fixed;
                 top: 0;
@@ -1523,6 +1636,7 @@
                 border: 1px solid var(--border);
                 margin-bottom: 12px;
                 transition: var(--transition);
+                position: relative;
             }
 
             .mobile-journal-entry:hover {
@@ -1627,7 +1741,7 @@
                 gap: 8px;
             }
 
-            /* Mobile Lists - UPDATED WITH FIXED PREVIEW LAYOUT */
+            /* Mobile Lists */
             .mobile-list-card {
                 background: var(--card);
                 border-radius: var(--radius);
@@ -1636,6 +1750,7 @@
                 margin-bottom: 12px;
                 transition: var(--transition);
                 cursor: pointer;
+                position: relative;
             }
 
             .mobile-list-card:hover {
@@ -1677,7 +1792,7 @@
                 color: var(--muted);
             }
 
-            /* UPDATED PREVIEW GRID WITH PERFECT SQUARES */
+            /* Mobile List Preview Grid */
             .mobile-list-preview {
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
@@ -1687,7 +1802,7 @@
 
             .mobile-preview-item {
                 width: 100%;
-                padding-bottom: 100%; /* Creates a square */
+                padding-bottom: 100%;
                 position: relative;
                 background: var(--bg);
                 border-radius: var(--radius-sm);
@@ -1710,7 +1825,7 @@
                 line-height: 1.4;
             }
 
-            /* Mobile Community Cards with Follow Buttons */
+            /* Mobile Community Cards */
             .mobile-community-card {
                 background: var(--card);
                 border-radius: var(--radius);
@@ -1718,6 +1833,7 @@
                 border: 1px solid var(--border);
                 margin-bottom: 12px;
                 transition: var(--transition);
+                position: relative;
             }
 
             .mobile-community-card:hover {
@@ -1730,6 +1846,7 @@
                 align-items: center;
                 gap: 12px;
                 margin-bottom: 12px;
+                cursor: pointer;
             }
 
             .mobile-community-avatar {
@@ -1937,6 +2054,40 @@
                 display: block;
             }
             
+            /* Mobile List Detail Header - FIXED SPACING */
+            .mobile-list-detail-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 20px;
+                flex-wrap: nowrap;
+                padding: 8px 0;
+            }
+            
+            .mobile-list-detail-title-section {
+                flex: 1;
+                min-width: 0; /* Allow text to truncate */
+                text-align: left;
+                padding: 0 8px;
+            }
+            
+            #mobileListDetailTitle {
+                font-weight: 600;
+                font-size: 18px;
+                margin-bottom: 2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            #mobileListDetailDescription {
+                font-size: 13px;
+                color: var(--muted);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
             .mobile-list-restaurant-card {
                 background: var(--card);
                 border-radius: var(--radius);
@@ -1948,6 +2099,7 @@
                 justify-content: space-between;
                 cursor: pointer;
                 transition: var(--transition);
+                position: relative;
             }
             
             .mobile-list-restaurant-card:hover {
@@ -2074,6 +2226,14 @@
                 height: 70px !important;
                 padding-bottom: 0 !important;
             }
+            
+            .mobile-list-detail-header {
+                gap: 8px;
+            }
+            
+            .mobile-list-detail-title-section {
+                padding: 0 4px;
+            }
         }
 
         /* Additional animations */
@@ -2121,63 +2281,6 @@
         
         .w-100 {
             width: 100%;
-        }
-        
-        /* Remove restaurant button */
-        .remove-restaurant-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--error);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: var(--transition);
-        }
-        
-        .card:hover .remove-restaurant-btn,
-        .mobile-list-restaurant-card:hover .remove-restaurant-btn {
-            opacity: 1;
-        }
-        
-        /* List Detail Header Fix */
-        .list-detail-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .list-detail-title-section {
-            flex: 1;
-        }
-        
-        .list-detail-title-section .section-title {
-            margin-bottom: 4px;
-        }
-        
-        .list-detail-title-section .section-subtitle {
-            margin-top: 0;
-        }
-        
-        /* Mobile list detail header fix */
-        .mobile-list-detail-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        
-        .mobile-list-detail-title-section {
-            flex: 1;
         }
     </style>
     <link rel="icon" type="image/png" href="images/logo.png">
@@ -2280,7 +2383,7 @@
                 </div>
             </div>
 
-            <!-- Navigation Tabs - Removed Achievements -->
+            <!-- Navigation Tabs -->
             <div class="nav-tabs">
                 <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
                     <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
@@ -2483,7 +2586,7 @@
             </button>
         </div>
 
-        <!-- Mobile Side Menu - SIMPLIFIED -->
+        <!-- Mobile Side Menu -->
         <div class="mobile-side-menu" id="mobileSideMenu">
             <div class="mobile-menu-header">
                 <div class="mobile-menu-title">Menu</div>
@@ -2576,7 +2679,7 @@
             </div>
         </div>
 
-        <!-- Mobile Tabs Navigation - Removed Achievements -->
+        <!-- Mobile Tabs Navigation -->
         <div class="mobile-tabs">
             <div class="mobile-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
                 <i class="fas fa-book"></i>
@@ -2642,14 +2745,14 @@
             <!-- List Detail View for Mobile -->
             <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
                 <div class="mobile-list-detail-header">
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.hideMobileListDetail()">
-                        <i class="fas fa-arrow-left"></i> Back
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; min-width: 60px;" onclick="ProfileManager.hideMobileListDetail()">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <div class="mobile-list-detail-title-section" style="text-align: center;">
-                        <div id="mobileListDetailTitle" style="font-weight: 600; font-size: 18px;">List Title</div>
+                    <div class="mobile-list-detail-title-section">
+                        <div id="mobileListDetailTitle" style="font-weight: 600; font-size: 18px; color: var(--accent);">List Title</div>
                         <div class="text-sm text-muted" id="mobileListDetailDescription">List description</div>
                     </div>
-                    <div style="width: 60px;"></div> <!-- Spacer for alignment -->
+                    <div style="width: 60px;"></div>
                 </div>
                 
                 <div id="mobileListRestaurants">
@@ -2919,10 +3022,26 @@
         </div>
     </div>
 
+    <!-- Custom Confirmation Modal -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <div class="confirm-header">
+                <h3 class="confirm-title" id="confirmTitle">Confirm Action</h3>
+            </div>
+            <div class="confirm-body">
+                <div class="confirm-message" id="confirmMessage">Are you sure you want to perform this action?</div>
+                <div class="confirm-actions">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeConfirmModal()">Cancel</button>
+                    <button type="button" class="btn btn-error" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
-            // Supabase configuration - KEEP THIS UNCHANGED
+            // Supabase configuration - KEEPING THIS UNCHANGED
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
             const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 
@@ -2943,6 +3062,7 @@
             let selectedAvatarIcon = null;
             let currentEditingJournalEntry = null;
             let loadedUserIds = new Set();
+            let communitySystem = null;
 
             // Food icons for avatar selection
             const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -2974,11 +3094,10 @@
                     await loadRestaurants();
                     
                     // Initialize systems
-                    await Promise.all([
-                        listManager.init(),
-                        communitySystem.init(),
-                        foodJournal.init()
-                    ]);
+                    communitySystem = createCommunitySystem();
+                    await listManager.init();
+                    await communitySystem.init();
+                    await foodJournal.init();
                     
                     setupEventListeners();
                     
@@ -3065,6 +3184,40 @@
                 setTimeout(() => {
                     if (toast.parentNode) toast.remove();
                 }, duration);
+            }
+
+            // ===== CUSTOM CONFIRMATION MODAL =====
+            function showConfirmModal(title, message, onConfirm) {
+                const modal = document.getElementById('confirmModal');
+                const titleEl = document.getElementById('confirmTitle');
+                const messageEl = document.getElementById('confirmMessage');
+                const confirmBtn = document.getElementById('confirmActionBtn');
+                
+                if (modal && titleEl && messageEl && confirmBtn) {
+                    titleEl.textContent = title;
+                    messageEl.textContent = message;
+                    
+                    // Remove any existing event listeners
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+                    
+                    // Add new event listener
+                    newConfirmBtn.addEventListener('click', function() {
+                        onConfirm();
+                        closeConfirmModal();
+                    });
+                    
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            function closeConfirmModal() {
+                const modal = document.getElementById('confirmModal');
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
             }
 
             // ===== PROFILE MANAGEMENT =====
@@ -4054,10 +4207,14 @@
                         removeBtn.onclick = async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (confirm(`Remove ${restaurant.name} from this list?`)) {
-                                await listManager.toggleInList(currentActiveList.id, restaurant.id);
-                                await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            }
+                            showConfirmModal(
+                                'Remove Restaurant',
+                                `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
+                                async () => {
+                                    await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                                    await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                                }
+                            );
                         };
                         card.appendChild(removeBtn);
                     }
@@ -4106,37 +4263,41 @@
                     restaurantCard.className = 'mobile-list-restaurant-card';
                     restaurantCard.style.position = 'relative';
                     
-                    restaurantCard.innerHTML = `
-                        <div class="mobile-list-restaurant-info">
-                            <div class="mobile-list-restaurant-image">
-                                <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
-                                <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
-                                <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restaurant.rating}</div>
-                            </div>
+                    const restaurantInfo = document.createElement('div');
+                    restaurantInfo.className = 'mobile-list-restaurant-info';
+                    restaurantInfo.style.cursor = 'pointer';
+                    restaurantInfo.onclick = () => {
+                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+                    };
+                    
+                    restaurantInfo.innerHTML = `
+                        <div class="mobile-list-restaurant-image">
+                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
+                            <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
+                            <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restaurant.rating}</div>
                         </div>
                     `;
                     
-                    // Make the card clickable to go to restaurant page
-                    restaurantCard.onclick = () => {
-                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    };
+                    restaurantCard.appendChild(restaurantInfo);
                     
                     if (isViewingOwnProfile) {
                         const removeBtn = document.createElement('button');
                         removeBtn.className = 'remove-restaurant-btn';
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        removeBtn.style.position = 'absolute';
-                        removeBtn.style.top = '10px';
-                        removeBtn.style.right = '10px';
+                        removeBtn.style.opacity = '1';
                         removeBtn.onclick = async (e) => {
                             e.stopPropagation();
-                            if (confirm(`Remove ${restaurant.name} from this list?`)) {
-                                await listManager.toggleInList(currentActiveList.id, restaurant.id);
-                                await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            }
+                            showConfirmModal(
+                                'Remove Restaurant',
+                                `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
+                                async () => {
+                                    await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                                    await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                                }
+                            );
                         };
                         restaurantCard.appendChild(removeBtn);
                     }
@@ -4400,8 +4561,8 @@
                     if (!restaurantId || !visitDate || rating === 0) {
                         showToast('Please fill in all required fields', 'error');
                         return;
-                    }
-                    
+                                        }
+
                     try {
                         if (currentEditingJournalEntry) {
                             const { error } = await supabase
@@ -4463,510 +4624,446 @@
                 }
             };
 
-            // ===== COMMUNITY SYSTEM =====
-            const communitySystem = {
-                currentSection: 'followers',
-                loadedUsersCache: new Set(),
-                
-                async init() {
-                    if (!currentUser) return;
-                    await this.loadFollowStats();
+            // ===== CREATE COMMUNITY SYSTEM =====
+            function createCommunitySystem() {
+                return {
+                    currentSection: 'followers',
+                    loadedUsersCache: new Set(),
                     
-                    // Add event listener for search
-                    const userSearch = document.getElementById('userSearch');
-                    if (userSearch) {
-                        let debounceTimer;
-                        userSearch.addEventListener('input', () => {
-                            clearTimeout(debounceTimer);
-                            debounceTimer = setTimeout(() => {
-                                this.searchUsers();
-                            }, 300);
-                        });
-                    }
-                },
-
-                async loadFollowStats() {
-                    try {
-                        const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                    async init() {
+                        if (!currentUser) return;
+                        await this.loadFollowStats();
                         
-                        const { data: followers, error: followersError } = await supabase
-                            .from('follows')
-                            .select('follower_id')
-                            .eq('followed_id', targetId);
-
-                        const { data: following, error: followingError } = await supabase
-                            .from('follows')
-                            .select('followed_id')
-                            .eq('follower_id', targetId);
-
-                        // Update desktop badges
-                        const followersCountBadge = document.getElementById('followersCountBadge');
-                        const followingCountBadge = document.getElementById('followingCountBadge');
-                        
-                        if (followersCountBadge) {
-                            const count = followers ? followers.length : 0;
-                            followersCountBadge.textContent = count;
-                            followersCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                        // Add event listener for search
+                        const userSearch = document.getElementById('userSearch');
+                        if (userSearch) {
+                            let debounceTimer;
+                            userSearch.addEventListener('input', () => {
+                                clearTimeout(debounceTimer);
+                                debounceTimer = setTimeout(() => {
+                                    this.searchUsers();
+                                }, 300);
+                            });
                         }
-                        if (followingCountBadge) {
-                            const count = following ? following.length : 0;
-                            followingCountBadge.textContent = count;
-                            followingCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
-                        }
+                    },
 
-                        // Update mobile badge
-                        const mobileFollowersBadge = document.getElementById('mobileFollowersBadge');
-                        if (mobileFollowersBadge) {
-                            const count = followers ? followers.length : 0;
-                            mobileFollowersBadge.textContent = count;
-                            mobileFollowersBadge.style.display = count > 0 ? 'inline-block' : 'none';
-                        }
-
-                        if (isViewingOwnProfile) {
-                            document.getElementById('followersCount').textContent = followers ? followers.length : 0;
-                        }
-
-                    } catch (error) {
-                        console.error('Error loading follow stats:', error);
-                    }
-                },
-
-                async loadFollowers() {
-                    try {
-                        const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                        
-                        const { data: follows, error } = await supabase
-                            .from('follows')
-                            .select('follower_id')
-                            .eq('followed_id', targetId);
-
-                        if (error) throw error;
-
-                        const isMobile = window.innerWidth <= 768;
-                        const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
-                        if (!followersList) return;
-
-                        if (!follows || follows.length === 0) {
-                            const emptyText = isViewingOwnProfile ? 
-                                'Share your profile to get followers and connect with other food enthusiasts!' :
-                                'This user doesn\'t have any followers yet.';
+                    async loadFollowStats() {
+                        try {
+                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                             
-                            if (isMobile) {
-                                followersList.innerHTML = `
-                                    <div class="mobile-empty-state">
-                                        <div class="mobile-empty-icon">👥</div>
-                                        <div class="mobile-empty-title">No followers yet</div>
-                                        <div class="mobile-empty-description">${emptyText}</div>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                <i class="fas fa-user-plus"></i> Find Users
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                `;
-                            } else {
-                                followersList.innerHTML = `
+                            const { data: followers, error: followersError } = await supabase
+                                .from('follows')
+                                .select('follower_id')
+                                .eq('followed_id', targetId);
+
+                            const { data: following, error: followingError } = await supabase
+                                .from('follows')
+                                .select('followed_id')
+                                .eq('follower_id', targetId);
+
+                            // Update desktop badges
+                            const followersCountBadge = document.getElementById('followersCountBadge');
+                            const followingCountBadge = document.getElementById('followingCountBadge');
+                            
+                            if (followersCountBadge) {
+                                const count = followers ? followers.length : 0;
+                                followersCountBadge.textContent = count;
+                                followersCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                            }
+                            if (followingCountBadge) {
+                                const count = following ? following.length : 0;
+                                followingCountBadge.textContent = count;
+                                followingCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                            }
+
+                            // Update mobile badge
+                            const mobileFollowersBadge = document.getElementById('mobileFollowersBadge');
+                            if (mobileFollowersBadge) {
+                                const count = followers ? followers.length : 0;
+                                mobileFollowersBadge.textContent = count;
+                                mobileFollowersBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                            }
+
+                            if (isViewingOwnProfile) {
+                                document.getElementById('followersCount').textContent = followers ? followers.length : 0;
+                            }
+
+                        } catch (error) {
+                            console.error('Error loading follow stats:', error);
+                        }
+                    },
+
+                    async loadFollowers() {
+                        try {
+                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                            
+                            const { data: follows, error } = await supabase
+                                .from('follows')
+                                .select('follower_id')
+                                .eq('followed_id', targetId);
+
+                            if (error) throw error;
+
+                            const isMobile = window.innerWidth <= 768;
+                            const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
+                            if (!followersList) return;
+
+                            if (!follows || follows.length === 0) {
+                                const emptyText = isViewingOwnProfile ? 
+                                    'Share your profile to get followers and connect with other food enthusiasts!' :
+                                    'This user doesn\'t have any followers yet.';
+                                
+                                if (isMobile) {
+                                    followersList.innerHTML = `
+                                        <div class="mobile-empty-state">
+                                            <div class="mobile-empty-icon">👥</div>
+                                            <div class="mobile-empty-title">No followers yet</div>
+                                            <div class="mobile-empty-description">${emptyText}</div>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                } else {
+                                    followersList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">👥</div>
+                                            <h3 class="empty-title">No followers yet</h3>
+                                            <p class="empty-description">${emptyText}</p>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }
+                                return;
+                            }
+
+                            this.loadedUsersCache.clear();
+                            const followerIds = follows.map(f => f.follower_id);
+                            const uniqueFollowerIds = [...new Set(followerIds)];
+                            
+                            const { data: users, error: usersError } = await supabase
+                                .from('user_profiles')
+                                .select('*')
+                                .in('id', uniqueFollowerIds);
+
+                            if (!usersError) {
+                                this.displayUsers(users, isMobile ? 'mobileFollowersList' : 'followersList');
+                            }
+                        } catch (error) {
+                            console.error('Error loading followers:', error);
+                            const isMobile = window.innerWidth <= 768;
+                            const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
+                            if (followersList) {
+                                if (isMobile) {
+                                    followersList.innerHTML = `
+                                        <div class="mobile-empty-state">
+                                            <div class="mobile-empty-icon">⚠️</div>
+                                            <div class="mobile-empty-title">Unable to Load Followers</div>
+                                            <div class="mobile-empty-description">There was an error loading followers. Please try again later.</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    followersList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">⚠️</div>
+                                            <h3 class="empty-title">Unable to Load Followers</h3>
+                                            <p class="empty-description">There was an error loading followers. Please try again later.</p>
+                                        </div>
+                                    `;
+                                }
+                            }
+                        }
+                    },
+
+                    async loadFollowing() {
+                        try {
+                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                            
+                            const { data: follows, error } = await supabase
+                                .from('follows')
+                                .select('followed_id')
+                                .eq('follower_id', targetId);
+
+                            if (error) throw error;
+
+                            const isMobile = window.innerWidth <= 768;
+                            const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
+                            if (!followingList) return;
+
+                            if (!follows || follows.length === 0) {
+                                const emptyText = isViewingOwnProfile ? 
+                                    'Discover and follow other food lovers to see their restaurant adventures!' :
+                                    'This user isn\'t following anyone yet.';
+                                
+                                if (isMobile) {
+                                    followingList.innerHTML = `
+                                        <div class="mobile-empty-state">
+                                            <div class="mobile-empty-icon">👥</div>
+                                            <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
+                                            <div class="mobile-empty-description">${emptyText}</div>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                } else {
+                                    followingList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">👥</div>
+                                            <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
+                                            <p class="empty-description">${emptyText}</p>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }
+                                return;
+                            }
+
+                            this.loadedUsersCache.clear();
+                            const followingIds = follows.map(f => f.followed_id);
+                            const uniqueFollowingIds = [...new Set(followingIds)];
+                            
+                            const { data: users, error: usersError } = await supabase
+                                .from('user_profiles')
+                                .select('*')
+                                .in('id', uniqueFollowingIds);
+
+                            if (!usersError) {
+                                this.displayUsers(users, isMobile ? 'mobileFollowingList' : 'followingList');
+                            }
+                        } catch (error) {
+                            console.error('Error loading following:', error);
+                            const isMobile = window.innerWidth <= 768;
+                            const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
+                            if (followingList) {
+                                if (isMobile) {
+                                    followingList.innerHTML = `
+                                        <div class="mobile-empty-state">
+                                            <div class="mobile-empty-icon">⚠️</div>
+                                            <div class="mobile-empty-title">Unable to Load Following</div>
+                                            <div class="mobile-empty-description">There was an error loading following list. Please try again later.</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    followingList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">⚠️</div>
+                                            <h3 class="empty-title">Unable to Load Following</h3>
+                                            <p class="empty-description">There was an error loading following list. Please try again later.</p>
+                                        </div>
+                                    `;
+                                }
+                            }
+                        }
+                    },
+
+                    async searchUsers() {
+                        const userSearch = document.getElementById('userSearch');
+                        if (!userSearch) return;
+                        
+                        const searchTerm = userSearch.value.trim();
+                        
+                        if (!searchTerm) {
+                            const searchResults = document.getElementById('searchResults');
+                            if (searchResults) {
+                                searchResults.innerHTML = `
                                     <div class="empty-state">
-                                        <div class="empty-icon">👥</div>
-                                        <h3 class="empty-title">No followers yet</h3>
-                                        <p class="empty-description">${emptyText}</p>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                <i class="fas fa-user-plus"></i> Find Users
-                                            </button>
-                                        ` : ''}
+                                        <div class="empty-icon">🔍</div>
+                                        <h3 class="empty-title">Search for users</h3>
+                                        <p class="empty-description">Enter a username or name to search</p>
                                     </div>
                                 `;
                             }
                             return;
                         }
 
-                        this.loadedUsersCache.clear();
-                        const followerIds = follows.map(f => f.follower_id);
-                        const uniqueFollowerIds = [...new Set(followerIds)];
-                        
-                        const { data: users, error: usersError } = await supabase
-                            .from('user_profiles')
-                            .select('*')
-                            .in('id', uniqueFollowerIds);
-
-                        if (!usersError) {
-                            this.displayUsers(users, isMobile ? 'mobileFollowersList' : 'followersList');
-                        }
-                    } catch (error) {
-                        console.error('Error loading followers:', error);
-                        const isMobile = window.innerWidth <= 768;
-                        const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
-                        if (followersList) {
-                            if (isMobile) {
-                                followersList.innerHTML = `
-                                    <div class="mobile-empty-state">
-                                        <div class="mobile-empty-icon">⚠️</div>
-                                        <div class="mobile-empty-title">Unable to Load Followers</div>
-                                        <div class="mobile-empty-description">There was an error loading followers. Please try again later.</div>
-                                    </div>
-                                `;
-                            } else {
-                                followersList.innerHTML = `
-                                    <div class="empty-state">
-                                        <div class="empty-icon">⚠️</div>
-                                        <h3 class="empty-title">Unable to Load Followers</h3>
-                                        <p class="empty-description">There was an error loading followers. Please try again later.</p>
-                                    </div>
-                                `;
-                            }
-                        }
-                    }
-                },
-
-                async loadFollowing() {
-                    try {
-                        const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                        
-                        const { data: follows, error } = await supabase
-                            .from('follows')
-                            .select('followed_id')
-                            .eq('follower_id', targetId);
-
-                        if (error) throw error;
-
-                        const isMobile = window.innerWidth <= 768;
-                        const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
-                        if (!followingList) return;
-
-                        if (!follows || follows.length === 0) {
-                            const emptyText = isViewingOwnProfile ? 
-                                'Discover and follow other food lovers to see their restaurant adventures!' :
-                                'This user isn\'t following anyone yet.';
+                        try {
+                            this.loadedUsersCache.clear();
                             
-                            if (isMobile) {
-                                followingList.innerHTML = `
-                                    <div class="mobile-empty-state">
-                                        <div class="mobile-empty-icon">👥</div>
-                                        <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
-                                        <div class="mobile-empty-description">${emptyText}</div>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                <i class="fas fa-user-plus"></i> Find Users
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                `;
-                            } else {
-                                followingList.innerHTML = `
-                                    <div class="empty-state">
-                                        <div class="empty-icon">👥</div>
-                                        <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
-                                        <p class="empty-description">${emptyText}</p>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                <i class="fas fa-user-plus"></i> Find Users
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                `;
-                            }
-                            return;
-                        }
+                            const { data: users, error } = await supabase
+                                .from('user_profiles')
+                                .select('*')
+                                .neq('id', currentUser.id)
+                                .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
+                                .limit(20);
 
-                        this.loadedUsersCache.clear();
-                        const followingIds = follows.map(f => f.followed_id);
-                        const uniqueFollowingIds = [...new Set(followingIds)];
-                        
-                        const { data: users, error: usersError } = await supabase
-                            .from('user_profiles')
-                            .select('*')
-                            .in('id', uniqueFollowingIds);
+                            if (error) throw error;
 
-                        if (!usersError) {
-                            this.displayUsers(users, isMobile ? 'mobileFollowingList' : 'followingList');
-                        }
-                    } catch (error) {
-                        console.error('Error loading following:', error);
-                        const isMobile = window.innerWidth <= 768;
-                        const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
-                        if (followingList) {
-                            if (isMobile) {
-                                followingList.innerHTML = `
-                                    <div class="mobile-empty-state">
-                                        <div class="mobile-empty-icon">⚠️</div>
-                                        <div class="mobile-empty-title">Unable to Load Following</div>
-                                        <div class="mobile-empty-description">There was an error loading following list. Please try again later.</div>
-                                    </div>
-                                `;
-                            } else {
-                                followingList.innerHTML = `
+                            this.displayUsers(users, 'searchResults');
+                            
+                        } catch (error) {
+                            console.error('Error searching users:', error);
+                            const searchResults = document.getElementById('searchResults');
+                            if (searchResults) {
+                                searchResults.innerHTML = `
                                     <div class="empty-state">
                                         <div class="empty-icon">⚠️</div>
-                                        <h3 class="empty-title">Unable to Load Following</h3>
-                                        <p class="empty-description">There was an error loading following list. Please try again later.</p>
+                                        <h3 class="empty-title">Search Error</h3>
+                                        <p class="empty-description">Unable to search users at this time</p>
                                     </div>
                                 `;
                             }
                         }
-                    }
-                },
+                    },
 
-                async searchUsers() {
-                    const userSearch = document.getElementById('userSearch');
-                    if (!userSearch) return;
-                    
-                    const searchTerm = userSearch.value.trim();
-                    
-                    if (!searchTerm) {
-                        const searchResults = document.getElementById('searchResults');
-                        if (searchResults) {
-                            searchResults.innerHTML = `
+                    async displayUsers(users, containerId) {
+                        const container = document.getElementById(containerId);
+                        if (!container) return;
+                        
+                        if (!users || users.length === 0) {
+                            container.innerHTML = `
                                 <div class="empty-state">
                                     <div class="empty-icon">🔍</div>
-                                    <h3 class="empty-title">Search for users</h3>
-                                    <p class="empty-description">Enter a username or name to search</p>
+                                    <h3 class="empty-title">No users found</h3>
+                                    <p class="empty-description">Try searching with a different name or username</p>
                                 </div>
                             `;
+                            return;
                         }
-                        return;
-                    }
 
-                    try {
-                        this.loadedUsersCache.clear();
+                        container.innerHTML = '';
                         
-                        const { data: users, error } = await supabase
-                            .from('user_profiles')
-                            .select('*')
-                            .neq('id', currentUser.id)
-                            .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
-                            .limit(20);
-
-                        if (error) throw error;
-
-                        this.displayUsers(users, 'searchResults');
-                        
-                    } catch (error) {
-                        console.error('Error searching users:', error);
-                        const searchResults = document.getElementById('searchResults');
-                        if (searchResults) {
-                            searchResults.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">⚠️</div>
-                                    <h3 class="empty-title">Search Error</h3>
-                                    <p class="empty-description">Unable to search users at this time</p>
-                                </div>
-                            `;
-                        }
-                    }
-                },
-
-                async displayUsers(users, containerId) {
-                    const container = document.getElementById(containerId);
-                    if (!container) return;
-                    
-                    if (!users || users.length === 0) {
-                        container.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">🔍</div>
-                                <h3 class="empty-title">No users found</h3>
-                                <p class="empty-description">Try searching with a different name or username</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    container.innerHTML = '';
-                    
-                    const uniqueUsers = users.filter(user => {
-                        if (this.loadedUsersCache.has(user.id)) {
-                            return false;
-                        }
-                        this.loadedUsersCache.add(user.id);
-                        return true;
-                    });
-
-                    for (const user of uniqueUsers) {
-                        const isPrivate = user.is_private === true;
-                        const isCurrentUser = user.id === currentUser.id;
-                        
-                        let isFollowing = false;
-                        if (!isCurrentUser) {
-                            const { data: follow } = await supabase
-                                .from('follows')
-                                .select('id')
-                                .eq('follower_id', currentUser.id)
-                                .eq('followed_id', user.id)
-                                .single();
-                            
-                            isFollowing = !!follow;
-                        }
-                        
-                        const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
-                        
-                        if (isMobile) {
-                            const userCard = document.createElement('div');
-                            userCard.className = 'mobile-community-card';
-                            
-                            userCard.innerHTML = `
-                                <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
-                                    <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
-                                    <div class="mobile-community-info">
-                                        <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                        <div class="mobile-community-username">@${user.username || 'user'}</div>
-                                    </div>
-                                </div>
-                                <div class="mobile-community-stats">
-                                    <div class="mobile-community-stat">
-                                        <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                        <span class="mobile-community-stat-label">Visited</span>
-                                    </div>
-                                    <div class="mobile-community-stat">
-                                        <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                        <span class="mobile-community-stat-label">Favorites</span>
-                                    </div>
-                                    <div class="mobile-community-stat">
-                                        <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
-                                        <span class="mobile-community-stat-label">Followers</span>
-                                    </div>
-                                </div>
-                                <div class="mobile-community-actions">
-                                    ${!isCurrentUser ? `
-                                        <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.viewUserProfile('${user.id}')">
-                                            <i class="fas fa-eye"></i> View Profile
-                                        </button>
-                                        <button class="mobile-action-btn ${isFollowing ? 'btn-error' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px; ${isFollowing ? 'background: var(--error); color: white;' : ''}" onclick="communitySystem.toggleFollow('${user.id}', this)">
-                                            ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
-                                        </button>
-                                    ` : `
-                                        <button class="mobile-action-btn secondary" style="width: 100%;" disabled>
-                                            <i class="fas fa-user"></i> This is you
-                                        </button>
-                                    `}
-                                </div>
-                            `;
-                            
-                            container.appendChild(userCard);
-                        } else {
-                            const userCard = document.createElement('div');
-                            userCard.className = 'community-card';
-                            userCard.innerHTML = `
-                                <div class="community-header">
-                                    <div class="community-avatar">${user.avatar_icon || '👤'}</div>
-                                    <div class="community-info">
-                                        <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                        <div class="community-username">@${user.username || 'user'}</div>
-                                    </div>
-                                </div>
-                                <div class="community-stats">
-                                    <div class="community-stat">
-                                        <span class="community-stat-number">${user.visited_count || 0}</span>
-                                        <span class="community-stat-label">Visited</span>
-                                    </div>
-                                    <div class="community-stat">
-                                        <span class="community-stat-number">${user.favorites_count || 0}</span>
-                                        <span class="community-stat-label">Favorites</span>
-                                    </div>
-                                    <div class="community-stat">
-                                        <span class="community-stat-number">${user.followers_count || 0}</span>
-                                        <span class="community-stat-label">Followers</span>
-                                    </div>
-                                </div>
-                                <div class="community-actions">
-                                    ${!isCurrentUser ? `
-                                        <button class="btn btn-secondary btn-sm" onclick="ProfileManager.viewUserProfile('${user.id}')">
-                                            <i class="fas fa-eye"></i> View Profile
-                                        </button>
-                                        <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="communitySystem.toggleFollow('${user.id}', this)">
-                                            ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
-                                        </button>
-                                    ` : `
-                                        <button class="btn btn-secondary btn-sm" disabled>
-                                            <i class="fas fa-user"></i> This is you
-                                        </button>
-                                    `}
-                                </div>
-                            `;
-                            
-                            container.appendChild(userCard);
-                        }
-                    }
-                },
-
-                async toggleFollow(targetUserId, buttonElement) {
-                    try {
-                        const { data: existingFollow } = await supabase
-                            .from('follows')
-                            .select('id')
-                            .eq('follower_id', currentUser.id)
-                            .eq('followed_id', targetUserId)
-                            .single();
-
-                        if (existingFollow) {
-                            const { error } = await supabase
-                                .from('follows')
-                                .delete()
-                                .eq('follower_id', currentUser.id)
-                                .eq('followed_id', targetUserId);
-
-                            if (error) throw error;
-                            
-                            if (buttonElement) {
-                                const isMobile = window.innerWidth <= 768;
-                                if (isMobile) {
-                                    buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-                                    buttonElement.className = 'mobile-action-btn primary';
-                                    buttonElement.style.background = 'var(--accent)';
-                                    buttonElement.style.color = '#0b1633';
-                                } else {
-                                    buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-                                    buttonElement.className = 'btn btn-primary btn-sm';
-                                }
+                        const uniqueUsers = users.filter(user => {
+                            if (this.loadedUsersCache.has(user.id)) {
+                                return false;
                             }
-                            showToast('Unfollowed user', 'info');
-                        } else {
-                            const { error } = await supabase
-                                .from('follows')
-                                .insert({
-                                    follower_id: currentUser.id,
-                                    followed_id: targetUserId,
-                                    created_at: new Date().toISOString()
-                                });
+                            this.loadedUsersCache.add(user.id);
+                            return true;
+                        });
 
-                            if (error) throw error;
+                        for (const user of uniqueUsers) {
+                            const isPrivate = user.is_private === true;
+                            const isCurrentUser = user.id === currentUser.id;
                             
-                            if (buttonElement) {
-                                const isMobile = window.innerWidth <= 768;
-                                if (isMobile) {
-                                    buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
-                                    buttonElement.className = 'mobile-action-btn';
-                                    buttonElement.style.background = 'var(--error)';
-                                    buttonElement.style.color = 'white';
-                                } else {
-                                    buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
-                                    buttonElement.className = 'btn btn-error btn-sm';
-                                }
+                            let isFollowing = false;
+                            if (!isCurrentUser) {
+                                const { data: follow } = await supabase
+                                    .from('follows')
+                                    .select('id')
+                                    .eq('follower_id', currentUser.id)
+                                    .eq('followed_id', user.id)
+                                    .single();
+                                
+                                isFollowing = !!follow;
                             }
-                            showToast('Started following user', 'success');
+                            
+                            const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
+                            
+                            if (isMobile) {
+                                const userCard = document.createElement('div');
+                                userCard.className = 'mobile-community-card';
+                                
+                                userCard.innerHTML = `
+                                    <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
+                                        <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                                        <div class="mobile-community-info">
+                                            <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                            <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-community-stats">
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Visited</span>
+                                        </div>
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Favorites</span>
+                                        </div>
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Followers</span>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-community-actions">
+                                        ${!isCurrentUser ? `
+                                            <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.viewUserProfile('${user.id}')">
+                                                <i class="fas fa-eye"></i> View Profile
+                                            </button>
+                                            <button class="mobile-action-btn ${isFollowing ? 'btn-error' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px; ${isFollowing ? 'background: var(--error); color: white;' : ''}" onclick="ProfileManager.toggleFollow('${user.id}', this)">
+                                                ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                            </button>
+                                        ` : `
+                                            <button class="mobile-action-btn secondary" style="width: 100%;" disabled>
+                                                <i class="fas fa-user"></i> This is you
+                                            </button>
+                                        `}
+                                    </div>
+                                `;
+                                
+                                container.appendChild(userCard);
+                            } else {
+                                const userCard = document.createElement('div');
+                                userCard.className = 'community-card';
+                                userCard.innerHTML = `
+                                    <div class="community-header">
+                                        <div class="community-avatar">${user.avatar_icon || '👤'}</div>
+                                        <div class="community-info">
+                                            <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                            <div class="community-username">@${user.username || 'user'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="community-stats">
+                                        <div class="community-stat">
+                                            <span class="community-stat-number">${user.visited_count || 0}</span>
+                                            <span class="community-stat-label">Visited</span>
+                                        </div>
+                                        <div class="community-stat">
+                                            <span class="community-stat-number">${user.favorites_count || 0}</span>
+                                            <span class="community-stat-label">Favorites</span>
+                                        </div>
+                                        <div class="community-stat">
+                                            <span class="community-stat-number">${user.followers_count || 0}</span>
+                                            <span class="community-stat-label">Followers</span>
+                                        </div>
+                                    </div>
+                                    <div class="community-actions">
+                                        ${!isCurrentUser ? `
+                                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.viewUserProfile('${user.id}')">
+                                                <i class="fas fa-eye"></i> View Profile
+                                            </button>
+                                            <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="ProfileManager.toggleFollow('${user.id}', this)">
+                                                ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                            </button>
+                                        ` : `
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                <i class="fas fa-user"></i> This is you
+                                            </button>
+                                        `}
+                                    </div>
+                                `;
+                                
+                                container.appendChild(userCard);
+                            }
                         }
+                    },
 
-                        await this.loadFollowStats();
-                        this.refreshCurrentView();
-
-                    } catch (error) {
-                        console.error('Error toggling follow:', error);
-                        showToast('Error updating follow status', 'error');
-                    }
-                },
-
-                refreshCurrentView() {
-                    const userSearch = document.getElementById('userSearch');
-                    if (userSearch && userSearch.value) {
-                        this.searchUsers();
-                    } else {
-                        if (this.currentSection === 'followers') {
-                            this.loadFollowers();
+                    refreshCurrentView() {
+                        const userSearch = document.getElementById('userSearch');
+                        if (userSearch && userSearch.value) {
+                            this.searchUsers();
                         } else {
-                            this.loadFollowing();
+                            if (this.currentSection === 'followers') {
+                                this.loadFollowers();
+                            } else {
+                                this.loadFollowing();
+                            }
                         }
                     }
-                }
-            };
+                };
+            }
 
             // ===== FOLLOW FUNCTIONALITY =====
             async function loadFollowStatus() {
@@ -4999,53 +5096,92 @@
                 }
             }
 
-            async function toggleFollow() {
+            async function toggleFollow(userId, buttonElement) {
                 try {
+                    const targetId = userId || targetUserId;
+                    const isOtherUser = !!userId;
+                    
                     const { data: existingFollow } = await supabase
                         .from('follows')
                         .select('id')
                         .eq('follower_id', currentUser.id)
-                        .eq('followed_id', targetUserId)
+                        .eq('followed_id', targetId)
                         .single();
 
-                    const followButton = document.getElementById('followButton');
-                    
                     if (existingFollow) {
                         const { error } = await supabase
                             .from('follows')
                             .delete()
                             .eq('follower_id', currentUser.id)
-                            .eq('followed_id', targetUserId);
+                            .eq('followed_id', targetId);
 
                         if (error) throw error;
                         
-                        if (followButton) {
-                            followButton.textContent = 'Follow';
-                            followButton.className = 'btn btn-primary';
+                        if (buttonElement) {
+                            const isMobile = window.innerWidth <= 768;
+                            if (isMobile) {
+                                buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                                buttonElement.className = 'mobile-action-btn primary';
+                                buttonElement.style.background = 'var(--accent)';
+                                buttonElement.style.color = '#0b1633';
+                            } else {
+                                buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                                buttonElement.className = 'btn btn-primary btn-sm';
+                            }
                         }
-                        showToast(`Unfollowed ${targetUser.username}`, 'info');
+                        
+                        if (isOtherUser) {
+                            showToast('Unfollowed user', 'info');
+                        } else {
+                            const followButton = document.getElementById('followButton');
+                            if (followButton) {
+                                followButton.textContent = 'Follow';
+                                followButton.className = 'btn btn-primary';
+                            }
+                            showToast(`Unfollowed ${targetUser?.username || 'user'}`, 'info');
+                        }
                         
                     } else {
                         const { error } = await supabase
                             .from('follows')
                             .insert({
                                 follower_id: currentUser.id,
-                                followed_id: targetUserId,
+                                followed_id: targetId,
                                 created_at: new Date().toISOString()
                             });
 
                         if (error) throw error;
                         
-                        if (followButton) {
-                            followButton.textContent = 'Unfollow';
-                            followButton.className = 'btn btn-error';
+                        if (buttonElement) {
+                            const isMobile = window.innerWidth <= 768;
+                            if (isMobile) {
+                                buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                                buttonElement.className = 'mobile-action-btn';
+                                buttonElement.style.background = 'var(--error)';
+                                buttonElement.style.color = 'white';
+                            } else {
+                                buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                                buttonElement.className = 'btn btn-error btn-sm';
+                            }
                         }
-                        showToast(`Started following ${targetUser.username}`, 'success');
+                        
+                        if (isOtherUser) {
+                            showToast('Started following user', 'success');
+                        } else {
+                            const followButton = document.getElementById('followButton');
+                            if (followButton) {
+                                followButton.textContent = 'Unfollow';
+                                followButton.className = 'btn btn-error';
+                            }
+                            showToast(`Started following ${targetUser?.username || 'user'}`, 'success');
+                        }
                     }
 
-                    await updateStats(targetUserId);
-                    await communitySystem.loadFollowStats();
-                    communitySystem.refreshCurrentView();
+                    await updateStats(isOtherUser ? null : targetUserId);
+                    if (communitySystem) {
+                        await communitySystem.loadFollowStats();
+                        communitySystem.refreshCurrentView();
+                    }
 
                 } catch (error) {
                     console.error('Error toggling follow:', error);
@@ -5184,11 +5320,13 @@
                     if (activeBtn) activeBtn.classList.add('active');
                 }
                 
-                communitySystem.currentSection = section;
-                if (section === 'followers') {
-                    communitySystem.loadFollowers();
-                } else {
-                    communitySystem.loadFollowing();
+                if (communitySystem) {
+                    communitySystem.currentSection = section;
+                    if (section === 'followers') {
+                        communitySystem.loadFollowers();
+                    } else {
+                        communitySystem.loadFollowing();
+                    }
                 }
             }
 
@@ -5580,6 +5718,8 @@
                 // Modals
                 showModal,
                 closeModal,
+                showConfirmModal,
+                closeConfirmModal,
                 showCreateListModal,
                 showAvatarModal,
                 
@@ -5592,6 +5732,9 @@
                 // Profile
                 saveAvatar,
                 setRating,
+                
+                // Community
+                toggleFollow,
                 
                 // Mobile
                 showMobileMenu,
