@@ -1585,6 +1585,7 @@
                 border: 1px solid var(--border);
                 margin-bottom: 12px;
                 transition: var(--transition);
+                cursor: pointer;
             }
 
             .mobile-list-card:hover {
@@ -1626,7 +1627,7 @@
 
             .mobile-list-preview {
                 display: grid;
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(4, 1fr);
                 gap: 8px;
                 margin-bottom: 12px;
             }
@@ -1865,7 +1866,7 @@
                 display: none;
             }
 
-            /* Mobile List Detail */
+            /* Mobile List Detail Section */
             .mobile-list-detail-section {
                 display: none;
             }
@@ -1883,6 +1884,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                cursor: pointer;
             }
             
             .mobile-list-restaurant-info {
@@ -1904,6 +1906,70 @@
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
+            }
+            
+            /* Fix stretched images on mobile */
+            .cards-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            
+            .restaurant-tile {
+                display: flex !important;
+                align-items: center !important;
+                gap: 12px !important;
+                padding: 12px !important;
+            }
+            
+            .restaurant-tile-image {
+                width: 60px !important;
+                height: 60px !important;
+                min-width: 60px !important;
+                border-radius: 8px !important;
+                flex-shrink: 0 !important;
+                margin: 0 !important;
+            }
+            
+            .restaurant-tile-image img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+            }
+            
+            .restaurant-tile-content {
+                padding: 0 !important;
+                flex: 1 !important;
+                min-width: 0 !important;
+            }
+            
+            .restaurant-tile-name {
+                font-size: 16px !important;
+                margin-bottom: 4px !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            
+            .restaurant-tile-category {
+                font-size: 13px !important;
+                margin-bottom: 4px !important;
+            }
+            
+            /* Mobile list improvements */
+            .list-card {
+                padding: 16px !important;
+            }
+            
+            .list-preview-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+            
+            .list-preview-item {
+                height: 60px !important;
+            }
+            
+            .list-preview-item img {
+                object-fit: cover !important;
             }
         }
 
@@ -1931,6 +1997,10 @@
             .mobile-action-btn {
                 padding: 14px;
                 font-size: 14px;
+            }
+            
+            .mobile-list-preview {
+                grid-template-columns: repeat(2, 1fr) !important;
             }
         }
 
@@ -2273,7 +2343,7 @@
         <!-- Mobile Top Bar -->
         <div class="mobile-topbar">
             <div class="mobile-topbar-title" id="mobileTopBarTitle">Profile</div>
-            <button class="mobile-menu-btn" onclick="MobileProfile.showMenu()">
+            <button class="mobile-menu-btn" onclick="ProfileManager.showMobileMenu()">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
@@ -2282,26 +2352,26 @@
         <div class="mobile-side-menu" id="mobileSideMenu">
             <div class="mobile-menu-header">
                 <div class="mobile-menu-title">Menu</div>
-                <button class="mobile-menu-close" onclick="MobileProfile.hideMenu()">
+                <button class="mobile-menu-close" onclick="ProfileManager.hideMobileMenu()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Navigation</div>
-                <div class="mobile-menu-item" onclick="MobileProfile.goHome()">
+                <a href="index.html" class="mobile-menu-item">
                     <i class="fas fa-home"></i>
                     <span>Home</span>
-                </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.showSection('journal')">
+                </a>
+                <div class="mobile-menu-item" onclick="ProfileManager.showTab('journal'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-book"></i>
                     <span>Food Journal</span>
                 </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.showSection('lists')">
+                <div class="mobile-menu-item" onclick="ProfileManager.showTab('lists'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-list"></i>
                     <span>My Lists</span>
                 </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.showSection('community')">
+                <div class="mobile-menu-item" onclick="ProfileManager.showTab('community'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-users"></i>
                     <span>Community</span>
                 </div>
@@ -2311,15 +2381,15 @@
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Account</div>
-                <div class="mobile-menu-item" onclick="MobileProfile.editProfile()">
+                <div class="mobile-menu-item" onclick="ProfileManager.showModal('editProfileModal'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-user-edit"></i>
                     <span>Edit Profile</span>
                 </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.showSettings()">
+                <a href="settings.html" class="mobile-menu-item">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
-                </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.showAvatarModal()">
+                </a>
+                <div class="mobile-menu-item" onclick="ProfileManager.showAvatarModal(); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-user-circle"></i>
                     <span>Change Avatar</span>
                 </div>
@@ -2329,15 +2399,15 @@
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Actions</div>
-                <div class="mobile-menu-item" onclick="MobileProfile.addJournalEntry()">
+                <div class="mobile-menu-item" onclick="ProfileManager.showModal('addEntryModal'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-plus-circle"></i>
                     <span>Add Journal Entry</span>
                 </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.createList()">
+                <div class="mobile-menu-item" onclick="ProfileManager.showCreateListModal(); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-plus-square"></i>
                     <span>Create New List</span>
                 </div>
-                <div class="mobile-menu-item" onclick="MobileProfile.searchUsers()">
+                <div class="mobile-menu-item" onclick="ProfileManager.showModal('communitySearchModal'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-search"></i>
                     <span>Find Users</span>
                 </div>
@@ -2346,19 +2416,19 @@
             <div class="mobile-menu-divider"></div>
 
             <div class="mobile-menu-section">
-                <div class="mobile-menu-item" onclick="MobileProfile.logout()" style="color: var(--error);">
+                <div class="mobile-menu-item" onclick="ProfileManager.logout();" style="color: var(--error);">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Log Out</span>
                 </div>
             </div>
         </div>
 
-        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="MobileProfile.hideMenu()"></div>
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="ProfileManager.hideMobileMenu()"></div>
 
         <!-- Mobile Profile Header -->
         <div class="mobile-profile-header">
             <div class="mobile-avatar-container">
-                <div class="mobile-avatar" id="mobileAvatar" onclick="MobileProfile.showAvatarModal()">
+                <div class="mobile-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()">
                     🍔
                 </div>
             </div>
@@ -2391,15 +2461,15 @@
 
         <!-- Mobile Tabs Navigation - Removed Achievements -->
         <div class="mobile-tabs">
-            <div class="mobile-tab active" data-tab="journal" onclick="MobileProfile.showSection('journal')">
+            <div class="mobile-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
                 <i class="fas fa-book"></i>
                 <span>Journal</span>
             </div>
-            <div class="mobile-tab" data-tab="lists" onclick="MobileProfile.showSection('lists')">
+            <div class="mobile-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
                 <i class="fas fa-list"></i>
                 <span>Lists</span>
             </div>
-            <div class="mobile-tab" data-tab="community" onclick="MobileProfile.showSection('community')">
+            <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                 <i class="fas fa-users"></i>
                 <span>Community</span>
                 <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
@@ -2412,7 +2482,7 @@
             <div class="mobile-section active" id="mobileJournalSection">
                 <div class="mobile-section-title">
                     Food Journal
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.addJournalEntry()">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showModal('addEntryModal')">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
@@ -2423,7 +2493,7 @@
                         <div class="mobile-empty-icon">📝</div>
                         <div class="mobile-empty-title">No Reviews Yet</div>
                         <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
-                        <button class="mobile-action-btn" onclick="MobileProfile.addJournalEntry()">
+                        <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
                             <i class="fas fa-plus"></i> Add First Review
                         </button>
                     </div>
@@ -2434,7 +2504,7 @@
             <div class="mobile-section" id="mobileListsSection">
                 <div class="mobile-section-title">
                     My Lists
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.createList()">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCreateListModal()">
                         <i class="fas fa-plus"></i> New
                     </button>
                 </div>
@@ -2445,28 +2515,9 @@
                         <div class="mobile-empty-icon">📋</div>
                         <div class="mobile-empty-title">No Lists Yet</div>
                         <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
-                        <button class="mobile-action-btn" onclick="MobileProfile.createList()">
+                        <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
                             <i class="fas fa-plus"></i> Create List
                         </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- List Detail Section (Hidden by default) -->
-            <div class="mobile-list-detail-section" id="mobileListDetailSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.showSection('lists')">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </button>
-                    <span id="mobileListDetailTitle" style="flex: 1; text-align: center;">List Detail</span>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileListDetailDescription">List description</div>
-                
-                <div id="mobileListRestaurants">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon">🍽️</div>
-                        <div class="mobile-empty-title">No Restaurants Yet</div>
-                        <div class="mobile-empty-description">Start adding restaurants to this list!</div>
                     </div>
                 </div>
             </div>
@@ -2476,10 +2527,10 @@
                 <div class="mobile-section-title">
                     Community
                     <div style="display: flex; gap: 8px;">
-                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.showCommunityTab('followers')" id="mobileFollowersTabBtn">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
                             Followers
                         </button>
-                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="MobileProfile.showCommunityTab('following')" id="mobileFollowingTabBtn">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('following')" id="mobileFollowingTabBtn">
                             Following
                         </button>
                     </div>
@@ -2493,7 +2544,7 @@
                             <div class="mobile-empty-icon">👥</div>
                             <div class="mobile-empty-title">No followers yet</div>
                             <div class="mobile-empty-description">Share your profile to get followers!</div>
-                            <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
                                 <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
@@ -2507,7 +2558,7 @@
                             <div class="mobile-empty-icon">👥</div>
                             <div class="mobile-empty-title">Not following anyone</div>
                             <div class="mobile-empty-description">Discover and follow other food lovers!</div>
-                            <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
                                 <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
@@ -2522,19 +2573,19 @@
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <div class="mobile-bottom-nav-item" onclick="MobileProfile.addJournalEntry()">
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('addEntryModal')">
                 <i class="fas fa-plus-circle"></i>
                 <span>Add</span>
             </div>
-            <div class="mobile-bottom-nav-item active" onclick="MobileProfile.showSection('journal')">
+            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('journal')">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
             </div>
-            <div class="mobile-bottom-nav-item" onclick="MobileProfile.searchUsers()">
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('communitySearchModal')">
                 <i class="fas fa-search"></i>
                 <span>Search</span>
             </div>
-            <div class="mobile-bottom-nav-item" onclick="MobileProfile.showMenu()">
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showMobileMenu()">
                 <i class="fas fa-bars"></i>
                 <span>Menu</span>
             </div>
@@ -2742,7 +2793,6 @@
 
             // Initialize Supabase client
             let supabase = null;
-            let supabaseInitialized = false;
 
             // Global state
             let currentUser = null;
@@ -2772,7 +2822,6 @@
                     }
                     
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    supabaseInitialized = true;
                     
                     // Check authentication
                     const { data: { user }, error } = await supabase.auth.getUser();
@@ -2783,17 +2832,10 @@
                     
                     currentUser = user;
                     
-                    // Check if mobile view should be shown
-                    const isMobile = window.innerWidth <= 768;
-                    if (isMobile) {
-                        MobileProfile.initialize();
-                        return;
-                    }
-                    
-                    // Load profile data for desktop
+                    // Load profile data
                     await loadProfile();
                     
-                    // Load restaurants dynamically
+                    // Load restaurants
                     await loadRestaurants();
                     
                     // Initialize systems
@@ -2808,26 +2850,58 @@
                     if (isViewingOwnProfile) {
                         showToast('Welcome back to your profile!', 'success');
                     }
+                    
+                    // Initialize mobile if needed
+                    if (window.innerWidth <= 768) {
+                        initializeMobile();
+                    }
+                    
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
                     showToast('Error loading profile', 'error');
                 }
             }
 
+            // ===== MOBILE INITIALIZATION =====
+            function initializeMobile() {
+                // Set up mobile tab switching
+                document.querySelectorAll('.mobile-tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        showTab(tabName);
+                    });
+                });
+                
+                // Set up mobile menu items
+                document.querySelectorAll('.mobile-menu-item').forEach(item => {
+                    if (item.getAttribute('href') === null) {
+                        item.addEventListener('click', function(e) {
+                            if (!this.getAttribute('onclick')) {
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                });
+                
+                // Update mobile stats
+                updateMobileStats();
+            }
+
             // ===== TOAST SYSTEM =====
             function showToast(message, type = 'info', duration = 3000) {
-                const toastContainer = document.getElementById('toastContainer') || document.getElementById('mobileToastContainer');
+                const isMobile = window.innerWidth <= 768;
+                const toastContainerId = isMobile ? 'mobileToastContainer' : 'toastContainer';
+                let toastContainer = document.getElementById(toastContainerId);
+                
                 if (!toastContainer) {
-                    // Create toast container if it doesn't exist
-                    const container = document.createElement('div');
-                    container.className = window.innerWidth <= 768 ? 'mobile-toast-container' : 'toast-container';
-                    container.id = window.innerWidth <= 768 ? 'mobileToastContainer' : 'toastContainer';
-                    document.body.appendChild(container);
+                    toastContainer = document.createElement('div');
+                    toastContainer.className = isMobile ? 'mobile-toast-container' : 'toast-container';
+                    toastContainer.id = toastContainerId;
+                    document.body.appendChild(toastContainer);
                 }
                 
-                const actualContainer = document.getElementById('toastContainer') || document.getElementById('mobileToastContainer');
                 const toast = document.createElement('div');
-                toast.className = window.innerWidth <= 768 ? `mobile-toast ${type}` : `toast ${type}`;
+                toast.className = isMobile ? `mobile-toast ${type}` : `toast ${type}`;
                 
                 const icons = {
                     success: 'fas fa-check-circle',
@@ -2836,7 +2910,7 @@
                     info: 'fas fa-info-circle'
                 };
                 
-                if (window.innerWidth <= 768) {
+                if (isMobile) {
                     toast.innerHTML = `
                         <i class="${icons[type]}" style="color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent)'}; font-size: 20px;"></i>
                         <div style="flex: 1; font-size: 14px;">${message}</div>
@@ -2855,7 +2929,7 @@
                     closeBtn.addEventListener('click', () => toast.remove());
                 }
                 
-                actualContainer.appendChild(toast);
+                toastContainer.appendChild(toast);
                 
                 setTimeout(() => {
                     if (toast.parentNode) toast.remove();
@@ -2875,7 +2949,7 @@
             }
 
             async function loadOwnProfile() {
-                // Show own profile elements
+                // Show/hide elements based on profile ownership
                 const editProfileBtn = document.getElementById('editProfileBtn');
                 const settingsBtn = document.getElementById('settingsBtn');
                 const followButton = document.getElementById('followButton');
@@ -2897,18 +2971,8 @@
                 await loadUserProfile();
                 
                 // Update UI
-                document.getElementById('profileName').textContent = userProfile?.full_name || userProfile?.username || currentUser.email.split('@')[0];
-                document.getElementById('profileUsername').textContent = `@${userProfile?.username || currentUser.email.split('@')[0]}`;
-                document.getElementById('profileBio').textContent = userProfile?.bio || "No bio yet. Click edit to add one!";
-                document.getElementById('profileLocation').textContent = userProfile?.location || "Location not set";
-                document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
+                updateProfileUI();
                 
-                // Set avatar
-                const avatar = document.getElementById('profileAvatar');
-                if (avatar) {
-                    avatar.textContent = userProfile?.avatar_icon || "🍔";
-                }
-
                 // Update stats
                 await updateStats();
             }
@@ -2948,19 +3012,9 @@
 
                 targetUser = profile;
 
-                // Display user info
-                document.getElementById('profileName').textContent = profile.full_name || profile.username || 'User';
-                document.getElementById('profileUsername').textContent = `@${profile.username || 'user'}`;
-                document.getElementById('profileBio').textContent = profile.bio || "No bio yet";
-                document.getElementById('profileLocation').textContent = profile.location || "Location not set";
-                document.getElementById('memberSince').textContent = `Member since ${new Date(profile.created_at).getFullYear()}`;
-
-                // Set avatar
-                const avatar = document.getElementById('profileAvatar');
-                if (avatar) {
-                    avatar.textContent = profile.avatar_icon || "🍔";
-                }
-
+                // Update UI with target user info
+                updateProfileUI(profile);
+                
                 // Update tab titles for other user's profile
                 updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
                 
@@ -3008,6 +3062,27 @@
                         
                         userProfile = newProfile || {};
                     }
+                }
+            }
+
+            function updateProfileUI(profile = userProfile) {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    document.getElementById('mobileTopBarTitle').textContent = 
+                        isViewingOwnProfile ? "Profile" : (profile?.full_name || profile?.username || "Profile");
+                    
+                    document.getElementById('mobileProfileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
+                    document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
+                    document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || "🍔";
+                } else {
+                    document.getElementById('profileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
+                    document.getElementById('profileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
+                    document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
+                    document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
+                    document.getElementById('profileAvatar').textContent = profile?.avatar_icon || "🍔";
                 }
             }
 
@@ -3107,35 +3182,29 @@
                     const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
                     
                     // Update UI
+                    updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount);
+                    
+                } catch (error) {
+                    console.error('Error updating stats:', error);
+                    // Set fallback values
+                    updateStatsUI(0, 0, 0, 0);
+                }
+            }
+
+            function updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount) {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    document.getElementById('mobileVisitedCount').textContent = visitedCount;
+                    document.getElementById('mobileFollowersCount').textContent = followersCount;
+                    document.getElementById('mobileListsCount').textContent = listsCount;
+                    document.getElementById('mobileReviewsCount').textContent = reviewsCount;
+                } else {
                     document.getElementById('visitedCount').textContent = visitedCount;
                     document.getElementById('followersCount').textContent = followersCount;
                     document.getElementById('listsCount').textContent = listsCount;
                     document.getElementById('reviewsCount').textContent = reviewsCount;
                     document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
-                    
-                    // Update mobile stats
-                    if (document.getElementById('mobileVisitedCount')) {
-                        document.getElementById('mobileVisitedCount').textContent = visitedCount;
-                        document.getElementById('mobileFollowersCount').textContent = followersCount;
-                        document.getElementById('mobileListsCount').textContent = listsCount;
-                        document.getElementById('mobileReviewsCount').textContent = reviewsCount;
-                    }
-                    
-                } catch (error) {
-                    console.error('Error updating stats:', error);
-                    // Set fallback values
-                    document.getElementById('visitedCount').textContent = 0;
-                    document.getElementById('followersCount').textContent = 0;
-                    document.getElementById('listsCount').textContent = 0;
-                    document.getElementById('reviewsCount').textContent = 0;
-                    document.getElementById('visitedCountMeta').textContent = '0 restaurants visited';
-                    
-                    if (document.getElementById('mobileVisitedCount')) {
-                        document.getElementById('mobileVisitedCount').textContent = 0;
-                        document.getElementById('mobileFollowersCount').textContent = 0;
-                        document.getElementById('mobileListsCount').textContent = 0;
-                        document.getElementById('mobileReviewsCount').textContent = 0;
-                    }
                 }
             }
 
@@ -3155,7 +3224,7 @@
                     await this.loadUserLists(targetId);
                     await this.loadListRestaurants();
                     await this.loadCustomLists(targetId);
-                    this.renderListsGrid();
+                    this.renderLists();
                 },
                 
                 async loadUserLists(userId) {
@@ -3335,8 +3404,18 @@
                     return list?.restaurants?.includes(restrauntId) || false;
                 },
 
-                // Render lists in grid layout
-                renderListsGrid() {
+                // Render lists in appropriate view
+                renderLists() {
+                    const isMobile = window.innerWidth <= 768;
+                    
+                    if (isMobile) {
+                        this.renderMobileLists();
+                    } else {
+                        this.renderDesktopLists();
+                    }
+                },
+
+                renderDesktopLists() {
                     const listsGrid = document.getElementById('listsGrid');
                     if (!listsGrid) return;
                     
@@ -3459,6 +3538,120 @@
                         listCard.onclick = () => ProfileManager.showList(list.id);
                         listsGrid.appendChild(listCard);
                     });
+                },
+
+                renderMobileLists() {
+                    const mobileListsContainer = document.getElementById('mobileLists');
+                    if (!mobileListsContainer) return;
+                    
+                    mobileListsContainer.innerHTML = '';
+                    
+                    const defaultLists = [
+                        {
+                            id: 'favorites',
+                            title: 'Favorites',
+                            description: 'Your top picks.',
+                            icon: '❤️',
+                            color: 'var(--error)',
+                            restaurants: this.currentLists.favorites?.restaurants || [],
+                            isDefault: true
+                        },
+                        {
+                            id: 'visited',
+                            title: 'Visited',
+                            description: 'Restaurants you have checked out.',
+                            icon: '✅',
+                            color: 'var(--success)',
+                            restaurants: this.currentLists.visited?.restaurants || [],
+                            isDefault: true
+                        },
+                        {
+                            id: 'wantToGo',
+                            title: 'Want To Go',
+                            description: 'Saved for later.',
+                            icon: '📍',
+                            color: 'var(--accent)',
+                            restaurants: this.currentLists.wantToGo?.restaurants || [],
+                            isDefault: true
+                        }
+                    ];
+                    
+                    const allLists = [...defaultLists, ...customLists.map(list => ({
+                        id: list.id,
+                        title: list.title,
+                        description: list.description || 'Your custom-made collection.',
+                        icon: list.icon || '📋',
+                        color: 'var(--accent)',
+                        restaurants: list.restaurants || [],
+                        isDefault: false
+                    }))];
+                    
+                    if (allLists.length === 0) {
+                        mobileListsContainer.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">📋</div>
+                                <div class="mobile-empty-title">No Lists Yet</div>
+                                <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                                <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
+                                    <i class="fas fa-plus"></i> Create List
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    allLists.forEach(list => {
+                        const listCard = document.createElement('div');
+                        listCard.className = 'mobile-list-card';
+                        
+                        const previewItems = [];
+                        const restrauntIds = list.restaurants || [];
+                        const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
+                        
+                        for (let i = 0; i < 2; i++) {
+                            if (shuffledIds[i]) {
+                                const restrauntId = shuffledIds[i];
+                                const restraunt = restaurants.find(r => r.id === restrauntId);
+                                if (restraunt) {
+                                    previewItems.push(`
+                                        <div class="mobile-preview-item">
+                                            <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                                        </div>
+                                    `);
+                                } else {
+                                    previewItems.push(`
+                                        <div class="mobile-preview-item" style="background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">🍽️</div>
+                                    `);
+                                }
+                            } else {
+                                previewItems.push(`
+                                    <div class="mobile-preview-item" style="background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">🍽️</div>
+                                `);
+                            }
+                        }
+                        
+                        listCard.innerHTML = `
+                            <div class="mobile-list-header">
+                                <div class="mobile-list-icon" style="background: var(--accent); color: #0b1633; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                    ${list.icon || '📋'}
+                                </div>
+                                <div class="mobile-list-info">
+                                    <div class="mobile-list-title">${list.title}</div>
+                                    <div class="mobile-list-count">${restrauntIds.length} places</div>
+                                </div>
+                            </div>
+                            ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
+                            <div class="mobile-list-preview">
+                                ${previewItems.join('')}
+                            </div>
+                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')" style="width: 100%;">
+                                <i class="fas fa-eye"></i> View List
+                            </button>
+                        `;
+                        
+                        listCard.onclick = () => ProfileManager.showList(list.id);
+                        mobileListsContainer.appendChild(listCard);
+                    });
                 }
             };
 
@@ -3484,13 +3677,38 @@
                 
                 currentActiveList = list;
                 
-                const listsTab = document.getElementById('lists-tab');
-                const listDetailView = document.getElementById('list-detail-view');
+                const isMobile = window.innerWidth <= 768;
                 
-                if (listsTab) listsTab.style.display = 'none';
-                if (listDetailView) {
-                    listDetailView.style.display = 'block';
-                    listDetailView.classList.add('active');
+                if (isMobile) {
+                    // On mobile, show the desktop list detail view and scroll to it
+                    showTab('lists');
+                    
+                    // Show desktop list detail view
+                    const listsTab = document.getElementById('lists-tab');
+                    const listDetailView = document.getElementById('list-detail-view');
+                    
+                    if (listsTab) listsTab.style.display = 'none';
+                    if (listDetailView) {
+                        listDetailView.style.display = 'block';
+                        listDetailView.classList.add('active');
+                    }
+                    
+                    // Scroll to list detail on mobile
+                    setTimeout(() => {
+                        if (listDetailView) {
+                            listDetailView.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 100);
+                } else {
+                    // Desktop behavior
+                    const listsTab = document.getElementById('lists-tab');
+                    const listDetailView = document.getElementById('list-detail-view');
+                    
+                    if (listsTab) listsTab.style.display = 'none';
+                    if (listDetailView) {
+                        listDetailView.style.display = 'block';
+                        listDetailView.classList.add('active');
+                    }
                 }
                 
                 document.getElementById('listDetailTitle').textContent = list.title;
@@ -3508,6 +3726,8 @@
             }
 
             function hideListDetail() {
+                const isMobile = window.innerWidth <= 768;
+                
                 const listsTab = document.getElementById('lists-tab');
                 const listDetailView = document.getElementById('list-detail-view');
                 
@@ -3518,6 +3738,11 @@
                 }
                 
                 currentActiveList = null;
+                
+                if (isMobile) {
+                    // On mobile, switch back to lists section
+                    showTab('lists');
+                }
             }
 
             async function renderListRestaurants(restrauntIds, list) {
@@ -3610,7 +3835,8 @@
                 },
                 
                 async loadJournalEntries() {
-                    const journalEntries = document.getElementById('journalEntries');
+                    const isMobile = window.innerWidth <= 768;
+                    const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
                     if (!journalEntries) return;
                     
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
@@ -3619,7 +3845,7 @@
                     try {
                         const { data: entries, error } = await supabase
                             .from('journal_entries')
-                            .select('*')
+                            .select('*, restraunts(name, image, category, slug)')
                             .eq('user_id', targetId)
                             .order('created_at', { ascending: false });
 
@@ -3630,116 +3856,193 @@
                                 'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
                                 'This user hasn\'t reviewed any restaurants yet.';
                             
-                            journalEntries.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">📝</div>
-                                    <h3 class="empty-title">No Reviews Yet</h3>
-                                    <p class="empty-description">${emptyStateText}</p>
-                                    ${isViewingOwnProfile ? `
-                                        <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                            <i class="fas fa-utensils"></i> Browse Restaurants
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            `;
+                            if (isMobile) {
+                                journalEntries.innerHTML = `
+                                    <div class="mobile-empty-state">
+                                        <div class="mobile-empty-icon">📝</div>
+                                        <div class="mobile-empty-title">No Reviews Yet</div>
+                                        <div class="mobile-empty-description">${emptyStateText}</div>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                                                <i class="fas fa-plus"></i> Add First Review
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            } else {
+                                journalEntries.innerHTML = `
+                                    <div class="empty-state">
+                                        <div class="empty-icon">📝</div>
+                                        <h3 class="empty-title">No Reviews Yet</h3>
+                                        <p class="empty-description">${emptyStateText}</p>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                                <i class="fas fa-utensils"></i> Browse Restaurants
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }
                             return;
                         }
                         
                         journalEntries.innerHTML = '';
                         
                         let entriesToShow = entries;
-                        if (journalFilter === 'recent') {
+                        if (!isMobile && journalFilter === 'recent') {
                             entriesToShow = entries.slice(0, 5);
-                        } else if (journalFilter === 'favorites') {
+                        } else if (!isMobile && journalFilter === 'favorites') {
                             entriesToShow = entries.filter(entry => entry.rating >= 4);
                         }
                         
                         for (const entry of entriesToShow) {
-                            const restaurantId = entry.restaurant_id;
-                            const restaurant = restaurants.find(r => r.id === restaurantId);
+                            const restaurant = entry.restraunts;
                             
                             if (!restaurant) continue;
                             
-                            this.renderJournalEntry(entry, restaurant);
+                            this.renderJournalEntry(entry, restaurant, isMobile);
                         }
                         
                     } catch (error) {
                         console.error('Error loading journal entries:', error);
-                        journalEntries.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">⚠️</div>
-                                <h3 class="empty-title">Unable to Load Reviews</h3>
-                                <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
-                            </div>
-                        `;
+                        if (isMobile) {
+                            journalEntries.innerHTML = `
+                                <div class="mobile-empty-state">
+                                    <div class="mobile-empty-icon">⚠️</div>
+                                    <div class="mobile-empty-title">Unable to Load Reviews</div>
+                                    <div class="mobile-empty-description">There was an error loading your reviews. Please try again later.</div>
+                                </div>
+                            `;
+                        } else {
+                            journalEntries.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-icon">⚠️</div>
+                                    <h3 class="empty-title">Unable to Load Reviews</h3>
+                                    <p class="empty-description">There was an error loading your reviews. Please try again later.</p>
+                                </div>
+                            `;
+                        }
                     }
                 },
                 
-                renderJournalEntry(entry, restaurant) {
-                    const journalEntries = document.getElementById('journalEntries');
+                renderJournalEntry(entry, restaurant, isMobile) {
+                    const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
                     const entryElement = document.createElement('div');
-                    entryElement.className = 'journal-entry';
-                    entryElement.style.cursor = 'pointer';
-                    entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
                     
-                    const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
-                    const restaurantImage = restaurant.image ? 
-                        `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                        `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
-                    
-                    entryElement.innerHTML = `
-                        <div class="entry-header">
-                            <div class="restaurant-info">
-                                <div class="restaurant-image">
-                                    <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
-                                        ${restaurantImage}
-                                    </a>
-                                </div>
-                                <div class="restaurant-details">
-                                    <h3>
-                                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
-                                            ${restaurant.name}
+                    if (isMobile) {
+                        entryElement.className = 'mobile-journal-entry';
+                        entryElement.style.cursor = 'pointer';
+                        entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
+                        
+                        const restaurantImage = restaurant.image ? 
+                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                            `<div style="width: 50px; height: 50px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                        
+                        entryElement.innerHTML = `
+                            <div class="mobile-entry-header">
+                                <div class="mobile-restaurant-info">
+                                    <div class="mobile-restaurant-image">
+                                        <a href="restaurant.html?slug=${restaurant.slug || ''}" style="text-decoration: none; color: inherit;">
+                                            ${restaurantImage}
                                         </a>
-                                    </h3>
-                                    <div class="restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                    <div class="mobile-restaurant-details">
+                                        <div class="mobile-restaurant-name">${restaurant.name}</div>
+                                        <div class="mobile-restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-entry-rating">${'⭐'.repeat(Math.floor(entry.rating))} ${entry.rating}/5</div>
+                            </div>
+                            <div class="mobile-entry-meta">
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-calendar"></i>
+                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                                </div>
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-utensils"></i>
+                                    ${restaurant.category}
                                 </div>
                             </div>
-                            <div class="entry-rating">
-                                ${'⭐'.repeat(Math.floor(entry.rating))}
-                                <span>${entry.rating}/5</span>
+                            ${entry.notes ? `
+                                <div class="mobile-entry-notes">${entry.notes}</div>
+                            ` : ''}
+                            ${entry.tags ? `
+                                <div class="mobile-entry-tags">
+                                    ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${isViewingOwnProfile ? `
+                                <div class="mobile-entry-actions">
+                                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${restaurant.slug || ''}'">
+                                        <i class="fas fa-external-link-alt"></i> View Restaurant
+                                    </button>
+                                </div>
+                            ` : ''}
+                        `;
+                    } else {
+                        entryElement.className = 'journal-entry';
+                        entryElement.style.cursor = 'pointer';
+                        entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
+                        
+                        const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
+                        const restaurantImage = restaurant.image ? 
+                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                        
+                        entryElement.innerHTML = `
+                            <div class="entry-header">
+                                <div class="restaurant-info">
+                                    <div class="restaurant-image">
+                                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
+                                            ${restaurantImage}
+                                        </a>
+                                    </div>
+                                    <div class="restaurant-details">
+                                        <h3>
+                                            <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
+                                                ${restaurant.name}
+                                            </a>
+                                        </h3>
+                                        <div class="restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="entry-rating">
+                                    ${'⭐'.repeat(Math.floor(entry.rating))}
+                                    <span>${entry.rating}/5</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="entry-meta">
-                            <div class="meta-badge">
-                                <i class="fas fa-calendar"></i>
-                                ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                            <div class="entry-meta">
+                                <div class="meta-badge">
+                                    <i class="fas fa-calendar"></i>
+                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                                </div>
+                                <div class="meta-badge">
+                                    <i class="fas fa-utensils"></i>
+                                    ${restaurant.category}
+                                </div>
+                                <div class="meta-badge">
+                                    <i class="fas fa-star"></i>
+                                    ${entry.rating}/5
+                                </div>
                             </div>
-                            <div class="meta-badge">
-                                <i class="fas fa-utensils"></i>
-                                ${restaurant.category}
-                            </div>
-                            <div class="meta-badge">
-                                <i class="fas fa-star"></i>
-                                ${entry.rating}/5
-                            </div>
-                        </div>
-                        <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
-                        ${entry.tags ? `
-                            <div class="entry-tags">
-                                ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                            </div>
-                        ` : ''}
-                        ${isViewingOwnProfile ? `
-                            <div class="entry-actions">
-                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', ${restaurant.id})">
-                                    <i class="fas fa-heart"></i> Favorite
-                                </button>
-                            </div>
-                        ` : ''}
-                    `;
+                            <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
+                            ${entry.tags ? `
+                                <div class="entry-tags">
+                                    ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${isViewingOwnProfile ? `
+                                <div class="entry-actions">
+                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', ${restaurant.id})">
+                                        <i class="fas fa-heart"></i> Favorite
+                                    </button>
+                                </div>
+                            ` : ''}
+                        `;
+                    }
                     journalEntries.appendChild(entryElement);
                 },
                 
@@ -3913,7 +4216,8 @@
 
                         if (error) throw error;
 
-                        const followersList = document.getElementById('followersList');
+                        const isMobile = window.innerWidth <= 768;
+                        const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
                         if (!followersList) return;
 
                         if (!follows || follows.length === 0) {
@@ -3921,18 +4225,33 @@
                                 'Share your profile to get followers and connect with other food enthusiasts!' :
                                 'This user doesn\'t have any followers yet.';
                             
-                            followersList.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">👥</div>
-                                    <h3 class="empty-title">No followers yet</h3>
-                                    <p class="empty-description">${emptyText}</p>
-                                    ${isViewingOwnProfile ? `
-                                        <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                            <i class="fas fa-user-plus"></i> Find Users
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            `;
+                            if (isMobile) {
+                                followersList.innerHTML = `
+                                    <div class="mobile-empty-state">
+                                        <div class="mobile-empty-icon">👥</div>
+                                        <div class="mobile-empty-title">No followers yet</div>
+                                        <div class="mobile-empty-description">${emptyText}</div>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                <i class="fas fa-user-plus"></i> Find Users
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            } else {
+                                followersList.innerHTML = `
+                                    <div class="empty-state">
+                                        <div class="empty-icon">👥</div>
+                                        <h3 class="empty-title">No followers yet</h3>
+                                        <p class="empty-description">${emptyText}</p>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                <i class="fas fa-user-plus"></i> Find Users
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }
                             return;
                         }
 
@@ -3946,19 +4265,30 @@
                             .in('id', uniqueFollowerIds);
 
                         if (!usersError) {
-                            this.displayUsers(users, 'followersList');
+                            this.displayUsers(users, isMobile ? 'mobileFollowersList' : 'followersList');
                         }
                     } catch (error) {
                         console.error('Error loading followers:', error);
-                        const followersList = document.getElementById('followersList');
+                        const isMobile = window.innerWidth <= 768;
+                        const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
                         if (followersList) {
-                            followersList.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">⚠️</div>
-                                    <h3 class="empty-title">Unable to Load Followers</h3>
-                                    <p class="empty-description">There was an error loading followers. Please try again later.</p>
-                                </div>
-                            `;
+                            if (isMobile) {
+                                followersList.innerHTML = `
+                                    <div class="mobile-empty-state">
+                                        <div class="mobile-empty-icon">⚠️</div>
+                                        <div class="mobile-empty-title">Unable to Load Followers</div>
+                                        <div class="mobile-empty-description">There was an error loading followers. Please try again later.</div>
+                                    </div>
+                                `;
+                            } else {
+                                followersList.innerHTML = `
+                                    <div class="empty-state">
+                                        <div class="empty-icon">⚠️</div>
+                                        <h3 class="empty-title">Unable to Load Followers</h3>
+                                        <p class="empty-description">There was an error loading followers. Please try again later.</p>
+                                    </div>
+                                `;
+                            }
                         }
                     }
                 },
@@ -3974,7 +4304,8 @@
 
                         if (error) throw error;
 
-                        const followingList = document.getElementById('followingList');
+                        const isMobile = window.innerWidth <= 768;
+                        const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
                         if (!followingList) return;
 
                         if (!follows || follows.length === 0) {
@@ -3982,18 +4313,33 @@
                                 'Discover and follow other food lovers to see their restaurant adventures!' :
                                 'This user isn\'t following anyone yet.';
                             
-                            followingList.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">👥</div>
-                                    <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
-                                    <p class="empty-description">${emptyText}</p>
-                                    ${isViewingOwnProfile ? `
-                                        <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                            <i class="fas fa-user-plus"></i> Find Users
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            `;
+                            if (isMobile) {
+                                followingList.innerHTML = `
+                                    <div class="mobile-empty-state">
+                                        <div class="mobile-empty-icon">👥</div>
+                                        <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
+                                        <div class="mobile-empty-description">${emptyText}</div>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                <i class="fas fa-user-plus"></i> Find Users
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            } else {
+                                followingList.innerHTML = `
+                                    <div class="empty-state">
+                                        <div class="empty-icon">👥</div>
+                                        <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
+                                        <p class="empty-description">${emptyText}</p>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                <i class="fas fa-user-plus"></i> Find Users
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }
                             return;
                         }
 
@@ -4007,19 +4353,30 @@
                             .in('id', uniqueFollowingIds);
 
                         if (!usersError) {
-                            this.displayUsers(users, 'followingList');
+                            this.displayUsers(users, isMobile ? 'mobileFollowingList' : 'followingList');
                         }
                     } catch (error) {
                         console.error('Error loading following:', error);
-                        const followingList = document.getElementById('followingList');
+                        const isMobile = window.innerWidth <= 768;
+                        const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
                         if (followingList) {
-                            followingList.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">⚠️</div>
-                                    <h3 class="empty-title">Unable to Load Following</h3>
-                                    <p class="empty-description">There was an error loading following list. Please try again later.</p>
-                                </div>
-                            `;
+                            if (isMobile) {
+                                followingList.innerHTML = `
+                                    <div class="mobile-empty-state">
+                                        <div class="mobile-empty-icon">⚠️</div>
+                                        <div class="mobile-empty-title">Unable to Load Following</div>
+                                        <div class="mobile-empty-description">There was an error loading following list. Please try again later.</div>
+                                    </div>
+                                `;
+                            } else {
+                                followingList.innerHTML = `
+                                    <div class="empty-state">
+                                        <div class="empty-icon">⚠️</div>
+                                        <h3 class="empty-title">Unable to Load Following</h3>
+                                        <p class="empty-description">There was an error loading following list. Please try again later.</p>
+                                    </div>
+                                `;
+                            }
                         }
                     }
                 },
@@ -4114,47 +4471,81 @@
                             isFollowing = !!follow;
                         }
                         
-                        const userCard = document.createElement('div');
-                        userCard.className = 'community-card';
-                        userCard.innerHTML = `
-                            <div class="community-header">
-                                <div class="community-avatar">${user.avatar_icon || '👤'}</div>
-                                <div class="community-info">
-                                    <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                    <div class="community-username">@${user.username || 'user'}</div>
-                                </div>
-                            </div>
-                            <div class="community-stats">
-                                <div class="community-stat">
-                                    <span class="community-stat-number">${user.visited_count || 0}</span>
-                                    <span class="community-stat-label">Visited</span>
-                                </div>
-                                <div class="community-stat">
-                                    <span class="community-stat-number">${user.favorites_count || 0}</span>
-                                    <span class="community-stat-label">Favorites</span>
-                                </div>
-                                <div class="community-stat">
-                                    <span class="community-stat-number">${user.followers_count || 0}</span>
-                                    <span class="community-stat-label">Followers</span>
-                                </div>
-                            </div>
-                            <div class="community-actions">
-                                ${!isCurrentUser ? `
-                                    <button class="btn btn-secondary btn-sm" onclick="ProfileManager.viewUserProfile('${user.id}')">
-                                        <i class="fas fa-eye"></i> View Profile
-                                    </button>
-                                    <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="communitySystem.toggleFollow('${user.id}', this)">
-                                        ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-secondary btn-sm" disabled>
-                                        <i class="fas fa-user"></i> This is you
-                                    </button>
-                                `}
-                            </div>
-                        `;
+                        const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
                         
-                        container.appendChild(userCard);
+                        if (isMobile) {
+                            const userCard = document.createElement('div');
+                            userCard.className = 'mobile-community-card';
+                            userCard.onclick = () => ProfileManager.viewUserProfile(user.id);
+                            
+                            userCard.innerHTML = `
+                                <div class="mobile-community-header">
+                                    <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                                    <div class="mobile-community-info">
+                                        <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                        <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-community-stats">
+                                    <div class="mobile-community-stat">
+                                        <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                        <span class="mobile-community-stat-label">Visited</span>
+                                    </div>
+                                    <div class="mobile-community-stat">
+                                        <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                        <span class="mobile-community-stat-label">Favorites</span>
+                                    </div>
+                                    <div class="mobile-community-stat">
+                                        <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
+                                        <span class="mobile-community-stat-label">Followers</span>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            container.appendChild(userCard);
+                        } else {
+                            const userCard = document.createElement('div');
+                            userCard.className = 'community-card';
+                            userCard.innerHTML = `
+                                <div class="community-header">
+                                    <div class="community-avatar">${user.avatar_icon || '👤'}</div>
+                                    <div class="community-info">
+                                        <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                        <div class="community-username">@${user.username || 'user'}</div>
+                                    </div>
+                                </div>
+                                <div class="community-stats">
+                                    <div class="community-stat">
+                                        <span class="community-stat-number">${user.visited_count || 0}</span>
+                                        <span class="community-stat-label">Visited</span>
+                                    </div>
+                                    <div class="community-stat">
+                                        <span class="community-stat-number">${user.favorites_count || 0}</span>
+                                        <span class="community-stat-label">Favorites</span>
+                                    </div>
+                                    <div class="community-stat">
+                                        <span class="community-stat-number">${user.followers_count || 0}</span>
+                                        <span class="community-stat-label">Followers</span>
+                                    </div>
+                                </div>
+                                <div class="community-actions">
+                                    ${!isCurrentUser ? `
+                                        <button class="btn btn-secondary btn-sm" onclick="ProfileManager.viewUserProfile('${user.id}')">
+                                            <i class="fas fa-eye"></i> View Profile
+                                        </button>
+                                        <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="communitySystem.toggleFollow('${user.id}', this)">
+                                            ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                        </button>
+                                    ` : `
+                                        <button class="btn btn-secondary btn-sm" disabled>
+                                            <i class="fas fa-user"></i> This is you
+                                        </button>
+                                    `}
+                                </div>
+                            `;
+                            
+                            container.appendChild(userCard);
+                        }
                     }
                 },
 
@@ -4219,703 +4610,6 @@
                             this.loadFollowing();
                         }
                     }
-                }
-            };
-
-            // ===== MOBILE PROFILE MANAGER =====
-            const MobileProfile = {
-                currentSection: 'journal',
-                currentActiveList: null,
-                
-                async initialize() {
-                    try {
-                        if (!supabase) {
-                            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                        }
-                        
-                        const { data: { user }, error } = await supabase.auth.getUser();
-                        if (error || !user) { 
-                            window.location.href = "login.html"; 
-                            return; 
-                        }
-                        
-                        currentUser = user;
-                        targetUserId = getUserIdFromUrl();
-                        isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
-                        
-                        await this.loadMobileProfile();
-                        await this.loadRestaurants();
-                        await this.loadMobileFeed();
-                        await this.loadMobileLists();
-                        await this.loadMobileCommunity();
-                        
-                        showToast('Welcome to your mobile profile!', 'success');
-                    } catch (error) {
-                        console.error('Error initializing mobile profile:', error);
-                        showToast('Error loading profile', 'error');
-                    }
-                },
-                
-                async loadMobileProfile() {
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    
-                    let profile;
-                    if (isViewingOwnProfile) {
-                        const { data } = await supabase
-                            .from("user_profiles")
-                            .select("*")
-                            .eq("id", targetId)
-                            .single();
-                        
-                        profile = data;
-                        
-                        if (!profile) {
-                            await supabase
-                                .from("user_profiles")
-                                .insert({
-                                    id: currentUser.id,
-                                    username: currentUser.email.split('@')[0],
-                                    full_name: currentUser.email.split('@')[0],
-                                    bio: "",
-                                    location: "",
-                                    avatar_icon: "🍔",
-                                    is_private: false,
-                                    created_at: new Date().toISOString()
-                                });
-                            
-                            const { data: newProfile } = await supabase
-                                .from("user_profiles")
-                                .select("*")
-                                .eq("id", targetId)
-                                .single();
-                            
-                            profile = newProfile || {};
-                        }
-                    } else {
-                        const { data } = await supabase
-                            .from("user_profiles")
-                            .select("*")
-                            .eq("id", targetId)
-                            .single();
-                        
-                        if (!data) {
-                            showToast('User not found', 'error');
-                            setTimeout(() => window.location.href = 'profile.html', 1500);
-                            return;
-                        }
-                        profile = data;
-                    }
-                    
-                    userProfile = profile;
-                    
-                    // Update top bar title
-                    document.getElementById("mobileTopBarTitle").textContent = 
-                        isViewingOwnProfile ? "Profile" : (profile.full_name || profile.username || "Profile");
-                    
-                    document.getElementById("mobileProfileName").textContent = profile.full_name || profile.username || currentUser.email.split('@')[0];
-                    document.getElementById("mobileProfileUsername").textContent = "@" + (profile.username || currentUser.email.split('@')[0]);
-                    document.getElementById("mobileProfileBio").textContent = profile.bio || "";
-                    document.getElementById("mobileAvatar").textContent = profile.avatar_icon || "🍔";
-                    
-                    // Update stats
-                    await updateStats(targetId);
-                },
-                
-                async loadRestaurants() {
-                    try {
-                        const { data, error } = await supabase
-                            .from('restraunts')
-                            .select('*')
-                            .order('name');
-                        
-                        if (error) throw error;
-                        
-                        restaurants = data || [];
-                        
-                    } catch (error) {
-                        console.error('Error loading restaurants:', error);
-                        restaurants = [];
-                    }
-                },
-                
-                async loadMobileFeed() {
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    
-                    const { data, error } = await supabase
-                        .from("journal_entries")
-                        .select("*, restraunts(name, image, category, slug)")
-                        .eq("user_id", targetId)
-                        .order("created_at", {ascending: false})
-                        .limit(10);
-                    
-                    const feed = document.getElementById("mobileJournalEntries");
-                    if (!feed) return;
-                    
-                    feed.innerHTML = "";
-                    
-                    if (!data || data.length === 0) {
-                        const emptyText = isViewingOwnProfile ? 
-                            'Start reviewing restaurants to build your food journey!' :
-                            'This user hasn\'t reviewed any restaurants yet.';
-                        
-                        feed.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">📝</div>
-                                <div class="mobile-empty-title">No Reviews Yet</div>
-                                <div class="mobile-empty-description">${emptyText}</div>
-                                ${isViewingOwnProfile ? `
-                                    <button class="mobile-action-btn" onclick="MobileProfile.addJournalEntry()">
-                                        <i class="fas fa-plus"></i> Add First Review
-                                    </button>
-                                ` : ''}
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    data.forEach(e => {
-                        const div = document.createElement("div");
-                        div.className = "mobile-journal-entry";
-                        div.innerHTML = `
-                            <div class="mobile-entry-header">
-                                <div class="mobile-restaurant-info">
-                                    <div class="mobile-restaurant-image">
-                                        <img src="images/${e.restraunts?.image || 'placeholder.jpg'}" alt="${e.restraunts?.name || 'Restaurant'}" loading="lazy">
-                                    </div>
-                                    <div class="mobile-restaurant-details">
-                                        <div class="mobile-restaurant-name">${e.restraunts?.name || "Restaurant"}</div>
-                                        <div class="mobile-restaurant-category">${e.restraunts?.category || ""}</div>
-                                    </div>
-                                </div>
-                                <div class="mobile-entry-rating">${"⭐".repeat(e.rating)} ${e.rating}/5</div>
-                            </div>
-                            <div class="mobile-entry-meta">
-                                <div class="mobile-meta-badge">
-                                    <i class="fas fa-calendar"></i> ${new Date(e.visit_date || e.created_at).toLocaleDateString()}
-                                </div>
-                                <div class="mobile-meta-badge">
-                                    <i class="fas fa-utensils"></i> ${e.restraunts?.category || ""}
-                                </div>
-                            </div>
-                            ${e.notes ? `
-                                <div class="mobile-entry-notes">${e.notes}</div>
-                            ` : ''}
-                            ${e.tags ? `
-                                <div class="mobile-entry-tags">
-                                    ${e.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${isViewingOwnProfile ? `
-                                <div class="mobile-entry-actions">
-                                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="window.location.href='restaurant.html?slug=${e.restraunts?.slug || ''}'">
-                                        <i class="fas fa-external-link-alt"></i> View Restaurant
-                                    </button>
-                                </div>
-                            ` : ''}
-                        `;
-                        feed.appendChild(div);
-                    });
-                },
-                
-                async loadMobileLists() {
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    const listsContainer = document.getElementById('mobileLists');
-                    if (!listsContainer) return;
-                    
-                    try {
-                        // Load user lists
-                        const { data: lists, error: listsError } = await supabase
-                            .from('lists')
-                            .select('*')
-                            .eq('user_id', targetId);
-                        
-                        if (listsError) throw listsError;
-                        
-                        listsContainer.innerHTML = '';
-                        
-                        if (!lists || lists.length === 0) {
-                            const emptyText = isViewingOwnProfile ? 
-                                'Create your first list to organize restaurants!' :
-                                'This user doesn\'t have any lists yet.';
-                            
-                            listsContainer.innerHTML = `
-                                <div class="mobile-empty-state">
-                                    <div class="mobile-empty-icon">📋</div>
-                                    <div class="mobile-empty-title">No Lists Yet</div>
-                                    <div class="mobile-empty-description">${emptyText}</div>
-                                    ${isViewingOwnProfile ? `
-                                        <button class="mobile-action-btn" onclick="MobileProfile.createList()">
-                                            <i class="fas fa-plus"></i> Create List
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            `;
-                            return;
-                        }
-                        
-                        // Load list restaurants for each list
-                        for (const list of lists) {
-                            const { data: listRestraunts, error: listRestError } = await supabase
-                                .from('lists_restraunts')
-                                .select('restraunt_id')
-                                .eq('list_id', list.id);
-                            
-                            const restaurantIds = listRestraunts ? listRestraunts.map(item => item.restraunt_id) : [];
-                            list.restaurants = restaurantIds;
-                            
-                            // Get restaurant data for preview
-                            const listRestaurants = restaurants.filter(r => restaurantIds.includes(r.id));
-                            let previewItems = '';
-                            
-                            // Add up to 2 preview images
-                            for (let i = 0; i < 2; i++) {
-                                if (listRestaurants[i]) {
-                                    const restaurant = listRestaurants[i];
-                                    previewItems += `<div class="mobile-preview-item">
-                                        <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                                    </div>`;
-                                } else {
-                                    previewItems += `<div class="mobile-preview-item" style="background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">🍽️</div>`;
-                                }
-                            }
-                            
-                            const listCard = document.createElement('div');
-                            listCard.className = 'mobile-list-card';
-                            listCard.onclick = () => this.showListDetail(list);
-                            
-                            listCard.innerHTML = `
-                                <div class="mobile-list-header">
-                                    <div class="mobile-list-icon" style="background: var(--accent); color: #0b1633; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                        ${list.icon || '📋'}
-                                    </div>
-                                    <div class="mobile-list-info">
-                                        <div class="mobile-list-title">${list.title}</div>
-                                        <div class="mobile-list-count">${restaurantIds.length} places</div>
-                                    </div>
-                                </div>
-                                ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
-                                <div class="mobile-list-preview">
-                                    ${previewItems}
-                                </div>
-                                <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); MobileProfile.showListDetail(${JSON.stringify(list).replace(/"/g, '&quot;')})" style="width: 100%;">
-                                    <i class="fas fa-eye"></i> View List
-                                </button>
-                            `;
-                            
-                            listsContainer.appendChild(listCard);
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error loading mobile lists:', error);
-                        listsContainer.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">⚠️</div>
-                                <div class="mobile-empty-title">Error Loading Lists</div>
-                                <div class="mobile-empty-description">There was an error loading the lists.</div>
-                            </div>
-                        `;
-                    }
-                },
-                
-                async showListDetail(list) {
-                    // Hide all sections
-                    document.querySelectorAll('.mobile-section').forEach(el => {
-                        el.classList.remove('active');
-                    });
-                    
-                    // Show list detail section
-                    const listDetailSection = document.getElementById('mobileListDetailSection');
-                    listDetailSection.classList.add('active');
-                    
-                    // Update list detail title
-                    document.getElementById('mobileListDetailTitle').textContent = list.title;
-                    document.getElementById('mobileListDetailDescription').textContent = list.description || '';
-                    
-                    // Load and display list restaurants
-                    await this.renderListRestaurants(list);
-                },
-                
-                async renderListRestaurants(list) {
-                    const container = document.getElementById('mobileListRestaurants');
-                    if (!container) return;
-                    
-                    container.innerHTML = '';
-                    
-                    if (!list.restaurants || list.restaurants.length === 0) {
-                        const emptyText = isViewingOwnProfile ? 
-                            'Start adding restaurants to your list!' :
-                            'This list is currently empty.';
-                        
-                        container.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">🍽️</div>
-                                <div class="mobile-empty-title">No Restaurants Yet</div>
-                                <div class="mobile-empty-description">${emptyText}</div>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    // Get restaurant details
-                    const restaurantIds = list.restaurants.map(id => Number(id));
-                    const listRestaurants = restaurants.filter(r => restaurantIds.includes(r.id));
-                    
-                    listRestaurants.forEach(restaurant => {
-                        const restaurantCard = document.createElement('div');
-                        restaurantCard.className = 'mobile-list-restaurant-card';
-                        
-                        restaurantCard.innerHTML = `
-                            <div class="mobile-list-restaurant-info">
-                                <div class="mobile-list-restaurant-image">
-                                    <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600; margin-bottom: 4px;">${restaurant.name}</div>
-                                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">${restaurant.category}</div>
-                                    <div style="font-size: 12px; color: var(--accent); font-weight: 600;">⭐ ${restaurant.rating}</div>
-                                </div>
-                            </div>
-                            ${isViewingOwnProfile ? `
-                                <button class="btn btn-secondary btn-sm" onclick="MobileProfile.removeFromList(${list.id}, ${restaurant.id})">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            ` : ''}
-                        `;
-                        
-                        restaurantCard.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                        container.appendChild(restaurantCard);
-                    });
-                },
-                
-                async removeFromList(listId, restaurantId) {
-                    try {
-                        await listManager.toggleInList(listId, restaurantId);
-                        
-                        // Refresh the current list view
-                        const currentList = customLists.find(l => l.id === listId) || 
-                                           Object.values(listManager.currentLists).find(l => l?.id === listId);
-                        
-                        if (currentList) {
-                            await this.renderListRestaurants(currentList);
-                        }
-                        
-                        showToast('Restaurant removed from list', 'info');
-                    } catch (error) {
-                        console.error('Error removing from list:', error);
-                        showToast('Error removing restaurant', 'error');
-                    }
-                },
-                
-                async loadMobileCommunity() {
-                    // Load followers and following
-                    await this.loadMobileFollowers();
-                    await this.loadMobileFollowing();
-                },
-                
-                async loadMobileFollowers() {
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    const followersContainer = document.getElementById('mobileFollowersList');
-                    if (!followersContainer) return;
-                    
-                    try {
-                        const { data: followers, error } = await supabase
-                            .from('follows')
-                            .select('follower_id')
-                            .eq('followed_id', targetId);
-                        
-                        if (error) throw error;
-                        
-                        followersContainer.innerHTML = '';
-                        
-                        if (!followers || followers.length === 0) {
-                            const emptyText = isViewingOwnProfile ? 
-                                'Share your profile to get followers!' :
-                                'This user doesn\'t have any followers yet.';
-                            
-                            followersContainer.innerHTML = `
-                                <div class="mobile-empty-state">
-                                    <div class="mobile-empty-icon">👥</div>
-                                    <div class="mobile-empty-title">No followers yet</div>
-                                    <div class="mobile-empty-description">${emptyText}</div>
-                                    ${isViewingOwnProfile ? `
-                                        <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
-                                            <i class="fas fa-user-plus"></i> Find Users
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            `;
-                            return;
-                        }
-                        
-                        // Get user details for each follower
-                        const followerIds = followers.map(f => f.follower_id);
-                        const { data: users } = await supabase
-                            .from('user_profiles')
-                            .select('*')
-                            .in('id', followerIds)
-                            .limit(10);
-                        
-                        if (users) {
-                            users.forEach(user => {
-                                const userCard = document.createElement('div');
-                                userCard.className = 'mobile-community-card';
-                                userCard.onclick = () => this.viewUserProfile(user.id);
-                                
-                                userCard.innerHTML = `
-                                    <div class="mobile-community-header">
-                                        <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
-                                        <div class="mobile-community-info">
-                                            <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
-                                            <div class="mobile-community-username">@${user.username || 'user'}</div>
-                                        </div>
-                                    </div>
-                                    <div class="mobile-community-stats">
-                                        <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Visited</span>
-                                        </div>
-                                        <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Favorites</span>
-                                        </div>
-                                    </div>
-                                `;
-                                
-                                followersContainer.appendChild(userCard);
-                            });
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error loading mobile followers:', error);
-                        followersContainer.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">⚠️</div>
-                                <div class="mobile-empty-title">Error Loading</div>
-                                <div class="mobile-empty-description">Could not load followers.</div>
-                            </div>
-                        `;
-                    }
-                },
-                
-                async loadMobileFollowing() {
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    const followingContainer = document.getElementById('mobileFollowingList');
-                    if (!followingContainer) return;
-                    
-                    try {
-                        const { data: following, error } = await supabase
-                            .from('follows')
-                            .select('followed_id')
-                            .eq('follower_id', targetId);
-                        
-                        if (error) throw error;
-                        
-                        followingContainer.innerHTML = '';
-                        
-                        if (!following || following.length === 0) {
-                            const emptyText = isViewingOwnProfile ? 
-                                'Discover and follow other food lovers!' :
-                                'This user isn\'t following anyone yet.';
-                            
-                            followingContainer.innerHTML = `
-                                <div class="mobile-empty-state">
-                                    <div class="mobile-empty-icon">👥</div>
-                                    <div class="mobile-empty-title">Not following anyone</div>
-                                    <div class="mobile-empty-description">${emptyText}</div>
-                                    ${isViewingOwnProfile ? `
-                                        <button class="mobile-action-btn" onclick="MobileProfile.searchUsers()">
-                                            <i class="fas fa-user-plus"></i> Find Users
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            `;
-                            return;
-                        }
-                        
-                        // Get user details for each followed user
-                        const followingIds = following.map(f => f.followed_id);
-                        const { data: users } = await supabase
-                            .from('user_profiles')
-                            .select('*')
-                            .in('id', followingIds)
-                            .limit(10);
-                        
-                        if (users) {
-                            users.forEach(user => {
-                                const userCard = document.createElement('div');
-                                userCard.className = 'mobile-community-card';
-                                userCard.onclick = () => this.viewUserProfile(user.id);
-                                
-                                userCard.innerHTML = `
-                                    <div class="mobile-community-header">
-                                        <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
-                                        <div class="mobile-community-info">
-                                            <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
-                                            <div class="mobile-community-username">@${user.username || 'user'}</div>
-                                        </div>
-                                    </div>
-                                    <div class="mobile-community-stats">
-                                        <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Visited</span>
-                                        </div>
-                                        <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Favorites</span>
-                                        </div>
-                                    </div>
-                                `;
-                                
-                                followingContainer.appendChild(userCard);
-                            });
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error loading mobile following:', error);
-                        followingContainer.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">⚠️</div>
-                                <div class="mobile-empty-title">Error Loading</div>
-                                <div class="mobile-empty-description">Could not load following list.</div>
-                            </div>
-                        `;
-                    }
-                },
-                
-                showMenu() {
-                    document.getElementById('mobileSideMenu').classList.add('active');
-                    document.getElementById('mobileMenuOverlay').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                },
-                
-                hideMenu() {
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                },
-                
-                showSection(section) {
-                    // Hide all sections and list detail
-                    document.querySelectorAll('.mobile-section').forEach(el => {
-                        el.classList.remove('active');
-                    });
-                    document.getElementById('mobileListDetailSection').classList.remove('active');
-                    
-                    // Remove active class from all tabs
-                    document.querySelectorAll('.mobile-tab').forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    
-                    // Show selected section
-                    const activeSection = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`);
-                    if (activeSection) {
-                        activeSection.classList.add('active');
-                    }
-                    
-                    // Activate selected tab
-                    const activeTab = document.querySelector(`.mobile-tab[data-tab="${section}"]`);
-                    if (activeTab) {
-                        activeTab.classList.add('active');
-                    }
-                    
-                    // Load data for the section if needed
-                    switch(section) {
-                        case 'journal':
-                            this.loadMobileFeed();
-                            break;
-                        case 'lists':
-                            this.loadMobileLists();
-                            break;
-                        case 'community':
-                            this.showCommunityTab('followers');
-                            break;
-                    }
-                },
-                
-                showCommunityTab(tab) {
-                    // Update button states
-                    const followersBtn = document.getElementById('mobileFollowersTabBtn');
-                    const followingBtn = document.getElementById('mobileFollowingTabBtn');
-                    
-                    if (followersBtn) followersBtn.classList.toggle('active', tab === 'followers');
-                    if (followingBtn) followingBtn.classList.toggle('active', tab === 'following');
-                    
-                    // Update tab visibility
-                    const followersTab = document.getElementById('mobileFollowersTab');
-                    const followingTab = document.getElementById('mobileFollowingTab');
-                    
-                    if (followersTab) followersTab.classList.toggle('active', tab === 'followers');
-                    if (followingTab) followingTab.classList.toggle('active', tab === 'following');
-                    
-                    // Load data for the selected tab
-                    if (tab === 'followers') {
-                        this.loadMobileFollowers();
-                    } else {
-                        this.loadMobileFollowing();
-                    }
-                },
-                
-                addJournalEntry() {
-                    if (!isViewingOwnProfile) return;
-                    document.getElementById('addEntryModal').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    this.hideMenu();
-                },
-                
-                createList() {
-                    if (!isViewingOwnProfile) return;
-                    document.getElementById('createListModal').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    this.hideMenu();
-                },
-                
-                searchUsers() {
-                    document.getElementById('communitySearchModal').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    this.hideMenu();
-                },
-                
-                editProfile() {
-                    if (!isViewingOwnProfile) return;
-                    document.getElementById('editProfileModal').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    this.hideMenu();
-                },
-                
-                showSettings() {
-                    window.location.href = 'settings.html';
-                },
-                
-                showAvatarModal() {
-                    if (!isViewingOwnProfile) return;
-                    document.getElementById('avatarModal').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    this.hideMenu();
-                },
-                
-                goHome() {
-                    window.location.href = 'index.html';
-                },
-                
-                viewUserProfile(userId) {
-                    if (userId === currentUser.id) {
-                        window.location.href = 'profile.html';
-                    } else {
-                        window.location.href = `profile.html?id=${userId}`;
-                    }
-                },
-                
-                async logout() {
-                    if (confirm('Are you sure you want to logout?')) {
-                        try {
-                            await supabase.auth.signOut();
-                            window.location.href = 'login.html';
-                        } catch (error) {
-                            console.error('Error logging out:', error);
-                            showToast('Error logging out', 'error');
-                        }
-                    }
-                    this.hideMenu();
                 }
             };
 
@@ -5049,55 +4743,116 @@
             }
 
             function showTab(tabName) {
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    tab.classList.remove('active');
-                });
+                const isMobile = window.innerWidth <= 768;
                 
-                const tabElement = document.getElementById(`${tabName}-tab`);
-                if (tabElement) {
-                    tabElement.classList.add('active');
-                }
-                
-                document.querySelectorAll('.nav-tab').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
-                if (activeButton) activeButton.classList.add('active');
-                
-                currentTab = tabName;
-                
-                switch(tabName) {
-                    case 'journal':
-                        foodJournal.loadJournalEntries();
-                        break;
-                    case 'lists':
-                        listManager.renderListsGrid();
-                        break;
-                    case 'community':
-                        showCommunitySection('followers');
-                        break;
+                if (isMobile) {
+                    // Mobile tab switching
+                    document.querySelectorAll('.mobile-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    document.querySelectorAll('.mobile-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    const activeSection = document.getElementById(`mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Section`);
+                    if (activeSection) {
+                        activeSection.classList.add('active');
+                    }
+                    
+                    const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                    }
+                    
+                    // Load data for the section
+                    switch(tabName) {
+                        case 'journal':
+                            foodJournal.loadJournalEntries();
+                            break;
+                        case 'lists':
+                            listManager.renderLists();
+                            break;
+                        case 'community':
+                            showCommunitySection('followers');
+                            break;
+                    }
+                } else {
+                    // Desktop tab switching
+                    document.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    const tabElement = document.getElementById(`${tabName}-tab`);
+                    if (tabElement) {
+                        tabElement.classList.add('active');
+                    }
+                    
+                    document.querySelectorAll('.nav-tab').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+                    if (activeButton) activeButton.classList.add('active');
+                    
+                    currentTab = tabName;
+                    
+                    switch(tabName) {
+                        case 'journal':
+                            foodJournal.loadJournalEntries();
+                            break;
+                        case 'lists':
+                            listManager.renderLists();
+                            break;
+                        case 'community':
+                            showCommunitySection('followers');
+                            break;
+                    }
                 }
             }
 
             function showCommunitySection(section) {
-                const followersBtn = document.getElementById('showFollowersBtn');
-                const followingBtn = document.getElementById('showFollowingBtn');
+                const isMobile = window.innerWidth <= 768;
                 
-                if (followersBtn) followersBtn.classList.remove('active');
-                if (followingBtn) followingBtn.classList.remove('active');
-                
-                document.querySelectorAll('.community-section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                const targetSection = document.getElementById(`${section}Section`);
-                if (targetSection) {
-                    targetSection.classList.add('active');
+                if (isMobile) {
+                    // Update mobile UI
+                    const followersBtn = document.getElementById('mobileFollowersTabBtn');
+                    const followingBtn = document.getElementById('mobileFollowingTabBtn');
+                    
+                    if (followersBtn) followersBtn.classList.remove('active');
+                    if (followingBtn) followingBtn.classList.remove('active');
+                    
+                    document.querySelectorAll('.mobile-community-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    const targetTab = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Tab`);
+                    if (targetTab) {
+                        targetTab.classList.add('active');
+                    }
+                    
+                    const activeBtn = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}TabBtn`);
+                    if (activeBtn) activeBtn.classList.add('active');
+                } else {
+                    // Update desktop UI
+                    const followersBtn = document.getElementById('showFollowersBtn');
+                    const followingBtn = document.getElementById('showFollowingBtn');
+                    
+                    if (followersBtn) followersBtn.classList.remove('active');
+                    if (followingBtn) followingBtn.classList.remove('active');
+                    
+                    document.querySelectorAll('.community-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    const targetSection = document.getElementById(`${section}Section`);
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                    }
+                    
+                    const activeBtn = document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`);
+                    if (activeBtn) activeBtn.classList.add('active');
                 }
-                
-                const activeBtn = document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`);
-                if (activeBtn) activeBtn.classList.add('active');
                 
                 communitySystem.currentSection = section;
                 if (section === 'followers') {
@@ -5193,6 +4948,19 @@
                 showModal('createListModal');
             }
 
+            // ===== MOBILE MENU FUNCTIONS =====
+            function showMobileMenu() {
+                document.getElementById('mobileSideMenu').classList.add('active');
+                document.getElementById('mobileMenuOverlay').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function hideMobileMenu() {
+                document.getElementById('mobileSideMenu').classList.remove('active');
+                document.getElementById('mobileMenuOverlay').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
             // ===== AVATAR FUNCTIONS =====
             function showAvatarModal() {
                 if (!isViewingOwnProfile) return;
@@ -5214,13 +4982,12 @@
 
                     if (error) throw error;
 
-                    // Update desktop avatar
+                    // Update both desktop and mobile avatars
                     const avatar = document.getElementById('profileAvatar');
                     if (avatar) {
                         avatar.textContent = selectedAvatarIcon;
                     }
                     
-                    // Update mobile avatar
                     const mobileAvatar = document.getElementById('mobileAvatar');
                     if (mobileAvatar) {
                         mobileAvatar.textContent = selectedAvatarIcon;
@@ -5254,7 +5021,7 @@
 
             // ===== SETUP EVENT LISTENERS =====
             function setupEventListeners() {
-                // Tab buttons
+                // Desktop tab buttons
                 document.querySelectorAll('.nav-tab').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
@@ -5393,12 +5160,7 @@
                     if (error) throw error;
                     
                     customLists.push(newList);
-                    listManager.renderListsGrid();
-                    
-                    // Refresh mobile lists if on mobile
-                    if (window.innerWidth <= 768) {
-                        MobileProfile.loadMobileLists();
-                    }
+                    listManager.renderLists();
                     
                     closeModal('createListModal');
                     showToast(`Created list "${listName}"`, 'success');
@@ -5440,25 +5202,8 @@
                     
                     if (error) throw error;
                     
-                    // Update desktop view
-                    document.getElementById('profileName').textContent = displayName;
-                    document.getElementById('profileUsername').textContent = `@${username}`;
-                    document.getElementById('profileBio').textContent = bio || "No bio yet. Click edit to add one!";
-                    document.getElementById('profileLocation').textContent = location || "Location not set";
-                    
-                    // Update mobile view
-                    document.getElementById('mobileProfileName').textContent = displayName;
-                    document.getElementById('mobileProfileUsername').textContent = `@${username}`;
-                    document.getElementById('mobileProfileBio').textContent = bio || "";
-                    
-                    userProfile = {
-                        ...userProfile,
-                        full_name: displayName,
-                        username: username,
-                        bio: bio,
-                        location: location,
-                        is_private: isPrivate
-                    };
+                    // Update profile UI
+                    updateProfileUI();
                     
                     closeModal('editProfileModal');
                     showToast('Profile updated successfully!', 'success');
@@ -5472,6 +5217,23 @@
             // ===== UTILITY FUNCTIONS =====
             function toggleSortLists() {
                 showToast('List sorting feature coming soon!', 'info');
+            }
+
+            async function logout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        await supabase.auth.signOut();
+                        window.location.href = 'login.html';
+                    } catch (error) {
+                        console.error('Error logging out:', error);
+                        showToast('Error logging out', 'error');
+                    }
+                }
+            }
+
+            function updateMobileStats() {
+                // This function is called from initializeMobile
+                // Stats are already updated in updateStatsUI
             }
 
             // ===== PUBLIC API =====
@@ -5499,8 +5261,13 @@
                 saveAvatar,
                 setRating,
                 
+                // Mobile
+                showMobileMenu,
+                hideMobileMenu,
+                
                 // Utilities
-                toggleSortLists
+                toggleSortLists,
+                logout
             };
         })();
 
@@ -5508,192 +5275,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
-        
-        // ===== GLOBAL EXPOSURE FOR INLINE HANDLERS =====
-        window.MobileProfile = {
-            showMenu: function() {
-                document.getElementById('mobileSideMenu')?.classList.add('active');
-                document.getElementById('mobileMenuOverlay')?.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            },
-            
-            hideMenu: function() {
-                document.getElementById('mobileSideMenu')?.classList.remove('active');
-                document.getElementById('mobileMenuOverlay')?.classList.remove('active');
-                document.body.style.overflow = '';
-            },
-            
-            showSection: function(section) {
-                // Hide all sections and list detail
-                document.querySelectorAll('.mobile-section').forEach(el => {
-                    el.classList.remove('active');
-                });
-                document.getElementById('mobileListDetailSection')?.classList.remove('active');
-                
-                // Remove active class from all tabs
-                document.querySelectorAll('.mobile-tab').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                
-                // Show selected section
-                const activeSection = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Section`);
-                if (activeSection) {
-                    activeSection.classList.add('active');
-                }
-                
-                // Activate selected tab
-                const activeTab = document.querySelector(`.mobile-tab[data-tab="${section}"]`);
-                if (activeTab) {
-                    activeTab.classList.add('active');
-                }
-            },
-            
-            addJournalEntry: function() {
-                document.getElementById('addEntryModal')?.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                this.hideMenu();
-            },
-            
-            createList: function() {
-                document.getElementById('createListModal')?.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                this.hideMenu();
-            },
-            
-            searchUsers: function() {
-                document.getElementById('communitySearchModal')?.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                this.hideMenu();
-            },
-            
-            editProfile: function() {
-                document.getElementById('editProfileModal')?.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                this.hideMenu();
-            },
-            
-            showSettings: function() {
-                window.location.href = 'settings.html';
-            },
-            
-            showAvatarModal: function() {
-                document.getElementById('avatarModal')?.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                this.hideMenu();
-            },
-            
-            goHome: function() {
-                window.location.href = 'index.html';
-            },
-            
-            showCommunityTab: function(tab) {
-                const followersTab = document.getElementById('mobileFollowersTab');
-                const followingTab = document.getElementById('mobileFollowingTab');
-                const followersBtn = document.getElementById('mobileFollowersTabBtn');
-                const followingBtn = document.getElementById('mobileFollowingTabBtn');
-                
-                if (followersTab && followingTab && followersBtn && followingBtn) {
-                    followersTab.classList.toggle('active', tab === 'followers');
-                    followingTab.classList.toggle('active', tab === 'following');
-                    followersBtn.classList.toggle('active', tab === 'followers');
-                    followingBtn.classList.toggle('active', tab === 'following');
-                }
-            },
-            
-            logout: function() {
-                if (confirm('Are you sure you want to logout?')) {
-                    window.location.href = 'login.html';
-                }
-            },
-            
-            showListDetail: function(list) {
-                // Hide all sections
-                document.querySelectorAll('.mobile-section').forEach(el => {
-                    el.classList.remove('active');
-                });
-                
-                // Show list detail section
-                const listDetailSection = document.getElementById('mobileListDetailSection');
-                listDetailSection.classList.add('active');
-                
-                // Update list detail title
-                document.getElementById('mobileListDetailTitle').textContent = list.title;
-                document.getElementById('mobileListDetailDescription').textContent = list.description || '';
-                
-                // Render list restaurants
-                MobileProfile.renderListRestaurants(list);
-            },
-            
-            renderListRestaurants: async function(list) {
-                const container = document.getElementById('mobileListRestaurants');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                if (!list.restaurants || list.restaurants.length === 0) {
-                    const emptyText = isViewingOwnProfile ? 
-                        'Start adding restaurants to your list!' :
-                        'This list is currently empty.';
-                    
-                    container.innerHTML = `
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon">🍽️</div>
-                            <div class="mobile-empty-title">No Restaurants Yet</div>
-                            <div class="mobile-empty-description">${emptyText}</div>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Get restaurant details
-                const restaurantIds = list.restaurants.map(id => Number(id));
-                const listRestaurants = restaurants.filter(r => restaurantIds.includes(r.id));
-                
-                listRestaurants.forEach(restaurant => {
-                    const restaurantCard = document.createElement('div');
-                    restaurantCard.className = 'mobile-list-restaurant-card';
-                    
-                    restaurantCard.innerHTML = `
-                        <div class="mobile-list-restaurant-info" onclick="window.location.href='restaurant.html?slug=${restaurant.slug}'">
-                            <div class="mobile-list-restaurant-image">
-                                <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; margin-bottom: 4px;">${restaurant.name}</div>
-                                <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">${restaurant.category}</div>
-                                <div style="font-size: 12px; color: var(--accent); font-weight: 600;">⭐ ${restaurant.rating}</div>
-                            </div>
-                        </div>
-                        ${isViewingOwnProfile ? `
-                            <button class="btn btn-secondary btn-sm" onclick="MobileProfile.removeFromList(${list.id}, ${restaurant.id})">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
-                    `;
-                    
-                    container.appendChild(restaurantCard);
-                });
-            },
-            
-            removeFromList: async function(listId, restaurantId) {
-                try {
-                    await listManager.toggleInList(listId, restaurantId);
-                    
-                    // Refresh the current list view
-                    const currentList = customLists.find(l => l.id === listId) || 
-                                       Object.values(listManager.currentLists).find(l => l?.id === listId);
-                    
-                    if (currentList) {
-                        await this.renderListRestaurants(currentList);
-                    }
-                    
-                    showToast('Restaurant removed from list', 'info');
-                } catch (error) {
-                    console.error('Error removing from list:', error);
-                    showToast('Error removing restaurant', 'error');
-                }
-            }
-        };
     </script>
 </body>
 </html>
