@@ -165,6 +165,30 @@
             animation: fadeIn 0.3s ease;
         }
 
+        /* Mobile viewing indicator */
+        .mobile-viewing-indicator {
+            position: sticky;
+            top: 60px;
+            z-index: 900;
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(11, 22, 51, 0.2);
+        }
+
+        .mobile-viewing-indicator .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid #0b1633;
+            color: #0b1633;
+            background: transparent;
+        }
+
         .viewing-indicator {
             display: flex;
             align-items: center;
@@ -1190,7 +1214,7 @@
                 background: var(--bg-hover);
             }
 
-            /* Mobile Side Menu */
+            /* Mobile Side Menu - SIMPLIFIED VERSION */
             .mobile-side-menu {
                 position: fixed;
                 top: 0;
@@ -1228,7 +1252,7 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
                 padding-bottom: 15px;
                 border-bottom: 1px solid var(--border);
             }
@@ -1259,7 +1283,7 @@
             }
 
             .mobile-menu-section {
-                margin-bottom: 25px;
+                margin-bottom: 20px;
             }
 
             .mobile-menu-section-title {
@@ -1267,7 +1291,7 @@
                 color: var(--muted);
                 text-transform: uppercase;
                 letter-spacing: 1px;
-                margin-bottom: 12px;
+                margin-bottom: 8px;
                 font-weight: 600;
             }
 
@@ -1275,11 +1299,11 @@
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                padding: 14px;
+                padding: 12px;
                 border-radius: var(--radius-sm);
                 text-decoration: none;
                 color: var(--white);
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 transition: var(--transition);
                 cursor: pointer;
             }
@@ -1302,7 +1326,7 @@
             .mobile-menu-divider {
                 height: 1px;
                 background: var(--border);
-                margin: 20px 0;
+                margin: 15px 0;
             }
 
             /* Mobile Profile Header */
@@ -1577,7 +1601,7 @@
                 gap: 8px;
             }
 
-            /* Mobile Lists */
+            /* Mobile Lists - UPDATED WITH FIXED PREVIEW LAYOUT */
             .mobile-list-card {
                 background: var(--card);
                 border-radius: var(--radius);
@@ -1625,24 +1649,27 @@
                 color: var(--muted);
             }
 
+            /* UPDATED PREVIEW GRID WITH PERFECT SQUARES */
             .mobile-list-preview {
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
-                gap: 8px;
+                gap: 6px;
                 margin-bottom: 12px;
             }
 
             .mobile-preview-item {
-                height: 60px;
+                width: 100%;
+                padding-bottom: 100%; /* Creates a square */
+                position: relative;
                 background: var(--bg);
                 border-radius: var(--radius-sm);
                 overflow: hidden;
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
 
             .mobile-preview-item img {
+                position: absolute;
+                top: 0;
+                left: 0;
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
@@ -2000,7 +2027,12 @@
             }
             
             .mobile-list-preview {
-                grid-template-columns: repeat(2, 1fr) !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+            
+            .mobile-preview-item {
+                height: 70px !important;
+                padding-bottom: 0 !important;
             }
         }
 
@@ -2340,6 +2372,17 @@
 
     <!-- Mobile View -->
     <div class="mobile-only">
+        <!-- Mobile Viewing Indicator Banner -->
+        <div class="mobile-viewing-indicator" id="mobileViewingIndicator">
+            <div class="viewing-indicator">
+                <i class="fas fa-eye"></i>
+                <span>You are viewing another user's profile</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="ProfileManager.goToMyProfile()" style="border-color: #0b1633; color: #0b1633; padding: 4px 8px; font-size: 12px;">
+                <i class="fas fa-user"></i> My Profile
+            </button>
+        </div>
+
         <!-- Mobile Top Bar -->
         <div class="mobile-topbar">
             <div class="mobile-topbar-title" id="mobileTopBarTitle">Profile</div>
@@ -2348,7 +2391,7 @@
             </button>
         </div>
 
-        <!-- Mobile Side Menu -->
+        <!-- Mobile Side Menu - SIMPLIFIED -->
         <div class="mobile-side-menu" id="mobileSideMenu">
             <div class="mobile-menu-header">
                 <div class="mobile-menu-title">Menu</div>
@@ -2365,33 +2408,15 @@
                 </a>
                 <div class="mobile-menu-item" onclick="ProfileManager.showTab('journal'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-book"></i>
-                    <span>Food Journal</span>
+                    <span id="mobileJournalTabText">Food Journal</span>
                 </div>
                 <div class="mobile-menu-item" onclick="ProfileManager.showTab('lists'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-list"></i>
-                    <span>My Lists</span>
+                    <span id="mobileListsTabText">My Lists</span>
                 </div>
                 <div class="mobile-menu-item" onclick="ProfileManager.showTab('community'); ProfileManager.hideMobileMenu();">
                     <i class="fas fa-users"></i>
                     <span>Community</span>
-                </div>
-            </div>
-
-            <div class="mobile-menu-divider"></div>
-
-            <div class="mobile-menu-section">
-                <div class="mobile-menu-section-title">Account</div>
-                <div class="mobile-menu-item" onclick="ProfileManager.showModal('editProfileModal'); ProfileManager.hideMobileMenu();">
-                    <i class="fas fa-user-edit"></i>
-                    <span>Edit Profile</span>
-                </div>
-                <a href="settings.html" class="mobile-menu-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
-                <div class="mobile-menu-item" onclick="ProfileManager.showAvatarModal(); ProfileManager.hideMobileMenu();">
-                    <i class="fas fa-user-circle"></i>
-                    <span>Change Avatar</span>
                 </div>
             </div>
 
@@ -2463,11 +2488,11 @@
         <div class="mobile-tabs">
             <div class="mobile-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
                 <i class="fas fa-book"></i>
-                <span>Journal</span>
+                <span id="mobileTabJournal">Journal</span>
             </div>
             <div class="mobile-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
                 <i class="fas fa-list"></i>
-                <span>Lists</span>
+                <span id="mobileTabLists">Lists</span>
             </div>
             <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                 <i class="fas fa-users"></i>
@@ -2481,12 +2506,12 @@
             <!-- Journal Section -->
             <div class="mobile-section active" id="mobileJournalSection">
                 <div class="mobile-section-title">
-                    Food Journal
+                    <span id="mobileJournalTitle">Food Journal</span>
                     <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showModal('addEntryModal')">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
-                <div class="mobile-section-subtitle">Your restaurant reviews and experiences</div>
+                <div class="mobile-section-subtitle" id="mobileJournalSubtitle">Your restaurant reviews and experiences</div>
                 
                 <div id="mobileJournalEntries">
                     <div class="mobile-empty-state">
@@ -2503,12 +2528,12 @@
             <!-- Lists Section -->
             <div class="mobile-section" id="mobileListsSection">
                 <div class="mobile-section-title">
-                    My Lists
+                    <span id="mobileListsTitle">My Lists</span>
                     <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCreateListModal()">
                         <i class="fas fa-plus"></i> New
                     </button>
                 </div>
-                <div class="mobile-section-subtitle">Organize your favorite restaurants</div>
+                <div class="mobile-section-subtitle" id="mobileListsSubtitle">Organize your favorite restaurants</div>
                 
                 <div id="mobileLists">
                     <div class="mobile-empty-state">
@@ -2522,10 +2547,28 @@
                 </div>
             </div>
 
+            <!-- List Detail View for Mobile -->
+            <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.hideMobileListDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <div style="flex: 1; text-align: center;">
+                        <div id="mobileListDetailTitle">List Title</div>
+                        <div class="text-sm text-muted" id="mobileListDetailDescription">List description</div>
+                    </div>
+                    <div style="width: 60px;"></div> <!-- Spacer for alignment -->
+                </div>
+                
+                <div id="mobileListRestaurants">
+                    <!-- List restaurants will be populated here -->
+                </div>
+            </div>
+
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
-                    Community
+                    <span id="mobileCommunityTitle">Community</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
                             Followers
@@ -2535,7 +2578,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="mobile-section-subtitle">Connect with other food lovers</div>
+                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Connect with other food lovers</div>
                 
                 <!-- Followers Tab -->
                 <div class="mobile-community-tab active" id="mobileFollowersTab">
@@ -2847,9 +2890,7 @@
                     
                     setupEventListeners();
                     
-                    if (isViewingOwnProfile) {
-                        showToast('Welcome back to your profile!', 'success');
-                    }
+                    // REMOVED: "Welcome back to your profile!" toast
                     
                     // Initialize mobile if needed
                     if (window.innerWidth <= 768) {
@@ -2955,6 +2996,7 @@
                 const followButton = document.getElementById('followButton');
                 const logoutBtn = document.getElementById('logoutBtn');
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
+                const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
                 const addEntryBtn = document.getElementById('addEntryBtn');
                 const createListBtn = document.getElementById('createListBtn');
                 const addJournalBtn = document.getElementById('addJournalBtn');
@@ -2964,6 +3006,7 @@
                 if (followButton) followButton.style.display = 'none';
                 if (logoutBtn) logoutBtn.style.display = 'block';
                 if (viewingIndicator) viewingIndicator.style.display = 'none';
+                if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'none';
                 if (addEntryBtn) addEntryBtn.style.display = 'flex';
                 if (createListBtn) createListBtn.style.display = 'flex';
                 if (addJournalBtn) addJournalBtn.style.display = 'flex';
@@ -2984,6 +3027,7 @@
                 const logoutBtn = document.getElementById('logoutBtn');
                 const followButton = document.getElementById('followButton');
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
+                const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
                 const addEntryBtn = document.getElementById('addEntryBtn');
                 const createListBtn = document.getElementById('createListBtn');
                 const addJournalBtn = document.getElementById('addJournalBtn');
@@ -2993,6 +3037,7 @@
                 if (logoutBtn) logoutBtn.style.display = 'none';
                 if (followButton) followButton.style.display = 'block';
                 if (viewingIndicator) viewingIndicator.style.display = 'flex';
+                if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'flex';
                 if (addEntryBtn) addEntryBtn.style.display = 'none';
                 if (createListBtn) createListBtn.style.display = 'none';
                 if (addJournalBtn) addJournalBtn.style.display = 'none';
@@ -3084,6 +3129,55 @@
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                     document.getElementById('profileAvatar').textContent = profile?.avatar_icon || "🍔";
                 }
+            }
+
+            // ===== UPDATE TAB TITLES FOR OTHER USER =====
+            function updateTabTitlesForOtherUser(userName) {
+                // Update desktop titles
+                const journalTabText = document.getElementById('journalTabText');
+                const listsTabText = document.getElementById('listsTabText');
+                const journalTitle = document.getElementById('journalTitle');
+                const listsTitle = document.getElementById('listsTitle');
+                const communityTitle = document.getElementById('communityTitle');
+                const journalSubtitle = document.getElementById('journalSubtitle');
+                const listsSubtitle = document.getElementById('listsSubtitle');
+                const communitySubtitle = document.getElementById('communitySubtitle');
+                const followersSectionTitle = document.getElementById('followersSectionTitle');
+                const followingSectionTitle = document.getElementById('followingSectionTitle');
+                
+                if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
+                if (listsTabText) listsTabText.textContent = `${userName}'s Lists`;
+                if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
+                if (listsTitle) listsTitle.textContent = `${userName}'s Lists`;
+                if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
+                if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
+                if (listsSubtitle) listsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
+                if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
+                if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
+                
+                // Update mobile titles
+                const mobileJournalTabText = document.getElementById('mobileJournalTabText');
+                const mobileListsTabText = document.getElementById('mobileListsTabText');
+                const mobileTabJournal = document.getElementById('mobileTabJournal');
+                const mobileTabLists = document.getElementById('mobileTabLists');
+                const mobileJournalTitle = document.getElementById('mobileJournalTitle');
+                const mobileListsTitle = document.getElementById('mobileListsTitle');
+                const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
+                const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
+                const mobileListsSubtitle = document.getElementById('mobileListsSubtitle');
+                const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
+                
+                if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
+                if (mobileListsTabText) mobileListsTabText.textContent = `${userName}'s Lists`;
+                if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
+                if (mobileTabLists) mobileTabLists.textContent = `${userName}'s Lists`;
+                if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
+                if (mobileListsTitle) mobileListsTitle.textContent = `${userName}'s Lists`;
+                if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
+                if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
+                if (mobileListsSubtitle) mobileListsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
             }
 
             // ===== RESTAURANTS =====
@@ -3520,7 +3614,7 @@
                                     ${list.title}
                                 </h3>
                                 ${!list.isDefault && isViewingOwnProfile ? `
-                                    <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); listManager.showEditListModal(${JSON.stringify(list).replace(/"/g, '&quot;')})" style="background: transparent; border: none; color: var(--muted);">
+                                    <button class="btn btn-icon btn-sm" onclick="event.stopPropagation();" style="background: transparent; border: none; color: var(--muted);">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                 ` : ''}
@@ -3608,7 +3702,7 @@
                         const restrauntIds = list.restaurants || [];
                         const shuffledIds = [...restrauntIds].sort(() => 0.5 - Math.random());
                         
-                        for (let i = 0; i < 2; i++) {
+                        for (let i = 0; i < 4; i++) {
                             if (shuffledIds[i]) {
                                 const restrauntId = shuffledIds[i];
                                 const restraunt = restaurants.find(r => r.id === restrauntId);
@@ -3620,19 +3714,27 @@
                                     `);
                                 } else {
                                     previewItems.push(`
-                                        <div class="mobile-preview-item" style="background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">🍽️</div>
+                                        <div class="mobile-preview-item">
+                                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                                🍽️
+                                            </div>
+                                        </div>
                                     `);
                                 }
                             } else {
                                 previewItems.push(`
-                                    <div class="mobile-preview-item" style="background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">🍽️</div>
+                                    <div class="mobile-preview-item">
+                                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                            🍽️
+                                        </div>
+                                    </div>
                                 `);
                             }
                         }
                         
                         listCard.innerHTML = `
                             <div class="mobile-list-header">
-                                <div class="mobile-list-icon" style="background: var(--accent); color: #0b1633; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <div class="mobile-list-icon" style="background: var(--bg); color: ${list.icon === '❤️' ? 'var(--error)' : list.icon === '✅' ? 'var(--success)' : 'var(--accent)'}; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
                                     ${list.icon || '📋'}
                                 </div>
                                 <div class="mobile-list-info">
@@ -3644,12 +3746,12 @@
                             <div class="mobile-list-preview">
                                 ${previewItems.join('')}
                             </div>
-                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')" style="width: 100%;">
+                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${list.id}')" style="width: 100%;">
                                 <i class="fas fa-eye"></i> View List
                             </button>
                         `;
                         
-                        listCard.onclick = () => ProfileManager.showList(list.id);
+                        listCard.onclick = () => ProfileManager.showMobileList(list.id);
                         mobileListsContainer.appendChild(listCard);
                     });
                 }
@@ -3680,35 +3782,19 @@
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
-                    // On mobile, show the desktop list detail view and scroll to it
-                    showTab('lists');
-                    
-                    // Show desktop list detail view
-                    const listsTab = document.getElementById('lists-tab');
-                    const listDetailView = document.getElementById('list-detail-view');
-                    
-                    if (listsTab) listsTab.style.display = 'none';
-                    if (listDetailView) {
-                        listDetailView.style.display = 'block';
-                        listDetailView.classList.add('active');
-                    }
-                    
-                    // Scroll to list detail on mobile
-                    setTimeout(() => {
-                        if (listDetailView) {
-                            listDetailView.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    }, 100);
-                } else {
-                    // Desktop behavior
-                    const listsTab = document.getElementById('lists-tab');
-                    const listDetailView = document.getElementById('list-detail-view');
-                    
-                    if (listsTab) listsTab.style.display = 'none';
-                    if (listDetailView) {
-                        listDetailView.style.display = 'block';
-                        listDetailView.classList.add('active');
-                    }
+                    // On mobile, show the mobile list detail view
+                    showMobileList(listId);
+                    return;
+                }
+                
+                // Desktop behavior
+                const listsTab = document.getElementById('lists-tab');
+                const listDetailView = document.getElementById('list-detail-view');
+                
+                if (listsTab) listsTab.style.display = 'none';
+                if (listDetailView) {
+                    listDetailView.style.display = 'block';
+                    listDetailView.classList.add('active');
                 }
                 
                 document.getElementById('listDetailTitle').textContent = list.title;
@@ -3725,8 +3811,54 @@
                 await renderListRestaurants(list.restaurants || [], list);
             }
 
+            async function showMobileList(listId) {
+                let list;
+                
+                if (listId === 'favorites') {
+                    list = listManager.currentLists.favorites;
+                } else if (listId === 'visited') {
+                    list = listManager.currentLists.visited;
+                } else if (listId === 'wantToGo') {
+                    list = listManager.currentLists.wantToGo;
+                } else {
+                    list = customLists.find(l => l.id === listId) || 
+                           listManager.userLists.find(l => l.id === listId);
+                }
+                
+                if (!list) {
+                    showToast('List not found', 'error');
+                    return;
+                }
+                
+                currentActiveList = list;
+                
+                // Hide all mobile sections
+                document.querySelectorAll('.mobile-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Show list detail section
+                const listDetailSection = document.getElementById('mobileListDetailSection');
+                if (listDetailSection) {
+                    listDetailSection.style.display = 'block';
+                    listDetailSection.classList.add('active');
+                }
+                
+                // Update title and description
+                document.getElementById('mobileListDetailTitle').textContent = list.title;
+                document.getElementById('mobileListDetailDescription').textContent = list.description || '';
+                
+                // Render list restaurants
+                await renderMobileListRestaurants(list.restaurants || [], list);
+            }
+
             function hideListDetail() {
                 const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    hideMobileListDetail();
+                    return;
+                }
                 
                 const listsTab = document.getElementById('lists-tab');
                 const listDetailView = document.getElementById('list-detail-view');
@@ -3738,11 +3870,24 @@
                 }
                 
                 currentActiveList = null;
-                
-                if (isMobile) {
-                    // On mobile, switch back to lists section
-                    showTab('lists');
+            }
+
+            function hideMobileListDetail() {
+                // Hide list detail section
+                const listDetailSection = document.getElementById('mobileListDetailSection');
+                if (listDetailSection) {
+                    listDetailSection.style.display = 'none';
+                    listDetailSection.classList.remove('active');
                 }
+                
+                // Show the current tab section
+                const currentTabSection = document.getElementById(`mobile${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}Section`);
+                if (currentTabSection) {
+                    currentTabSection.style.display = 'block';
+                    currentTabSection.classList.add('active');
+                }
+                
+                currentActiveList = null;
             }
 
             async function renderListRestaurants(restrauntIds, list) {
@@ -3776,7 +3921,7 @@
                 
                 const listDetailTitle = document.getElementById('listDetailTitle');
                 if (listDetailTitle) {
-                    listDetailTitle.textContent = `${list.title} (${listRestraunts.length} places)`;
+                    listDetailTitle.textContent = `${list.title} (${listRestraunts.length} ${listRestraunts.length === 1 ? 'place' : 'places'})`;
                 }
                 
                 listRestraunts.forEach(restraunt => {
@@ -3825,6 +3970,80 @@
                     }
                     
                     grid.appendChild(card);
+                });
+            }
+
+            async function renderMobileListRestaurants(restrauntIds, list) {
+                const container = document.getElementById('mobileListRestaurants');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                const numericIds = restrauntIds.map(id => Number(id));
+                const listRestraunts = restaurants.filter(r => numericIds.includes(r.id));
+                
+                if (listRestraunts.length === 0) {
+                    const emptyStateText = isViewingOwnProfile ? 
+                        'Start adding restaurants to your list!' :
+                        'This list is currently empty.';
+                    
+                    container.innerHTML = `
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">🍽️</div>
+                            <div class="mobile-empty-title">No Restaurants Yet</div>
+                            <div class="mobile-empty-description">${emptyStateText}</div>
+                            ${isViewingOwnProfile ? `
+                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                                    <i class="fas fa-plus"></i> Add Your First Restaurant
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Update title with count
+                const listDetailTitle = document.getElementById('mobileListDetailTitle');
+                if (listDetailTitle) {
+                    listDetailTitle.textContent = `${list.title} (${listRestraunts.length} ${listRestraunts.length === 1 ? 'place' : 'places'})`;
+                }
+                
+                listRestraunts.forEach(restraunt => {
+                    const restaurantCard = document.createElement('div');
+                    restaurantCard.className = 'mobile-list-restaurant-card';
+                    
+                    restaurantCard.innerHTML = `
+                        <div class="mobile-list-restaurant-info">
+                            <div class="mobile-list-restaurant-image">
+                                <img src="images/${restraunt.image || 'placeholder.jpg'}" alt="${restraunt.name}" loading="lazy">
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 2px;">${restraunt.name}</div>
+                                <div style="font-size: 12px; color: var(--muted);">${restraunt.category}</div>
+                                <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restraunt.rating}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Make the card clickable to go to restaurant page
+                    restaurantCard.onclick = () => {
+                        window.location.href = `restaurant.html?slug=${restraunt.slug}`;
+                    };
+                    
+                    if (isViewingOwnProfile) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'btn btn-secondary btn-sm';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.style.marginLeft = '8px';
+                        removeBtn.onclick = async (e) => {
+                            e.stopPropagation();
+                            await listManager.toggleInList(list.id, restraunt.id);
+                            await renderMobileListRestaurants(list.restaurants || [], list);
+                        };
+                        restaurantCard.appendChild(removeBtn);
+                    }
+                    
+                    container.appendChild(restaurantCard);
                 });
             }
 
@@ -4182,6 +4401,7 @@
                             .select('followed_id')
                             .eq('follower_id', targetId);
 
+                        // Update desktop badges
                         const followersCountBadge = document.getElementById('followersCountBadge');
                         const followingCountBadge = document.getElementById('followingCountBadge');
                         
@@ -4194,6 +4414,14 @@
                             const count = following ? following.length : 0;
                             followingCountBadge.textContent = count;
                             followingCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                        }
+
+                        // Update mobile badge
+                        const mobileFollowersBadge = document.getElementById('mobileFollowersBadge');
+                        if (mobileFollowersBadge) {
+                            const count = followers ? followers.length : 0;
+                            mobileFollowersBadge.textContent = count;
+                            mobileFollowersBadge.style.display = count > 0 ? 'inline-block' : 'none';
                         }
 
                         if (isViewingOwnProfile) {
@@ -4704,36 +4932,6 @@
                 return id ? id.trim() : null;
             }
 
-            function updateTabTitlesForOtherUser(userName) {
-                const journalTabText = document.getElementById('journalTabText');
-                const listsTabText = document.getElementById('listsTabText');
-                
-                if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
-                if (listsTabText) listsTabText.textContent = `${userName}'s Lists`;
-                
-                // Update section titles
-                const journalTitle = document.getElementById('journalTitle');
-                const listsTitle = document.getElementById('listsTitle');
-                const communityTitle = document.getElementById('communityTitle');
-                const followersSectionTitle = document.getElementById('followersSectionTitle');
-                const followingSectionTitle = document.getElementById('followingSectionTitle');
-                
-                if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
-                if (listsTitle) listsTitle.textContent = `${userName}'s Lists`;
-                if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
-                if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
-                if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
-                
-                // Update subtitles
-                const journalSubtitle = document.getElementById('journalSubtitle');
-                const listsSubtitle = document.getElementById('listsSubtitle');
-                const communitySubtitle = document.getElementById('communitySubtitle');
-                
-                if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
-                if (listsSubtitle) listsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
-                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
-            }
-
             function goToMyProfile() {
                 window.location.href = 'profile.html';
             }
@@ -4748,6 +4946,7 @@
                 if (isMobile) {
                     // Mobile tab switching
                     document.querySelectorAll('.mobile-section').forEach(section => {
+                        section.style.display = 'none';
                         section.classList.remove('active');
                     });
                     
@@ -4757,6 +4956,7 @@
                     
                     const activeSection = document.getElementById(`mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Section`);
                     if (activeSection) {
+                        activeSection.style.display = 'block';
                         activeSection.classList.add('active');
                     }
                     
@@ -4764,6 +4964,8 @@
                     if (activeTab) {
                         activeTab.classList.add('active');
                     }
+                    
+                    currentTab = tabName;
                     
                     // Load data for the section
                     switch(tabName) {
@@ -5255,7 +5457,9 @@
                 
                 // Lists
                 showList,
+                showMobileList,
                 hideListDetail,
+                hideMobileListDetail,
                 
                 // Profile
                 saveAvatar,
