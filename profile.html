@@ -2407,7 +2407,7 @@
         <!-- Mobile Top Bar -->
         <div class="mobile-topbar">
             <div class="mobile-topbar-title" id="mobileTopBarTitle">Profile</div>
-            <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <button class="mobile-menu-btn" onclick="MobileManager.showMenu()">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
@@ -2416,26 +2416,26 @@
         <div class="mobile-side-menu" id="mobileSideMenu">
             <div class="mobile-menu-header">
                 <div class="mobile-menu-title">Menu</div>
-                <button class="mobile-menu-close" id="mobileMenuClose">
+                <button class="mobile-menu-close" onclick="MobileManager.hideMenu()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Navigation</div>
-                <div class="mobile-menu-item" id="mobileMenuHome">
+                <div class="mobile-menu-item" onclick="MobileManager.goHome()">
                     <i class="fas fa-home"></i>
                     <span>Home</span>
                 </div>
-                <div class="mobile-menu-item active" id="mobileMenuJournal">
+                <div class="mobile-menu-item active" onclick="MobileManager.showTab('journal')">
                     <i class="fas fa-book"></i>
                     <span>Food Journal</span>
                 </div>
-                <div class="mobile-menu-item" id="mobileMenuLists">
+                <div class="mobile-menu-item" onclick="MobileManager.showTab('lists')">
                     <i class="fas fa-list"></i>
                     <span>My Lists</span>
                 </div>
-                <div class="mobile-menu-item" id="mobileMenuCommunity">
+                <div class="mobile-menu-item" onclick="MobileManager.showTab('community')">
                     <i class="fas fa-users"></i>
                     <span>Community</span>
                 </div>
@@ -2445,15 +2445,15 @@
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Account</div>
-                <div class="mobile-menu-item" id="mobileMenuEditProfile">
+                <div class="mobile-menu-item" onclick="MobileManager.showModal('editProfileModal')">
                     <i class="fas fa-user-edit"></i>
                     <span>Edit Profile</span>
                 </div>
-                <div class="mobile-menu-item" id="mobileMenuSettings">
+                <div class="mobile-menu-item" onclick="MobileManager.showSettings()">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </div>
-                <div class="mobile-menu-item" id="mobileMenuAvatar">
+                <div class="mobile-menu-item" onclick="MobileManager.showModal('avatarModal')">
                     <i class="fas fa-user-circle"></i>
                     <span>Change Avatar</span>
                 </div>
@@ -2463,15 +2463,15 @@
 
             <div class="mobile-menu-section">
                 <div class="mobile-menu-section-title">Actions</div>
-                <div class="mobile-menu-item" id="mobileMenuAddJournal">
+                <div class="mobile-menu-item" onclick="MobileManager.showModal('addEntryModal')">
                     <i class="fas fa-plus-circle"></i>
                     <span>Add Journal Entry</span>
                 </div>
-                <div class="mobile-menu-item" id="mobileMenuCreateList">
+                <div class="mobile-menu-item" onclick="MobileManager.showModal('createListModal')">
                     <i class="fas fa-plus-square"></i>
                     <span>Create New List</span>
                 </div>
-                <div class="mobile-menu-item" id="mobileMenuSearchUsers">
+                <div class="mobile-menu-item" onclick="MobileManager.showModal('communitySearchModal')">
                     <i class="fas fa-search"></i>
                     <span>Find Users</span>
                 </div>
@@ -2480,19 +2480,19 @@
             <div class="mobile-menu-divider"></div>
 
             <div class="mobile-menu-section">
-                <div class="mobile-menu-item" id="mobileMenuLogout" style="color: var(--error);">
+                <div class="mobile-menu-item" onclick="MobileManager.logout()" style="color: var(--error);">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Log Out</span>
                 </div>
             </div>
         </div>
 
-        <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="MobileManager.hideMenu()"></div>
 
         <!-- Mobile Profile Header -->
         <div class="mobile-profile-header">
             <div class="mobile-avatar-container">
-                <div class="mobile-avatar" id="mobileAvatar">
+                <div class="mobile-avatar" id="mobileAvatar" onclick="MobileManager.showModal('avatarModal')">
                     🍔
                 </div>
             </div>
@@ -2502,10 +2502,10 @@
                 No bio yet. Tap edit to add one!
             </div>
             <div class="mobile-profile-actions" style="display: flex; gap: 8px; margin-top: 16px; justify-content: center;">
-                <button class="mobile-action-btn small secondary" id="mobileEditProfileBtn">
+                <button class="mobile-action-btn small secondary" onclick="MobileManager.showModal('editProfileModal')" id="mobileEditProfileBtn">
                     <i class="fas fa-edit"></i> Edit
                 </button>
-                <button class="mobile-action-btn small" id="mobileAddEntryBtn">
+                <button class="mobile-action-btn small" onclick="MobileManager.showModal('addEntryModal')" id="mobileAddEntryBtn">
                     <i class="fas fa-plus"></i> Add Journal
                 </button>
                 <button class="mobile-action-btn small d-none" id="mobileFollowButton">
@@ -2539,15 +2539,15 @@
 
         <!-- Mobile Tabs Navigation -->
         <div class="mobile-tabs">
-            <div class="mobile-tab active" data-tab="journal" id="mobileTabJournal">
+            <div class="mobile-tab active" data-tab="journal" onclick="MobileManager.showTab('journal')">
                 <i class="fas fa-book"></i>
                 <span>Journal</span>
             </div>
-            <div class="mobile-tab" data-tab="lists" id="mobileTabLists">
+            <div class="mobile-tab" data-tab="lists" onclick="MobileManager.showTab('lists')">
                 <i class="fas fa-list"></i>
                 <span>Lists</span>
             </div>
-            <div class="mobile-tab" data-tab="community" id="mobileTabCommunity">
+            <div class="mobile-tab" data-tab="community" onclick="MobileManager.showTab('community')">
                 <i class="fas fa-users"></i>
                 <span>Community</span>
                 <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
@@ -2560,7 +2560,7 @@
             <div class="mobile-section active" id="mobileJournalSection">
                 <div class="mobile-section-title">
                     Food Journal
-                    <button class="mobile-action-btn small secondary" id="mobileAddJournalBtn">
+                    <button class="mobile-action-btn small secondary" onclick="MobileManager.showModal('addEntryModal')">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
@@ -2575,7 +2575,7 @@
             <div class="mobile-section" id="mobileListsSection">
                 <div class="mobile-section-title">
                     My Lists
-                    <button class="mobile-action-btn small secondary" id="mobileCreateListBtn">
+                    <button class="mobile-action-btn small secondary" onclick="MobileManager.showModal('createListModal')">
                         <i class="fas fa-plus"></i> New
                     </button>
                 </div>
@@ -2589,11 +2589,11 @@
             <!-- List Detail View -->
             <div class="mobile-list-detail-view" id="mobileListDetailView">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn small secondary" id="mobileBackToListBtn">
+                    <button class="mobile-action-btn small secondary" onclick="MobileManager.showTab('lists')">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileListDetailTitle" style="flex: 1; text-align: center;">List Detail</span>
-                    <button class="mobile-action-btn small d-none" id="mobileAddToListBtn">
+                    <button class="mobile-action-btn small d-none" id="mobileAddToListBtn" onclick="MobileManager.showModal('addEntryModal')">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
@@ -2608,7 +2608,7 @@
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
                     Community
-                    <button class="mobile-action-btn small" id="mobileSearchUsersBtn">
+                    <button class="mobile-action-btn small" onclick="MobileManager.showModal('communitySearchModal')">
                         <i class="fas fa-user-plus"></i> Find Users
                     </button>
                 </div>
@@ -2616,10 +2616,10 @@
                 
                 <!-- Community Tabs -->
                 <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <button class="mobile-action-btn small secondary active" id="mobileFollowersTabBtn">
+                    <button class="mobile-action-btn small secondary active" onclick="MobileManager.showCommunityTab('followers')" id="mobileFollowersTabBtn">
                         Followers
                     </button>
-                    <button class="mobile-action-btn small secondary" id="mobileFollowingTabBtn">
+                    <button class="mobile-action-btn small secondary" onclick="MobileManager.showCommunityTab('following')" id="mobileFollowingTabBtn">
                         Following
                     </button>
                 </div>
@@ -2646,19 +2646,19 @@
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <div class="mobile-bottom-nav-item" id="mobileBottomAdd">
+            <div class="mobile-bottom-nav-item" onclick="MobileManager.showModal('addEntryModal')">
                 <i class="fas fa-plus-circle"></i>
                 <span>Add</span>
             </div>
-            <div class="mobile-bottom-nav-item active" id="mobileBottomProfile">
+            <div class="mobile-bottom-nav-item active" onclick="MobileManager.showTab('journal')">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
             </div>
-            <div class="mobile-bottom-nav-item" id="mobileBottomSearch">
+            <div class="mobile-bottom-nav-item" onclick="MobileManager.showModal('communitySearchModal')">
                 <i class="fas fa-search"></i>
                 <span>Search</span>
             </div>
-            <div class="mobile-bottom-nav-item" id="mobileBottomMenu">
+            <div class="mobile-bottom-nav-item" onclick="MobileManager.showMenu()">
                 <i class="fas fa-bars"></i>
                 <span>Menu</span>
             </div>
@@ -2675,7 +2675,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Add Journal Entry</h3>
-                <button class="modal-close" id="closeAddEntryModal">&times;</button>
+                <button class="modal-close" onclick="ProfileManager.closeModal('addEntryModal')">&times;</button>
             </div>
             
             <form id="journalEntryForm">
@@ -2695,11 +2695,11 @@
                     <div class="form-group">
                         <label class="form-label">Rating</label>
                         <div class="rating-stars" id="ratingStars">
-                            <span class="rating-star" data-rating="1">⭐</span>
-                            <span class="rating-star" data-rating="2">⭐</span>
-                            <span class="rating-star" data-rating="3">⭐</span>
-                            <span class="rating-star" data-rating="4">⭐</span>
-                            <span class="rating-star" data-rating="5">⭐</span>
+                            <span class="rating-star" data-rating="1" onclick="ProfileManager.setRating(1)">⭐</span>
+                            <span class="rating-star" data-rating="2" onclick="ProfileManager.setRating(2)">⭐</span>
+                            <span class="rating-star" data-rating="3" onclick="ProfileManager.setRating(3)">⭐</span>
+                            <span class="rating-star" data-rating="4" onclick="ProfileManager.setRating(4)">⭐</span>
+                            <span class="rating-star" data-rating="5" onclick="ProfileManager.setRating(5)">⭐</span>
                         </div>
                         <input type="hidden" id="selectedRating" value="0">
                     </div>
@@ -2715,7 +2715,7 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="cancelAddEntryModal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('addEntryModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Entry</button>
                     </div>
                 </div>
@@ -2728,7 +2728,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Edit Profile</h3>
-                <button class="modal-close" id="closeEditProfileModal">&times;</button>
+                <button class="modal-close" onclick="ProfileManager.closeModal('editProfileModal')">&times;</button>
             </div>
             
             <form id="editProfileForm">
@@ -2761,7 +2761,7 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="cancelEditProfileModal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </div>
@@ -2774,7 +2774,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Create New List</h3>
-                <button class="modal-close" id="closeCreateListModal">&times;</button>
+                <button class="modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
             </div>
             
             <form id="createListForm">
@@ -2803,7 +2803,7 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="cancelCreateListModal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Create List</button>
                     </div>
                 </div>
@@ -2816,7 +2816,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Choose Avatar</h3>
-                <button class="modal-close" id="closeAvatarModal">&times;</button>
+                <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
             </div>
             
             <div class="modal-body">
@@ -2825,8 +2825,8 @@
                 </div>
                 
                 <div class="form-actions" style="margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" id="cancelAvatarModal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveAvatarBtn">Save Avatar</button>
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
                 </div>
             </div>
         </div>
@@ -2837,7 +2837,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Find Users</h3>
-                <button class="modal-close" id="closeCommunitySearchModal">&times;</button>
+                <button class="modal-close" onclick="ProfileManager.closeModal('communitySearchModal')">&times;</button>
             </div>
             
             <div class="modal-body">
@@ -2869,10 +2869,10 @@
         let selectedAvatarIcon = null;
         let currentEditingJournalEntry = null;
         
-        // Supabase configuration - ONLY DECLARED ONCE
+        // Supabase configuration
         const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-        let supabase = null; // This is the ONLY supabase declaration
+        let supabase = null;
         
         // Food icons for avatar selection
         const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -2882,10 +2882,8 @@
             // Initialization
             async initialize() {
                 try {
-                    // Initialize Supabase - ONLY ONCE
-                    if (!supabase) {
-                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    }
+                    // Initialize Supabase
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
                     // Check authentication
                     const { data: { user }, error } = await supabase.auth.getUser();
@@ -2910,7 +2908,7 @@
                     
                     // Initialize mobile if needed
                     if (window.innerWidth <= 768) {
-                        this.setupMobileEventListeners();
+                        MobileManager.initialize();
                     } else {
                         this.showToast('Welcome back to your profile!', 'success');
                     }
@@ -3103,12 +3101,6 @@
                 if (avatar) {
                     avatar.textContent = userProfile?.avatar_icon || "🍔";
                 }
-                
-                // Update mobile avatar
-                const mobileAvatar = document.getElementById('mobileAvatar');
-                if (mobileAvatar) {
-                    mobileAvatar.textContent = userProfile?.avatar_icon || "🍔";
-                }
             },
             
             updateProfileUIWithTargetData(profile) {
@@ -3262,11 +3254,6 @@
                 const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
                 if (activeButton) activeButton.classList.add('active');
                 
-                // Update mobile tabs if on mobile
-                if (window.innerWidth <= 768) {
-                    this.showMobileTab(tabName);
-                }
-                
                 // Load content for the tab
                 switch(tabName) {
                     case 'journal':
@@ -3279,40 +3266,10 @@
                         this.showCommunitySection('followers');
                         break;
                 }
-            },
-            
-            showMobileTab(tabName) {
-                // Hide all mobile sections
-                document.querySelectorAll('.mobile-section').forEach(el => {
-                    el.classList.remove('active');
-                });
-                document.getElementById('mobileListDetailView').classList.remove('active');
                 
-                // Remove active class from all mobile tabs
-                document.querySelectorAll('.mobile-tab').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                
-                // Show selected mobile section
-                const activeSection = document.getElementById(`mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Section`);
-                if (activeSection) {
-                    activeSection.classList.add('active');
-                }
-                
-                // Activate selected mobile tab
-                const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
-                if (activeTab) {
-                    activeTab.classList.add('active');
-                }
-                
-                // Update mobile menu items
-                document.querySelectorAll('.mobile-menu-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                const menuItem = document.getElementById(`mobileMenu${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
-                if (menuItem) {
-                    menuItem.classList.add('active');
+                // Update mobile if needed
+                if (window.innerWidth <= 768) {
+                    MobileManager.showTab(tabName);
                 }
             },
             
@@ -3335,35 +3292,12 @@
                 const activeBtn = document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`);
                 if (activeBtn) activeBtn.classList.add('active');
                 
-                // Update mobile community tabs if on mobile
-                if (window.innerWidth <= 768) {
-                    this.showMobileCommunityTab(section);
-                }
-                
                 // Load content
                 if (section === 'followers') {
                     CommunitySystem.loadFollowers();
                 } else {
                     CommunitySystem.loadFollowing();
                 }
-            },
-            
-            showMobileCommunityTab(tab) {
-                CommunitySystem.currentSection = tab;
-                
-                // Update button states
-                const followersBtn = document.getElementById('mobileFollowersTabBtn');
-                const followingBtn = document.getElementById('mobileFollowingTabBtn');
-                
-                if (followersBtn) followersBtn.classList.toggle('active', tab === 'followers');
-                if (followingBtn) followingBtn.classList.toggle('active', tab === 'following');
-                
-                // Update tab visibility
-                const followersTab = document.getElementById('mobileFollowersTab');
-                const followingTab = document.getElementById('mobileFollowingTab');
-                
-                if (followersTab) followersTab.classList.toggle('active', tab === 'followers');
-                if (followingTab) followingTab.classList.toggle('active', tab === 'following');
             },
             
             // ===== MODALS =====
@@ -3498,32 +3432,8 @@
                 
                 // Update mobile view if needed
                 if (window.innerWidth <= 768) {
-                    this.showMobileListDetail(list);
+                    MobileManager.showListDetail(list);
                 }
-            },
-            
-            showMobileListDetail(list) {
-                // Hide all mobile sections
-                document.querySelectorAll('.mobile-section').forEach(el => {
-                    el.classList.remove('active');
-                });
-                
-                // Show list detail view
-                const listDetailView = document.getElementById('mobileListDetailView');
-                listDetailView.classList.add('active');
-                
-                // Update list detail title
-                document.getElementById('mobileListDetailTitle').textContent = list.title;
-                document.getElementById('mobileListDetailDescription').textContent = list.description || '';
-                
-                // Show/hide add button
-                const addButton = document.getElementById('mobileAddToListBtn');
-                if (addButton) {
-                    addButton.style.display = isViewingOwnProfile ? 'flex' : 'none';
-                }
-                
-                // Render list restaurants
-                ListManager.renderListRestaurants(list);
             },
             
             // ===== UTILITY FUNCTIONS =====
@@ -3728,47 +3638,14 @@
                     });
                 }
                 
-                // Modal close buttons - ADDED EVENT LISTENERS
-                document.getElementById('closeAddEntryModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('addEntryModal');
-                });
-                
-                document.getElementById('closeEditProfileModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('editProfileModal');
-                });
-                
-                document.getElementById('closeCreateListModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('createListModal');
-                });
-                
-                document.getElementById('closeAvatarModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('avatarModal');
-                });
-                
-                document.getElementById('closeCommunitySearchModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('communitySearchModal');
-                });
-                
-                // Cancel buttons
-                document.getElementById('cancelAddEntryModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('addEntryModal');
-                });
-                
-                document.getElementById('cancelEditProfileModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('editProfileModal');
-                });
-                
-                document.getElementById('cancelCreateListModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('createListModal');
-                });
-                
-                document.getElementById('cancelAvatarModal')?.addEventListener('click', () => {
-                    ProfileManager.closeModal('avatarModal');
-                });
-                
-                // Save avatar button
-                document.getElementById('saveAvatarBtn')?.addEventListener('click', () => {
-                    ProfileManager.saveAvatar();
+                // Modal close buttons
+                document.querySelectorAll('.modal-close').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const modal = this.closest('.modal');
+                        if (modal) {
+                            ProfileManager.closeModal(modal.id);
+                        }
+                    });
                 });
                 
                 // Close modal when clicking outside
@@ -3785,186 +3662,6 @@
                     if (e.key === 'Escape') {
                         document.querySelectorAll('.modal.active').forEach(modal => {
                             ProfileManager.closeModal(modal.id);
-                        });
-                    }
-                });
-            },
-            
-            // Setup mobile event listeners
-            setupMobileEventListeners() {
-                // Mobile menu
-                document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
-                    document.getElementById('mobileSideMenu').classList.add('active');
-                    document.getElementById('mobileMenuOverlay').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-                
-                document.getElementById('mobileMenuClose')?.addEventListener('click', () => {
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuOverlay')?.addEventListener('click', () => {
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                // Mobile tabs
-                document.getElementById('mobileTabJournal')?.addEventListener('click', () => {
-                    ProfileManager.showTab('journal');
-                });
-                
-                document.getElementById('mobileTabLists')?.addEventListener('click', () => {
-                    ProfileManager.showTab('lists');
-                });
-                
-                document.getElementById('mobileTabCommunity')?.addEventListener('click', () => {
-                    ProfileManager.showTab('community');
-                });
-                
-                // Mobile community tabs
-                document.getElementById('mobileFollowersTabBtn')?.addEventListener('click', () => {
-                    ProfileManager.showCommunitySection('followers');
-                });
-                
-                document.getElementById('mobileFollowingTabBtn')?.addEventListener('click', () => {
-                    ProfileManager.showCommunitySection('following');
-                });
-                
-                // Mobile buttons
-                document.getElementById('mobileEditProfileBtn')?.addEventListener('click', () => {
-                    ProfileManager.showModal('editProfileModal');
-                });
-                
-                document.getElementById('mobileAddEntryBtn')?.addEventListener('click', () => {
-                    ProfileManager.showModal('addEntryModal');
-                });
-                
-                document.getElementById('mobileAddJournalBtn')?.addEventListener('click', () => {
-                    ProfileManager.showModal('addEntryModal');
-                });
-                
-                document.getElementById('mobileCreateListBtn')?.addEventListener('click', () => {
-                    ProfileManager.showModal('createListModal');
-                });
-                
-                document.getElementById('mobileSearchUsersBtn')?.addEventListener('click', () => {
-                    ProfileManager.showModal('communitySearchModal');
-                });
-                
-                document.getElementById('mobileBackToListBtn')?.addEventListener('click', () => {
-                    ProfileManager.showTab('lists');
-                });
-                
-                document.getElementById('mobileAddToListBtn')?.addEventListener('click', () => {
-                    ProfileManager.showModal('addEntryModal');
-                });
-                
-                document.getElementById('mobileFollowButton')?.addEventListener('click', () => {
-                    ProfileManager.toggleFollow();
-                });
-                
-                document.getElementById('mobileViewProfileBtn')?.addEventListener('click', () => {
-                    if (targetUserId) {
-                        ProfileManager.viewUserProfile(targetUserId);
-                    }
-                });
-                
-                // Mobile avatar
-                document.getElementById('mobileAvatar')?.addEventListener('click', () => {
-                    ProfileManager.showModal('avatarModal');
-                });
-                
-                // Mobile bottom nav
-                document.getElementById('mobileBottomAdd')?.addEventListener('click', () => {
-                    ProfileManager.showModal('addEntryModal');
-                });
-                
-                document.getElementById('mobileBottomProfile')?.addEventListener('click', () => {
-                    ProfileManager.showTab('journal');
-                });
-                
-                document.getElementById('mobileBottomSearch')?.addEventListener('click', () => {
-                    ProfileManager.showModal('communitySearchModal');
-                });
-                
-                document.getElementById('mobileBottomMenu')?.addEventListener('click', () => {
-                    document.getElementById('mobileSideMenu').classList.add('active');
-                    document.getElementById('mobileMenuOverlay').classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-                
-                // Mobile menu items
-                document.getElementById('mobileMenuHome')?.addEventListener('click', () => {
-                    window.location.href = 'index.html';
-                });
-                
-                document.getElementById('mobileMenuJournal')?.addEventListener('click', () => {
-                    ProfileManager.showTab('journal');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuLists')?.addEventListener('click', () => {
-                    ProfileManager.showTab('lists');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuCommunity')?.addEventListener('click', () => {
-                    ProfileManager.showTab('community');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuEditProfile')?.addEventListener('click', () => {
-                    ProfileManager.showModal('editProfileModal');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuSettings')?.addEventListener('click', () => {
-                    window.location.href = 'settings.html';
-                });
-                
-                document.getElementById('mobileMenuAvatar')?.addEventListener('click', () => {
-                    ProfileManager.showModal('avatarModal');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuAddJournal')?.addEventListener('click', () => {
-                    ProfileManager.showModal('addEntryModal');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuCreateList')?.addEventListener('click', () => {
-                    ProfileManager.showModal('createListModal');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuSearchUsers')?.addEventListener('click', () => {
-                    ProfileManager.showModal('communitySearchModal');
-                    document.getElementById('mobileSideMenu').classList.remove('active');
-                    document.getElementById('mobileMenuOverlay').classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-                
-                document.getElementById('mobileMenuLogout')?.addEventListener('click', () => {
-                    if (confirm('Are you sure you want to logout?')) {
-                        supabase.auth.signOut().then(() => {
-                            window.location.href = 'login.html';
                         });
                     }
                 });
@@ -4087,12 +3784,14 @@
                     if (followButton) {
                         followButton.textContent = isFollowing ? 'Unfollow' : 'Follow';
                         followButton.className = isFollowing ? 'btn btn-error' : 'btn btn-primary';
+                        followButton.onclick = () => this.toggleFollow();
                     }
                     
                     // Update mobile button
                     if (mobileFollowButton) {
                         mobileFollowButton.textContent = isFollowing ? 'Unfollow' : 'Follow';
                         mobileFollowButton.className = isFollowing ? 'mobile-action-btn small error' : 'mobile-action-btn small';
+                        mobileFollowButton.onclick = () => this.toggleFollow();
                     }
                 } catch (error) {
                     console.error('Error loading follow status:', error);
@@ -5514,10 +5213,178 @@
             }
         };
 
+        // ===== MOBILE MANAGER =====
+        const MobileManager = {
+            currentTab: 'journal',
+            
+            initialize() {
+                // Set up mobile event listeners
+                this.setupMobileEventListeners();
+                
+                // Load initial content
+                this.showTab('journal');
+            },
+            
+            setupMobileEventListeners() {
+                // Mobile tab click handlers
+                document.querySelectorAll('.mobile-tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        MobileManager.showTab(tabName);
+                    });
+                });
+                
+                // Mobile community tab buttons
+                document.querySelectorAll('#mobileFollowersTabBtn, #mobileFollowingTabBtn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const tab = this.id.includes('Followers') ? 'followers' : 'following';
+                        MobileManager.showCommunityTab(tab);
+                    });
+                });
+            },
+            
+            showTab(tabName) {
+                this.currentTab = tabName;
+                
+                // Hide all sections
+                document.querySelectorAll('.mobile-section').forEach(el => {
+                    el.classList.remove('active');
+                });
+                document.getElementById('mobileListDetailView').classList.remove('active');
+                
+                // Remove active class from all tabs
+                document.querySelectorAll('.mobile-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Show selected section
+                const activeSection = document.getElementById(`mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Section`);
+                if (activeSection) {
+                    activeSection.classList.add('active');
+                }
+                
+                // Activate selected tab
+                const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                }
+                
+                // Update mobile menu
+                document.querySelectorAll('.mobile-menu-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                const menuItem = document.querySelector(`.mobile-menu-item[onclick*="${tabName}"]`);
+                if (menuItem) {
+                    menuItem.classList.add('active');
+                }
+                
+                // Load data for the section
+                switch(tabName) {
+                    case 'journal':
+                        FoodJournal.loadJournalEntries();
+                        break;
+                    case 'lists':
+                        ListManager.renderListsGrid();
+                        break;
+                    case 'community':
+                        this.showCommunityTab('followers');
+                        break;
+                }
+            },
+            
+            showCommunityTab(tab) {
+                CommunitySystem.currentSection = tab;
+                
+                // Update button states
+                const followersBtn = document.getElementById('mobileFollowersTabBtn');
+                const followingBtn = document.getElementById('mobileFollowingTabBtn');
+                
+                if (followersBtn) followersBtn.classList.toggle('active', tab === 'followers');
+                if (followingBtn) followingBtn.classList.toggle('active', tab === 'following');
+                
+                // Update tab visibility
+                const followersTab = document.getElementById('mobileFollowersTab');
+                const followingTab = document.getElementById('mobileFollowingTab');
+                
+                if (followersTab) followersTab.classList.toggle('active', tab === 'followers');
+                if (followingTab) followingTab.classList.toggle('active', tab === 'following');
+                
+                // Load data for the selected tab
+                if (tab === 'followers') {
+                    CommunitySystem.loadFollowers();
+                } else {
+                    CommunitySystem.loadFollowing();
+                }
+            },
+            
+            showListDetail(list) {
+                // Hide all sections
+                document.querySelectorAll('.mobile-section').forEach(el => {
+                    el.classList.remove('active');
+                });
+                
+                // Show list detail view
+                const listDetailView = document.getElementById('mobileListDetailView');
+                listDetailView.classList.add('active');
+                
+                // Update list detail title
+                document.getElementById('mobileListDetailTitle').textContent = list.title;
+                document.getElementById('mobileListDetailDescription').textContent = list.description || '';
+                
+                // Show/hide add button
+                const addButton = document.getElementById('mobileAddToListBtn');
+                if (addButton) {
+                    addButton.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                }
+                
+                // Render list restaurants
+                ListManager.renderListRestaurants(list);
+            },
+            
+            // ===== MOBILE UI CONTROLS =====
+            showMenu() {
+                document.getElementById('mobileSideMenu').classList.add('active');
+                document.getElementById('mobileMenuOverlay').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            },
+            
+            hideMenu() {
+                document.getElementById('mobileSideMenu').classList.remove('active');
+                document.getElementById('mobileMenuOverlay').classList.remove('active');
+                document.body.style.overflow = '';
+            },
+            
+            goHome() {
+                window.location.href = 'index.html';
+            },
+            
+            showSettings() {
+                window.location.href = 'settings.html';
+            },
+            
+            async logout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        await supabase.auth.signOut();
+                        window.location.href = 'login.html';
+                    } catch (error) {
+                        console.error('Error logging out:', error);
+                        ProfileManager.showToast('Error logging out', 'error');
+                    }
+                }
+                this.hideMenu();
+            }
+        };
+
         // ===== INITIALIZE WHEN DOM IS LOADED =====
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+        
+        // ===== GLOBAL EXPOSURE FOR INLINE HANDLERS =====
+        // These are already defined in MobileManager, but we expose them globally for onclick attributes
+        window.MobileManager = MobileManager;
     </script>
 </body>
 </html>
