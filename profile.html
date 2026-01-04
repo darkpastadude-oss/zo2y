@@ -33,7 +33,6 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -639,67 +638,6 @@
         .community-actions {
             display: flex;
             gap: 8px;
-        }
-
-        /* === LIST KEBAB MENU === */
-        .list-menu-wrapper {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-
-        .list-menu-btn {
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .list-menu-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--white);
-        }
-
-        .list-menu-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            width: 140px;
-            display: none;
-            z-index: 50;
-            box-shadow: var(--shadow);
-        }
-
-        .list-menu-dropdown.active {
-            display: block;
-        }
-
-        .menu-item {
-            padding: 10px 15px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--white);
-        }
-
-        .menu-item:hover {
-            background: var(--card);
-        }
-
-        .menu-item.delete {
-            color: var(--error);
         }
 
         /* === MODALS === */
@@ -1668,11 +1606,11 @@
 
             .mobile-section {
                 display: none;
+                animation: fadeIn 0.3s ease;
             }
 
             .mobile-section.active {
                 display: block;
-                animation: fadeIn 0.3s ease;
             }
 
             .mobile-section-title {
@@ -3038,32 +2976,6 @@
         </div>
     </div>
 
-    <!-- Rename List Modal -->
-    <div class="modal" id="renameListModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Edit List</h3>
-                <button class="modal-close" onclick="ProfileManager.closeModal('renameListModal')">&times;</button>
-            </div>
-            
-            <div class="modal-body">
-                <input type="hidden" id="renameListId">
-                <div class="form-group">
-                    <label class="form-label">Title</label>
-                    <input type="text" class="form-input" id="renameListTitle">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-textarea" id="renameListDescription" rows="2"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('renameListModal')">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="ProfileManager.saveListRename()">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Avatar Modal -->
     <div class="modal" id="avatarModal">
         <div class="modal-content">
@@ -3942,30 +3854,12 @@
                                         <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                             🍽️
                                         </div>
-                                    `);
-                                }
+                                    </div>
+                                `);
                             }
                         }
                         
-                        const isCustom = !list.isDefault && list.id !== 'favorites' && list.id !== 'visited' && list.id !== 'wantToGo';
-                        const menuBtn = isViewingOwnProfile && isCustom ? `
-                            <div class="list-menu-wrapper">
-                                <button class="list-menu-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="list-menu-dropdown" id="menu-${list.id}">
-                                    <div class="menu-item" onclick="event.stopPropagation(); ProfileManager.openRenameModal('${list.id}')">
-                                        <i class="fas fa-pen"></i> Rename
-                                    </div>
-                                    <div class="menu-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </div>
-                                </div>
-                            </div>
-                        ` : '';
-                        
                         listCard.innerHTML = `
-                            ${menuBtn}
                             <div class="list-card-header">
                                 <div class="list-card-title">
                                     <span style="font-size: 24px;">${list.icon}</span>
@@ -4048,8 +3942,6 @@
                     }
                     
                     allLists.forEach(list => {
-                        const isCustom = !list.isDefault && list.id !== 'favorites' && list.id !== 'visited' && list.id !== 'wantToGo';
-                        
                         const listCard = document.createElement('div');
                         listCard.className = 'mobile-list-card';
                         
@@ -4096,19 +3988,6 @@
                                     <div class="mobile-list-title">${list.title}</div>
                                     <div class="mobile-list-count">${restaurantIds.length} places</div>
                                 </div>
-                                ${isViewingOwnProfile && isCustom ? `
-                                    <button class="list-menu-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="list-menu-dropdown" id="mobile-menu-${list.id}">
-                                        <div class="menu-item" onclick="event.stopPropagation(); ProfileManager.openRenameModal('${list.id}')">
-                                            <i class="fas fa-pen"></i> Rename
-                                        </div>
-                                        <div class="menu-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </div>
-                                    </div>
-                                ` : ''}
                             </div>
                             ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
                             <div class="mobile-list-preview">
@@ -4173,9 +4052,6 @@
                 
                 if (editListBtn) {
                     editListBtn.style.display = isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listId) ? 'flex' : 'none';
-                    if (editListBtn.style.display === 'flex') {
-                        editListBtn.onclick = () => openRenameModal(list.id);
-                    }
                 }
                 if (addToListBtn) addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
                 
@@ -4331,7 +4207,14 @@
                         removeBtn.onclick = async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            removeFromList(restaurant.id);
+                            showConfirmModal(
+                                'Remove Restaurant',
+                                `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
+                                async () => {
+                                    await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                                    await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                                }
+                            );
                         };
                         card.appendChild(removeBtn);
                     }
@@ -4407,205 +4290,20 @@
                         removeBtn.style.opacity = '1';
                         removeBtn.onclick = async (e) => {
                             e.stopPropagation();
-                            removeFromList(restaurant.id);
+                            showConfirmModal(
+                                'Remove Restaurant',
+                                `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
+                                async () => {
+                                    await listManager.toggleInList(currentActiveList.id, restaurant.id);
+                                    await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                                }
+                            );
                         };
                         restaurantCard.appendChild(removeBtn);
                     }
                     
                     container.appendChild(restaurantCard);
                 });
-            }
-
-            // ===== LIST MANAGEMENT FUNCTIONS =====
-            function toggleListMenu(listId) {
-                const isMobile = window.innerWidth <= 768;
-                const menuId = isMobile ? `mobile-menu-${listId}` : `menu-${listId}`;
-                const menu = document.getElementById(menuId);
-                
-                if (menu) {
-                    // Close all other menus first
-                    document.querySelectorAll('.list-menu-dropdown').forEach(m => {
-                        if (m.id !== menuId) m.classList.remove('active');
-                    });
-                    menu.classList.toggle('active');
-                }
-            }
-
-            function openRenameModal(listId) {
-                const list = customLists.find(l => l.id == listId) || 
-                           listManager.userLists.find(l => l.id == listId);
-                
-                if (!list) return;
-                
-                document.getElementById('renameListId').value = list.id;
-                document.getElementById('renameListTitle').value = list.title;
-                document.getElementById('renameListDescription').value = list.description || '';
-                
-                showModal('renameListModal');
-                // Close any open menus
-                document.querySelectorAll('.list-menu-dropdown').forEach(m => {
-                    m.classList.remove('active');
-                });
-            }
-
-            async function saveListRename() {
-                const listId = document.getElementById('renameListId').value;
-                const title = document.getElementById('renameListTitle').value;
-                const description = document.getElementById('renameListDescription').value;
-                
-                if (!title.trim()) {
-                    showToast('List title is required', 'error');
-                    return;
-                }
-                
-                try {
-                    const { error } = await supabase
-                        .from('lists')
-                        .update({ 
-                            title: title,
-                            description: description
-                        })
-                        .eq('id', listId);
-                    
-                    if (error) throw error;
-                    
-                    // Update local state
-                    const listIndex = customLists.findIndex(l => l.id == listId);
-                    if (listIndex !== -1) {
-                        customLists[listIndex].title = title;
-                        customLists[listIndex].description = description;
-                    }
-                    
-                    // Update currentActiveList if it's the one being renamed
-                    if (currentActiveList && currentActiveList.id == listId) {
-                        currentActiveList.title = title;
-                        currentActiveList.description = description;
-                    }
-                    
-                    showToast('List updated successfully', 'success');
-                    closeModal('renameListModal');
-                    
-                    // Refresh lists display
-                    listManager.renderLists();
-                    
-                    // If we're viewing this list, update the view
-                    if (currentActiveList && currentActiveList.id == listId) {
-                        const listDetailTitle = document.getElementById('listDetailTitle');
-                        const listDetailDescription = document.getElementById('listDetailDescription');
-                        const mobileListDetailTitle = document.getElementById('mobileListDetailTitle');
-                        const mobileListDetailDescription = document.getElementById('mobileListDetailDescription');
-                        
-                        if (listDetailTitle) listDetailTitle.textContent = title;
-                        if (listDetailDescription) listDetailDescription.textContent = description;
-                        if (mobileListDetailTitle) mobileListDetailTitle.textContent = title;
-                        if (mobileListDetailDescription) mobileListDetailDescription.textContent = description;
-                    }
-                    
-                } catch (error) {
-                    console.error('Error updating list:', error);
-                    showToast('Error updating list', 'error');
-                }
-            }
-
-            function confirmDeleteList(listId) {
-                const list = customLists.find(l => l.id == listId);
-                if (!list) return;
-                
-                showConfirmModal(
-                    'Delete List',
-                    `Are you sure you want to delete "${list.title}"? This action cannot be undone.`,
-                    async () => {
-                        await deleteList(listId);
-                    }
-                );
-            }
-
-            async function deleteList(listId) {
-                try {
-                    // First delete all restaurant associations
-                    const { error: assocError } = await supabase
-                        .from('lists_restraunts')
-                        .delete()
-                        .eq('list_id', listId);
-                    
-                    if (assocError) throw assocError;
-                    
-                    // Then delete the list itself
-                    const { error: listError } = await supabase
-                        .from('lists')
-                        .delete()
-                        .eq('id', listId);
-                    
-                    if (listError) throw listError;
-                    
-                    // Remove from local state
-                    const listIndex = customLists.findIndex(l => l.id == listId);
-                    if (listIndex !== -1) {
-                        customLists.splice(listIndex, 1);
-                    }
-                    
-                    // If we're viewing this list, go back to lists view
-                    if (currentActiveList && currentActiveList.id == listId) {
-                        hideListDetail();
-                        if (window.innerWidth <= 768) {
-                            hideMobileListDetail();
-                        }
-                    }
-                    
-                    showToast('List deleted successfully', 'success');
-                    
-                    // Refresh lists display and stats
-                    listManager.renderLists();
-                    await updateStats();
-                    
-                } catch (error) {
-                    console.error('Error deleting list:', error);
-                    showToast('Error deleting list', 'error');
-                }
-            }
-
-            async function removeFromList(restaurantId) {
-                if (!currentActiveList) return;
-                
-                const restaurant = restaurants.find(r => r.id === restaurantId);
-                if (!restaurant) return;
-                
-                showConfirmModal(
-                    'Remove Restaurant',
-                    `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
-                    async () => {
-                        try {
-                            const { error } = await supabase
-                                .from('lists_restraunts')
-                                .delete()
-                                .match({ 
-                                    list_id: currentActiveList.id, 
-                                    restraunt_id: restaurantId
-                                });
-                            
-                            if (error) throw error;
-                            
-                            // Update local state
-                            if (currentActiveList.restaurants) {
-                                currentActiveList.restaurants = currentActiveList.restaurants.filter(id => id !== restaurantId);
-                            }
-                            
-                            // Update the view
-                            const isMobile = window.innerWidth <= 768;
-                            if (isMobile) {
-                                await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            } else {
-                                await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            }
-                            
-                            showToast(`Removed from ${currentActiveList.title}`, "success");
-                            
-                        } catch (error) {
-                            console.error('Error removing restaurant:', error);
-                            showToast('Error removing restaurant', 'error');
-                        }
-                    }
-                );
             }
 
             // ===== FOOD JOURNAL =====
@@ -4863,7 +4561,7 @@
                     if (!restaurantId || !visitDate || rating === 0) {
                         showToast('Please fill in all required fields', 'error');
                         return;
-                    }
+                                        }
 
                     try {
                         if (currentEditingJournalEntry) {
@@ -5900,15 +5598,6 @@
                         });
                     }
                 });
-                
-                // Close dropdowns when clicking outside
-                window.addEventListener('click', function(e) {
-                    if (!e.target.matches('.list-menu-btn') && !e.target.closest('.list-menu-btn')) {
-                        document.querySelectorAll('.list-menu-dropdown').forEach(dropdown => {
-                            dropdown.classList.remove('active');
-                        });
-                    }
-                });
             }
 
             // ===== CREATE CUSTOM LIST =====
@@ -6039,11 +5728,6 @@
                 showMobileList,
                 hideListDetail,
                 hideMobileListDetail,
-                toggleListMenu,
-                openRenameModal,
-                saveListRename,
-                confirmDeleteList,
-                removeFromList,
                 
                 // Profile
                 saveAvatar,
@@ -6065,15 +5749,6 @@
         // ===== INITIALIZE WHEN DOM IS LOADED =====
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
-        });
-
-        // Close dropdowns when clicking outside
-        window.addEventListener('click', function(e) {
-            if (!e.target.matches('.list-menu-btn') && !e.target.closest('.list-menu-btn')) {
-                document.querySelectorAll('.list-menu-dropdown').forEach(dropdown => {
-                    dropdown.classList.remove('active');
-                });
-            }
         });
     </script>
 </body>
