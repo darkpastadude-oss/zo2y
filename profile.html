@@ -3714,78 +3714,65 @@
                         console.error('Error loading custom lists:', error);
                     }
                 },
-async toggleInList(listId, restaurantId) {
-    let list;
-    
-    if (typeof listId === 'string') {
-        if (listId === 'favorites') list = this.currentLists.favorites;
-        else if (listId === 'visited') list = this.currentLists.visited;
-        else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
-    } else {
-        list = customLists.find(l => l.id === listId) || 
-               this.userLists.find(l => l.id === listId);
-    }
-    
-    if (!list) return false;
-    
-    // First check if already in list
-    const { data: existing } = await supabase
-        .from('lists_restraunts')
-        .select('id')
-        .eq('list_id', list.id)
-        .eq('restraunt_id', restaurantId)
-        .single();
 
-    try {
-        if (existing) {
-            // Remove from list
-            const { error } = await supabase
-                .from('lists_restraunts')
-                .delete()
-                .eq('list_id', list.id)
-                .eq('restraunt_id', restaurantId);
-
-            if (error) {
-                console.error('DELETE from list error:', error);
-                throw error;
-            }
-            
-            // Update local state
-            if (list.restaurants) {
-                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-            }
-            
-            showToast(`Removed from ${list.title}`, "info");
-            return false;
-        } else {
-            // Add to list
-            const { error } = await supabase
-                .from('lists_restraunts')
-                .insert({
-                    list_id: list.id,
-                    restraunt_id: restaurantId,
-                    added_at: new Date().toISOString()
-                });
-
-            if (error) {
-                console.error('INSERT to list error:', error);
-                throw error;
-            }
-            
-            // Update local state
-            if (!list.restaurants) list.restaurants = [];
-            list.restaurants.push(restaurantId);
-            
-            showToast(`Added to ${list.title}`, "success");
-            return true;
-        }
-        
-    } catch (error) {
-        console.error('Error updating list:', error);
-        showToast('Error saving changes', 'error');
-        return null;
-    }
-}
+                async toggleInList(listId, restaurantId) {
+                    let list;
+                    
+                    if (typeof listId === 'string') {
+                        if (listId === 'favorites') list = this.currentLists.favorites;
+                        else if (listId === 'visited') list = this.currentLists.visited;
+                        else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
+                    } else {
+                        list = customLists.find(l => l.id === listId) || 
+                               this.userLists.find(l => l.id === listId);
+                    }
+                    
+                    if (!list) return false;
+                    
+                    const isInList = list.restaurants?.includes(restaurantId);
+                    
+                    try {
+                        if (isInList) {
+                            // FIXED: Use match() instead of chaining eq()
+                            const { error } = await supabase
+                                .from('lists_restraunts')
+                                .delete()
+                                .match({ 
+                                    list_id: list.id, 
+                                    restraunt_id: restaurantId
+                                });
+                            
+                            if (error) throw error;
+                            
+                            if (list.restaurants) {
+                                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                            }
+                            
+                            showToast(`Removed from ${list.title}`, "info");
+                            return false;
+                        } else {
+                            const { error } = await supabase
+                                .from('lists_restraunts')
+                                .insert([{ 
+                                    list_id: list.id, 
+                                    restraunt_id: restaurantId,
+                                    added_at: new Date().toISOString()
+                                }]);
+                            
+                            if (error) throw error;
+                            
+                            if (!list.restaurants) list.restaurants = [];
+                            list.restaurants.push(restaurantId);
+                            showToast(`Added to ${list.title}`, "success");
+                            return true;
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error updating list:', error);
+                        showToast('Error saving changes', 'error');
+                        return isInList;
+                    }
+                },
 
                 isInList(listType, restaurantId) {
                     let list;
@@ -5196,119 +5183,103 @@ async toggleInList(listId, restaurantId) {
             }
 
             async function toggleFollow(userId, buttonElement) {
-    try {
-        const targetId = userId || targetUserId;
-        const isOtherUser = !!userId;
-        
-        // First check if already following
-        const { data: existingFollow } = await supabase
-            .from('follows')
-            .select('id')
-            .eq('follower_id', currentUser.id)
-            .eq('followed_id', targetId)
-            .single();
+                try {
+                    const targetId = userId || targetUserId;
+                    const isOtherUser = !!userId;
+                    
+                    const { data: existingFollow } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', targetId)
+                        .single();
 
-        if (existingFollow) {
-            // DELETE - Use the exact syntax from your working code
-            const { error } = await supabase
-                .from('follows')
-                .delete()
-                .eq('follower_id', currentUser.id)
-                .eq('followed_id', targetId);
+                    if (existingFollow) {
+                        // FIXED: Use match() for DELETE
+                        const { error } = await supabase
+                            .from('follows')
+                            .delete()
+                            .match({
+                                follower_id: currentUser.id,
+                                followed_id: targetId
+                            });
 
-            if (error) {
-                console.error('DELETE error details:', error);
-                throw error;
-            }
-            
-            // Update button
-            if (buttonElement) {
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-                    buttonElement.className = 'mobile-action-btn primary';
-                    buttonElement.style.background = 'var(--accent)';
-                    buttonElement.style.color = '#0b1633';
-                } else {
-                    buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-                    buttonElement.className = 'btn btn-primary btn-sm';
+                        if (error) throw error;
+                        
+                        if (buttonElement) {
+                            const isMobile = window.innerWidth <= 768;
+                            if (isMobile) {
+                                buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                                buttonElement.className = 'mobile-action-btn primary';
+                                buttonElement.style.background = 'var(--accent)';
+                                buttonElement.style.color = '#0b1633';
+                            } else {
+                                buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                                buttonElement.className = 'btn btn-primary btn-sm';
+                            }
+                        }
+                        
+                        if (isOtherUser) {
+                            showToast('Unfollowed user', 'info');
+                        } else {
+                            const followButton = document.getElementById('followButton');
+                            if (followButton) {
+                                followButton.textContent = 'Follow';
+                                followButton.className = 'btn btn-primary';
+                                followButton.onclick = () => toggleFollow(targetUserId, followButton);
+                            }
+                            showToast(`Unfollowed ${targetUser?.username || 'user'}`, 'info');
+                        }
+                        
+                    } else {
+                        const { error } = await supabase
+                            .from('follows')
+                            .insert({
+                                follower_id: currentUser.id,
+                                followed_id: targetId,
+                                created_at: new Date().toISOString()
+                            });
+
+                        if (error) throw error;
+                        
+                        if (buttonElement) {
+                            const isMobile = window.innerWidth <= 768;
+                            if (isMobile) {
+                                buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                                buttonElement.className = 'mobile-action-btn';
+                                buttonElement.style.background = 'var(--error)';
+                                buttonElement.style.color = 'white';
+                            } else {
+                                buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                                buttonElement.className = 'btn btn-error btn-sm';
+                            }
+                        }
+                        
+                        if (isOtherUser) {
+                            showToast('Started following user', 'success');
+                        } else {
+                            const followButton = document.getElementById('followButton');
+                            if (followButton) {
+                                followButton.textContent = 'Unfollow';
+                                followButton.className = 'btn btn-error';
+                                followButton.onclick = () => toggleFollow(targetUserId, followButton);
+                            }
+                            showToast(`Started following ${targetUser?.username || 'user'}`, 'success');
+                        }
+                    }
+
+                    await updateStats(isOtherUser ? null : targetUserId);
+                    if (communitySystem) {
+                        await communitySystem.loadFollowStats();
+                        communitySystem.refreshCurrentView();
+                    }
+
+                } catch (error) {
+                    console.error('Error toggling follow:', error);
+                    showToast('Error updating follow status', 'error');
                 }
             }
-            
-            // Update main follow button if viewing profile
-            if (!isOtherUser) {
-                const followButton = document.getElementById('followButton');
-                if (followButton) {
-                    followButton.textContent = 'Follow';
-                    followButton.className = 'btn btn-primary';
-                    followButton.onclick = () => toggleFollow(targetUserId, followButton);
-                }
-                showToast(`Unfollowed ${targetUser?.username || 'user'}`, 'info');
-            } else {
-                showToast('Unfollowed user', 'info');
-            }
-            
-        } else {
-            // INSERT - Use exact syntax
-            const { error } = await supabase
-                .from('follows')
-                .insert({
-                    follower_id: currentUser.id,
-                    followed_id: targetId,
-                    created_at: new Date().toISOString()
-                });
 
-            if (error) {
-                console.error('INSERT error details:', error);
-                throw error;
-            }
-            
-            // Update button
-            if (buttonElement) {
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
-                    buttonElement.className = 'mobile-action-btn';
-                    buttonElement.style.background = 'var(--error)';
-                    buttonElement.style.color = 'white';
-                } else {
-                    buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
-                    buttonElement.className = 'btn btn-error btn-sm';
-                }
-            }
-            
-            // Update main follow button if viewing profile
-            if (!isOtherUser) {
-                const followButton = document.getElementById('followButton');
-                if (followButton) {
-                    followButton.textContent = 'Unfollow';
-                    followButton.className = 'btn btn-error';
-                    followButton.onclick = () => toggleFollow(targetUserId, followButton);
-                }
-                showToast(`Started following ${targetUser?.username || 'user'}`, 'success');
-            } else {
-                showToast('Started following user', 'success');
-            }
-        }
-
-        // Refresh stats and views
-        await updateStats(isOtherUser ? null : targetUserId);
-        if (communitySystem) {
-            await communitySystem.loadFollowStats();
-            communitySystem.refreshCurrentView();
-        }
-
-    } catch (error) {
-        console.error('Full error toggling follow:', error);
-        console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint
-        });
-        showToast('Error updating follow status', 'error');
-    }
-}
             // ===== KEBAB MENU FUNCTIONS =====
             function toggleListMenu(listId) {
                 const dropdown = document.getElementById(`kebab-${listId}`);
