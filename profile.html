@@ -3132,7 +3132,7 @@
             let currentEditingJournalEntry = null;
             let loadedUserIds = new Set();
             let communitySystem = null;
-            let isEditingList = false; // Track if we are editing a list
+            let isEditingList = false;
             let editingListId = null;
 
             // Food icons for avatar selection
@@ -3141,7 +3141,6 @@
             // ===== INITIALIZATION =====
             async function initialize() {
                 try {
-                    // Initialize Supabase
                     if (!window.supabase) {
                         console.error('Supabase library not loaded');
                         return;
@@ -3149,7 +3148,6 @@
                     
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
-                    // Check authentication
                     const { data: { user }, error } = await supabase.auth.getUser();
                     if (error || !user) { 
                         window.location.href = "login.html"; 
@@ -3158,13 +3156,9 @@
                     
                     currentUser = user;
                     
-                    // Load profile data
                     await loadProfile();
-                    
-                    // Load restaurants
                     await loadRestaurants();
                     
-                    // Initialize systems
                     communitySystem = createCommunitySystem();
                     await listManager.init();
                     await communitySystem.init();
@@ -3172,12 +3166,10 @@
                     
                     setupEventListeners();
                     
-                    // Initialize mobile if needed
                     if (window.innerWidth <= 768) {
                         initializeMobile();
                     }
                     
-                    // Close dropdowns on global click
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.list-card-actions')) {
                             document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('show'));
@@ -3192,7 +3184,6 @@
 
             // ===== MOBILE INITIALIZATION =====
             function initializeMobile() {
-                // Set up mobile tab switching
                 document.querySelectorAll('.mobile-tab').forEach(tab => {
                     tab.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
@@ -3200,7 +3191,6 @@
                     });
                 });
                 
-                // Set up mobile menu items
                 document.querySelectorAll('.mobile-menu-item').forEach(item => {
                     if (item.getAttribute('href') === null) {
                         item.addEventListener('click', function(e) {
@@ -3211,7 +3201,6 @@
                     }
                 });
                 
-                // Update mobile stats
                 updateMobileStats();
             }
 
@@ -3275,11 +3264,9 @@
                     titleEl.textContent = title;
                     messageEl.textContent = message;
                     
-                    // Remove any existing event listeners
                     const newConfirmBtn = confirmBtn.cloneNode(true);
                     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
                     
-                    // Add new event listener
                     newConfirmBtn.addEventListener('click', function() {
                         onConfirm();
                         closeConfirmModal();
@@ -3311,7 +3298,6 @@
             }
 
             async function loadOwnProfile() {
-                // Show/hide elements based on profile ownership
                 const editProfileBtn = document.getElementById('editProfileBtn');
                 const settingsBtn = document.getElementById('settingsBtn');
                 const followButton = document.getElementById('followButton');
@@ -3333,16 +3319,11 @@
                 if (addJournalBtn) addJournalBtn.style.display = 'flex';
 
                 await loadUserProfile();
-                
-                // Update UI
                 updateProfileUI();
-                
-                // Update stats
                 await updateStats();
             }
 
             async function loadOtherUserProfile() {
-                // Hide elements for other users' profiles
                 const editProfileBtn = document.getElementById('editProfileBtn');
                 const settingsBtn = document.getElementById('settingsBtn');
                 const logoutBtn = document.getElementById('logoutBtn');
@@ -3363,7 +3344,6 @@
                 if (createListBtn) createListBtn.style.display = 'none';
                 if (addJournalBtn) addJournalBtn.style.display = 'none';
 
-                // Load target user profile
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
                     .select('*')
@@ -3377,14 +3357,8 @@
                 }
 
                 targetUser = profile;
-
-                // Update UI with target user info
                 updateProfileUI(profile);
-                
-                // Update tab titles for other user's profile
                 updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
-                
-                // Load follow status
                 await loadFollowStatus();
                 await updateStats(targetUserId);
             }
@@ -3419,7 +3393,6 @@
                     if (insertError) {
                         console.error('Error creating profile:', insertError);
                     } else {
-                        // Reload profile after creation
                         const { data: newProfile } = await supabase
                             .from("user_profiles")
                             .select("*")
@@ -3452,9 +3425,7 @@
                 }
             }
 
-            // ===== UPDATE TAB TITLES FOR OTHER USER =====
             function updateTabTitlesForOtherUser(userName) {
-                // Update desktop titles
                 const journalTabText = document.getElementById('journalTabText');
                 const listsTabText = document.getElementById('listsTabText');
                 const journalTitle = document.getElementById('journalTitle');
@@ -3477,7 +3448,6 @@
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
                 
-                // Update mobile titles
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
                 const mobileListsTabText = document.getElementById('mobileListsTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
@@ -3539,7 +3509,6 @@
                 const targetId = userId || currentUser.id;
                 
                 try {
-                    // Get visited count
                     const { data: journalEntries, error: journalError } = await supabase
                         .from('journal_entries')
                         .select('restaurant_id')
@@ -3550,7 +3519,6 @@
                         allRestaurantIds = journalEntries.map(entry => entry.restaurant_id);
                     }
                     
-                    // Get from Visited list
                     const { data: visitedList, error: listError } = await supabase
                         .from('lists')
                         .select('id')
@@ -3572,7 +3540,6 @@
 
                     const visitedCount = new Set(allRestaurantIds).size;
                     
-                    // Get followers count
                     const { data: followers, error: followersError } = await supabase
                         .from('follows')
                         .select('id')
@@ -3580,7 +3547,6 @@
 
                     const followersCount = followers ? followers.length : 0;
                     
-                    // Get lists count
                     const { data: userLists, error: listsError } = await supabase
                         .from('lists')
                         .select('id')
@@ -3588,7 +3554,6 @@
 
                     const listsCount = userLists ? userLists.length : 0;
                     
-                    // Get journal entries count
                     const { data: userJournalEntries, error: journalCountError } = await supabase
                         .from('journal_entries')
                         .select('id')
@@ -3596,12 +3561,10 @@
 
                     const reviewsCount = userJournalEntries ? userJournalEntries.length : 0;
                     
-                    // Update UI
                     updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount);
                     
                 } catch (error) {
                     console.error('Error updating stats:', error);
-                    // Set fallback values
                     updateStatsUI(0, 0, 0, 0);
                 }
             }
@@ -3756,12 +3719,10 @@
                     let list;
                     
                     if (typeof listId === 'string') {
-                        // Handle default lists by name
                         if (listId === 'favorites') list = this.currentLists.favorites;
                         else if (listId === 'visited') list = this.currentLists.visited;
                         else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
                     } else {
-                        // Handle custom lists by ID
                         list = customLists.find(l => l.id === listId) || 
                                this.userLists.find(l => l.id === listId);
                     }
@@ -3772,7 +3733,7 @@
                     
                     try {
                         if (isInList) {
-                            // Remove from list
+                            // FIXED: Use match() instead of chaining eq()
                             const { error } = await supabase
                                 .from('lists_restraunts')
                                 .delete()
@@ -3783,7 +3744,6 @@
                             
                             if (error) throw error;
                             
-                            // Update local state
                             if (list.restaurants) {
                                 list.restaurants = list.restaurants.filter(id => id !== restaurantId);
                             }
@@ -3791,7 +3751,6 @@
                             showToast(`Removed from ${list.title}`, "info");
                             return false;
                         } else {
-                            // Add to list
                             const { error } = await supabase
                                 .from('lists_restraunts')
                                 .insert([{ 
@@ -3802,7 +3761,6 @@
                             
                             if (error) throw error;
                             
-                            // Update local state
                             if (!list.restaurants) list.restaurants = [];
                             list.restaurants.push(restaurantId);
                             showToast(`Added to ${list.title}`, "success");
@@ -3828,7 +3786,6 @@
                     return list?.restaurants?.includes(restaurantId) || false;
                 },
 
-                // Render lists in appropriate view
                 renderLists() {
                     const isMobile = window.innerWidth <= 768;
                     
@@ -4127,12 +4084,10 @@
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
-                    // On mobile, show the mobile list detail view
                     showMobileList(listId);
                     return;
                 }
                 
-                // Desktop behavior
                 const listsTab = document.getElementById('lists-tab');
                 const listDetailView = document.getElementById('list-detail-view');
                 
@@ -4177,25 +4132,21 @@
                 
                 currentActiveList = list;
                 
-                // Hide all mobile sections
                 document.querySelectorAll('.mobile-section').forEach(section => {
                     section.style.display = 'none';
                 });
                 
-                // Show list detail section
                 const listDetailSection = document.getElementById('mobileListDetailSection');
                 if (listDetailSection) {
                     listDetailSection.style.display = 'block';
                     listDetailSection.classList.add('active');
                 }
                 
-                // Update title and description - FIX: Ensure title is updated immediately
                 setTimeout(() => {
                     document.getElementById('mobileListDetailTitle').textContent = list.title;
                     document.getElementById('mobileListDetailDescription').textContent = `${list.restaurants?.length || 0} places`;
                 }, 10);
                 
-                // Render list restaurants
                 await renderMobileListRestaurants(list.restaurants || [], list);
             }
 
@@ -4220,14 +4171,12 @@
             }
 
             function hideMobileListDetail() {
-                // Hide list detail section
                 const listDetailSection = document.getElementById('mobileListDetailSection');
                 if (listDetailSection) {
                     listDetailSection.style.display = 'none';
                     listDetailSection.classList.remove('active');
                 }
                 
-                // Show the current tab section
                 const currentTabSection = document.getElementById(`mobile${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}Section`);
                 if (currentTabSection) {
                     currentTabSection.style.display = 'block';
@@ -4306,12 +4255,31 @@
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
                         removeBtn.onclick = async (e) => {
                             e.preventDefault();
-                            e.stopPropagation(); // FIX: Stop event from bubbling up
+                            e.stopPropagation();
                             showConfirmModal(
                                 'Remove Restaurant',
                                 `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
                                 async () => {
-                                    const listId = currentActiveList.id || currentActiveList;
+                                    // FIXED: Get the actual list ID
+                                    let listId;
+                                    
+                                    if (typeof currentActiveList === 'string') {
+                                        if (currentActiveList === 'favorites') {
+                                            listId = listManager.currentLists.favorites?.id;
+                                        } else if (currentActiveList === 'visited') {
+                                            listId = listManager.currentLists.visited?.id;
+                                        } else if (currentActiveList === 'wantToGo') {
+                                            listId = listManager.currentLists.wantToGo?.id;
+                                        }
+                                    } else if (currentActiveList && currentActiveList.id) {
+                                        listId = currentActiveList.id;
+                                    }
+                                    
+                                    if (!listId) {
+                                        showToast('Could not find list', 'error');
+                                        return;
+                                    }
+                                    
                                     await listManager.toggleInList(listId, restaurant.id);
                                     await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
                                 }
@@ -4353,7 +4321,6 @@
                     return;
                 }
                 
-                // Update title with count
                 const listDetailTitle = document.getElementById('mobileListDetailTitle');
                 if (listDetailTitle) {
                     listDetailTitle.textContent = `${list.title} (${listRestaurants.length} ${listRestaurants.length === 1 ? 'place' : 'places'})`;
@@ -4390,12 +4357,32 @@
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
                         removeBtn.style.opacity = '1';
                         removeBtn.onclick = async (e) => {
-                            e.stopPropagation(); // FIX: Stop event from bubbling up
+                            e.stopPropagation();
+                            e.preventDefault();
                             showConfirmModal(
                                 'Remove Restaurant',
                                 `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
                                 async () => {
-                                    const listId = currentActiveList.id || currentActiveList;
+                                    // FIXED: Get the actual list ID
+                                    let listId;
+                                    
+                                    if (typeof currentActiveList === 'string') {
+                                        if (currentActiveList === 'favorites') {
+                                            listId = listManager.currentLists.favorites?.id;
+                                        } else if (currentActiveList === 'visited') {
+                                            listId = listManager.currentLists.visited?.id;
+                                        } else if (currentActiveList === 'wantToGo') {
+                                            listId = listManager.currentLists.wantToGo?.id;
+                                        }
+                                    } else if (currentActiveList && currentActiveList.id) {
+                                        listId = currentActiveList.id;
+                                    }
+                                    
+                                    if (!listId) {
+                                        showToast('Could not find list', 'error');
+                                        return;
+                                    }
+                                    
                                     await listManager.toggleInList(listId, restaurant.id);
                                     await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
                                 }
@@ -4432,7 +4419,7 @@
                         if (error) throw error;
                         
                         if (!entries || entries.length === 0) {
-                            const emptyStateText = isViewingOwnProfile ? 
+                            const emptyText = isViewingOwnProfile ? 
                                 'Start reviewing restaurants to build your food journey! Your reviews will appear here.' :
                                 'This user hasn\'t reviewed any restaurants yet.';
                             
@@ -4441,7 +4428,7 @@
                                     <div class="mobile-empty-state">
                                         <div class="mobile-empty-icon">📝</div>
                                         <div class="mobile-empty-title">No Reviews Yet</div>
-                                        <div class="mobile-empty-description">${emptyStateText}</div>
+                                        <div class="mobile-empty-description">${emptyText}</div>
                                         ${isViewingOwnProfile ? `
                                             <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
                                                 <i class="fas fa-plus"></i> Add First Review
@@ -4454,7 +4441,7 @@
                                     <div class="empty-state">
                                         <div class="empty-icon">📝</div>
                                         <h3 class="empty-title">No Reviews Yet</h3>
-                                        <p class="empty-description">${emptyStateText}</p>
+                                        <p class="empty-description">${emptyText}</p>
                                         ${isViewingOwnProfile ? `
                                             <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
                                                 <i class="fas fa-utensils"></i> Browse Restaurants
@@ -4736,7 +4723,6 @@
                         if (!currentUser) return;
                         await this.loadFollowStats();
                         
-                        // Add event listener for search
                         const userSearch = document.getElementById('userSearch');
                         if (userSearch) {
                             let debounceTimer;
@@ -4763,7 +4749,6 @@
                                 .select('followed_id')
                                 .eq('follower_id', targetId);
 
-                            // Update desktop badges
                             const followersCountBadge = document.getElementById('followersCountBadge');
                             const followingCountBadge = document.getElementById('followingCountBadge');
                             
@@ -4778,7 +4763,6 @@
                                 followingCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
                             }
 
-                            // Update mobile badge
                             const mobileFollowersBadge = document.getElementById('mobileFollowersBadge');
                             if (mobileFollowersBadge) {
                                 const count = followers ? followers.length : 0;
@@ -5211,11 +5195,14 @@
                         .single();
 
                     if (existingFollow) {
+                        // FIXED: Use match() for DELETE
                         const { error } = await supabase
                             .from('follows')
                             .delete()
-                            .eq('follower_id', currentUser.id)
-                            .eq('followed_id', targetId);
+                            .match({
+                                follower_id: currentUser.id,
+                                followed_id: targetId
+                            });
 
                         if (error) throw error;
                         
@@ -5298,14 +5285,12 @@
                 const dropdown = document.getElementById(`kebab-${listId}`);
                 if (!dropdown) return;
                 
-                // Close all other dropdowns
                 document.querySelectorAll('.kebab-dropdown').forEach(d => {
                     if (d.id !== `kebab-${listId}`) {
                         d.classList.remove('show');
                     }
                 });
                 
-                // Toggle the clicked dropdown
                 dropdown.classList.toggle('show');
             }
 
@@ -5321,7 +5306,6 @@
 
             async function deleteList(listId) {
                 try {
-                    // First delete relationships (if cascade isn't set on DB)
                     await supabase.from('lists_restraunts').delete().eq('list_id', listId);
                     
                     const { error } = await supabase
@@ -5331,16 +5315,13 @@
 
                     if (error) throw error;
                     
-                    // Remove from local arrays
                     customLists = customLists.filter(l => l.id !== listId);
                     listManager.userLists = listManager.userLists.filter(l => l.id !== listId);
                     
-                    // Re-render lists
                     listManager.renderLists();
                     
                     showToast('List deleted successfully', 'success');
                     
-                    // If we're in the list detail view and deleted the current list, go back
                     if (currentActiveList && currentActiveList.id === listId) {
                         hideListDetail();
                     }
@@ -5360,12 +5341,10 @@
                 isEditingList = true;
                 editingListId = listId;
                 
-                // Fill form with list data
                 document.getElementById('listName').value = list.title;
                 document.getElementById('listDescription').value = list.description || '';
                 document.getElementById('selectedIcon').value = list.icon || '📋';
                 
-                // Update selected icon in UI
                 document.querySelectorAll('.list-icon-option').forEach(icon => {
                     icon.style.background = 'transparent';
                     icon.style.border = '1px solid transparent';
@@ -5375,7 +5354,6 @@
                     }
                 });
                 
-                // Update modal title
                 document.querySelector('#createListModal .modal-title').textContent = "Edit List";
                 
                 showModal('createListModal');
@@ -5395,7 +5373,6 @@
                 
                 try {
                     if (isEditingList && editingListId) {
-                        // Update existing list
                         const { error } = await supabase
                             .from('lists')
                             .update({ 
@@ -5407,7 +5384,6 @@
 
                         if (error) throw error;
                         
-                        // Update local data
                         const listIndex = customLists.findIndex(l => l.id === editingListId);
                         if (listIndex > -1) {
                             customLists[listIndex] = { ...customLists[listIndex], title, description, icon };
@@ -5420,7 +5396,6 @@
                         
                         showToast('List updated successfully', 'success');
                     } else {
-                        // Create new list
                         const { data: newList, error } = await supabase
                             .from('lists')
                             .insert([{
@@ -5444,12 +5419,10 @@
                     closeModal('createListModal');
                     listManager.renderLists();
                     
-                    // Reset form
                     const form = document.getElementById('createListForm');
                     if (form) form.reset();
                     document.getElementById('selectedIcon').value = '📋';
                     
-                    // Reset editing state
                     isEditingList = false;
                     editingListId = null;
                     document.querySelector('#createListModal .modal-title').textContent = "Create New List";
@@ -5479,7 +5452,6 @@
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
-                    // Mobile tab switching
                     document.querySelectorAll('.mobile-section').forEach(section => {
                         section.style.display = 'none';
                         section.classList.remove('active');
@@ -5502,7 +5474,6 @@
                     
                     currentTab = tabName;
                     
-                    // Load data for the section
                     switch(tabName) {
                         case 'journal':
                             foodJournal.loadJournalEntries();
@@ -5515,7 +5486,6 @@
                             break;
                     }
                 } else {
-                    // Desktop tab switching
                     document.querySelectorAll('.tab-content').forEach(tab => {
                         tab.classList.remove('active');
                     });
@@ -5552,7 +5522,6 @@
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
-                    // Update mobile UI
                     const followersBtn = document.getElementById('mobileFollowersTabBtn');
                     const followingBtn = document.getElementById('mobileFollowingTabBtn');
                     
@@ -5571,7 +5540,6 @@
                     const activeBtn = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}TabBtn`);
                     if (activeBtn) activeBtn.classList.add('active');
                 } else {
-                    // Update desktop UI
                     const followersBtn = document.getElementById('showFollowersBtn');
                     const followingBtn = document.getElementById('showFollowingBtn');
                     
@@ -5650,7 +5618,6 @@
                     }
                     
                     if (modalId === 'createListModal') {
-                        // Reset icon selection
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
                             icon.style.background = 'transparent';
                             icon.style.border = '1px solid transparent';
@@ -5688,7 +5655,6 @@
                             icon.style.border = '1px solid transparent';
                         });
                         
-                        // Reset editing state
                         isEditingList = false;
                         editingListId = null;
                         document.querySelector('#createListModal .modal-title').textContent = "Create New List";
@@ -5734,7 +5700,6 @@
 
                     if (error) throw error;
 
-                    // Update both desktop and mobile avatars
                     const avatar = document.getElementById('profileAvatar');
                     if (avatar) {
                         avatar.textContent = selectedAvatarIcon;
@@ -5773,7 +5738,6 @@
 
             // ===== SETUP EVENT LISTENERS =====
             function setupEventListeners() {
-                // Desktop tab buttons
                 document.querySelectorAll('.nav-tab').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
@@ -5781,7 +5745,6 @@
                     });
                 });
                 
-                // Filter buttons
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -5791,7 +5754,6 @@
                     });
                 });
                 
-                // Journal entry form
                 const journalEntryForm = document.getElementById('journalEntryForm');
                 if (journalEntryForm) {
                     journalEntryForm.addEventListener('submit', (e) => {
@@ -5800,7 +5762,6 @@
                     });
                 }
                 
-                // Edit profile form
                 const editProfileForm = document.getElementById('editProfileForm');
                 if (editProfileForm) {
                     editProfileForm.addEventListener('submit', async (e) => {
@@ -5809,13 +5770,11 @@
                     });
                 }
                 
-                // Create list form - Updated to use handleListSubmit
                 const createListForm = document.getElementById('createListForm');
                 if (createListForm) {
                     createListForm.addEventListener('submit', handleListSubmit);
                 }
                 
-                // Rating stars
                 document.querySelectorAll('.rating-star').forEach(star => {
                     star.addEventListener('click', function() {
                         const rating = parseInt(this.getAttribute('data-rating'));
@@ -5823,7 +5782,6 @@
                     });
                 });
                 
-                // List icon selection
                 document.querySelectorAll('.list-icon-option').forEach(icon => {
                     icon.addEventListener('click', function() {
                         document.querySelectorAll('.list-icon-option').forEach(i => {
@@ -5837,7 +5795,6 @@
                     });
                 });
                 
-                // Logout button
                 const logoutBtn = document.getElementById('logoutBtn');
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', async (e) => {
@@ -5852,7 +5809,6 @@
                     });
                 }
                 
-                // Modal close buttons
                 document.querySelectorAll('.modal-close').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const modal = this.closest('.modal');
@@ -5862,7 +5818,6 @@
                     });
                 });
                 
-                // Close modal when clicking outside
                 document.querySelectorAll('.modal').forEach(modal => {
                     modal.addEventListener('click', function(e) {
                         if (e.target === this) {
@@ -5871,7 +5826,6 @@
                     });
                 });
                 
-                // Escape key to close modals
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         document.querySelectorAll('.modal.active').forEach(modal => {
@@ -5909,7 +5863,6 @@
                     
                     if (error) throw error;
                     
-                    // Update profile UI
                     updateProfileUI();
                     
                     closeModal('editProfileModal');
@@ -5939,30 +5892,22 @@
             }
 
             function updateMobileStats() {
-                // This function is called from initializeMobile
                 // Stats are already updated in updateStatsUI
             }
 
             // ===== PUBLIC API =====
             return {
-                // Initialization
                 initialize,
-                
-                // Navigation
                 showTab,
                 goToMyProfile,
                 showCommunitySection,
                 viewUserProfile,
-                
-                // Modals
                 showModal,
                 closeModal,
                 showConfirmModal,
                 closeConfirmModal,
                 showCreateListModal,
                 showAvatarModal,
-                
-                // Lists
                 showList,
                 showMobileList,
                 hideListDetail,
@@ -5971,19 +5916,11 @@
                 confirmDeleteList,
                 prepareEditList,
                 handleListSubmit,
-                
-                // Profile
                 saveAvatar,
                 setRating,
-                
-                // Community
                 toggleFollow,
-                
-                // Mobile
                 showMobileMenu,
                 hideMobileMenu,
-                
-                // Utilities
                 toggleSortLists,
                 logout
             };
@@ -5993,7 +5930,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
             
-            // Attach list submit handler
             const form = document.getElementById('createListForm');
             if (form) {
                 form.onsubmit = ProfileManager.handleListSubmit;
