@@ -4068,42 +4068,50 @@
             };
 
             // ===== SIMPLIFIED REMOVE LOGIC =====
-            function removeFromList(restaurantId) {
-                showConfirmModal(
-                    'Remove restaurant from list?',
-                    'This will remove the restaurant from your list.',
-                    async () => {
-                        if (!currentActiveList || !currentActiveList.id) {
-                            showToast('Could not find list', 'error');
-                            return;
-                        }
-                        
-                        try {
-                            await supabase
-                                .from('lists_restraunts')
-                                .delete()
-                                .match({ 
-                                    list_id: currentActiveList.id, 
-                                    restraunt_id: restaurantId 
-                                });
-                            
-                            showToast('Removed from list', 'success');
-                            
-                            // Refresh the view
-                            if (window.innerWidth <= 768) {
-                                await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            } else {
-                                await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            }
-                            
-                        } catch (error) {
-                            console.error('Error removing restaurant:', error);
-                            showToast('Error removing restaurant', 'error');
-                        }
-                    }
-                );
+function removeFromList(restaurantId) {
+    showConfirmModal(
+        'Remove restaurant from list?',
+        'This will remove the restaurant from your list.',
+        async () => {
+            if (!currentActiveList || !currentActiveList.id) {
+                showToast('Could not find list', 'error');
+                return;
             }
-
+            
+            try {
+                // Remove from database
+                await supabase
+                    .from('lists_restraunts')
+                    .delete()
+                    .match({ 
+                        list_id: currentActiveList.id, 
+                        restraunt_id: restaurantId 
+                    });
+                
+                showToast('Removed from list', 'success');
+                
+                // Update the local list data by removing the restaurant ID
+                if (currentActiveList.restaurants) {
+                    const index = currentActiveList.restaurants.indexOf(restaurantId);
+                    if (index > -1) {
+                        currentActiveList.restaurants.splice(index, 1);
+                    }
+                }
+                
+                // Refresh the view with updated data
+                if (window.innerWidth <= 768) {
+                    await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                } else {
+                    await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                }
+                
+            } catch (error) {
+                console.error('Error removing restaurant:', error);
+                showToast('Error removing restaurant', 'error');
+            }
+        }
+    );
+}
             // ===== LIST DISPLAY FUNCTIONS =====
             async function showList(listId) {
                 let list;
