@@ -350,6 +350,45 @@
             justify-content: center;
         }
 
+        /* === REMOVE RESTAURANT BUTTON - SIMPLIFIED === */
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .card:hover .remove-btn,
+        .mobile-list-restaurant-card:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.1);
+            background: #dc2626;
+        }
+
+        /* Mobile - always visible on mobile */
+        @media (max-width: 768px) {
+            .remove-btn {
+                opacity: 1;
+                width: 32px;
+                height: 32px;
+            }
+        }
+
         /* === STATS GRID === */
         .stats-grid {
             display: grid;
@@ -1308,37 +1347,6 @@
             justify-content: flex-end;
         }
 
-        /* === REMOVE RESTAURANT BUTTON === */
-        .remove-restaurant-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--error);
-            color: white;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .remove-restaurant-btn:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .card:hover .remove-restaurant-btn,
-        .mobile-list-restaurant-card:hover .remove-restaurant-btn {
-            opacity: 1;
-        }
-
         /* === LIST DETAIL HEADER FIX === */
         .list-detail-header {
             display: flex;
@@ -1675,11 +1683,11 @@
 
             .mobile-section {
                 display: none;
-                animation: fadeIn 0.3s ease;
             }
 
             .mobile-section.active {
                 display: block;
+                animation: fadeIn 0.3s ease;
             }
 
             .mobile-section-title {
@@ -2123,7 +2131,7 @@
                 display: block;
             }
             
-            /* Mobile List Detail Header - FIXED SPACING */
+            /* Mobile List Detail Header - IMPROVED SPACING */
             .mobile-list-detail-header {
                 display: flex;
                 align-items: center;
@@ -2135,22 +2143,23 @@
             
             .mobile-list-detail-title-section {
                 flex: 1;
-                min-width: 0; /* Allow text to truncate */
-                text-align: left;
-                padding: 0 8px;
+                min-width: 0;
+                text-align: center;
+                padding: 0 12px;
             }
             
             #mobileListDetailTitle {
-                font-weight: 600;
-                font-size: 18px;
-                margin-bottom: 2px;
+                font-weight: 700;
+                font-size: 20px;
+                margin-bottom: 4px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                color: var(--accent);
             }
             
             #mobileListDetailDescription {
-                font-size: 13px;
+                font-size: 14px;
                 color: var(--muted);
                 white-space: nowrap;
                 overflow: hidden;
@@ -3110,7 +3119,7 @@
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
-            // Supabase configuration - KEEPING THIS UNCHANGED
+            // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
             const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
 
@@ -3733,7 +3742,6 @@
                     
                     try {
                         if (isInList) {
-                            // FIXED: Use match() instead of chaining eq()
                             const { error } = await supabase
                                 .from('lists_restraunts')
                                 .delete()
@@ -4059,6 +4067,43 @@
                 }
             };
 
+            // ===== SIMPLIFIED REMOVE LOGIC =====
+            function removeFromList(restaurantId) {
+                showConfirmModal(
+                    'Remove restaurant from list?',
+                    'This will remove the restaurant from your list.',
+                    async () => {
+                        if (!currentActiveList || !currentActiveList.id) {
+                            showToast('Could not find list', 'error');
+                            return;
+                        }
+                        
+                        try {
+                            await supabase
+                                .from('lists_restraunts')
+                                .delete()
+                                .match({ 
+                                    list_id: currentActiveList.id, 
+                                    restraunt_id: restaurantId 
+                                });
+                            
+                            showToast('Removed from list', 'success');
+                            
+                            // Refresh the view
+                            if (window.innerWidth <= 768) {
+                                await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                            } else {
+                                await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error removing restaurant:', error);
+                            showToast('Error removing restaurant', 'error');
+                        }
+                    }
+                );
+            }
+
             // ===== LIST DISPLAY FUNCTIONS =====
             async function showList(listId) {
                 let list;
@@ -4142,10 +4187,17 @@
                     listDetailSection.classList.add('active');
                 }
                 
-                setTimeout(() => {
-                    document.getElementById('mobileListDetailTitle').textContent = list.title;
-                    document.getElementById('mobileListDetailDescription').textContent = `${list.restaurants?.length || 0} places`;
-                }, 10);
+                // Update mobile list detail title with list name and count
+                const listDetailTitle = document.getElementById('mobileListDetailTitle');
+                const listDetailDescription = document.getElementById('mobileListDetailDescription');
+                
+                if (listDetailTitle) {
+                    listDetailTitle.textContent = list.title;
+                }
+                if (listDetailDescription) {
+                    const count = list.restaurants?.length || 0;
+                    listDetailDescription.textContent = `${count} ${count === 1 ? 'place' : 'places'}`;
+                }
                 
                 await renderMobileListRestaurants(list.restaurants || [], list);
             }
@@ -4186,16 +4238,13 @@
                 currentActiveList = null;
             }
 
-            async function renderListRestaurants(restaurantIds, list) {
+            async function renderListRestaurants(listRestaurants, list) {
                 const grid = document.getElementById('listRestaurantsGrid');
                 if (!grid) return;
                 
                 grid.innerHTML = '';
                 
-                const numericIds = restaurantIds.map(id => Number(id));
-                const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
-                
-                if (listRestaurants.length === 0) {
+                if (!listRestaurants || listRestaurants.length === 0) {
                     const emptyStateText = isViewingOwnProfile ? 
                         'Start adding restaurants to your list!' :
                         'This list is currently empty.';
@@ -4215,12 +4264,16 @@
                     return;
                 }
                 
+                // Get restaurant details for the IDs
+                const numericIds = listRestaurants.map(id => Number(id));
+                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
+                
                 const listDetailTitle = document.getElementById('listDetailTitle');
                 if (listDetailTitle) {
-                    listDetailTitle.textContent = `${list.title} (${listRestaurants.length} ${listRestaurants.length === 1 ? 'place' : 'places'})`;
+                    listDetailTitle.textContent = `${list.title} (${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'})`;
                 }
                 
-                listRestaurants.forEach(restaurant => {
+                restaurantsData.forEach(restaurant => {
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.style.position = 'relative';
@@ -4251,39 +4304,12 @@
                     
                     if (isViewingOwnProfile) {
                         const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-restaurant-btn';
+                        removeBtn.className = 'remove-btn';
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        removeBtn.onclick = async (e) => {
+                        removeBtn.onclick = (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            showConfirmModal(
-                                'Remove Restaurant',
-                                `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
-                                async () => {
-                                    // FIXED: Get the actual list ID
-                                    let listId;
-                                    
-                                    if (typeof currentActiveList === 'string') {
-                                        if (currentActiveList === 'favorites') {
-                                            listId = listManager.currentLists.favorites?.id;
-                                        } else if (currentActiveList === 'visited') {
-                                            listId = listManager.currentLists.visited?.id;
-                                        } else if (currentActiveList === 'wantToGo') {
-                                            listId = listManager.currentLists.wantToGo?.id;
-                                        }
-                                    } else if (currentActiveList && currentActiveList.id) {
-                                        listId = currentActiveList.id;
-                                    }
-                                    
-                                    if (!listId) {
-                                        showToast('Could not find list', 'error');
-                                        return;
-                                    }
-                                    
-                                    await listManager.toggleInList(listId, restaurant.id);
-                                    await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                                }
-                            );
+                            removeFromList(restaurant.id);
                         };
                         card.appendChild(removeBtn);
                     }
@@ -4292,16 +4318,13 @@
                 });
             }
 
-            async function renderMobileListRestaurants(restaurantIds, list) {
+            async function renderMobileListRestaurants(listRestaurants, list) {
                 const container = document.getElementById('mobileListRestaurants');
                 if (!container) return;
                 
                 container.innerHTML = '';
                 
-                const numericIds = restaurantIds.map(id => Number(id));
-                const listRestaurants = restaurants.filter(r => numericIds.includes(r.id));
-                
-                if (listRestaurants.length === 0) {
+                if (!listRestaurants || listRestaurants.length === 0) {
                     const emptyStateText = isViewingOwnProfile ? 
                         'Start adding restaurants to your list!' :
                         'This list is currently empty.';
@@ -4321,12 +4344,22 @@
                     return;
                 }
                 
+                // Get restaurant details for the IDs
+                const numericIds = listRestaurants.map(id => Number(id));
+                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
+                
+                // Update the mobile list detail title with count
                 const listDetailTitle = document.getElementById('mobileListDetailTitle');
+                const listDetailDescription = document.getElementById('mobileListDetailDescription');
+                
                 if (listDetailTitle) {
-                    listDetailTitle.textContent = `${list.title} (${listRestaurants.length} ${listRestaurants.length === 1 ? 'place' : 'places'})`;
+                    listDetailTitle.textContent = list.title;
+                }
+                if (listDetailDescription) {
+                    listDetailDescription.textContent = `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`;
                 }
                 
-                listRestaurants.forEach(restaurant => {
+                restaurantsData.forEach(restaurant => {
                     const restaurantCard = document.createElement('div');
                     restaurantCard.className = 'mobile-list-restaurant-card';
                     restaurantCard.style.position = 'relative';
@@ -4353,40 +4386,13 @@
                     
                     if (isViewingOwnProfile) {
                         const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-restaurant-btn';
+                        removeBtn.className = 'remove-btn';
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
                         removeBtn.style.opacity = '1';
-                        removeBtn.onclick = async (e) => {
+                        removeBtn.onclick = (e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            showConfirmModal(
-                                'Remove Restaurant',
-                                `Are you sure you want to remove "${restaurant.name}" from "${currentActiveList.title}"?`,
-                                async () => {
-                                    // FIXED: Get the actual list ID
-                                    let listId;
-                                    
-                                    if (typeof currentActiveList === 'string') {
-                                        if (currentActiveList === 'favorites') {
-                                            listId = listManager.currentLists.favorites?.id;
-                                        } else if (currentActiveList === 'visited') {
-                                            listId = listManager.currentLists.visited?.id;
-                                        } else if (currentActiveList === 'wantToGo') {
-                                            listId = listManager.currentLists.wantToGo?.id;
-                                        }
-                                    } else if (currentActiveList && currentActiveList.id) {
-                                        listId = currentActiveList.id;
-                                    }
-                                    
-                                    if (!listId) {
-                                        showToast('Could not find list', 'error');
-                                        return;
-                                    }
-                                    
-                                    await listManager.toggleInList(listId, restaurant.id);
-                                    await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                                }
-                            );
+                            removeFromList(restaurant.id);
                         };
                         restaurantCard.appendChild(removeBtn);
                     }
@@ -4864,8 +4870,7 @@
                                     `;
                                 }
                             }
-                        }
-                    },
+                    }                    },
 
                     async loadFollowing() {
                         try {
@@ -5151,7 +5156,7 @@
                 };
             }
 
-            // ===== FOLLOW FUNCTIONALITY - FIXED =====
+            // ===== FOLLOW FUNCTIONALITY =====
             async function loadFollowStatus() {
                 if (isViewingOwnProfile) return;
 
@@ -5195,7 +5200,6 @@
                         .single();
 
                     if (existingFollow) {
-                        // FIXED: Use match() for DELETE
                         const { error } = await supabase
                             .from('follows')
                             .delete()
@@ -5922,7 +5926,8 @@
                 showMobileMenu,
                 hideMobileMenu,
                 toggleSortLists,
-                logout
+                logout,
+                removeFromList // Added as requested
             };
         })();
 
