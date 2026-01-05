@@ -5204,42 +5204,40 @@ async searchUsers() {
             }
 
             /* === REPLACEMENT TOGGLE FOLLOW === */
+/* === REPLACEMENT TOGGLE FOLLOW === */
 async function toggleFollow(userId, buttonElement) {
     try {
         const targetId = userId || targetUserId;
         const isOtherUser = !!userId;
 
-        // 1. Check current status with error handling
+        // 1. Check current status
         const { data: existingFollow, error: fetchError } = await supabase
             .from('follows')
             .select('id')
             .eq('follower_id', currentUser.id)
             .eq('followed_id', targetId)
-            .maybeSingle(); // Use maybeSingle to avoid errors on empty results
+            .maybeSingle();
 
         if (fetchError) throw fetchError;
 
         let isNowFollowing = false;
 
-       if (existingFollow) {
-            // UNFOLLOW: If relationship exists, delete it
-            // notice the "error: deleteError" part below
+        if (existingFollow) {
+            // === UNFOLLOW LOGIC ===
             const { error: deleteError } = await supabase
                 .from('follows')
                 .delete()
-                .eq('id', existingFollow.id); 
+                .eq('id', existingFollow.id);
 
             if (deleteError) throw deleteError;
-            
+
             isNowFollowing = false;
-            // Update UI toast
+            
             if (isOtherUser) showToast('Unfollowed user', 'info');
             else showToast(`Unfollowed ${targetUser?.username || 'user'}`, 'info');
 
         } else {
-            // ... (your follow logic remains the same)
-        }
-            // FOLLOW: If no relationship, create one
+            // === FOLLOW LOGIC (Now correctly inside the ELSE block) ===
             const { error: insertError } = await supabase
                 .from('follows')
                 .insert({
@@ -5249,21 +5247,22 @@ async function toggleFollow(userId, buttonElement) {
                 });
 
             if (insertError) throw insertError;
-            
+
             isNowFollowing = true;
+            
             if (isOtherUser) showToast('Started following user', 'success');
             else showToast(`Started following ${targetUser?.username || 'user'}`, 'success');
-        }
+        } 
 
         // 2. Update the button UI
         if (buttonElement) {
             const isMobile = window.innerWidth <= 768;
-            
+
             if (isNowFollowing) {
                 // Change to "Unfollow" State
                 buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
                 if (isMobile) {
-                    buttonElement.className = 'mobile-action-btn'; // Reset classes
+                    buttonElement.className = 'mobile-action-btn'; 
                     buttonElement.style.background = 'var(--error)';
                     buttonElement.style.color = 'white';
                 } else {
