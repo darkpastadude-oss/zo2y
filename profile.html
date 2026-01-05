@@ -4408,20 +4408,20 @@ async function renderMobileListRestaurants(listRestaurants, list) {
     const numericIds = listRestaurants.map(id => Number(id));
     const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
     
-    // REMOVE THIS SECTION - the header is already created in showMobileList function
-    // const headerHTML = `
-    //     <div class="mobile-list-detail-header">
-    //         <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMobileListDetail()" style="min-width: 60px; padding: 8px 12px; font-size: 14px;">
-    //             <i class="fas fa-arrow-left"></i> Back
-    //         </button>
-    //         <div class="mobile-list-detail-title-section" style="flex: 1; text-align: center; padding: 0 10px;">
-    //             <div id="mobileListDetailTitle" style="font-weight: 700; font-size: 20px; color: var(--accent); margin-bottom: 4px;">${list.title}</div>
-    //             <div class="text-sm text-muted" id="mobileListDetailDescription">${list.description || \`${restaurantsData.length} \${restaurantsData.length === 1 ? 'place' : 'places'}\`}</div>
-    //         </div>
-    //     </div>
-    // `;
+    // Create the header section with back button on the left
+    const headerHTML = `
+        <div class="mobile-list-detail-header">
+            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMobileListDetail()" style="min-width: 60px; padding: 8px 12px; font-size: 14px;">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <div class="mobile-list-detail-title-section" style="flex: 1; text-align: center; padding: 0 10px;">
+                <div id="mobileListDetailTitle" style="font-weight: 700; font-size: 20px; color: var(--accent); margin-bottom: 4px;">${list.title}</div>
+                <div class="text-sm text-muted" id="mobileListDetailDescription">${list.description || `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`}</div>
+            </div>
+        </div>
+    `;
     
-    // container.insertAdjacentHTML('afterbegin', headerHTML); // REMOVE THIS LINE
+    container.innerHTML = headerHTML;
     
     // Now create the list of restaurants
     restaurantsData.forEach(restaurant => {
