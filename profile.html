@@ -2874,7 +2874,7 @@
                 </div>
             </div>
 
-           <!-- List Detail View for Mobile -->
+          <!-- List Detail View for Mobile -->
 <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
     <div class="mobile-list-detail-header">
         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; min-width: 60px;" onclick="ProfileManager.hideMobileListDetail()">
@@ -2890,8 +2890,7 @@
     <div id="mobileListRestaurants">
         <!-- List restaurants will be populated here -->
     </div>
-</div>>
-
+</div>
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
@@ -4380,7 +4379,7 @@ function removeFromList(restaurantId) {
                 });
             }
 
-            async function renderMobileListRestaurants(listRestaurants, list) {
+           async function renderMobileListRestaurants(listRestaurants, list) {
     const container = document.getElementById('mobileListRestaurants');
     if (!container) return;
     
@@ -4410,23 +4409,18 @@ function removeFromList(restaurantId) {
     const numericIds = listRestaurants.map(id => Number(id));
     const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
     
-    // Create the header section
-    const headerHTML = `
-        <div class="mobile-list-detail-header">
-            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMobileListDetail()" style="min-width: 60px; padding: 8px 12px; font-size: 14px;">
-                <i class="fas fa-arrow-left"></i> Back
-            </button>
-            <div class="mobile-list-detail-title-section">
-                <div id="mobileListDetailTitle" style="font-weight: 700; font-size: 20px; color: var(--accent);">${list.title}</div>
-                <div class="text-sm text-muted" id="mobileListDetailDescription">${list.description || `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`}</div>
-            </div>
-            <div style="width: 60px;"></div> <!-- Spacer for alignment -->
-        </div>
-    `;
+    // Update the existing header elements in the HTML
+    const listDetailTitle = document.getElementById('mobileListDetailTitle');
+    const listDetailDescription = document.getElementById('mobileListDetailDescription');
     
-    container.innerHTML = headerHTML;
+    if (listDetailTitle) {
+        listDetailTitle.textContent = list.title;
+    }
+    if (listDetailDescription) {
+        listDetailDescription.textContent = list.description || `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`;
+    }
     
-    // Now create the list of restaurants
+    // Now create the list of restaurants (NO HEADER HERE - it's already in the HTML)
     restaurantsData.forEach(restaurant => {
         const restaurantCard = document.createElement('div');
         restaurantCard.className = 'mobile-list-restaurant-card';
@@ -4468,7 +4462,6 @@ function removeFromList(restaurantId) {
         container.appendChild(restaurantCard);
     });
 }
-
             // ===== FOOD JOURNAL =====
             const foodJournal = {
                 async init() {
