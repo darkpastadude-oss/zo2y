@@ -50,66 +50,6 @@
             padding: 0 20px;
         }
 
-        /* === LOADING OVERLAY === */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(11, 22, 51, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            backdrop-filter: blur(5px);
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(245, 158, 11, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--accent);
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 20px;
-        }
-
-        .loading-text {
-            color: var(--accent);
-            font-weight: 500;
-            font-size: 16px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* === SKELETON LOADING === */
-        .skeleton {
-            background: linear-gradient(90deg, var(--card) 25%, var(--bg-hover) 50%, var(--card) 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-            border-radius: var(--radius-sm);
-        }
-
-        .skeleton-text {
-            height: 1em;
-            margin-bottom: 0.5em;
-        }
-
-        .skeleton-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-        }
-
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
         /* === FIXED HOME BUTTON === */
         .home-button {
             position: fixed;
@@ -399,6 +339,70 @@
             width: 36px;
             height: 36px;
             justify-content: center;
+        }
+
+        /* === LOADING SPINNER === */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 22, 51, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(245, 158, 11, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-spinner-small {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(245, 158, 11, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        .btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(11, 22, 51, 0.1);
+            border-radius: 50%;
+            border-top-color: #0b1633;
+            animation: spin 1s linear infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .btn-error.loading::after {
+            border-top-color: white;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* === REMOVE RESTAURANT BUTTON === */
@@ -1145,34 +1149,14 @@
             pointer-events: none;
         }
 
-        .content-loading {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .content-loading-spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(245, 158, 11, 0.3);
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: var(--accent);
             animation: spin 1s ease-in-out infinite;
-            margin: 0 auto 20px;
-        }
-
-        .content-loading-text {
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        /* === IMAGE LAZY LOADING === */
-        img[data-src] {
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        img.loaded {
-            opacity: 1;
         }
 
         @keyframes fadeIn {
@@ -2136,9 +2120,8 @@
 </head>
 <body>
     <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-overlay" id="globalLoading">
         <div class="loading-spinner"></div>
-        <div class="loading-text" id="loadingText">Loading Profile...</div>
     </div>
 
     <!-- Desktop View -->
@@ -2273,9 +2256,13 @@
                     </div>
 
                     <div id="journalEntries">
-                        <div class="content-loading">
-                            <div class="content-loading-spinner"></div>
-                            <div class="content-loading-text">Loading journal entries...</div>
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <h3 class="empty-title">No Reviews Yet</h3>
+                            <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                <i class="fas fa-utensils"></i> Browse Restaurants
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2298,10 +2285,7 @@
 
                     <!-- Lists Grid -->
                     <div class="lists-grid" id="listsGrid">
-                        <div class="content-loading">
-                            <div class="content-loading-spinner"></div>
-                            <div class="content-loading-text">Loading lists...</div>
-                        </div>
+                        <!-- Lists will be populated here -->
                     </div>
                 </div>
             </div>
@@ -2328,9 +2312,13 @@
                     </div>
 
                     <div class="cards-grid" id="listRestaurantsGrid">
-                        <div class="content-loading">
-                            <div class="content-loading-spinner"></div>
-                            <div class="content-loading-text">Loading restaurants...</div>
+                        <div class="empty-state">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <p class="empty-description">Start adding restaurants to this list!</p>
+                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
+                                <i class="fas fa-plus"></i> Add Your First Restaurant
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2366,9 +2354,13 @@
                             <p class="section-subtitle">People who follow your food journey</p>
                         </div>
                         <div id="followersList">
-                            <div class="content-loading">
-                                <div class="content-loading-spinner"></div>
-                                <div class="content-loading-text">Loading followers...</div>
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">No followers yet</h3>
+                                <p class="empty-description">Share your profile to get followers!</p>
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2380,9 +2372,13 @@
                             <p class="section-subtitle">People whose food journey you follow</p>
                         </div>
                         <div id="followingList">
-                            <div class="content-loading">
-                                <div class="content-loading-spinner"></div>
-                                <div class="content-loading-text">Loading following...</div>
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">Not following anyone yet</h3>
+                                <p class="empty-description">Discover and follow other food lovers!</p>
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2409,12 +2405,6 @@
 
     <!-- Mobile View -->
     <div class="mobile-only">
-        <!-- Loading Overlay -->
-        <div class="loading-overlay" id="mobileLoadingOverlay">
-            <div class="loading-spinner"></div>
-            <div class="loading-text" id="mobileLoadingText">Loading Profile...</div>
-        </div>
-
         <!-- Mobile Viewing Indicator Banner -->
         <div class="mobile-viewing-indicator" id="mobileViewingIndicator">
             <div class="viewing-indicator">
@@ -2498,9 +2488,13 @@
                 <div class="mobile-section-subtitle" id="mobileJournalSubtitle">Your restaurant reviews and experiences</div>
                 
                 <div id="mobileJournalEntries">
-                    <div class="content-loading">
-                        <div class="content-loading-spinner"></div>
-                        <div class="content-loading-text">Loading journal entries...</div>
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📝</div>
+                        <div class="mobile-empty-title">No Reviews Yet</div>
+                        <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
+                        <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add First Review
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2516,9 +2510,13 @@
                 <div class="mobile-section-subtitle" id="mobileListsSubtitle">Organize your favorite restaurants</div>
                 
                 <div id="mobileLists">
-                    <div class="content-loading">
-                        <div class="content-loading-spinner"></div>
-                        <div class="content-loading-text">Loading lists...</div>
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📋</div>
+                        <div class="mobile-empty-title">No Lists Yet</div>
+                        <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                        <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
+                            <i class="fas fa-plus"></i> Create List
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2541,9 +2539,13 @@
                 <!-- Followers Tab -->
                 <div class="mobile-community-tab active" id="mobileFollowersTab">
                     <div id="mobileFollowersList">
-                        <div class="content-loading">
-                            <div class="content-loading-spinner"></div>
-                            <div class="content-loading-text">Loading followers...</div>
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">No followers yet</div>
+                            <div class="mobile-empty-description">Share your profile to get followers!</div>
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2551,9 +2553,13 @@
                 <!-- Following Tab -->
                 <div class="mobile-community-tab" id="mobileFollowingTab">
                     <div id="mobileFollowingList">
-                        <div class="content-loading">
-                            <div class="content-loading-spinner"></div>
-                            <div class="content-loading-text">Loading following...</div>
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">Not following anyone</div>
+                            <div class="mobile-empty-description">Discover and follow other food lovers!</div>
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2793,41 +2799,6 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // ===== PERFORMANCE OPTIMIZATIONS =====
-        
-        // Debounce function for search
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        // Lazy load images
-        function lazyLoadImages() {
-            const images = document.querySelectorAll('img[data-src]');
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.classList.add('loaded');
-                        observer.unobserve(img);
-                    }
-                });
-            }, {
-                rootMargin: '50px 0px',
-                threshold: 0.1
-            });
-            
-            images.forEach(img => imageObserver.observe(img));
-        }
-
         // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
             // Supabase configuration
@@ -2854,6 +2825,7 @@
             let communitySystem = null;
             let isEditingList = false;
             let editingListId = null;
+            let followStatusCache = new Map();
             let currentSearchDebounce = null;
 
             // Food icons for avatar selection
@@ -2862,12 +2834,10 @@
             // ===== INITIALIZATION =====
             async function initialize() {
                 try {
-                    // Show loading overlay immediately
-                    showLoading('Loading your profile...');
+                    showLoading(true);
                     
                     if (!window.supabase) {
                         console.error('Supabase library not loaded');
-                        hideLoading();
                         return;
                     }
                     
@@ -2875,20 +2845,15 @@
                     
                     const { data: { user }, error } = await supabase.auth.getUser();
                     if (error || !user) { 
-                        hideLoading();
                         window.location.href = "login.html"; 
                         return; 
                     }
                     
                     currentUser = user;
                     
-                    // Parallel loading for better performance
-                    await Promise.all([
-                        loadProfile(),
-                        loadRestaurants()
-                    ]);
+                    await loadProfile();
+                    await loadRestaurants();
                     
-                    // Initialize systems in parallel where possible
                     communitySystem = createCommunitySystem();
                     await listManager.init();
                     await communitySystem.init();
@@ -2906,49 +2871,25 @@
                         }
                     });
                     
-                    // Hide loading overlay
-                    setTimeout(() => {
-                        hideLoading();
-                        lazyLoadImages(); // Start lazy loading after initial render
-                    }, 300);
+                    showLoading(false);
                     
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
                     showToast('Error loading profile', 'error');
-                    hideLoading();
+                    showLoading(false);
                 }
             }
 
-            // ===== LOADING MANAGEMENT =====
-            function showLoading(message = 'Loading...') {
-                const isMobile = window.innerWidth <= 768;
-                const overlayId = isMobile ? 'mobileLoadingOverlay' : 'loadingOverlay';
-                const textId = isMobile ? 'mobileLoadingText' : 'loadingText';
-                
-                const overlay = document.getElementById(overlayId);
-                const text = document.getElementById(textId);
-                
-                if (overlay) overlay.style.display = 'flex';
-                if (text && message) text.textContent = message;
-            }
-
-            function hideLoading() {
-                const isMobile = window.innerWidth <= 768;
-                const overlayId = isMobile ? 'mobileLoadingOverlay' : 'loadingOverlay';
-                const overlay = document.getElementById(overlayId);
-                if (overlay) overlay.style.display = 'none';
-            }
-
-            function showContentLoading(containerId, message = 'Loading...') {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                
-                container.innerHTML = `
-                    <div class="content-loading">
-                        <div class="content-loading-spinner"></div>
-                        <div class="content-loading-text">${message}</div>
-                    </div>
-                `;
+            // ===== LOADING FUNCTIONS =====
+            function showLoading(show) {
+                const loadingOverlay = document.getElementById('globalLoading');
+                if (loadingOverlay) {
+                    if (show) {
+                        loadingOverlay.classList.add('active');
+                    } else {
+                        loadingOverlay.classList.remove('active');
+                    }
+                }
             }
 
             // ===== MOBILE INITIALIZATION =====
@@ -3230,21 +3171,31 @@
                 if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
             }
 
-            // ===== FOLLOW SYSTEM =====
-            async function getFollowState(userId) {
-                const { data, error } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('follower_id', currentUser.id)
-                    .eq('followed_id', userId)
-                    .maybeSingle();
+            // ===== FOLLOW SYSTEM - FIXED VERSION =====
+            async function checkIfFollowing(userId) {
+                const cacheKey = `${currentUser.id}_${userId}`;
+                
+                if (followStatusCache.has(cacheKey)) {
+                    return followStatusCache.get(cacheKey);
+                }
+                
+                try {
+                    const { data, error } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', userId)
+                        .single();
 
-                if (error) {
-                    console.error(error);
+                    const isFollowing = !!data && !error;
+                    followStatusCache.set(cacheKey, isFollowing);
+                    
+                    return isFollowing;
+                    
+                } catch (error) {
+                    console.error('Error checking follow status:', error);
                     return false;
                 }
-
-                return !!data;
             }
 
             async function updateFollowButton() {
@@ -3253,78 +3204,51 @@
                 const followButton = document.getElementById('followButton');
                 if (!followButton) return;
                 
-                const isFollowing = await getFollowState(targetUserId);
+                const isFollowing = await checkIfFollowing(targetUserId);
                 
-                if (isFollowing) {
-                    followButton.textContent = 'Unfollow';
-                    followButton.className = 'btn btn-error';
-                } else {
-                    followButton.textContent = 'Follow';
-                    followButton.className = 'btn btn-primary';
+                // Show loading state
+                followButton.disabled = false;
+                followButton.innerHTML = isFollowing ? 
+                    '<i class="fas fa-user-minus"></i> Unfollow' : 
+                    '<i class="fas fa-user-plus"></i> Follow';
+                followButton.className = isFollowing ? 'btn btn-error' : 'btn btn-primary';
+            }
+
+            async function followUser() {
+                const followButton = document.getElementById('followButton');
+                if (followButton) {
+                    followButton.disabled = true;
+                    followButton.innerHTML = '<span class="loading-spinner-small"></span>';
                 }
                 
-                followButton.onclick = () => toggleFollow(targetUserId, followButton);
-            }
-
-            async function unfollowUser(userId) {
-                const { error } = await supabase
-                    .from('follows')
-                    .delete()
-                    .eq('follower_id', currentUser.id)
-                    .eq('followed_id', userId);
-
-                if (error) {
-                    console.error('unfollow failed', error);
-                    return;
-                }
-
-                return true;
-            }
-
-            async function followUser(userId) {
-                const { error } = await supabase
-                    .from('follows')
-                    .insert({
-                        follower_id: currentUser.id,
-                        followed_id: userId,
-                        created_at: new Date().toISOString()
-                    });
-
-                if (error) {
-                    console.error('follow failed', error);
-                    return;
-                }
-
-                return true;
-            }
-
-            async function toggleFollow(userId, buttonElement) {
                 try {
-                    const realState = await getFollowState(userId);
+                    const { error } = await supabase
+                        .from('follows')
+                        .insert({
+                            follower_id: currentUser.id,
+                            followed_id: targetUserId
+                        });
 
-                    if (realState) {
-                        await unfollowUser(userId);
-                        // Update button
-                        if (buttonElement) {
-                            buttonElement.textContent = 'Follow';
-                            buttonElement.className = buttonElement.className.includes('mobile') ? 
-                                'mobile-action-btn primary' : 'btn btn-primary';
+                    if (error) {
+                        if (error.code === '23505') {
+                            // Duplicate key error - already following
+                            console.log('Already following this user');
+                        } else {
+                            throw error;
                         }
-                        showToast('Unfollowed user', 'info');
-                    } else {
-                        await followUser(userId);
-                        // Update button
-                        if (buttonElement) {
-                            buttonElement.textContent = 'Unfollow';
-                            buttonElement.className = buttonElement.className.includes('mobile') ? 
-                                'mobile-action-btn' : 'btn btn-error';
-                            if (buttonElement.className.includes('mobile')) {
-                                buttonElement.style.background = 'var(--error)';
-                                buttonElement.style.color = 'white';
-                            }
-                        }
-                        showToast('Started following user', 'success');
                     }
+                    
+                    // Update cache
+                    followStatusCache.set(`${currentUser.id}_${targetUserId}`, true);
+                    
+                    // Update button
+                    if (followButton) {
+                        followButton.disabled = false;
+                        followButton.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                        followButton.className = 'btn btn-error';
+                    }
+                    
+                    showToast('Started following user', 'success');
                     
                     // Update stats
                     await updateStats();
@@ -3334,42 +3258,87 @@
                     }
                     
                 } catch (error) {
-                    console.error('Error toggling follow:', error);
-                    showToast('Action failed. Please try again.', 'error');
+                    console.error('Error following user:', error);
+                    showToast('Failed to follow user', 'error');
+                    
+                    if (followButton) {
+                        followButton.disabled = false;
+                        followButton.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                        followButton.className = 'btn btn-primary';
+                    }
+                }
+            }
+
+            async function unfollowUser() {
+                const followButton = document.getElementById('followButton');
+                if (followButton) {
+                    followButton.disabled = true;
+                    followButton.innerHTML = '<span class="loading-spinner-small"></span>';
+                }
+                
+                try {
+                    const { error } = await supabase
+                        .from('follows')
+                        .delete()
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', targetUserId);
+
+                    if (error) throw error;
+                    
+                    // Update cache
+                    followStatusCache.set(`${currentUser.id}_${targetUserId}`, false);
+                    
+                    // Update button
+                    if (followButton) {
+                        followButton.disabled = false;
+                        followButton.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                        followButton.className = 'btn btn-primary';
+                    }
+                    
+                    showToast('Unfollowed user', 'info');
+                    
+                    // Update stats
+                    await updateStats();
+                    if (communitySystem) {
+                        await communitySystem.loadFollowStats();
+                        communitySystem.refreshCurrentView();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error unfollowing user:', error);
+                    showToast('Failed to unfollow user', 'error');
+                    
+                    if (followButton) {
+                        followButton.disabled = false;
+                        followButton.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                        followButton.className = 'btn btn-error';
+                    }
+                }
+            }
+
+            async function toggleFollow(userId, buttonElement) {
+                if (!userId) return;
+                
+                const realState = await checkIfFollowing(userId);
+                
+                if (realState) {
+                    await unfollowUser();
+                } else {
+                    await followUser();
                 }
             }
 
             // ===== RESTAURANTS =====
             async function loadRestaurants() {
                 try {
-                    // Cache restaurants in localStorage for faster loading
-                    const cachedRestaurants = localStorage.getItem('restaurants_cache');
-                    const cacheTimestamp = localStorage.getItem('restaurants_cache_timestamp');
-                    
-                    if (cachedRestaurants && cacheTimestamp) {
-                        const cacheAge = Date.now() - parseInt(cacheTimestamp);
-                        // Use cache if less than 5 minutes old
-                        if (cacheAge < 5 * 60 * 1000) {
-                            restaurants = JSON.parse(cachedRestaurants);
-                            populateRestaurantSelect();
-                            return;
-                        }
-                    }
-                    
                     const { data, error } = await supabase
                         .from('restraunts')
                         .select('*')
-                        .order('name')
-                        .limit(100); // Limit to prevent huge data loads
+                        .order('name');
                     
                     if (error) throw error;
                     
                     restaurants = data || [];
-                    
-                    // Cache the results
-                    localStorage.setItem('restaurants_cache', JSON.stringify(restaurants));
-                    localStorage.setItem('restaurants_cache_timestamp', Date.now().toString());
-                    
                     populateRestaurantSelect();
                     
                 } catch (error) {
@@ -3384,8 +3353,7 @@
                 
                 restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
                 
-                // Show only first 50 restaurants in dropdown for performance
-                restaurants.slice(0, 50).forEach(restaurant => {
+                restaurants.forEach(restaurant => {
                     const option = document.createElement('option');
                     option.value = restaurant.id;
                     option.textContent = `${restaurant.name} (${restaurant.category})`;
@@ -3398,36 +3366,40 @@
                 const targetId = userId || currentUser.id;
                 
                 try {
-                    // Use Promise.all for parallel requests
-                    const [followersResult, followingResult, visitedResult, listsResult] = await Promise.all([
-                        supabase
-                            .from('follows')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('followed_id', targetId),
-                        supabase
-                            .from('follows')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('follower_id', targetId),
-                        supabase
-                            .from('journal_entries')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('user_id', targetId),
-                        supabase
-                            .from('lists')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('user_id', targetId)
-                    ]);
+                    // Get followers count
+                    const { count: followersCount, error: followersError } = await supabase
+                        .from('follows')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('followed_id', targetId);
+
+                    // Get following count
+                    const { count: followingCount, error: followingError } = await supabase
+                        .from('follows')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('follower_id', targetId);
+
+                    // Get visited count from journal entries
+                    const { count: visitedCount, error: visitedError } = await supabase
+                        .from('journal_entries')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', targetId);
+
+                    // Get lists count
+                    const { count: listsCount, error: listsError } = await supabase
+                        .from('lists')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', targetId);
 
                     // Update UI
                     updateStatsUI(
-                        visitedResult.count || 0,
-                        followersResult.count || 0,
-                        listsResult.count || 0,
-                        visitedResult.count || 0 // Using visited as reviews count
+                        visitedCount || 0,
+                        followersCount || 0,
+                        listsCount || 0,
+                        visitedCount || 0 // Using visited as reviews count
                     );
                     
                     // Update badges
-                    updateFollowBadges(followersResult.count || 0);
+                    updateFollowBadges(followersCount || 0);
                     
                 } catch (error) {
                     console.error('Error updating stats:', error);
@@ -3487,12 +3459,9 @@
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     if (!targetId) return;
                     
-                    // Load lists and list restaurants in parallel
-                    await Promise.all([
-                        this.loadUserLists(targetId),
-                        this.loadCustomLists(targetId)
-                    ]);
-                    
+                    await this.loadUserLists(targetId);
+                    await this.loadListRestaurants();
+                    await this.loadCustomLists(targetId);
                     this.renderLists();
                 },
                 
@@ -3588,8 +3557,7 @@
                         
                         customLists = lists || [];
                         
-                        // Load restaurant IDs for all custom lists in parallel
-                        const listRestaurantsPromises = customLists.map(async (list) => {
+                        for (const list of customLists) {
                             const { data: listRestraunts, error } = await supabase
                                 .from('lists_restraunts')
                                 .select('restraunt_id')
@@ -3600,9 +3568,7 @@
                             } else {
                                 list.restaurants = [];
                             }
-                        });
-                        
-                        await Promise.all(listRestaurantsPromises);
+                        }
                         
                     } catch (error) {
                         console.error('Error loading custom lists:', error);
@@ -3783,6 +3749,7 @@
                                             🍽️
                                         </div>
                                     `);
+                                }
                             }
                         }
                         
@@ -3911,8 +3878,8 @@
                                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                             🍽️
                                         </div>
-                                    </div>
-                                `);
+                                    `);
+                                }
                             }
                         }
                         
@@ -4089,7 +4056,7 @@
                 const grid = document.getElementById('listRestaurantsGrid');
                 if (!grid) return;
                 
-                showContentLoading('listRestaurantsGrid', 'Loading restaurants...');
+                grid.innerHTML = '';
                 
                 if (!listRestaurants || listRestaurants.length === 0) {
                     const emptyStateText = isViewingOwnProfile ? 
@@ -4117,59 +4084,56 @@
                 
                 document.getElementById('listDetailTitle').textContent = `${list.title} (${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'})`;
                 
-                setTimeout(() => {
-                    grid.innerHTML = '';
-                    restaurantsData.forEach(restaurant => {
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.style.position = 'relative';
-                        
-                        const clickableContent = document.createElement('a');
-                        clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
-                        clickableContent.style.textDecoration = 'none';
-                        clickableContent.style.color = 'inherit';
-                        clickableContent.style.display = 'block';
-                        clickableContent.style.height = '100%';
-                        
-                        clickableContent.innerHTML = `
-                            <div class="card-body">
-                                <div class="d-flex align-center gap-md">
-                                    <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                        <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
-                                        <div class="text-sm text-muted">${restaurant.category}</div>
-                                        <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating}</div>
-                                    </div>
+                restaurantsData.forEach(restaurant => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.position = 'relative';
+                    
+                    const clickableContent = document.createElement('a');
+                    clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
+                    clickableContent.style.textDecoration = 'none';
+                    clickableContent.style.color = 'inherit';
+                    clickableContent.style.display = 'block';
+                    clickableContent.style.height = '100%';
+                    
+                    clickableContent.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex align-center gap-md">
+                                <div class="restaurant-image" style="width: 60px; height: 60px;">
+                                    <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
+                                    <div class="text-sm text-muted">${restaurant.category}</div>
+                                    <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating}</div>
                                 </div>
                             </div>
-                        `;
-                        
-                        card.appendChild(clickableContent);
-                        
-                        if (isViewingOwnProfile) {
-                            const removeBtn = document.createElement('button');
-                            removeBtn.className = 'remove-btn';
-                            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                            removeBtn.onclick = (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                removeFromList(restaurant.id);
-                            };
-                            card.appendChild(removeBtn);
-                        }
-                        
-                        grid.appendChild(card);
-                    });
-                }, 100); // Small delay for better UX
+                        </div>
+                    `;
+                    
+                    card.appendChild(clickableContent);
+                    
+                    if (isViewingOwnProfile) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.onclick = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeFromList(restaurant.id);
+                        };
+                        card.appendChild(removeBtn);
+                    }
+                    
+                    grid.appendChild(card);
+                });
             }
 
             async function renderMobileListRestaurants(listRestaurants, list) {
                 const container = document.getElementById('mobileListRestaurants');
                 if (!container) return;
 
-                showContentLoading('mobileListRestaurants', 'Loading restaurants...');
+                container.innerHTML = '';
 
                 if (!listRestaurants || listRestaurants.length === 0) {
                     const emptyStateText = isViewingOwnProfile ? 
@@ -4195,49 +4159,46 @@
                 const numericIds = listRestaurants.map(id => Number(id));
                 const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
 
-                setTimeout(() => {
-                    container.innerHTML = '';
-                    restaurantsData.forEach(restaurant => {
-                        const restaurantCard = document.createElement('div');
-                        restaurantCard.className = 'mobile-list-restaurant-card';
-                        restaurantCard.style.position = 'relative';
+                restaurantsData.forEach(restaurant => {
+                    const restaurantCard = document.createElement('div');
+                    restaurantCard.className = 'mobile-list-restaurant-card';
+                    restaurantCard.style.position = 'relative';
 
-                        const restaurantInfo = document.createElement('div');
-                        restaurantInfo.className = 'mobile-list-restaurant-info';
-                        restaurantInfo.style.cursor = 'pointer';
-                        restaurantInfo.onclick = () => {
-                            window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+                    const restaurantInfo = document.createElement('div');
+                    restaurantInfo.className = 'mobile-list-restaurant-info';
+                    restaurantInfo.style.cursor = 'pointer';
+                    restaurantInfo.onclick = () => {
+                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+                    };
+
+                    restaurantInfo.innerHTML = `
+                        <div class="mobile-list-restaurant-image">
+                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
+                            <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
+                            <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restaurant.rating}</div>
+                        </div>
+                    `;
+
+                    restaurantCard.appendChild(restaurantInfo);
+
+                    if (isViewingOwnProfile) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.style.opacity = '1';
+                        removeBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            removeFromList(restaurant.id);
                         };
+                        restaurantCard.appendChild(removeBtn);
+                    }
 
-                        restaurantInfo.innerHTML = `
-                            <div class="mobile-list-restaurant-image">
-                                <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
-                                <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
-                                <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restaurant.rating}</div>
-                            </div>
-                        `;
-
-                        restaurantCard.appendChild(restaurantInfo);
-
-                        if (isViewingOwnProfile) {
-                            const removeBtn = document.createElement('button');
-                            removeBtn.className = 'remove-btn';
-                            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                            removeBtn.style.opacity = '1';
-                            removeBtn.onclick = (e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                removeFromList(restaurant.id);
-                            };
-                            restaurantCard.appendChild(removeBtn);
-                        }
-
-                        container.appendChild(restaurantCard);
-                    });
-                }, 100);
+                    container.appendChild(restaurantCard);
+                });
             }
 
             function hideListDetail() {
@@ -4287,8 +4248,6 @@
                     const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
                     if (!journalEntries) return;
                     
-                    showContentLoading(isMobile ? 'mobileJournalEntries' : 'journalEntries', 'Loading journal entries...');
-                    
                     const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                     if (!targetId) return;
                     
@@ -4297,64 +4256,61 @@
                             .from('journal_entries')
                             .select('*, restraunts(name, image, category, slug)')
                             .eq('user_id', targetId)
-                            .order('created_at', { ascending: false })
-                            .limit(50); // Limit to 50 entries for performance
+                            .order('created_at', { ascending: false });
 
                         if (error) throw error;
                         
-                        setTimeout(() => {
-                            if (!entries || entries.length === 0) {
-                                const emptyText = isViewingOwnProfile ? 
-                                    'Start reviewing restaurants to build your food journey!' :
-                                    'This user hasn\'t reviewed any restaurants yet.';
-                                
-                                if (isMobile) {
-                                    journalEntries.innerHTML = `
-                                        <div class="mobile-empty-state">
-                                            <div class="mobile-empty-icon">📝</div>
-                                            <div class="mobile-empty-title">No Reviews Yet</div>
-                                            <div class="mobile-empty-description">${emptyText}</div>
-                                            ${isViewingOwnProfile ? `
-                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
-                                                    <i class="fas fa-plus"></i> Add First Review
-                                                </button>
-                                            ` : ''}
-                                        </div>
-                                    `;
-                                } else {
-                                    journalEntries.innerHTML = `
-                                        <div class="empty-state">
-                                            <div class="empty-icon">📝</div>
-                                            <h3 class="empty-title">No Reviews Yet</h3>
-                                            <p class="empty-description">${emptyText}</p>
-                                            ${isViewingOwnProfile ? `
-                                                <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                                    <i class="fas fa-utensils"></i> Browse Restaurants
-                                                </button>
-                                            ` : ''}
-                                        </div>
-                                    `;
-                                }
-                                return;
+                        if (!entries || entries.length === 0) {
+                            const emptyText = isViewingOwnProfile ? 
+                                'Start reviewing restaurants to build your food journey!' :
+                                'This user hasn\'t reviewed any restaurants yet.';
+                            
+                            if (isMobile) {
+                                journalEntries.innerHTML = `
+                                    <div class="mobile-empty-state">
+                                        <div class="mobile-empty-icon">📝</div>
+                                        <div class="mobile-empty-title">No Reviews Yet</div>
+                                        <div class="mobile-empty-description">${emptyText}</div>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                                                <i class="fas fa-plus"></i> Add First Review
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            } else {
+                                journalEntries.innerHTML = `
+                                    <div class="empty-state">
+                                        <div class="empty-icon">📝</div>
+                                        <h3 class="empty-title">No Reviews Yet</h3>
+                                        <p class="empty-description">${emptyText}</p>
+                                        ${isViewingOwnProfile ? `
+                                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                                <i class="fas fa-utensils"></i> Browse Restaurants
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                `;
                             }
+                            return;
+                        }
+                        
+                        journalEntries.innerHTML = '';
+                        
+                        let entriesToShow = entries;
+                        if (!isMobile && journalFilter === 'recent') {
+                            entriesToShow = entries.slice(0, 5);
+                        } else if (!isMobile && journalFilter === 'favorites') {
+                            entriesToShow = entries.filter(entry => entry.rating >= 4);
+                        }
+                        
+                        for (const entry of entriesToShow) {
+                            const restaurant = entry.restraunts;
                             
-                            journalEntries.innerHTML = '';
+                            if (!restaurant) continue;
                             
-                            let entriesToShow = entries;
-                            if (!isMobile && journalFilter === 'recent') {
-                                entriesToShow = entries.slice(0, 5);
-                            } else if (!isMobile && journalFilter === 'favorites') {
-                                entriesToShow = entries.filter(entry => entry.rating >= 4);
-                            }
-                            
-                            entriesToShow.forEach(entry => {
-                                const restaurant = entry.restraunts;
-                                
-                                if (!restaurant) return;
-                                
-                                this.renderJournalEntry(entry, restaurant, isMobile);
-                            });
-                        }, 100);
+                            this.renderJournalEntry(entry, restaurant, isMobile);
+                        }
                         
                     } catch (error) {
                         console.error('Error loading journal entries:', error);
@@ -4610,9 +4566,14 @@
                         
                         const userSearch = document.getElementById('userSearch');
                         if (userSearch) {
-                            userSearch.addEventListener('input', debounce(() => {
-                                this.searchUsers();
-                            }, 300));
+                            userSearch.addEventListener('input', () => {
+                                if (currentSearchDebounce) {
+                                    clearTimeout(currentSearchDebounce);
+                                }
+                                currentSearchDebounce = setTimeout(() => {
+                                    this.searchUsers();
+                                }, 300);
+                            });
                         }
                     },
 
@@ -4620,28 +4581,28 @@
                         try {
                             const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
                             
-                            // Get followers and following counts in parallel
-                            const [followersResult, followingResult] = await Promise.all([
-                                supabase
-                                    .from('follows')
-                                    .select('*', { count: 'exact', head: true })
-                                    .eq('followed_id', targetId),
-                                supabase
-                                    .from('follows')
-                                    .select('*', { count: 'exact', head: true })
-                                    .eq('follower_id', targetId)
-                            ]);
+                            // Get followers count
+                            const { count: followersCount, error: followersError } = await supabase
+                                .from('follows')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('followed_id', targetId);
+
+                            // Get following count
+                            const { count: followingCount, error: followingError } = await supabase
+                                .from('follows')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('follower_id', targetId);
 
                             const followersCountBadge = document.getElementById('followersCountBadge');
                             const followingCountBadge = document.getElementById('followingCountBadge');
                             
                             if (followersCountBadge) {
-                                followersCountBadge.textContent = followersResult.count || 0;
-                                followersCountBadge.style.display = (followersResult.count || 0) > 0 ? 'inline-block' : 'none';
+                                followersCountBadge.textContent = followersCount || 0;
+                                followersCountBadge.style.display = (followersCount || 0) > 0 ? 'inline-block' : 'none';
                             }
                             if (followingCountBadge) {
-                                followingCountBadge.textContent = followingResult.count || 0;
-                                followingCountBadge.style.display = (followingResult.count || 0) > 0 ? 'inline-block' : 'none';
+                                followingCountBadge.textContent = followingCount || 0;
+                                followingCountBadge.style.display = (followingCount || 0) > 0 ? 'inline-block' : 'none';
                             }
 
                         } catch (error) {
@@ -4652,74 +4613,65 @@
                     async loadFollowers() {
                         try {
                             const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                            const isMobile = window.innerWidth <= 768;
-                            const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
-                            
-                            if (followersList) {
-                                showContentLoading(isMobile ? 'mobileFollowersList' : 'followersList', 'Loading followers...');
-                            }
                             
                             const { data: follows, error } = await supabase
                                 .from('follows')
                                 .select('follower_id')
-                                .eq('followed_id', targetId)
-                                .limit(50); // Limit to 50 for performance
+                                .eq('followed_id', targetId);
 
                             if (error) throw error;
 
+                            const isMobile = window.innerWidth <= 768;
+                            const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
                             if (!followersList) return;
 
-                            setTimeout(() => {
-                                if (!follows || follows.length === 0) {
-                                    const emptyText = isViewingOwnProfile ? 
-                                        'Share your profile to get followers!' :
-                                        'This user doesn\'t have any followers yet.';
-                                    
-                                    if (isMobile) {
-                                        followersList.innerHTML = `
-                                            <div class="mobile-empty-state">
-                                                <div class="mobile-empty-icon">👥</div>
-                                                <div class="mobile-empty-title">No followers yet</div>
-                                                <div class="mobile-empty-description">${emptyText}</div>
-                                                ${isViewingOwnProfile ? `
-                                                    <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                        <i class="fas fa-user-plus"></i> Find Users
-                                                    </button>
-                                                ` : ''}
-                                            </div>
-                                        `;
-                                    } else {
-                                        followersList.innerHTML = `
-                                            <div class="empty-state">
-                                                <div class="empty-icon">👥</div>
-                                                <h3 class="empty-title">No followers yet</h3>
-                                                <p class="empty-description">${emptyText}</p>
-                                                ${isViewingOwnProfile ? `
-                                                    <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                        <i class="fas fa-user-plus"></i> Find Users
-                                                    </button>
-                                                ` : ''}
-                                            </div>
-                                        `;
-                                    }
-                                    return;
-                                }
-
-                                this.loadedUsersCache.clear();
-                                const followerIds = follows.map(f => f.follower_id);
-                                const uniqueFollowerIds = [...new Set(followerIds)];
+                            if (!follows || follows.length === 0) {
+                                const emptyText = isViewingOwnProfile ? 
+                                    'Share your profile to get followers!' :
+                                    'This user doesn\'t have any followers yet.';
                                 
-                                // Load user profiles
-                                supabase
-                                    .from('user_profiles')
-                                    .select('*')
-                                    .in('id', uniqueFollowerIds)
-                                    .then(({ data: users, error: usersError }) => {
-                                        if (!usersError) {
-                                            this.displayUsers(users, isMobile ? 'mobileFollowersList' : 'followersList');
-                                        }
-                                    });
-                            }, 100);
+                                if (isMobile) {
+                                    followersList.innerHTML = `
+                                        <div class="mobile-empty-state">
+                                            <div class="mobile-empty-icon">👥</div>
+                                            <div class="mobile-empty-title">No followers yet</div>
+                                            <div class="mobile-empty-description">${emptyText}</div>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                } else {
+                                    followersList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">👥</div>
+                                            <h3 class="empty-title">No followers yet</h3>
+                                            <p class="empty-description">${emptyText}</p>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }
+                                return;
+                            }
+
+                            this.loadedUsersCache.clear();
+                            const followerIds = follows.map(f => f.follower_id);
+                            const uniqueFollowerIds = [...new Set(followerIds)];
+                            
+                            const { data: users, error: usersError } = await supabase
+                                .from('user_profiles')
+                                .select('*')
+                                .in('id', uniqueFollowerIds);
+
+                            if (!usersError) {
+                                this.displayUsers(users, isMobile ? 'mobileFollowersList' : 'followersList');
+                            }
                         } catch (error) {
                             console.error('Error loading followers:', error);
                             showToast('Error loading followers', 'error');
@@ -4729,74 +4681,65 @@
                     async loadFollowing() {
                         try {
                             const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                            const isMobile = window.innerWidth <= 768;
-                            const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
-                            
-                            if (followingList) {
-                                showContentLoading(isMobile ? 'mobileFollowingList' : 'followingList', 'Loading following...');
-                            }
                             
                             const { data: follows, error } = await supabase
                                 .from('follows')
                                 .select('followed_id')
-                                .eq('follower_id', targetId)
-                                .limit(50); // Limit to 50 for performance
+                                .eq('follower_id', targetId);
 
                             if (error) throw error;
 
+                            const isMobile = window.innerWidth <= 768;
+                            const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
                             if (!followingList) return;
 
-                            setTimeout(() => {
-                                if (!follows || follows.length === 0) {
-                                    const emptyText = isViewingOwnProfile ? 
-                                        'Discover and follow other food lovers!' :
-                                        'This user isn\'t following anyone yet.';
-                                    
-                                    if (isMobile) {
-                                        followingList.innerHTML = `
-                                            <div class="mobile-empty-state">
-                                                <div class="mobile-empty-icon">👥</div>
-                                                <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
-                                                <div class="mobile-empty-description">${emptyText}</div>
-                                                ${isViewingOwnProfile ? `
-                                                    <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                        <i class="fas fa-user-plus"></i> Find Users
-                                                    </button>
-                                                ` : ''}
-                                            </div>
-                                        `;
-                                    } else {
-                                        followingList.innerHTML = `
-                                            <div class="empty-state">
-                                                <div class="empty-icon">👥</div>
-                                                <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
-                                                <p class="empty-description">${emptyText}</p>
-                                                ${isViewingOwnProfile ? `
-                                                    <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                        <i class="fas fa-user-plus"></i> Find Users
-                                                    </button>
-                                                ` : ''}
-                                            </div>
-                                        `;
-                                    }
-                                    return;
-                                }
-
-                                this.loadedUsersCache.clear();
-                                const followingIds = follows.map(f => f.followed_id);
-                                const uniqueFollowingIds = [...new Set(followingIds)];
+                            if (!follows || follows.length === 0) {
+                                const emptyText = isViewingOwnProfile ? 
+                                    'Discover and follow other food lovers!' :
+                                    'This user isn\'t following anyone yet.';
                                 
-                                // Load user profiles
-                                supabase
-                                    .from('user_profiles')
-                                    .select('*')
-                                    .in('id', uniqueFollowingIds)
-                                    .then(({ data: users, error: usersError }) => {
-                                        if (!usersError) {
-                                            this.displayUsers(users, isMobile ? 'mobileFollowingList' : 'followingList');
-                                        }
-                                    });
-                            }, 100);
+                                if (isMobile) {
+                                    followingList.innerHTML = `
+                                        <div class="mobile-empty-state">
+                                            <div class="mobile-empty-icon">👥</div>
+                                            <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
+                                            <div class="mobile-empty-description">${emptyText}</div>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                } else {
+                                    followingList.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">👥</div>
+                                            <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
+                                            <p class="empty-description">${emptyText}</p>
+                                            ${isViewingOwnProfile ? `
+                                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                                    <i class="fas fa-user-plus"></i> Find Users
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }
+                                return;
+                            }
+
+                            this.loadedUsersCache.clear();
+                            const followingIds = follows.map(f => f.followed_id);
+                            const uniqueFollowingIds = [...new Set(followingIds)];
+                            
+                            const { data: users, error: usersError } = await supabase
+                                .from('user_profiles')
+                                .select('*')
+                                .in('id', uniqueFollowingIds);
+
+                            if (!usersError) {
+                                this.displayUsers(users, isMobile ? 'mobileFollowingList' : 'followingList');
+                            }
                         } catch (error) {
                             console.error('Error loading following:', error);
                             showToast('Error loading following', 'error');
@@ -4856,125 +4799,125 @@
                         const container = document.getElementById(containerId);
                         if (!container) return;
                         
-                        setTimeout(() => {
-                            if (!users || users.length === 0) {
-                                container.innerHTML = `
-                                    <div class="empty-state">
-                                        <div class="empty-icon">🔍</div>
-                                        <h3 class="empty-title">No users found</h3>
-                                        <p class="empty-description">Try searching with a different name or username</p>
+                        if (!users || users.length === 0) {
+                            container.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-icon">🔍</div>
+                                    <h3 class="empty-title">No users found</h3>
+                                    <p class="empty-description">Try searching with a different name or username</p>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        container.innerHTML = '';
+                        
+                        const uniqueUsers = users.filter(user => {
+                            if (this.loadedUsersCache.has(user.id)) {
+                                return false;
+                            }
+                            this.loadedUsersCache.add(user.id);
+                            return true;
+                        });
+
+                        for (const user of uniqueUsers) {
+                            const isPrivate = user.is_private === true;
+                            const isCurrentUser = user.id === currentUser.id;
+                            
+                            let isFollowing = false;
+                            if (!isCurrentUser) {
+                                isFollowing = await checkIfFollowing(user.id);
+                            }
+                            
+                            const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
+                            
+                            if (isMobile) {
+                                const userCard = document.createElement('div');
+                                userCard.className = 'mobile-community-card';
+                                
+                                userCard.innerHTML = `
+                                    <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
+                                        <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                                        <div class="mobile-community-info">
+                                            <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                            <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-community-stats">
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Visited</span>
+                                        </div>
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Favorites</span>
+                                        </div>
+                                        <div class="mobile-community-stat">
+                                            <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
+                                            <span class="mobile-community-stat-label">Followers</span>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-community-actions">
+                                        ${!isCurrentUser ? `
+                                            <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            <button class="mobile-action-btn ${isFollowing ? '' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px; ${isFollowing ? 'background: var(--error); color: white;' : ''}" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
+                                                ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                            </button>
+                                        ` : `
+                                            <button class="mobile-action-btn secondary" style="width: 100%;" disabled>
+                                                <i class="fas fa-user"></i> This is you
+                                            </button>
+                                        `}
                                     </div>
                                 `;
-                                return;
-                            }
-
-                            container.innerHTML = '';
-                            
-                            const uniqueUsers = users.filter(user => {
-                                if (this.loadedUsersCache.has(user.id)) {
-                                    return false;
-                                }
-                                this.loadedUsersCache.add(user.id);
-                                return true;
-                            });
-
-                            uniqueUsers.forEach(user => {
-                                const isPrivate = user.is_private === true;
-                                const isCurrentUser = user.id === currentUser.id;
                                 
-                                // Check follow status
-                                getFollowState(user.id).then(isFollowing => {
-                                    const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
-                                    
-                                    if (isMobile) {
-                                        const userCard = document.createElement('div');
-                                        userCard.className = 'mobile-community-card';
-                                        
-                                        userCard.innerHTML = `
-                                            <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
-                                                <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
-                                                <div class="mobile-community-info">
-                                                    <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                                    <div class="mobile-community-username">@${user.username || 'user'}</div>
-                                                </div>
-                                            </div>
-                                            <div class="mobile-community-stats">
-                                                <div class="mobile-community-stat">
-                                                    <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                                    <span class="mobile-community-stat-label">Visited</span>
-                                                </div>
-                                                <div class="mobile-community-stat">
-                                                    <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                                    <span class="mobile-community-stat-label">Favorites</span>
-                                                </div>
-                                                <div class="mobile-community-stat">
-                                                    <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
-                                                    <span class="mobile-community-stat-label">Followers</span>
-                                                </div>
-                                            </div>
-                                            <div class="mobile-community-actions">
-                                                ${!isCurrentUser ? `
-                                                    <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </button>
-                                                    <button class="mobile-action-btn ${isFollowing ? '' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px; ${isFollowing ? 'background: var(--error); color: white;' : ''}" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
-                                                        ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
-                                                    </button>
-                                                ` : `
-                                                    <button class="mobile-action-btn secondary" style="width: 100%;" disabled>
-                                                        <i class="fas fa-user"></i> This is you
-                                                    </button>
-                                                `}
-                                            </div>
-                                        `;
-                                        
-                                        container.appendChild(userCard);
-                                    } else {
-                                        const userCard = document.createElement('div');
-                                        userCard.className = 'community-card';
-                                        userCard.innerHTML = `
-                                            <div class="community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
-                                                <div class="community-avatar">${user.avatar_icon || '👤'}</div>
-                                                <div class="community-info">
-                                                    <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
-                                                    <div class="community-username">@${user.username || 'user'}</div>
-                                                </div>
-                                            </div>
-                                            <div class="community-stats">
-                                                <div class="community-stat">
-                                                    <span class="community-stat-number">${user.visited_count || 0}</span>
-                                                    <span class="community-stat-label">Visited</span>
-                                                </div>
-                                                <div class="community-stat">
-                                                    <span class="community-stat-number">${user.lists_count || 0}</span>
-                                                    <span class="community-stat-label">Lists</span>
-                                                </div>
-                                                <div class="community-stat">
-                                                    <span class="community-stat-number">${user.followers_count || 0}</span>
-                                                    <span class="community-stat-label">Followers</span>
-                                                </div>
-                                            </div>
-                                            <div class="community-actions">
-                                                ${!isCurrentUser ? `
-                                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
-                                                        <i class="fas fa-eye"></i> View Profile
-                                                    </button>
-                                                    <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
-                                                        ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
-                                                    </button>
-                                                ` : `
-                                                    <button class="btn btn-secondary btn-sm" disabled>
-                                                        <i class="fas fa-user"></i> This is you
-                                                    </button>
-                                                `}
-                                            </div>
-                                        `;
-                                        
-                                        container.appendChild(userCard);
-                                    }
-                                });
-                            });
-                        }, 100);
+                                container.appendChild(userCard);
+                            } else {
+                                const userCard = document.createElement('div');
+                                userCard.className = 'community-card';
+                                userCard.innerHTML = `
+                                    <div class="community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
+                                        <div class="community-avatar">${user.avatar_icon || '👤'}</div>
+                                        <div class="community-info">
+                                            <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                            <div class="community-username">@${user.username || 'user'}</div>
+                                        </div>
+                                    </div>
+                                    <div class="community-stats">
+                                        <div class="community-stat">
+                                            <span class="community-stat-number">${user.visited_count || 0}</span>
+                                            <span class="community-stat-label">Visited</span>
+                                        </div>
+                                        <div class="community-stat">
+                                            <span class="community-stat-number">${user.lists_count || 0}</span>
+                                            <span class="community-stat-label">Lists</span>
+                                        </div>
+                                        <div class="community-stat">
+                                            <span class="community-stat-number">${user.followers_count || 0}</span>
+                                            <span class="community-stat-label">Followers</span>
+                                        </div>
+                                    </div>
+                                    <div class="community-actions">
+                                        ${!isCurrentUser ? `
+                                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
+                                                <i class="fas fa-eye"></i> View Profile
+                                            </button>
+                                            <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
+                                                ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                            </button>
+                                        ` : `
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                <i class="fas fa-user"></i> This is you
+                                            </button>
+                                        `}
+                                    </div>
+                                `;
+                                
+                                container.appendChild(userCard);
+                            }
+                        }
                     },
 
                     refreshCurrentView() {
@@ -5638,9 +5581,6 @@
             if (form) {
                 form.onsubmit = ProfileManager.handleListSubmit;
             }
-            
-            // Setup image lazy loading
-            window.addEventListener('load', lazyLoadImages);
         });
     </script>
 </body>
