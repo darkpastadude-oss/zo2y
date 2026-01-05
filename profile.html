@@ -4421,7 +4421,7 @@ async function renderMobileListRestaurants(listRestaurants, list) {
         </div>
     `;
     
-    container.innerHTML = headerHTML;
+container.insertAdjacentHTML('afterbegin', headerHTML);
     
     // Now create the list of restaurants
     restaurantsData.forEach(restaurant => {
