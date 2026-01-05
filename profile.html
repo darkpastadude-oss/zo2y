@@ -2132,6 +2132,60 @@
             }
             
             /* Mobile List Detail Header - IMPROVED SPACING */
+            /* Add to mobile styles section */
+.mobile-list-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    position: sticky;
+    top: 60px;
+    z-index: 800;
+}
+
+.mobile-list-detail-title-section {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+}
+
+#mobileListDetailTitle {
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--accent);
+}
+
+#mobileListDetailDescription {
+    font-size: 14px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+    .mobile-list-detail-header {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    #mobileListDetailTitle {
+        font-size: 16px;
+    }
+    
+    #mobileListDetailDescription {
+        font-size: 12px;
+    }
+}
             .mobile-list-detail-header {
                 display: flex;
                 align-items: center;
@@ -2820,23 +2874,23 @@
                 </div>
             </div>
 
-            <!-- List Detail View for Mobile -->
-            <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
-                <div class="mobile-list-detail-header">
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; min-width: 60px;" onclick="ProfileManager.hideMobileListDetail()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <div class="mobile-list-detail-title-section">
-                        <div id="mobileListDetailTitle" style="font-weight: 600; font-size: 18px; color: var(--accent);">List Title</div>
-                        <div class="text-sm text-muted" id="mobileListDetailDescription">List description</div>
-                    </div>
-                    <div style="width: 60px;"></div>
-                </div>
-                
-                <div id="mobileListRestaurants">
-                    <!-- List restaurants will be populated here -->
-                </div>
-            </div>
+           <!-- List Detail View for Mobile -->
+<div class="mobile-section" id="mobileListDetailSection" style="display: none;">
+    <div class="mobile-list-detail-header">
+        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; min-width: 60px;" onclick="ProfileManager.hideMobileListDetail()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="mobile-list-detail-title-section">
+            <div id="mobileListDetailTitle" style="font-weight: 600; font-size: 18px; color: var(--accent);">List Title</div>
+            <div class="text-sm text-muted" id="mobileListDetailDescription">List description</div>
+        </div>
+        <div style="width: 60px;"></div>
+    </div>
+    
+    <div id="mobileListRestaurants">
+        <!-- List restaurants will be populated here -->
+    </div>
+</div>>
 
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
@@ -4327,87 +4381,93 @@ function removeFromList(restaurantId) {
             }
 
             async function renderMobileListRestaurants(listRestaurants, list) {
-                const container = document.getElementById('mobileListRestaurants');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                if (!listRestaurants || listRestaurants.length === 0) {
-                    const emptyStateText = isViewingOwnProfile ? 
-                        'Start adding restaurants to your list!' :
-                        'This list is currently empty.';
-                    
-                    container.innerHTML = `
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon">🍽️</div>
-                            <div class="mobile-empty-title">No Restaurants Yet</div>
-                            <div class="mobile-empty-description">${emptyStateText}</div>
-                            ${isViewingOwnProfile ? `
-                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
-                                    <i class="fas fa-plus"></i> Add Your First Restaurant
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Get restaurant details for the IDs
-                const numericIds = listRestaurants.map(id => Number(id));
-                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
-                
-                // Update the mobile list detail title with count
-                const listDetailTitle = document.getElementById('mobileListDetailTitle');
-                const listDetailDescription = document.getElementById('mobileListDetailDescription');
-                
-                if (listDetailTitle) {
-                    listDetailTitle.textContent = list.title;
-                }
-                if (listDetailDescription) {
-                    listDetailDescription.textContent = `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`;
-                }
-                
-                restaurantsData.forEach(restaurant => {
-                    const restaurantCard = document.createElement('div');
-                    restaurantCard.className = 'mobile-list-restaurant-card';
-                    restaurantCard.style.position = 'relative';
-                    
-                    const restaurantInfo = document.createElement('div');
-                    restaurantInfo.className = 'mobile-list-restaurant-info';
-                    restaurantInfo.style.cursor = 'pointer';
-                    restaurantInfo.onclick = () => {
-                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    };
-                    
-                    restaurantInfo.innerHTML = `
-                        <div class="mobile-list-restaurant-image">
-                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
-                            <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
-                            <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restaurant.rating}</div>
-                        </div>
-                    `;
-                    
-                    restaurantCard.appendChild(restaurantInfo);
-                    
-                    if (isViewingOwnProfile) {
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-btn';
-                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        removeBtn.style.opacity = '1';
-                        removeBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            removeFromList(restaurant.id);
-                        };
-                        restaurantCard.appendChild(removeBtn);
-                    }
-                    
-                    container.appendChild(restaurantCard);
-                });
-            }
+    const container = document.getElementById('mobileListRestaurants');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (!listRestaurants || listRestaurants.length === 0) {
+        const emptyStateText = isViewingOwnProfile ? 
+            'Start adding restaurants to your list!' :
+            'This list is currently empty.';
+        
+        container.innerHTML = `
+            <div class="mobile-empty-state">
+                <div class="mobile-empty-icon">🍽️</div>
+                <div class="mobile-empty-title">No Restaurants Yet</div>
+                <div class="mobile-empty-description">${emptyStateText}</div>
+                ${isViewingOwnProfile ? `
+                    <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                        <i class="fas fa-plus"></i> Add Your First Restaurant
+                    </button>
+                ` : ''}
+            </div>
+        `;
+        return;
+    }
+    
+    // Get restaurant details for the IDs
+    const numericIds = listRestaurants.map(id => Number(id));
+    const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
+    
+    // Create the header section
+    const headerHTML = `
+        <div class="mobile-list-detail-header">
+            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMobileListDetail()" style="min-width: 60px; padding: 8px 12px; font-size: 14px;">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <div class="mobile-list-detail-title-section">
+                <div id="mobileListDetailTitle" style="font-weight: 700; font-size: 20px; color: var(--accent);">${list.title}</div>
+                <div class="text-sm text-muted" id="mobileListDetailDescription">${list.description || `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`}</div>
+            </div>
+            <div style="width: 60px;"></div> <!-- Spacer for alignment -->
+        </div>
+    `;
+    
+    container.innerHTML = headerHTML;
+    
+    // Now create the list of restaurants
+    restaurantsData.forEach(restaurant => {
+        const restaurantCard = document.createElement('div');
+        restaurantCard.className = 'mobile-list-restaurant-card';
+        restaurantCard.style.position = 'relative';
+        
+        const restaurantInfo = document.createElement('div');
+        restaurantInfo.className = 'mobile-list-restaurant-info';
+        restaurantInfo.style.cursor = 'pointer';
+        restaurantInfo.onclick = () => {
+            window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+        };
+        
+        restaurantInfo.innerHTML = `
+            <div class="mobile-list-restaurant-image">
+                <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+            </div>
+            <div>
+                <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
+                <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
+                <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">⭐ ${restaurant.rating}</div>
+            </div>
+        `;
+        
+        restaurantCard.appendChild(restaurantInfo);
+        
+        if (isViewingOwnProfile) {
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.style.opacity = '1';
+            removeBtn.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                removeFromList(restaurant.id);
+            };
+            restaurantCard.appendChild(removeBtn);
+        }
+        
+        container.appendChild(restaurantCard);
+    });
+}
 
             // ===== FOOD JOURNAL =====
             const foodJournal = {
