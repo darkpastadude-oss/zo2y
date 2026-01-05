@@ -4408,18 +4408,23 @@ async function renderMobileListRestaurants(listRestaurants, list) {
     const numericIds = listRestaurants.map(id => Number(id));
     const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
     
-    // Update the existing header elements in the HTML
-    const listDetailTitle = document.getElementById('mobileListDetailTitle');
-    const listDetailDescription = document.getElementById('mobileListDetailDescription');
+    // Create the header section
+    const headerHTML = `
+        <div class="mobile-list-detail-header">
+            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMobileListDetail()" style="min-width: 60px; padding: 8px 12px; font-size: 14px;">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <div class="mobile-list-detail-title-section">
+                <div id="mobileListDetailTitle" style="font-weight: 700; font-size: 20px; color: var(--accent);">${list.title}</div>
+                <div class="text-sm text-muted" id="mobileListDetailDescription">${list.description || `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`}</div>
+            </div>
+            <div style="width: 60px;"></div> <!-- Spacer for alignment -->
+        </div>
+    `;
     
-    if (listDetailTitle) {
-        listDetailTitle.textContent = list.title;
-    }
-    if (listDetailDescription) {
-        listDetailDescription.textContent = list.description || `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`;
-    }
+    container.innerHTML = headerHTML;
     
-    // Now create the list of restaurants (NO HEADER HERE - we're updating the existing one)
+    // Now create the list of restaurants
     restaurantsData.forEach(restaurant => {
         const restaurantCard = document.createElement('div');
         restaurantCard.className = 'mobile-list-restaurant-card';
@@ -4460,8 +4465,7 @@ async function renderMobileListRestaurants(listRestaurants, list) {
         
         container.appendChild(restaurantCard);
     });
-}
-            // ===== FOOD JOURNAL =====
+}         // ===== FOOD JOURNAL =====
             const foodJournal = {
                 async init() {
                     await this.loadJournalEntries();
