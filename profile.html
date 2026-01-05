@@ -5222,11 +5222,13 @@ async function toggleFollow(userId, buttonElement) {
         let isNowFollowing = false;
 
         if (existingFollow) {
-            // UNFOLLOW: If relationship exists, delete it
-            const { error: deleteError } = await supabase
-                .from('follows')
-                .delete()
-                .eq('id', existingFollow.id); // Delete by specific ID is safer
+            /// Ensure .select('id') is present!
+const { data: existingFollow, error: fetchError } = await supabase
+    .from('follows')
+    .select('id') 
+    .eq('follower_id', currentUser.id)
+    .eq('followed_id', targetId)
+    .maybeSingle();
 
             if (deleteError) throw deleteError;
             
