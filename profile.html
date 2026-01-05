@@ -4378,8 +4378,7 @@ function removeFromList(restaurantId) {
                     grid.appendChild(card);
                 });
             }
-
-           async function renderMobileListRestaurants(listRestaurants, list) {
+async function renderMobileListRestaurants(listRestaurants, list) {
     const container = document.getElementById('mobileListRestaurants');
     if (!container) return;
     
@@ -4420,7 +4419,7 @@ function removeFromList(restaurantId) {
         listDetailDescription.textContent = list.description || `${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'}`;
     }
     
-    // Now create the list of restaurants (NO HEADER HERE - it's already in the HTML)
+    // Now create the list of restaurants (NO HEADER HERE - we're updating the existing one)
     restaurantsData.forEach(restaurant => {
         const restaurantCard = document.createElement('div');
         restaurantCard.className = 'mobile-list-restaurant-card';
