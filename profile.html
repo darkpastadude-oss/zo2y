@@ -3316,18 +3316,99 @@
                 }
             }
 
-            async function toggleFollow(userId, buttonElement) {
-                if (!userId) return;
-                
-                const realState = await checkIfFollowing(userId);
-                
-                if (realState) {
-                    await unfollowUser();
-                } else {
-                    await followUser();
+async function toggleFollow(userId, buttonElement) {
+                try {
+                    const targetId = userId || targetUserId;
+                    const isOtherUser = !!userId;
+
+                    // 1. Check current status with error handling
+                    const { data: existingFollow, error: fetchError } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', targetId)
+                        .maybeSingle();
+
+                    if (fetchError) throw fetchError;
+
+                    let isNowFollowing = false;
+
+                    if (existingFollow) {
+                        // === UNFOLLOW LOGIC ===
+                        const { error: deleteError } = await supabase
+                            .from('follows')
+                            .delete()
+                            .eq('id', existingFollow.id);
+
+                        if (deleteError) throw deleteError;
+                        
+                        isNowFollowing = false;
+                        
+                        if (isOtherUser) showToast('Unfollowed user', 'info');
+                        else showToast(`Unfollowed ${targetUser?.username || 'user'}`, 'info');
+
+                    } else {
+                        // === FOLLOW LOGIC (Moved INSIDE the else block) ===
+                        const { error: insertError } = await supabase
+                            .from('follows')
+                            .insert({
+                                follower_id: currentUser.id,
+                                followed_id: targetId,
+                                created_at: new Date().toISOString()
+                            });
+
+                        if (insertError) throw insertError;
+                        
+                        isNowFollowing = true;
+                        if (isOtherUser) showToast('Started following user', 'success');
+                        else showToast(`Started following ${targetUser?.username || 'user'}`, 'success');
+                    }
+
+                    // 2. Update the button UI (Moved INSIDE the try block)
+                    if (buttonElement) {
+                        const isMobile = window.innerWidth <= 768;
+                        
+                        if (isNowFollowing) {
+                            // Change to "Unfollow" State
+                            buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                            if (isMobile) {
+                                buttonElement.className = 'mobile-action-btn'; 
+                                buttonElement.style.background = 'var(--error)';
+                                buttonElement.style.color = 'white';
+                            } else {
+                                buttonElement.className = 'btn btn-error btn-sm';
+                            }
+                        } else {
+                            // Change to "Follow" State
+                            buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                            if (isMobile) {
+                                buttonElement.className = 'mobile-action-btn primary';
+                                buttonElement.style.background = 'var(--accent)';
+                                buttonElement.style.color = '#0b1633';
+                            } else {
+                                buttonElement.className = 'btn btn-primary btn-sm';
+                            }
+                        }
+                    }
+
+                    // 3. Refresh stats (Moved INSIDE the try block)
+                    await updateStats(isOtherUser ? null : targetUserId);
+                    if (communitySystem) {
+                        await communitySystem.loadFollowStats();
+                        communitySystem.refreshCurrentView();
+                    }
+
+                } catch (error) {
+                    console.error('Error toggling follow:', error);
+                    showToast('Action failed. Please try again.', 'error');
+                    
+                    // Reset button state on error
+                    if (buttonElement) {
+                         buttonElement.disabled = false;
+                         // Ideally reload the correct state here
+                    }
                 }
             }
-
             // ===== RESTAURANTS =====
             async function loadRestaurants() {
                 try {
