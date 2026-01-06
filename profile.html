@@ -1377,7 +1377,52 @@
                 padding: 0;
                 background: var(--bg);
             }
-            
+                        /* Mobile List Detail */
+            .mobile-list-restaurant-card {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .mobile-list-restaurant-card:hover {
+                border-color: var(--accent);
+            }
+
+            .mobile-list-restaurant-image {
+                width: 60px;
+                height: 60px;
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+                flex-shrink: 0;
+                background: var(--bg);
+            }
+
+            .mobile-list-restaurant-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .mobile-list-restaurant-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            /* Adjust remove button for mobile list view */
+            .mobile-list-restaurant-card .remove-btn {
+                position: static;
+                opacity: 1;
+                width: 32px;
+                height: 32px;
+                flex-shrink: 0;
+            }
             /* Mobile Top Bar */
             .mobile-topbar {
                 position: fixed;
@@ -2451,6 +2496,32 @@
                         <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
                         <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
                             <i class="fas fa-plus"></i> Create List
+                        </button>
+                    </div>
+                </div>
+            </div>
+                        <!-- Mobile List Detail Section -->
+            <div class="mobile-section" id="mobileListDetailSection">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMobileListDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <div style="flex: 1; text-align: center;">
+                        <span id="mobileListDetailTitle">List Title</span>
+                    </div>
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0; display: none;" id="mobileAddToListBtn" onclick="ProfileManager.showModal('addEntryModal')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileListDetailDescription">List description</div>
+                
+                <div id="mobileListRestaurants">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">🍽️</div>
+                        <div class="mobile-empty-title">No Restaurants Yet</div>
+                        <div class="mobile-empty-description">Start adding restaurants to this list!</div>
+                        <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add Your First Restaurant
                         </button>
                     </div>
                 </div>
@@ -3889,7 +3960,7 @@
                 await renderListRestaurants(list.restaurants || [], list);
             }
 
-            async function showMobileList(listId) {
+            a            async function showMobileList(listId) {
                 let list;
                 
                 if (listId === 'favorites') {
@@ -3910,47 +3981,32 @@
                 
                 currentActiveList = list;
                 
+                // Hide all mobile sections
                 document.querySelectorAll('.mobile-section').forEach(section => {
                     section.style.display = 'none';
+                    section.classList.remove('active');
                 });
                 
+                // Show list detail section
                 const listDetailSection = document.getElementById('mobileListDetailSection');
                 if (listDetailSection) {
                     listDetailSection.style.display = 'block';
                     listDetailSection.classList.add('active');
-                }
-                
-                document.getElementById('mobileListDetailTitle').textContent = list.title;
-                document.getElementById('mobileListDetailDescription').textContent = list.description || '';
-                
-                await renderMobileListRestaurants(list.restaurants || [], list);
-            }
-
-            async function renderListRestaurants(listRestaurants, list) {
-                const grid = document.getElementById('listRestaurantsGrid');
-                if (!grid) return;
-                
-                grid.innerHTML = '';
-                
-                if (!listRestaurants || listRestaurants.length === 0) {
-                    const emptyStateText = isViewingOwnProfile ? 
-                        'Start adding restaurants to your list!' :
-                        'This list is currently empty.';
                     
-                    grid.innerHTML = `
-                        <div class="empty-state w-100">
-                            <div class="empty-icon">🍽️</div>
-                            <h3 class="empty-title">No Restaurants Yet</h3>
-                            <p class="empty-description">${emptyStateText}</p>
-                            ${isViewingOwnProfile ? `
-                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
-                                    <i class="fas fa-plus"></i> Add Your First Restaurant
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    return;
+                    // Update title and description
+                    const titleEl = document.getElementById('mobileListDetailTitle');
+                    const descEl = document.getElementById('mobileListDetailDescription');
+                    const addBtn = document.getElementById('mobileAddToListBtn');
+                    
+                    if (titleEl) titleEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (addBtn) {
+                        addBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                    }
+                    
+                    await renderMobileListRestaurants(list.restaurants || [], list);
                 }
+            }
                 
                 // Get restaurant details
                 const numericIds = listRestaurants.map(id => Number(id));
@@ -4095,13 +4151,14 @@
                 currentActiveList = null;
             }
 
-            function hideMobileListDetail() {
+                        function hideMobileListDetail() {
                 const listDetailSection = document.getElementById('mobileListDetailSection');
                 if (listDetailSection) {
                     listDetailSection.style.display = 'none';
                     listDetailSection.classList.remove('active');
                 }
                 
+                // Show the current tab section
                 const currentTabSection = document.getElementById(`mobile${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}Section`);
                 if (currentTabSection) {
                     currentTabSection.style.display = 'block';
@@ -4110,7 +4167,6 @@
                 
                 currentActiveList = null;
             }
-
             // ===== FOOD JOURNAL =====
             const foodJournal = {
                 async init() {
