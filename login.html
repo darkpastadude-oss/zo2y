@@ -398,166 +398,121 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-  // Initialize Supabase (using same credentials as signup)
   const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-  
-  // Wait for DOM to load
-  document.addEventListener('DOMContentLoaded', function() {
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const googleBtn = document.getElementById('googleLogin');
     const loginBtn = document.getElementById('loginBtn');
     const forgotPassword = document.getElementById('forgotPassword');
-    
-    // Simple alert function
-    function showAlert(message, type = 'error') {
+
+    async function addUserToTable(user) {
+      if(!user) return;
+      const { error } = await supabase.from('users').upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || ''
+      });
+      if(error) console.error('Table insert error:', error);
+    }
+
+    function showAlert(message, type='error') {
       alert(message);
     }
-    
-    // Email/password login
+
+    // EMAIL/PASSWORD LOGIN
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const rememberMe = document.getElementById('remember').checked;
-      const originalBtnText = loginBtn.innerHTML;
-      
-      if(!email || !password) {
-        showAlert('Please fill all fields');
-        return;
-      }
-      
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if(!emailRegex.test(email)) {
-        showAlert('Please enter a valid email address');
-        return;
-      }
-      
-      // Show loading
+      const originalText = loginBtn.innerHTML;
+
+      if(!email || !password) { showAlert('Fill all fields'); return; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Enter valid email'); return; }
+
       loginBtn.innerHTML = '<div class="loading"></div>';
       loginBtn.disabled = true;
-      
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
 
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if(error) {
-          if (error.message.includes('Invalid login credentials')) {
-            showAlert('Invalid email or password');
-          } else if (error.message.includes('Email not confirmed')) {
-            showAlert('Please check your email to confirm your account first');
-          } else {
-            showAlert('Error: ' + error.message);
-          }
-          loginBtn.innerHTML = originalBtnText;
+          showAlert(error.message.includes('Invalid login credentials') ? 'Invalid email or password' : error.message);
+          loginBtn.innerHTML = originalText;
           loginBtn.disabled = false;
           return;
         }
-        
-        // Login successful
-        console.log('Login successful:', data);
-        
-        // Store remember me preference
-        if(rememberMe) {
-          localStorage.setItem('rememberEmail', email);
-        } else {
-          localStorage.removeItem('rememberEmail');
-        }
-        
-        // Redirect to home page
+
+        if(rememberMe) localStorage.setItem('rememberEmail', email);
+        else localStorage.removeItem('rememberEmail');
+
+        await addUserToTable(data.user);
         window.location.href = 'index.html';
-        
-      } catch (err) {
-        console.error('Login error:', err);
-        showAlert('An unexpected error occurred. Please try again.');
-        loginBtn.innerHTML = originalBtnText;
+
+      } catch(err) {
+        console.error(err);
+        showAlert('Unexpected error occurred');
+        loginBtn.innerHTML = originalText;
         loginBtn.disabled = false;
       }
     });
-    
-    // Google OAuth login - SIMPLE VERSION (same as signup)
+
+    // GOOGLE LOGIN
     googleBtn.addEventListener('click', async () => {
       googleBtn.disabled = true;
       const originalText = googleBtn.innerHTML;
       googleBtn.innerHTML = '<div class="loading"></div>';
-      
+
       try {
-        // Simple - let Supabase handle everything (same as signup page)
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google'
-          // No redirectTo - Supabase will use default
+          provider: 'google',
+          options: { redirectTo: window.location.href }
         });
-        
-        if(error) {
-          showAlert('Error: ' + error.message);
-          googleBtn.innerHTML = originalText;
-          googleBtn.disabled = false;
-        }
-        // If successful, Supabase will redirect automatically
-      } catch (err) {
-        console.error('Google OAuth error:', err);
-        showAlert('Failed to sign in with Google. Please try again.');
+        if(error) throw error;
+      } catch(err) {
+        showAlert(err.message);
         googleBtn.innerHTML = originalText;
         googleBtn.disabled = false;
       }
     });
-    
-    // Forgot password
-    forgotPassword.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value.trim();
-      
-      if(!email) {
-        showAlert('Please enter your email address first');
-        document.getElementById('email').focus();
-        return;
-      }
-      
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if(!emailRegex.test(email)) {
-        showAlert('Please enter a valid email address');
-        return;
-      }
-      
-      const confirmed = confirm(`Send password reset link to ${email}?`);
-      if(!confirmed) return;
-      
-      try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/update-password.html'
-        });
-        
-        if(error) {
-          showAlert('Error: ' + error.message);
-        } else {
-          showAlert('Password reset email sent! Please check your inbox (and spam folder).', 'success');
-        }
-      } catch (err) {
-        console.error('Password reset error:', err);
-        showAlert('Failed to send reset email. Please try again.');
+
+    // HANDLE GOOGLE REDIRECT
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if(session?.user) {
+        await addUserToTable(session.user);
+        window.location.href = 'index.html';
       }
     });
-    
-    // Check for remembered email
+
+    // FORGOT PASSWORD
+    forgotPassword.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      if(!email) { showAlert('Enter your email first'); return; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Enter valid email'); return; }
+
+      if(!confirm(`Send password reset link to ${email}?`)) return;
+
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/update-password.html' });
+        if(error) showAlert(error.message);
+        else showAlert('Password reset email sent! Check inbox/spam', 'success');
+      } catch(err) { console.error(err); showAlert('Failed to send reset email'); }
+    });
+
+    // REMEMBER EMAIL
     const rememberedEmail = localStorage.getItem('rememberEmail');
     if(rememberedEmail) {
       document.getElementById('email').value = rememberedEmail;
       document.getElementById('remember').checked = true;
     }
-    
-    // Focus on email field if empty
-    if(!document.getElementById('email').value) {
-      document.getElementById('email').focus();
-    }
+    if(!document.getElementById('email').value) document.getElementById('email').focus();
   });
 </script>
+
 
 </body>
 </html>
