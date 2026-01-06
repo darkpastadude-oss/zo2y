@@ -163,7 +163,7 @@
       transform: translateY(0);
     }
     
-    /* Standard Google Sign-in Button */
+    /* Google button */
     .gsi-material-button {
       -moz-user-select: none;
       -webkit-user-select: none;
@@ -190,43 +190,6 @@
       white-space: nowrap;
       width: 100%;
       margin-bottom: 20px;
-    }
-    
-    .gsi-material-button:hover {
-      background-color: #f8f9fa;
-      box-shadow: 0 1px 3px 1px rgba(66, 64, 67, 0.15), 0 1px 2px 0 rgba(60, 64, 67, 0.3);
-      border-color: #d2e3fc;
-    }
-    
-    .gsi-material-button:active {
-      background-color: #e8f0fe;
-    }
-    
-    .gsi-material-button .gsi-material-button-icon {
-      height: 20px;
-      margin-right: 12px;
-      min-width: 20px;
-      width: 20px;
-    }
-    
-    .gsi-material-button .gsi-material-button-content-wrapper {
-      align-items: center;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      height: 100%;
-      justify-content: center;
-      position: relative;
-      width: 100%;
-    }
-    
-    .gsi-material-button .gsi-material-button-contents {
-      flex-grow: 1;
-      font-family: 'Roboto', 'Poppins', sans-serif;
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      vertical-align: top;
     }
     
     .divider {
@@ -268,26 +231,7 @@
       color: #fbbf24;
     }
     
-    @media (max-width: 480px) {
-      .signup-card { 
-        padding: 30px 25px; 
-      }
-      
-      .logo-header h1 { 
-        font-size: 2rem; 
-      }
-      
-      .input-group input {
-        padding: 14px 15px 14px 45px;
-      }
-      
-      .submit-btn,
-      .gsi-material-button {
-        height: 52px;
-      }
-    }
-    
-    /* Loading animation */
+    /* loading spinner */
     .loading {
       display: inline-block;
       width: 20px;
@@ -317,7 +261,6 @@
   <div class="signup-card">
     <h2>Create your account</h2>
     
-    <!-- Standard Google Sign-in Button -->
     <button class="gsi-material-button" id="googleSignup">
       <div class="gsi-material-button-content-wrapper">
         <div class="gsi-material-button-icon">
@@ -333,26 +276,21 @@
       </div>
     </button>
     
-    <div class="divider">
-      <span>or continue with email</span>
-    </div>
+    <div class="divider"><span>or continue with email</span></div>
     
     <form id="signupForm">
       <div class="input-group">
         <i class="fas fa-user"></i>
         <input type="text" placeholder="Full Name" id="fullName" required>
       </div>
-      
       <div class="input-group">
         <i class="fas fa-envelope"></i>
         <input type="email" placeholder="Email" id="email" required>
       </div>
-      
       <div class="input-group">
         <i class="fas fa-lock"></i>
         <input type="password" placeholder="Password" id="password" required>
       </div>
-      
       <button type="submit" class="submit-btn" id="submitBtn">
         <i class="fas fa-user-plus"></i>
         <span>Create Account</span>
@@ -367,105 +305,81 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-  // Initialize Supabase
   const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-  
-  // Wait for DOM to load
-  document.addEventListener('DOMContentLoaded', function() {
-    const signupForm = document.getElementById('signupForm');
-    const googleBtn = document.getElementById('googleSignup');
-    const submitBtn = document.getElementById('submitBtn');
-    
-    // Email/password signup
-    signupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const fullName = document.getElementById('fullName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const originalBtnText = submitBtn.innerHTML;
-      
-      if(!fullName || !email || !password) {
-        alert('Please fill all fields');
-        return;
-      }
-      
-      // Show loading
-      submitBtn.innerHTML = '<div class="loading"></div>';
-      submitBtn.disabled = true;
-      
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: window.location.origin + '/index.html'
-          }
-        });
 
-        if(error) {
-          alert('Error: ' + error.message);
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-          return;
-        }
-        
-        // Check if user already exists
-        if(data.user && data.user.identities && data.user.identities.length === 0) {
-          alert('A user with this email already exists. Please log in instead.');
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-          return;
-        }
-        
-        if(data.session) {
-          // User is signed in (email confirmations disabled)
-          window.location.href = 'index.html';
-        } else {
-          // Email confirmation required
-          alert('🎉 Sign up successful! Please check your email for the confirmation link.');
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-          signupForm.reset();
-        }
-      } catch (err) {
-        console.error('Signup error:', err);
-        alert('An unexpected error occurred. Please try again.');
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
-      }
+ document.addEventListener('DOMContentLoaded', () => {
+  const signupForm = document.getElementById('signupForm');
+  const googleBtn = document.getElementById('googleSignup');
+  const submitBtn = document.getElementById('submitBtn');
+
+  async function addUserToTable(user) {
+    if(!user) return;
+    const { error } = await supabase
+      .from('users')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || ''
+      });
+    if(error) console.error('Table insert error:', error);
+  }
+
+  // Email/password signup stays the same
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fullName = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const originalBtnText = submitBtn.innerHTML;
+    if(!fullName || !email || !password) return alert('Please fill all fields');
+
+    submitBtn.innerHTML = '<div class="loading"></div>';
+    submitBtn.disabled = true;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin + '/index.html' }
     });
-    
-    // Google OAuth signup - SIMPLE VERSION
-    googleBtn.addEventListener('click', async () => {
-      googleBtn.disabled = true;
-      const originalText = googleBtn.innerHTML;
-      googleBtn.innerHTML = '<div class="loading"></div>';
-      
-      try {
-        // Simple - let Supabase handle everything
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google'
-          // No redirectTo - Supabase will use default
-        });
-        
-        if(error) {
-          alert('Error: ' + error.message);
-          googleBtn.innerHTML = originalText;
-          googleBtn.disabled = false;
-        }
-        // If successful, Supabase will redirect automatically
-      } catch (err) {
-        console.error('Google OAuth error:', err);
-        alert('Failed to sign in with Google. Please try again.');
-        googleBtn.innerHTML = originalText;
-        googleBtn.disabled = false;
-      }
-    });
+
+    if(error) { alert(error.message); submitBtn.innerHTML = originalBtnText; submitBtn.disabled=false; return; }
+
+    if(data.user) await addUserToTable(data.user);
+
+    if(data.session) window.location.href = 'index.html';
+    else { alert('🎉 Sign up successful! Check your email for confirmation.'); signupForm.reset(); submitBtn.innerHTML = originalBtnText; submitBtn.disabled=false; }
   });
+
+  // Google OAuth signup - instant insert
+  googleBtn.addEventListener('click', async () => {
+    googleBtn.disabled = true;
+    const originalText = googleBtn.innerHTML;
+    googleBtn.innerHTML = '<div class="loading"></div>';
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href } // redirect back here
+      });
+      if(error) throw error;
+    } catch(err) {
+      alert(err.message);
+      googleBtn.innerHTML = originalText;
+      googleBtn.disabled = false;
+    }
+  });
+
+  // Handle returning user after OAuth redirect
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if(session?.user) {
+      await addUserToTable(session.user); // insert into table instantly
+      window.location.href = 'index.html';
+    }
+  });
+});
+
 </script>
 
 </body>
