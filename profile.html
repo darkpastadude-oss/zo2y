@@ -3908,8 +3908,7 @@ async function checkIfFollowing(userId) {
                     }
                 );
             }
-
-            async function showList(listId) {
+async function showList(listId) {
                 let list;
                 
                 if (listId === 'favorites') {
@@ -3960,7 +3959,87 @@ async function checkIfFollowing(userId) {
                 await renderListRestaurants(list.restaurants || [], list);
             }
 
-               async function showMobileList(listId) {
+            async function renderListRestaurants(listRestaurants, list) {
+                const grid = document.getElementById('listRestaurantsGrid');
+                if (!grid) return;
+
+                grid.innerHTML = '';
+
+                if (!listRestaurants || listRestaurants.length === 0) {
+                    const emptyStateText = isViewingOwnProfile ? 
+                        'Start adding restaurants to your list!' : 
+                        'This list is currently empty.';
+
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <p class="empty-description">${emptyStateText}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
+                                    <i class="fas fa-plus"></i> Add Your First Restaurant
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Get restaurant details
+                const numericIds = listRestaurants.map(id => Number(id));
+                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
+                
+                const listDetailTitle = document.getElementById('listDetailTitle');
+                if (listDetailTitle) {
+                    listDetailTitle.textContent = `${list.title} (${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'})`;
+                }
+
+                restaurantsData.forEach(restaurant => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.position = 'relative';
+                    
+                    const clickableContent = document.createElement('a');
+                    clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
+                    clickableContent.style.textDecoration = 'none';
+                    clickableContent.style.color = 'inherit';
+                    clickableContent.style.display = 'block';
+                    clickableContent.style.height = '100%';
+                    
+                    clickableContent.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex align-center gap-md">
+                                <div class="restaurant-image" style="width: 60px; height: 60px;">
+                                    <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
+                                    <div class="text-sm text-muted">${restaurant.category}</div>
+                                    <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    card.appendChild(clickableContent);
+                    
+                    if (isViewingOwnProfile) {
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.onclick = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeFromList(restaurant.id);
+                        };
+                        card.appendChild(removeBtn);
+                    }
+                    
+                    grid.appendChild(card);
+                });
+            }
+
+            async function showMobileList(listId) {
                 let list;
                 
                 if (listId === 'favorites') {
@@ -4006,57 +4085,6 @@ async function checkIfFollowing(userId) {
                     
                     await renderMobileListRestaurants(list.restaurants || [], list);
                 }
-            }
-                
-                // Get restaurant details
-                const numericIds = listRestaurants.map(id => Number(id));
-                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
-                
-                document.getElementById('listDetailTitle').textContent = `${list.title} (${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'})`;
-                
-                restaurantsData.forEach(restaurant => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.style.position = 'relative';
-                    
-                    const clickableContent = document.createElement('a');
-                    clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
-                    clickableContent.style.textDecoration = 'none';
-                    clickableContent.style.color = 'inherit';
-                    clickableContent.style.display = 'block';
-                    clickableContent.style.height = '100%';
-                    
-                    clickableContent.innerHTML = `
-                        <div class="card-body">
-                            <div class="d-flex align-center gap-md">
-                                <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                    <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                                </div>
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
-                                    <div class="text-sm text-muted">${restaurant.category}</div>
-                                    <div class="text-sm" style="margin-top: 4px;">⭐ ${restaurant.rating}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    card.appendChild(clickableContent);
-                    
-                    if (isViewingOwnProfile) {
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-btn';
-                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        removeBtn.onclick = (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            removeFromList(restaurant.id);
-                        };
-                        card.appendChild(removeBtn);
-                    }
-                    
-                    grid.appendChild(card);
-                });
             }
 
             async function renderMobileListRestaurants(listRestaurants, list) {
