@@ -51,6 +51,38 @@ body{
 }
 .login-card h2{text-align:center;margin-bottom:30px;font-size:1.8rem;color:var(--text-primary);}
 .login-card form{display:flex;flex-direction:column;gap:20px;margin-bottom:30px;}
+
+/* Google Sign-in Button */
+.google-btn {
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: #3c4043;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.google-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  background: #f8f9fa;
+}
+.google-btn:active {
+  transform: translateY(0);
+}
+.google-btn img {
+  width: 20px;
+  height: 20px;
+}
+
 .input-group{position:relative;}
 .input-group i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-secondary);transition:var(--transition);}
 .input-group input{
@@ -119,7 +151,15 @@ body{
   <div class="login-card">
     <h2>Log in to your account</h2>
 
-    <button class="gsi-material-button" id="googleLogin">Sign in with Google</button>
+    <button class="google-btn" id="googleLogin">
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Sign in with Google
+    </button>
 
     <div class="divider"><span>or continue with email</span></div>
 
@@ -149,41 +189,75 @@ const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// insert user into user_profiles safely
-async function addUserToProfiles(user){
-  if(!user) return;
-  const { error } = await supabase.from('user_profiles').upsert({
-    id: user.id,
-    email: user.email,
-    full_name: user.user_metadata?.full_name || ''
-  });
-  if(error) console.error('Insert failed:', error);
+// Insert user into user_profiles safely with error handling
+async function addUserToProfiles(user) {
+  if (!user) return;
+  
+  try {
+    // Check if user already exists in user_profiles
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+    
+    // If user doesn't exist, insert them
+    if (fetchError && fetchError.code === 'PGRST116') { // No rows returned
+      const { error: insertError } = await supabase
+        .from('user_profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+          avatar_url: user.user_metadata?.avatar_url || '',
+          created_at: new Date().toISOString()
+        });
+      
+      if (insertError) {
+        console.error('Error inserting user into user_profiles:', insertError);
+        // If the table doesn't exist or has different columns, try a more generic approach
+        if (insertError.code === '42P01') { // Table doesn't exist
+          console.error('The user_profiles table does not exist. Please create it in your Supabase dashboard.');
+        }
+      } else {
+        console.log('User added to user_profiles successfully');
+      }
+    } else if (fetchError) {
+      console.error('Error checking user existence:', fetchError);
+    }
+    // If user exists, do nothing (or update if needed)
+  } catch (err) {
+    console.error('Unexpected error in addUserToProfiles:', err);
+  }
 }
 
 // EMAIL/PASSWORD LOGIN
-document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const rememberMe = document.getElementById('remember').checked;
 
-  if(!email || !password) return alert('Fill all fields');
+  if (!email || !password) return alert('Please fill all fields');
 
   const loginBtn = document.getElementById('loginBtn');
   const originalText = loginBtn.innerHTML;
   loginBtn.innerHTML = '<div class="loading"></div>';
   loginBtn.disabled = true;
 
-  try{
+  try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if(error) throw error;
+    if (error) throw error;
+    
+    // Add user to profiles after successful login
     await addUserToProfiles(data.user);
 
-    if(rememberMe) localStorage.setItem('rememberEmail', email);
+    if (rememberMe) localStorage.setItem('rememberEmail', email);
     else localStorage.removeItem('rememberEmail');
 
-    window.location.href='index.html';
-  }catch(err){
+    // Redirect to main page
+    window.location.href = 'index.html';
+  } catch (err) {
     alert(err.message.includes('Invalid login credentials') ? 'Invalid email or password' : err.message);
     loginBtn.innerHTML = originalText;
     loginBtn.disabled = false;
@@ -191,36 +265,92 @@ document.getElementById('loginForm').addEventListener('submit', async (e)=>{
 });
 
 // GOOGLE LOGIN
-document.getElementById('googleLogin').addEventListener('click', async ()=>{
+document.getElementById('googleLogin').addEventListener('click', async () => {
   const btn = document.getElementById('googleLogin');
   const originalText = btn.innerHTML;
   btn.innerHTML = '<div class="loading"></div>';
   btn.disabled = true;
-  try{
-    const { error } = await supabase.auth.signInWithOAuth({ provider:'google', options:{redirectTo:window.location.href}});
-    if(error) throw error;
-  }catch(err){
-    alert(err.message);
+  
+  try {
+    // Get the current URL for redirect
+    const redirectUrl = window.location.origin + window.location.pathname;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
+        }
+      }
+    });
+    
+    if (error) throw error;
+  } catch (err) {
+    alert('Google login error: ' + err.message);
     btn.innerHTML = originalText;
     btn.disabled = false;
   }
 });
 
-// GOOGLE REDIRECT HANDLER
-supabase.auth.onAuthStateChange(async (event, session)=>{
-  if(session?.user){
-    await addUserToProfiles(session.user);
-    window.location.href='index.html';
+// Handle OAuth callback and auth state changes
+async function handleAuthRedirect() {
+  const { data, error } = await supabase.auth.getSession();
+  
+  if (data.session?.user) {
+    await addUserToProfiles(data.session.user);
+    window.location.href = 'index.html';
   }
+}
+
+// Check for OAuth callback on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check URL for OAuth callback
+  const hash = window.location.hash;
+  const params = new URLSearchParams(window.location.search);
+  
+  if (hash.includes('access_token') || params.has('code')) {
+    await handleAuthRedirect();
+  }
+  
+  // Set up auth state listener
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      await addUserToProfiles(session.user);
+      window.location.href = 'index.html';
+    }
+  });
 });
 
 // REMEMBER EMAIL
 const rememberedEmail = localStorage.getItem('rememberEmail');
-if(rememberedEmail){
-  document.getElementById('email').value=rememberedEmail;
-  document.getElementById('remember').checked=true;
+if (rememberedEmail) {
+  document.getElementById('email').value = rememberedEmail;
+  document.getElementById('remember').checked = true;
 }
-if(!document.getElementById('email').value) document.getElementById('email').focus();
+
+// Set focus to email if empty
+if (!document.getElementById('email').value) {
+  document.getElementById('email').focus();
+}
+
+// Forgot password functionality
+document.getElementById('forgotPassword').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const email = prompt('Please enter your email to reset password:');
+  if (!email) return;
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/reset-password.html'
+  });
+  
+  if (error) {
+    alert('Error sending reset email: ' + error.message);
+  } else {
+    alert('Password reset email sent! Please check your inbox.');
+  }
+});
 </script>
 </body>
 </html>
