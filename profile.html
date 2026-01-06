@@ -1377,7 +1377,8 @@
                 padding: 0;
                 background: var(--bg);
             }
-                        /* Mobile List Detail */
+            
+            /* Mobile List Detail */
             .mobile-list-restaurant-card {
                 background: var(--card);
                 border-radius: var(--radius);
@@ -1423,6 +1424,7 @@
                 height: 32px;
                 flex-shrink: 0;
             }
+            
             /* Mobile Top Bar */
             .mobile-topbar {
                 position: fixed;
@@ -2500,7 +2502,8 @@
                     </div>
                 </div>
             </div>
-                        <!-- Mobile List Detail Section -->
+            
+            <!-- Mobile List Detail Section -->
             <div class="mobile-section" id="mobileListDetailSection">
                 <div class="mobile-section-title">
                     <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMobileListDetail()">
@@ -2806,67 +2809,70 @@
 
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
-        const ProfileManager = (function() {
+        const ProfileManager = {
             // Supabase configuration
-            const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-            const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-
-            // Initialize Supabase client
-            let supabase = null;
+            SUPABASE_URL: "https://gfkhjbztayjyojsgdpgk.supabase.co",
+            SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s",
 
             // Global state
-            let currentUser = null;
-            let userProfile = null;
-            let targetUser = null;
-            let targetUserId = null;
-            let isViewingOwnProfile = true;
-            let restaurants = [];
-            let customLists = [];
-            let currentTab = 'journal';
-            let journalFilter = 'all';
-            let currentActiveList = null;
-            let selectedAvatarIcon = null;
-            let currentEditingJournalEntry = null;
-            let loadedUserIds = new Set();
-            let communitySystem = null;
-            let isEditingList = false;
-            let editingListId = null;
-            let followStatusCache = new Map();
-            let currentSearchDebounce = null;
+            supabase: null,
+            currentUser: null,
+            userProfile: null,
+            targetUser: null,
+            targetUserId: null,
+            isViewingOwnProfile: true,
+            restaurants: [],
+            customLists: [],
+            currentTab: 'journal',
+            journalFilter: 'all',
+            currentActiveList: null,
+            selectedAvatarIcon: null,
+            currentEditingJournalEntry: null,
+            loadedUserIds: new Set(),
+            communitySystem: null,
+            isEditingList: false,
+            editingListId: null,
+            followStatusCache: new Map(),
+            currentSearchDebounce: null,
+            listManager: null,
+            foodJournal: null,
 
             // Food icons for avatar selection
-            const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
+            foodIcons: ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"],
 
             // ===== INITIALIZATION =====
-            async function initialize() {
+            initialize: async function() {
                 try {
                     if (!window.supabase) {
                         console.error('Supabase library not loaded');
                         return;
                     }
                     
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    this.supabase = window.supabase.createClient(this.SUPABASE_URL, this.SUPABASE_KEY);
                     
-                    const { data: { user }, error } = await supabase.auth.getUser();
+                    const { data: { user }, error } = await this.supabase.auth.getUser();
                     if (error || !user) { 
                         window.location.href = "login.html"; 
                         return; 
                     }
                     
-                    currentUser = user;
+                    this.currentUser = user;
                     
-                    await loadProfile();
-                    await loadRestaurants();
+                    await this.loadProfile();
+                    await this.loadRestaurants();
                     
-                    communitySystem = createCommunitySystem();
-                    await listManager.init();
-                    await communitySystem.init();
-                    await foodJournal.init();
+                    this.communitySystem = this.createCommunitySystem();
+                    this.listManager = this.createListManager();
+                    this.foodJournal = this.createFoodJournal();
                     
-                    setupEventListeners();
+                    await this.listManager.init();
+                    await this.communitySystem.init();
+                    await this.foodJournal.init();
+                    
+                    this.setupEventListeners();
                     
                     if (window.innerWidth <= 768) {
-                        initializeMobile();
+                        this.initializeMobile();
                     }
                     
                     document.addEventListener('click', (e) => {
@@ -2877,24 +2883,24 @@
                     
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
-                    showToast('Error loading profile', 'error');
+                    this.showToast('Error loading profile', 'error');
                 }
-            }
+            },
 
             // ===== MOBILE INITIALIZATION =====
-            function initializeMobile() {
+            initializeMobile: function() {
                 document.querySelectorAll('.mobile-tab').forEach(tab => {
                     tab.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
-                        showTab(tabName);
+                        ProfileManager.showTab(tabName);
                     });
                 });
                 
-                updateMobileStats();
-            }
+                this.updateMobileStats();
+            },
 
             // ===== TOAST SYSTEM =====
-            function showToast(message, type = 'info', duration = 3000) {
+            showToast: function(message, type = 'info', duration = 3000) {
                 const isMobile = window.innerWidth <= 768;
                 const toastContainerId = isMobile ? 'mobileToastContainer' : 'toastContainer';
                 let toastContainer = document.getElementById(toastContainerId);
@@ -2940,10 +2946,10 @@
                 setTimeout(() => {
                     if (toast.parentNode) toast.remove();
                 }, duration);
-            }
+            },
 
             // ===== CUSTOM CONFIRMATION MODAL =====
-            function showConfirmModal(title, message, onConfirm) {
+            showConfirmModal: function(title, message, onConfirm) {
                 const modal = document.getElementById('confirmModal');
                 const titleEl = document.getElementById('confirmTitle');
                 const messageEl = document.getElementById('confirmMessage');
@@ -2958,35 +2964,35 @@
                     
                     newConfirmBtn.addEventListener('click', function() {
                         onConfirm();
-                        closeConfirmModal();
+                        ProfileManager.closeConfirmModal();
                     });
                     
                     modal.classList.add('active');
                     document.body.style.overflow = 'hidden';
                 }
-            }
+            },
 
-            function closeConfirmModal() {
+            closeConfirmModal: function() {
                 const modal = document.getElementById('confirmModal');
                 if (modal) {
                     modal.classList.remove('active');
                     document.body.style.overflow = '';
                 }
-            }
+            },
 
             // ===== PROFILE MANAGEMENT =====
-            async function loadProfile() {
-                targetUserId = getUserIdFromUrl();
-                isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
+            loadProfile: async function() {
+                this.targetUserId = this.getUserIdFromUrl();
+                this.isViewingOwnProfile = !this.targetUserId || this.targetUserId === this.currentUser.id;
 
-                if (isViewingOwnProfile) {
-                    await loadOwnProfile();
+                if (this.isViewingOwnProfile) {
+                    await this.loadOwnProfile();
                 } else {
-                    await loadOtherUserProfile();
+                    await this.loadOtherUserProfile();
                 }
-            }
+            },
 
-            async function loadOwnProfile() {
+            loadOwnProfile: async function() {
                 const editProfileBtn = document.getElementById('editProfileBtn');
                 const settingsBtn = document.getElementById('settingsBtn');
                 const followButton = document.getElementById('followButton');
@@ -3007,12 +3013,12 @@
                 if (createListBtn) createListBtn.style.display = 'flex';
                 if (addJournalBtn) addJournalBtn.style.display = 'flex';
 
-                await loadUserProfile();
-                updateProfileUI();
-                await updateStats();
-            }
+                await this.loadUserProfile();
+                this.updateProfileUI();
+                await this.updateStats();
+            },
 
-            async function loadOtherUserProfile() {
+            loadOtherUserProfile: async function() {
                 const editProfileBtn = document.getElementById('editProfileBtn');
                 const settingsBtn = document.getElementById('settingsBtn');
                 const logoutBtn = document.getElementById('logoutBtn');
@@ -3033,45 +3039,45 @@
                 if (createListBtn) createListBtn.style.display = 'none';
                 if (addJournalBtn) addJournalBtn.style.display = 'none';
 
-                const { data: profile, error } = await supabase
+                const { data: profile, error } = await this.supabase
                     .from('user_profiles')
                     .select('*')
-                    .eq('id', targetUserId)
+                    .eq('id', this.targetUserId)
                     .single();
 
                 if (error || !profile) {
-                    showToast('User not found', 'error');
+                    this.showToast('User not found', 'error');
                     setTimeout(() => window.location.href = 'profile.html', 1500);
                     return;
                 }
 
-                targetUser = profile;
-                updateProfileUI(profile);
-                updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
-                await updateFollowButton();
-                await updateStats(targetUserId);
-            }
+                this.targetUser = profile;
+                this.updateProfileUI(profile);
+                this.updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
+                await this.updateFollowButton();
+                await this.updateStats(this.targetUserId);
+            },
 
-            async function loadUserProfile() {
-                const { data: profile, error } = await supabase
+            loadUserProfile: async function() {
+                const { data: profile, error } = await this.supabase
                     .from("user_profiles")
                     .select("*")
-                    .eq("id", currentUser.id)
+                    .eq("id", this.currentUser.id)
                     .single();
 
                 if (error && error.code !== 'PGRST116') {
                     console.error("Error loading profile:", error);
                 }
 
-                userProfile = profile || {};
+                this.userProfile = profile || {};
                 
                 if (!profile) {
-                    const { error: insertError } = await supabase
+                    const { error: insertError } = await this.supabase
                         .from("user_profiles")
                         .insert({
-                            id: currentUser.id,
-                            username: currentUser.email.split('@')[0],
-                            full_name: currentUser.email.split('@')[0],
+                            id: this.currentUser.id,
+                            username: this.currentUser.email.split('@')[0],
+                            full_name: this.currentUser.email.split('@')[0],
                             bio: "",
                             location: "",
                             avatar_icon: "🍔",
@@ -3082,39 +3088,39 @@
                     if (insertError) {
                         console.error('Error creating profile:', insertError);
                     } else {
-                        const { data: newProfile } = await supabase
+                        const { data: newProfile } = await this.supabase
                             .from("user_profiles")
                             .select("*")
-                            .eq("id", currentUser.id)
+                            .eq("id", this.currentUser.id)
                             .single();
                         
-                        userProfile = newProfile || {};
+                        this.userProfile = newProfile || {};
                     }
                 }
-            }
+            },
 
-            function updateProfileUI(profile = userProfile) {
+            updateProfileUI: function(profile = this.userProfile) {
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
                     document.getElementById('mobileTopBarTitle').textContent = 
-                        isViewingOwnProfile ? "Profile" : (profile?.full_name || profile?.username || "Profile");
+                        this.isViewingOwnProfile ? "Profile" : (profile?.full_name || profile?.username || "Profile");
                     
-                    document.getElementById('mobileProfileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
-                    document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('mobileProfileName').textContent = profile?.full_name || profile?.username || this.currentUser.email.split('@')[0];
+                    document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || this.currentUser.email.split('@')[0]}`;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
                     document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || "🍔";
                 } else {
-                    document.getElementById('profileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
-                    document.getElementById('profileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('profileName').textContent = profile?.full_name || profile?.username || this.currentUser.email.split('@')[0];
+                    document.getElementById('profileUsername').textContent = `@${profile?.username || this.currentUser.email.split('@')[0]}`;
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
-                    document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
+                    document.getElementById('memberSince').textContent = `Member since ${new Date(this.currentUser.created_at).getFullYear()}`;
                     document.getElementById('profileAvatar').textContent = profile?.avatar_icon || "🍔";
                 }
-            }
+            },
 
-            function updateTabTitlesForOtherUser(userName) {
+            updateTabTitlesForOtherUser: function(userName) {
                 const journalTabText = document.getElementById('journalTabText');
                 const listsTabText = document.getElementById('listsTabText');
                 const journalTitle = document.getElementById('journalTitle');
@@ -3158,16 +3164,16 @@
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileListsSubtitle) mobileListsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
                 if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
-            }
+            },
 
             // ===== FOLLOW SYSTEM =====
-            async function updateFollowButton() {
-                if (isViewingOwnProfile) return;
+            updateFollowButton: async function() {
+                if (this.isViewingOwnProfile) return;
                 
                 const followButton = document.getElementById('followButton');
                 if (!followButton) return;
                 
-                const isFollowing = await checkIfFollowing(targetUserId);
+                const isFollowing = await this.checkIfFollowing(this.targetUserId);
                 
                 if (isFollowing) {
                     followButton.textContent = 'Unfollow';
@@ -3177,26 +3183,26 @@
                     followButton.className = 'btn btn-primary';
                 }
                 
-                followButton.onclick = () => toggleFollow(targetUserId, followButton);
-            }
+                followButton.onclick = () => this.toggleFollow(this.targetUserId, followButton);
+            },
 
-            async function checkIfFollowing(userId) {
-                const cacheKey = `${currentUser.id}_${userId}`;
+            checkIfFollowing: async function(userId) {
+                const cacheKey = `${this.currentUser.id}_${userId}`;
                 
-                if (followStatusCache.has(cacheKey)) {
-                    return followStatusCache.get(cacheKey);
+                if (this.followStatusCache.has(cacheKey)) {
+                    return this.followStatusCache.get(cacheKey);
                 }
                 
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await this.supabase
                         .from('follows')
                         .select('id')
-                        .eq('follower_id', currentUser.id)
+                        .eq('follower_id', this.currentUser.id)
                         .eq('followed_id', userId)
                         .single();
 
                     const isFollowing = !!data && !error;
-                    followStatusCache.set(cacheKey, isFollowing);
+                    this.followStatusCache.set(cacheKey, isFollowing);
                     
                     return isFollowing;
                     
@@ -3204,24 +3210,24 @@
                     console.error('Error checking follow status:', error);
                     return false;
                 }
-            }
+            },
 
-            async function toggleFollow(userId, buttonElement) {
+            toggleFollow: async function(userId, buttonElement) {
                 try {
-                    const isFollowing = await checkIfFollowing(userId);
-                    const cacheKey = `${currentUser.id}_${userId}`;
+                    const isFollowing = await this.checkIfFollowing(userId);
+                    const cacheKey = `${this.currentUser.id}_${userId}`;
                     
                     if (isFollowing) {
                         // Unfollow
-                        const { error } = await supabase
+                        const { error } = await this.supabase
                             .from('follows')
                             .delete()
-                            .eq('follower_id', currentUser.id)
+                            .eq('follower_id', this.currentUser.id)
                             .eq('followed_id', userId);
 
                         if (error) throw error;
                         
-                        followStatusCache.set(cacheKey, false);
+                        this.followStatusCache.set(cacheKey, false);
                         
                         // Update button
                         if (buttonElement) {
@@ -3230,21 +3236,21 @@
                                 'mobile-action-btn primary' : 'btn btn-primary';
                         }
                         
-                        showToast('Unfollowed user', 'info');
+                        this.showToast('Unfollowed user', 'info');
                         
                     } else {
                         // Follow
-                        const { error } = await supabase
+                        const { error } = await this.supabase
                             .from('follows')
                             .insert({
-                                follower_id: currentUser.id,
+                                follower_id: this.currentUser.id,
                                 followed_id: userId,
                                 created_at: new Date().toISOString()
                             });
 
                         if (error) throw error;
                         
-                        followStatusCache.set(cacheKey, true);
+                        this.followStatusCache.set(cacheKey, true);
                         
                         // Update button
                         if (buttonElement) {
@@ -3257,86 +3263,86 @@
                             }
                         }
                         
-                        showToast('Started following user', 'success');
+                        this.showToast('Started following user', 'success');
                     }
                     
                     // Update stats
-                    await updateStats();
-                    if (communitySystem) {
-                        await communitySystem.loadFollowStats();
-                        communitySystem.refreshCurrentView();
+                    await this.updateStats();
+                    if (this.communitySystem) {
+                        await this.communitySystem.loadFollowStats();
+                        this.communitySystem.refreshCurrentView();
                     }
                     
                 } catch (error) {
                     console.error('Error toggling follow:', error);
-                    showToast('Action failed. Please try again.', 'error');
+                    this.showToast('Action failed. Please try again.', 'error');
                 }
-            }
+            },
 
             // ===== RESTAURANTS =====
-            async function loadRestaurants() {
+            loadRestaurants: async function() {
                 try {
-                    const { data, error } = await supabase
+                    const { data, error } = await this.supabase
                         .from('restraunts')
                         .select('*')
                         .order('name');
                     
                     if (error) throw error;
                     
-                    restaurants = data || [];
-                    populateRestaurantSelect();
+                    this.restaurants = data || [];
+                    this.populateRestaurantSelect();
                     
                 } catch (error) {
                     console.error('Error loading restaurants:', error);
-                    restaurants = [];
+                    this.restaurants = [];
                 }
-            }
+            },
 
-            function populateRestaurantSelect() {
+            populateRestaurantSelect: function() {
                 const restaurantSelect = document.getElementById('restaurantSelect');
                 if (!restaurantSelect) return;
                 
                 restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
                 
-                restaurants.forEach(restaurant => {
+                this.restaurants.forEach(restaurant => {
                     const option = document.createElement('option');
                     option.value = restaurant.id;
                     option.textContent = `${restaurant.name} (${restaurant.category})`;
                     restaurantSelect.appendChild(option);
                 });
-            }
+            },
 
             // ===== STATS =====
-            async function updateStats(userId = null) {
-                const targetId = userId || currentUser.id;
+            updateStats: async function(userId = null) {
+                const targetId = userId || this.currentUser.id;
                 
                 try {
                     // Get followers count
-                    const { count: followersCount, error: followersError } = await supabase
+                    const { count: followersCount, error: followersError } = await this.supabase
                         .from('follows')
                         .select('*', { count: 'exact', head: true })
                         .eq('followed_id', targetId);
 
                     // Get following count
-                    const { count: followingCount, error: followingError } = await supabase
+                    const { count: followingCount, error: followingError } = await this.supabase
                         .from('follows')
                         .select('*', { count: 'exact', head: true })
                         .eq('follower_id', targetId);
 
                     // Get visited count from journal entries
-                    const { count: visitedCount, error: visitedError } = await supabase
+                    const { count: visitedCount, error: visitedError } = await this.supabase
                         .from('journal_entries')
                         .select('*', { count: 'exact', head: true })
                         .eq('user_id', targetId);
 
                     // Get lists count
-                    const { count: listsCount, error: listsError } = await supabase
+                    const { count: listsCount, error: listsError } = await this.supabase
                         .from('lists')
                         .select('*', { count: 'exact', head: true })
                         .eq('user_id', targetId);
 
                     // Update UI
-                    updateStatsUI(
+                    this.updateStatsUI(
                         visitedCount || 0,
                         followersCount || 0,
                         listsCount || 0,
@@ -3344,15 +3350,15 @@
                     );
                     
                     // Update badges
-                    updateFollowBadges(followersCount || 0);
+                    this.updateFollowBadges(followersCount || 0);
                     
                 } catch (error) {
                     console.error('Error updating stats:', error);
-                    updateStatsUI(0, 0, 0, 0);
+                    this.updateStatsUI(0, 0, 0, 0);
                 }
-            }
+            },
 
-            function updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount) {
+            updateStatsUI: function(visitedCount, followersCount, listsCount, reviewsCount) {
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
@@ -3367,9 +3373,9 @@
                     document.getElementById('reviewsCount').textContent = reviewsCount;
                     document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
                 }
-            }
+            },
 
-            function updateFollowBadges(followersCount) {
+            updateFollowBadges: function(followersCount) {
                 const followersBadge = document.getElementById('followersBadge');
                 const mobileFollowersBadge = document.getElementById('mobileFollowersBadge');
                 const followersCountBadge = document.getElementById('followersCountBadge');
@@ -3389,295 +3395,307 @@
                     followersCountBadge.textContent = followersCount;
                     followersCountBadge.style.display = followersCount > 0 ? 'inline-block' : 'none';
                 }
-            }
+            },
 
-            // ===== LIST MANAGER =====
-            const listManager = {
-                userLists: [],
-                currentLists: {
-                    favorites: null,
-                    visited: null,
-                    wantToGo: null
-                },
+            // ===== LIST MANAGER CREATION =====
+            createListManager: function() {
+                const self = this;
                 
-                async init() { 
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    if (!targetId) return;
+                return {
+                    userLists: [],
+                    currentLists: {
+                        favorites: null,
+                        visited: null,
+                        wantToGo: null
+                    },
                     
-                    await this.loadUserLists(targetId);
-                    await this.loadListRestaurants();
-                    await this.loadCustomLists(targetId);
-                    this.renderLists();
-                },
-                
-                async loadUserLists(userId) {
-                    try {
-                        const { data: lists, error } = await supabase
-                            .from('lists')
-                            .select('*')
-                            .eq('user_id', userId);
+                    init: async function() { 
+                        const targetId = self.isViewingOwnProfile ? self.currentUser.id : self.targetUserId;
+                        if (!targetId) return;
                         
-                        if (error) throw error;
-                        
-                        this.userLists = lists || [];
-                        await this.setupDefaultLists(userId);
-                        
-                    } catch (error) {
-                        console.error('Error loading lists:', error);
-                    }
-                },
-                
-                async setupDefaultLists(userId) {
-                    this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-                    this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-                    this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                        await this.loadUserLists(targetId);
+                        await this.loadListRestaurants();
+                        await this.loadCustomLists(targetId);
+                        this.renderLists();
+                    },
                     
-                    if (isViewingOwnProfile) {
-                        if (!this.currentLists.favorites) {
-                            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId, '❤️');
-                        }
-                        if (!this.currentLists.visited) {
-                            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId, '✅');
-                        }
-                        if (!this.currentLists.wantToGo) {
-                            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId, '📍');
-                        }
-                    }
-                },
-                
-                async createList(title, description, userId = currentUser.id, icon = '📋') {
-                    const { data: newList, error } = await supabase
-                        .from('lists')
-                        .insert([{ 
-                            user_id: userId, 
-                            title: title, 
-                            description: description,
-                            icon: icon,
-                            is_default: true,
-                            created_at: new Date().toISOString()
-                        }])
-                        .select()
-                        .single();
-                    
-                    if (error) {
-                        console.error('Error creating list:', error);
-                        return null;
-                    }
-                    
-                    this.userLists.push(newList);
-                    return newList;
-                },
-                
-                async loadListRestaurants() {
-                    for (const listType in this.currentLists) {
-                        const list = this.currentLists[listType];
-                        if (list) {
-                            const { data: listRestraunts, error } = await supabase
-                                .from('lists_restraunts')
-                                .select('restraunt_id')
-                                .eq('list_id', list.id);
-                            
-                            if (!error && listRestraunts) {
-                                list.restaurants = listRestraunts.map(item => item.restraunt_id);
-                            } else {
-                                list.restaurants = [];
-                            }
-                        }
-                    }
-                },
-                
-                async loadCustomLists(userId) {
-                    if (!userId) return;
-                    
-                    try {
-                        const { data: lists, error } = await supabase
-                            .from('lists')
-                            .select('*')
-                            .eq('user_id', userId)
-                            .neq('title', 'Favorites')
-                            .neq('title', 'Visited')
-                            .neq('title', 'Want to Go');
-                        
-                        if (error) throw error;
-                        
-                        customLists = lists || [];
-                        
-                        for (const list of customLists) {
-                            const { data: listRestraunts, error } = await supabase
-                                .from('lists_restraunts')
-                                .select('restraunt_id')
-                                .eq('list_id', list.id);
-                            
-                            if (!error && listRestraunts) {
-                                list.restaurants = listRestraunts.map(item => item.restraunt_id);
-                            } else {
-                                list.restaurants = [];
-                            }
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error loading custom lists:', error);
-                    }
-                },
-
-                async toggleInList(listId, restaurantId) {
-                    let list;
-                    
-                    if (typeof listId === 'string') {
-                        if (listId === 'favorites') list = this.currentLists.favorites;
-                        else if (listId === 'visited') list = this.currentLists.visited;
-                        else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
-                    } else {
-                        list = customLists.find(l => l.id === listId) || 
-                               this.userLists.find(l => l.id === listId);
-                    }
-                    
-                    if (!list) return false;
-                    
-                    const isInList = list.restaurants?.includes(restaurantId);
-                    
-                    try {
-                        if (isInList) {
-                            const { error } = await supabase
-                                .from('lists_restraunts')
-                                .delete()
-                                .match({ 
-                                    list_id: list.id, 
-                                    restraunt_id: restaurantId
-                                });
+                    loadUserLists: async function(userId) {
+                        try {
+                            const { data: lists, error } = await self.supabase
+                                .from('lists')
+                                .select('*')
+                                .eq('user_id', userId);
                             
                             if (error) throw error;
                             
-                            if (list.restaurants) {
-                                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                            this.userLists = lists || [];
+                            await this.setupDefaultLists(userId);
+                            
+                        } catch (error) {
+                            console.error('Error loading lists:', error);
+                        }
+                    },
+                    
+                    setupDefaultLists: async function(userId) {
+                        this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+                        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+                        this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                        
+                        if (self.isViewingOwnProfile) {
+                            if (!this.currentLists.favorites) {
+                                this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId, '❤️');
+                            }
+                            if (!this.currentLists.visited) {
+                                this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId, '✅');
+                            }
+                            if (!this.currentLists.wantToGo) {
+                                this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId, '📍');
+                            }
+                        }
+                    },
+                    
+                    createList: async function(title, description, userId = self.currentUser.id, icon = '📋') {
+                        const { data: newList, error } = await self.supabase
+                            .from('lists')
+                            .insert([{ 
+                                user_id: userId, 
+                                title: title, 
+                                description: description,
+                                icon: icon,
+                                is_default: true,
+                                created_at: new Date().toISOString()
+                            }])
+                            .select()
+                            .single();
+                        
+                        if (error) {
+                            console.error('Error creating list:', error);
+                            return null;
+                        }
+                        
+                        this.userLists.push(newList);
+                        return newList;
+                    },
+                    
+                    loadListRestaurants: async function() {
+                        for (const listType in this.currentLists) {
+                            const list = this.currentLists[listType];
+                            if (list) {
+                                const { data: listRestraunts, error } = await self.supabase
+                                    .from('lists_restraunts')
+                                    .select('restraunt_id')
+                                    .eq('list_id', list.id);
+                                
+                                if (!error && listRestraunts) {
+                                    list.restaurants = listRestraunts.map(item => item.restraunt_id);
+                                } else {
+                                    list.restaurants = [];
+                                }
+                            }
+                        }
+                    },
+                    
+                    loadCustomLists: async function(userId) {
+                        if (!userId) return;
+                        
+                        try {
+                            const { data: lists, error } = await self.supabase
+                                .from('lists')
+                                .select('*')
+                                .eq('user_id', userId)
+                                .neq('title', 'Favorites')
+                                .neq('title', 'Visited')
+                                .neq('title', 'Want to Go');
+                            
+                            if (error) throw error;
+                            
+                            self.customLists = lists || [];
+                            
+                            for (const list of self.customLists) {
+                                const { data: listRestraunts, error } = await self.supabase
+                                    .from('lists_restraunts')
+                                    .select('restraunt_id')
+                                    .eq('list_id', list.id);
+                                
+                                if (!error && listRestraunts) {
+                                    list.restaurants = listRestraunts.map(item => item.restraunt_id);
+                                } else {
+                                    list.restaurants = [];
+                                }
                             }
                             
-                            showToast(`Removed from ${list.title}`, "info");
-                            return false;
+                        } catch (error) {
+                            console.error('Error loading custom lists:', error);
+                        }
+                    },
+
+                    toggleInList: async function(listId, restaurantId) {
+                        let list;
+                        
+                        if (typeof listId === 'string') {
+                            if (listId === 'favorites') list = this.currentLists.favorites;
+                            else if (listId === 'visited') list = this.currentLists.visited;
+                            else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
                         } else {
-                            const { error } = await supabase
-                                .from('lists_restraunts')
-                                .insert([{ 
-                                    list_id: list.id, 
-                                    restraunt_id: restaurantId,
-                                    added_at: new Date().toISOString()
-                                }]);
-                            
-                            if (error) throw error;
-                            
-                            if (!list.restaurants) list.restaurants = [];
-                            list.restaurants.push(restaurantId);
-                            showToast(`Added to ${list.title}`, "success");
-                            return true;
+                            list = self.customLists.find(l => l.id === listId) || 
+                                   this.userLists.find(l => l.id === listId);
                         }
                         
-                    } catch (error) {
-                        console.error('Error updating list:', error);
-                        showToast('Error saving changes', 'error');
-                        return isInList;
-                    }
-                },
+                        if (!list) return false;
+                        
+                        const isInList = list.restaurants?.includes(restaurantId);
+                        
+                        try {
+                            if (isInList) {
+                                const { error } = await self.supabase
+                                    .from('lists_restraunts')
+                                    .delete()
+                                    .match({ 
+                                        list_id: list.id, 
+                                        restraunt_id: restaurantId
+                                    });
+                                
+                                if (error) throw error;
+                                
+                                if (list.restaurants) {
+                                    list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                                }
+                                
+                                self.showToast(`Removed from ${list.title}`, "info");
+                                return false;
+                            } else {
+                                const { error } = await self.supabase
+                                    .from('lists_restraunts')
+                                    .insert([{ 
+                                        list_id: list.id, 
+                                        restraunt_id: restaurantId,
+                                        added_at: new Date().toISOString()
+                                    }]);
+                                
+                                if (error) throw error;
+                                
+                                if (!list.restaurants) list.restaurants = [];
+                                list.restaurants.push(restaurantId);
+                                self.showToast(`Added to ${list.title}`, "success");
+                                return true;
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error updating list:', error);
+                            self.showToast('Error saving changes', 'error');
+                            return isInList;
+                        }
+                    },
 
-                isInList(listType, restaurantId) {
-                    let list;
-                    
-                    if (typeof listType === 'string') {
-                        list = this.currentLists[listType];
-                    } else {
-                        list = customLists.find(l => l.id === listType);
-                    }
-                    
-                    return list?.restaurants?.includes(restaurantId) || false;
-                },
+                    isInList: function(listType, restaurantId) {
+                        let list;
+                        
+                        if (typeof listType === 'string') {
+                            list = this.currentLists[listType];
+                        } else {
+                            list = self.customLists.find(l => l.id === listType);
+                        }
+                        
+                        return list?.restaurants?.includes(restaurantId) || false;
+                    },
 
-                renderLists() {
-                    const isMobile = window.innerWidth <= 768;
-                    
-                    if (isMobile) {
-                        this.renderMobileLists();
-                    } else {
-                        this.renderDesktopLists();
-                    }
-                },
+                    renderLists: function() {
+                        const isMobile = window.innerWidth <= 768;
+                        
+                        if (isMobile) {
+                            this.renderMobileLists();
+                        } else {
+                            this.renderDesktopLists();
+                        }
+                    },
 
-                renderDesktopLists() {
-                    const listsGrid = document.getElementById('listsGrid');
-                    if (!listsGrid) return;
-                    
-                    listsGrid.innerHTML = '';
-                    
-                    const defaultLists = [
-                        {
-                            id: 'favorites',
-                            title: 'Favorites',
-                            description: 'Your top picks.',
-                            icon: '❤️',
-                            color: 'var(--error)',
-                            restaurants: this.currentLists.favorites?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'visited',
-                            title: 'Visited',
-                            description: 'Restaurants you have checked out.',
-                            icon: '✅',
-                            color: 'var(--success)',
-                            restaurants: this.currentLists.visited?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'wantToGo',
-                            title: 'Want To Go',
-                            description: 'Saved for later.',
-                            icon: '📍',
+                    renderDesktopLists: function() {
+                        const listsGrid = document.getElementById('listsGrid');
+                        if (!listsGrid) return;
+                        
+                        listsGrid.innerHTML = '';
+                        
+                        const defaultLists = [
+                            {
+                                id: 'favorites',
+                                title: 'Favorites',
+                                description: 'Your top picks.',
+                                icon: '❤️',
+                                color: 'var(--error)',
+                                restaurants: this.currentLists.favorites?.restaurants || [],
+                                isDefault: true
+                            },
+                            {
+                                id: 'visited',
+                                title: 'Visited',
+                                description: 'Restaurants you have checked out.',
+                                icon: '✅',
+                                color: 'var(--success)',
+                                restaurants: this.currentLists.visited?.restaurants || [],
+                                isDefault: true
+                            },
+                            {
+                                id: 'wantToGo',
+                                title: 'Want To Go',
+                                description: 'Saved for later.',
+                                icon: '📍',
+                                color: 'var(--accent)',
+                                restaurants: this.currentLists.wantToGo?.restaurants || [],
+                                isDefault: true
+                            }
+                        ];
+                        
+                        const allLists = [...defaultLists, ...self.customLists.map(list => ({
+                            id: list.id,
+                            title: list.title,
+                            description: list.description || 'Your custom-made collection.',
+                            icon: list.icon || '📋',
                             color: 'var(--accent)',
-                            restaurants: this.currentLists.wantToGo?.restaurants || [],
-                            isDefault: true
+                            restaurants: list.restaurants || [],
+                            isDefault: false
+                        }))];
+                        
+                        if (allLists.length === 0) {
+                            listsGrid.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-icon">📋</div>
+                                    <h3 class="empty-title">No Lists Yet</h3>
+                                    <p class="empty-description">Create your first list to organize restaurants by occasion, cuisine, or mood!</p>
+                                    <button class="btn btn-primary mt-md" onclick="ProfileManager.showCreateListModal()">
+                                        <i class="fas fa-plus"></i> Create Your First List
+                                    </button>
+                                </div>
+                            `;
+                            return;
                         }
-                    ];
-                    
-                    const allLists = [...defaultLists, ...customLists.map(list => ({
-                        id: list.id,
-                        title: list.title,
-                        description: list.description || 'Your custom-made collection.',
-                        icon: list.icon || '📋',
-                        color: 'var(--accent)',
-                        restaurants: list.restaurants || [],
-                        isDefault: false
-                    }))];
-                    
-                    if (allLists.length === 0) {
-                        listsGrid.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📋</div>
-                                <h3 class="empty-title">No Lists Yet</h3>
-                                <p class="empty-description">Create your first list to organize restaurants by occasion, cuisine, or mood!</p>
-                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showCreateListModal()">
-                                    <i class="fas fa-plus"></i> Create Your First List
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    allLists.forEach(list => {
-                        const listCard = document.createElement('div');
-                        listCard.className = 'list-card';
                         
-                        const previewItems = [];
-                        const restaurantIds = list.restaurants || [];
-                        const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
-                        
-                        for (let i = 0; i < 4; i++) {
-                            if (shuffledIds[i]) {
-                                const restaurantId = shuffledIds[i];
-                                const restaurant = restaurants.find(r => r.id === restaurantId);
-                                if (restaurant) {
-                                    previewItems.push(`
-                                        <div class="list-preview-item">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                                        </div>
-                                    `);
+                        allLists.forEach(list => {
+                            const listCard = document.createElement('div');
+                            listCard.className = 'list-card';
+                            
+                            const previewItems = [];
+                            const restaurantIds = list.restaurants || [];
+                            const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
+                            
+                            for (let i = 0; i < 4; i++) {
+                                if (shuffledIds[i]) {
+                                    const restaurantId = shuffledIds[i];
+                                    const restaurant = self.restaurants.find(r => r.id === restaurantId);
+                                    if (restaurant) {
+                                        previewItems.push(`
+                                            <div class="list-preview-item">
+                                                <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                            </div>
+                                        `);
+                                    } else {
+                                        previewItems.push(`
+                                            <div class="list-preview-item">
+                                                <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                                    🍽️
+                                                </div>
+                                            </div>
+                                        `);
+                                    }
                                 } else {
                                     previewItems.push(`
                                         <div class="list-preview-item">
@@ -3687,127 +3705,127 @@
                                         </div>
                                     `);
                                 }
-                            } else {
-                                previewItems.push(`
-                                    <div class="list-preview-item">
-                                        <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                            🍽️
-                                        </div>
-                                    </div>
-                                `);
                             }
-                        }
-                        
-                        const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
-                            <div class="list-card-actions">
-                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
-                                <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Rename</div>
-                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
+                            
+                            const kebabHtml = (self.isViewingOwnProfile && !list.isDefault) ? `
+                                <div class="list-card-actions">
+                                    <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
+                                    <div class="kebab-dropdown" id="kebab-${list.id}">
+                                        <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Rename</div>
+                                        <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
+                                    </div>
+                                </div>` : '';
+                            
+                            listCard.innerHTML = `
+                                ${kebabHtml}
+                                <div class="list-card-header">
+                                    <div class="list-card-title">
+                                        <span style="font-size: 24px;">${list.icon}</span>
+                                        ${list.title}
+                                    </div>
                                 </div>
-                            </div>` : '';
-                        
-                        listCard.innerHTML = `
-                            ${kebabHtml}
-                            <div class="list-card-header">
-                                <div class="list-card-title">
-                                    <span style="font-size: 24px;">${list.icon}</span>
-                                    ${list.title}
+                                <p class="list-card-description">${list.description}</p>
+                                <div class="list-preview-grid">
+                                    ${previewItems.join('')}
                                 </div>
-                            </div>
-                            <p class="list-card-description">${list.description}</p>
-                            <div class="list-preview-grid">
-                                ${previewItems.join('')}
-                            </div>
-                            <div class="list-card-footer">
-                                <span class="list-card-count">${restaurantIds.length} places</span>
-                                <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')">View List</button>
-                            </div>
-                        `;
-                        
-                        listCard.onclick = () => ProfileManager.showList(list.id);
-                        listsGrid.appendChild(listCard);
-                    });
-                },
+                                <div class="list-card-footer">
+                                    <span class="list-card-count">${restaurantIds.length} places</span>
+                                    <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')">View List</button>
+                                </div>
+                            `;
+                            
+                            listCard.onclick = () => ProfileManager.showList(list.id);
+                            listsGrid.appendChild(listCard);
+                        });
+                    },
 
-                renderMobileLists() {
-                    const mobileListsContainer = document.getElementById('mobileLists');
-                    if (!mobileListsContainer) return;
-                    
-                    mobileListsContainer.innerHTML = '';
-                    
-                    const defaultLists = [
-                        {
-                            id: 'favorites',
-                            title: 'Favorites',
-                            description: 'Your top picks.',
-                            icon: '❤️',
-                            color: 'var(--error)',
-                            restaurants: this.currentLists.favorites?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'visited',
-                            title: 'Visited',
-                            description: 'Restaurants you have checked out.',
-                            icon: '✅',
-                            color: 'var(--success)',
-                            restaurants: this.currentLists.visited?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'wantToGo',
-                            title: 'Want To Go',
-                            description: 'Saved for later.',
-                            icon: '📍',
+                    renderMobileLists: function() {
+                        const mobileListsContainer = document.getElementById('mobileLists');
+                        if (!mobileListsContainer) return;
+                        
+                        mobileListsContainer.innerHTML = '';
+                        
+                        const defaultLists = [
+                            {
+                                id: 'favorites',
+                                title: 'Favorites',
+                                description: 'Your top picks.',
+                                icon: '❤️',
+                                color: 'var(--error)',
+                                restaurants: this.currentLists.favorites?.restaurants || [],
+                                isDefault: true
+                            },
+                            {
+                                id: 'visited',
+                                title: 'Visited',
+                                description: 'Restaurants you have checked out.',
+                                icon: '✅',
+                                color: 'var(--success)',
+                                restaurants: this.currentLists.visited?.restaurants || [],
+                                isDefault: true
+                            },
+                            {
+                                id: 'wantToGo',
+                                title: 'Want To Go',
+                                description: 'Saved for later.',
+                                icon: '📍',
+                                color: 'var(--accent)',
+                                restaurants: this.currentLists.wantToGo?.restaurants || [],
+                                isDefault: true
+                            }
+                        ];
+                        
+                        const allLists = [...defaultLists, ...self.customLists.map(list => ({
+                            id: list.id,
+                            title: list.title,
+                            description: list.description || 'Your custom-made collection.',
+                            icon: list.icon || '📋',
                             color: 'var(--accent)',
-                            restaurants: this.currentLists.wantToGo?.restaurants || [],
-                            isDefault: true
+                            restaurants: list.restaurants || [],
+                            isDefault: false
+                        }))];
+                        
+                        if (allLists.length === 0) {
+                            mobileListsContainer.innerHTML = `
+                                <div class="mobile-empty-state">
+                                    <div class="mobile-empty-icon">📋</div>
+                                    <div class="mobile-empty-title">No Lists Yet</div>
+                                    <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                                    <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
+                                        <i class="fas fa-plus"></i> Create List
+                                    </button>
+                                </div>
+                            `;
+                            return;
                         }
-                    ];
-                    
-                    const allLists = [...defaultLists, ...customLists.map(list => ({
-                        id: list.id,
-                        title: list.title,
-                        description: list.description || 'Your custom-made collection.',
-                        icon: list.icon || '📋',
-                        color: 'var(--accent)',
-                        restaurants: list.restaurants || [],
-                        isDefault: false
-                    }))];
-                    
-                    if (allLists.length === 0) {
-                        mobileListsContainer.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">📋</div>
-                                <div class="mobile-empty-title">No Lists Yet</div>
-                                <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
-                                <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
-                                    <i class="fas fa-plus"></i> Create List
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    allLists.forEach(list => {
-                        const listCard = document.createElement('div');
-                        listCard.className = 'mobile-list-card';
                         
-                        const previewItems = [];
-                        const restaurantIds = list.restaurants || [];
-                        const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
-                        
-                        for (let i = 0; i < 4; i++) {
-                            if (shuffledIds[i]) {
-                                const restaurantId = shuffledIds[i];
-                                const restaurant = restaurants.find(r => r.id === restaurantId);
-                                if (restaurant) {
-                                    previewItems.push(`
-                                        <div class="mobile-preview-item">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                                        </div>
-                                    `);
+                        allLists.forEach(list => {
+                            const listCard = document.createElement('div');
+                            listCard.className = 'mobile-list-card';
+                            
+                            const previewItems = [];
+                            const restaurantIds = list.restaurants || [];
+                            const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
+                            
+                            for (let i = 0; i < 4; i++) {
+                                if (shuffledIds[i]) {
+                                    const restaurantId = shuffledIds[i];
+                                    const restaurant = self.restaurants.find(r => r.id === restaurantId);
+                                    if (restaurant) {
+                                        previewItems.push(`
+                                            <div class="mobile-preview-item">
+                                                <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                            </div>
+                                        `);
+                                    } else {
+                                        previewItems.push(`
+                                            <div class="mobile-preview-item">
+                                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                                    🍽️
+                                                </div>
+                                            </div>
+                                        `);
+                                    }
                                 } else {
                                     previewItems.push(`
                                         <div class="mobile-preview-item">
@@ -3817,123 +3835,115 @@
                                         </div>
                                     `);
                                 }
-                            } else {
-                                previewItems.push(`
-                                    <div class="mobile-preview-item">
-                                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                            🍽️
-                                        </div>
-                                    </div>
-                                `);
                             }
-                        }
-                        
-                        const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
-                            <div class="list-card-actions">
-                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
-                                <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Rename</div>
-                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
+                            
+                            const kebabHtml = (self.isViewingOwnProfile && !list.isDefault) ? `
+                                <div class="list-card-actions">
+                                    <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
+                                    <div class="kebab-dropdown" id="kebab-${list.id}">
+                                        <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Rename</div>
+                                        <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
+                                    </div>
+                                </div>` : '';
+                            
+                            listCard.innerHTML = `
+                                ${kebabHtml}
+                                <div class="mobile-list-header">
+                                    <div class="mobile-list-icon">
+                                        ${list.icon || '📋'}
+                                    </div>
+                                    <div class="mobile-list-info">
+                                        <div class="mobile-list-title">${list.title}</div>
+                                        <div class="mobile-list-count">${restaurantIds.length} places</div>
+                                    </div>
                                 </div>
-                            </div>` : '';
-                        
-                        listCard.innerHTML = `
-                            ${kebabHtml}
-                            <div class="mobile-list-header">
-                                <div class="mobile-list-icon">
-                                    ${list.icon || '📋'}
+                                ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
+                                <div class="mobile-list-preview">
+                                    ${previewItems.join('')}
                                 </div>
-                                <div class="mobile-list-info">
-                                    <div class="mobile-list-title">${list.title}</div>
-                                    <div class="mobile-list-count">${restaurantIds.length} places</div>
-                                </div>
-                            </div>
-                            ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
-                            <div class="mobile-list-preview">
-                                ${previewItems.join('')}
-                            </div>
-                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${list.id}')" style="width: 100%;">
-                                <i class="fas fa-eye"></i> View List
-                            </button>
-                        `;
-                        
-                        listCard.onclick = () => ProfileManager.showMobileList(list.id);
-                        mobileListsContainer.appendChild(listCard);
-                    });
-                }
-            };
+                                <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${list.id}')" style="width: 100%;">
+                                    <i class="fas fa-eye"></i> View List
+                                </button>
+                            `;
+                            
+                            listCard.onclick = () => ProfileManager.showMobileList(list.id);
+                            mobileListsContainer.appendChild(listCard);
+                        });
+                    }
+                };
+            },
 
             // ===== LIST DISPLAY FUNCTIONS =====
-            function removeFromList(restaurantId) {
-                showConfirmModal(
+            removeFromList: function(restaurantId) {
+                this.showConfirmModal(
                     'Remove restaurant from list?',
                     'This will remove the restaurant from your list.',
                     async () => {
-                        if (!currentActiveList || !currentActiveList.id) {
-                            showToast('Could not find list', 'error');
+                        if (!this.currentActiveList || !this.currentActiveList.id) {
+                            this.showToast('Could not find list', 'error');
                             return;
                         }
                         
                         try {
                             // Remove from database
-                            await supabase
+                            await this.supabase
                                 .from('lists_restraunts')
                                 .delete()
                                 .match({ 
-                                    list_id: currentActiveList.id, 
+                                    list_id: this.currentActiveList.id, 
                                     restraunt_id: restaurantId 
                                 });
                             
-                            showToast('Removed from list', 'success');
+                            this.showToast('Removed from list', 'success');
                             
                             // Update the local list data
-                            if (currentActiveList.restaurants) {
-                                const index = currentActiveList.restaurants.indexOf(restaurantId);
+                            if (this.currentActiveList.restaurants) {
+                                const index = this.currentActiveList.restaurants.indexOf(restaurantId);
                                 if (index > -1) {
-                                    currentActiveList.restaurants.splice(index, 1);
+                                    this.currentActiveList.restaurants.splice(index, 1);
                                 }
                             }
                             
                             // Refresh the view
                             if (window.innerWidth <= 768) {
-                                await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                                await this.renderMobileListRestaurants(this.currentActiveList.restaurants || [], this.currentActiveList);
                             } else {
-                                await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
+                                await this.renderListRestaurants(this.currentActiveList.restaurants || [], this.currentActiveList);
                             }
                             
                         } catch (error) {
                             console.error('Error removing restaurant:', error);
-                            showToast('Error removing restaurant', 'error');
+                            this.showToast('Error removing restaurant', 'error');
                         }
                     }
                 );
-            }
+            },
 
-            async function showList(listId) {
+            showList: async function(listId) {
                 let list;
                 
                 if (listId === 'favorites') {
-                    list = listManager.currentLists.favorites;
+                    list = this.listManager.currentLists.favorites;
                 } else if (listId === 'visited') {
-                    list = listManager.currentLists.visited;
+                    list = this.listManager.currentLists.visited;
                 } else if (listId === 'wantToGo') {
-                    list = listManager.currentLists.wantToGo;
+                    list = this.listManager.currentLists.wantToGo;
                 } else {
-                    list = customLists.find(l => l.id == listId) || 
-                           listManager.userLists.find(l => l.id == listId);
+                    list = this.customLists.find(l => l.id == listId) || 
+                           this.listManager.userLists.find(l => l.id == listId);
                 }
                 
                 if (!list) {
-                    showToast('List not found', 'error');
+                    this.showToast('List not found', 'error');
                     return;
                 }
                 
-                currentActiveList = list;
+                this.currentActiveList = list;
                 
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
-                    showMobileList(listId);
+                    this.showMobileList(listId);
                     return;
                 }
                 
@@ -3953,33 +3963,33 @@
                 const addToListBtn = document.getElementById('addToListBtn');
                 
                 if (editListBtn) {
-                    editListBtn.style.display = isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listId) ? 'flex' : 'none';
+                    editListBtn.style.display = this.isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listId) ? 'flex' : 'none';
                 }
-                if (addToListBtn) addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                if (addToListBtn) addToListBtn.style.display = this.isViewingOwnProfile ? 'flex' : 'none';
                 
-                await renderListRestaurants(list.restaurants || [], list);
-            }
+                await this.renderListRestaurants(list.restaurants || [], list);
+            },
 
-               async function showMobileList(listId) {
+            showMobileList: async function(listId) {
                 let list;
                 
                 if (listId === 'favorites') {
-                    list = listManager.currentLists.favorites;
+                    list = this.listManager.currentLists.favorites;
                 } else if (listId === 'visited') {
-                    list = listManager.currentLists.visited;
+                    list = this.listManager.currentLists.visited;
                 } else if (listId === 'wantToGo') {
-                    list = listManager.currentLists.wantToGo;
+                    list = this.listManager.currentLists.wantToGo;
                 } else {
-                    list = customLists.find(l => l.id == listId) || 
-                           listManager.userLists.find(l => l.id == listId);
+                    list = this.customLists.find(l => l.id == listId) || 
+                           this.listManager.userLists.find(l => l.id == listId);
                 }
                 
                 if (!list) {
-                    showToast('List not found', 'error');
+                    this.showToast('List not found', 'error');
                     return;
                 }
                 
-                currentActiveList = list;
+                this.currentActiveList = list;
                 
                 // Hide all mobile sections
                 document.querySelectorAll('.mobile-section').forEach(section => {
@@ -4001,16 +4011,42 @@
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (addBtn) {
-                        addBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                        addBtn.style.display = this.isViewingOwnProfile ? 'flex' : 'none';
                     }
                     
-                    await renderMobileListRestaurants(list.restaurants || [], list);
+                    await this.renderMobileListRestaurants(list.restaurants || [], list);
                 }
-            }
-                
+            },
+
+            renderListRestaurants: async function(listRestaurants, list) {
+                const grid = document.getElementById('listRestaurantsGrid');
+                if (!grid) return;
+
+                grid.innerHTML = '';
+
+                if (!listRestaurants || listRestaurants.length === 0) {
+                    const emptyStateText = this.isViewingOwnProfile ? 
+                        'Start adding restaurants to your list!' : 
+                        'This list is currently empty.';
+
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <p class="empty-description">${emptyStateText}</p>
+                            ${this.isViewingOwnProfile ? `
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
+                                    <i class="fas fa-plus"></i> Add Your First Restaurant
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+
                 // Get restaurant details
                 const numericIds = listRestaurants.map(id => Number(id));
-                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
+                const restaurantsData = this.restaurants.filter(r => numericIds.includes(r.id));
                 
                 document.getElementById('listDetailTitle').textContent = `${list.title} (${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'})`;
                 
@@ -4030,7 +4066,7 @@
                         <div class="card-body">
                             <div class="d-flex align-center gap-md">
                                 <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                    <img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                                    <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
                                 </div>
                                 <div style="flex: 1;">
                                     <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
@@ -4043,30 +4079,30 @@
                     
                     card.appendChild(clickableContent);
                     
-                    if (isViewingOwnProfile) {
+                    if (this.isViewingOwnProfile) {
                         const removeBtn = document.createElement('button');
                         removeBtn.className = 'remove-btn';
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
                         removeBtn.onclick = (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            removeFromList(restaurant.id);
+                            this.removeFromList(restaurant.id);
                         };
                         card.appendChild(removeBtn);
                     }
                     
                     grid.appendChild(card);
                 });
-            }
+            },
 
-            async function renderMobileListRestaurants(listRestaurants, list) {
+            renderMobileListRestaurants: async function(listRestaurants, list) {
                 const container = document.getElementById('mobileListRestaurants');
                 if (!container) return;
 
                 container.innerHTML = '';
 
                 if (!listRestaurants || listRestaurants.length === 0) {
-                    const emptyStateText = isViewingOwnProfile ? 
+                    const emptyStateText = this.isViewingOwnProfile ? 
                         'Start adding restaurants to your list!' : 
                         'This list is currently empty.';
 
@@ -4075,7 +4111,7 @@
                             <div class="mobile-empty-icon">🍽️</div>
                             <div class="mobile-empty-title">No Restaurants Yet</div>
                             <div class="mobile-empty-description">${emptyStateText}</div>
-                            ${isViewingOwnProfile ? `
+                            ${this.isViewingOwnProfile ? `
                                 <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
                                     <i class="fas fa-plus"></i> Add Your First Restaurant
                                 </button>
@@ -4087,7 +4123,7 @@
 
                 // Get restaurant details
                 const numericIds = listRestaurants.map(id => Number(id));
-                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
+                const restaurantsData = this.restaurants.filter(r => numericIds.includes(r.id));
 
                 restaurantsData.forEach(restaurant => {
                     const restaurantCard = document.createElement('div');
@@ -4098,7 +4134,7 @@
                     restaurantInfo.className = 'mobile-list-restaurant-info';
                     restaurantInfo.style.cursor = 'pointer';
                     restaurantInfo.onclick = () => {
-                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+                        window.location.href = `restaurant.html?slug=${restaurant.slug || ''}`;
                     };
 
                     restaurantInfo.innerHTML = `
@@ -4114,7 +4150,7 @@
 
                     restaurantCard.appendChild(restaurantInfo);
 
-                    if (isViewingOwnProfile) {
+                    if (this.isViewingOwnProfile) {
                         const removeBtn = document.createElement('button');
                         removeBtn.className = 'remove-btn';
                         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
@@ -4122,20 +4158,20 @@
                         removeBtn.onclick = (e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            removeFromList(restaurant.id);
+                            this.removeFromList(restaurant.id);
                         };
                         restaurantCard.appendChild(removeBtn);
                     }
 
                     container.appendChild(restaurantCard);
                 });
-            }
+            },
 
-            function hideListDetail() {
+            hideListDetail: function() {
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
-                    hideMobileListDetail();
+                    this.hideMobileListDetail();
                     return;
                 }
                 
@@ -4148,10 +4184,10 @@
                     listDetailView.classList.remove('active');
                 }
                 
-                currentActiveList = null;
-            }
+                this.currentActiveList = null;
+            },
 
-                        function hideMobileListDetail() {
+            hideMobileListDetail: function() {
                 const listDetailSection = document.getElementById('mobileListDetailSection');
                 if (listDetailSection) {
                     listDetailSection.style.display = 'none';
@@ -4159,366 +4195,373 @@
                 }
                 
                 // Show the current tab section
-                const currentTabSection = document.getElementById(`mobile${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}Section`);
+                const currentTabSection = document.getElementById(`mobile${this.currentTab.charAt(0).toUpperCase() + this.currentTab.slice(1)}Section`);
                 if (currentTabSection) {
                     currentTabSection.style.display = 'block';
                     currentTabSection.classList.add('active');
                 }
                 
-                currentActiveList = null;
-            }
-            // ===== FOOD JOURNAL =====
-            const foodJournal = {
-                async init() {
-                    await this.loadJournalEntries();
-                },
-                
-                async loadJournalEntries() {
-                    const isMobile = window.innerWidth <= 768;
-                    const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
-                    if (!journalEntries) return;
-                    
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    if (!targetId) return;
-                    
-                    try {
-                        const { data: entries, error } = await supabase
-                            .from('journal_entries')
-                            .select('*, restraunts(name, image, category, slug)')
-                            .eq('user_id', targetId)
-                            .order('created_at', { ascending: false });
+                this.currentActiveList = null;
+            },
 
-                        if (error) throw error;
+            // ===== FOOD JOURNAL CREATION =====
+            createFoodJournal: function() {
+                const self = this;
+                
+                return {
+                    init: async function() {
+                        await this.loadJournalEntries();
+                    },
+                    
+                    loadJournalEntries: async function() {
+                        const isMobile = window.innerWidth <= 768;
+                        const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
+                        if (!journalEntries) return;
                         
-                        if (!entries || entries.length === 0) {
-                            const emptyText = isViewingOwnProfile ? 
-                                'Start reviewing restaurants to build your food journey!' :
-                                'This user hasn\'t reviewed any restaurants yet.';
+                        const targetId = self.isViewingOwnProfile ? self.currentUser.id : self.targetUserId;
+                        if (!targetId) return;
+                        
+                        try {
+                            const { data: entries, error } = await self.supabase
+                                .from('journal_entries')
+                                .select('*, restraunts(name, image, category, slug)')
+                                .eq('user_id', targetId)
+                                .order('created_at', { ascending: false });
+
+                            if (error) throw error;
                             
+                            if (!entries || entries.length === 0) {
+                                const emptyText = self.isViewingOwnProfile ? 
+                                    'Start reviewing restaurants to build your food journey!' :
+                                    'This user hasn\'t reviewed any restaurants yet.';
+                                
+                                if (isMobile) {
+                                    journalEntries.innerHTML = `
+                                        <div class="mobile-empty-state">
+                                            <div class="mobile-empty-icon">📝</div>
+                                            <div class="mobile-empty-title">No Reviews Yet</div>
+                                            <div class="mobile-empty-description">${emptyText}</div>
+                                            ${self.isViewingOwnProfile ? `
+                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                                                    <i class="fas fa-plus"></i> Add First Review
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                } else {
+                                    journalEntries.innerHTML = `
+                                        <div class="empty-state">
+                                            <div class="empty-icon">📝</div>
+                                            <h3 class="empty-title">No Reviews Yet</h3>
+                                            <p class="empty-description">${emptyText}</p>
+                                            ${self.isViewingOwnProfile ? `
+                                                <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                                    <i class="fas fa-utensils"></i> Browse Restaurants
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }
+                                return;
+                            }
+                            
+                            journalEntries.innerHTML = '';
+                            
+                            let entriesToShow = entries;
+                            if (!isMobile && self.journalFilter === 'recent') {
+                                entriesToShow = entries.slice(0, 5);
+                            } else if (!isMobile && self.journalFilter === 'favorites') {
+                                entriesToShow = entries.filter(entry => entry.rating >= 4);
+                            }
+                            
+                            for (const entry of entriesToShow) {
+                                const restaurant = entry.restraunts;
+                                
+                                if (!restaurant) continue;
+                                
+                                this.renderJournalEntry(entry, restaurant, isMobile);
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error loading journal entries:', error);
                             if (isMobile) {
                                 journalEntries.innerHTML = `
                                     <div class="mobile-empty-state">
-                                        <div class="mobile-empty-icon">📝</div>
-                                        <div class="mobile-empty-title">No Reviews Yet</div>
-                                        <div class="mobile-empty-description">${emptyText}</div>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
-                                                <i class="fas fa-plus"></i> Add First Review
-                                            </button>
-                                        ` : ''}
+                                        <div class="mobile-empty-icon">⚠️</div>
+                                        <div class="mobile-empty-title">Unable to Load Reviews</div>
+                                        <div class="mobile-empty-description">There was an error loading your reviews.</div>
                                     </div>
                                 `;
                             } else {
                                 journalEntries.innerHTML = `
                                     <div class="empty-state">
-                                        <div class="empty-icon">📝</div>
-                                        <h3 class="empty-title">No Reviews Yet</h3>
-                                        <p class="empty-description">${emptyText}</p>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                                <i class="fas fa-utensils"></i> Browse Restaurants
-                                            </button>
-                                        ` : ''}
+                                        <div class="empty-icon">⚠️</div>
+                                        <h3 class="empty-title">Unable to Load Reviews</h3>
+                                        <p class="empty-description">There was an error loading your reviews.</p>
                                     </div>
                                 `;
                             }
+                        }
+                    },
+                    
+                    renderJournalEntry: function(entry, restaurant, isMobile) {
+                        const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
+                        const entryElement = document.createElement('div');
+                        
+                        if (isMobile) {
+                            entryElement.className = 'mobile-journal-entry';
+                            entryElement.style.cursor = 'pointer';
+                            entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
+                            
+                            const restaurantImage = restaurant.image ? 
+                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                                `<div style="width: 50px; height: 50px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                            
+                            entryElement.innerHTML = `
+                                <div class="mobile-entry-header">
+                                    <div class="mobile-restaurant-info">
+                                        <div class="mobile-restaurant-image">
+                                            <a href="restaurant.html?slug=${restaurant.slug || ''}" style="text-decoration: none; color: inherit;">
+                                                ${restaurantImage}
+                                            </a>
+                                        </div>
+                                        <div class="mobile-restaurant-details">
+                                            <div class="mobile-restaurant-name">${restaurant.name}</div>
+                                            <div class="mobile-restaurant-category">${restaurant.category}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mobile-entry-rating">${'⭐'.repeat(Math.floor(entry.rating))} ${entry.rating}/5</div>
+                                </div>
+                                <div class="mobile-entry-meta">
+                                    <div class="mobile-meta-badge">
+                                        <i class="fas fa-calendar"></i>
+                                        ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                                    </div>
+                                    <div class="mobile-meta-badge">
+                                        <i class="fas fa-utensils"></i>
+                                        ${restaurant.category}
+                                    </div>
+                                </div>
+                                ${entry.notes ? `
+                                    <div class="mobile-entry-notes">${entry.notes}</div>
+                                ` : ''}
+                                ${entry.tags ? `
+                                    <div class="mobile-entry-tags">
+                                        ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                                ${self.isViewingOwnProfile ? `
+                                    <div class="mobile-entry-actions">
+                                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${restaurant.slug || ''}'">
+                                            <i class="fas fa-external-link-alt"></i> View Restaurant
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            `;
+                        } else {
+                            entryElement.className = 'journal-entry';
+                            entryElement.style.cursor = 'pointer';
+                            entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
+                            
+                            const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
+                            const restaurantImage = restaurant.image ? 
+                                `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                                `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                            
+                            entryElement.innerHTML = `
+                                <div class="entry-header">
+                                    <div class="restaurant-info">
+                                        <div class="restaurant-image">
+                                            <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
+                                                ${restaurantImage}
+                                            </a>
+                                        </div>
+                                        <div class="restaurant-details">
+                                            <h3>
+                                                <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
+                                                    ${restaurant.name}
+                                                </a>
+                                            </h3>
+                                            <div class="restaurant-category">${restaurant.category}</div>
+                                        </div>
+                                    </div>
+                                    <div class="entry-rating">
+                                        ${'⭐'.repeat(Math.floor(entry.rating))}
+                                        <span>${entry.rating}/5</span>
+                                    </div>
+                                </div>
+                                <div class="entry-meta">
+                                    <div class="meta-badge">
+                                        <i class="fas fa-calendar"></i>
+                                        ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                                    </div>
+                                    <div class="meta-badge">
+                                        <i class="fas fa-utensils"></i>
+                                        ${restaurant.category}
+                                    </div>
+                                    <div class="meta-badge">
+                                        <i class="fas fa-star"></i>
+                                        ${entry.rating}/5
+                                    </div>
+                                </div>
+                                <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
+                                ${entry.tags ? `
+                                    <div class="entry-tags">
+                                        ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                                ${self.isViewingOwnProfile ? `
+                                    <div class="entry-actions">
+                                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); self.foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); self.listManager.toggleInList('favorites', ${restaurant.id})">
+                                            <i class="fas fa-heart"></i> Favorite
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            `;
+                        }
+                        journalEntries.appendChild(entryElement);
+                    },
+                    
+                    editJournalEntry: function(entry, restaurant) {
+                        if (!self.isViewingOwnProfile) {
                             return;
                         }
-                        
-                        journalEntries.innerHTML = '';
-                        
-                        let entriesToShow = entries;
-                        if (!isMobile && journalFilter === 'recent') {
-                            entriesToShow = entries.slice(0, 5);
-                        } else if (!isMobile && journalFilter === 'favorites') {
-                            entriesToShow = entries.filter(entry => entry.rating >= 4);
-                        }
-                        
-                        for (const entry of entriesToShow) {
-                            const restaurant = entry.restraunts;
-                            
-                            if (!restaurant) continue;
-                            
-                            this.renderJournalEntry(entry, restaurant, isMobile);
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error loading journal entries:', error);
-                        if (isMobile) {
-                            journalEntries.innerHTML = `
-                                <div class="mobile-empty-state">
-                                    <div class="mobile-empty-icon">⚠️</div>
-                                    <div class="mobile-empty-title">Unable to Load Reviews</div>
-                                    <div class="mobile-empty-description">There was an error loading your reviews.</div>
-                                </div>
-                            `;
-                        } else {
-                            journalEntries.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">⚠️</div>
-                                    <h3 class="empty-title">Unable to Load Reviews</h3>
-                                    <p class="empty-description">There was an error loading your reviews.</p>
-                                </div>
-                            `;
-                        }
-                    }
-                },
-                
-                renderJournalEntry(entry, restaurant, isMobile) {
-                    const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
-                    const entryElement = document.createElement('div');
-                    
-                    if (isMobile) {
-                        entryElement.className = 'mobile-journal-entry';
-                        entryElement.style.cursor = 'pointer';
-                        entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
-                        
-                        const restaurantImage = restaurant.image ? 
-                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                            `<div style="width: 50px; height: 50px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
-                        
-                        entryElement.innerHTML = `
-                            <div class="mobile-entry-header">
-                                <div class="mobile-restaurant-info">
-                                    <div class="mobile-restaurant-image">
-                                        <a href="restaurant.html?slug=${restaurant.slug || ''}" style="text-decoration: none; color: inherit;">
-                                            ${restaurantImage}
-                                        </a>
-                                    </div>
-                                    <div class="mobile-restaurant-details">
-                                        <div class="mobile-restaurant-name">${restaurant.name}</div>
-                                        <div class="mobile-restaurant-category">${restaurant.category}</div>
-                                    </div>
-                                </div>
-                                <div class="mobile-entry-rating">${'⭐'.repeat(Math.floor(entry.rating))} ${entry.rating}/5</div>
-                            </div>
-                            <div class="mobile-entry-meta">
-                                <div class="mobile-meta-badge">
-                                    <i class="fas fa-calendar"></i>
-                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
-                                </div>
-                                <div class="mobile-meta-badge">
-                                    <i class="fas fa-utensils"></i>
-                                    ${restaurant.category}
-                                </div>
-                            </div>
-                            ${entry.notes ? `
-                                <div class="mobile-entry-notes">${entry.notes}</div>
-                            ` : ''}
-                            ${entry.tags ? `
-                                <div class="mobile-entry-tags">
-                                    ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${isViewingOwnProfile ? `
-                                <div class="mobile-entry-actions">
-                                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${restaurant.slug || ''}'">
-                                        <i class="fas fa-external-link-alt"></i> View Restaurant
-                                    </button>
-                                </div>
-                            ` : ''}
-                        `;
-                    } else {
-                        entryElement.className = 'journal-entry';
-                        entryElement.style.cursor = 'pointer';
-                        entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
-                        
-                        const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
-                        const restaurantImage = restaurant.image ? 
-                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
-                        
-                        entryElement.innerHTML = `
-                            <div class="entry-header">
-                                <div class="restaurant-info">
-                                    <div class="restaurant-image">
-                                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
-                                            ${restaurantImage}
-                                        </a>
-                                    </div>
-                                    <div class="restaurant-details">
-                                        <h3>
-                                            <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
-                                                ${restaurant.name}
-                                            </a>
-                                        </h3>
-                                        <div class="restaurant-category">${restaurant.category}</div>
-                                    </div>
-                                </div>
-                                <div class="entry-rating">
-                                    ${'⭐'.repeat(Math.floor(entry.rating))}
-                                    <span>${entry.rating}/5</span>
-                                </div>
-                            </div>
-                            <div class="entry-meta">
-                                <div class="meta-badge">
-                                    <i class="fas fa-calendar"></i>
-                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-utensils"></i>
-                                    ${restaurant.category}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-star"></i>
-                                    ${entry.rating}/5
-                                </div>
-                            </div>
-                            <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
-                            ${entry.tags ? `
-                                <div class="entry-tags">
-                                    ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${isViewingOwnProfile ? `
-                                <div class="entry-actions">
-                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', ${restaurant.id})">
-                                        <i class="fas fa-heart"></i> Favorite
-                                    </button>
-                                </div>
-                            ` : ''}
-                        `;
-                    }
-                    journalEntries.appendChild(entryElement);
-                },
-                
-                async editJournalEntry(entry, restaurant) {
-                    if (!isViewingOwnProfile) {
-                        return;
-                    }
 
-                    const restaurantSelect = document.getElementById('restaurantSelect');
-                    const visitDate = document.getElementById('visitDate');
-                    const visitNotes = document.getElementById('visitNotes');
-                    const visitTags = document.getElementById('visitTags');
-                    
-                    if (restaurantSelect) restaurantSelect.value = entry.restaurant_id;
-                    if (visitDate) visitDate.value = entry.visit_date || entry.created_at.split('T')[0];
-                    if (visitNotes) visitNotes.value = entry.notes || '';
-                    if (visitTags) visitTags.value = entry.tags || '';
-                    
-                    ProfileManager.setRating(entry.rating);
-                    currentEditingJournalEntry = entry.id;
-                    
-                    const modalTitle = document.querySelector('#addEntryModal .modal-title');
-                    const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
-                    
-                    if (modalTitle) modalTitle.textContent = 'Edit Journal Entry';
-                    if (submitButton) submitButton.textContent = 'Update Entry';
-                    
-                    ProfileManager.showModal('addEntryModal');
-                },
-
-                async saveJournalEntry() {
-                    const restaurantId = parseInt(document.getElementById('restaurantSelect')?.value);
-                    const visitDate = document.getElementById('visitDate')?.value;
-                    const rating = parseInt(document.getElementById('selectedRating')?.value || '0');
-                    const notes = document.getElementById('visitNotes')?.value || '';
-                    const tags = (document.getElementById('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
-                    
-                    if (!restaurantId || !visitDate || rating === 0) {
-                        showToast('Please fill in all required fields', 'error');
-                        return;
-                    }
-
-                    try {
-                        if (currentEditingJournalEntry) {
-                            const { error } = await supabase
-                                .from('journal_entries')
-                                .update({
-                                    restaurant_id: restaurantId,
-                                    visit_date: visitDate,
-                                    rating: rating,
-                                    notes: notes,
-                                    tags: tags.join(','),
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', currentEditingJournalEntry);
-                            
-                            if (error) throw error;
-                            
-                            showToast('Journal entry updated successfully!', 'success');
-                            currentEditingJournalEntry = null;
-                            
-                        } else {
-                            const { error } = await supabase
-                                .from('journal_entries')
-                                .insert({
-                                    user_id: currentUser.id,
-                                    restaurant_id: restaurantId,
-                                    visit_date: visitDate,
-                                    rating: rating,
-                                    notes: notes,
-                                    tags: tags.join(','),
-                                    created_at: new Date().toISOString()
-                                });
-                            
-                            if (error) throw error;
-                            
-                            await listManager.toggleInList('visited', restaurantId);
-                            const restaurant = restaurants.find(r => r.id === restaurantId);
-                            showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
-                        }
+                        const restaurantSelect = document.getElementById('restaurantSelect');
+                        const visitDate = document.getElementById('visitDate');
+                        const visitNotes = document.getElementById('visitNotes');
+                        const visitTags = document.getElementById('visitTags');
                         
-                        ProfileManager.closeModal('addEntryModal');
+                        if (restaurantSelect) restaurantSelect.value = entry.restaurant_id;
+                        if (visitDate) visitDate.value = entry.visit_date || entry.created_at.split('T')[0];
+                        if (visitNotes) visitNotes.value = entry.notes || '';
+                        if (visitTags) visitTags.value = entry.tags || '';
                         
-                        const form = document.getElementById('journalEntryForm');
-                        if (form) form.reset();
-                        ProfileManager.setRating(0);
+                        ProfileManager.setRating(entry.rating);
+                        self.currentEditingJournalEntry = entry.id;
                         
                         const modalTitle = document.querySelector('#addEntryModal .modal-title');
                         const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
                         
-                        if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
-                        if (submitButton) submitButton.textContent = 'Save Entry';
+                        if (modalTitle) modalTitle.textContent = 'Edit Journal Entry';
+                        if (submitButton) submitButton.textContent = 'Update Entry';
                         
-                        await this.loadJournalEntries();
-                        await updateStats();
+                        ProfileManager.showModal('addEntryModal');
+                    },
+
+                    saveJournalEntry: async function() {
+                        const restaurantId = parseInt(document.getElementById('restaurantSelect')?.value);
+                        const visitDate = document.getElementById('visitDate')?.value;
+                        const rating = parseInt(document.getElementById('selectedRating')?.value || '0');
+                        const notes = document.getElementById('visitNotes')?.value || '';
+                        const tags = (document.getElementById('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
                         
-                    } catch (error) {
-                        console.error('Error saving journal entry:', error);
-                        showToast('Error saving journal entry', 'error');
+                        if (!restaurantId || !visitDate || rating === 0) {
+                            self.showToast('Please fill in all required fields', 'error');
+                            return;
+                        }
+
+                        try {
+                            if (self.currentEditingJournalEntry) {
+                                const { error } = await self.supabase
+                                    .from('journal_entries')
+                                    .update({
+                                        restaurant_id: restaurantId,
+                                        visit_date: visitDate,
+                                        rating: rating,
+                                        notes: notes,
+                                        tags: tags.join(','),
+                                        updated_at: new Date().toISOString()
+                                    })
+                                    .eq('id', self.currentEditingJournalEntry);
+                                
+                                if (error) throw error;
+                                
+                                self.showToast('Journal entry updated successfully!', 'success');
+                                self.currentEditingJournalEntry = null;
+                                
+                            } else {
+                                const { error } = await self.supabase
+                                    .from('journal_entries')
+                                    .insert({
+                                        user_id: self.currentUser.id,
+                                        restaurant_id: restaurantId,
+                                        visit_date: visitDate,
+                                        rating: rating,
+                                        notes: notes,
+                                        tags: tags.join(','),
+                                        created_at: new Date().toISOString()
+                                    });
+                                
+                                if (error) throw error;
+                                
+                                await self.listManager.toggleInList('visited', restaurantId);
+                                const restaurant = self.restaurants.find(r => r.id === restaurantId);
+                                self.showToast(`Added ${restaurant?.name || 'restaurant'} to your journal! ✨`, 'success');
+                            }
+                            
+                            ProfileManager.closeModal('addEntryModal');
+                            
+                            const form = document.getElementById('journalEntryForm');
+                            if (form) form.reset();
+                            ProfileManager.setRating(0);
+                            
+                            const modalTitle = document.querySelector('#addEntryModal .modal-title');
+                            const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
+                            
+                            if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
+                            if (submitButton) submitButton.textContent = 'Save Entry';
+                            
+                            await this.loadJournalEntries();
+                            await self.updateStats();
+                            
+                        } catch (error) {
+                            console.error('Error saving journal entry:', error);
+                            self.showToast('Error saving journal entry', 'error');
+                        }
                     }
-                }
-            };
+                };
+            },
 
             // ===== CREATE COMMUNITY SYSTEM =====
-            function createCommunitySystem() {
+            createCommunitySystem: function() {
+                const self = this;
+                
                 return {
                     currentSection: 'followers',
                     loadedUsersCache: new Set(),
                     
-                    async init() {
+                    init: async function() {
                         await this.loadFollowStats();
                         
                         const userSearch = document.getElementById('userSearch');
                         if (userSearch) {
                             userSearch.addEventListener('input', () => {
-                                if (currentSearchDebounce) {
-                                    clearTimeout(currentSearchDebounce);
+                                if (self.currentSearchDebounce) {
+                                    clearTimeout(self.currentSearchDebounce);
                                 }
-                                currentSearchDebounce = setTimeout(() => {
+                                self.currentSearchDebounce = setTimeout(() => {
                                     this.searchUsers();
                                 }, 300);
                             });
                         }
                     },
 
-                    async loadFollowStats() {
+                    loadFollowStats: async function() {
                         try {
-                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                            const targetId = self.isViewingOwnProfile ? self.currentUser.id : self.targetUserId;
                             
                             // Get followers count
-                            const { count: followersCount, error: followersError } = await supabase
+                            const { count: followersCount, error: followersError } = await self.supabase
                                 .from('follows')
                                 .select('*', { count: 'exact', head: true })
                                 .eq('followed_id', targetId);
 
                             // Get following count
-                            const { count: followingCount, error: followingError } = await supabase
+                            const { count: followingCount, error: followingError } = await self.supabase
                                 .from('follows')
                                 .select('*', { count: 'exact', head: true })
                                 .eq('follower_id', targetId);
@@ -4540,11 +4583,11 @@
                         }
                     },
 
-                    async loadFollowers() {
+                    loadFollowers: async function() {
                         try {
-                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                            const targetId = self.isViewingOwnProfile ? self.currentUser.id : self.targetUserId;
                             
-                            const { data: follows, error } = await supabase
+                            const { data: follows, error } = await self.supabase
                                 .from('follows')
                                 .select('follower_id')
                                 .eq('followed_id', targetId);
@@ -4556,7 +4599,7 @@
                             if (!followersList) return;
 
                             if (!follows || follows.length === 0) {
-                                const emptyText = isViewingOwnProfile ? 
+                                const emptyText = self.isViewingOwnProfile ? 
                                     'Share your profile to get followers!' :
                                     'This user doesn\'t have any followers yet.';
                                 
@@ -4566,7 +4609,7 @@
                                             <div class="mobile-empty-icon">👥</div>
                                             <div class="mobile-empty-title">No followers yet</div>
                                             <div class="mobile-empty-description">${emptyText}</div>
-                                            ${isViewingOwnProfile ? `
+                                            ${self.isViewingOwnProfile ? `
                                                 <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
                                                     <i class="fas fa-user-plus"></i> Find Users
                                                 </button>
@@ -4579,7 +4622,7 @@
                                             <div class="empty-icon">👥</div>
                                             <h3 class="empty-title">No followers yet</h3>
                                             <p class="empty-description">${emptyText}</p>
-                                            ${isViewingOwnProfile ? `
+                                            ${self.isViewingOwnProfile ? `
                                                 <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
                                                     <i class="fas fa-user-plus"></i> Find Users
                                                 </button>
@@ -4594,7 +4637,7 @@
                             const followerIds = follows.map(f => f.follower_id);
                             const uniqueFollowerIds = [...new Set(followerIds)];
                             
-                            const { data: users, error: usersError } = await supabase
+                            const { data: users, error: usersError } = await self.supabase
                                 .from('user_profiles')
                                 .select('*')
                                 .in('id', uniqueFollowerIds);
@@ -4604,15 +4647,15 @@
                             }
                         } catch (error) {
                             console.error('Error loading followers:', error);
-                            showToast('Error loading followers', 'error');
+                            self.showToast('Error loading followers', 'error');
                         }
                     },
 
-                    async loadFollowing() {
+                    loadFollowing: async function() {
                         try {
-                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                            const targetId = self.isViewingOwnProfile ? self.currentUser.id : self.targetUserId;
                             
-                            const { data: follows, error } = await supabase
+                            const { data: follows, error } = await self.supabase
                                 .from('follows')
                                 .select('followed_id')
                                 .eq('follower_id', targetId);
@@ -4624,7 +4667,7 @@
                             if (!followingList) return;
 
                             if (!follows || follows.length === 0) {
-                                const emptyText = isViewingOwnProfile ? 
+                                const emptyText = self.isViewingOwnProfile ? 
                                     'Discover and follow other food lovers!' :
                                     'This user isn\'t following anyone yet.';
                                 
@@ -4632,9 +4675,9 @@
                                     followingList.innerHTML = `
                                         <div class="mobile-empty-state">
                                             <div class="mobile-empty-icon">👥</div>
-                                            <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
+                                            <div class="mobile-empty-title">${self.isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
                                             <div class="mobile-empty-description">${emptyText}</div>
-                                            ${isViewingOwnProfile ? `
+                                            ${self.isViewingOwnProfile ? `
                                                 <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
                                                     <i class="fas fa-user-plus"></i> Find Users
                                                 </button>
@@ -4645,9 +4688,9 @@
                                     followingList.innerHTML = `
                                         <div class="empty-state">
                                             <div class="empty-icon">👥</div>
-                                            <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
+                                            <h3 class="empty-title">${self.isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
                                             <p class="empty-description">${emptyText}</p>
-                                            ${isViewingOwnProfile ? `
+                                            ${self.isViewingOwnProfile ? `
                                                 <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
                                                     <i class="fas fa-user-plus"></i> Find Users
                                                 </button>
@@ -4662,7 +4705,7 @@
                             const followingIds = follows.map(f => f.followed_id);
                             const uniqueFollowingIds = [...new Set(followingIds)];
                             
-                            const { data: users, error: usersError } = await supabase
+                            const { data: users, error: usersError } = await self.supabase
                                 .from('user_profiles')
                                 .select('*')
                                 .in('id', uniqueFollowingIds);
@@ -4672,11 +4715,11 @@
                             }
                         } catch (error) {
                             console.error('Error loading following:', error);
-                            showToast('Error loading following', 'error');
+                            self.showToast('Error loading following', 'error');
                         }
                     },
 
-                    async searchUsers() {
+                    searchUsers: async function() {
                         const userSearch = document.getElementById('userSearch');
                         if (!userSearch) return;
                         
@@ -4699,11 +4742,11 @@
                         try {
                             this.loadedUsersCache.clear();
                             
-                            const { data: users, error } = await supabase
+                            const { data: users, error } = await self.supabase
                                 .from('user_profiles')
                                 .select('*')
                                 .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
-                                .neq('id', currentUser.id)
+                                .neq('id', self.currentUser.id)
                                 .limit(20);
 
                             if (error) throw error;
@@ -4725,7 +4768,7 @@
                         }
                     },
 
-                    async displayUsers(users, containerId) {
+                    displayUsers: async function(users, containerId) {
                         const container = document.getElementById(containerId);
                         if (!container) return;
                         
@@ -4752,11 +4795,11 @@
 
                         for (const user of uniqueUsers) {
                             const isPrivate = user.is_private === true;
-                            const isCurrentUser = user.id === currentUser.id;
+                            const isCurrentUser = user.id === self.currentUser.id;
                             
                             let isFollowing = false;
                             if (!isCurrentUser) {
-                                isFollowing = await checkIfFollowing(user.id);
+                                isFollowing = await self.checkIfFollowing(user.id);
                             }
                             
                             const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
@@ -4850,7 +4893,7 @@
                         }
                     },
 
-                    refreshCurrentView() {
+                    refreshCurrentView: function() {
                         const userSearch = document.getElementById('userSearch');
                         if (userSearch && userSearch.value) {
                             this.searchUsers();
@@ -4863,10 +4906,10 @@
                         }
                     }
                 };
-            }
+            },
 
             // ===== KEBAB MENU FUNCTIONS =====
-            function toggleListMenu(listId) {
+            toggleListMenu: function(listId) {
                 const dropdown = document.getElementById(`kebab-${listId}`);
                 if (!dropdown) return;
                 
@@ -4877,54 +4920,54 @@
                 });
                 
                 dropdown.classList.toggle('show');
-            }
+            },
 
-            function confirmDeleteList(listId) {
-                showConfirmModal(
+            confirmDeleteList: function(listId) {
+                this.showConfirmModal(
                     'Delete List',
                     'Are you sure you want to delete this list? This action cannot be undone.',
                     async () => {
-                        await deleteList(listId);
+                        await this.deleteList(listId);
                     }
                 );
-            }
+            },
 
-            async function deleteList(listId) {
+            deleteList: async function(listId) {
                 try {
-                    await supabase.from('lists_restraunts').delete().eq('list_id', listId);
+                    await this.supabase.from('lists_restraunts').delete().eq('list_id', listId);
                     
-                    const { error } = await supabase
+                    const { error } = await this.supabase
                         .from('lists')
                         .delete()
                         .eq('id', listId);
 
                     if (error) throw error;
                     
-                    customLists = customLists.filter(l => l.id !== listId);
-                    listManager.userLists = listManager.userLists.filter(l => l.id !== listId);
+                    this.customLists = this.customLists.filter(l => l.id !== listId);
+                    this.listManager.userLists = this.listManager.userLists.filter(l => l.id !== listId);
                     
-                    listManager.renderLists();
+                    this.listManager.renderLists();
                     
-                    showToast('List deleted successfully', 'success');
+                    this.showToast('List deleted successfully', 'success');
                     
-                    if (currentActiveList && currentActiveList.id === listId) {
-                        hideListDetail();
+                    if (this.currentActiveList && this.currentActiveList.id === listId) {
+                        this.hideListDetail();
                     }
                     
                 } catch (error) {
                     console.error('Error deleting list:', error);
-                    showToast('Could not delete list', 'error');
+                    this.showToast('Could not delete list', 'error');
                 }
-            }
+            },
 
-            function prepareEditList(listId) {
-                const list = customLists.find(l => l.id === listId) || 
-                           listManager.userLists.find(l => l.id === listId);
+            prepareEditList: function(listId) {
+                const list = this.customLists.find(l => l.id === listId) || 
+                           this.listManager.userLists.find(l => l.id === listId);
                 
                 if (!list) return;
                 
-                isEditingList = true;
-                editingListId = listId;
+                this.isEditingList = true;
+                this.editingListId = listId;
                 
                 document.getElementById('listName').value = list.title;
                 document.getElementById('listDescription').value = list.description || '';
@@ -4941,10 +4984,10 @@
                 
                 document.querySelector('#createListModal .modal-title').textContent = "Edit List";
                 
-                showModal('createListModal');
-            }
+                this.showModal('createListModal');
+            },
 
-            async function handleListSubmit(e) {
+            handleListSubmit: async function(e) {
                 e.preventDefault();
                 
                 const title = document.getElementById('listName').value;
@@ -4952,39 +4995,39 @@
                 const icon = document.getElementById('selectedIcon').value;
                 
                 if (!title) {
-                    showToast('Please enter a list name', 'error');
+                    this.showToast('Please enter a list name', 'error');
                     return;
                 }
                 
                 try {
-                    if (isEditingList && editingListId) {
-                        const { error } = await supabase
+                    if (this.isEditingList && this.editingListId) {
+                        const { error } = await this.supabase
                             .from('lists')
                             .update({ 
                                 title: title, 
                                 description: description, 
                                 icon: icon 
                             })
-                            .eq('id', editingListId);
+                            .eq('id', this.editingListId);
 
                         if (error) throw error;
                         
-                        const listIndex = customLists.findIndex(l => l.id === editingListId);
+                        const listIndex = this.customLists.findIndex(l => l.id === this.editingListId);
                         if (listIndex > -1) {
-                            customLists[listIndex] = { ...customLists[listIndex], title, description, icon };
+                            this.customLists[listIndex] = { ...this.customLists[listIndex], title, description, icon };
                         }
                         
-                        const userListIndex = listManager.userLists.findIndex(l => l.id === editingListId);
+                        const userListIndex = this.listManager.userLists.findIndex(l => l.id === this.editingListId);
                         if (userListIndex > -1) {
-                            listManager.userLists[userListIndex] = { ...listManager.userLists[userListIndex], title, description, icon };
+                            this.listManager.userLists[userListIndex] = { ...this.listManager.userLists[userListIndex], title, description, icon };
                         }
                         
-                        showToast('List updated successfully', 'success');
+                        this.showToast('List updated successfully', 'success');
                     } else {
-                        const { data: newList, error } = await supabase
+                        const { data: newList, error } = await this.supabase
                             .from('lists')
                             .insert([{
-                                user_id: currentUser.id,
+                                user_id: this.currentUser.id,
                                 title: title,
                                 description: description,
                                 is_default: false,
@@ -4996,44 +5039,44 @@
                         
                         if (error) throw error;
                         
-                        customLists.push(newList);
-                        listManager.userLists.push(newList);
-                        showToast(`Created list "${title}"`, 'success');
+                        this.customLists.push(newList);
+                        this.listManager.userLists.push(newList);
+                        this.showToast(`Created list "${title}"`, 'success');
                     }
                     
-                    closeModal('createListModal');
-                    listManager.renderLists();
+                    this.closeModal('createListModal');
+                    this.listManager.renderLists();
                     
                     const form = document.getElementById('createListForm');
                     if (form) form.reset();
                     document.getElementById('selectedIcon').value = '📋';
                     
-                    isEditingList = false;
-                    editingListId = null;
+                    this.isEditingList = false;
+                    this.editingListId = null;
                     document.querySelector('#createListModal .modal-title').textContent = "Create New List";
                     
                 } catch (error) {
                     console.error('Error saving list:', error);
-                    showToast('Error saving list', 'error');
+                    this.showToast('Error saving list', 'error');
                 }
-            }
+            },
 
             // ===== UTILITY FUNCTIONS =====
-            function getUserIdFromUrl() {
+            getUserIdFromUrl: function() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const id = urlParams.get('id');
                 return id ? id.trim() : null;
-            }
+            },
 
-            function goToMyProfile() {
+            goToMyProfile: function() {
                 window.location.href = 'profile.html';
-            }
+            },
 
-            function viewUserProfile(userId) {
+            viewUserProfile: function(userId) {
                 window.location.href = `profile.html?id=${userId}`;
-            }
+            },
 
-            function showTab(tabName) {
+            showTab: function(tabName) {
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
@@ -5057,17 +5100,17 @@
                         activeTab.classList.add('active');
                     }
                     
-                    currentTab = tabName;
+                    this.currentTab = tabName;
                     
                     switch(tabName) {
                         case 'journal':
-                            foodJournal.loadJournalEntries();
+                            this.foodJournal.loadJournalEntries();
                             break;
                         case 'lists':
-                            listManager.renderLists();
+                            this.listManager.renderLists();
                             break;
                         case 'community':
-                            showCommunitySection('followers');
+                            this.showCommunitySection('followers');
                             break;
                     }
                 } else {
@@ -5087,23 +5130,23 @@
                     const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
                     if (activeButton) activeButton.classList.add('active');
                     
-                    currentTab = tabName;
+                    this.currentTab = tabName;
                     
                     switch(tabName) {
                         case 'journal':
-                            foodJournal.loadJournalEntries();
+                            this.foodJournal.loadJournalEntries();
                             break;
                         case 'lists':
-                            listManager.renderLists();
+                            this.listManager.renderLists();
                             break;
                         case 'community':
-                            showCommunitySection('followers');
+                            this.showCommunitySection('followers');
                             break;
                     }
                 }
-            }
+            },
 
-            function showCommunitySection(section) {
+            showCommunitySection: function(section) {
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
@@ -5144,17 +5187,17 @@
                     if (activeBtn) activeBtn.classList.add('active');
                 }
                 
-                if (communitySystem) {
-                    communitySystem.currentSection = section;
+                if (this.communitySystem) {
+                    this.communitySystem.currentSection = section;
                     if (section === 'followers') {
-                        communitySystem.loadFollowers();
+                        this.communitySystem.loadFollowers();
                     } else {
-                        communitySystem.loadFollowing();
+                        this.communitySystem.loadFollowing();
                     }
                 }
-            }
+            },
 
-            function showModal(modalId) {
+            showModal: function(modalId) {
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.add('active');
@@ -5167,22 +5210,22 @@
                             visitDate.value = today;
                             visitDate.max = today;
                         }
-                        setRating(0);
+                        this.setRating(0);
                     }
                     
-                    if (modalId === 'editProfileModal' && userProfile) {
-                        document.getElementById('editDisplayName').value = userProfile.full_name || '';
-                        document.getElementById('editUsername').value = userProfile.username || '';
-                        document.getElementById('editBio').value = userProfile.bio || '';
-                        document.getElementById('editLocation').value = userProfile.location || '';
-                        document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
+                    if (modalId === 'editProfileModal' && this.userProfile) {
+                        document.getElementById('editDisplayName').value = this.userProfile.full_name || '';
+                        document.getElementById('editUsername').value = this.userProfile.username || '';
+                        document.getElementById('editBio').value = this.userProfile.bio || '';
+                        document.getElementById('editLocation').value = this.userProfile.location || '';
+                        document.getElementById('editIsPrivate').checked = this.userProfile.is_private || false;
                     }
                     
                     if (modalId === 'avatarModal') {
                         const avatarIconGrid = document.getElementById('avatarIconGrid');
                         if (avatarIconGrid) {
                             avatarIconGrid.innerHTML = '';
-                            foodIcons.forEach(icon => {
+                            this.foodIcons.forEach(icon => {
                                 const iconOption = document.createElement('div');
                                 iconOption.className = 'avatar-icon-option';
                                 iconOption.textContent = icon;
@@ -5191,11 +5234,11 @@
                                         opt.classList.remove('selected');
                                     });
                                     iconOption.classList.add('selected');
-                                    selectedAvatarIcon = icon;
+                                    this.selectedAvatarIcon = icon;
                                 };
-                                if (icon === (userProfile?.avatar_icon || "🍔")) {
+                                if (icon === (this.userProfile?.avatar_icon || "🍔")) {
                                     iconOption.classList.add('selected');
-                                    selectedAvatarIcon = icon;
+                                    this.selectedAvatarIcon = icon;
                                 }
                                 avatarIconGrid.appendChild(iconOption);
                             });
@@ -5209,9 +5252,9 @@
                         });
                     }
                 }
-            }
+            },
 
-            function closeModal(modalId) {
+            closeModal: function(modalId) {
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.remove('active');
@@ -5220,8 +5263,8 @@
                     if (modalId === 'addEntryModal') {
                         const form = document.getElementById('journalEntryForm');
                         if (form) form.reset();
-                        setRating(0);
-                        currentEditingJournalEntry = null;
+                        this.setRating(0);
+                        this.currentEditingJournalEntry = null;
                         
                         const modalTitle = document.querySelector('#addEntryModal .modal-title');
                         const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
@@ -5240,66 +5283,66 @@
                             icon.style.border = '1px solid transparent';
                         });
                         
-                        isEditingList = false;
-                        editingListId = null;
+                        this.isEditingList = false;
+                        this.editingListId = null;
                         document.querySelector('#createListModal .modal-title').textContent = "Create New List";
                     }
                 }
-            }
+            },
 
-            function showCreateListModal() {
-                showModal('createListModal');
-            }
+            showCreateListModal: function() {
+                this.showModal('createListModal');
+            },
 
             // ===== MOBILE MENU FUNCTIONS =====
-            function showMobileMenu() {
-                showToast('Mobile menu would open here', 'info');
-            }
+            showMobileMenu: function() {
+                this.showToast('Mobile menu would open here', 'info');
+            },
 
             // ===== AVATAR FUNCTIONS =====
-            function showAvatarModal() {
-                if (!isViewingOwnProfile) return;
+            showAvatarModal: function() {
+                if (!this.isViewingOwnProfile) return;
                 
-                showModal('avatarModal');
-            }
+                this.showModal('avatarModal');
+            },
 
-            async function saveAvatar() {
-                if (!selectedAvatarIcon || !isViewingOwnProfile) {
-                    showToast('Please select an avatar', 'error');
+            saveAvatar: async function() {
+                if (!this.selectedAvatarIcon || !this.isViewingOwnProfile) {
+                    this.showToast('Please select an avatar', 'error');
                     return;
                 }
 
                 try {
-                    const { error } = await supabase
+                    const { error } = await this.supabase
                         .from('user_profiles')
-                        .update({ avatar_icon: selectedAvatarIcon })
-                        .eq('id', currentUser.id);
+                        .update({ avatar_icon: this.selectedAvatarIcon })
+                        .eq('id', this.currentUser.id);
 
                     if (error) throw error;
 
                     const avatar = document.getElementById('profileAvatar');
                     if (avatar) {
-                        avatar.textContent = selectedAvatarIcon;
+                        avatar.textContent = this.selectedAvatarIcon;
                     }
                     
                     const mobileAvatar = document.getElementById('mobileAvatar');
                     if (mobileAvatar) {
-                        mobileAvatar.textContent = selectedAvatarIcon;
+                        mobileAvatar.textContent = this.selectedAvatarIcon;
                     }
                     
-                    userProfile.avatar_icon = selectedAvatarIcon;
+                    this.userProfile.avatar_icon = this.selectedAvatarIcon;
                     
-                    showToast('Avatar updated successfully!', 'success');
-                    closeModal('avatarModal');
+                    this.showToast('Avatar updated successfully!', 'success');
+                    this.closeModal('avatarModal');
                     
                 } catch (error) {
                     console.error('Error saving avatar:', error);
-                    showToast('Error saving avatar', 'error');
+                    this.showToast('Error saving avatar', 'error');
                 }
-            }
+            },
 
             // ===== RATING FUNCTIONS =====
-            function setRating(stars) {
+            setRating: function(stars) {
                 const starsElements = document.querySelectorAll('#ratingStars span');
                 starsElements.forEach((star, index) => {
                     if (index < stars) {
@@ -5311,14 +5354,14 @@
                 
                 const selectedRating = document.getElementById('selectedRating');
                 if (selectedRating) selectedRating.value = stars;
-            }
+            },
 
             // ===== SETUP EVENT LISTENERS =====
-            function setupEventListeners() {
+            setupEventListeners: function() {
                 document.querySelectorAll('.nav-tab').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
-                        showTab(tabName);
+                        ProfileManager.showTab(tabName);
                     });
                 });
                 
@@ -5326,8 +5369,8 @@
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                         this.classList.add('active');
-                        journalFilter = this.getAttribute('data-filter');
-                        foodJournal.loadJournalEntries();
+                        ProfileManager.journalFilter = this.getAttribute('data-filter');
+                        ProfileManager.foodJournal.loadJournalEntries();
                     });
                 });
                 
@@ -5335,7 +5378,7 @@
                 if (journalEntryForm) {
                     journalEntryForm.addEventListener('submit', (e) => {
                         e.preventDefault();
-                        foodJournal.saveJournalEntry();
+                        ProfileManager.foodJournal.saveJournalEntry();
                     });
                 }
                 
@@ -5343,19 +5386,19 @@
                 if (editProfileForm) {
                     editProfileForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
-                        await saveProfileChanges();
+                        await ProfileManager.saveProfileChanges();
                     });
                 }
                 
                 const createListForm = document.getElementById('createListForm');
                 if (createListForm) {
-                    createListForm.addEventListener('submit', handleListSubmit);
+                    createListForm.addEventListener('submit', this.handleListSubmit.bind(this));
                 }
                 
                 document.querySelectorAll('.rating-star').forEach(star => {
                     star.addEventListener('click', function() {
                         const rating = parseInt(this.getAttribute('data-rating'));
-                        setRating(rating);
+                        ProfileManager.setRating(rating);
                     });
                 });
                 
@@ -5377,8 +5420,8 @@
                     logoutBtn.addEventListener('click', async (e) => {
                         e.preventDefault();
                         if (confirm('Are you sure you want to logout?')) {
-                            showToast('Logging out...', 'info');
-                            await supabase.auth.signOut();
+                            ProfileManager.showToast('Logging out...', 'info');
+                            await ProfileManager.supabase.auth.signOut();
                             setTimeout(() => {
                                 window.location.href = 'login.html';
                             }, 1000);
@@ -5390,7 +5433,7 @@
                     btn.addEventListener('click', function() {
                         const modal = this.closest('.modal');
                         if (modal) {
-                            closeModal(modal.id);
+                            ProfileManager.closeModal(modal.id);
                         }
                     });
                 });
@@ -5398,7 +5441,7 @@
                 document.querySelectorAll('.modal').forEach(modal => {
                     modal.addEventListener('click', function(e) {
                         if (e.target === this) {
-                            closeModal(this.id);
+                            ProfileManager.closeModal(this.id);
                         }
                     });
                 });
@@ -5406,14 +5449,14 @@
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         document.querySelectorAll('.modal.active').forEach(modal => {
-                            closeModal(modal.id);
+                            ProfileManager.closeModal(modal.id);
                         });
                     }
                 });
-            }
+            },
 
             // ===== SAVE PROFILE CHANGES =====
-            async function saveProfileChanges() {
+            saveProfileChanges: async function() {
                 const displayName = document.getElementById('editDisplayName')?.value;
                 const username = document.getElementById('editUsername')?.value;
                 const bio = document.getElementById('editBio')?.value;
@@ -5421,12 +5464,12 @@
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
                 if (!displayName || !username) {
-                    showToast('Please enter display name and username', 'error');
+                    this.showToast('Please enter display name and username', 'error');
                     return;
                 }
                 
                 try {
-                    const { error } = await supabase
+                    const { error } = await this.supabase
                         .from('user_profiles')
                         .update({
                             full_name: displayName,
@@ -5436,72 +5479,42 @@
                             is_private: isPrivate,
                             updated_at: new Date().toISOString()
                         })
-                        .eq('id', currentUser.id);
+                        .eq('id', this.currentUser.id);
                     
                     if (error) throw error;
                     
-                    updateProfileUI();
+                    this.updateProfileUI();
                     
-                    closeModal('editProfileModal');
-                    showToast('Profile updated successfully!', 'success');
+                    this.closeModal('editProfileModal');
+                    this.showToast('Profile updated successfully!', 'success');
                     
                 } catch (error) {
                     console.error('Error updating profile:', error);
-                    showToast('Error updating profile', 'error');
+                    this.showToast('Error updating profile', 'error');
                 }
-            }
+            },
 
             // ===== UTILITY FUNCTIONS =====
-            function toggleSortLists() {
-                showToast('List sorting feature coming soon!', 'info');
-            }
+            toggleSortLists: function() {
+                this.showToast('List sorting feature coming soon!', 'info');
+            },
 
-            async function logout() {
+            logout: async function() {
                 if (confirm('Are you sure you want to logout?')) {
                     try {
-                        await supabase.auth.signOut();
+                        await this.supabase.auth.signOut();
                         window.location.href = 'login.html';
                     } catch (error) {
                         console.error('Error logging out:', error);
-                        showToast('Error logging out', 'error');
+                        this.showToast('Error logging out', 'error');
                     }
                 }
-            }
+            },
 
-            function updateMobileStats() {
+            updateMobileStats: function() {
                 // Stats are already updated in updateStatsUI
             }
-
-            // ===== PUBLIC API =====
-            return {
-                initialize,
-                showTab,
-                goToMyProfile,
-                showCommunitySection,
-                viewUserProfile,
-                showModal,
-                closeModal,
-                showConfirmModal,
-                closeConfirmModal,
-                showCreateListModal,
-                showAvatarModal,
-                showList,
-                showMobileList,
-                hideListDetail,
-                hideMobileListDetail,
-                toggleListMenu,
-                confirmDeleteList,
-                prepareEditList,
-                handleListSubmit,
-                saveAvatar,
-                setRating,
-                toggleFollow,
-                showMobileMenu,
-                toggleSortLists,
-                logout,
-                removeFromList
-            };
-        })();
+        };
 
         // ===== INITIALIZE WHEN DOM IS LOADED =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -5509,9 +5522,12 @@
             
             const form = document.getElementById('createListForm');
             if (form) {
-                form.onsubmit = ProfileManager.handleListSubmit;
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    ProfileManager.handleListSubmit(e);
+                };
             }
         });
     </script>
 </body>
-</html> 
+</html>
