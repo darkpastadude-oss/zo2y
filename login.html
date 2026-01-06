@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Zo2y - Login</title>
+<link rel="icon" type="image/png" href="images/logo.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -75,13 +77,8 @@ body{
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   background: #f8f9fa;
 }
-.google-btn:active {
-  transform: translateY(0);
-}
-.google-btn img {
-  width: 20px;
-  height: 20px;
-}
+.google-btn:active { transform: translateY(0); }
+.google-btn img { width: 20px; height: 20px; }
 
 .input-group{position:relative;}
 .input-group i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-secondary);transition:var(--transition);}
@@ -127,6 +124,7 @@ body{
   background:linear-gradient(135deg,#357ae8,#4285F4);
 }
 .login-btn:active{transform:translateY(0);}
+.login-btn:disabled{opacity:0.7;cursor:not-allowed;}
 
 .divider{display:flex;align-items:center;text-align:center;margin:25px 0;color:var(--text-secondary);font-size:0.9rem;}
 .divider::before,.divider::after{content:'';flex:1;border-bottom:1px solid var(--border-color);}
@@ -185,51 +183,10 @@ body{
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
+// INITIALIZATION FIX
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-// Insert user into user_profiles safely with error handling
-async function addUserToProfiles(user) {
-  if (!user) return;
-  
-  try {
-    // Check if user already exists in user_profiles
-    const { data: existingUser, error: fetchError } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single();
-    
-    // If user doesn't exist, insert them
-    if (fetchError && fetchError.code === 'PGRST116') { // No rows returned
-      const { error: insertError } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-          avatar_url: user.user_metadata?.avatar_url || '',
-          created_at: new Date().toISOString()
-        });
-      
-      if (insertError) {
-        console.error('Error inserting user into user_profiles:', insertError);
-        // If the table doesn't exist or has different columns, try a more generic approach
-        if (insertError.code === '42P01') { // Table doesn't exist
-          console.error('The user_profiles table does not exist. Please create it in your Supabase dashboard.');
-        }
-      } else {
-        console.log('User added to user_profiles successfully');
-      }
-    } else if (fetchError) {
-      console.error('Error checking user existence:', fetchError);
-    }
-    // If user exists, do nothing (or update if needed)
-  } catch (err) {
-    console.error('Unexpected error in addUserToProfiles:', err);
-  }
-}
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // EMAIL/PASSWORD LOGIN
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -246,12 +203,10 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   loginBtn.disabled = true;
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
     
-    // Add user to profiles after successful login
-    await addUserToProfiles(data.user);
-
+    // Success: Handle "Remember Me"
     if (rememberMe) localStorage.setItem('rememberEmail', email);
     else localStorage.removeItem('rememberEmail');
 
@@ -259,6 +214,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     window.location.href = 'index.html';
   } catch (err) {
     alert(err.message.includes('Invalid login credentials') ? 'Invalid email or password' : err.message);
+  } finally {
     loginBtn.innerHTML = originalText;
     loginBtn.disabled = false;
   }
@@ -272,17 +228,11 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
   btn.disabled = true;
   
   try {
-    // Get the current URL for redirect
-    const redirectUrl = window.location.origin + window.location.pathname;
-    
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent'
-        }
+        redirectTo: window.location.origin + '/index.html',
+        queryParams: { access_type: 'offline', prompt: 'consent' }
       }
     });
     
@@ -294,54 +244,23 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
   }
 });
 
-// Handle OAuth callback and auth state changes
-async function handleAuthRedirect() {
-  const { data, error } = await supabase.auth.getSession();
-  
-  if (data.session?.user) {
-    await addUserToProfiles(data.session.user);
-    window.location.href = 'index.html';
-  }
-}
-
-// Check for OAuth callback on page load
-document.addEventListener('DOMContentLoaded', async () => {
-  // Check URL for OAuth callback
-  const hash = window.location.hash;
-  const params = new URLSearchParams(window.location.search);
-  
-  if (hash.includes('access_token') || params.has('code')) {
-    await handleAuthRedirect();
-  }
-  
-  // Set up auth state listener
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) {
-      await addUserToProfiles(session.user);
-      window.location.href = 'index.html';
-    }
-  });
-});
-
-// REMEMBER EMAIL
+// REMEMBER EMAIL CHECK
 const rememberedEmail = localStorage.getItem('rememberEmail');
 if (rememberedEmail) {
   document.getElementById('email').value = rememberedEmail;
   document.getElementById('remember').checked = true;
-}
-
-// Set focus to email if empty
-if (!document.getElementById('email').value) {
+} else {
+  // Set focus to email if empty
   document.getElementById('email').focus();
 }
 
-// Forgot password functionality
+// FORGOT PASSWORD
 document.getElementById('forgotPassword').addEventListener('click', async (e) => {
   e.preventDefault();
   const email = prompt('Please enter your email to reset password:');
   if (!email) return;
   
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + '/reset-password.html'
   });
   

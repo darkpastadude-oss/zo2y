@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" type="image/png" href="images/logo.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -36,11 +37,27 @@ body {
     radial-gradient(circle at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 20%);
 }
 
-.signup-container { width:100%; max-width:450px; animation: fadeIn 0.5s ease-out;}
-@keyframes fadeIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+.signup-container { 
+  width:100%; 
+  max-width:450px; 
+  animation: fadeIn 0.5s ease-out;
+}
 
-.logo-header {text-align:center; margin-bottom:30px;}
-.logo-header h1 { color:var(--secondary-color); font-size:2.5rem; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px;}
+@keyframes fadeIn { 
+  from { opacity:0; transform:translateY(20px); } 
+  to { opacity:1; transform:translateY(0); } 
+}
+
+.logo-header { text-align:center; margin-bottom:30px; }
+.logo-header h1 { 
+  color:var(--secondary-color); 
+  font-size:2.5rem; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  gap:10px; 
+  margin-bottom:10px;
+}
 .logo-header img { height:40px; border-radius:8px; }
 .logo-header p { color:var(--text-secondary); font-size:0.9rem; opacity:0.8; }
 
@@ -52,15 +69,37 @@ body {
   backdrop-filter: blur(10px);
   border:1px solid rgba(255,255,255,0.05);
 }
-
 .signup-card h2 { text-align:center; margin-bottom:30px; font-size:1.8rem; color:var(--text-primary); }
 
-.signup-card form { display:flex; flex-direction:column; gap:20px; margin-bottom:30px; }
+.google-btn {
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: #3c4043;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.google-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); background: #f8f9fa; }
+.google-btn:active { transform: translateY(0); }
 
+.signup-card form { display:flex; flex-direction:column; gap:20px; margin-bottom:30px; }
 .input-group { position:relative; }
 .input-group i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text-secondary); transition:var(--transition); }
-.input-group input { width:100%; padding:16px 15px 16px 50px; border-radius:12px; border:1px solid var(--border-color); background: rgba(11,22,51,0.5); color:var(--text-primary); font-size:1rem; outline:none; transition:var(--transition);}
-.input-group input:focus { border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(66,133,244,0.2);}
+.input-group input { 
+  width:100%; padding:16px 15px 16px 50px; border-radius:12px; 
+  border:1px solid var(--border-color); background: rgba(11,22,51,0.5); 
+  color:var(--text-primary); font-size:1rem; outline:none; transition:var(--transition);
+}
+.input-group input:focus { border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(66,133,244,0.2); }
 .input-group input:focus + i { color:var(--primary-color); }
 
 .submit-btn {
@@ -68,29 +107,23 @@ body {
   background:linear-gradient(135deg,var(--primary-color),#357ae8);
   border:none; border-radius:12px; color:white;
   font-weight:600; font-size:1rem; cursor:pointer;
-  transition:var(--transition); display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px;
+  transition:var(--transition); display:flex; justify-content:center; 
+  align-items:center; gap:10px; margin-top:10px;
 }
-.submit-btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(66,133,244,0.4); background:linear-gradient(135deg,#357ae8,#4285F4);}
+.submit-btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(66,133,244,0.4); background:linear-gradient(135deg,#357ae8,#4285F4); }
 .submit-btn:active { transform:translateY(0); }
+.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-.google-btn {
-  display:flex; align-items:center; justify-content:center; gap:12px;
-  width:100%; height:56px; border-radius:12px; border:1px solid #dadce0; background:#fff;
-  color:#3c4043; font-weight:500; font-size:14px; cursor:pointer; transition:var(--transition); margin-bottom:20px;
-}
-.google-btn:hover { box-shadow:0 4px 12px rgba(0,0,0,0.15);}
-.google-btn img { width:20px; height:20px; }
+.divider { display:flex; align-items:center; text-align:center; margin:25px 0; color:var(--text-secondary); font-size:0.9rem; }
+.divider::before, .divider::after { content:''; flex:1; border-bottom:1px solid var(--border-color); }
+.divider span { padding:0 15px; }
 
-.divider { display:flex; align-items:center; text-align:center; margin:25px 0; color:var(--text-secondary); font-size:0.9rem;}
-.divider::before,.divider::after{content:''; flex:1; border-bottom:1px solid var(--border-color);}
-.divider span{padding:0 15px;}
+.login-link { text-align:center; margin-top:25px; font-size:0.95rem; color:var(--text-secondary); }
+.login-link a { color:var(--secondary-color); text-decoration:none; font-weight:600; transition:var(--transition); }
+.login-link a:hover { text-decoration:underline; color:#fbbf24; }
 
-.login-link{text-align:center; margin-top:25px; font-size:0.95rem; color:var(--text-secondary);}
-.login-link a{color:var(--secondary-color); text-decoration:none; font-weight:600; transition:var(--transition);}
-.login-link a:hover{text-decoration:underline; color:#fbbf24;}
-
-.loading { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,.3); border-radius:50%; border-top-color:#fff; animation:spin 1s ease-in-out infinite;}
-@keyframes spin { to{ transform:rotate(360deg); } }
+.loading { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,.3); border-radius:50%; border-top-color:#fff; animation:spin 1s ease-in-out infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -105,8 +138,13 @@ body {
     <h2>Create your account</h2>
 
     <button class="google-btn" id="googleSignup">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google logo">
-      <span>Sign up with Google</span>
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Sign up with Google
     </button>
 
     <div class="divider"><span>or continue with email</span></div>
@@ -137,70 +175,92 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
+// INITIALIZATION FIX: using window.supabase and naming the client variable 'supabaseClient'
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener('DOMContentLoaded', () => {
-
   const signupForm = document.getElementById('signupForm');
   const googleBtn = document.getElementById('googleSignup');
   const submitBtn = document.getElementById('submitBtn');
 
-  async function addUserToTable(user) {
-    if(!user) return;
-    const { error } = await supabase
-      .from('user_profiles')
-      .upsert({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || ''
-      });
-    if(error) console.error('Table insert error:', error);
-  }
-
-  signupForm.addEventListener('submit', async e => {
+  // EMAIL/PASSWORD SIGNUP
+  signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
     const fullName = document.getElementById('fullName').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    
+    // Validation
+    if (!fullName || !email || !password) {
+      return alert('Please fill all fields');
+    }
+    
+    if (password.length < 6) {
+      return alert('Password must be at least 6 characters long');
+    }
+    
     const originalText = submitBtn.innerHTML;
-    if(!fullName || !email || !password) return alert('Please fill all fields');
+    submitBtn.innerHTML = '<div class="loading"></div>';
+    submitBtn.disabled = true;
 
-    submitBtn.innerHTML = '<div class="loading"></div>'; submitBtn.disabled=true;
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin + '/index.html' }
-    });
-
-    if(error){ alert(error.message); submitBtn.innerHTML=originalText; submitBtn.disabled=false; return;}
-    if(data.user) await addUserToTable(data.user);
-
-    if(data.session) window.location.href='index.html';
-    else { alert('🎉 Sign up successful! Check your email for confirmation.'); signupForm.reset(); submitBtn.innerHTML=originalText; submitBtn.disabled=false;}
-  });
-
-  googleBtn.addEventListener('click', async () => {
-    googleBtn.disabled=true; const originalText=googleBtn.innerHTML;
-    googleBtn.innerHTML='<div class="loading"></div>';
-    try{
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider:'google',
-        options:{ redirectTo: window.location.href }
+    try {
+      // We pass full_name in metadata so the SQL trigger can pick it up
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { 
+          data: { 
+            full_name: fullName 
+          }, 
+          emailRedirectTo: window.location.origin + '/index.html'
+        }
       });
-      if(error) throw error;
-    }catch(err){ alert(err.message); googleBtn.innerHTML=originalText; googleBtn.disabled=false;}
-  });
 
-  supabase.auth.onAuthStateChange(async (event, session)=>{
-    if(session?.user){
-      await addUserToTable(session.user);
-      window.location.href='index.html';
+      if (error) throw error;
+      
+      // If session exists, they are logged in. If not, they need to confirm email.
+      if (data.session) {
+        window.location.href = 'index.html';
+      } else {
+        alert('🎉 Sign up successful! Please check your email to confirm your account.');
+        signupForm.reset();
+      }
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
     }
   });
 
+  // GOOGLE SIGNUP
+  googleBtn.addEventListener('click', async () => {
+    googleBtn.disabled = true;
+    const originalText = googleBtn.innerHTML;
+    googleBtn.innerHTML = '<div class="loading"></div>';
+    
+    try {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/index.html',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      alert('Google sign up error: ' + error.message);
+      googleBtn.innerHTML = originalText;
+      googleBtn.disabled = false;
+    }
+  });
 });
 </script>
 
