@@ -2456,22 +2456,26 @@
                 </div>
             </div>
 <div class="mobile-section" id="mobileListDetailSection">
-                <div class="d-flex align-center" style="margin-bottom: 16px;">
-                    <button class="btn btn-secondary btn-icon" onclick="ProfileManager.hideMobileListDetail()" style="margin-right: 12px; width: 32px; height: 32px;">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <div style="flex: 1;">
-                        <h2 class="mobile-section-title" id="mobileListDetailTitle" style="margin-bottom: 0;">List Title</h2>
-                        <div class="mobile-section-subtitle" id="mobileListDetailDescription" style="margin-bottom: 0;">Description</div>
-                    </div>
-                    <button class="mobile-action-btn secondary" style="padding: 8px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showModal('addEntryModal')">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-                
-                <div id="mobileListRestaurants">
-                    </div>
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="btn btn-secondary" onclick="ProfileManager.hideMobileListDetail()" style="padding: 8px 12px;">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <div>
+                <h2 id="mobileListDetailTitle" style="font-size: 20px; font-weight: 700; margin: 0; color: var(--white);">List Title</h2>
+                <div id="mobileListDetailDescription" style="font-size: 13px; color: var(--muted);">Description</div>
             </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="ProfileManager.showModal('addEntryModal')" style="padding: 8px 12px; font-size: 14px;">
+            <i class="fas fa-plus"></i> <span style="display: none;">Add</span>
+        </button>
+    </div>
+
+    <div id="mobileListRestaurants">
+        </div>
+</div>
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
