@@ -787,4 +787,3647 @@
         document.addEventListener('DOMContentLoaded', App.init);
     </script>
 </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zo2y - Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* === DARK BLUE THEME VARIABLES === */
+        :root {
+            --bg: #0b1633;
+            --card: #132347;
+            --muted: #cbd5e1;
+            --accent: #f59e0b;
+            --glass: rgba(255,255,255,0.03);
+            --white: #ffffff;
+            --border: rgba(255,255,255,0.1);
+            --bg-hover: #1a2c5a;
+            --error: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s ease;
+        }
+
+        /* === BASE STYLES === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* === FIXED HOME BUTTON === */
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .home-button img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .home-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* === PROFILE HEADER === */
+        .profile-header {
+            background: var(--card);
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .profile-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .avatar-container {
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            border: 3px solid var(--accent);
+            cursor: pointer;
+            transition: var(--transition);
+            color: #0b1633;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            border-color: #e69500;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-username {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .profile-bio {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            max-width: 500px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* === VIEWING OTHER PROFILE INDICATOR === */
+        .viewing-other-profile {
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .mobile-viewing-indicator {
+            position: sticky;
+            top: 60px;
+            z-index: 900;
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(11, 22, 51, 0.2);
+        }
+
+        .viewing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
+        .btn-primary:hover {
+            background: #e69500;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--card);
+            color: var(--white);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #0d9c6d;
+            transform: translateY(-2px);
+        }
+
+        .btn-error {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-error:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 16px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+
+        /* === LOADING SPINNER === */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 22, 51, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(245, 158, 11, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-spinner-small {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(245, 158, 11, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        .btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(11, 22, 51, 0.1);
+            border-radius: 50%;
+            border-top-color: #0b1633;
+            animation: spin 1s linear infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .btn-error.loading::after {
+            border-top-color: white;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* === STATS GRID === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* === NAVIGATION TABS === */
+        .nav-tabs {
+            display: flex;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .nav-tab:hover {
+            background: var(--bg-hover);
+        }
+
+        .nav-tab.active {
+            background: var(--accent);
+            color: #0b1633;
+        }
+
+        .nav-tab-badge {
+            background: var(--error);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* === CONTENT SECTIONS === */
+        .section {
+            margin-bottom: 40px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* === JOURNAL ENTRIES === */
+        .journal-entry {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .journal-entry:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .restaurant-image {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .restaurant-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-details h3 {
+            margin-bottom: 4px;
+            font-size: 18px;
+        }
+
+        .restaurant-category {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .entry-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .entry-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: var(--bg);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .entry-notes {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .entry-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            background: var(--accent);
+            color: #0b1633;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* === FOLLOWER/COMMUNITY CARDS === */
+        .community-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .community-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .community-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .community-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #0b1633;
+            flex-shrink: 0;
+        }
+
+        .community-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .community-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .community-username {
+            color: var(--muted);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .community-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .community-stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .community-stat-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .community-stat-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .community-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* === MODALS === */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--muted);
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* === FORMS === */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--white);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .rating-star {
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            opacity: 0.3;
+        }
+
+        .rating-star.active, .rating-star:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* === TOAST NOTIFICATIONS === */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2100;
+        }
+
+        .toast {
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            border-left: 4px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            animation: slideInRight 0.3s ease;
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--error); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--error); }
+        .toast.warning .toast-icon { color: var(--warning); }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--muted);
+            line-height: 1;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast-close:hover {
+            color: var(--white);
+        }
+
+        /* === EMPTY STATES === */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+
+        .empty-description {
+            font-size: 16px;
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* === TAB CONTENT === */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* === SEARCH BOX === */
+        .search-box {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* === COMMUNITY SECTIONS === */
+        .community-section {
+            display: none;
+        }
+
+        .community-section.active {
+            display: block;
+        }
+
+        /* === MOBILE STYLES === */
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none !important;
+            }
+            
+            .mobile-only {
+                display: block;
+            }
+            
+            body {
+                padding: 0;
+                background: var(--bg);
+            }
+            
+            /* Mobile Top Bar */
+            .mobile-topbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 16px;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+            }
+
+            .mobile-topbar-title {
+                font-weight: 700;
+                font-size: 20px;
+                color: var(--accent);
+            }
+
+            .mobile-menu-btn {
+                background: none;
+                border: none;
+                color: var(--white);
+                font-size: 22px;
+                cursor: pointer;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-sm);
+                transition: var(--transition);
+            }
+
+            .mobile-menu-btn:hover {
+                background: var(--bg-hover);
+            }
+
+            /* Mobile Profile Header */
+            .mobile-profile-header {
+                padding: 80px 16px 20px;
+                background: var(--card);
+                text-align: center;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-avatar-container {
+                position: relative;
+                margin-bottom: 16px;
+            }
+
+            .mobile-avatar {
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                background: var(--accent);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 48px;
+                margin: 0 auto;
+                border: 3px solid var(--accent);
+                cursor: pointer;
+                transition: var(--transition);
+                color: #0b1633;
+            }
+
+            .mobile-avatar:hover {
+                transform: scale(1.05);
+                border-color: #e69500;
+            }
+
+            .mobile-profile-name {
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+
+            .mobile-profile-username {
+                font-size: 16px;
+                color: var(--accent);
+                margin-bottom: 12px;
+            }
+
+            .mobile-profile-bio {
+                font-size: 14px;
+                color: var(--muted);
+                margin-bottom: 20px;
+                line-height: 1.5;
+            }
+
+            /* Mobile Stats */
+            .mobile-stats {
+                display: flex;
+                justify-content: space-around;
+                background: var(--card);
+                padding: 16px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-stat {
+                text-align: center;
+                flex: 1;
+            }
+
+            .mobile-stat-number {
+                display: block;
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--accent);
+                margin-bottom: 4px;
+            }
+
+            .mobile-stat-label {
+                font-size: 12px;
+                color: var(--muted);
+                font-weight: 500;
+            }
+
+            /* Mobile Tabs Navigation */
+            .mobile-tabs {
+                display: flex;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                position: sticky;
+                top: 60px;
+                z-index: 900;
+            }
+
+            .mobile-tab {
+                flex: 1;
+                padding: 16px;
+                text-align: center;
+                font-weight: 500;
+                color: var(--muted);
+                border-bottom: 3px solid transparent;
+                transition: var(--transition);
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .mobile-tab.active {
+                color: var(--accent);
+                border-bottom-color: var(--accent);
+            }
+
+            .mobile-tab i {
+                font-size: 20px;
+                margin-bottom: 2px;
+            }
+
+            .mobile-tab span {
+                font-size: 12px;
+            }
+
+            /* Mobile Content Sections */
+            .mobile-content {
+                padding: 16px;
+                padding-bottom: 80px;
+            }
+
+            .mobile-section {
+                display: none;
+            }
+
+            .mobile-section.active {
+                display: block;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .mobile-section-title {
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .mobile-section-subtitle {
+                font-size: 14px;
+                color: var(--muted);
+                margin-bottom: 20px;
+            }
+
+            /* Mobile Journal Entries */
+            .mobile-journal-entry {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
+                position: relative;
+            }
+
+            .mobile-journal-entry:hover {
+                border-color: var(--accent);
+            }
+
+            .mobile-entry-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 12px;
+            }
+
+            .mobile-restaurant-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .mobile-restaurant-image {
+                width: 50px;
+                height: 50px;
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+                flex-shrink: 0;
+                background: var(--bg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-restaurant-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .mobile-restaurant-details {
+                flex: 1;
+            }
+
+            .mobile-restaurant-name {
+                font-weight: 600;
+                margin-bottom: 2px;
+                font-size: 16px;
+            }
+
+            .mobile-restaurant-category {
+                font-size: 12px;
+                color: var(--muted);
+            }
+
+            .mobile-entry-rating {
+                color: var(--accent);
+                font-weight: 700;
+                font-size: 14px;
+            }
+
+            .mobile-entry-meta {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+            }
+
+            .mobile-meta-badge {
+                background: var(--bg);
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                color: var(--muted);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .mobile-entry-notes {
+                font-size: 14px;
+                color: var(--muted);
+                line-height: 1.5;
+                margin-bottom: 12px;
+            }
+
+            .mobile-entry-tags {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+
+            .mobile-tag {
+                background: var(--accent);
+                color: #0b1633;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            /* Mobile Community Cards */
+            .mobile-community-card {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
+                position: relative;
+            }
+
+            .mobile-community-card:hover {
+                border-color: var(--accent);
+                transform: translateY(-2px);
+            }
+
+            .mobile-community-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+                cursor: pointer;
+            }
+
+            .mobile-community-avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: var(--accent);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                color: #0b1633;
+                flex-shrink: 0;
+            }
+
+            .mobile-community-info {
+                flex: 1;
+            }
+
+            .mobile-community-name {
+                font-weight: 600;
+                margin-bottom: 2px;
+                font-size: 16px;
+            }
+
+            .mobile-community-username {
+                font-size: 13px;
+                color: var(--muted);
+            }
+
+            .mobile-community-stats {
+                display: flex;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+
+            .mobile-community-stat {
+                text-align: center;
+                flex: 1;
+            }
+
+            .mobile-community-stat-number {
+                display: block;
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--accent);
+                margin-bottom: 2px;
+            }
+
+            .mobile-community-stat-label {
+                font-size: 11px;
+                color: var(--muted);
+            }
+
+            .mobile-community-actions {
+                display: flex;
+                gap: 8px;
+                margin-top: 12px;
+            }
+
+            /* Mobile Action Buttons */
+            .mobile-action-btn {
+                width: 100%;
+                padding: 16px;
+                background: var(--accent);
+                color: #0b1633;
+                border: none;
+                border-radius: var(--radius);
+                font-weight: 600;
+                font-size: 16px;
+                cursor: pointer;
+                transition: var(--transition);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .mobile-action-btn:hover {
+                background: #e69500;
+                transform: translateY(-2px);
+            }
+
+            .mobile-action-btn.secondary {
+                background: var(--card);
+                color: var(--white);
+                border: 1px solid var(--border);
+            }
+
+            .mobile-action-btn.secondary:hover {
+                background: var(--bg-hover);
+            }
+
+            /* Mobile Bottom Navigation */
+            .mobile-bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 70px;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                background: var(--card);
+                border-top: 1px solid var(--border);
+                z-index: 1000;
+            }
+
+            .mobile-bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                color: var(--muted);
+                text-decoration: none;
+                transition: var(--transition);
+                cursor: pointer;
+                flex: 1;
+                height: 100%;
+            }
+
+            .mobile-bottom-nav-item.active {
+                color: var(--accent);
+            }
+
+            .mobile-bottom-nav-item i {
+                font-size: 22px;
+            }
+
+            .mobile-bottom-nav-item span {
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            /* Mobile Community Tabs */
+            .mobile-community-tab {
+                display: none;
+            }
+
+            .mobile-community-tab.active {
+                display: block;
+            }
+
+            /* Mobile Empty States */
+            .mobile-empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: var(--muted);
+            }
+
+            .mobile-empty-icon {
+                font-size: 64px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+
+            .mobile-empty-title {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: var(--white);
+            }
+
+            .mobile-empty-description {
+                font-size: 16px;
+                margin-bottom: 24px;
+            }
+
+            /* Mobile Toast */
+            .mobile-toast-container {
+                position: fixed;
+                top: 80px;
+                left: 16px;
+                right: 16px;
+                z-index: 4000;
+            }
+
+            .mobile-toast {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border-left: 4px solid var(--accent);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+                border: 1px solid var(--border);
+                animation: slideInDown 0.3s ease;
+            }
+
+            /* Hide home button on mobile */
+            .home-button {
+                display: none;
+            }
+        }
+
+        /* Desktop-only styles */
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none !important;
+            }
+            
+            .desktop-only {
+                display: block;
+            }
+        }
+
+        /* Additional animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Utility classes */
+        .d-none {
+            display: none !important;
+        }
+        
+        .d-flex {
+            display: flex !important;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        .align-center {
+            align-items: center;
+        }
+        
+        .gap-sm {
+            gap: 8px;
+        }
+        
+        .gap-md {
+            gap: 16px;
+        }
+        
+        .mt-md {
+            margin-top: 16px;
+        }
+        
+        .text-sm {
+            font-size: 12px;
+        }
+        
+        .text-muted {
+            color: var(--muted);
+        }
+        
+        .w-100 {
+            width: 100%;
+        }
+    </style>
+    <link rel="icon" type="image/png" href="images/logo.png">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="globalLoading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Desktop View -->
+    <div class="desktop-only">
+        <!-- Home Button -->
+        <a href="index.html" class="home-button">
+            <img src="images/logo.png" alt="Zo2y Logo">
+        </a>
+
+        <!-- Viewing Other Profile Indicator -->
+        <div class="container">
+            <div class="viewing-other-profile" id="viewingOtherProfile">
+                <div class="viewing-indicator">
+                    <i class="fas fa-eye"></i>
+                    <span>You are viewing another user's profile</span>
+                </div>
+                <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="ProfileManager.goToMyProfile()">
+                    <i class="fas fa-user"></i> Back to My Profile
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="container">
+                <div class="profile-top">
+                    <div class="avatar-container">
+                        <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
+                            🍔
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <div class="profile-name" id="profileName">
+                            Loading...
+                        </div>
+                        <div class="profile-username" id="profileUsername">@username</div>
+                        <div class="profile-bio" id="profileBio">
+                            No bio yet. Click edit to add one!
+                        </div>
+                        <div class="profile-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="profileLocation">Location not set</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span id="memberSince">Member since 2023</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-utensils"></i>
+                                <span id="visitedCountMeta">0 restaurants visited</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button class="btn btn-primary" onclick="ProfileManager.showModal('addEntryModal')" id="addEntryBtn">
+                            <i class="fas fa-plus"></i> Add Journal
+                        </button>
+                        <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="btn btn-secondary d-none" id="followButton" onclick="ProfileManager.toggleFollow()">
+                            Follow
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🍽️</div>
+                    <div class="stat-number" id="visitedCount">0</div>
+                    <div class="stat-label">Restaurants Visited</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number" id="followersCount">0</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-number" id="listsCount">0</div>
+                    <div class="stat-label">Lists Created</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-number" id="reviewsCount">0</div>
+                    <div class="stat-label">Reviews Written</div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
+                    <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
+                </div>
+                <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
+                    <i class="fas fa-users"></i> Community
+                </div>
+            </div>
+
+            <!-- Journal Tab Content -->
+            <div class="tab-content active" id="journal-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="journalTitle">Food Journal</h2>
+                            <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews and experiences</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addJournalBtn">
+                                <i class="fas fa-plus"></i> New Entry
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="journalEntries">
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <h3 class="empty-title">No Reviews Yet</h3>
+                            <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                <i class="fas fa-utensils"></i> Browse Restaurants
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Tab Content -->
+            <div class="tab-content" id="community-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="communityTitle">Community</h2>
+                            <p class="section-subtitle" id="communitySubtitle">Connect with other food lovers</p>
+                        </div>
+                        <div class="section-actions">
+                            <div class="d-flex gap-sm">
+                                <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
+                                    Followers <span id="followersCountBadge" class="nav-tab-badge d-none">0</span>
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="ProfileManager.showCommunitySection('following')">
+                                    Following <span id="followingCountBadge" class="nav-tab-badge d-none">0</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-primary" onclick="ProfileManager.showModal('communitySearchModal')" id="addCommunityBtn">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Followers Section -->
+                    <div class="community-section active" id="followersSection">
+                        <div class="section-header">
+                            <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
+                            <p class="section-subtitle">People who follow your food journey</p>
+                        </div>
+                        <div id="followersList">
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">No followers yet</h3>
+                                <p class="empty-description">Share your profile to get followers!</p>
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Following Section -->
+                    <div class="community-section" id="followingSection">
+                        <div class="section-header">
+                            <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
+                            <p class="section-subtitle">People whose food journey you follow</p>
+                        </div>
+                        <div id="followingList">
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">Not following anyone yet</h3>
+                                <p class="empty-description">Discover and follow other food lovers!</p>
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="profile-footer" style="background: var(--card); border-top: 1px solid var(--border); padding: 30px 0; margin-top: 40px;">
+            <div class="container">
+                <div class="footer-content" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                    <div class="footer-links" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <a href="#" class="footer-link" onclick="ProfileManager.showModal('editProfileModal'); return false;" style="color: var(--muted); text-decoration: none; font-size: 14px; transition: var(--transition);">Settings</a>
+                        <a href="#" class="footer-link" style="color: var(--muted); text-decoration: none; font-size: 14px; transition: var(--transition);">Privacy</a>
+                        <a href="#" class="footer-link" style="color: var(--muted); text-decoration: none; font-size: 14px; transition: var(--transition);">Support</a>
+                        <a href="#" class="footer-link" id="logoutBtn" style="color: var(--muted); text-decoration: none; font-size: 14px; transition: var(--transition);">Logout</a>
+                    </div>
+                    <div class="copyright" style="color: var(--muted); font-size: 14px;">© 2023 Zo2y. All rights reserved.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile View -->
+    <div class="mobile-only">
+        <!-- Mobile Viewing Indicator Banner -->
+        <div class="mobile-viewing-indicator" id="mobileViewingIndicator">
+            <div class="viewing-indicator">
+                <i class="fas fa-eye"></i>
+                <span>You are viewing another user's profile</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="ProfileManager.goToMyProfile()" style="border-color: #0b1633; color: #0b1633; padding: 4px 8px; font-size: 12px;">
+                <i class="fas fa-user"></i> My Profile
+            </button>
+        </div>
+
+        <!-- Mobile Top Bar -->
+        <div class="mobile-topbar">
+            <div class="mobile-topbar-title" id="mobileTopBarTitle">Profile</div>
+            <button class="mobile-menu-btn" onclick="ProfileManager.showMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Profile Header -->
+        <div class="mobile-profile-header">
+            <div class="mobile-avatar-container">
+                <div class="mobile-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()">
+                    🍔
+                </div>
+            </div>
+            <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
+            <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
+            <div class="mobile-profile-bio" id="mobileProfileBio">
+                No bio yet. Tap edit to add one!
+            </div>
+        </div>
+
+        <!-- Mobile Stats -->
+        <div class="mobile-stats">
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
+                <span class="mobile-stat-label">Visited</span>
+            </div>
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
+                <span class="mobile-stat-label">Followers</span>
+            </div>
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileListsCount">0</span>
+                <span class="mobile-stat-label">Lists</span>
+            </div>
+            <div class="mobile-stat">
+                <span class="mobile-stat-number" id="mobileReviewsCount">0</span>
+                <span class="mobile-stat-label">Reviews</span>
+            </div>
+        </div>
+
+        <!-- Mobile Tabs Navigation -->
+        <div class="mobile-tabs">
+            <div class="mobile-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
+                <i class="fas fa-book"></i>
+                <span id="mobileTabJournal">Journal</span>
+            </div>
+            <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </div>
+        </div>
+
+        <!-- Mobile Content Area -->
+        <div class="mobile-content">
+            <!-- Journal Section -->
+            <div class="mobile-section active" id="mobileJournalSection">
+                <div class="mobile-section-title">
+                    <span id="mobileJournalTitle">Food Journal</span>
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showModal('addEntryModal')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileJournalSubtitle">Your restaurant reviews and experiences</div>
+                
+                <div id="mobileJournalEntries">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📝</div>
+                        <div class="mobile-empty-title">No Reviews Yet</div>
+                        <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
+                        <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add First Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Section -->
+            <div class="mobile-section" id="mobileCommunitySection">
+                <div class="mobile-section-title">
+                    <span id="mobileCommunityTitle">Community</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
+                            Followers
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('following')" id="mobileFollowingTabBtn">
+                            Following
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Connect with other food lovers</div>
+                
+                <!-- Followers Tab -->
+                <div class="mobile-community-tab active" id="mobileFollowersTab">
+                    <div id="mobileFollowersList">
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">No followers yet</div>
+                            <div class="mobile-empty-description">Share your profile to get followers!</div>
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Following Tab -->
+                <div class="mobile-community-tab" id="mobileFollowingTab">
+                    <div id="mobileFollowingList">
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">Not following anyone</div>
+                            <div class="mobile-empty-description">Discover and follow other food lovers!</div>
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="mobile-bottom-nav">
+            <a href="index.html" class="mobile-bottom-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('addEntryModal')">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add</span>
+            </div>
+            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('journal')">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('communitySearchModal')">
+                <i class="fas fa-search"></i>
+                <span>Search</span>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div class="mobile-toast-container" id="mobileToastContainer"></div>
+    </div>
+
+    <!-- ===== MODALS (Shared by both Desktop and Mobile) ===== -->
+
+    <!-- Add Entry Modal -->
+    <div class="modal" id="addEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Journal Entry</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('addEntryModal')">&times;</button>
+            </div>
+            
+            <form id="journalEntryForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Restaurant</label>
+                        <select class="form-select" id="restaurantSelect" required>
+                            <option value="">Select a restaurant</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Visit Date</label>
+                        <input type="date" class="form-input" id="visitDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars" id="ratingStars">
+                            <span class="rating-star" data-rating="1" onclick="ProfileManager.setRating(1)">⭐</span>
+                            <span class="rating-star" data-rating="2" onclick="ProfileManager.setRating(2)">⭐</span>
+                            <span class="rating-star" data-rating="3" onclick="ProfileManager.setRating(3)">⭐</span>
+                            <span class="rating-star" data-rating="4" onclick="ProfileManager.setRating(4)">⭐</span>
+                            <span class="rating-star" data-rating="5" onclick="ProfileManager.setRating(5)">⭐</span>
+                        </div>
+                        <input type="hidden" id="selectedRating" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" id="visitNotes" placeholder="What did you order? How was the experience?"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('addEntryModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Entry</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('editProfileModal')">&times;</button>
+            </div>
+            
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" id="editDisplayName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" id="editUsername" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us about your food journey"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Avatar Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Avatar</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="avatar-icon-grid" id="avatarIconGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+                    <!-- Icons will be populated here -->
+                </div>
+                
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Search Modal -->
+    <div class="modal" id="communitySearchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('communitySearchModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <input type="text" class="form-input" id="userSearch" placeholder="Search by username or name..." style="padding-left: 40px;">
+                    <i class="fas fa-search" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--muted);"></i>
+                </div>
+                
+                <div id="searchResults" style="margin-top: 20px;">
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Search for users</h3>
+                        <p class="empty-description">Enter a username or name to search</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container for Desktop -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ===== OPTIMIZED PROFILE MANAGER =====
+        const ProfileManager = (function() {
+            // Supabase configuration
+            const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+            const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+
+            // Global state
+            let supabase = null;
+            let currentUser = null;
+            let userProfile = null;
+            let targetUser = null;
+            let targetUserId = null;
+            let isViewingOwnProfile = true;
+            let restaurants = [];
+            let currentTab = 'journal';
+            let selectedAvatarIcon = null;
+            
+            // Optimized caches
+            let followStatusCache = new Map();
+            let userProfilesCache = new Map();
+            let searchResultsCache = new Map();
+            let followersCache = new Map();
+            let followingCache = new Map();
+            let journalEntriesCache = new Map();
+            
+            // Food icons for avatar selection
+            const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
+
+            // ===== INITIALIZATION =====
+            async function initialize() {
+                try {
+                    showLoading(true);
+                    
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    // Get current user
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    if (error || !user) {
+                        window.location.href = "login.html";
+                        return;
+                    }
+                    
+                    currentUser = user;
+                    
+                    // Get target user ID from URL
+                    targetUserId = getUserIdFromUrl();
+                    isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
+                    
+                    // Load profile and restaurants in parallel
+                    await Promise.all([
+                        loadProfileData(),
+                        loadRestaurants()
+                    ]);
+                    
+                    setupEventListeners();
+                    
+                    if (window.innerWidth <= 768) {
+                        initializeMobile();
+                    }
+                    
+                    showLoading(false);
+                    
+                } catch (error) {
+                    console.error('Error initializing:', error);
+                    showToast('Error loading profile', 'error');
+                    showLoading(false);
+                }
+            }
+
+            // ===== LOADING FUNCTIONS =====
+            function showLoading(show) {
+                const loadingOverlay = document.getElementById('globalLoading');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.toggle('active', show);
+                }
+            }
+
+            // ===== MOBILE INITIALIZATION =====
+            function initializeMobile() {
+                // Mobile tab switching
+                document.querySelectorAll('.mobile-tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        showTab(tabName);
+                    });
+                });
+            }
+
+            // ===== TOAST SYSTEM =====
+            function showToast(message, type = 'info') {
+                const isMobile = window.innerWidth <= 768;
+                const toastContainerId = isMobile ? 'mobileToastContainer' : 'toastContainer';
+                let toastContainer = document.getElementById(toastContainerId);
+                
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.className = isMobile ? 'mobile-toast-container' : 'toast-container';
+                    toastContainer.id = toastContainerId;
+                    document.body.appendChild(toastContainer);
+                }
+                
+                const toast = document.createElement('div');
+                toast.className = isMobile ? `mobile-toast ${type}` : `toast ${type}`;
+                
+                const icons = {
+                    success: 'fas fa-check-circle',
+                    error: 'fas fa-exclamation-circle',
+                    warning: 'fas fa-exclamation-triangle',
+                    info: 'fas fa-info-circle'
+                };
+                
+                if (isMobile) {
+                    toast.innerHTML = `
+                        <i class="${icons[type]}" style="color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : type === 'warning' ? 'var(--warning)' : 'var(--accent)'}; font-size: 20px;"></i>
+                        <div style="flex: 1; font-size: 14px;">${message}</div>
+                        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">×</button>
+                    `;
+                } else {
+                    toast.innerHTML = `
+                        <i class="${icons[type]} toast-icon"></i>
+                        <div class="toast-content">
+                            <div class="toast-message">${message}</div>
+                        </div>
+                        <button class="toast-close">&times;</button>
+                    `;
+                    
+                    const closeBtn = toast.querySelector('.toast-close');
+                    closeBtn.addEventListener('click', () => toast.remove());
+                }
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 3000);
+            }
+
+            // ===== PROFILE MANAGEMENT =====
+            async function loadProfileData() {
+                if (isViewingOwnProfile) {
+                    await loadOwnProfile();
+                } else {
+                    await loadOtherUserProfile();
+                }
+            }
+
+            async function loadOwnProfile() {
+                // Update UI visibility
+                updateProfileVisibility(true);
+                
+                // Load user profile
+                await loadUserProfile();
+                updateProfileUI();
+                await updateStats();
+            }
+
+            async function loadOtherUserProfile() {
+                // Update UI visibility
+                updateProfileVisibility(false);
+                
+                // Load target user profile
+                const { data: profile, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', targetUserId)
+                    .single();
+
+                if (error || !profile) {
+                    showToast('User not found', 'error');
+                    setTimeout(() => window.location.href = 'profile.html', 1500);
+                    return;
+                }
+
+                targetUser = profile;
+                userProfilesCache.set(targetUserId, profile);
+                
+                updateProfileUI(profile);
+                updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
+                await updateStats(targetUserId);
+            }
+
+            function updateProfileVisibility(isOwnProfile) {
+                const elements = {
+                    'editProfileBtn': isOwnProfile,
+                    'settingsBtn': isOwnProfile,
+                    'logoutBtn': isOwnProfile,
+                    'followButton': !isOwnProfile,
+                    'viewingOtherProfile': !isOwnProfile,
+                    'mobileViewingIndicator': !isOwnProfile,
+                    'addEntryBtn': isOwnProfile,
+                    'addJournalBtn': isOwnProfile
+                };
+
+                Object.entries(elements).forEach(([id, shouldShow]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.display = shouldShow ? 'flex' : 'none';
+                    }
+                });
+            }
+
+            async function loadUserProfile() {
+                // Check cache first
+                if (userProfilesCache.has(currentUser.id)) {
+                    userProfile = userProfilesCache.get(currentUser.id);
+                    return;
+                }
+                
+                const { data: profile, error } = await supabase
+                    .from("user_profiles")
+                    .select("*")
+                    .eq("id", currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error("Error loading profile:", error);
+                }
+
+                userProfile = profile || {};
+                
+                // Create profile if it doesn't exist
+                if (!profile) {
+                    const { error: insertError } = await supabase
+                        .from("user_profiles")
+                        .insert({
+                            id: currentUser.id,
+                            username: currentUser.email.split('@')[0],
+                            full_name: currentUser.email.split('@')[0],
+                            bio: "",
+                            location: "",
+                            avatar_icon: "🍔",
+                            is_private: false,
+                            created_at: new Date().toISOString()
+                        });
+
+                    if (!insertError) {
+                        const { data: newProfile } = await supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("id", currentUser.id)
+                            .single();
+                        
+                        userProfile = newProfile || {};
+                    }
+                }
+                
+                // Cache the profile
+                userProfilesCache.set(currentUser.id, userProfile);
+            }
+
+            function updateProfileUI(profile = userProfile) {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    document.getElementById('mobileTopBarTitle').textContent = 
+                        isViewingOwnProfile ? "Profile" : (profile?.full_name || profile?.username || "Profile");
+                    
+                    document.getElementById('mobileProfileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
+                    document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
+                    document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || "🍔";
+                } else {
+                    document.getElementById('profileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
+                    document.getElementById('profileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
+                    document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
+                    document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
+                    document.getElementById('profileAvatar').textContent = profile?.avatar_icon || "🍔";
+                }
+            }
+
+            function updateTabTitlesForOtherUser(userName) {
+                // Update desktop titles
+                const journalTabText = document.getElementById('journalTabText');
+                const journalTitle = document.getElementById('journalTitle');
+                const communityTitle = document.getElementById('communityTitle');
+                const journalSubtitle = document.getElementById('journalSubtitle');
+                const communitySubtitle = document.getElementById('communitySubtitle');
+                const followersSectionTitle = document.getElementById('followersSectionTitle');
+                const followingSectionTitle = document.getElementById('followingSectionTitle');
+                
+                if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
+                if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
+                if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
+                if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews`;
+                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community`;
+                if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
+                if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
+                
+                // Update mobile titles
+                const mobileTabJournal = document.getElementById('mobileTabJournal');
+                const mobileJournalTitle = document.getElementById('mobileJournalTitle');
+                const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
+                const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
+                const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
+                
+                if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
+                if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
+                if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
+                if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews`;
+                if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community`;
+            }
+
+            // ===== FOLLOW SYSTEM - OPTIMIZED =====
+            async function checkIfFollowing(userId) {
+                const cacheKey = `${currentUser.id}_${userId}`;
+                
+                if (followStatusCache.has(cacheKey)) {
+                    return followStatusCache.get(cacheKey);
+                }
+                
+                try {
+                    const { data, error } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', userId)
+                        .limit(1)
+                        .single();
+
+                    const isFollowing = !error && data;
+                    followStatusCache.set(cacheKey, isFollowing);
+                    return isFollowing;
+                    
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            async function toggleFollow(userId = null, buttonElement = null) {
+                try {
+                    const targetId = userId || targetUserId;
+                    const isOtherUser = !!userId;
+                    
+                    // Check current follow status
+                    const isCurrentlyFollowing = await checkIfFollowing(targetId);
+                    
+                    let result;
+                    if (isCurrentlyFollowing) {
+                        result = await unfollowUser(targetId);
+                    } else {
+                        result = await followUser(targetId);
+                    }
+                    
+                    if (!result.success) {
+                        throw new Error(result.error);
+                    }
+                    
+                    // Update cache
+                    followStatusCache.set(`${currentUser.id}_${targetId}`, !isCurrentlyFollowing);
+                    
+                    // Update button UI
+                    if (buttonElement) {
+                        updateFollowButtonUI(buttonElement, !isCurrentlyFollowing);
+                    }
+                    
+                    // Update main follow button if viewing other profile
+                    if (!isOtherUser && isViewingOwnProfile === false) {
+                        updateMainFollowButton(!isCurrentlyFollowing);
+                    }
+                    
+                    // Show toast
+                    showToast(
+                        isCurrentlyFollowing ? 'Unfollowed user' : 'Started following user',
+                        isCurrentlyFollowing ? 'info' : 'success'
+                    );
+                    
+                    // Update stats
+                    await updateStats();
+                    
+                    // Refresh community view
+                    refreshCommunityView();
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Error toggling follow:', error);
+                    showToast('Failed to update follow status', 'error');
+                    return false;
+                }
+            }
+
+            async function followUser(targetId) {
+                try {
+                    const { error } = await supabase
+                        .from('follows')
+                        .insert({
+                            follower_id: currentUser.id,
+                            followed_id: targetId,
+                            created_at: new Date().toISOString()
+                        });
+
+                    if (error) {
+                        if (error.code === '23505') {
+                            // Already following
+                            return { success: true };
+                        }
+                        throw error;
+                    }
+                    
+                    // Update user profile counts
+                    await updateUserFollowCount(targetId, 'followers_count', 1);
+                    await updateUserFollowCount(currentUser.id, 'following_count', 1);
+                    
+                    // Clear caches
+                    followersCache.clear();
+                    followingCache.clear();
+                    
+                    return { success: true };
+                    
+                } catch (error) {
+                    console.error('Error following user:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+
+            async function unfollowUser(targetId) {
+                try {
+                    const { error } = await supabase
+                        .from('follows')
+                        .delete()
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', targetId);
+
+                    if (error) throw error;
+                    
+                    // Update user profile counts
+                    await updateUserFollowCount(targetId, 'followers_count', -1);
+                    await updateUserFollowCount(currentUser.id, 'following_count', -1);
+                    
+                    // Clear caches
+                    followersCache.clear();
+                    followingCache.clear();
+                    
+                    return { success: true };
+                    
+                } catch (error) {
+                    console.error('Error unfollowing user:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+
+            async function updateUserFollowCount(userId, field, change) {
+                try {
+                    const { data: profile } = await supabase
+                        .from('user_profiles')
+                        .select(field)
+                        .eq('id', userId)
+                        .single();
+                    
+                    if (profile) {
+                        const currentCount = profile[field] || 0;
+                        const newCount = Math.max(0, currentCount + change);
+                        
+                        await supabase
+                            .from('user_profiles')
+                            .update({ [field]: newCount })
+                            .eq('id', userId);
+                        
+                        // Update cache
+                        if (userProfilesCache.has(userId)) {
+                            const cachedProfile = userProfilesCache.get(userId);
+                            cachedProfile[field] = newCount;
+                            userProfilesCache.set(userId, cachedProfile);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error updating ${field}:`, error);
+                }
+            }
+
+            function updateFollowButtonUI(buttonElement, isFollowing) {
+                if (!buttonElement) return;
+                
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isFollowing) {
+                    // Unfollow state
+                    if (isMobile) {
+                        buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                        buttonElement.style.background = 'var(--error)';
+                        buttonElement.style.color = 'white';
+                    } else {
+                        buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                        buttonElement.className = 'btn btn-error btn-sm';
+                    }
+                } else {
+                    // Follow state
+                    if (isMobile) {
+                        buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                        buttonElement.style.background = 'var(--accent)';
+                        buttonElement.style.color = '#0b1633';
+                    } else {
+                        buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                        buttonElement.className = 'btn btn-primary btn-sm';
+                    }
+                }
+            }
+
+            function updateMainFollowButton(isFollowing) {
+                const followButton = document.getElementById('followButton');
+                if (!followButton) return;
+                
+                if (isFollowing) {
+                    followButton.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                    followButton.className = 'btn btn-error';
+                } else {
+                    followButton.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                    followButton.className = 'btn btn-primary';
+                }
+            }
+
+            // ===== SEARCH SYSTEM - OPTIMIZED =====
+            let searchTimeout = null;
+            
+            function setupSearch() {
+                const userSearch = document.getElementById('userSearch');
+                if (!userSearch) return;
+                
+                userSearch.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        const searchTerm = e.target.value.trim();
+                        if (searchTerm.length >= 2) {
+                            searchUsers(searchTerm);
+                        } else {
+                            showEmptySearchState();
+                        }
+                    }, 300);
+                });
+            }
+
+            async function searchUsers(searchTerm) {
+                const searchResults = document.getElementById('searchResults');
+                if (!searchResults) return;
+                
+                // Show loading
+                searchResults.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--muted);">
+                        <div class="loading-spinner" style="margin: 0 auto 10px;"></div>
+                        <div>Searching users...</div>
+                    </div>
+                `;
+                
+                try {
+                    // Check cache first
+                    const cacheKey = `search_${searchTerm.toLowerCase()}`;
+                    if (searchResultsCache.has(cacheKey)) {
+                        const cachedUsers = searchResultsCache.get(cacheKey);
+                        displaySearchResults(cachedUsers);
+                        return;
+                    }
+                    
+                    // Search in parallel for better performance
+                    const [usernameResults, nameResults] = await Promise.all([
+                        supabase
+                            .from('user_profiles')
+                            .select('*')
+                            .ilike('username', `%${searchTerm}%`)
+                            .neq('id', currentUser.id)
+                            .limit(10),
+                        supabase
+                            .from('user_profiles')
+                            .select('*')
+                            .ilike('full_name', `%${searchTerm}%`)
+                            .neq('id', currentUser.id)
+                            .limit(10)
+                    ]);
+                    
+                    // Combine and deduplicate results
+                    const allUsers = [...(usernameResults.data || []), ...(nameResults.data || [])];
+                    const uniqueUsers = [];
+                    const seenIds = new Set();
+                    
+                    for (const user of allUsers) {
+                        if (!seenIds.has(user.id)) {
+                            seenIds.add(user.id);
+                            uniqueUsers.push(user);
+                        }
+                    }
+                    
+                    // Cache results
+                    searchResultsCache.set(cacheKey, uniqueUsers);
+                    
+                    // Display results
+                    displaySearchResults(uniqueUsers);
+                    
+                } catch (error) {
+                    console.error('Error searching users:', error);
+                    searchResults.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Search Error</h3>
+                            <p class="empty-description">Unable to search users at this time</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async function displaySearchResults(users) {
+                const searchResults = document.getElementById('searchResults');
+                if (!searchResults) return;
+                
+                if (!users || users.length === 0) {
+                    searchResults.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <h3 class="empty-title">No users found</h3>
+                            <p class="empty-description">Try a different search term</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                searchResults.innerHTML = '';
+                
+                // Load follow status for all users in parallel
+                const usersWithFollowStatus = await Promise.all(
+                    users.map(async (user) => {
+                        const isFollowing = await checkIfFollowing(user.id);
+                        return { ...user, isFollowing };
+                    })
+                );
+                
+                // Display users
+                usersWithFollowStatus.forEach(user => {
+                    const userCard = createUserCard(user, true);
+                    searchResults.appendChild(userCard);
+                });
+            }
+
+            function showEmptySearchState() {
+                const searchResults = document.getElementById('searchResults');
+                if (!searchResults) return;
+                
+                searchResults.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Search for users</h3>
+                        <p class="empty-description">Enter at least 2 characters to search</p>
+                    </div>
+                `;
+            }
+
+            // ===== COMMUNITY SYSTEM =====
+            async function loadCommunityList(type) {
+                const isMobile = window.innerWidth <= 768;
+                const containerId = isMobile ? 
+                    (type === 'followers' ? 'mobileFollowersList' : 'mobileFollowingList') :
+                    (type === 'followers' ? 'followersList' : 'followingList');
+                
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                // Show loading
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--muted);">
+                        <div class="loading-spinner" style="margin: 0 auto 10px;"></div>
+                        <div>Loading ${type}...</div>
+                    </div>
+                `;
+                
+                try {
+                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                    
+                    // Check cache
+                    const cacheKey = `${type}_${targetId}`;
+                    if (type === 'followers' && followersCache.has(cacheKey)) {
+                        displayCommunityUsers(followersCache.get(cacheKey), containerId, type);
+                        return;
+                    }
+                    if (type === 'following' && followingCache.has(cacheKey)) {
+                        displayCommunityUsers(followingCache.get(cacheKey), containerId, type);
+                        return;
+                    }
+                    
+                    // Load from database
+                    const { data: follows, error } = await supabase
+                        .from('follows')
+                        .select(type === 'followers' ? 'follower_id' : 'followed_id')
+                        .eq(type === 'followers' ? 'followed_id' : 'follower_id', targetId);
+                    
+                    if (error) throw error;
+                    
+                    if (!follows || follows.length === 0) {
+                        showEmptyCommunityState(containerId, type);
+                        return;
+                    }
+                    
+                    const userIds = follows.map(f => 
+                        type === 'followers' ? f.follower_id : f.followed_id
+                    );
+                    
+                    // Get user profiles
+                    const { data: users, error: usersError } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .in('id', userIds);
+                    
+                    if (usersError) throw usersError;
+                    
+                    // Cache results
+                    if (type === 'followers') {
+                        followersCache.set(cacheKey, users);
+                    } else {
+                        followingCache.set(cacheKey, users);
+                    }
+                    
+                    // Display users
+                    displayCommunityUsers(users, containerId, type);
+                    
+                } catch (error) {
+                    console.error(`Error loading ${type}:`, error);
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Unable to load ${type}</h3>
+                            <p class="empty-description">There was an error loading ${type}.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async function displayCommunityUsers(users, containerId, type) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                if (!users || users.length === 0) {
+                    showEmptyCommunityState(containerId, type);
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                // Load follow status for all users in parallel
+                const usersWithFollowStatus = await Promise.all(
+                    users.map(async (user) => {
+                        const isFollowing = await checkIfFollowing(user.id);
+                        return { ...user, isFollowing };
+                    })
+                );
+                
+                // Display users
+                usersWithFollowStatus.forEach(user => {
+                    const userCard = createUserCard(user, false, type);
+                    container.appendChild(userCard);
+                });
+            }
+
+            function showEmptyCommunityState(containerId, type) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                const emptyText = type === 'followers' ? 
+                    (isViewingOwnProfile ? 
+                        'Share your profile to get followers!' : 
+                        'This user doesn\'t have any followers yet.') :
+                    (isViewingOwnProfile ? 
+                        'Discover and follow other food lovers!' : 
+                        'This user isn\'t following anyone yet.');
+                
+                const isMobile = containerId.includes('mobile');
+                
+                if (isMobile) {
+                    container.innerHTML = `
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">${type === 'followers' ? 'No followers yet' : 'Not following anyone'}</div>
+                            <div class="mobile-empty-description">${emptyText}</div>
+                            ${isViewingOwnProfile ? `
+                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">${type === 'followers' ? 'No followers yet' : 'Not following anyone'}</h3>
+                            <p class="empty-description">${emptyText}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                    <i class="fas fa-user-plus"></i> Find Users
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            }
+
+            function createUserCard(user, isSearch = false, listType = '') {
+                const isMobile = window.innerWidth <= 768;
+                const isCurrentUser = user.id === currentUser.id;
+                
+                if (isMobile) {
+                    const userCard = document.createElement('div');
+                    userCard.className = 'mobile-community-card';
+                    
+                    userCard.innerHTML = `
+                        <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
+                            <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="mobile-community-info">
+                                <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                <div class="mobile-community-username">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        <div class="mobile-community-stats">
+                            <div class="mobile-community-stat">
+                                <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
+                                <span class="mobile-community-stat-label">Visited</span>
+                            </div>
+                            <div class="mobile-community-stat">
+                                <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
+                                <span class="mobile-community-stat-label">Favorites</span>
+                            </div>
+                            <div class="mobile-community-stat">
+                                <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
+                                <span class="mobile-community-stat-label">Followers</span>
+                            </div>
+                        </div>
+                        <div class="mobile-community-actions">
+                            ${!isCurrentUser ? `
+                                <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="mobile-action-btn ${user.isFollowing ? '' : 'primary'}" 
+                                        style="flex: 1; padding: 8px 12px; font-size: 14px; ${user.isFollowing ? 'background: var(--error); color: white;' : ''}" 
+                                        onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
+                                    ${user.isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                </button>
+                            ` : `
+                                <button class="mobile-action-btn secondary" style="width: 100%;" disabled>
+                                    <i class="fas fa-user"></i> This is you
+                                </button>
+                            `}
+                        </div>
+                    `;
+                    
+                    return userCard;
+                } else {
+                    const userCard = document.createElement('div');
+                    userCard.className = 'community-card';
+                    
+                    userCard.innerHTML = `
+                        <div class="community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
+                            <div class="community-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="community-info">
+                                <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                <div class="community-username">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        <div class="community-stats">
+                            <div class="community-stat">
+                                <span class="community-stat-number">${user.visited_count || 0}</span>
+                                <span class="community-stat-label">Visited</span>
+                            </div>
+                            <div class="community-stat">
+                                <span class="community-stat-number">${user.followers_count || 0}</span>
+                                <span class="community-stat-label">Followers</span>
+                            </div>
+                            <div class="community-stat">
+                                <span class="community-stat-number">${user.following_count || 0}</span>
+                                <span class="community-stat-label">Following</span>
+                            </div>
+                        </div>
+                        <div class="community-actions">
+                            ${!isCurrentUser ? `
+                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> View Profile
+                                </button>
+                                <button class="btn ${user.isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" 
+                                        onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
+                                    ${user.isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
+                                </button>
+                            ` : `
+                                <button class="btn btn-secondary btn-sm" disabled>
+                                    <i class="fas fa-user"></i> This is you
+                                </button>
+                            `}
+                        </div>
+                    `;
+                    
+                    return userCard;
+                }
+            }
+
+            function refreshCommunityView() {
+                // Get current active community section
+                const isMobile = window.innerWidth <= 768;
+                let currentSection = 'followers';
+                
+                if (isMobile) {
+                    if (document.getElementById('mobileFollowersTab').classList.contains('active')) {
+                        currentSection = 'followers';
+                    } else {
+                        currentSection = 'following';
+                    }
+                } else {
+                    if (document.getElementById('followersSection').classList.contains('active')) {
+                        currentSection = 'followers';
+                    } else {
+                        currentSection = 'following';
+                    }
+                }
+                
+                // Refresh the current view
+                loadCommunityList(currentSection);
+            }
+
+            // ===== RESTAURANTS =====
+            async function loadRestaurants() {
+                try {
+                    const { data, error } = await supabase
+                        .from('restraunts')
+                        .select('id, name, category')
+                        .order('name')
+                        .limit(100);
+                    
+                    if (error) throw error;
+                    
+                    restaurants = data || [];
+                    populateRestaurantSelect();
+                    
+                } catch (error) {
+                    console.error('Error loading restaurants:', error);
+                    restaurants = [];
+                }
+            }
+
+            function populateRestaurantSelect() {
+                const restaurantSelect = document.getElementById('restaurantSelect');
+                if (!restaurantSelect) return;
+                
+                restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
+                
+                restaurants.forEach(restaurant => {
+                    const option = document.createElement('option');
+                    option.value = restaurant.id;
+                    option.textContent = `${restaurant.name} (${restaurant.category})`;
+                    restaurantSelect.appendChild(option);
+                });
+            }
+
+            // ===== JOURNAL ENTRIES =====
+            async function loadJournalEntries() {
+                const isMobile = window.innerWidth <= 768;
+                const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
+                if (!journalEntries) return;
+                
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                
+                try {
+                    // Check cache
+                    const cacheKey = `journal_${targetId}`;
+                    if (journalEntriesCache.has(cacheKey)) {
+                        const cachedEntries = journalEntriesCache.get(cacheKey);
+                        renderJournalEntries(cachedEntries, isMobile);
+                        return;
+                    }
+                    
+                    const { data: entries, error } = await supabase
+                        .from('journal_entries')
+                        .select('*, restraunts(name, image, category, slug)')
+                        .eq('user_id', targetId)
+                        .order('created_at', { ascending: false })
+                        .limit(20);
+
+                    if (error) throw error;
+                    
+                    // Cache entries
+                    journalEntriesCache.set(cacheKey, entries || []);
+                    
+                    renderJournalEntries(entries || [], isMobile);
+                    
+                } catch (error) {
+                    console.error('Error loading journal entries:', error);
+                    journalEntries.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">⚠️</div>
+                            <${isMobile ? 'div' : 'h3'} class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Unable to Load Reviews</${isMobile ? 'div' : 'h3'}>
+                            <${isMobile ? 'div' : 'p'} class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">There was an error loading reviews.</${isMobile ? 'div' : 'p'}>
+                        </div>
+                    `;
+                }
+            }
+
+            function renderJournalEntries(entries, isMobile) {
+                const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
+                if (!journalEntries) return;
+                
+                if (!entries || entries.length === 0) {
+                    const emptyText = isViewingOwnProfile ? 
+                        'Start reviewing restaurants to build your food journey!' :
+                        'This user hasn\'t reviewed any restaurants yet.';
+                    
+                    if (isMobile) {
+                        journalEntries.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">📝</div>
+                                <div class="mobile-empty-title">No Reviews Yet</div>
+                                <div class="mobile-empty-description">${emptyText}</div>
+                                ${isViewingOwnProfile ? `
+                                    <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                                        <i class="fas fa-plus"></i> Add First Review
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else {
+                        journalEntries.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📝</div>
+                                <h3 class="empty-title">No Reviews Yet</h3>
+                                <p class="empty-description">${emptyText}</p>
+                                ${isViewingOwnProfile ? `
+                                    <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
+                                        <i class="fas fa-utensils"></i> Browse Restaurants
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+                
+                journalEntries.innerHTML = '';
+                
+                entries.forEach(entry => {
+                    const restaurant = entry.restraunts;
+                    if (!restaurant) return;
+                    
+                    const entryElement = document.createElement('div');
+                    
+                    if (isMobile) {
+                        entryElement.className = 'mobile-journal-entry';
+                        entryElement.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug || ''}`;
+                        
+                        entryElement.innerHTML = `
+                            <div class="mobile-entry-header">
+                                <div class="mobile-restaurant-info">
+                                    <div class="mobile-restaurant-image">
+                                        <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                    </div>
+                                    <div class="mobile-restaurant-details">
+                                        <div class="mobile-restaurant-name">${restaurant.name}</div>
+                                        <div class="mobile-restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-entry-rating">${'⭐'.repeat(Math.floor(entry.rating))} ${entry.rating}/5</div>
+                            </div>
+                            <div class="mobile-entry-meta">
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-calendar"></i>
+                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                                </div>
+                                <div class="mobile-meta-badge">
+                                    <i class="fas fa-utensils"></i>
+                                    ${restaurant.category}
+                                </div>
+                            </div>
+                            ${entry.notes ? `
+                                <div class="mobile-entry-notes">${entry.notes}</div>
+                            ` : ''}
+                        `;
+                    } else {
+                        entryElement.className = 'journal-entry';
+                        entryElement.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug || ''}`;
+                        
+                        entryElement.innerHTML = `
+                            <div class="entry-header">
+                                <div class="restaurant-info">
+                                    <div class="restaurant-image">
+                                        <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                    </div>
+                                    <div class="restaurant-details">
+                                        <h3>${restaurant.name}</h3>
+                                        <div class="restaurant-category">${restaurant.category}</div>
+                                    </div>
+                                </div>
+                                <div class="entry-rating">
+                                    ${'⭐'.repeat(Math.floor(entry.rating))}
+                                    <span>${entry.rating}/5</span>
+                                </div>
+                            </div>
+                            <div class="entry-meta">
+                                <div class="meta-badge">
+                                    <i class="fas fa-calendar"></i>
+                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                                </div>
+                                <div class="meta-badge">
+                                    <i class="fas fa-utensils"></i>
+                                    ${restaurant.category}
+                                </div>
+                            </div>
+                            <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
+                        `;
+                    }
+                    
+                    journalEntries.appendChild(entryElement);
+                });
+            }
+
+            // ===== STATS =====
+            async function updateStats(userId = null) {
+                const targetId = userId || currentUser.id;
+                
+                try {
+                    // Use parallel requests for better performance
+                    const [followersResult, followingResult, visitedResult] = await Promise.all([
+                        supabase.from('follows').select('*', { count: 'exact', head: true }).eq('followed_id', targetId),
+                        supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', targetId),
+                        supabase.from('journal_entries').select('*', { count: 'exact', head: true }).eq('user_id', targetId)
+                    ]);
+                    
+                    updateStatsUI(
+                        visitedResult.count || 0,
+                        followersResult.count || 0,
+                        0, // Lists count (simplified)
+                        visitedResult.count || 0
+                    );
+                    
+                    updateFollowBadges(followersResult.count || 0, followingResult.count || 0);
+                    
+                } catch (error) {
+                    console.error('Error updating stats:', error);
+                    updateStatsUI(0, 0, 0, 0);
+                }
+            }
+
+            function updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount) {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    document.getElementById('mobileVisitedCount').textContent = visitedCount;
+                    document.getElementById('mobileFollowersCount').textContent = followersCount;
+                    document.getElementById('mobileListsCount').textContent = listsCount;
+                    document.getElementById('mobileReviewsCount').textContent = reviewsCount;
+                } else {
+                    document.getElementById('visitedCount').textContent = visitedCount;
+                    document.getElementById('followersCount').textContent = followersCount;
+                    document.getElementById('listsCount').textContent = listsCount;
+                    document.getElementById('reviewsCount').textContent = reviewsCount;
+                    document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
+                }
+            }
+
+            function updateFollowBadges(followersCount, followingCount) {
+                const followersBadge = document.getElementById('followersCountBadge');
+                const followingBadge = document.getElementById('followingCountBadge');
+                
+                if (followersBadge) {
+                    followersBadge.textContent = followersCount;
+                    followersBadge.style.display = followersCount > 0 ? 'inline-block' : 'none';
+                }
+                
+                if (followingBadge) {
+                    followingBadge.textContent = followingCount;
+                    followingBadge.style.display = followingCount > 0 ? 'inline-block' : 'none';
+                }
+            }
+
+            // ===== UTILITY FUNCTIONS =====
+            function getUserIdFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                return id ? id.trim() : null;
+            }
+
+            function goToMyProfile() {
+                window.location.href = 'profile.html';
+            }
+
+            function viewUserProfile(userId) {
+                window.location.href = `profile.html?id=${userId}`;
+            }
+
+            function showTab(tabName) {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    document.querySelectorAll('.mobile-section').forEach(section => {
+                        section.style.display = 'none';
+                        section.classList.remove('active');
+                    });
+                    
+                    document.querySelectorAll('.mobile-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    const activeSection = document.getElementById(`mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Section`);
+                    if (activeSection) {
+                        activeSection.style.display = 'block';
+                        activeSection.classList.add('active');
+                    }
+                    
+                    const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                    }
+                    
+                    currentTab = tabName;
+                    
+                    switch(tabName) {
+                        case 'journal':
+                            loadJournalEntries();
+                            break;
+                        case 'community':
+                            showCommunitySection('followers');
+                            break;
+                    }
+                } else {
+                    document.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    const tabElement = document.getElementById(`${tabName}-tab`);
+                    if (tabElement) {
+                        tabElement.classList.add('active');
+                    }
+                    
+                    document.querySelectorAll('.nav-tab').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+                    if (activeButton) activeButton.classList.add('active');
+                    
+                    currentTab = tabName;
+                    
+                    switch(tabName) {
+                        case 'journal':
+                            loadJournalEntries();
+                            break;
+                        case 'community':
+                            showCommunitySection('followers');
+                            break;
+                    }
+                }
+            }
+
+            function showCommunitySection(section) {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    const followersBtn = document.getElementById('mobileFollowersTabBtn');
+                    const followingBtn = document.getElementById('mobileFollowingTabBtn');
+                    
+                    if (followersBtn) followersBtn.classList.remove('active');
+                    if (followingBtn) followingBtn.classList.remove('active');
+                    
+                    document.querySelectorAll('.mobile-community-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    const targetTab = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Tab`);
+                    if (targetTab) {
+                        targetTab.classList.add('active');
+                    }
+                    
+                    const activeBtn = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}TabBtn`);
+                    if (activeBtn) activeBtn.classList.add('active');
+                } else {
+                    const followersBtn = document.getElementById('showFollowersBtn');
+                    const followingBtn = document.getElementById('showFollowingBtn');
+                    
+                    if (followersBtn) followersBtn.classList.remove('active');
+                    if (followingBtn) followingBtn.classList.remove('active');
+                    
+                    document.querySelectorAll('.community-section').forEach(sectionEl => {
+                        sectionEl.classList.remove('active');
+                    });
+                    
+                    const targetSection = document.getElementById(`${section}Section`);
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                    }
+                    
+                    const activeBtn = document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`);
+                    if (activeBtn) activeBtn.classList.add('active');
+                }
+                
+                // Load the section data
+                loadCommunityList(section);
+            }
+
+            function showModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    if (modalId === 'addEntryModal') {
+                        const visitDate = document.getElementById('visitDate');
+                        if (visitDate) {
+                            const today = new Date().toISOString().split('T')[0];
+                            visitDate.value = today;
+                            visitDate.max = today;
+                        }
+                        setRating(0);
+                    }
+                    
+                    if (modalId === 'editProfileModal' && userProfile) {
+                        document.getElementById('editDisplayName').value = userProfile.full_name || '';
+                        document.getElementById('editUsername').value = userProfile.username || '';
+                        document.getElementById('editBio').value = userProfile.bio || '';
+                        document.getElementById('editLocation').value = userProfile.location || '';
+                    }
+                    
+                    if (modalId === 'avatarModal') {
+                        const avatarIconGrid = document.getElementById('avatarIconGrid');
+                        if (avatarIconGrid) {
+                            avatarIconGrid.innerHTML = '';
+                            foodIcons.forEach(icon => {
+                                const iconOption = document.createElement('div');
+                                iconOption.className = 'avatar-icon-option';
+                                iconOption.textContent = icon;
+                                iconOption.onclick = () => {
+                                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                                        opt.classList.remove('selected');
+                                    });
+                                    iconOption.classList.add('selected');
+                                    selectedAvatarIcon = icon;
+                                };
+                                if (icon === (userProfile?.avatar_icon || "🍔")) {
+                                    iconOption.classList.add('selected');
+                                    selectedAvatarIcon = icon;
+                                }
+                                avatarIconGrid.appendChild(iconOption);
+                            });
+                        }
+                    }
+                    
+                    if (modalId === 'communitySearchModal') {
+                        setupSearch();
+                        document.getElementById('userSearch').focus();
+                    }
+                }
+            }
+
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    
+                    if (modalId === 'addEntryModal') {
+                        const form = document.getElementById('journalEntryForm');
+                        if (form) form.reset();
+                        setRating(0);
+                    }
+                    
+                    if (modalId === 'communitySearchModal') {
+                        const searchInput = document.getElementById('userSearch');
+                        if (searchInput) searchInput.value = '';
+                    }
+                }
+            }
+
+            // ===== AVATAR FUNCTIONS =====
+            async function saveAvatar() {
+                if (!selectedAvatarIcon || !isViewingOwnProfile) {
+                    showToast('Please select an avatar', 'error');
+                    return;
+                }
+
+                try {
+                    const { error } = await supabase
+                        .from('user_profiles')
+                        .update({ avatar_icon: selectedAvatarIcon })
+                        .eq('id', currentUser.id);
+
+                    if (error) throw error;
+
+                    // Update UI
+                    const avatar = document.getElementById('profileAvatar');
+                    if (avatar) avatar.textContent = selectedAvatarIcon;
+                    
+                    const mobileAvatar = document.getElementById('mobileAvatar');
+                    if (mobileAvatar) mobileAvatar.textContent = selectedAvatarIcon;
+                    
+                    // Update profile cache
+                    if (userProfile) {
+                        userProfile.avatar_icon = selectedAvatarIcon;
+                        userProfilesCache.set(currentUser.id, userProfile);
+                    }
+                    
+                    showToast('Avatar updated successfully!', 'success');
+                    closeModal('avatarModal');
+                    
+                } catch (error) {
+                    console.error('Error saving avatar:', error);
+                    showToast('Error saving avatar', 'error');
+                }
+            }
+
+            // ===== RATING FUNCTIONS =====
+            function setRating(stars) {
+                const starsElements = document.querySelectorAll('#ratingStars span');
+                starsElements.forEach((star, index) => {
+                    if (index < stars) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+                
+                const selectedRating = document.getElementById('selectedRating');
+                if (selectedRating) selectedRating.value = stars;
+            }
+
+            // ===== SETUP EVENT LISTENERS =====
+            function setupEventListeners() {
+                // Journal form submission
+                const journalForm = document.getElementById('journalEntryForm');
+                if (journalForm) {
+                    journalForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        const restaurantId = document.getElementById('restaurantSelect').value;
+                        const visitDate = document.getElementById('visitDate').value;
+                        const rating = document.getElementById('selectedRating').value;
+                        const notes = document.getElementById('visitNotes').value;
+                        
+                        if (!restaurantId || !visitDate || rating === '0') {
+                            showToast('Please fill in all required fields', 'error');
+                            return;
+                        }
+                        
+                        try {
+                            await supabase
+                                .from('journal_entries')
+                                .insert({
+                                    user_id: currentUser.id,
+                                    restaurant_id: restaurantId,
+                                    visit_date: visitDate,
+                                    rating: rating,
+                                    notes: notes,
+                                    created_at: new Date().toISOString()
+                                });
+                            
+                            showToast('Journal entry added successfully!', 'success');
+                            closeModal('addEntryModal');
+                            journalForm.reset();
+                            setRating(0);
+                            
+                            // Clear cache and reload
+                            journalEntriesCache.clear();
+                            await updateStats();
+                            await loadJournalEntries();
+                            
+                        } catch (error) {
+                            console.error('Error saving journal entry:', error);
+                            showToast('Error saving journal entry', 'error');
+                        }
+                    });
+                }
+                
+                // Edit profile form submission
+                const editProfileForm = document.getElementById('editProfileForm');
+                if (editProfileForm) {
+                    editProfileForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        const displayName = document.getElementById('editDisplayName').value;
+                        const username = document.getElementById('editUsername').value;
+                        const bio = document.getElementById('editBio').value;
+                        const location = document.getElementById('editLocation').value;
+                        
+                        if (!displayName || !username) {
+                            showToast('Please enter display name and username', 'error');
+                            return;
+                        }
+                        
+                        try {
+                            await supabase
+                                .from('user_profiles')
+                                .update({
+                                    full_name: displayName,
+                                    username: username,
+                                    bio: bio,
+                                    location: location,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', currentUser.id);
+                            
+                            // Update cache
+                            userProfile = { ...userProfile, full_name: displayName, username, bio, location };
+                            userProfilesCache.set(currentUser.id, userProfile);
+                            
+                            showToast('Profile updated successfully!', 'success');
+                            closeModal('editProfileModal');
+                            updateProfileUI();
+                            
+                        } catch (error) {
+                            console.error('Error updating profile:', error);
+                            showToast('Error updating profile', 'error');
+                        }
+                    });
+                }
+                
+                // Logout button
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        if (confirm('Are you sure you want to logout?')) {
+                            await supabase.auth.signOut();
+                            window.location.href = 'login.html';
+                        }
+                    });
+                }
+                
+                // Modal close buttons
+                document.querySelectorAll('.modal-close').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const modal = this.closest('.modal');
+                        if (modal) {
+                            closeModal(modal.id);
+                        }
+                    });
+                });
+                
+                // Close modal when clicking outside
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeModal(this.id);
+                        }
+                    });
+                });
+                
+                // Escape key to close modals
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        document.querySelectorAll('.modal.active').forEach(modal => {
+                            closeModal(modal.id);
+                        });
+                    }
+                });
+            }
+
+            // ===== MOBILE MENU =====
+            function showMobileMenu() {
+                // Simple mobile menu implementation
+                const menuItems = [
+                    { icon: 'fas fa-home', text: 'Home', action: () => window.location.href = 'index.html' },
+                    { icon: 'fas fa-plus', text: 'Add Review', action: () => showModal('addEntryModal') },
+                    { icon: 'fas fa-search', text: 'Search Users', action: () => showModal('communitySearchModal') },
+                    { icon: 'fas fa-cog', text: 'Settings', action: () => showModal('editProfileModal') },
+                    { icon: 'fas fa-sign-out-alt', text: 'Logout', action: () => logoutBtn.click() }
+                ];
+                
+                // Create mobile menu modal
+                let mobileMenu = document.getElementById('mobileMenuModal');
+                if (!mobileMenu) {
+                    mobileMenu = document.createElement('div');
+                    mobileMenu.id = 'mobileMenuModal';
+                    mobileMenu.className = 'modal';
+                    mobileMenu.innerHTML = `
+                        <div class="modal-content" style="max-width: 300px;">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Menu</h3>
+                                <button class="modal-close" onclick="document.getElementById('mobileMenuModal').remove()">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                ${menuItems.map(item => `
+                                    <div class="mobile-menu-item" onclick="${item.action.toString().replace(/"/g, '&quot;')}; document.getElementById('mobileMenuModal').remove()" style="padding: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid var(--border);">
+                                        <i class="${item.icon}" style="font-size: 20px; color: var(--accent);"></i>
+                                        <span>${item.text}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(mobileMenu);
+                }
+                
+                mobileMenu.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            // ===== PUBLIC API =====
+            return {
+                initialize,
+                showTab,
+                goToMyProfile,
+                viewUserProfile,
+                showModal,
+                closeModal,
+                showCommunitySection,
+                toggleFollow,
+                showAvatarModal,
+                saveAvatar,
+                setRating,
+                showMobileMenu
+            };
+        })();
+
+        // ===== INITIALIZE WHEN DOM IS LOADED =====
+        document.addEventListener('DOMContentLoaded', function() {
+            ProfileManager.initialize();
+        });
+    </script>
+</body>
 </html>
