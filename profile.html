@@ -2455,7 +2455,23 @@
                     </div>
                 </div>
             </div>
-
+<div class="mobile-section" id="mobileListDetailSection">
+                <div class="d-flex align-center" style="margin-bottom: 16px;">
+                    <button class="btn btn-secondary btn-icon" onclick="ProfileManager.hideMobileListDetail()" style="margin-right: 12px; width: 32px; height: 32px;">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div style="flex: 1;">
+                        <h2 class="mobile-section-title" id="mobileListDetailTitle" style="margin-bottom: 0;">List Title</h2>
+                        <div class="mobile-section-subtitle" id="mobileListDetailDescription" style="margin-bottom: 0;">Description</div>
+                    </div>
+                    <button class="mobile-action-btn secondary" style="padding: 8px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showModal('addEntryModal')">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                <div id="mobileListRestaurants">
+                    </div>
+            </div>
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
