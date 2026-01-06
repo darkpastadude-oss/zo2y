@@ -3180,24 +3180,24 @@
                 followButton.onclick = () => toggleFollow(targetUserId, followButton);
             }
 
-            checkIfFollowing: async function(userId) {
-    const cacheKey = `${this.currentUser.id}_${userId}`;
+            // PASTE THIS CORRECTED CODE
+async function checkIfFollowing(userId) {
+    const cacheKey = `${currentUser.id}_${userId}`; // Changed 'this.currentUser' to 'currentUser'
     
-    if (this.followStatusCache.has(cacheKey)) {
-        return this.followStatusCache.get(cacheKey);
+    if (followStatusCache.has(cacheKey)) { // Changed 'this.followStatusCache' to 'followStatusCache'
+        return followStatusCache.get(cacheKey);
     }
     
     try {
-        const { data, error } = await this.supabase
+        const { data, error } = await supabase // Changed 'this.supabase' to 'supabase'
             .from('follows')
             .select('id')
-            .eq('follower_id', this.currentUser.id)
+            .eq('follower_id', currentUser.id)
             .eq('followed_id', userId)
-            .maybeSingle(); // <--- CHANGE THIS (was .single())
+            .maybeSingle(); 
 
-        // Logic remains the same
         const isFollowing = !!data && !error;
-        this.followStatusCache.set(cacheKey, isFollowing);
+        followStatusCache.set(cacheKey, isFollowing);
         
         return isFollowing;
         
@@ -3205,7 +3205,7 @@
         console.error('Error checking follow status:', error);
         return false;
     }
-},
+}
             async function toggleFollow(userId, buttonElement) {
                 try {
                     const isFollowing = await checkIfFollowing(userId);
