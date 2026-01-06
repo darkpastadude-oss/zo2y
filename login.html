@@ -1,518 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zo2y - Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary-color: #4285F4;
-      --secondary-color: #f59e0b;
-      --bg-color: #0b1633;
-      --card-color: #132347;
-      --text-primary: #ffffff;
-      --text-secondary: #cbd5e1;
-      --border-color: rgba(255,255,255,0.1);
-      --shadow: 0 10px 30px rgba(0,0,0,0.3);
-      --transition: all 0.3s ease;
-      --google-blue: #4285F4;
-      --google-white: #ffffff;
-      --google-gray: #757575;
-    }
-    
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-      font-family: 'Poppins', sans-serif; 
-    }
-    
-    body {
-      background: var(--bg-color);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: var(--text-primary);
-      padding: 20px;
-      background-image: radial-gradient(circle at 20% 80%, rgba(66, 133, 244, 0.1) 0%, transparent 20%),
-                        radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 20%);
-    }
-    
-    .login-container {
-      width: 100%;
-      max-width: 450px;
-      animation: fadeIn 0.5s ease-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .logo-header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    
-    .logo-header h1 {
-      color: var(--secondary-color);
-      font-size: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    
-    .logo-header img {
-      height: 40px;
-      border-radius: 8px;
-    }
-    
-    .logo-header p {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
-    
-    .login-card {
-      background: var(--card-color);
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .login-card h2 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 1.8rem;
-      color: var(--text-primary);
-    }
-    
-    .login-card form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    
-    .input-group {
-      position: relative;
-    }
-    
-    .input-group i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-secondary);
-      transition: var(--transition);
-    }
-    
-    .input-group input {
-      width: 100%;
-      padding: 16px 15px 16px 50px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      background: rgba(11, 22, 51, 0.5);
-      color: var(--text-primary);
-      font-size: 1rem;
-      outline: none;
-      transition: var(--transition);
-    }
-    
-    .input-group input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
-    }
-    
-    .input-group input:focus + i {
-      color: var(--primary-color);
-    }
-    
-    .remember-forgot {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
-    }
-    
-    .remember {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-secondary);
-    }
-    
-    .remember input {
-      width: auto;
-    }
-    
-    .forgot-link {
-      color: var(--primary-color);
-      text-decoration: none;
-      transition: var(--transition);
-    }
-    
-    .forgot-link:hover {
-      text-decoration: underline;
-      color: #5a9cff;
-    }
-    
-    .login-btn {
-      padding: 16px;
-      background: linear-gradient(135deg, var(--primary-color), #357ae8);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    .login-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(66, 133, 244, 0.4);
-      background: linear-gradient(135deg, #357ae8, #4285F4);
-    }
-    
-    .login-btn:active {
-      transform: translateY(0);
-    }
-    
-    /* Standard Google Sign-in Button */
-    .gsi-material-button {
-      -moz-user-select: none;
-      -webkit-user-select: none;
-      -ms-user-select: none;
-      -webkit-appearance: none;
-      background-color: white;
-      background-image: none;
-      border: 1px solid #dadce0;
-      border-radius: 12px;
-      color: #3c4043;
-      cursor: pointer;
-      font-family: 'Roboto', 'Poppins', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      height: 56px;
-      letter-spacing: 0.25px;
-      outline: none;
-      overflow: hidden;
-      padding: 0 12px;
-      position: relative;
-      text-align: center;
-      transition: var(--transition);
-      vertical-align: middle;
-      white-space: nowrap;
-      width: 100%;
-      margin-bottom: 20px;
-    }
-    
-    .gsi-material-button:hover {
-      background-color: #f8f9fa;
-      box-shadow: 0 1px 3px 1px rgba(66, 64, 67, 0.15), 0 1px 2px 0 rgba(60, 64, 67, 0.3);
-      border-color: #d2e3fc;
-    }
-    
-    .gsi-material-button:active {
-      background-color: #e8f0fe;
-    }
-    
-    .gsi-material-button .gsi-material-button-icon {
-      height: 20px;
-      margin-right: 12px;
-      min-width: 20px;
-      width: 20px;
-    }
-    
-    .gsi-material-button .gsi-material-button-content-wrapper {
-      align-items: center;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      height: 100%;
-      justify-content: center;
-      position: relative;
-      width: 100%;
-    }
-    
-    .gsi-material-button .gsi-material-button-contents {
-      flex-grow: 1;
-      font-family: 'Roboto', 'Poppins', sans-serif;
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      vertical-align: top;
-    }
-    
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      margin: 25px 0;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
-    
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid var(--border-color);
-    }
-    
-    .divider span {
-      padding: 0 15px;
-    }
-    
-    .signup-link {
-      text-align: center;
-      margin-top: 25px;
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-    }
-    
-    .signup-link a {
-      color: var(--secondary-color);
-      text-decoration: none;
-      font-weight: 600;
-      transition: var(--transition);
-    }
-    
-    .signup-link a:hover {
-      text-decoration: underline;
-      color: #fbbf24;
-    }
-    
-    @media (max-width: 480px) {
-      .login-card { 
-        padding: 30px 25px; 
-      }
-      
-      .logo-header h1 { 
-        font-size: 2rem; 
-      }
-      
-      .input-group input {
-        padding: 14px 15px 14px 45px;
-      }
-      
-      .login-btn,
-      .gsi-material-button {
-        height: 52px;
-      }
-    }
-    
-    /* Loading animation */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zo2y - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+  --primary-color: #4285F4;
+  --secondary-color: #f59e0b;
+  --bg-color: #0b1633;
+  --card-color: #132347;
+  --text-primary: #fff;
+  --text-secondary: #cbd5e1;
+  --border-color: rgba(255,255,255,0.1);
+  --shadow: 0 10px 30px rgba(0,0,0,0.3);
+  --transition: all 0.3s ease;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{
+  background: var(--bg-color);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:var(--text-primary);
+  padding:20px;
+  background-image: radial-gradient(circle at 20% 80%, rgba(66,133,244,0.1) 0%, transparent 20%),
+                    radial-gradient(circle at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 20%);
+}
+
+.login-container{width:100%;max-width:450px;animation:fadeIn 0.5s ease-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.logo-header{text-align:center;margin-bottom:30px;}
+.logo-header h1{color:var(--secondary-color);font-size:2.5rem;display:flex;align-items:center;justify-content:center;gap:10px;}
+.logo-header img{height:40px;border-radius:8px;}
+.logo-header p{color:var(--text-secondary);font-size:0.9rem;opacity:0.8;}
+
+.login-card{
+  background:var(--card-color);
+  padding:40px;
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  backdrop-filter: blur(10px);
+  border:1px solid rgba(255,255,255,0.05);
+}
+.login-card h2{text-align:center;margin-bottom:30px;font-size:1.8rem;color:var(--text-primary);}
+.login-card form{display:flex;flex-direction:column;gap:20px;margin-bottom:30px;}
+.input-group{position:relative;}
+.input-group i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-secondary);transition:var(--transition);}
+.input-group input{
+  width:100%;
+  padding:16px 15px 16px 50px;
+  border-radius:12px;
+  border:1px solid var(--border-color);
+  background:rgba(11,22,51,0.5);
+  color:var(--text-primary);
+  font-size:1rem;
+  outline:none;
+  transition:var(--transition);
+}
+.input-group input:focus{border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(66,133,244,0.2);}
+.input-group input:focus + i{color:var(--primary-color);}
+
+.remember-forgot{display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;}
+.remember{display:flex;align-items:center;gap:8px;color:var(--text-secondary);}
+.remember input{width:auto;}
+.forgot-link{color:var(--primary-color);text-decoration:none;transition:var(--transition);}
+.forgot-link:hover{text-decoration:underline;color:#5a9cff;}
+
+.login-btn{
+  padding:16px;
+  background:linear-gradient(135deg,var(--primary-color),#357ae8);
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-weight:600;
+  font-size:1rem;
+  cursor:pointer;
+  transition:var(--transition);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+}
+.login-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(66,133,244,0.4);
+  background:linear-gradient(135deg,#357ae8,#4285F4);
+}
+.login-btn:active{transform:translateY(0);}
+
+.divider{display:flex;align-items:center;text-align:center;margin:25px 0;color:var(--text-secondary);font-size:0.9rem;}
+.divider::before,.divider::after{content:'';flex:1;border-bottom:1px solid var(--border-color);}
+.divider span{padding:0 15px;}
+
+.signup-link{text-align:center;margin-top:25px;font-size:0.95rem;color:var(--text-secondary);}
+.signup-link a{color:var(--secondary-color);text-decoration:none;font-weight:600;transition:var(--transition);}
+.signup-link a:hover{text-decoration:underline;color:#fbbf24;}
+
+.loading{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
 </head>
 <body>
 
 <div class="login-container">
   <div class="logo-header">
-    <h1>
-      <img src="images/logo.png" alt="Zo2y Logo">
-      Zo2y
-    </h1>
+    <h1><img src="images/logo.png" alt="Zo2y Logo">Zo2y</h1>
     <p>Welcome back to your food journey</p>
   </div>
-  
+
   <div class="login-card">
     <h2>Log in to your account</h2>
-    
-    <!-- Standard Google Sign-in Button -->
-    <button class="gsi-material-button" id="googleLogin">
-      <div class="gsi-material-button-content-wrapper">
-        <div class="gsi-material-button-icon">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-            <path fill="#4285F4" d="M46.5 24.5c0-1.57-.15-3.09-.38-4.5H24v9h12.64c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.68z"></path>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-            <path fill="none" d="M0 0h48v48H0z"></path>
-          </svg>
-        </div>
-        <span class="gsi-material-button-contents">Sign in with Google</span>
-      </div>
-    </button>
-    
-    <div class="divider">
-      <span>or continue with email</span>
-    </div>
-    
+
+    <button class="gsi-material-button" id="googleLogin">Sign in with Google</button>
+
+    <div class="divider"><span>or continue with email</span></div>
+
     <form id="loginForm">
       <div class="input-group">
         <i class="fas fa-envelope"></i>
         <input type="email" placeholder="Email" id="email" required>
       </div>
-      
       <div class="input-group">
         <i class="fas fa-lock"></i>
         <input type="password" placeholder="Password" id="password" required>
       </div>
-      
       <div class="remember-forgot">
-        <label class="remember">
-          <input type="checkbox" id="remember">
-          Remember me
-        </label>
+        <label class="remember"><input type="checkbox" id="remember"> Remember me</label>
         <a href="#" class="forgot-link" id="forgotPassword">Forgot password?</a>
       </div>
-      
-      <button type="submit" class="login-btn" id="loginBtn">
-        <i class="fas fa-sign-in-alt"></i>
-        <span>Log In</span>
-      </button>
+      <button type="submit" class="login-btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Log In</button>
     </form>
-    
-    <div class="signup-link">
-      Don't have an account? <a href="sign-up.html">Sign up now</a>
-    </div>
+
+    <div class="signup-link">Don't have an account? <a href="sign-up.html">Sign up now</a></div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-  const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
-    const googleBtn = document.getElementById('googleLogin');
-    const loginBtn = document.getElementById('loginBtn');
-    const forgotPassword = document.getElementById('forgotPassword');
-
-    async function addUserToTable(user) {
-      if(!user) return;
-      const { error } = await supabase.from('users').upsert({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || ''
-      });
-      if(error) console.error('Table insert error:', error);
-    }
-
-    function showAlert(message, type='error') {
-      alert(message);
-    }
-
-    // EMAIL/PASSWORD LOGIN
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const rememberMe = document.getElementById('remember').checked;
-      const originalText = loginBtn.innerHTML;
-
-      if(!email || !password) { showAlert('Fill all fields'); return; }
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Enter valid email'); return; }
-
-      loginBtn.innerHTML = '<div class="loading"></div>';
-      loginBtn.disabled = true;
-
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if(error) {
-          showAlert(error.message.includes('Invalid login credentials') ? 'Invalid email or password' : error.message);
-          loginBtn.innerHTML = originalText;
-          loginBtn.disabled = false;
-          return;
-        }
-
-        if(rememberMe) localStorage.setItem('rememberEmail', email);
-        else localStorage.removeItem('rememberEmail');
-
-        await addUserToTable(data.user);
-        window.location.href = 'index.html';
-
-      } catch(err) {
-        console.error(err);
-        showAlert('Unexpected error occurred');
-        loginBtn.innerHTML = originalText;
-        loginBtn.disabled = false;
-      }
-    });
-
-    // GOOGLE LOGIN
-    googleBtn.addEventListener('click', async () => {
-      googleBtn.disabled = true;
-      const originalText = googleBtn.innerHTML;
-      googleBtn.innerHTML = '<div class="loading"></div>';
-
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: window.location.href }
-        });
-        if(error) throw error;
-      } catch(err) {
-        showAlert(err.message);
-        googleBtn.innerHTML = originalText;
-        googleBtn.disabled = false;
-      }
-    });
-
-    // HANDLE GOOGLE REDIRECT
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if(session?.user) {
-        await addUserToTable(session.user);
-        window.location.href = 'index.html';
-      }
-    });
-
-    // FORGOT PASSWORD
-    forgotPassword.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      if(!email) { showAlert('Enter your email first'); return; }
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Enter valid email'); return; }
-
-      if(!confirm(`Send password reset link to ${email}?`)) return;
-
-      try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/update-password.html' });
-        if(error) showAlert(error.message);
-        else showAlert('Password reset email sent! Check inbox/spam', 'success');
-      } catch(err) { console.error(err); showAlert('Failed to send reset email'); }
-    });
-
-    // REMEMBER EMAIL
-    const rememberedEmail = localStorage.getItem('rememberEmail');
-    if(rememberedEmail) {
-      document.getElementById('email').value = rememberedEmail;
-      document.getElementById('remember').checked = true;
-    }
-    if(!document.getElementById('email').value) document.getElementById('email').focus();
+// insert user into user_profiles safely
+async function addUserToProfiles(user){
+  if(!user) return;
+  const { error } = await supabase.from('user_profiles').upsert({
+    id: user.id,
+    email: user.email,
+    full_name: user.user_metadata?.full_name || ''
   });
+  if(error) console.error('Insert failed:', error);
+}
+
+// EMAIL/PASSWORD LOGIN
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const rememberMe = document.getElementById('remember').checked;
+
+  if(!email || !password) return alert('Fill all fields');
+
+  const loginBtn = document.getElementById('loginBtn');
+  const originalText = loginBtn.innerHTML;
+  loginBtn.innerHTML = '<div class="loading"></div>';
+  loginBtn.disabled = true;
+
+  try{
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    await addUserToProfiles(data.user);
+
+    if(rememberMe) localStorage.setItem('rememberEmail', email);
+    else localStorage.removeItem('rememberEmail');
+
+    window.location.href='index.html';
+  }catch(err){
+    alert(err.message.includes('Invalid login credentials') ? 'Invalid email or password' : err.message);
+    loginBtn.innerHTML = originalText;
+    loginBtn.disabled = false;
+  }
+});
+
+// GOOGLE LOGIN
+document.getElementById('googleLogin').addEventListener('click', async ()=>{
+  const btn = document.getElementById('googleLogin');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<div class="loading"></div>';
+  btn.disabled = true;
+  try{
+    const { error } = await supabase.auth.signInWithOAuth({ provider:'google', options:{redirectTo:window.location.href}});
+    if(error) throw error;
+  }catch(err){
+    alert(err.message);
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+});
+
+// GOOGLE REDIRECT HANDLER
+supabase.auth.onAuthStateChange(async (event, session)=>{
+  if(session?.user){
+    await addUserToProfiles(session.user);
+    window.location.href='index.html';
+  }
+});
+
+// REMEMBER EMAIL
+const rememberedEmail = localStorage.getItem('rememberEmail');
+if(rememberedEmail){
+  document.getElementById('email').value=rememberedEmail;
+  document.getElementById('remember').checked=true;
+}
+if(!document.getElementById('email').value) document.getElementById('email').focus();
 </script>
-
-
 </body>
 </html>
