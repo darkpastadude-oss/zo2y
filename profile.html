@@ -43,6 +43,7 @@
             line-height: 1.6;
             overflow-x: hidden;
             min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .container {
@@ -59,17 +60,57 @@
             z-index: 1000;
             transition: var(--transition);
             text-decoration: none;
+            background: var(--card);
+            border-radius: 50%;
+            padding: 8px;
+            box-shadow: var(--shadow);
         }
 
         .home-button img {
             width: 40px;
             height: 40px;
             object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .home-button:hover {
             transform: scale(1.05);
+        }
+
+        /* === VIEWING OTHER PROFILE INDICATOR === */
+        .viewing-other-profile {
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            margin: 20px auto;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease;
+            max-width: 1200px;
+        }
+
+        .mobile-viewing-indicator {
+            position: sticky;
+            top: 60px;
+            z-index: 900;
+            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
+            color: #0b1633;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(11, 22, 51, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .viewing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
         }
 
         /* === PROFILE HEADER === */
@@ -151,41 +192,6 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
-        }
-
-        /* === VIEWING OTHER PROFILE INDICATOR === */
-        .viewing-other-profile {
-            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
-            color: #0b1633;
-            padding: 12px 20px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .mobile-viewing-indicator {
-            position: sticky;
-            top: 60px;
-            z-index: 900;
-            background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
-            color: #0b1633;
-            padding: 10px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(11, 22, 51, 0.2);
-        }
-
-        .viewing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
         }
 
         /* === BUTTONS === */
@@ -294,9 +300,12 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
+            backdrop-filter: blur(4px);
         }
 
-        .loading-overlay.active { display: flex; }
+        .loading-overlay.active { 
+            display: flex; 
+        }
 
         .loading-spinner {
             width: 50px;
@@ -322,6 +331,18 @@
             text-align: center;
             border: 1px solid var(--border);
             transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--accent);
         }
 
         .stat-number {
@@ -346,6 +367,12 @@
             margin-bottom: 30px;
             border: 1px solid var(--border);
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-tab {
@@ -359,10 +386,16 @@
             align-items: center;
             gap: 8px;
             user-select: none;
+            flex-shrink: 0;
         }
 
-        .nav-tab:hover { background: var(--bg-hover); }
-        .nav-tab.active { background: var(--accent); color: #0b1633; }
+        .nav-tab:hover { 
+            background: var(--bg-hover); 
+        }
+        .nav-tab.active { 
+            background: var(--accent); 
+            color: #0b1633; 
+        }
 
         .nav-tab-badge {
             background: var(--error);
@@ -379,15 +412,130 @@
             display: none;
             animation: fadeIn 0.3s ease;
         }
-        .tab-content.active { display: block; }
+        .tab-content.active { 
+            display: block; 
+        }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
+        }
 
-        /* === CARDS & LISTS === */
-        .cards-grid, .lists-grid {
+        /* === JOURNAL ENTRIES === */
+        .journal-entry {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .journal-entry:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .restaurant-image {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .restaurant-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .restaurant-details h3 {
+            margin-bottom: 4px;
+            font-size: 18px;
+        }
+
+        .restaurant-category {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .entry-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .entry-meta {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: var(--bg);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .entry-notes {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .entry-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            background: var(--accent);
+            color: #0b1633;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .entry-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* === LIST CARDS === */
+        .lists-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
         }
 
         .list-card {
@@ -397,6 +545,7 @@
             padding: 24px;
             transition: var(--transition);
             cursor: pointer;
+            position: relative;
             display: flex;
             flex-direction: column;
         }
@@ -406,13 +555,573 @@
             border-color: var(--accent);
         }
 
+        .list-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .list-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent);
+        }
+
+        .list-card-description {
+            color: var(--muted);
+            font-size: 15px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .list-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .list-preview-item {
+            height: 80px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .list-card-count {
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .list-card-button {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            font-weight: 500;
+        }
+
+        .list-card-button:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        /* === KEBAB MENU === */
+        .list-card-actions { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            z-index: 10; 
+        }
+        
+        .kebab-btn { 
+            background: rgba(11, 22, 51, 0.6); 
+            color: var(--white); 
+            border: none; 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: var(--transition); 
+        }
+        
+        .kebab-btn:hover { 
+            background: var(--accent); 
+            color: var(--bg); 
+        }
+        
+        .kebab-dropdown { 
+            position: absolute; 
+            top: 35px; 
+            right: 0; 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-sm); 
+            width: 120px; 
+            box-shadow: var(--shadow-lg); 
+            display: none; 
+            overflow: hidden; 
+        }
+        
+        .kebab-dropdown.show { 
+            display: block; 
+            animation: fadeIn 0.2s; 
+        }
+        
+        .kebab-item { 
+            padding: 10px 15px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            color: var(--white); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: var(--transition); 
+        }
+        
+        .kebab-item:hover { 
+            background: var(--bg-hover); 
+            color: var(--accent); 
+        }
+        
+        .kebab-item.delete { 
+            color: var(--error); 
+        }
+        
+        .kebab-item.delete:hover { 
+            background: rgba(239, 68, 68, 0.1); 
+        }
+
+        /* === REMOVE BUTTON === */
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .card:hover .remove-btn,
+        .mobile-list-restaurant-card:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.1);
+            background: #dc2626;
+        }
+
+        /* === COMMUNITY CARDS === */
+        .community-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            margin-bottom: 16px;
+        }
+
+        .community-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .community-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .community-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #0b1633;
+            flex-shrink: 0;
+        }
+
+        .community-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .community-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .community-username {
+            color: var(--muted);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .community-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .community-stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .community-stat-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .community-stat-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .community-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* === MODALS === */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--muted);
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: var(--white);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* === FORMS === */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--white);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--white);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .rating-star {
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            opacity: 0.3;
+        }
+
+        .rating-star.active, .rating-star:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* === AVATAR SELECTION === */
+        .avatar-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 12px;
+        }
+
+        .avatar-icon-option {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 24px;
+            border: 2px solid transparent;
+        }
+
+        .avatar-icon-option:hover {
+            background: var(--bg-hover);
+        }
+
+        .avatar-icon-option.selected {
+            background: var(--accent);
+            color: #0b1633;
+            border-color: var(--accent);
+        }
+
+        /* === LIST ICONS === */
+        .list-icon-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 20px;
+            border: 1px solid transparent;
+        }
+
+        .list-icon-option:hover {
+            background: var(--bg-hover);
+        }
+
+        /* === TOAST === */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2100;
+        }
+
+        .mobile-toast-container {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            right: 20px;
+            z-index: 2100;
+        }
+
+        .toast {
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            border-left: 4px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            animation: slideInRight 0.3s ease;
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--error); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        @keyframes slideInRight { 
+            from { transform: translateX(100%); opacity: 0; } 
+            to { transform: translateX(0); opacity: 1; } 
+        }
+
+        /* === EMPTY STATES === */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+
+        .empty-description {
+            font-size: 16px;
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* === CONFIRMATION MODAL === */
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .confirm-modal.active {
+            display: flex;
+        }
+
+        .confirm-content {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        .confirm-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .confirm-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--error);
+        }
+
+        .confirm-body {
+            padding: 20px;
+        }
+
+        .confirm-message {
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        @keyframes slideIn { 
+            from { transform: translateY(-20px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
+        }
+
         /* === MOBILE STYLES === */
         @media (max-width: 768px) {
             .desktop-only { display: none !important; }
-            .mobile-only { display: block; }
             
-            body { padding: 0; padding-bottom: 80px; } /* Safe area for bottom nav */
-
+            body { padding: 0; padding-bottom: 80px; }
+            
+            /* Mobile Top Bar */
             .mobile-topbar {
                 position: fixed;
                 top: 0;
@@ -429,11 +1138,42 @@
                 backdrop-filter: blur(10px);
             }
 
+            .mobile-topbar-title {
+                font-weight: 700;
+                font-size: 20px;
+                color: var(--accent);
+            }
+
+            .mobile-menu-btn {
+                background: none;
+                border: none;
+                color: var(--white);
+                font-size: 22px;
+                cursor: pointer;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-sm);
+                transition: var(--transition);
+            }
+
+            .mobile-menu-btn:hover {
+                background: var(--bg-hover);
+            }
+
+            /* Mobile Profile Header */
             .mobile-profile-header {
                 padding: 80px 16px 20px;
                 background: var(--card);
                 text-align: center;
                 border-bottom: 1px solid var(--border);
+            }
+
+            .mobile-avatar-container {
+                position: relative;
+                margin-bottom: 16px;
             }
 
             .mobile-avatar {
@@ -445,11 +1185,39 @@
                 align-items: center;
                 justify-content: center;
                 font-size: 48px;
-                margin: 0 auto 16px;
+                margin: 0 auto;
                 border: 3px solid var(--accent);
+                cursor: pointer;
+                transition: var(--transition);
                 color: #0b1633;
             }
 
+            .mobile-avatar:hover {
+                transform: scale(1.05);
+                border-color: #e69500;
+            }
+
+            .mobile-profile-name {
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+
+            .mobile-profile-username {
+                font-size: 16px;
+                color: var(--accent);
+                margin-bottom: 12px;
+            }
+
+            .mobile-profile-bio {
+                font-size: 14px;
+                color: var(--muted);
+                margin-bottom: 20px;
+                line-height: 1.5;
+                padding: 0 20px;
+            }
+
+            /* Mobile Stats */
             .mobile-stats {
                 display: flex;
                 justify-content: space-around;
@@ -458,10 +1226,26 @@
                 border-bottom: 1px solid var(--border);
             }
 
-            .mobile-stat { text-align: center; flex: 1; }
-            .mobile-stat-number { display: block; font-size: 22px; font-weight: 700; color: var(--accent); }
-            .mobile-stat-label { font-size: 12px; color: var(--muted); }
+            .mobile-stat {
+                text-align: center;
+                flex: 1;
+            }
 
+            .mobile-stat-number {
+                display: block;
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--accent);
+                margin-bottom: 4px;
+            }
+
+            .mobile-stat-label {
+                font-size: 12px;
+                color: var(--muted);
+                font-weight: 500;
+            }
+
+            /* Mobile Tabs Navigation */
             .mobile-tabs {
                 display: flex;
                 background: var(--card);
@@ -469,15 +1253,22 @@
                 position: sticky;
                 top: 60px;
                 z-index: 900;
+                backdrop-filter: blur(10px);
             }
 
             .mobile-tab {
                 flex: 1;
                 padding: 16px;
                 text-align: center;
+                font-weight: 500;
                 color: var(--muted);
                 border-bottom: 3px solid transparent;
+                transition: var(--transition);
                 cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
             }
 
             .mobile-tab.active {
@@ -485,41 +1276,333 @@
                 border-bottom-color: var(--accent);
             }
 
-            /* Mobile Bottom Nav */
-            .mobile-bottom-nav {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 60px;
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-                background: var(--card);
-                border-top: 1px solid var(--border);
-                z-index: 1000;
-                padding-bottom: env(safe-area-inset-bottom);
+            .mobile-tab i {
+                font-size: 20px;
+                margin-bottom: 2px;
             }
 
-            .mobile-bottom-nav-item {
+            .mobile-tab span {
+                font-size: 12px;
+            }
+
+            .mobile-tab-badge {
+                background: var(--error);
+                color: white;
+                border-radius: 10px;
+                padding: 2px 6px;
+                font-size: 10px;
+                font-weight: 600;
+                margin-left: 4px;
+            }
+
+            /* Mobile Content Sections */
+            .mobile-content {
+                padding: 16px;
+                padding-bottom: 80px;
+            }
+
+            .mobile-section {
+                display: none;
+            }
+
+            .mobile-section.active {
+                display: block;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .mobile-section-title {
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 16px;
                 display: flex;
-                flex-direction: column;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .mobile-section-subtitle {
+                font-size: 14px;
+                color: var(--muted);
+                margin-bottom: 20px;
+            }
+
+            /* Mobile Journal Entries */
+            .mobile-journal-entry {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
+                position: relative;
+            }
+
+            .mobile-journal-entry:hover {
+                border-color: var(--accent);
+            }
+
+            .mobile-entry-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 12px;
+            }
+
+            .mobile-restaurant-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .mobile-restaurant-image {
+                width: 50px;
+                height: 50px;
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+                flex-shrink: 0;
+                background: var(--bg);
+                display: flex;
                 align-items: center;
                 justify-content: center;
-                color: var(--muted);
-                text-decoration: none;
-                flex: 1;
-                height: 100%;
             }
 
-            .mobile-bottom-nav-item.active { color: var(--accent); }
-            .mobile-bottom-nav-item i { font-size: 20px; margin-bottom: 4px; }
-            .mobile-bottom-nav-item span { font-size: 10px; }
-            
+            .mobile-restaurant-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .mobile-restaurant-details {
+                flex: 1;
+            }
+
+            .mobile-restaurant-name {
+                font-weight: 600;
+                margin-bottom: 2px;
+                font-size: 16px;
+            }
+
+            .mobile-restaurant-category {
+                font-size: 12px;
+                color: var(--muted);
+            }
+
+            .mobile-entry-rating {
+                color: var(--accent);
+                font-weight: 700;
+                font-size: 14px;
+            }
+
+            .mobile-entry-meta {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+            }
+
+            .mobile-meta-badge {
+                background: var(--bg);
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                color: var(--muted);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .mobile-entry-notes {
+                font-size: 14px;
+                color: var(--muted);
+                line-height: 1.5;
+                margin-bottom: 12px;
+            }
+
+            .mobile-entry-tags {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+
+            .mobile-tag {
+                background: var(--accent);
+                color: #0b1633;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            /* Mobile Lists */
+            .mobile-list-card {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
+                cursor: pointer;
+                position: relative;
+            }
+
+            .mobile-list-card:hover {
+                border-color: var(--accent);
+            }
+
+            .mobile-list-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .mobile-list-icon {
+                font-size: 24px;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+                color: var(--accent);
+            }
+
+            .mobile-list-info {
+                flex: 1;
+            }
+
+            .mobile-list-title {
+                font-weight: 700;
+                font-size: 18px;
+                margin-bottom: 4px;
+                color: var(--accent);
+            }
+
+            .mobile-list-count {
+                font-size: 13px;
+                color: var(--muted);
+            }
+
+            /* Mobile List Preview Grid */
+            .mobile-list-preview {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+                margin-bottom: 16px;
+            }
+
+            .mobile-preview-item {
+                width: 100%;
+                padding-bottom: 100%;
+                position: relative;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+            }
+
+            .mobile-preview-item img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .mobile-list-description {
+                font-size: 14px;
+                color: var(--muted);
+                margin-bottom: 16px;
+                line-height: 1.4;
+            }
+
+            /* Mobile Community Cards */
+            .mobile-community-card {
+                background: var(--card);
+                border-radius: var(--radius);
+                padding: 16px;
+                border: 1px solid var(--border);
+                margin-bottom: 12px;
+                transition: var(--transition);
+                position: relative;
+            }
+
+            .mobile-community-card:hover {
+                border-color: var(--accent);
+                transform: translateY(-2px);
+            }
+
+            .mobile-community-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+                cursor: pointer;
+            }
+
+            .mobile-community-avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: var(--accent);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                color: #0b1633;
+                flex-shrink: 0;
+            }
+
+            .mobile-community-info {
+                flex: 1;
+            }
+
+            .mobile-community-name {
+                font-weight: 600;
+                margin-bottom: 2px;
+                font-size: 16px;
+            }
+
+            .mobile-community-username {
+                font-size: 13px;
+                color: var(--muted);
+            }
+
+            .mobile-community-stats {
+                display: flex;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+
+            .mobile-community-stat {
+                text-align: center;
+                flex: 1;
+            }
+
+            .mobile-community-stat-number {
+                display: block;
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--accent);
+                margin-bottom: 2px;
+            }
+
+            .mobile-community-stat-label {
+                font-size: 11px;
+                color: var(--muted);
+            }
+
+            .mobile-community-actions {
+                display: flex;
+                gap: 8px;
+                margin-top: 12px;
+            }
+
             /* Mobile Action Buttons */
             .mobile-action-btn {
                 width: 100%;
-                padding: 12px;
+                padding: 16px;
                 background: var(--accent);
                 color: #0b1633;
                 border: none;
@@ -527,160 +1610,522 @@
                 font-weight: 600;
                 font-size: 16px;
                 cursor: pointer;
+                transition: var(--transition);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
-                margin-top: 10px;
+                margin-bottom: 12px;
             }
-            
+
+            .mobile-action-btn:hover {
+                background: #e69500;
+                transform: translateY(-2px);
+            }
+
             .mobile-action-btn.secondary {
                 background: var(--card);
                 color: var(--white);
                 border: 1px solid var(--border);
             }
+
+            .mobile-action-btn.secondary:hover {
+                background: var(--bg-hover);
+            }
+
+            /* Mobile Bottom Navigation */
+            .mobile-bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 70px;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                background: var(--card);
+                border-top: 1px solid var(--border);
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom);
+                backdrop-filter: blur(10px);
+            }
+
+            .mobile-bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                color: var(--muted);
+                text-decoration: none;
+                transition: var(--transition);
+                cursor: pointer;
+                flex: 1;
+                height: 100%;
+            }
+
+            .mobile-bottom-nav-item.active {
+                color: var(--accent);
+            }
+
+            .mobile-bottom-nav-item i {
+                font-size: 22px;
+            }
+
+            .mobile-bottom-nav-item span {
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            /* Mobile Empty States */
+            .mobile-empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: var(--muted);
+            }
+
+            .mobile-empty-icon {
+                font-size: 64px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+
+            .mobile-empty-title {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: var(--white);
+            }
+
+            .mobile-empty-description {
+                font-size: 16px;
+                margin-bottom: 24px;
+            }
+
+            /* Remove button always visible on mobile */
+            .remove-btn {
+                opacity: 1 !important;
+                width: 32px;
+                height: 32px;
+            }
         }
 
+        /* Desktop-only styles */
         @media (min-width: 769px) {
-            .mobile-only { display: none !important; }
-            .desktop-only { display: block; }
+            .mobile-only {
+                display: none !important;
+            }
         }
 
-        /* === MODALS === */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 20px;
+        /* Utility classes */
+        .d-none {
+            display: none !important;
         }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: var(--card);
-            border-radius: var(--radius);
+        
+        .d-flex {
+            display: flex !important;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        .align-center {
+            align-items: center;
+        }
+        
+        .gap-sm {
+            gap: 8px;
+        }
+        
+        .gap-md {
+            gap: 16px;
+        }
+        
+        .mt-md {
+            margin-top: 16px;
+        }
+        
+        .text-sm {
+            font-size: 12px;
+        }
+        
+        .text-muted {
+            color: var(--muted);
+        }
+        
+        .w-100 {
             width: 100%;
-            max-width: 500px;
-            border: 1px solid var(--border);
-            animation: slideIn 0.3s ease;
         }
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-body { padding: 20px; }
-        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* === TOAST === */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 2100;
-        }
-        .mobile-toast-container {
-            position: fixed;
-            top: 70px;
-            left: 20px;
-            right: 20px;
-            z-index: 2100;
-        }
-        .toast {
-            background: var(--card);
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            border-left: 4px solid var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-            animation: slideInRight 0.3s ease;
-        }
-        .toast.success { border-left-color: var(--success); }
-        .toast.error { border-left-color: var(--error); }
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
-        /* Empty States */
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
-        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-        
-        /* Community List Styles */
-        .community-card, .mobile-community-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .community-avatar {
-            width: 40px; 
-            height: 40px; 
-            border-radius: 50%; 
-            background: var(--accent); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            margin-right: 12px;
-            color: #0b1633;
-        }
-        
-        .community-info { flex: 1; }
-        .community-name { font-weight: 600; font-size: 16px; }
-        .community-username { font-size: 13px; color: var(--muted); }
     </style>
+    <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
+    <!-- Loading Overlay -->
     <div class="loading-overlay" id="globalLoading">
         <div class="loading-spinner"></div>
     </div>
 
+    <!-- Desktop View -->
     <div class="desktop-only">
+        <!-- Home Button -->
         <a href="index.html" class="home-button">
             <img src="images/logo.png" alt="Zo2y Logo">
         </a>
 
-        <div class="container">
-            <div class="viewing-other-profile" id="viewingOtherProfile">
-                <div class="viewing-indicator">
-                    <i class="fas fa-eye"></i>
-                    <span id="desktopViewingText">You are viewing another user's profile</span>
-                </div>
-                <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="ProfileManager.goToMyProfile()">
-                    <i class="fas fa-user"></i> Back to My Profile
-                </button>
+        <!-- Viewing Other Profile Indicator -->
+        <div class="viewing-other-profile" id="viewingOtherProfile">
+            <div class="viewing-indicator">
+                <i class="fas fa-eye"></i>
+                <span>You are viewing another user's profile</span>
             </div>
+            <button class="btn btn-outline" onclick="ProfileManager.goToMyProfile()">
+                <i class="fas fa-user"></i> Back to My Profile
+            </button>
         </div>
 
+        <!-- Profile Header -->
         <div class="profile-header">
             <div class="container">
                 <div class="profile-top">
                     <div class="avatar-container">
-                        <div class="profile-avatar" id="profileAvatar">🍔</div>
+                        <div class="profile-avatar" id="profileAvatar" onclick="ProfileManager.showAvatarModal()">
+                            🍔
+                        </div>
                     </div>
+                    
                     <div class="profile-info">
-                        <div class="profile-name" id="profileName">Loading...</div>
+                        <div class="profile-name" id="profileName">
+                            Loading...
+                        </div>
                         <div class="profile-username" id="profileUsername">@username</div>
-                        <div class="profile-bio" id="profileBio">Loading bio...</div>
+                        <div class="profile-bio" id="profileBio">
+                            No bio yet. Click edit to add one!
+                        </div>
                         
-                        <div class="profile-actions">
-                            <button class="btn btn-outline" id="editProfileBtn" onclick="alert('Edit logic here')">
-                                <i class="fas fa-edit"></i> Edit Profile
+                        <div class="profile-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="profileLocation">Location not set</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span id="memberSince">Member since 2023</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-outline" id="editProfileBtn" onclick="ProfileManager.showModal('editProfileModal')">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button class="btn btn-primary" id="addEntryBtn" onclick="ProfileManager.showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add Entry
+                        </button>
+                        <button class="btn btn-secondary" id="followButton" onclick="ProfileManager.toggleFollow()">
+                            <i class="fas fa-user-plus"></i> Follow
+                        </button>
+                        <button class="btn btn-secondary" id="logoutBtn" onclick="ProfileManager.logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card" onclick="ProfileManager.showTab('journal')">
+                    <div class="stat-icon">🍽️</div>
+                    <div class="stat-number" id="visitedCount">0</div>
+                    <div class="stat-label">Visited</div>
+                </div>
+                <div class="stat-card" onclick="ProfileManager.showCommunitySection('followers')">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number" id="followersCount">0</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-card" onclick="ProfileManager.showCommunitySection('following')">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-number" id="followingCount">0</div>
+                    <div class="stat-label">Following</div>
+                </div>
+                <div class="stat-card" onclick="ProfileManager.showTab('lists')">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-number" id="listsCount">0</div>
+                    <div class="stat-label">Lists</div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
+                    <i class="fas fa-book"></i> Journal
+                </div>
+                <div class="nav-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
+                    <i class="fas fa-list"></i> Lists
+                </div>
+                <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
+                    <i class="fas fa-users"></i> Community
+                    <span class="nav-tab-badge d-none" id="followersBadge">0</span>
+                </div>
+            </div>
+
+            <!-- Journal Tab Content -->
+            <div class="tab-content active" id="journal-tab">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700;">Food Journal</h2>
+                    <div style="display: flex; gap: 12px;">
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm active filter-btn" data-filter="all">All</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
+                            <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> New Entry
+                        </button>
+                    </div>
+                </div>
+
+                <div id="journalEntries">
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3 class="empty-title">No Reviews Yet</h3>
+                        <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
+                        <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add First Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lists Tab Content -->
+            <div class="tab-content" id="lists-tab">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700;">My Lists</h2>
+                    <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()">
+                        <i class="fas fa-plus"></i> New List
+                    </button>
+                </div>
+
+                <div class="lists-grid" id="listsGrid">
+                    <!-- Lists will be populated here -->
+                </div>
+            </div>
+
+            <!-- Community Tab Content -->
+            <div class="tab-content" id="community-tab">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700;">Community</h2>
+                    <div style="display: flex; gap: 12px;">
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm active" onclick="ProfileManager.showCommunitySection('followers')">
+                                Followers
                             </button>
-                            <button class="btn btn-primary" id="desktopFollowBtn" onclick="ProfileManager.toggleFollow()">
-                                <i class="fas fa-user-plus"></i> Follow
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.showCommunitySection('following')">
+                                Following
                             </button>
-                            <button class="btn btn-secondary" id="logoutBtn" onclick="ProfileManager.logout()">
-                                Logout
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('communitySearchModal')">
+                            <i class="fas fa-search"></i> Find Users
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Followers Section -->
+                <div id="followersSection">
+                    <div id="followersList">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">No followers yet</h3>
+                            <p class="empty-description">Share your profile to get followers!</p>
+                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Following Section -->
+                <div id="followingSection" class="d-none">
+                    <div id="followingList">
+                        <div class="empty-state">
+                            <div class="empty-icon">👥</div>
+                            <h3 class="empty-title">Not following anyone yet</h3>
+                            <p class="empty-description">Discover and follow other food lovers!</p>
+                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile View -->
+    <div class="mobile-only">
+        <!-- Mobile Viewing Indicator -->
+        <div class="mobile-viewing-indicator" id="mobileViewingIndicator">
+            <div class="viewing-indicator">
+                <i class="fas fa-eye"></i>
+                <span>Viewing other profile</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="ProfileManager.goToMyProfile()">
+                My Profile
+            </button>
+        </div>
+
+        <!-- Mobile Top Bar -->
+        <div class="mobile-topbar">
+            <div class="mobile-topbar-title" id="mobileTopBarTitle">Profile</div>
+            <button class="mobile-menu-btn" onclick="ProfileManager.showMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Profile Header -->
+        <div class="mobile-profile-header">
+            <div class="mobile-avatar-container">
+                <div class="mobile-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()">
+                    🍔
+                </div>
+            </div>
+            <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
+            <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
+            <div class="mobile-profile-bio" id="mobileProfileBio">
+                No bio yet. Tap edit to add one!
+            </div>
+            
+            <button class="mobile-action-btn" id="mobileFollowBtn" onclick="ProfileManager.toggleFollow()">
+                <i class="fas fa-user-plus"></i> Follow
+            </button>
+            <button class="mobile-action-btn secondary" id="mobileEditBtn" onclick="ProfileManager.showModal('editProfileModal')">
+                <i class="fas fa-edit"></i> Edit Profile
+            </button>
+            <button class="mobile-action-btn secondary" id="mobileAddEntryBtn" onclick="ProfileManager.showModal('addEntryModal')">
+                <i class="fas fa-plus"></i> Add Entry
+            </button>
+        </div>
+
+        <!-- Mobile Stats -->
+        <div class="mobile-stats">
+            <div class="mobile-stat" onclick="ProfileManager.showTab('journal')">
+                <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
+                <span class="mobile-stat-label">Visited</span>
+            </div>
+            <div class="mobile-stat" onclick="ProfileManager.showCommunitySection('followers')">
+                <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
+                <span class="mobile-stat-label">Followers</span>
+            </div>
+            <div class="mobile-stat" onclick="ProfileManager.showCommunitySection('following')">
+                <span class="mobile-stat-number" id="mobileFollowingCount">0</span>
+                <span class="mobile-stat-label">Following</span>
+            </div>
+            <div class="mobile-stat" onclick="ProfileManager.showTab('lists')">
+                <span class="mobile-stat-number" id="mobileListsCount">0</span>
+                <span class="mobile-stat-label">Lists</span>
+            </div>
+        </div>
+
+        <!-- Mobile Tabs -->
+        <div class="mobile-tabs">
+            <div class="mobile-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
+                <i class="fas fa-book"></i>
+                <span>Journal</span>
+            </div>
+            <div class="mobile-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
+                <i class="fas fa-list"></i>
+                <span>Lists</span>
+            </div>
+            <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+            </div>
+        </div>
+
+        <!-- Mobile Content -->
+        <div class="mobile-content">
+            <!-- Journal Section -->
+            <div class="mobile-section active" id="mobileJournalSection">
+                <div class="mobile-section-title">
+                    <span>Food Journal</span>
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showModal('addEntryModal')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                
+                <div id="mobileJournalEntries">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📝</div>
+                        <div class="mobile-empty-title">No Reviews Yet</div>
+                        <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
+                        <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
+                            <i class="fas fa-plus"></i> Add First Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lists Section -->
+            <div class="mobile-section" id="mobileListsSection">
+                <div class="mobile-section-title">
+                    <span>My Lists</span>
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showCreateListModal()">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                </div>
+                
+                <div id="mobileLists">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📋</div>
+                        <div class="mobile-empty-title">No Lists Yet</div>
+                        <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                        <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
+                            <i class="fas fa-plus"></i> Create List
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Section -->
+            <div class="mobile-section" id="mobileCommunitySection">
+                <div class="mobile-section-title">
+                    <span>Community</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
+                            Followers
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('following')" id="mobileFollowingTabBtn">
+                            Following
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Followers Tab -->
+                <div id="mobileFollowersTab">
+                    <div id="mobileFollowersList">
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">No followers yet</div>
+                            <div class="mobile-empty-description">Share your profile to get followers!</div>
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Following Tab -->
+                <div id="mobileFollowingTab" class="d-none">
+                    <div id="mobileFollowingList">
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">👥</div>
+                            <div class="mobile-empty-title">Not following anyone</div>
+                            <div class="mobile-empty-description">Discover and follow other food lovers!</div>
+                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find Users
                             </button>
                         </div>
                     </div>
@@ -688,385 +2133,1661 @@
             </div>
         </div>
 
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="visitedCount">0</div>
-                    <div class="stat-label">Visited</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="followersCount">0</div>
-                    <div class="stat-label">Followers</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="followingCount">0</div>
-                    <div class="stat-label">Following</div>
-                </div>
-            </div>
-
-            <div class="nav-tabs">
-                <div class="nav-tab active" onclick="ProfileManager.showTab('journal', this)">Journal</div>
-                <div class="nav-tab" onclick="ProfileManager.showTab('lists', this)">Lists</div>
-                <div class="nav-tab" onclick="ProfileManager.showTab('community', this)">Community</div>
-            </div>
-
-            <div id="desktopContentArea">
-                <div class="empty-state">Select a tab to view content</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mobile-only">
-        <div class="mobile-viewing-indicator" id="mobileViewingIndicator">
-            <div class="viewing-indicator">
-                <i class="fas fa-eye"></i>
-                <span>Viewing other profile</span>
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="ProfileManager.goToMyProfile()" style="border-color: #0b1633; color: #0b1633; padding: 4px 8px;">
-                My Profile
-            </button>
-        </div>
-
-        <div class="mobile-topbar">
-            <div style="font-weight: 700; font-size: 20px; color: var(--accent);">Zo2y</div>
-            <i class="fas fa-bars" style="font-size: 20px;"></i>
-        </div>
-
-        <div class="mobile-profile-header">
-            <div class="mobile-avatar" id="mobileAvatar">🍔</div>
-            <div class="profile-name" id="mobileProfileName">Loading...</div>
-            <div class="profile-username" id="mobileProfileUsername">@username</div>
-            <div class="profile-bio" id="mobileProfileBio" style="margin-bottom: 15px;">Loading bio...</div>
-            
-            <button class="mobile-action-btn" id="mobileFollowBtn" onclick="ProfileManager.toggleFollow()">
-                <i class="fas fa-user-plus"></i> Follow
-            </button>
-            <button class="mobile-action-btn secondary" id="mobileEditBtn" onclick="alert('Edit logic here')">
-                <i class="fas fa-edit"></i> Edit Profile
-            </button>
-        </div>
-
-        <div class="mobile-stats">
-            <div class="mobile-stat">
-                <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
-                <span class="mobile-stat-label">Visited</span>
-            </div>
-            <div class="mobile-stat">
-                <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
-                <span class="mobile-stat-label">Followers</span>
-            </div>
-            <div class="mobile-stat">
-                <span class="mobile-stat-number" id="mobileFollowingCount">0</span>
-                <span class="mobile-stat-label">Following</span>
-            </div>
-        </div>
-
-        <div class="mobile-tabs">
-            <div class="mobile-tab active" onclick="ProfileManager.showTab('journal', this, true)">Journal</div>
-            <div class="mobile-tab" onclick="ProfileManager.showTab('lists', this, true)">Lists</div>
-            <div class="mobile-tab" onclick="ProfileManager.showTab('community', this, true)">Community</div>
-        </div>
-
-        <div id="mobileContentArea" style="padding: 16px;">
-            <div class="empty-state">Select a tab</div>
-        </div>
-
+        <!-- Mobile Bottom Navigation -->
         <div class="mobile-bottom-nav">
             <a href="index.html" class="mobile-bottom-nav-item">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <a href="#" class="mobile-bottom-nav-item">
-                <i class="fas fa-plus-circle" style="font-size: 32px; color: var(--accent);"></i>
-            </a>
-            <a href="#" class="mobile-bottom-nav-item active">
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('addEntryModal')">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add</span>
+            </div>
+            <div class="mobile-bottom-nav-item active">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
-            </a>
+            </div>
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('communitySearchModal')">
+                <i class="fas fa-search"></i>
+                <span>Search</span>
+            </div>
         </div>
         
         <div class="mobile-toast-container" id="mobileToastContainer"></div>
     </div>
 
+    <!-- ===== MODALS ===== -->
+
+    <!-- Add Entry Modal -->
+    <div class="modal" id="addEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Journal Entry</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('addEntryModal')">&times;</button>
+            </div>
+            
+            <form id="journalEntryForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Restaurant</label>
+                        <select class="form-select" id="restaurantSelect" required>
+                            <option value="">Select a restaurant</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Visit Date</label>
+                        <input type="date" class="form-input" id="visitDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars" id="ratingStars">
+                            <span class="rating-star" data-rating="1" onclick="ProfileManager.setRating(1)">⭐</span>
+                            <span class="rating-star" data-rating="2" onclick="ProfileManager.setRating(2)">⭐</span>
+                            <span class="rating-star" data-rating="3" onclick="ProfileManager.setRating(3)">⭐</span>
+                            <span class="rating-star" data-rating="4" onclick="ProfileManager.setRating(4)">⭐</span>
+                            <span class="rating-star" data-rating="5" onclick="ProfileManager.setRating(5)">⭐</span>
+                        </div>
+                        <input type="hidden" id="selectedRating" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" id="visitNotes" placeholder="What did you order? How was the experience?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-input" id="visitTags" placeholder="Add tags (e.g., date night, business, casual)">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('addEntryModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Entry</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('editProfileModal')">&times;</button>
+            </div>
+            
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" id="editDisplayName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" id="editUsername" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us about your food journey"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New List</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
+            </div>
+            
+            <form id="createListForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="listName" required placeholder="e.g., Date Night Spots">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <div class="list-icon-option" data-icon="📋">📋</div>
+                            <div class="list-icon-option" data-icon="❤️">❤️</div>
+                            <div class="list-icon-option" data-icon="⭐">⭐</div>
+                            <div class="list-icon-option" data-icon="📍">📍</div>
+                            <div class="list-icon-option" data-icon="🍽️">🍽️</div>
+                            <div class="list-icon-option" data-icon="🔥">🔥</div>
+                        </div>
+                        <input type="hidden" id="selectedIcon" value="📋">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create List</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Avatar Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Avatar</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="avatar-icon-grid" id="avatarIconGrid">
+                    <!-- Icons will be populated here -->
+                </div>
+                
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Search Modal -->
+    <div class="modal" id="communitySearchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('communitySearchModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group" style="position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted);"></i>
+                    <input type="text" class="form-input" id="userSearch" placeholder="Search by username or name..." style="padding-left: 40px;">
+                </div>
+                
+                <div id="searchResults" style="margin-top: 20px;">
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3 class="empty-title">Search for users</h3>
+                        <p class="empty-description">Enter a username or name to search</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <div class="confirm-header">
+                <h3 class="confirm-title" id="confirmTitle">Confirm Action</h3>
+            </div>
+            <div class="confirm-body">
+                <div class="confirm-message" id="confirmMessage">Are you sure you want to perform this action?</div>
+                <div class="confirm-actions">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeConfirmModal()">Cancel</button>
+                    <button type="button" class="btn btn-error" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container for Desktop -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
+        // ===== MAIN PROFILE MANAGER =====
         const ProfileManager = (function() {
-            // === CONFIGURATION ===
+            // Configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
             const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
             
-            let supabase;
+            // State variables
+            let supabase = null;
             let currentUser = null;
-            let targetUser = null; // The user profile being viewed
+            let userProfile = null;
+            let targetUser = null;
+            let targetUserId = null;
             let isViewingOwnProfile = true;
+            let restaurants = [];
+            let customLists = [];
+            let currentTab = 'journal';
+            let currentActiveList = null;
+            let selectedAvatarIcon = null;
+            let currentEditingJournalEntry = null;
             let isFollowing = false;
+            let followStatusCache = new Map();
+            let foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
 
-            // === INITIALIZATION ===
+            // ===== INITIALIZATION =====
             async function initialize() {
                 try {
                     showLoading(true);
                     
-                    if (!window.supabase) throw new Error("Supabase SDK not loaded");
+                    // Initialize Supabase
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-                    // 1. Get Logged In User
+                    
+                    // Check authentication
                     const { data: { user }, error } = await supabase.auth.getUser();
                     if (error || !user) {
-                        window.location.href = 'login.html'; // Redirect if not logged in
+                        window.location.href = "login.html";
                         return;
                     }
                     currentUser = user;
-
-                    // 2. Determine who we are viewing
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const targetId = urlParams.get('id');
                     
-                    isViewingOwnProfile = !targetId || targetId === currentUser.id;
-                    const userIdToLoad = isViewingOwnProfile ? currentUser.id : targetId;
-
-                    // 3. Load Data Parallelly for Speed
-                    await Promise.all([
-                        loadUserProfile(userIdToLoad),
-                        loadStats(userIdToLoad),
-                        !isViewingOwnProfile ? checkFollowStatus(userIdToLoad) : Promise.resolve()
-                    ]);
-
-                    updateUI();
+                    // Load data
+                    await loadProfile();
+                    await loadRestaurants();
+                    await loadUserData();
+                    
+                    // Set up event listeners
+                    setupEventListeners();
+                    
                     showLoading(false);
-
-                } catch (err) {
-                    console.error("Init Error:", err);
-                    showToast("Failed to load profile", "error");
+                    
+                } catch (error) {
+                    console.error("Initialization error:", error);
+                    showToast("Error loading profile", "error");
                     showLoading(false);
                 }
             }
 
-            // === DATA FETCHING ===
-            async function loadUserProfile(userId) {
-                const { data, error } = await supabase
+            // ===== LOADING FUNCTIONS =====
+            function showLoading(show) {
+                const loadingOverlay = document.getElementById('globalLoading');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.toggle('active', show);
+                }
+            }
+
+            // ===== PROFILE MANAGEMENT =====
+            async function loadProfile() {
+                targetUserId = getUserIdFromUrl();
+                isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
+                
+                if (isViewingOwnProfile) {
+                    await loadOwnProfile();
+                } else {
+                    await loadOtherUserProfile();
+                }
+            }
+
+            async function loadOwnProfile() {
+                // Update UI visibility
+                document.getElementById('editProfileBtn')?.classList.remove('d-none');
+                document.getElementById('addEntryBtn')?.classList.remove('d-none');
+                document.getElementById('logoutBtn')?.classList.remove('d-none');
+                document.getElementById('followButton')?.classList.add('d-none');
+                document.getElementById('viewingOtherProfile')?.classList.add('d-none');
+                document.getElementById('mobileViewingIndicator')?.classList.add('d-none');
+                document.getElementById('mobileEditBtn')?.classList.remove('d-none');
+                document.getElementById('mobileAddEntryBtn')?.classList.remove('d-none');
+                document.getElementById('mobileFollowBtn')?.classList.add('d-none');
+                
+                // Load user profile
+                const { data: profile, error } = await supabase
                     .from('user_profiles')
                     .select('*')
-                    .eq('id', userId)
+                    .eq('id', currentUser.id)
                     .single();
 
-                if (error) {
-                    console.error("Profile Load Error", error);
-                    // Handle missing profile by showing defaults
-                    targetUser = { id: userId, full_name: "Unknown User", username: "unknown", bio: "" };
-                } else {
-                    targetUser = data;
+                if (error && error.code !== 'PGRST116') {
+                    console.error("Error loading profile:", error);
+                }
+
+                userProfile = profile || {};
+                
+                // Create profile if it doesn't exist
+                if (!profile) {
+                    const { error: insertError } = await supabase
+                        .from('user_profiles')
+                        .insert({
+                            id: currentUser.id,
+                            username: currentUser.email.split('@')[0],
+                            full_name: currentUser.email.split('@')[0],
+                            bio: "",
+                            location: "",
+                            avatar_icon: "🍔",
+                            is_private: false,
+                            created_at: new Date().toISOString()
+                        });
+
+                    if (!insertError) {
+                        const { data: newProfile } = await supabase
+                            .from('user_profiles')
+                            .select('*')
+                            .eq('id', currentUser.id)
+                            .single();
+                        userProfile = newProfile || {};
+                    }
+                }
+                
+                updateProfileUI();
+                await updateStats();
+            }
+
+            async function loadOtherUserProfile() {
+                // Update UI visibility
+                document.getElementById('editProfileBtn')?.classList.add('d-none');
+                document.getElementById('addEntryBtn')?.classList.add('d-none');
+                document.getElementById('logoutBtn')?.classList.add('d-none');
+                document.getElementById('followButton')?.classList.remove('d-none');
+                document.getElementById('viewingOtherProfile')?.classList.remove('d-none');
+                document.getElementById('mobileViewingIndicator')?.classList.remove('d-none');
+                document.getElementById('mobileEditBtn')?.classList.add('d-none');
+                document.getElementById('mobileAddEntryBtn')?.classList.add('d-none');
+                document.getElementById('mobileFollowBtn')?.classList.remove('d-none');
+                
+                // Load target user profile
+                const { data: profile, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', targetUserId)
+                    .single();
+
+                if (error || !profile) {
+                    showToast('User not found', 'error');
+                    setTimeout(() => window.location.href = 'profile.html', 1500);
+                    return;
+                }
+
+                targetUser = profile;
+                updateProfileUI(profile);
+                await updateFollowButton();
+                await updateStats(targetUserId);
+            }
+
+            function updateProfileUI(profile = userProfile) {
+                const name = profile?.full_name || profile?.username || "User";
+                const username = `@${profile?.username || "user"}`;
+                const bio = profile?.bio || "No bio yet";
+                const avatar = profile?.avatar_icon || "🍔";
+                const location = profile?.location || "Location not set";
+                const memberSince = profile?.created_at ? 
+                    `Member since ${new Date(profile.created_at).getFullYear()}` : 
+                    "Member since 2023";
+
+                // Update desktop
+                document.getElementById('profileName')?.textContent = name;
+                document.getElementById('profileUsername')?.textContent = username;
+                document.getElementById('profileBio')?.textContent = bio;
+                document.getElementById('profileAvatar')?.textContent = avatar;
+                document.getElementById('profileLocation')?.textContent = location;
+                document.getElementById('memberSince')?.textContent = memberSince;
+
+                // Update mobile
+                document.getElementById('mobileProfileName')?.textContent = name;
+                document.getElementById('mobileProfileUsername')?.textContent = username;
+                document.getElementById('mobileProfileBio')?.textContent = bio;
+                document.getElementById('mobileAvatar')?.textContent = avatar;
+                document.getElementById('mobileTopBarTitle')?.textContent = name;
+            }
+
+            async function updateStats(userId = null) {
+                const targetId = userId || currentUser.id;
+                
+                try {
+                    // Get counts
+                    const [visitedRes, followersRes, followingRes, listsRes] = await Promise.all([
+                        supabase.from('journal_entries').select('*', { count: 'exact', head: true }).eq('user_id', targetId),
+                        supabase.from('follows').select('*', { count: 'exact', head: true }).eq('followed_id', targetId),
+                        supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', targetId),
+                        supabase.from('lists').select('*', { count: 'exact', head: true }).eq('user_id', targetId)
+                    ]);
+
+                    const visitedCount = visitedRes.count || 0;
+                    const followersCount = followersRes.count || 0;
+                    const followingCount = followingRes.count || 0;
+                    const listsCount = listsRes.count || 0;
+
+                    // Update desktop
+                    document.getElementById('visitedCount')?.textContent = visitedCount;
+                    document.getElementById('followersCount')?.textContent = followersCount;
+                    document.getElementById('followingCount')?.textContent = followingCount;
+                    document.getElementById('listsCount')?.textContent = listsCount;
+
+                    // Update mobile
+                    document.getElementById('mobileVisitedCount')?.textContent = visitedCount;
+                    document.getElementById('mobileFollowersCount')?.textContent = followersCount;
+                    document.getElementById('mobileFollowingCount')?.textContent = followingCount;
+                    document.getElementById('mobileListsCount')?.textContent = listsCount;
+
+                } catch (error) {
+                    console.error("Error updating stats:", error);
                 }
             }
 
-            async function loadStats(userId) {
-                // Fetch counts. In a real app, these might be in a separate 'stats' table or view for performance
-                // Here we fetch raw counts
-                const [visited, followers, following] = await Promise.all([
-                    supabase.from('journal_entries').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-                    supabase.from('follows').select('id', { count: 'exact', head: true }).eq('followed_id', userId),
-                    supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', userId)
-                ]);
-
-                updateStatsUI(
-                    visited.count || 0, 
-                    followers.count || 0, 
-                    following.count || 0
-                );
+            // ===== RESTAURANTS =====
+            async function loadRestaurants() {
+                try {
+                    const { data, error } = await supabase
+                        .from('restraunts')
+                        .select('*')
+                        .order('name');
+                    
+                    if (error) throw error;
+                    
+                    restaurants = data || [];
+                    populateRestaurantSelect();
+                    
+                } catch (error) {
+                    console.error('Error loading restaurants:', error);
+                    restaurants = [];
+                }
             }
 
-            async function checkFollowStatus(targetId) {
-                const { data, error } = await supabase
-                    .from('follows')
-                    .select('id')
-                    .eq('follower_id', currentUser.id)
-                    .eq('followed_id', targetId)
-                    .maybeSingle(); // Use maybeSingle to avoid 406 errors on empty rows
-
-                isFollowing = !!data;
-            }
-
-            // === FOLLOW LOGIC ===
-            async function toggleFollow() {
-                if (isViewingOwnProfile) return;
-
-                const previousState = isFollowing;
-                // 1. Optimistic UI Update (Immediate feedback)
-                isFollowing = !isFollowing;
-                renderFollowButtons(); 
-
-                // Adjust count optimistically
-                const countEls = [document.getElementById('followersCount'), document.getElementById('mobileFollowersCount')];
-                countEls.forEach(el => {
-                    let current = parseInt(el.textContent) || 0;
-                    el.textContent = isFollowing ? current + 1 : Math.max(0, current - 1);
+            function populateRestaurantSelect() {
+                const restaurantSelect = document.getElementById('restaurantSelect');
+                if (!restaurantSelect) return;
+                
+                restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
+                
+                restaurants.forEach(restaurant => {
+                    const option = document.createElement('option');
+                    option.value = restaurant.id;
+                    option.textContent = `${restaurant.name} (${restaurant.category})`;
+                    restaurantSelect.appendChild(option);
                 });
+            }
+
+            // ===== USER DATA =====
+            async function loadUserData() {
+                await loadJournalEntries();
+                await loadLists();
+                await loadCommunityData();
+            }
+
+            // ===== JOURNAL ENTRIES =====
+            async function loadJournalEntries() {
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
 
                 try {
-                    if (previousState) {
+                    const { data: entries, error } = await supabase
+                        .from('journal_entries')
+                        .select('*, restraunts(name, image, category, slug)')
+                        .eq('user_id', targetId)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    
+                    renderJournalEntries(entries || []);
+                    
+                } catch (error) {
+                    console.error('Error loading journal entries:', error);
+                    renderJournalEntries([]);
+                }
+            }
+
+            function renderJournalEntries(entries) {
+                const isMobile = window.innerWidth <= 768;
+                const container = isMobile ? 
+                    document.getElementById('mobileJournalEntries') : 
+                    document.getElementById('journalEntries');
+                
+                if (!container) return;
+
+                if (!entries || entries.length === 0) {
+                    const emptyText = isViewingOwnProfile ? 
+                        'Start reviewing restaurants to build your food journey!' :
+                        'No journal entries yet';
+                    
+                    if (isMobile) {
+                        container.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">📝</div>
+                                <div class="mobile-empty-title">No Reviews Yet</div>
+                                <div class="mobile-empty-description">${emptyText}</div>
+                                ${isViewingOwnProfile ? `
+                                    <button class="mobile-action-btn" onclick="showModal('addEntryModal')">
+                                        <i class="fas fa-plus"></i> Add First Review
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📝</div>
+                                <h3 class="empty-title">No Reviews Yet</h3>
+                                <p class="empty-description">${emptyText}</p>
+                                ${isViewingOwnProfile ? `
+                                    <button class="btn btn-primary mt-md" onclick="showModal('addEntryModal')">
+                                        <i class="fas fa-plus"></i> Add First Review
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+
+                container.innerHTML = '';
+                
+                entries.forEach(entry => {
+                    const restaurant = entry.restraunts;
+                    if (!restaurant) return;
+                    
+                    const entryElement = createJournalEntryElement(entry, restaurant, isMobile);
+                    container.appendChild(entryElement);
+                });
+            }
+
+            function createJournalEntryElement(entry, restaurant, isMobile) {
+                const element = document.createElement('div');
+                
+                if (isMobile) {
+                    element.className = 'mobile-journal-entry';
+                    element.innerHTML = `
+                        <div class="mobile-entry-header">
+                            <div class="mobile-restaurant-info">
+                                <div class="mobile-restaurant-image">
+                                    <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                </div>
+                                <div class="mobile-restaurant-details">
+                                    <div class="mobile-restaurant-name">${restaurant.name}</div>
+                                    <div class="mobile-restaurant-category">${restaurant.category}</div>
+                                </div>
+                            </div>
+                            <div class="mobile-entry-rating">${'⭐'.repeat(Math.floor(entry.rating))} ${entry.rating}/5</div>
+                        </div>
+                        <div class="mobile-entry-meta">
+                            <div class="mobile-meta-badge">
+                                <i class="fas fa-calendar"></i>
+                                ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                            </div>
+                        </div>
+                        ${entry.notes ? `<div class="mobile-entry-notes">${entry.notes}</div>` : ''}
+                        ${entry.tags ? `
+                            <div class="mobile-entry-tags">
+                                ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    `;
+                } else {
+                    element.className = 'journal-entry';
+                    element.innerHTML = `
+                        <div class="entry-header">
+                            <div class="restaurant-info">
+                                <div class="restaurant-image">
+                                    <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                </div>
+                                <div class="restaurant-details">
+                                    <h3>${restaurant.name}</h3>
+                                    <div class="restaurant-category">${restaurant.category}</div>
+                                </div>
+                            </div>
+                            <div class="entry-rating">
+                                ${'⭐'.repeat(Math.floor(entry.rating))}
+                                <span>${entry.rating}/5</span>
+                            </div>
+                        </div>
+                        <div class="entry-meta">
+                            <div class="meta-badge">
+                                <i class="fas fa-calendar"></i>
+                                ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
+                            </div>
+                            <div class="meta-badge">
+                                <i class="fas fa-utensils"></i>
+                                ${restaurant.category}
+                            </div>
+                        </div>
+                        <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
+                        ${entry.tags ? `
+                            <div class="entry-tags">
+                                ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        ${isViewingOwnProfile ? `
+                            <div class="entry-actions">
+                                <button class="btn btn-secondary btn-sm" onclick="editJournalEntry('${entry.id}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </div>
+                        ` : ''}
+                    `;
+                }
+                
+                return element;
+            }
+
+            // ===== LISTS =====
+            async function loadLists() {
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+
+                try {
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', targetId);
+
+                    if (error) throw error;
+                    
+                    customLists = lists || [];
+                    
+                    // Load restaurant counts for each list
+                    for (const list of customLists) {
+                        const { count } = await supabase
+                            .from('lists_restraunts')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('list_id', list.id);
+                        
+                        list.restaurantCount = count || 0;
+                    }
+                    
+                    renderLists();
+                    
+                } catch (error) {
+                    console.error('Error loading lists:', error);
+                    customLists = [];
+                    renderLists();
+                }
+            }
+
+            function renderLists() {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    renderMobileLists();
+                } else {
+                    renderDesktopLists();
+                }
+            }
+
+            function renderDesktopLists() {
+                const listsGrid = document.getElementById('listsGrid');
+                if (!listsGrid) return;
+                
+                if (customLists.length === 0) {
+                    listsGrid.innerHTML = `
+                        <div class="empty-state w-100">
+                            <div class="empty-icon">📋</div>
+                            <h3 class="empty-title">No Lists Yet</h3>
+                            <p class="empty-description">${isViewingOwnProfile ? 'Create your first list to organize restaurants!' : 'This user has no lists yet.'}</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="btn btn-primary mt-md" onclick="showCreateListModal()">
+                                    <i class="fas fa-plus"></i> Create List
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                listsGrid.innerHTML = '';
+                
+                customLists.forEach(list => {
+                    const listCard = document.createElement('div');
+                    listCard.className = 'list-card';
+                    listCard.onclick = () => showListDetail(list.id);
+                    
+                    const kebabHtml = isViewingOwnProfile ? `
+                        <div class="list-card-actions">
+                            <button class="kebab-btn" onclick="event.stopPropagation(); toggleListMenu('${list.id}')">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="kebab-dropdown" id="kebab-${list.id}">
+                                <div class="kebab-item" onclick="event.stopPropagation(); editList('${list.id}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </div>
+                                <div class="kebab-item delete" onclick="event.stopPropagation(); confirmDeleteList('${list.id}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </div>
+                            </div>
+                        </div>
+                    ` : '';
+                    
+                    listCard.innerHTML = `
+                        ${kebabHtml}
+                        <div class="list-card-header">
+                            <div class="list-card-title">
+                                <span>${list.icon || '📋'}</span>
+                                ${list.title}
+                            </div>
+                        </div>
+                        <p class="list-card-description">${list.description || 'No description'}</p>
+                        <div class="list-preview-grid">
+                            ${Array.from({ length: 4 }).map(() => `
+                                <div class="list-preview-item">
+                                    <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                        🍽️
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="list-card-footer">
+                            <span class="list-card-count">${list.restaurantCount || 0} places</span>
+                            <button class="list-card-button" onclick="event.stopPropagation(); showListDetail('${list.id}')">
+                                View List
+                            </button>
+                        </div>
+                    `;
+                    
+                    listsGrid.appendChild(listCard);
+                });
+            }
+
+            function renderMobileLists() {
+                const mobileLists = document.getElementById('mobileLists');
+                if (!mobileLists) return;
+                
+                if (customLists.length === 0) {
+                    mobileLists.innerHTML = `
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon">📋</div>
+                            <div class="mobile-empty-title">No Lists Yet</div>
+                            <div class="mobile-empty-description">${isViewingOwnProfile ? 'Create your first list to organize restaurants!' : 'This user has no lists yet.'}</div>
+                            ${isViewingOwnProfile ? `
+                                <button class="mobile-action-btn" onclick="showCreateListModal()">
+                                    <i class="fas fa-plus"></i> Create List
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                mobileLists.innerHTML = '';
+                
+                customLists.forEach(list => {
+                    const listCard = document.createElement('div');
+                    listCard.className = 'mobile-list-card';
+                    listCard.onclick = () => showMobileListDetail(list.id);
+                    
+                    listCard.innerHTML = `
+                        <div class="mobile-list-header">
+                            <div class="mobile-list-icon">
+                                ${list.icon || '📋'}
+                            </div>
+                            <div class="mobile-list-info">
+                                <div class="mobile-list-title">${list.title}</div>
+                                <div class="mobile-list-count">${list.restaurantCount || 0} places</div>
+                            </div>
+                        </div>
+                        ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
+                        <div class="mobile-list-preview">
+                            ${Array.from({ length: 4 }).map(() => `
+                                <div class="mobile-preview-item">
+                                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                                        🍽️
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); showMobileListDetail('${list.id}')">
+                            <i class="fas fa-eye"></i> View List
+                        </button>
+                    `;
+                    
+                    mobileLists.appendChild(listCard);
+                });
+            }
+
+            // ===== COMMUNITY =====
+            async function loadCommunityData() {
+                await loadFollowers();
+                await loadFollowing();
+            }
+
+            async function loadFollowers() {
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+
+                try {
+                    const { data: follows, error } = await supabase
+                        .from('follows')
+                        .select('follower_id')
+                        .eq('followed_id', targetId);
+
+                    if (error) throw error;
+
+                    const followerIds = follows?.map(f => f.follower_id) || [];
+                    
+                    if (followerIds.length === 0) {
+                        updateFollowersUI([]);
+                        return;
+                    }
+
+                    const { data: users, error: usersError } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .in('id', followerIds);
+
+                    if (!usersError) {
+                        updateFollowersUI(users || []);
+                    }
+                } catch (error) {
+                    console.error('Error loading followers:', error);
+                    updateFollowersUI([]);
+                }
+            }
+
+            async function loadFollowing() {
+                const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
+                if (!targetId) return;
+
+                try {
+                    const { data: follows, error } = await supabase
+                        .from('follows')
+                        .select('followed_id')
+                        .eq('follower_id', targetId);
+
+                    if (error) throw error;
+
+                    const followingIds = follows?.map(f => f.followed_id) || [];
+                    
+                    if (followingIds.length === 0) {
+                        updateFollowingUI([]);
+                        return;
+                    }
+
+                    const { data: users, error: usersError } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .in('id', followingIds);
+
+                    if (!usersError) {
+                        updateFollowingUI(users || []);
+                    }
+                } catch (error) {
+                    console.error('Error loading following:', error);
+                    updateFollowingUI([]);
+                }
+            }
+
+            function updateFollowersUI(users) {
+                const isMobile = window.innerWidth <= 768;
+                const container = isMobile ? 
+                    document.getElementById('mobileFollowersList') : 
+                    document.getElementById('followersList');
+                
+                if (!container) return;
+                
+                if (users.length === 0) {
+                    const emptyText = isViewingOwnProfile ? 
+                        'Share your profile to get followers!' :
+                        'This user has no followers yet.';
+                    
+                    if (isMobile) {
+                        container.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">👥</div>
+                                <div class="mobile-empty-title">No followers yet</div>
+                                <div class="mobile-empty-description">${emptyText}</div>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">No followers yet</h3>
+                                <p class="empty-description">${emptyText}</p>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+                
+                container.innerHTML = '';
+                users.forEach(user => {
+                    const card = createCommunityCard(user, isMobile);
+                    container.appendChild(card);
+                });
+            }
+
+            function updateFollowingUI(users) {
+                const isMobile = window.innerWidth <= 768;
+                const container = isMobile ? 
+                    document.getElementById('mobileFollowingList') : 
+                    document.getElementById('followingList');
+                
+                if (!container) return;
+                
+                if (users.length === 0) {
+                    const emptyText = isViewingOwnProfile ? 
+                        'Discover and follow other food lovers!' :
+                        'This user is not following anyone yet.';
+                    
+                    if (isMobile) {
+                        container.innerHTML = `
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon">👥</div>
+                                <div class="mobile-empty-title">Not following anyone</div>
+                                <div class="mobile-empty-description">${emptyText}</div>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">👥</div>
+                                <h3 class="empty-title">Not following anyone</h3>
+                                <p class="empty-description">${emptyText}</p>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+                
+                container.innerHTML = '';
+                users.forEach(user => {
+                    const card = createCommunityCard(user, isMobile);
+                    container.appendChild(card);
+                });
+            }
+
+            function createCommunityCard(user, isMobile) {
+                const card = document.createElement('div');
+                
+                if (isMobile) {
+                    card.className = 'mobile-community-card';
+                    card.innerHTML = `
+                        <div class="mobile-community-header" onclick="viewUserProfile('${user.id}')">
+                            <div class="mobile-community-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="mobile-community-info">
+                                <div class="mobile-community-name">${user.full_name || user.username || 'User'}</div>
+                                <div class="mobile-community-username">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        ${!isViewingOwnProfile ? `
+                            <div class="mobile-community-actions">
+                                <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        ` : ''}
+                    `;
+                } else {
+                    card.className = 'community-card';
+                    card.innerHTML = `
+                        <div class="community-header" onclick="viewUserProfile('${user.id}')">
+                            <div class="community-avatar">${user.avatar_icon || '👤'}</div>
+                            <div class="community-info">
+                                <div class="community-name">${user.full_name || user.username || 'User'}</div>
+                                <div class="community-username">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        ${!isViewingOwnProfile ? `
+                            <div class="community-actions">
+                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); viewUserProfile('${user.id}')">
+                                    <i class="fas fa-eye"></i> View Profile
+                                </button>
+                            </div>
+                        ` : ''}
+                    `;
+                }
+                
+                return card;
+            }
+
+            // ===== FOLLOW SYSTEM =====
+            async function updateFollowButton() {
+                if (isViewingOwnProfile) return;
+                
+                const isFollowing = await checkIfFollowing(targetUserId);
+                
+                const followButton = document.getElementById('followButton');
+                const mobileFollowBtn = document.getElementById('mobileFollowBtn');
+                
+                if (followButton) {
+                    followButton.innerHTML = isFollowing ? 
+                        '<i class="fas fa-user-minus"></i> Unfollow' : 
+                        '<i class="fas fa-user-plus"></i> Follow';
+                    followButton.className = isFollowing ? 'btn btn-error' : 'btn btn-primary';
+                }
+                
+                if (mobileFollowBtn) {
+                    mobileFollowBtn.innerHTML = isFollowing ? 
+                        '<i class="fas fa-user-minus"></i> Unfollow' : 
+                        '<i class="fas fa-user-plus"></i> Follow';
+                    mobileFollowBtn.className = isFollowing ? 'mobile-action-btn secondary' : 'mobile-action-btn';
+                }
+            }
+
+            async function checkIfFollowing(userId) {
+                const cacheKey = `${currentUser.id}_${userId}`;
+                
+                if (followStatusCache.has(cacheKey)) {
+                    return followStatusCache.get(cacheKey);
+                }
+                
+                try {
+                    const { data, error } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', userId)
+                        .single();
+
+                    const isFollowing = !!data && !error;
+                    followStatusCache.set(cacheKey, isFollowing);
+                    
+                    return isFollowing;
+                    
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            async function toggleFollow() {
+                if (isViewingOwnProfile || !targetUserId) return;
+                
+                const isFollowing = await checkIfFollowing(targetUserId);
+                
+                try {
+                    if (isFollowing) {
                         // Unfollow
                         const { error } = await supabase
                             .from('follows')
                             .delete()
-                            .match({ follower_id: currentUser.id, followed_id: targetUser.id });
+                            .eq('follower_id', currentUser.id)
+                            .eq('followed_id', targetUserId);
+
                         if (error) throw error;
-                        showToast("Unfollowed successfully", "success");
+                        
+                        showToast('Unfollowed user', 'info');
+                        followStatusCache.set(`${currentUser.id}_${targetUserId}`, false);
+                        
                     } else {
                         // Follow
                         const { error } = await supabase
                             .from('follows')
-                            .insert({ follower_id: currentUser.id, followed_id: targetUser.id });
+                            .insert({
+                                follower_id: currentUser.id,
+                                followed_id: targetUserId
+                            });
+
+                        if (error) {
+                            if (error.code === '23505') {
+                                console.log('Already following this user');
+                            } else {
+                                throw error;
+                            }
+                        }
                         
-                        // Handle unique constraint error gracefully
-                        if (error && error.code !== '23505') throw error; 
-                        showToast("Following!", "success");
+                        showToast('Started following user', 'success');
+                        followStatusCache.set(`${currentUser.id}_${targetUserId}`, true);
                     }
-                } catch (err) {
-                    console.error("Toggle Follow Error:", err);
-                    // Revert UI on error
-                    isFollowing = previousState;
-                    renderFollowButtons();
-                    // Revert count
-                    countEls.forEach(el => {
-                        let current = parseInt(el.textContent) || 0;
-                        el.textContent = isFollowing ? current + 1 : Math.max(0, current - 1);
-                    });
-                    showToast("Action failed. Please try again.", "error");
+                    
+                    await updateFollowButton();
+                    await updateStats();
+                    await loadCommunityData();
+                    
+                } catch (error) {
+                    console.error('Error toggling follow:', error);
+                    showToast('Error updating follow status', 'error');
                 }
             }
 
-            // === UI UPDATES ===
-            function updateUI() {
-                // Update Text Content for Desktop & Mobile
-                const elements = {
-                    name: [document.getElementById('profileName'), document.getElementById('mobileProfileName')],
-                    username: [document.getElementById('profileUsername'), document.getElementById('mobileProfileUsername')],
-                    bio: [document.getElementById('profileBio'), document.getElementById('mobileProfileBio')],
-                    avatar: [document.getElementById('profileAvatar'), document.getElementById('mobileAvatar')]
-                };
-
-                const name = targetUser.full_name || "User";
-                const username = `@${targetUser.username || "user"}`;
-                const bio = targetUser.bio || "No bio yet.";
-                const avatar = targetUser.avatar_icon || "👤";
-
-                elements.name.forEach(el => { if(el) el.textContent = name; });
-                elements.username.forEach(el => { if(el) el.textContent = username; });
-                elements.bio.forEach(el => { if(el) el.textContent = bio; });
-                elements.avatar.forEach(el => { if(el) el.innerHTML = avatar; });
-
-                // Visibility Logic
-                const viewers = [document.getElementById('viewingOtherProfile'), document.getElementById('mobileViewingIndicator')];
-                const editBtns = [document.getElementById('editProfileBtn'), document.getElementById('mobileEditBtn')];
-                const followBtns = [document.getElementById('desktopFollowBtn'), document.getElementById('mobileFollowBtn')];
-                const logoutBtn = document.getElementById('logoutBtn');
-
-                if (isViewingOwnProfile) {
-                    viewers.forEach(el => el.style.display = 'none');
-                    followBtns.forEach(el => el.style.display = 'none');
-                    editBtns.forEach(el => el.style.display = 'inline-flex'); // or block
-                    if(logoutBtn) logoutBtn.style.display = 'inline-flex';
-                } else {
-                    viewers.forEach(el => el.style.display = 'flex');
-                    editBtns.forEach(el => el.style.display = 'none');
-                    if(logoutBtn) logoutBtn.style.display = 'none';
-                    // Show follow buttons
-                    followBtns.forEach(el => el.style.display = 'inline-flex'); 
-                    renderFollowButtons();
+            // ===== MODAL FUNCTIONS =====
+            function showModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Initialize modals
+                    if (modalId === 'addEntryModal') {
+                        const visitDate = document.getElementById('visitDate');
+                        if (visitDate) {
+                            const today = new Date().toISOString().split('T')[0];
+                            visitDate.value = today;
+                            visitDate.max = today;
+                        }
+                        setRating(0);
+                    }
+                    
+                    if (modalId === 'editProfileModal' && userProfile) {
+                        document.getElementById('editDisplayName').value = userProfile.full_name || '';
+                        document.getElementById('editUsername').value = userProfile.username || '';
+                        document.getElementById('editBio').value = userProfile.bio || '';
+                        document.getElementById('editLocation').value = userProfile.location || '';
+                    }
+                    
+                    if (modalId === 'avatarModal') {
+                        const avatarIconGrid = document.getElementById('avatarIconGrid');
+                        if (avatarIconGrid) {
+                            avatarIconGrid.innerHTML = '';
+                            foodIcons.forEach(icon => {
+                                const iconOption = document.createElement('div');
+                                iconOption.className = 'avatar-icon-option';
+                                iconOption.textContent = icon;
+                                iconOption.onclick = () => {
+                                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                                        opt.classList.remove('selected');
+                                    });
+                                    iconOption.classList.add('selected');
+                                    selectedAvatarIcon = icon;
+                                };
+                                if (icon === (userProfile?.avatar_icon || "🍔")) {
+                                    iconOption.classList.add('selected');
+                                    selectedAvatarIcon = icon;
+                                }
+                                avatarIconGrid.appendChild(iconOption);
+                            });
+                        }
+                    }
+                    
+                    if (modalId === 'createListModal') {
+                        document.getElementById('listName').value = '';
+                        document.getElementById('listDescription').value = '';
+                        document.getElementById('selectedIcon').value = '📋';
+                    }
                 }
             }
 
-            function renderFollowButtons() {
-                const buttons = [document.getElementById('desktopFollowBtn'), document.getElementById('mobileFollowBtn')];
-                buttons.forEach(btn => {
-                    if (!btn) return;
-                    if (isFollowing) {
-                        btn.innerHTML = '<i class="fas fa-user-check"></i> Following';
-                        btn.className = btn.classList.contains('mobile-action-btn') ? 'mobile-action-btn secondary' : 'btn btn-secondary';
-                        // Optional: Hover text to "Unfollow"
-                        btn.onmouseover = function() { this.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow'; this.classList.add('btn-error'); };
-                        btn.onmouseout = function() { this.innerHTML = '<i class="fas fa-user-check"></i> Following'; this.classList.remove('btn-error'); };
-                    } else {
-                        btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-                        btn.className = btn.classList.contains('mobile-action-btn') ? 'mobile-action-btn' : 'btn btn-primary';
-                        btn.onmouseover = null;
-                        btn.onmouseout = null;
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    
+                    if (modalId === 'addEntryModal') {
+                        const form = document.getElementById('journalEntryForm');
+                        if (form) form.reset();
+                        setRating(0);
+                        currentEditingJournalEntry = null;
                     }
-                });
+                }
             }
 
-            function updateStatsUI(visited, followers, following) {
-                const sets = [
-                    { v: 'visitedCount', f: 'followersCount', g: 'followingCount' },
-                    { v: 'mobileVisitedCount', f: 'mobileFollowersCount', g: 'mobileFollowingCount' }
-                ];
-
-                sets.forEach(ids => {
-                    const v = document.getElementById(ids.v);
-                    const f = document.getElementById(ids.f);
-                    const g = document.getElementById(ids.g);
-                    if(v) v.textContent = visited;
-                    if(f) f.textContent = followers;
-                    if(g) g.textContent = following;
-                });
+            function showCreateListModal() {
+                showModal('createListModal');
             }
 
-            // === TABS LOGIC ===
-            function showTab(tabName, el, isMobile = false) {
-                // Update active class on tabs
-                const selector = isMobile ? '.mobile-tab' : '.nav-tab';
-                document.querySelectorAll(selector).forEach(t => t.classList.remove('active'));
-                el.classList.add('active');
-
-                // Update content
-                const containerId = isMobile ? 'mobileContentArea' : 'desktopContentArea';
-                const container = document.getElementById(containerId);
-                
-                let contentHTML = '';
-                if(tabName === 'journal') contentHTML = `<div class="empty-state"><div class="empty-icon">📖</div><h3>Journal</h3><p>Journal entries logic goes here...</p></div>`;
-                if(tabName === 'lists') contentHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>Lists</h3><p>User lists logic goes here...</p></div>`;
-                if(tabName === 'community') contentHTML = `<div class="empty-state"><div class="empty-icon">👥</div><h3>Community</h3><p>Followers/Following lists go here...</p></div>`;
-
-                container.innerHTML = contentHTML;
-            }
-
-            // === UTILS ===
-            function showLoading(show) {
-                const el = document.getElementById('globalLoading');
-                if(el) el.className = show ? 'loading-overlay active' : 'loading-overlay';
-            }
-
-            function showToast(msg, type = 'info') {
+            // ===== TAB MANAGEMENT =====
+            function showTab(tabName) {
+                currentTab = tabName;
                 const isMobile = window.innerWidth <= 768;
-                const container = document.getElementById(isMobile ? 'mobileToastContainer' : 'toastContainer');
                 
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-                toast.innerHTML = `<span>${msg}</span>`;
-                
-                container.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                if (isMobile) {
+                    // Hide all sections
+                    document.querySelectorAll('.mobile-section').forEach(section => {
+                        section.style.display = 'none';
+                        section.classList.remove('active');
+                    });
+                    
+                    // Update tabs
+                    document.querySelectorAll('.mobile-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Show selected section
+                    const activeSection = document.getElementById(`mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Section`);
+                    if (activeSection) {
+                        activeSection.style.display = 'block';
+                        activeSection.classList.add('active');
+                    }
+                    
+                    const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                    }
+                    
+                    // Load data for the tab
+                    switch(tabName) {
+                        case 'journal':
+                            loadJournalEntries();
+                            break;
+                        case 'lists':
+                            loadLists();
+                            break;
+                        case 'community':
+                            loadCommunityData();
+                            break;
+                    }
+                } else {
+                    // Hide all tab contents
+                    document.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Update tabs
+                    document.querySelectorAll('.nav-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Show selected tab
+                    const tabElement = document.getElementById(`${tabName}-tab`);
+                    if (tabElement) {
+                        tabElement.classList.add('active');
+                    }
+                    
+                    const activeTab = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                    }
+                    
+                    // Load data for the tab
+                    switch(tabName) {
+                        case 'journal':
+                            loadJournalEntries();
+                            break;
+                        case 'lists':
+                            loadLists();
+                            break;
+                        case 'community':
+                            loadCommunityData();
+                            break;
+                    }
+                }
             }
 
-            async function logout() {
-                await supabase.auth.signOut();
-                window.location.href = 'login.html';
+            function showCommunitySection(section) {
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    document.getElementById('mobileFollowersTab').classList.toggle('d-none', section !== 'followers');
+                    document.getElementById('mobileFollowingTab').classList.toggle('d-none', section !== 'following');
+                    
+                    if (section === 'followers') {
+                        loadFollowers();
+                    } else {
+                        loadFollowing();
+                    }
+                } else {
+                    document.getElementById('followersSection').classList.toggle('d-none', section !== 'followers');
+                    document.getElementById('followingSection').classList.toggle('d-none', section !== 'following');
+                    
+                    if (section === 'followers') {
+                        loadFollowers();
+                    } else {
+                        loadFollowing();
+                    }
+                }
+            }
+
+            // ===== UTILITY FUNCTIONS =====
+            function getUserIdFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                return id ? id.trim() : null;
             }
 
             function goToMyProfile() {
-                window.location.href = 'profile.html'; // No ID param = my profile
+                window.location.href = 'profile.html';
             }
 
+            function viewUserProfile(userId) {
+                window.location.href = `profile.html?id=${userId}`;
+            }
+
+            function setRating(stars) {
+                const starsElements = document.querySelectorAll('#ratingStars span');
+                starsElements.forEach((star, index) => {
+                    if (index < stars) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+                
+                const selectedRating = document.getElementById('selectedRating');
+                if (selectedRating) selectedRating.value = stars;
+            }
+
+            async function saveAvatar() {
+                if (!selectedAvatarIcon || !isViewingOwnProfile) {
+                    showToast('Please select an avatar', 'error');
+                    return;
+                }
+
+                try {
+                    const { error } = await supabase
+                        .from('user_profiles')
+                        .update({ avatar_icon: selectedAvatarIcon })
+                        .eq('id', currentUser.id);
+
+                    if (error) throw error;
+
+                    userProfile.avatar_icon = selectedAvatarIcon;
+                    updateProfileUI();
+                    
+                    showToast('Avatar updated successfully!', 'success');
+                    closeModal('avatarModal');
+                    
+                } catch (error) {
+                    console.error('Error saving avatar:', error);
+                    showToast('Error saving avatar', 'error');
+                }
+            }
+
+            async function logout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        await supabase.auth.signOut();
+                        window.location.href = 'login.html';
+                    } catch (error) {
+                        console.error('Error logging out:', error);
+                        showToast('Error logging out', 'error');
+                    }
+                }
+            }
+
+            function showMobileMenu() {
+                showToast('Menu feature coming soon!', 'info');
+            }
+
+            // ===== TOAST SYSTEM =====
+            function showToast(message, type = 'info', duration = 3000) {
+                const isMobile = window.innerWidth <= 768;
+                const toastContainerId = isMobile ? 'mobileToastContainer' : 'toastContainer';
+                let toastContainer = document.getElementById(toastContainerId);
+                
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.className = isMobile ? 'mobile-toast-container' : 'toast-container';
+                    toastContainer.id = toastContainerId;
+                    document.body.appendChild(toastContainer);
+                }
+                
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; margin-left: auto;">×</button>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, duration);
+            }
+
+            // ===== EVENT LISTENERS SETUP =====
+            function setupEventListeners() {
+                // Journal entry form
+                const journalEntryForm = document.getElementById('journalEntryForm');
+                if (journalEntryForm) {
+                    journalEntryForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await saveJournalEntry();
+                    });
+                }
+                
+                // Edit profile form
+                const editProfileForm = document.getElementById('editProfileForm');
+                if (editProfileForm) {
+                    editProfileForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await saveProfileChanges();
+                    });
+                }
+                
+                // Create list form
+                const createListForm = document.getElementById('createListForm');
+                if (createListForm) {
+                    createListForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await createList();
+                    });
+                }
+                
+                // User search
+                const userSearch = document.getElementById('userSearch');
+                if (userSearch) {
+                    let searchTimeout;
+                    userSearch.addEventListener('input', () => {
+                        clearTimeout(searchTimeout);
+                        searchTimeout = setTimeout(() => {
+                            searchUsers(userSearch.value);
+                        }, 300);
+                    });
+                }
+                
+                // List icon selection
+                document.querySelectorAll('.list-icon-option').forEach(icon => {
+                    icon.addEventListener('click', function() {
+                        document.querySelectorAll('.list-icon-option').forEach(i => {
+                            i.style.background = 'transparent';
+                            i.style.border = '1px solid transparent';
+                        });
+                        this.style.background = 'rgba(245, 158, 11, 0.1)';
+                        this.style.border = '1px solid var(--accent)';
+                        document.getElementById('selectedIcon').value = this.getAttribute('data-icon');
+                    });
+                });
+                
+                // Close modals on outside click
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeModal(this.id);
+                        }
+                    });
+                });
+                
+                // Escape key to close modals
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        document.querySelectorAll('.modal.active').forEach(modal => {
+                            closeModal(modal.id);
+                        });
+                    }
+                });
+            }
+
+            // ===== FORM HANDLERS =====
+            async function saveJournalEntry() {
+                const restaurantId = document.getElementById('restaurantSelect')?.value;
+                const visitDate = document.getElementById('visitDate')?.value;
+                const rating = document.getElementById('selectedRating')?.value;
+                const notes = document.getElementById('visitNotes')?.value || '';
+                const tags = document.getElementById('visitTags')?.value || '';
+                
+                if (!restaurantId || !visitDate || !rating || rating === '0') {
+                    showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    const entryData = {
+                        user_id: currentUser.id,
+                        restaurant_id: restaurantId,
+                        visit_date: visitDate,
+                        rating: parseInt(rating),
+                        notes: notes,
+                        tags: tags,
+                        created_at: new Date().toISOString()
+                    };
+
+                    const { error } = await supabase
+                        .from('journal_entries')
+                        .insert([entryData]);
+
+                    if (error) throw error;
+                    
+                    showToast('Journal entry saved successfully!', 'success');
+                    closeModal('addEntryModal');
+                    
+                    // Reload data
+                    await loadJournalEntries();
+                    await updateStats();
+                    
+                } catch (error) {
+                    console.error('Error saving journal entry:', error);
+                    showToast('Error saving journal entry', 'error');
+                }
+            }
+
+            async function saveProfileChanges() {
+                const displayName = document.getElementById('editDisplayName')?.value;
+                const username = document.getElementById('editUsername')?.value;
+                const bio = document.getElementById('editBio')?.value;
+                const location = document.getElementById('editLocation')?.value;
+                
+                if (!displayName || !username) {
+                    showToast('Please enter display name and username', 'error');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase
+                        .from('user_profiles')
+                        .update({
+                            full_name: displayName,
+                            username: username,
+                            bio: bio,
+                            location: location,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+                    
+                    if (error) throw error;
+                    
+                    userProfile.full_name = displayName;
+                    userProfile.username = username;
+                    userProfile.bio = bio;
+                    userProfile.location = location;
+                    
+                    updateProfileUI();
+                    closeModal('editProfileModal');
+                    showToast('Profile updated successfully!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    showToast('Error updating profile', 'error');
+                }
+            }
+
+            async function createList() {
+                const name = document.getElementById('listName')?.value;
+                const description = document.getElementById('listDescription')?.value;
+                const icon = document.getElementById('selectedIcon')?.value || '📋';
+                
+                if (!name) {
+                    showToast('Please enter a list name', 'error');
+                    return;
+                }
+                
+                try {
+                    const { data: list, error } = await supabase
+                        .from('lists')
+                        .insert([{
+                            user_id: currentUser.id,
+                            title: name,
+                            description: description,
+                            icon: icon,
+                            created_at: new Date().toISOString()
+                        }])
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+                    
+                    customLists.push(list);
+                    closeModal('createListModal');
+                    showToast(`List "${name}" created successfully!`, 'success');
+                    
+                    // Reload lists
+                    await loadLists();
+                    
+                } catch (error) {
+                    console.error('Error creating list:', error);
+                    showToast('Error creating list', 'error');
+                }
+            }
+
+            async function searchUsers(query) {
+                const searchResults = document.getElementById('searchResults');
+                if (!searchResults) return;
+                
+                if (!query || query.length < 2) {
+                    searchResults.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <h3 class="empty-title">Search for users</h3>
+                            <p class="empty-description">Enter at least 2 characters to search</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                try {
+                    const { data: users, error } = await supabase
+                        .from('user_profiles')
+                        .select('*')
+                        .or(`username.ilike.%${query}%,full_name.ilike.%${query}%`)
+                        .neq('id', currentUser.id)
+                        .limit(10);
+
+                    if (error) throw error;
+
+                    if (!users || users.length === 0) {
+                        searchResults.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">🔍</div>
+                                <h3 class="empty-title">No users found</h3>
+                                <p class="empty-description">Try a different search term</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    searchResults.innerHTML = '';
+                    users.forEach(user => {
+                        const card = createCommunityCard(user, false);
+                        searchResults.appendChild(card);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error searching users:', error);
+                    searchResults.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3 class="empty-title">Search Error</h3>
+                            <p class="empty-description">Unable to search users at this time</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // ===== PUBLIC API =====
             return {
                 initialize,
-                toggleFollow,
                 showTab,
+                showCommunitySection,
                 goToMyProfile,
+                viewUserProfile,
+                showModal,
+                closeModal,
+                showCreateListModal,
+                showAvatarModal,
+                saveAvatar,
+                setRating,
+                toggleFollow,
+                showMobileMenu,
                 logout
             };
         })();
 
-        document.addEventListener('DOMContentLoaded', ProfileManager.initialize);
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            ProfileManager.initialize();
+        });
     </script>
 </body>
 </html>
