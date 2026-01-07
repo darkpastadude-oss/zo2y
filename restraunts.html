@@ -1,4163 +1,845 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zo2y — All Restaurants</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root { 
-      --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
-      --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      --shadow: 0 10px 30px rgba(0,0,0,0.3);
-      --success: #10b981; --error: #ef4444; --info: #3b82f6;
-      --surface: rgba(19, 35, 71, 0.6);
-      --cloud-color: #3b82f6;
-    }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; } 
-    html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
-    a { color: inherit; text-decoration: none; } 
-    
-    /* Mobile Guest Banner - NON-STICKY */
-    .guest-banner.mobile {
-      display: block;
-      position: relative;
-      z-index: 100;
-      padding: 12px 16px;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(255, 184, 77, 0.2) 100%);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-      margin-bottom: 0;
-      width: 100%;
-    }
-    
-    .guest-banner.desktop {
-      display: none;
-      max-width: 800px;
-      width: calc(100% - 40px);
-      border-radius: 12px;
-      margin: 20px auto 20px auto;
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-      padding: 10px 20px;
-      text-align: center;
-    }
-    
-    .banner-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
-    .banner-text {
-      margin-right: 8px;
-      font-size: 13px;
-    }
-    
-    .banner-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    
-    .banner-btn {
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
-      white-space: nowrap;
-    }
-    
-    .banner-btn-outline {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-    }
-    
-    .banner-btn-outline:hover {
-      background: rgba(245, 158, 11, 0.1);
-    }
-    
-    .banner-btn-primary {
-      background: var(--accent);
-      color: #111;
-      border: 1px solid var(--accent);
-    }
-    
-    .banner-btn-primary:hover {
-      background: #ffb84d;
-      transform: translateY(-1px);
-    }
-    
-    /* Enhanced Header - NON-STICKY on mobile */
-    header { 
-      position: sticky; 
-      top: 0; 
-      z-index: 1000; 
-      display: flex; 
-      align-items: center; 
-      gap: 20px; 
-      padding: 14px 24px; 
-      backdrop-filter: blur(10px) saturate(180%);
-      background: var(--surface); 
-      border-bottom: 1px solid var(--border); 
-    } 
-    
-    /* Non-sticky header on mobile */
-    @media (max-width: 768px) {
-      header {
-        position: relative;
-        backdrop-filter: none;
-      }
-    }
-    
-    .logo { 
-      height: 40px; 
-      cursor: pointer; 
-      transition: transform 0.3s ease;
-    }
-    
-    .logo:hover {
-      transform: scale(1.05);
-    }
-    
-    .toolbar { 
-      display: flex; 
-      gap: 12px; 
-      margin-left: auto; 
-      align-items: center; 
-      flex-wrap: wrap; 
-    } 
-    
-    /* Enhanced Search */
-    .search-wrapper {
-      width: 320px;
-      position: relative;
-    }
-    
-    .search { 
-      width: 100%; 
-      padding: 10px 16px 10px 40px; 
-      border-radius: 20px; 
-      border: 1px solid var(--border); 
-      background: var(--card); 
-      color: var(--white); 
-      outline: none; 
-      font-size: 14px; 
-      transition: all 0.3s ease;
-    } 
-    
-    .search:focus { 
-      border-color: var(--accent); 
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
-    } 
-    
-    .search-icon { 
-      position: absolute; 
-      left: 12px; 
-      top: 50%; 
-      transform: translateY(-50%); 
-      opacity: 0.6; 
-      pointer-events: none;
-    }
-    
-    .clear-search {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      display: none;
-      padding: 4px;
-    }
-    
-    .clear-search:hover {
-      color: var(--white);
-    }
-    
-    .btn { 
-      background: var(--card); 
-      border: 1px solid var(--border); 
-      color: var(--white); 
-      padding: 8px 16px; 
-      border-radius: 16px; 
-      cursor: pointer; 
-      font-size: 13px; 
-      font-weight: 500; 
-      transition: all 0.2s ease; 
-      white-space: nowrap;
-    } 
-    
-    .btn:hover { 
-      background: var(--accent); 
-      color: #0b1633; 
-    }
-    
-    .btn-primary {
-      background: var(--gradient);
-      border: none;
-      color: #0b1633;
-      font-weight: 600;
-    }
-    
-    /* Grid View Controls */
-    .view-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .grid-size-buttons {
-      display: flex;
-      gap: 4px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 4px;
-    }
-    
-    .grid-btn {
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      cursor: pointer;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      transition: all 0.3s ease;
-    }
-    
-    .grid-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
-    
-    .grid-btn.active {
-      background: var(--accent);
-      color: #0b1633;
-    }
-    
-    /* Items Per Page Selector */
-    .items-per-page {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: 8px;
-    }
-    
-    .items-per-page label {
-      font-size: 13px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    
-    .items-select {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-size: 13px;
-      cursor: pointer;
-      min-width: 80px;
-    }
-    
-    /* Quick Filters */
-    .quick-filters {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 8px 0;
-      margin: 0 -20px;
-      padding-left: 20px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    
-    .quick-filters::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .filter-chip {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    
-    .filter-chip:hover {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: var(--accent);
-    }
-    
-    .filter-chip.active {
-      background: var(--gradient);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    /* Enhanced Container */
-    .container { 
-      max-width: 1200px; 
-      margin: 24px auto; 
-      padding: 0 20px; 
-      min-height: calc(100vh - 200px);
-    } 
-    
-    .page-header {
-      margin-bottom: 24px;
-    }
-    
-    .page-header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    
-    .page-header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
-    /* Controls Bar */
-    .controls { 
-      display: flex; 
-      gap: 12px; 
-      align-items: center; 
-      margin-bottom: 20px; 
-      flex-wrap: wrap; 
-    } 
-    
-    .controls-info { 
-      color: var(--muted); 
-      font-size: 14px; 
-      font-weight: 500; 
-    } 
-    
-    .sort-controls {
-      display: flex;
-      gap: 8px;
-      margin-left: auto;
-    }
-    
-    .sort-select {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 8px 12px;
-      border-radius: 16px;
-      font-size: 13px;
-      cursor: pointer;
-      min-width: 160px;
-    }
-    
-    .sort-select:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    
-    /* Enhanced Grid */
-    .grid { 
-      display: grid; 
-      gap: 20px; 
-      transition: grid-template-columns 0.3s ease;
-      min-height: 200px;
-      align-items: stretch;
-      position: relative;
-    }
-    
-    /* Grid variations - FIXED FOR DESKTOP */
-    .grid-single {
-      grid-template-columns: 1fr;
-    }
-    
-    .grid-double {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .grid-triple {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .grid-quad {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .grid-quint {
-      grid-template-columns: repeat(5, 1fr);
-    }
-    
-    /* Restaurant Card */
-    .restaurant-card { 
-      background: var(--card); 
-      border-radius: 16px; 
-      overflow: hidden; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-      border: 1px solid var(--border);
-      cursor: pointer; 
-      position: relative;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    } 
-    
-    .restaurant-card:hover { 
-      transform: translateY(-4px); 
-      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
-      border-color: var(--accent);
-    }
-    
-    .card-image {
-      height: 200px;
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-    }
-    
-    /* Enhanced Image Loading */
-    .restaurant-image {
-      display: block;
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    .restaurant-image.loaded {
-      opacity: 1;
-    }
-    
-    /* List badges - TOP LEFT (Icon only, text shows on hover) - BRING BACK ICONS */
-    .list-badges-container {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      display: flex;
-      gap: 6px;
-      z-index: 30;
-      align-items: flex-start;
-      flex-direction: column;
-    }
-    
-    .list-badge {
-      background: rgba(11, 22, 51, 0.95);
-      color: var(--accent);
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 18px;
-      border: 1px solid var(--accent);
-      cursor: help;
-      white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-    }
-    
-    .list-badge:hover {
-      transform: scale(1.1);
-      background: rgba(245, 158, 11, 0.95);
-      color: #0b1633;
-    }
-    
-    /* List badge tooltips - UPDATED TEXT */
-    .list-badge .list-badge-tooltip {
-      position: absolute;
-      top: 50%;
-      left: 100%;
-      transform: translateY(-50%) translateX(10px);
-      background: var(--card);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      padding: 10px 14px;
-      width: 140px;
-      z-index: 1001;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      text-align: left;
-      font-size: 12px;
-      line-height: 1.4;
-      margin-left: 8px;
-      color: var(--white);
-    }
-    
-    .list-badge:hover .list-badge-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(-50%) translateX(20px);
-      pointer-events: auto;
-    }
-    
-    /* Cloud Kitchen Badge - TOP LEFT before menu button */
-    .cloud-badge {
-      position: absolute;
-      top: 12px;
-      right: 56px;
-      width: 40px;
-      height: 40px;
-      background: rgba(59, 130, 246, 0.95);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: help;
-      z-index: 100;
-      transition: all 0.3s ease;
-      border: 1px solid var(--cloud-color);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      color: white;
-      font-size: 20px;
-    }
-    
-    .cloud-badge:hover {
-      background: rgba(59, 130, 246, 1);
-      transform: scale(1.05);
-    }
-    
-    /* Cloud Kitchen Tooltip - SIMPLIFIED */
-    .cloud-badge .cloud-tooltip {
-      position: absolute;
-      top: -10px;
-      right: 0;
-      transform: translateX(0) translateY(-100%);
-      background: var(--card);
-      border: 2px solid var(--cloud-color);
-      border-radius: 12px;
-      padding: 12px 16px;
-      width: 160px;
-      z-index: 1001;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      color: var(--white);
-      text-align: center;
-      font-weight: 600;
-    }
-    
-    .cloud-badge:hover .cloud-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(0) translateY(-120%);
-      pointer-events: auto;
-    }
-    
-    .tooltip-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    
-    .tooltip-header i {
-      color: var(--cloud-color);
-      font-size: 18px;
-    }
-    
-    .tooltip-header h4 {
-      color: var(--white);
-      font-size: 16px;
-      margin: 0;
-    }
-    
-    /* Menu button - TOP RIGHT */
-    .menu-btn-container {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      z-index: 30;
-    }
-    
-    .menu-btn {
-      width: 40px;
-      height: 40px;
-      background: rgba(11, 22, 51, 0.9);
-      border: 1px solid var(--accent);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      position: relative;
-    }
-    
-    .menu-btn:hover {
-      background: var(--accent);
-      transform: scale(1.1);
-    }
-    
-    .menu-btn i {
-      color: var(--white);
-      font-size: 18px;
-    }
-    
-    .menu-btn:hover i {
-      color: #0b1633;
-    }
-    
-    /* Menu button tooltip */
-    .menu-btn .menu-btn-tooltip {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      margin-top: 8px;
-      background: var(--card);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      padding: 10px 14px;
-      z-index: 1001;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      min-width: 120px;
-      text-align: center;
-      color: var(--white);
-    }
-    
-    .menu-btn:hover .menu-btn-tooltip {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-    
-    /* Logo overlay in bottom right */
-    .logo-overlay {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      width: 48px;
-      height: 48px;
-      background: rgba(11, 22, 51, 0.9);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px;
-      border: 2px solid var(--accent);
-      backdrop-filter: none;
-      z-index: 20;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-      pointer-events: none;
-    }
-    
-    .logo-overlay img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 8px;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    .logo-overlay img.loaded {
-      opacity: 1;
-    }
-    
-    .restaurant-card:hover .logo-overlay {
-      transform: scale(1.1);
-      border-color: var(--accent);
-      background: rgba(245,158,11,0.9);
-      box-shadow: 0 8px 24px rgba(245,158,11,0.4);
-    }
-    
-    .card-content {
-      padding: 16px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .card-header {
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    
-    .card-title-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    
-    .card-title {
-      font-size: 16px;
-      font-weight: 700;
-      line-height: 1.3;
-      margin: 0;
-      flex: 1;
-    }
-    
-    /* Top rated badge */
-    .top-rated-badge {
-      display: inline-block;
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      border: 1px solid rgba(245, 158, 11, 0.5);
-      animation: glow 2s infinite alternate;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-      white-space: nowrap;
-    }
-    
-    @keyframes glow {
-      0% {
-        box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
-                    0 0 10px rgba(245, 158, 11, 0.3);
-      }
-      100% {
-        box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
-                    0 0 20px rgba(245, 158, 11, 0.5),
-                    0 0 30px rgba(245, 158, 11, 0.3);
-      }
-    }
-    
-    .card-rating {
-      background: var(--gradient);
-      color: #0b1633;
-      padding: 4px 8px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    
-    .card-category {
-      color: var(--accent);
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .card-description {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-      margin: 0 0 16px 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      flex: 1;
-    }
-    
-    .card-footer {
-      margin-top: auto;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .card-location {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
-    }
-    
-    /* NEW: Mobile Pagination - For BOTH mobile and desktop */
-    .mobile-pagination {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--card);
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      z-index: 900;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(10px);
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-      display: none; /* Initially hidden */
-    }
-    
-    .mobile-pagination.visible {
-      transform: translateY(0);
-      display: block; /* Show when visible */
-    }
-    
-    .mobile-pagination-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-    }
-    
-    .mobile-pagination-btn {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 14px 12px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 48px;
-      font-size: 15px;
-    }
-    
-    .mobile-pagination-btn:hover:not(:disabled) {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-    }
-    
-    .mobile-pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: var(--card);
-      border-color: var(--border);
-      color: var(--muted);
-    }
-    
-    .mobile-pagination-btn:disabled:hover {
-      transform: none;
-      box-shadow: none;
-      background: var(--card);
-    }
-    
-    .mobile-pagination-info {
-      flex: 1;
-      color: var(--white);
-      font-size: 14px;
-      font-weight: 500;
-      padding: 12px;
-      text-align: center;
-      background: var(--bg);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      min-height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .mobile-pagination-info .page-number {
-      color: var(--accent);
-      font-weight: 700;
-      margin: 0 4px;
-    }
-    
-    /* Chrome Mobile Scrolling Fix */
-    @supports (padding: max(0px)) {
-      body, .container, main {
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-      }
-      
-      .container {
-        min-height: calc(100vh - env(safe-area-inset-bottom) - 200px);
-      }
-      
-      /* Add extra padding for mobile pagination */
-      .mobile-pagination {
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
-      }
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-      /* Header non-sticky on mobile */
-      header {
-        position: relative;
-        top: 0;
-        backdrop-filter: none;
-        padding: 12px 16px;
-        flex-wrap: wrap;
-      }
-      
-      /* Chrome Mobile Safe Area Fix */
-      @supports (padding: max(0px)) {
-        .container {
-          padding-bottom: max(16px, env(safe-area-inset-bottom));
-          padding-left: max(16px, env(safe-area-inset-left));
-          padding-right: max(16px, env(safe-area-inset-right));
-          min-height: calc(100vh - env(safe-area-inset-bottom) - 180px);
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Zo2y — All Restaurants</title>
+    
+    <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+    <link rel="dns-prefetch" href="https://gfkhjbztayjyojsgdpgk.supabase.co">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/logo.png">
+
+    <style>
+        :root { 
+            --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
+            --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
+            --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            --shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --success: #10b981; --error: #ef4444; --info: #3b82f6;
+            --surface: rgba(19, 35, 71, 0.6);
+            --cloud-color: #3b82f6;
         }
-      }
-      
-      /* Mobile banner adjustments */
-      .guest-banner.mobile {
-        position: relative;
-        top: 0;
-        z-index: 100;
-        padding: 10px 12px;
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
-        border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-        margin-bottom: 0;
-      }
-      
-      .guest-banner.desktop {
-        display: none;
-      }
-      
-      .banner-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-      }
-      
-      .banner-text {
-        font-size: 13px;
-        margin-right: 0;
-      }
-      
-      .banner-actions {
-        width: 100%;
-        justify-content: center;
-      }
-      
-      .banner-btn {
-        padding: 8px 16px;
-        font-size: 13px;
-      }
-      
-      /* Hide tooltips on mobile */
-      .cloud-tooltip,
-      .list-badge-tooltip,
-      .menu-btn-tooltip {
-        display: none !important;
-      }
-      
-      /* List badges on mobile - icon only */
-      .list-badges-container {
-        top: 10px;
-        left: 10px;
-        gap: 4px;
-      }
-      
-      .list-badge {
-        padding: 6px;
-        font-size: 16px;
-        width: 36px;
-        height: 36px;
-      }
-      
-      /* Cloud badge on mobile */
-      .cloud-badge {
-        top: 10px;
-        right: 52px;
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
-      }
-      
-      /* Menu button on mobile */
-      .menu-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-      }
-      
-      /* Logo overlay bigger on mobile */
-      .logo-overlay {
-        width: 56px;
-        height: 56px;
-        bottom: 14px;
-        right: 14px;
-      }
-      
-      /* Grid adjustments for mobile - KEEP MOBILE AS IS */
-      .grid {
-        gap: 12px;
-      }
-      
-      .grid-single {
-        grid-template-columns: 1fr;
-      }
-      
-      .grid-double {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-      
-      .grid-triple {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-      }
-      
-      .grid-quad {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-      
-      .grid-quint {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-      
-      /* Adjust card content for smaller screens */
-      .card-image {
-        height: 160px;
-      }
-      
-      .restaurant-image {
-        height: 160px;
-      }
-      
-      /* Controls adjustments */
-      .controls-info {
-        font-size: 13px;
-        order: 1;
-        width: 100%;
-        text-align: center;
-        margin-bottom: 12px;
-      }
-      
-      .sort-controls {
-        order: 2;
-        width: 100%;
-        justify-content: flex-start;
-        margin-left: 0;
-      }
-      
-      .sort-select {
-        flex: 1;
-        min-width: 0;
-      }
-      
-      .view-controls {
-        order: 3;
-        width: 100%;
-        margin-left: 0;
-        margin-top: 12px;
-        justify-content: space-between;
-      }
-      
-      .items-per-page {
-        margin-left: 0;
-      }
-      
-      .search-wrapper {
-        width: 100%;
-        order: 4;
-        margin-top: 12px;
-      }
-      
-      .toolbar {
-        width: 100%;
-        justify-content: space-between;
-        flex-wrap: wrap;
-      }
-      
-      /* Quick filters adjustments */
-      .quick-filters {
-        margin: 0 -16px;
-        padding-left: 16px;
-      }
-      
-      .container {
-        padding: 0 16px;
-      }
-      
-      .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      
-      .card-title-wrapper {
-        width: 100%;
-      }
-    }
-    
-    @media (min-width: 769px) {
-      /* Desktop banner adjustments */
-      .guest-banner.mobile {
-        display: none;
-      }
-      
-      .guest-banner.desktop {
-        display: block;
-      }
-      
-      /* Desktop Grid Options */
-      .grid-single {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      
-      .grid-double {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-      }
-      
-      .grid-triple {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 20px;
-      }
-      
-      /* Hide quad and quint classes for desktop since we're using double=4 and triple=5 */
-      .grid-quad,
-      .grid-quint {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 20px;
-      }
-    }
-    
-    /* Skeleton Loading */
-    .skeleton-grid {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .skeleton-card {
-      background: var(--card);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    
-    .skeleton-image {
-      height: 200px;
-      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-    }
-    
-    .skeleton-content {
-      padding: 16px;
-    }
-    
-    .skeleton-line {
-      height: 12px;
-      background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-      margin-bottom: 8px;
-      border-radius: 4px;
-    }
-    
-    .skeleton-line.short {
-      width: 60%;
-    }
-    
-    @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    
-    /* Actions Modal */
-    .actions-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: none;
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .actions-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .actions-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 400px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-      animation: modalSlideIn 0.3s ease-out;
-      text-align: center;
-    }
-    
-    @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .actions-header {
-      margin-bottom: 24px;
-    }
-    
-    .actions-header h3 {
-      font-size: 22px;
-      margin-bottom: 8px;
-      color: var(--white);
-      font-weight: 600;
-    }
-    
-    .actions-header p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-    
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    
-    .action-btn-modal {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 16px 20px;
-      border-radius: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-align: left;
-      font-size: 15px;
-      justify-content: space-between;
-    }
-    
-    .action-btn-modal:hover {
-      background: var(--accent);
-      color: #0b1633;
-      transform: translateY(-2px);
-      border-color: var(--accent);
-      box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-    }
-    
-    .action-btn-modal.active {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    .action-btn-modal i {
-      font-size: 18px;
-      width: 24px;
-    }
-    
-    /* Custom Lists button styling */
-    .custom-lists-btn {
-      background: var(--bg);
-      border: 1px solid var(--accent);
-      color: var(--white);
-    }
-    
-    .custom-lists-btn:hover {
-      background: var(--accent);
-      color: #0b1633;
-      border-color: var(--accent);
-    }
-    
-    .cancel-btn {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 14px 20px;
-      border-radius: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-    }
-    
-    .cancel-btn:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--white);
-    }
-    
-    /* Custom Lists Modal */
-    .custom-lists-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.95);
-      backdrop-filter: none;
-      z-index: 1001;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .custom-lists-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .custom-lists-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 500px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-      animation: modalSlideIn 0.3s ease-out;
-      max-height: 80vh;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .lists-header {
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    
-    .lists-header h3 {
-      font-size: 22px;
-      color: var(--white);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .lists-header h3 i {
-      color: var(--accent);
-    }
-    
-    .close-lists-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 24px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      transition: all 0.3s ease;
-    }
-    
-    .close-lists-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
-    
-    .lists-list-container {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding-right: 10px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-    }
-    
-    .lists-list-container::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 10px;
-    }
-    
-    .lists-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .list-item:hover {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: var(--accent);
-      transform: translateX(5px);
-    }
-    
-    .list-item.active {
-      background: rgba(245, 158, 11, 0.2);
-      border-color: var(--accent);
-    }
-    
-    .list-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-    }
-    
-    .list-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0b1633;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    
-    .list-name {
-      font-weight: 500;
-      color: var(--white);
-    }
-    
-    .list-checkbox {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    
-    .list-checkbox.checked {
-      background: var(--accent);
-      border-color: var(--accent);
-      animation: checkPop 0.3s ease;
-    }
-    
-    @keyframes checkPop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    
-    .list-checkbox.checked::after {
-      content: "✓";
-      color: #0b1633;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    
-    .empty-lists {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-    }
-    
-    .empty-lists i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-      color: var(--accent);
-    }
-    
-    .empty-lists h4 {
-      margin-bottom: 8px;
-      color: var(--white);
-    }
-    
-    .new-list-section {
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-    }
-    
-    .new-list-input {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    
-    .new-list-input input {
-      flex: 1;
-      padding: 12px 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--white);
-      font-size: 14px;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-    
-    .new-list-input input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-    }
-    
-    .create-list-btn {
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .create-list-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    }
-    
-    .create-list-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    .lists-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 10px;
-    }
-    
-    .lists-save-btn {
-      flex: 1;
-      background: var(--accent);
-      color: #0b1633;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .lists-save-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    }
-    
-    .lists-save-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    /* Auth Prompt Modal */
-    .auth-prompt-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 22, 51, 0.98);
-      backdrop-filter: none;
-      z-index: 1002;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .auth-prompt-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    
-    .auth-prompt-content {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 480px;
-      width: 100%;
-      border: 2px solid var(--accent);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-      animation: modalSlideIn 0.3s ease-out;
-      text-align: center;
-    }
-    
-    .auth-prompt-icon {
-      width: 80px;
-      height: 80px;
-      background: var(--gradient);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      font-size: 32px;
-      color: #0b1633;
-    }
-    
-    .auth-prompt-header h3 {
-      font-size: 28px;
-      margin-bottom: 12px;
-      color: var(--white);
-      font-weight: 700;
-    }
-    
-    .auth-prompt-header p {
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.5;
-      margin-bottom: 32px;
-    }
-    
-    .auth-prompt-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .auth-prompt-btn {
-      padding: 18px 24px;
-      border-radius: 16px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    
-    .auth-prompt-primary {
-      background: var(--gradient);
-      color: #0b1633;
-    }
-    
-    .auth-prompt-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-    }
-    
-    .auth-prompt-secondary {
-      background: transparent;
-      color: var(--white);
-      border: 2px solid var(--border);
-    }
-    
-    .auth-prompt-secondary:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: var(--accent);
-    }
-    
-    .auth-prompt-close {
-      background: transparent;
-      color: var(--muted);
-      border: none;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-      font-size: 15px;
-    }
-    
-    .auth-prompt-close:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--white);
-    }
-    
-    /* Notification styles */
-    .notification-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 350px;
-    }
-    
-    .custom-notification {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      transform: translateX(400px);
-      opacity: 0;
-      transition: all 0.4s ease;
-      backdrop-filter: blur(10px);
-    }
-    
-    .custom-notification.notification-show {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    
-    .notification-icon {
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-    
-    .notification-success .notification-icon {
-      color: var(--success);
-    }
-    
-    .notification-error .notification-icon {
-      color: var(--error);
-    }
-    
-    .notification-warning .notification-icon {
-      color: var(--accent);
-    }
-    
-    .notification-info .notification-icon {
-      color: var(--info);
-    }
-    
-    .notification-message {
-      flex: 1;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    
-    .notification-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-    }
-    
-    .notification-close:hover {
-      color: var(--white);
-      background: rgba(255,255,255,0.1);
-    }
-    
-    /* Pagination Sentinel */
-    .pagination-sentinel {
-      position: absolute;
-      bottom: 100px;
-      width: 100%;
-      height: 1px;
-      pointer-events: none;
-      opacity: 0;
-    }
-  </style>
-  
-  <link rel="icon" type="image/png" href="images/logo.png">
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; } 
+        html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
+        a { color: inherit; text-decoration: none; } 
+
+        /* Enhanced Header */
+        header { 
+            position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; 
+            gap: 20px; padding: 14px 24px; backdrop-filter: blur(10px) saturate(180%);
+            background: var(--surface); border-bottom: 1px solid var(--border); 
+        } 
+        .logo { height: 40px; cursor: pointer; transition: transform 0.3s ease; }
+        .logo:hover { transform: scale(1.05); }
+        .toolbar { display: flex; gap: 12px; margin-left: auto; align-items: center; flex-wrap: wrap; } 
+
+        /* Search */
+        .search-wrapper { width: 320px; position: relative; }
+        .search { 
+            width: 100%; padding: 10px 16px 10px 40px; border-radius: 20px; 
+            border: 1px solid var(--border); background: var(--card); color: var(--white); 
+            outline: none; font-size: 14px; transition: all 0.3s ease;
+        } 
+        .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); } 
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
+        .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
+        
+        /* Buttons */
+        .btn { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap; } 
+        .btn:hover { background: var(--accent); color: #0b1633; }
+        .btn-primary { background: var(--gradient); border: none; color: #0b1633; font-weight: 600; }
+        .account-btn { background: transparent; color: var(--white); padding: 8px 16px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; font-size: 14px; }
+        .account-btn:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); }
+
+        /* Controls */
+        .container { max-width: 1200px; margin: 24px auto; padding: 0 20px; min-height: calc(100vh - 200px); } 
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .page-header p { color: var(--muted); font-size: 14px; }
+
+        .quick-filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 10px; scrollbar-width: none; }
+        .filter-chip { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .filter-chip.active, .filter-chip:hover { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+
+        .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 16px; border: 1px solid var(--border); } 
+        .controls-info { color: var(--muted); font-size: 14px; font-weight: 500; margin-right: auto; } 
+        .sort-select { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 8px 12px; border-radius: 10px; font-size: 13px; cursor: pointer; min-width: 140px; }
+        
+        .view-controls { display: flex; align-items: center; gap: 10px; }
+        .grid-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; background: var(--bg); border: 1px solid var(--border); color: var(--muted); }
+        .grid-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+
+        /* Grid Layouts */
+        .grid { display: grid; gap: 20px; transition: all 0.3s ease; }
+        .grid-quad { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        .grid-single { grid-template-columns: 1fr; } /* List view */
+
+        /* --- RESTAURANT CARD --- */
+        .restaurant-card { 
+            background: var(--card); border-radius: 16px; overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border);
+            cursor: pointer; position: relative; transition: all 0.2s ease; 
+            display: flex; flex-direction: column; height: 100%;
+        } 
+        .restaurant-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); border-color: var(--accent); }
+
+        /* Horizontal Layout (List View) */
+        .grid-single .restaurant-card { flex-direction: row; height: 180px; }
+        .grid-single .card-image { width: 280px; height: 100%; flex-shrink: 0; }
+        .grid-single .card-content { justify-content: center; }
+
+        .card-image { height: 200px; position: relative; overflow: hidden; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); }
+        .restaurant-image { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s ease; }
+        .restaurant-image.loaded { opacity: 1; }
+
+        /* Logo Overlay - Bottom Left (Increased Size) */
+        .logo-overlay { 
+            position: absolute; bottom: 12px; left: 12px; 
+            width: 56px; height: 56px; 
+            background: rgba(11, 22, 51, 0.9); border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; padding: 4px; 
+            border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 20; 
+            transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.4); 
+            pointer-events: none;
+        }
+        .restaurant-card:hover .logo-overlay { 
+            transform: scale(1.1); border-color: var(--accent); background: rgba(245,158,11,0.9); 
+        }
+
+        /* List Icons - Top Left (Stacked) */
+        .list-badges-container {
+            position: absolute; top: 12px; left: 12px; 
+            display: flex; flex-direction: column; gap: 8px; z-index: 30;
+        }
+        .list-badge {
+            background: rgba(11, 22, 51, 0.95); color: var(--accent);
+            width: 36px; height: 36px; 
+            border-radius: 10px; font-size: 18px; 
+            border: 1px solid var(--accent); cursor: help;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease;
+        }
+        .list-badge:hover { transform: scale(1.1); background: var(--accent); color: #0b1633; }
+
+        /* Menu Button - Top Right */
+        .menu-btn-container { position: absolute; top: 12px; right: 12px; z-index: 30; }
+        .menu-btn { 
+            width: 40px; height: 40px;
+            background: rgba(11, 22, 51, 0.9); border: 2px solid var(--accent); 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s ease;
+            color: var(--white); font-size: 18px;
+        }
+        .menu-btn:hover { background: var(--accent); color: #0b1633; transform: scale(1.1); }
+
+        /* Cloud Kitchen Badge */
+        .cloud-badge {
+            position: absolute; top: 12px; right: 60px; /* Spaced from menu btn */
+            width: 40px; height: 40px;
+            background: rgba(59, 130, 246, 0.95); border: 1px solid #3b82f6;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 20px; z-index: 29; cursor: help;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        /* Cloud Tooltip */
+        .cloud-tooltip {
+            position: absolute; top: 110%; right: 0;
+            background: var(--card); border: 1px solid var(--cloud-color);
+            color: var(--white); padding: 12px; border-radius: 12px;
+            font-size: 12px; width: 220px; opacity: 0; visibility: hidden;
+            transition: all 0.2s ease; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-weight: 500; line-height: 1.4; text-align: left;
+        }
+        .cloud-badge:hover .cloud-tooltip { opacity: 1; visibility: visible; transform: translateY(5px); }
+        .tooltip-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-weight: 700; color: var(--cloud-color); font-size: 14px; }
+
+        /* Content Area */
+        .card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+        .card-header { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .card-title-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
+        .card-title { font-size: 18px; font-weight: 700; line-height: 1.3; margin: 0; }
+        
+        .top-rated-badge { 
+            display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); 
+            color: #0b1633; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; 
+            letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); white-space: nowrap;
+        }
+
+        .card-rating { 
+            background: var(--gradient); color: #0b1633; padding: 4px 8px; 
+            border-radius: 8px; font-size: 13px; font-weight: 700; 
+            display: flex; align-items: center; gap: 4px; flex-shrink: 0; 
+        }
+        
+        .card-category { color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .card-description { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .card-location { color: var(--muted); font-size: 13px; font-weight: 500; }
+
+        /* Pagination Bar */
+        .pagination-bar { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); 
+            background: rgba(19, 35, 71, 0.95); backdrop-filter: blur(10px); 
+            padding: 10px 20px; border-radius: 50px; border: 1px solid var(--accent); 
+            display: flex; gap: 20px; align-items: center; z-index: 900; 
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); opacity: 0;
+        }
+        .pagination-bar.visible { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .page-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 16px; }
+        .page-btn:hover:not(:disabled) { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .page-info { font-weight: 600; color: var(--white); font-size: 15px; min-width: 80px; text-align: center; }
+
+        /* Footer */
+        footer { padding: 40px 20px 24px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 40px; background: var(--card); }
+        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: center; margin-bottom: 30px; }
+        .footer-column h3 { color: var(--white); margin-bottom: 16px; font-size: 16px; font-weight: 600; }
+        .footer-column a { display: block; margin-bottom: 10px; transition: all 0.3s ease; padding: 4px 0; font-size: 14px; }
+        .footer-column a:hover { color: var(--accent); }
+        .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; font-size: 14px; max-width: 1200px; margin: 0 auto; }
+
+        /* Modals & Notification CSS (Standard) */
+        .actions-modal, .custom-lists-modal, .auth-prompt-modal { display: none; position: fixed; inset: 0; background: rgba(11,22,51,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .actions-modal.active, .custom-lists-modal.active, .auth-prompt-modal.active { display: flex; }
+        .actions-content, .custom-lists-content, .auth-prompt-content { background: var(--card); padding: 30px; border-radius: 20px; border: 2px solid var(--accent); width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; }
+        .action-btn-modal { background: var(--bg); border: 1px solid var(--border); color: white; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s; font-size: 15px; }
+        .action-btn-modal:hover, .action-btn-modal.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+        .cancel-btn, .close-lists-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 12px; border-radius: 12px; width: 100%; cursor: pointer; margin-top: 10px; }
+        
+        .notification-container { position: fixed; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+        .custom-notification { background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideInRight 0.3s ease; }
+        .notification-success { border-left: 4px solid var(--success); }
+        .notification-error { border-left: 4px solid var(--error); }
+        
+        /* Lists specific */
+        .lists-list-container { max-height: 300px; overflow-y: auto; margin-bottom: 20px; text-align: left; }
+        .list-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .list-item:hover { background: rgba(255,255,255,0.05); }
+        .list-item.active { border-color: var(--accent); background: rgba(245,158,11,0.1); }
+        .list-icon { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; }
+        .list-checkbox { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 6px; margin-left: auto; display: flex; align-items: center; justify-content: center; }
+        .list-item.active .list-checkbox { background: var(--accent); border-color: var(--accent); }
+        .list-item.active .list-checkbox::after { content: '✓'; color: #0b1633; font-size: 12px; font-weight: bold; }
+        
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            header { flex-wrap: wrap; }
+            .search-wrapper { width: 100%; order: 3; margin-top: 10px; }
+            .grid-quad { grid-template-columns: 1fr; }
+            .grid-single .restaurant-card { flex-direction: column; height: auto; }
+            .grid-single .card-image { width: 100%; height: 200px; }
+            .controls { flex-direction: column; align-items: flex-start; }
+            .sort-controls { width: 100%; overflow-x: auto; }
+            .footer-content { grid-template-columns: repeat(2, 1fr); text-align: left; }
+            .cloud-tooltip { display: none; /* No hover on mobile */ }
+        }
+    </style>
 </head>
 <body>
-  <!-- Mobile Guest Banner - NON-STICKY -->
-  <div id="guestBannerMobile" class="guest-banner mobile">
-    <div class="banner-content">
-      <span class="banner-text">Want to save favorites?</span>
-      <div class="banner-actions">
-        <button class="banner-btn banner-btn-primary" id="bannerMobileSignupBtn">Sign Up Free</button>
+
+  <div id="actionsModal" class="actions-modal">
+    <div class="actions-content">
+      <h3 id="modalRestaurantName" style="margin-bottom: 5px; color:white;">Restaurant</h3>
+      <p style="color:var(--muted); font-size:14px;">Manage your lists</p>
+      <div class="action-buttons">
+        <button class="action-btn-modal" id="modalFavoritesBtn"><i class="fas fa-heart"></i> <span>Favorites</span></button>
+        <button class="action-btn-modal" id="modalWantToGoBtn"><i class="fas fa-map-marker-alt"></i> <span>Want to Go</span></button>
+        <button class="action-btn-modal" id="modalVisitedBtn"><i class="fas fa-utensils"></i> <span>Visited</span></button>
+        <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn"><i class="fas fa-list"></i> <span>Custom Lists</span> <i class="fas fa-chevron-right" style="margin-left:auto"></i></button>
+      </div>
+      <button class="cancel-btn" id="modalCancelBtn">Close</button>
+    </div>
+  </div>
+
+  <div id="customListsModal" class="custom-lists-modal">
+    <div class="custom-lists-content">
+      <div class="lists-header">
+        <h3 style="color:white; margin:0"><i class="fas fa-list" style="color:var(--accent)"></i> Custom Lists</h3>
+        <button class="close-lists-btn" id="closeListsBtn" style="width:auto; margin:0; border:none;">×</button>
+      </div>
+      <div id="listsListContainer" class="lists-list-container"></div>
+      <div class="new-list-section" style="border-top:1px solid var(--border); padding-top:15px;">
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+          <input type="text" id="newListName" placeholder="New list name..." style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:white;">
+          <button id="createListBtn" class="btn-primary" style="padding:10px 15px; border-radius:10px;">Create</button>
+        </div>
+        <button id="saveListsBtn" class="btn-primary" style="width:100%; padding:12px; border-radius:12px;">Save Changes</button>
       </div>
     </div>
   </div>
 
-  <!-- Desktop Guest Banner -->
-  <div id="guestBannerDesktop" class="guest-banner desktop">
-    <div class="banner-content">
-      <span class="banner-text">Want to save your favorite restaurants?</span>
-      <div class="banner-actions">
-        <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
-        <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
+  <div id="authPromptModal" class="auth-prompt-modal">
+    <div class="auth-prompt-content">
+      <div style="font-size:40px; color:var(--accent); margin-bottom:20px;"><i class="fas fa-lock"></i></div>
+      <h3 style="color:white; margin-bottom:10px;">Sign In Required</h3>
+      <p style="color:var(--muted); margin-bottom:20px;">Create an account to save restaurants and track your food journey.</p>
+      <div style="display:flex; gap:10px; flex-direction:column;">
+        <button class="btn-primary" style="padding:12px; border-radius:12px;" onclick="location.href='sign-up.html'">Create Account</button>
+        <button class="cancel-btn" onclick="location.href='login.html'">Sign In</button>
       </div>
+      <button class="cancel-btn" style="border:none; margin-top:15px;" onclick="document.getElementById('authPromptModal').classList.remove('active')">Maybe Later</button>
     </div>
   </div>
 
-  <header>
+  <div id="notificationContainer" class="notification-container"></div>
+
+  <header class="nav">
     <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
     <div class="toolbar">
       <div class="search-wrapper">
         <span class="search-icon">🔎</span>
-        <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
-        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+        <input type="text" id="search" class="search" placeholder="Search restaurants...">
+        <button class="clear-search" id="clearSearch">✕</button>
       </div>
       <button class="btn" id="resetFilters">Clear Filters</button>
-      <button class="btn btn-primary" id="authBtn">Sign In</button>
+      <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
     </div>
   </header>
 
   <main class="container">
     <div class="page-header">
-      <h1>Browse All Restaurants</h1>
-      <p>Discover and explore all available restaurants</p>
+      <h1>All Restaurants</h1>
+      <p>Discover and explore the best local spots</p>
     </div>
     
-    <!-- Quick Filters -->
     <div class="quick-filters" id="quickFilters">
-      <button class="filter-chip active" data-filter="all">All Restaurants</button>
-      <button class="filter-chip" data-filter="trending">🔥 Trending</button>
-      <button class="filter-chip" data-filter="top-rated">⭐ Top Rated</button>
-      <button class="filter-chip" data-filter="new">🆕 New</button>
+        <div class="filter-chip active" data-filter="all">All</div>
+        <div class="filter-chip" data-filter="top-rated">⭐ Top Rated</div>
+        <div class="filter-chip" data-filter="trending">🔥 Trending</div>
+        <div class="filter-chip" data-filter="new">🆕 New</div>
     </div>
-    
+
     <div class="controls">
-      <div class="controls-info">
-        <span id="showingText">Loading restaurants...</span>
-      </div>
-      
+      <div class="controls-info"><span id="showingText">Loading...</span></div>
       <div class="sort-controls">
+        <select id="categorySelect" class="sort-select"><option value="all">All Categories</option></select>
         <select id="sortSelect" class="sort-select">
           <option value="rating-desc">Rating: High to Low</option>
-          <option value="rating-asc">Rating: Low to High</option>
-          <option value="name-asc">Name: A to Z</option>
-          <option value="name-desc">Name: Z to A</option>
+          <option value="name-asc">Name: A-Z</option>
         </select>
-        
-        <select id="categorySelect" class="sort-select">
-          <option value="all">All Categories</option>
-          <!-- Categories populated dynamically -->
-        </select>
+        <div class="items-per-page" style="margin-left:10px; color:var(--muted); font-size:13px;">
+           Show: <select id="itemsPerPage" class="sort-select" style="min-width:60px;"><option value="20">20</option><option value="all">All</option></select>
+        </div>
       </div>
-      
       <div class="view-controls">
-        <div class="grid-size-buttons">
-          <button class="grid-btn" data-view="single" title="Single View (1 column)" aria-label="Single column view">
-            <i class="fas fa-bars"></i>
-          </button>
-          <button class="grid-btn active" data-view="double" title="Quad View (4 columns)" aria-label="Quad column view">
-            <i class="fas fa-th-large"></i>
-          </button>
-          <button class="grid-btn" data-view="triple" title="Quint View (5 columns)" aria-label="Quint column view">
-            <i class="fas fa-th"></i>
-          </button>
-        </div>
-        
-        <div class="items-per-page">
-          <label for="itemsPerPage">Show:</label>
-          <select id="itemsPerPage" class="items-select">
-            <!-- Options will be populated dynamically -->
-          </select>
-        </div>
+          <button class="grid-btn active" data-view="quad"><i class="fas fa-th"></i></button>
+          <button class="grid-btn" data-view="single"><i class="fas fa-list"></i></button>
       </div>
     </div>
     
-    <!-- Restaurant Grid -->
-    <div id="restaurantGrid" class="grid grid-double">
-      <!-- Content loaded dynamically -->
-    </div>
+    <div id="restaurantGrid" class="grid grid-quad"></div>
   </main>
-
-  <!-- Mobile Pagination - Fixed at bottom, shows when near end, for BOTH mobile and desktop -->
-  <div id="mobilePagination" class="mobile-pagination">
-    <div class="mobile-pagination-controls">
-      <button class="mobile-pagination-btn" id="mobilePrevBtn" disabled>
-        <i class="fas fa-chevron-left"></i>
-        Prev
-      </button>
-      <div class="mobile-pagination-info">
-        <span id="mobilePageInfo">Page <span class="page-number">1</span> of <span class="page-number">1</span></span>
-      </div>
-      <button class="mobile-pagination-btn" id="mobileNextBtn" disabled>
-        Next
-        <i class="fas fa-chevron-right"></i>
-      </button>
-    </div>
+  
+  <div id="paginationBar" class="pagination-bar">
+      <button class="page-btn" id="prevPage"><i class="fas fa-chevron-left"></i></button>
+      <div class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></div>
+      <button class="page-btn" id="nextPage"><i class="fas fa-chevron-right"></i></button>
   </div>
 
-  <!-- Actions Modal -->
-  <div id="actionsModal" class="actions-modal">
-    <div class="actions-content">
-      <div class="actions-header">
-        <h3 id="modalRestaurantName">Restaurant Name</h3>
-        <p>Add this restaurant to your lists</p>
+  <footer>
+    <div class="footer-content">
+      <div class="footer-column">
+        <h3>Explore</h3>
+        <a href="restraunts.html">All Restaurants</a>
+        <a href="categories.html">By Category</a>
       </div>
-      <div class="action-buttons">
-        <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn">
-          <i class="fas fa-heart"></i>
-          <span id="favoritesText">Add to Favorites</span>
-        </button>
-        <button class="action-btn-modal" data-action="wantToGo" id="modalWantToGoBtn">
-          <i class="fas fa-map-marker-alt"></i>
-          <span id="wantToGoText">Want to Go</span>
-        </button>
-        <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn">
-          <i class="fas fa-utensils"></i>
-          <span id="visitedText">Mark as Visited</span>
-        </button>
-        <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
-          <i class="fas fa-list"></i>
-          <span>Custom Lists</span>
-          <i class="fas fa-chevron-right"></i>
-        </button>
+      <div class="footer-column">
+        <h3>Community</h3>
+        <a href="blog.html">Food Blog</a>
       </div>
-      <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Custom Lists Modal -->
-  <div id="customListsModal" class="custom-lists-modal">
-    <div class="custom-lists-content">
-      <div class="lists-header">
-        <h3><i class="fas fa-list"></i> Custom Lists</h3>
-        <button class="close-lists-btn" id="closeListsBtn">×</button>
+      <div class="footer-column">
+        <h3>Business</h3>
+        <a href="add-restaurant.html">Add Your Restaurant</a>
       </div>
-      
-      <div class="lists-list-container" id="listsListContainer">
-        <!-- Lists will be populated here -->
-      </div>
-      
-      <div class="new-list-section">
-        <div class="new-list-input">
-          <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
-          <button class="create-list-btn" id="createListBtn">
-            <i class="fas fa-plus"></i> Create
-          </button>
-        </div>
-        <div class="lists-actions">
-          <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
-        </div>
+      <div class="footer-column">
+        <h3>Support</h3>
+        <a href="about.html">About Zo2y</a>
       </div>
     </div>
-  </div>
-
-  <!-- Auth Prompt Modal -->
-  <div id="authPromptModal" class="auth-prompt-modal">
-    <div class="auth-prompt-content">
-      <div class="auth-prompt-icon">
-        <i class="fas fa-lock"></i>
-      </div>
-      <div class="auth-prompt-header">
-        <h3>Sign In Required</h3>
-        <p>You need to be signed in to save restaurants to your lists. Create an account to save your favorites, mark places you want to visit, and track where you've been!</p>
-      </div>
-      <div class="auth-prompt-buttons">
-        <button class="auth-prompt-btn auth-prompt-primary" id="authPromptSignupBtn">
-          <i class="fas fa-user-plus"></i>
-          Create Free Account
-        </button>
-        <button class="auth-prompt-btn auth-prompt-secondary" id="authPromptLoginBtn">
-          <i class="fas fa-sign-in-alt"></i>
-          Sign In to Existing Account
-        </button>
-      </div>
-      <button class="auth-prompt-close" id="authPromptCloseBtn">Maybe Later</button>
+    <div class="footer-bottom">
+      <div style="margin-bottom:8px">© 2025 Zo2y</div>
     </div>
-  </div>
-
-  <!-- Notification Container -->
-  <div id="notificationContainer" class="notification-container"></div>
+  </footer>
 
   <script>
-    (function() {
-      'use strict';
-      
-      // ---------- CONFIG ----------
-      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      
-      // Initialize Supabase
-      let supabase;
-      try {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      } catch (error) {
-          console.error('❌ Failed to initialize Supabase:', error);
-          showNotification('Connection error. Please refresh.', 'error');
-          supabase = null;
-      }
-      
-      // ---------- GLOBAL STATE ----------
-      const state = {
-        restaurants: [],
-        filteredRestaurants: [],
-        categories: new Map(),
-        cloudKitchens: new Set(),
-        currentPage: 1,
-        pageSize: 20,
-        isLoading: false,
-        activeFilters: {
-          search: '',
-          category: 'all',
-          quickFilter: 'all',
-          sort: 'rating-desc'
-        },
-        restaurantImages: new Map(),
-        currentModalRestaurant: null,
-        currentUser: null,
-        isLoggedIn: false,
-        authChecked: false,
-        customLists: [],
-        selectedLists: new Set(),
-        isViewAll: false,
-        viewAllButtonText: "View All",
-        totalRestaurantCount: 0,
-        imageObserver: null,
-        totalPages: 1,
-        isPaginationVisible: false,
-        paginationObserver: null,
-        lastScrollTop: 0,
-        showAllRestaurants: false
-      };
-      
-      // ---------- FIXED IMAGE LOADING SYSTEM ----------
-      function initFixedImageLoader() {
-        if (state.imageObserver) return;
-        
-        state.imageObserver = new IntersectionObserver((entries, observer) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              const img = entry.target;
-              if (img.dataset.src) {
-                img.src = img.dataset.src;
-                img.classList.add('loaded');
-                observer.unobserve(img);
-              }
-            }
-          });
-        }, {
-          rootMargin: '100px 0px',
-          threshold: 0.01
-        });
-        
-        // Observe images when they're added to DOM
-        const observeNewImages = () => {
-          const images = document.querySelectorAll('img[data-src]');
-          images.forEach(img => {
-            if (!img.classList.contains('observed')) {
-              state.imageObserver.observe(img);
-              img.classList.add('observed');
-            }
-          });
-        };
-        
-        // Use MutationObserver to watch for new images
-        const mutationObserver = new MutationObserver(observeNewImages);
-        mutationObserver.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
-        
-        // Initial observation
-        setTimeout(observeNewImages, 100);
-      }
-      
-      // ---------- FIX SCROLLING ISSUE ----------
-      function fixMobileScrolling() {
-        // Fix for iOS Safari scrolling issues
-        if (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {
-          // Prevent elastic scrolling issues
-          document.addEventListener('touchmove', function(e) {
-            if (e.scale !== 1) { e.preventDefault(); }
-          }, { passive: false });
-          
-          // Fix 100vh issue
-          const setVH = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-          };
-          
-          setVH();
-          window.addEventListener('resize', setVH);
-        }
-      }
-      
-      // ---------- CLOUD KITCHEN MANAGER ----------
-      const cloudKitchenManager = {
-        async loadCloudKitchens() {
-          try {
-            const { data: cloudKitchens, error } = await supabase
-              .from('cloud_kitchens')
-              .select('restaurant_id');
-            
-            if (error) {
-              console.warn('Error loading cloud kitchens:', error);
-              return;
-            }
-            
-            if (cloudKitchens && cloudKitchens.length > 0) {
-              state.cloudKitchens.clear();
-              cloudKitchens.forEach(ck => {
-                state.cloudKitchens.add(ck.restaurant_id);
-              });
-            }
-          } catch (error) {
-            console.error('Error loading cloud kitchens:', error);
-          }
-        },
-        
-        isCloudKitchen(restaurantId) {
-          return state.cloudKitchens.has(restaurantId);
-        },
-        
-        createCloudBadge(restaurantId) {
-          if (!this.isCloudKitchen(restaurantId)) return '';
-          
-          return `
-            <div class="cloud-badge" aria-label="Cloud Kitchen">
-              <i class="fas fa-cloud"></i>
-              <div class="cloud-tooltip">
-                Cloud Kitchen
-              </div>
-            </div>
-          `;
-        }
-      };
-      
-      // ---------- NOTIFICATION SYSTEM ----------
-      function showNotification(message, type = "info", duration = 2500) {
-        const container = document.getElementById("notificationContainer");
-        if (!container) return;
-        
-        const notification = document.createElement("div");
-        notification.className = `custom-notification notification-${type}`;
-        
-        let iconClass;
-        if (type === "success") {
-            iconClass = "fas fa-check-circle";
-        } else if (type === "error") {
-            iconClass = "fas fa-exclamation-circle";
-        } else if (type === "warning") {
-            iconClass = "fas fa-exclamation-triangle";
-        } else {
-            iconClass = "fas fa-info-circle";
-        }
-        
-        notification.innerHTML = `
-            <i class="notification-icon ${iconClass}"></i>
-            <span class="notification-message">${message}</span>
-            <button class="notification-close" aria-label="Close notification">×</button>
-        `;
-        
-        container.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add("notification-show");
-        }, 10);
-        
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.remove("notification-show");
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 400);
-        });
-        
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.remove("notification-show");
-                setTimeout(() => notification.remove(), 400);
-            }
-        }, duration);
-      }
-      
-      // ---------- CUSTOM LISTS MANAGER ----------
-      const customListsManager = {
-        async init() {
-          if (state.currentUser) {
-            await this.loadCustomLists();
-          }
-        },
-        
-        async loadCustomLists() {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-            
-            const { data: lists, error } = await supabase
-              .from('lists')
-              .select('*')
-              .eq('user_id', user.id)
-              .neq('title', 'Favorites')
-              .neq('title', 'Visited')
-              .neq('title', 'Want to Go')
-              .order('created_at', { ascending: false });
-            
-            if (error) throw error;
-            
-            state.customLists = lists || [];
-            
-          } catch (error) {
-            console.error('Error loading custom lists:', error);
-            state.customLists = [];
-          }
-        },
-        
-        async createList(name) {
-          try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return null;
-            
-            const { data: newList, error } = await supabase
-              .from('lists')
-              .insert([
-                {
-                  user_id: user.id,
-                  title: name,
-                  description: 'Custom list for restaurants',
-                  created_at: new Date().toISOString()
-                }
-              ])
-              .select()
-              .single();
-            
-            if (error) throw error;
-            
-            state.customLists.unshift(newList);
-            return newList;
-            
-          } catch (error) {
-            console.error('Error creating list:', error);
-            showNotification('Error creating list', 'error');
-            return null;
-          }
-        },
-        
-        async checkRestaurantInList(restaurantId, listId) {
-          try {
-            const { data, error } = await supabase
-              .from('lists_restraunts')
-              .select('*')
-              .eq('list_id', listId)
-              .eq('restraunt_id', restaurantId);
-            
-            if (error) {
-              console.error('Error checking restaurant in list:', error);
-              return false;
-            }
-            
-            return data && data.length > 0;
-            
-          } catch (error) {
-            console.error('Error checking restaurant in list:', error);
-            return false;
-          }
-        },
-        
-        async toggleRestaurantInList(restaurantId, listId) {
-          try {
-            const isInList = await this.checkRestaurantInList(restaurantId, listId);
-            
-            if (isInList) {
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .delete()
-                .eq('list_id', listId)
-                .eq('restraunt_id', restaurantId);
-              
-              if (error) throw error;
-              
-              return false;
-            } else {
-              const { error } = await supabase
-                .from('lists_restraunts')
-                .insert([
-                  {
-                    list_id: listId,
-                    restraunt_id: restaurantId,
-                    added_at: new Date().toISOString()
-                  }
-                ]);
-              
-              if (error) throw error;
-              
-              return true;
-            }
-            
-          } catch (error) {
-            console.error('Error toggling restaurant in list:', error);
-            showNotification('Error updating list', 'error');
-            return null;
-          }
-        },
-        
-        async loadRestaurantListsStatus(restaurantId) {
-          if (!state.currentUser || !restaurantId) return {};
-          
-          const status = {};
-          
-          const promises = state.customLists.map(async (list) => {
-            status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
-          });
-          
-          await Promise.all(promises);
-          
-          return status;
-        },
-        
-        renderListsList(restaurantId) {
-          const container = document.getElementById('listsListContainer');
-          if (!container) return;
-          
-          if (state.customLists.length === 0) {
-            container.innerHTML = `
-              <div class="empty-lists">
-                <i class="fas fa-list"></i>
-                <h4>No custom lists yet</h4>
-                <p>Create your first list to organize restaurants</p>
-              </div>
-            `;
-            return;
-          }
-          
-          let html = '<div class="lists-list">';
-          
-          state.customLists.forEach(list => {
-            const isChecked = state.selectedLists.has(list.id);
-            const listIcon = list.icon || '📋';
-            html += `
-              <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
-                <div class="list-info">
-                  <div class="list-icon">
-                    ${listIcon}
-                  </div>
-                  <div>
-                    <span class="list-name">${list.title}</span>
-                    ${list.description ? `<div class="text-xs text-muted mt-1">${list.description}</div>` : ''}
-                  </div>
-                </div>
-                <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
-              </div>
-            `;
-          });
-          
-          html += '</div>';
-          container.innerHTML = html;
-          
-          container.querySelectorAll('.list-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const listId = item.dataset.listId;
-              const checkbox = item.querySelector('.list-checkbox');
-              
-              if (state.selectedLists.has(listId)) {
-                state.selectedLists.delete(listId);
-                item.classList.remove('active');
-                checkbox.classList.remove('checked');
-              } else {
-                state.selectedLists.add(listId);
-                item.classList.add('active');
-                checkbox.classList.add('checked');
-                
-                checkbox.style.animation = 'none';
-                setTimeout(() => {
-                  checkbox.style.animation = 'checkPop 0.3s ease';
-                }, 10);
-              }
-            });
-          });
-        },
-        
-        async refreshLists() {
-          await this.loadCustomLists();
-        }
-      };
-      
-      // ---------- LIST MANAGER ----------
-      const listManager = {
-          userLists: [],
-          currentLists: {
-              favorites: null,
-              visited: null,
-              wantToGo: null
-          },
-          
-          async init() { 
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) return;
-              
-              await this.loadUserLists();
-              await customListsManager.init();
-          },
-          
-          async loadUserLists() {
-              try {
-                  const { data: { user } } = await supabase.auth.getUser();
-                  if (!user) return;
+    (function(){
+        const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-                  const { data: lists, error } = await supabase
-                      .from('lists')
-                      .select('*')
-                      .eq('user_id', user.id);
-                  
-                  if (error) throw error;
-                  
-                  this.userLists = lists || [];
-                  await this.setupDefaultLists();
-                  await this.loadListRestaurants();
-                  
-              } catch (error) {
-                  console.error('Error loading lists:', error);
-              }
-          },
-          
-          async setupDefaultLists() {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-              this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-              this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-              
-              if (!this.currentLists.favorites) {
-                  this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-              }
-              if (!this.currentLists.visited) {
-                  this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-              }
-              if (!this.currentLists.wantToGo) {
-                  this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-              }
-          },
-          
-          async createList(title, description) {
-              const { data: { user } } = await supabase.auth.getUser();
-              
-              const { data: newList, error } = await supabase
-                  .from('lists')
-                  .insert([
-                      {
-                          user_id: user.id,
-                          title: title,
-                          description: description
-                      }
-                  ])
-                  .select()
-                  .single();
-              
-              if (error) {
-                  console.error('Error creating list:', error);
-                  return null;
-              }
-              
-              this.userLists.push(newList);
-              return newList;
-          },
-          
-          async loadListRestaurants() {
-              for (const listType in this.currentLists) {
-                  const list = this.currentLists[listType];
-                  if (list) {
-                      const { data: listRestaurants, error } = await supabase
-                          .from('lists_restraunts')
-                          .select('restraunt_id')
-                          .eq('list_id', list.id);
-                      
-                      if (!error && listRestaurants) {
-                          list.restaurants = listRestaurants.map(item => item.restraunt_id);
-                      } else {
-                          list.restaurants = [];
-                      }
-                  }
-              }
-          },
-          
-          async toggleInList(listType, restaurantId) {
-              const list = this.currentLists[listType];
-              if (!list) return false;
-              
-              const isInList = list.restaurants?.includes(restaurantId);
-              
-              try {
-                  if (isInList) {
-                      const { error } = await supabase
-                          .from('lists_restraunts')
-                          .delete()
-                          .match({
-                              list_id: list.id,
-                              restraunt_id: restaurantId
-                          });
-                      
-                      if (error) throw error;
-                      
-                      list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                      showNotification(`Removed from ${list.title}`, 'info');
-                      return false;
-                      
-                  } else {
-                      const { error } = await supabase
-                          .from('lists_restraunts')
-                          .insert([
-                              {
-                                  list_id: list.id,
-                                  restraunt_id: restaurantId,
-                                  added_at: new Date().toISOString()
-                              }
-                          ]);
-                      
-                      if (error) throw error;
-                      
-                      if (!list.restaurants) list.restaurants = [];
-                      list.restaurants.push(restaurantId);
-                      showNotification(`Added to ${list.title}`, 'success');
-                      return true;
-                  }
-                  
-              } catch (error) {
-                  console.error('Error updating list:', error);
-                  showNotification('Failed to update list', 'error');
-                  return isInList;
-              }
-          },
-          
-          isInList(listType, restaurantId) {
-              const list = this.currentLists[listType];
-              return list?.restaurants?.includes(restaurantId) || false;
-          },
-          
-          getRestaurantListStatus(restaurantId) {
-              return {
-                  favorites: this.isInList('favorites', restaurantId),
-                  wantToGo: this.isInList('wantToGo', restaurantId),
-                  visited: this.isInList('visited', restaurantId)
-              };
-          }
-      };
-      
-      // ---------- CUSTOM LISTS MODAL ----------
-      async function showCustomListsModal(restaurantId) {
-        if (!restaurantId) {
-          showNotification('No restaurant selected', 'error');
-          return;
-        }
-        
-        if (!state.isLoggedIn) {
-          showAuthPrompt();
-          return;
-        }
-        
-        const restaurant = state.restaurants.find(r => r.id === restaurantId);
-        if (!restaurant) {
-          showNotification('Restaurant not found', 'error');
-          return;
-        }
-        
-        state.currentModalRestaurant = restaurant;
-        
-        if (!state.customLists || state.customLists.length === 0) {
-          await customListsManager.refreshLists();
-        }
-        
-        try {
-          const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
-          
-          state.selectedLists.clear();
-          for (const [listId, isChecked] of Object.entries(status)) {
-            if (isChecked) {
-              state.selectedLists.add(listId);
-            }
-          }
-          
-          customListsManager.renderListsList(restaurantId);
-          
-          const modal = document.getElementById('customListsModal');
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-          
-          setTimeout(() => {
-            const newListInput = document.getElementById('newListName');
-            if (newListInput) newListInput.focus();
-          }, 300);
-          
-        } catch (error) {
-          console.error('Error loading list status:', error);
-          showNotification('Error loading lists', 'error');
-          
-          const modal = document.getElementById('customListsModal');
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-        }
-      }
-      
-      function hideCustomListsModal() {
-        const modal = document.getElementById('customListsModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-        state.selectedLists.clear();
-      }
-      
-      async function saveListChanges() {
-        if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
-          showNotification('No restaurant selected', 'error');
-          hideCustomListsModal();
-          return;
-        }
-        
-        const restaurantId = state.currentModalRestaurant.id;
-        const saveBtn = document.getElementById('saveListsBtn');
-        const originalText = saveBtn.textContent;
-        
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-        
-        try {
-          let changesMade = false;
-          
-          for (const list of state.customLists) {
-            const shouldBeInList = state.selectedLists.has(list.id);
-            const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
+        const state = {
+            restaurants: [], filtered: [], isLoggedIn: false,
+            currentModalRestaurant: null, customLists: [], selectedLists: new Set(),
+            cloudKitchens: new Set(),
+            currentPage: 1, pageSize: 20
+        };
+
+        const elements = {
+            grid: document.getElementById('restaurantGrid'),
+            search: document.getElementById('search'),
+            showingText: document.getElementById('showingText'),
+            paginationBar: document.getElementById('paginationBar'),
+            currentPageSpan: document.getElementById('currentPage'),
+            totalPagesSpan: document.getElementById('totalPages')
+        };
+
+        // --- Optimized Loading Logic ---
+        function loadImage(imgElement, url) {
+            if (!url || !imgElement) return;
+            // Only set src if different to avoid reloading
+            if (imgElement.getAttribute('src') !== url) imgElement.src = url;
             
-            if (shouldBeInList && !isInList) {
-              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-              if (success) {
-                changesMade = true;
-              }
-            } else if (!shouldBeInList && isInList) {
-              const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-              if (success !== null) {
-                changesMade = true;
-              }
-            }
-          }
-          
-          if (changesMade) {
-            showNotification('List changes saved successfully!', 'success');
-          } else {
-            showNotification('No changes made', 'info');
-          }
-          
-          hideCustomListsModal();
-          
-          if (state.filteredRestaurants.length > 0) {
-            renderRestaurants();
-          }
-          
-        } catch (error) {
-          console.error('Error saving list changes:', error);
-          showNotification('Error saving changes', 'error');
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.textContent = originalText;
+            // Standard load handler
+            if(imgElement.complete) imgElement.classList.add('loaded');
+            else imgElement.onload = () => imgElement.classList.add('loaded');
         }
-      }
-      
-      // ---------- AUTH PROMPT MODAL ----------
-      function showAuthPrompt() {
-        const modal = document.getElementById('authPromptModal');
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-      
-      function hideAuthPrompt() {
-        const modal = document.getElementById('authPromptModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      }
-      
-      // ---------- ACTIONS MODAL ----------
-      function showModal(restaurantData) {
-        if (!restaurantData) return;
-        
-        if (!state.isLoggedIn) {
-            showAuthPrompt();
-            return;
-        }
-        
-        state.currentModalRestaurant = restaurantData;
-        document.getElementById('modalRestaurantName').textContent = restaurantData.name;
-        
-        updateModalButtons(restaurantData.id);
-        
-        const modal = document.getElementById('actionsModal');
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-      
-      function hideModal() {
-        const modal = document.getElementById('actionsModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      }
-      
-      function updateModalButtons(restaurantId) {
-        const status = listManager.getRestaurantListStatus(restaurantId);
-        
-        const favoritesBtn = document.getElementById('modalFavoritesBtn');
-        const wantToGoBtn = document.getElementById('modalWantToGoBtn');
-        const visitedBtn = document.getElementById('modalVisitedBtn');
-        
-        if (favoritesBtn) {
-          favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
-          favoritesBtn.classList.toggle('active', status.favorites);
-        }
-        
-        if (wantToGoBtn) {
-          wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
-          wantToGoBtn.classList.toggle('active', status.wantToGo);
-        }
-        
-        if (visitedBtn) {
-          visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
-          visitedBtn.classList.toggle('active', status.visited);
-        }
-      }
-      
-      // ---------- GUEST BANNER ----------
-      const guestBanner = {
-        init: function() {
-          const mobileSignupBtn = document.getElementById('bannerMobileSignupBtn');
-          const loginBtn = document.getElementById('bannerLoginBtn');
-          const signupBtn = document.getElementById('bannerSignupBtn');
-          
-          if (mobileSignupBtn) {
-            mobileSignupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-up.html';
-            });
-          }
-          
-          if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-              window.location.href = 'login.html';
-            });
-          }
-          
-          if (signupBtn) {
-            signupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-up.html';
-            });
-          }
-          
-          this.show();
-        },
-        
-        show: function() {
-          const mobileBanner = document.getElementById('guestBannerMobile');
-          const desktopBanner = document.getElementById('guestBannerDesktop');
-          
-          if (window.innerWidth <= 768) {
-            if (mobileBanner) mobileBanner.style.display = 'block';
-            if (desktopBanner) desktopBanner.style.display = 'none';
-          } else {
-            if (mobileBanner) mobileBanner.style.display = 'none';
-            if (desktopBanner) desktopBanner.style.display = 'block';
-          }
-        },
-        
-        hide: function() {
-          const mobileBanner = document.getElementById('guestBannerMobile');
-          const desktopBanner = document.getElementById('guestBannerDesktop');
-          
-          if (mobileBanner) mobileBanner.style.display = 'none';
-          if (desktopBanner) desktopBanner.style.display = 'none';
-        }
-      };
-      
-      // ---------- DATA LOADING ----------
-      async function loadRestaurantImages() {
-        try {
-          const { data: galleryData, error: galleryError } = await supabase
-            .from('restaurant_gallery')
-            .select('restaurant_slug, image_url, image_type, is_primary')
-            .order('sort_order');
-          
-        if (galleryError) throw galleryError;
-        
-        const { data: restaurantsData, error: restaurantsError } = await supabase
-          .from('restraunts')
-          .select('slug, image, logo_url');
-        
-        if (restaurantsError) throw restaurantsError;
-        
-        state.restaurantImages.clear();
-        
-        if (galleryData && galleryData.length > 0) {
-          galleryData.forEach(item => {
-            if (!state.restaurantImages.has(item.restaurant_slug)) {
-              state.restaurantImages.set(item.restaurant_slug, {
-                cover: null,
-                logo: null
-              });
-            }
+
+        async function init() {
+            // 1. Check Auth
+            const { data: { session } } = await supabase.auth.getSession();
+            state.isLoggedIn = !!session;
             
-            const images = state.restaurantImages.get(item.restaurant_slug);
-            
-            if (item.image_type === 'cover' && item.image_url) {
-              images.cover = item.image_url;
-            }
-            
-            if (item.image_type === 'logo' && item.image_url) {
-              images.logo = item.image_url;
-            }
-          });
-        }
-        
-        if (restaurantsData && restaurantsData.length > 0) {
-          restaurantsData.forEach(restaurant => {
-            if (!state.restaurantImages.has(restaurant.slug)) {
-              state.restaurantImages.set(restaurant.slug, {
-                cover: restaurant.image || null,
-                logo: restaurant.logo_url || null
-              });
+            if(state.isLoggedIn) {
+                const user = session.user;
+                document.getElementById('userAccountBtn').innerHTML = `<i class="fas fa-user"></i> <span>${user.user_metadata?.username || 'Profile'}</span>`;
+                document.getElementById('userAccountBtn').onclick = () => location.href = 'profile.html';
+                // Load user lists
+                await loadLists(user.id);
             } else {
-              const images = state.restaurantImages.get(restaurant.slug);
-              if (!images.cover && restaurant.image) {
-                images.cover = restaurant.image;
-              }
-              if (!images.logo && restaurant.logo_url) {
-                images.logo = restaurant.logo_url;
-              }
+                document.getElementById('userAccountBtn').onclick = () => location.href = 'login.html';
             }
-          });
+
+            setupEventListeners();
+            
+            // 2. Load Data in Parallel (Fastest)
+            await Promise.all([loadCloudKitchens(), loadRestaurants(), loadCategories()]);
         }
-        
-        } catch (error) {
-          console.error('Error loading images:', error);
+
+        async function loadCloudKitchens() {
+            const { data } = await supabase.from('cloud_kitchens').select('restaurant_id');
+            if(data) data.forEach(ck => state.cloudKitchens.add(ck.restaurant_id));
         }
-      }
-      
-      function getCoverImageUrl(restaurantSlug) {
-        const images = state.restaurantImages.get(restaurantSlug);
-        return images?.cover || null;
-      }
-      
-      function getLogoUrl(restaurant) {
-        const images = state.restaurantImages.get(restaurant.slug);
-        if (images?.logo) {
-          return images.logo;
-        }
-        
-        if (restaurant.logo_url) {
-          return restaurant.logo_url;
-        }
-        
-        if (restaurant.image) {
-          return restaurant.image;
-        }
-        
-        return null;
-      }
-      
-      async function loadCategories() {
-        try {
-          const { data, error } = await supabase
-            .from('categories')
-            .select('*')
-            .order('sort_order', { ascending: true });
-          
-          if (error) {
-            console.warn('No categories table found, using fallback categories');
-            createFallbackCategories();
-            return;
-          }
-          
-          state.categories.clear();
-          
-          if (data && data.length > 0) {
-            data.forEach(cat => {
-              state.categories.set(cat.id, {
-                id: cat.id,
-                name: cat.name,
-                slug: cat.slug,
-                icon: cat.icon,
-                description: cat.description,
-                sort_order: cat.sort_order || 0
-              });
-            });
-          } else {
-            createFallbackCategories();
-          }
-          
-        } catch (error) {
-          console.error('Error loading categories:', error);
-          createFallbackCategories();
-        }
-      }
-      
-      function createFallbackCategories() {
-        state.categories.clear();
-        const fallbackCategories = [
-          { id: 1, name: 'Burgers', slug: 'burgers', icon: '🍔', sort_order: 1 },
-          { id: 2, name: 'Chicken', slug: 'chicken', icon: '🍗', sort_order: 2 },
-          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: '🥙', sort_order: 3 },
-          { id: 4, name: 'Pizza', slug: 'pizza', icon: '🍕', sort_order: 4 },
-          { id: 5, name: 'Asian', slug: 'asian', icon: '🍜', sort_order: 5 },
-          { id: 6, name: 'Mexican', slug: 'mexican', icon: '🌮', sort_order: 6 },
-          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: '☕', sort_order: 7 },
-          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: '🍟', sort_order: 8 },
-          { id: 9, name: 'Seafood', slug: 'seafood', icon: '🐟', sort_order: 9 },
-          { id: 10, name: 'International', slug: 'international', icon: '🌍', sort_order: 10 }
-        ];
-        
-        fallbackCategories.forEach(cat => {
-          state.categories.set(cat.id, cat);
-        });
-      }
-      
-      async function loadRestaurantsData() {
-        try {
-          await cloudKitchenManager.loadCloudKitchens();
-          await loadRestaurantImages();
-          
-          const { data, error } = await supabase
-            .from('restraunts')
-            .select(`
-              id, 
-              slug, 
-              name, 
-              category,
-              category_id,
-              description, 
-              rating, 
-              logo_url, 
-              image,
-              categories!inner (
-                name,
-                icon,
-                slug
-              )
-            `)
-            .order('rating', { ascending: false });
-          
-          if (error) {
-            console.warn('Could not load with categories join, loading basic data');
-            await loadBasicRestaurantData();
-            return;
-          }
-          
-          if (!data || data.length === 0) {
-            showEmptyState();
-            return;
-          }
-          
-          state.totalRestaurantCount = data.length;
-          updateItemsPerPageDropdown();
-          
-          state.restaurants = data.map(restaurant => ({
-            id: restaurant.id,
-            slug: restaurant.slug,
-            name: restaurant.name,
-            category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
-            category_id: restaurant.category_id,
-            category_icon: restaurant.categories ? restaurant.categories.icon : getCategoryIconFallback(restaurant.category),
-            description: restaurant.description,
-            rating: restaurant.rating,
-            logo_url: getLogoUrl(restaurant),
-            coverImage: getCoverImageUrl(restaurant.slug),
-            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
-          }));
-          
-          await loadCategories();
-          populateCategoryDropdown();
-          
-          applyFilters();
-          updateCounts();
-          
-        } catch (error) {
-          console.error('Error loading restaurants:', error);
-          showNotification('Failed to load restaurants', 'error');
-          showEmptyState();
-        }
-      }
-      
-      function updateItemsPerPageDropdown() {
-        const select = document.getElementById('itemsPerPage');
-        if (!select) return;
-        
-        select.innerHTML = '';
-        
-        const option20 = document.createElement('option');
-        option20.value = '20';
-        option20.textContent = '20';
-        select.appendChild(option20);
-        
-        const total = state.totalRestaurantCount;
-        
-        // Fixed options: 20, 40, 60, All
-        const option40 = document.createElement('option');
-        option40.value = '40';
-        option40.textContent = '40';
-        select.appendChild(option40);
-        
-        const option60 = document.createElement('option');
-        option60.value = '60';
-        option60.textContent = '60';
-        select.appendChild(option60);
-        
-        const optionAll = document.createElement('option');
-        optionAll.value = total.toString();
-        optionAll.textContent = 'All';
-        select.appendChild(optionAll);
-        
-        try {
-          const savedItems = localStorage.getItem('zo2y_items_per_page');
-          if (savedItems) {
-            const validOptions = Array.from(select.options).map(opt => opt.value);
-            if (validOptions.includes(savedItems)) {
-              select.value = savedItems;
-              state.pageSize = parseInt(savedItems);
-              state.showAllRestaurants = (savedItems === total.toString());
-            } else if (parseInt(savedItems) > total) {
-              select.value = total.toString();
-              state.pageSize = total;
-              state.showAllRestaurants = true;
+
+        async function loadRestaurants() {
+            // Fetch basic data for ALL restaurants sorted by rating
+            const { data } = await supabase.from('restraunts').select('*').order('rating', {ascending:false});
+            if(data) {
+                state.restaurants = data;
+                applyFilters(); // Renders the grid
             }
-          }
-        } catch (e) {}
-      }
-      
-      async function loadBasicRestaurantData() {
-        const { data, error } = await supabase
-          .from('restraunts')
-          .select('id, slug, name, category, description, rating, logo_url, image')
-          .order('rating', { ascending: false });
-        
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          showEmptyState();
-          return;
         }
-        
-        state.totalRestaurantCount = data.length;
-        updateItemsPerPageDropdown();
-        
-        const categoryMap = new Map();
-        data.forEach((restaurant, index) => {
-          let categoryName = restaurant.category || 'Restaurant';
-          categoryName = normalizeCategoryName(categoryName);
-          
-          if (!categoryMap.has(categoryName)) {
-            categoryMap.set(categoryName, {
-              id: categoryMap.size + 1,
-              name: categoryName,
-              icon: getCategoryIconFallback(categoryName),
-              sort_order: categoryMap.size + 1
+
+        async function loadCategories() {
+            const { data } = await supabase.from('categories').select('*');
+            if(data) {
+                const select = document.getElementById('categorySelect');
+                data.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.name; 
+                    opt.textContent = `${c.icon || '🍴'} ${c.name}`;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        async function loadLists(userId) {
+            const { data } = await supabase.from('lists').select('*').eq('user_id', userId).order('created_at');
+            if(data) state.customLists = data;
+        }
+
+        // --- Lists Logic ---
+
+        async function toggleList(listId, rId, btn) {
+             // Check existence
+             const { data } = await supabase.from('lists_restraunts').select('*').eq('list_id', listId).eq('restraunt_id', rId);
+             const exists = data && data.length > 0;
+
+             if(exists) {
+                 await supabase.from('lists_restraunts').delete().match({ list_id: listId, restraunt_id: rId });
+                 if(btn) {
+                     btn.classList.remove('active');
+                     // Dynamic Text Update
+                     const text = btn.querySelector('span').textContent;
+                     btn.querySelector('span').textContent = text.replace('Remove from', 'Add to');
+                 }
+                 showNotification('Removed from list', 'info');
+             } else {
+                 await supabase.from('lists_restraunts').insert([{ list_id: listId, restraunt_id: rId }]);
+                 if(btn) {
+                     btn.classList.add('active');
+                     const text = btn.querySelector('span').textContent;
+                     btn.querySelector('span').textContent = text.replace('Add to', 'Remove from');
+                 }
+                 showNotification('Added to list', 'success');
+             }
+             // Re-render only badges for visible cards? 
+             // For simplicity/accuracy in this snippet, we re-render the current view
+             renderRestaurants(); 
+        }
+
+        async function getRestaurantLists(rId) {
+            if(!state.isLoggedIn) return new Set();
+            const { data } = await supabase.from('lists_restraunts').select('list_id').eq('restraunt_id', rId);
+            const set = new Set();
+            if(data) data.forEach(i => set.add(i.list_id));
+            return set;
+        }
+
+        // --- Rendering ---
+
+        function renderRestaurants() {
+            elements.grid.innerHTML = '';
+            
+            // Pagination Logic
+            const start = (state.currentPage - 1) * state.pageSize;
+            const end = state.pageSize === 'all' ? state.filtered.length : start + state.pageSize;
+            const list = state.filtered.slice(start, end);
+            
+            const frag = document.createDocumentFragment();
+            list.forEach(r => {
+                const card = createCard(r);
+                frag.appendChild(card);
             });
-          }
-        });
+            elements.grid.appendChild(frag);
+
+            // Update Counts Text
+            elements.showingText.textContent = `Showing ${list.length} of ${state.filtered.length} restaurants`;
+            
+            // Pagination Bar UI
+            const totalPages = state.pageSize === 'all' ? 1 : Math.ceil(state.filtered.length / state.pageSize);
+            elements.currentPageSpan.textContent = state.currentPage;
+            elements.totalPagesSpan.textContent = totalPages;
+            
+            document.getElementById('prevPage').disabled = state.currentPage === 1;
+            document.getElementById('nextPage').disabled = state.currentPage === totalPages || totalPages === 0;
+            
+            if(totalPages > 1) elements.paginationBar.classList.add('visible');
+            else elements.paginationBar.classList.remove('visible');
+        }
+
+        function createCard(r) {
+            const div = document.createElement('div');
+            div.className = 'restaurant-card';
+            const isTop = r.rating >= 4.5;
+            const isCloud = state.cloudKitchens.has(r.id);
+
+            div.innerHTML = `
+                <a href="restaurant.html?slug=${r.slug}" class="card-link" style="text-decoration:none; color:inherit; display:flex; flex-direction:column; height:100%;">
+                    <div class="card-image">
+                        <img src="${r.image}" class="restaurant-image" loading="lazy">
+                        ${r.logo_url ? `<div class="logo-overlay"><img src="${r.logo_url}"></div>` : ''}
+                        
+                        <div class="list-badges-container" id="badges-${r.id}"></div>
+
+                        ${isCloud ? `
+                        <div class="cloud-badge">
+                            <i class="fas fa-cloud"></i>
+                            <div class="cloud-tooltip">
+                                <div class="tooltip-header"><i class="fas fa-info-circle"></i> <h4>Cloud Kitchen</h4></div>
+                                <p>A delivery-only restaurant with no physical dine-in space.</p>
+                            </div>
+                        </div>` : ''}
+                        
+                        <div class="menu-btn-container">
+                             <button class="menu-btn save-trigger"><i class="fas fa-ellipsis-h"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div class="card-title-wrapper">
+                                <h3 class="card-title">${r.name}</h3>
+                                ${isTop ? `<span class="top-rated-badge">TOP RATED</span>` : ''}
+                            </div>
+                            <div class="card-rating"><i class="fas fa-star"></i> ${r.rating.toFixed(1)}</div>
+                        </div>
+                        <div class="card-category"><span>🍴</span> ${r.category}</div>
+                        <p class="card-description">${r.description}</p>
+                        <div class="card-footer">
+                            <span class="card-location">View Details</span>
+                        </div>
+                    </div>
+                </a>
+            `;
+
+            // Trigger Load Image Logic manually after insert
+            const img = div.querySelector('.restaurant-image');
+            loadImage(img, r.image);
+
+            div.querySelector('.save-trigger').addEventListener('click', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                openActionsModal(r);
+            });
+
+            // Async load badges (Heart, Pin, Check)
+            updateCardBadges(div, r.id);
+
+            return div;
+        }
+
+        async function updateCardBadges(card, rId) {
+            if(!state.isLoggedIn) return;
+            
+            // Check lists for this specific restaurant
+            const { data } = await supabase.from('lists_restraunts').select('list_id').eq('restraunt_id', rId);
+            if(!data) return;
+
+            const badgeContainer = card.querySelector('.list-badges-container');
+            badgeContainer.innerHTML = '';
+            
+            const ids = new Set(data.map(d => d.list_id));
+            
+            state.customLists.forEach(l => {
+                if(ids.has(l.id)) {
+                   let icon = '';
+                   if(l.title === 'Favorites') icon = '❤️';
+                   else if(l.title === 'Want to Go') icon = '📍';
+                   else if(l.title === 'Visited') icon = '✓';
+                   
+                   if(icon) {
+                       const el = document.createElement('div');
+                       el.className = 'list-badge';
+                       el.innerHTML = icon;
+                       badgeContainer.appendChild(el);
+                   }
+                }
+            });
+        }
+
+        // --- Modals & Actions ---
+
+        async function openActionsModal(r) {
+            if(!state.isLoggedIn) { document.getElementById('authPromptModal').classList.add('active'); return; }
+            state.currentModalRestaurant = r;
+            document.getElementById('modalRestaurantName').textContent = r.name;
+            document.getElementById('actionsModal').classList.add('active');
+            
+            // Get current status to set button state text
+            const listIds = await getRestaurantLists(r.id);
+            
+            const setBtn = (id, title) => {
+                const btn = document.getElementById(id);
+                const list = state.customLists.find(l => l.title === title);
+                if(list && listIds.has(list.id)) {
+                    btn.classList.add('active');
+                    btn.querySelector('span').textContent = 'Remove from ' + title;
+                } else {
+                    btn.classList.remove('active');
+                    btn.querySelector('span').textContent = 'Add to ' + title;
+                }
+                // Clear old listeners by cloning
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.onclick = () => toggleList(list?.id, r.id, newBtn);
+            };
+
+            setBtn('modalFavoritesBtn', 'Favorites');
+            setBtn('modalWantToGoBtn', 'Want to Go');
+            setBtn('modalVisitedBtn', 'Visited');
+        }
+
+        // --- Custom Lists Logic ---
         
-        categoryMap.forEach((cat, name) => {
-          state.categories.set(cat.id, cat);
-        });
-        
-        state.restaurants = data.map(restaurant => {
-          const categoryName = normalizeCategoryName(restaurant.category || 'Restaurant');
-          const category = Array.from(state.categories.values()).find(c => c.name === categoryName);
-          
-          return {
-            id: restaurant.id,
-            slug: restaurant.slug,
-            name: restaurant.name,
-            category: categoryName,
-            category_id: category ? category.id : 1,
-            category_icon: category ? category.icon : getCategoryIconFallback(categoryName),
-            description: restaurant.description,
-            rating: restaurant.rating,
-            logo_url: getLogoUrl(restaurant),
-            coverImage: getCoverImageUrl(restaurant.slug),
-            isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
-          };
-        });
-        
-        populateCategoryDropdown();
-        applyFilters();
-        updateCounts();
-      }
-      
-      function normalizeCategoryName(categoryName) {
-        if (!categoryName) return 'Restaurant';
-        
-        const lowerName = categoryName.toLowerCase().trim();
-        const corrections = {
-          'burgers': 'Burgers',
-          'burger': 'Burgers',
-          'chicken': 'Chicken',
-          'middle eastern': 'Middle Eastern',
-          'pizza': 'Pizza',
-          'asian': 'Asian',
-          'mexican': 'Mexican',
-          'cafe & bakery': 'Cafe & Bakery',
-          'cafe': 'Cafe & Bakery',
-          'bakery': 'Cafe & Bakery',
-          'fast food': 'Fast Food',
-          'seafood': 'Seafood',
-          'breakfast': 'Breakfast',
-          'desserts': 'Desserts',
-          'indian': 'Indian',
-          'italian': 'Italian',
-          'bbq & ribs': 'BBQ & Ribs',
-          'bbq': 'BBQ & Ribs',
-          'international': 'International',
-          'sushi': 'Asian',
-          'shawerma': 'Middle Eastern'
+        // Open Custom List Modal
+        document.getElementById('modalCustomListsBtn').onclick = async () => {
+            document.getElementById('actionsModal').classList.remove('active');
+            const modal = document.getElementById('customListsModal');
+            modal.classList.add('active');
+            
+            const container = document.getElementById('listsListContainer');
+            container.innerHTML = '<div style="padding:20px; text-align:center">Loading...</div>';
+            
+            const rId = state.currentModalRestaurant.id;
+            const listIds = await getRestaurantLists(rId);
+            state.selectedLists = new Set(listIds);
+
+            renderCustomListItems();
         };
-        
-        return corrections[lowerName] || 
-               categoryName.charAt(0).toUpperCase() + categoryName.slice(1).toLowerCase();
-      }
-      
-      function getCategoryIconFallback(categoryName) {
-        const icons = {
-          'Burgers': '🍔',
-          'Chicken': '🍗',
-          'Middle Eastern': '🥙',
-          'Pizza': '🍕',
-          'Asian': '🍜',
-          'Mexican': '🌮',
-          'Cafe & Bakery': '☕',
-          'Fast Food': '🍟',
-          'Italian': '🍝',
-          'Seafood': '🐟',
-          'Breakfast': '🥞',
-          'Desserts': '🍰',
-          'Indian': '🍛',
-          'BBQ & Ribs': '🥩',
-          'International': '🌍'
+
+        function renderCustomListItems() {
+            const container = document.getElementById('listsListContainer');
+            container.innerHTML = '';
+            
+            // Filter out default lists from this view
+            const customs = state.customLists.filter(l => !['Favorites','Visited','Want to Go'].includes(l.title));
+            
+            if(customs.length === 0) {
+                container.innerHTML = '<div class="empty-lists"><i class="fas fa-list"></i><p>No custom lists yet</p></div>';
+            }
+
+            customs.forEach(l => {
+                const div = document.createElement('div');
+                const isSel = state.selectedLists.has(l.id);
+                div.className = `list-item ${isSel ? 'active' : ''}`;
+                div.innerHTML = `
+                    <div class="list-info">
+                        <div class="list-icon">📋</div>
+                        <span class="list-name">${l.title}</span>
+                    </div>
+                    <div class="list-checkbox ${isSel ? 'checked' : ''}"></div>
+                `;
+                div.onclick = () => {
+                    if(state.selectedLists.has(l.id)) state.selectedLists.delete(l.id);
+                    else state.selectedLists.add(l.id);
+                    renderCustomListItems(); // Re-render to show check
+                };
+                container.appendChild(div);
+            });
+        }
+
+        // Save Custom Lists
+        document.getElementById('saveListsBtn').onclick = async () => {
+            const rId = state.currentModalRestaurant.id;
+            const currentIds = await getRestaurantLists(rId); // Re-fetch absolute truth
+            
+            const customs = state.customLists.filter(l => !['Favorites','Visited','Want to Go'].includes(l.title));
+            
+            for(const list of customs) {
+                const wasIn = currentIds.has(list.id);
+                const nowIn = state.selectedLists.has(list.id);
+                
+                if(wasIn && !nowIn) {
+                    await supabase.from('lists_restraunts').delete().match({list_id: list.id, restraunt_id: rId});
+                } else if(!wasIn && nowIn) {
+                    await supabase.from('lists_restraunts').insert([{list_id: list.id, restraunt_id: rId}]);
+                }
+            }
+            
+            document.getElementById('customListsModal').classList.remove('active');
+            showNotification('Lists updated', 'success');
+            renderRestaurants(); // update badges on grid
         };
-        
-        return icons[categoryName] || '🍴';
-      }
-      
-      function populateCategoryDropdown() {
-        const select = document.getElementById('categorySelect');
-        if (!select) return;
-        
-        select.innerHTML = '<option value="all">All Categories</option>';
-        
-        const sortedCategories = Array.from(state.categories.values())
-          .sort((a, b) => {
-            if (a.sort_order !== undefined && b.sort_order !== undefined) {
-              return a.sort_order - b.sort_order;
+
+        // Create New List
+        document.getElementById('createListBtn').onclick = async () => {
+            const input = document.getElementById('newListName');
+            const name = input.value.trim();
+            if(!name || !state.isLoggedIn) return;
+            
+            const { data: { user } } = await supabase.auth.getSession().then(res => res.data);
+            const { data } = await supabase.from('lists').insert([{user_id: user.id, title: name, description:'Custom list'}]).select().single();
+            
+            if(data) {
+                state.customLists.push(data);
+                state.selectedLists.add(data.id); // Auto check new list
+                input.value = '';
+                renderCustomListItems();
+                showNotification('List created', 'success');
             }
-            return a.name.localeCompare(b.name);
-          });
-        
-        sortedCategories.forEach(cat => {
-          const option = document.createElement('option');
-          option.value = cat.id;
-          option.textContent = `${cat.icon || '🍴'} ${cat.name}`;
-          select.appendChild(option);
-        });
-      }
-      
-      // ---------- FILTERING & SORTING ----------
-      function applyFilters() {
-        let filtered = [...state.restaurants];
-        
-        if (state.activeFilters.search) {
-          const searchTerm = state.activeFilters.search.toLowerCase();
-          filtered = filtered.filter(r => 
-            r.name.toLowerCase().includes(searchTerm) ||
-            (r.description && r.description.toLowerCase().includes(searchTerm)) ||
-            (r.category && r.category.toLowerCase().includes(searchTerm))
-          );
-        }
-        
-        if (state.activeFilters.category !== 'all') {
-          const categoryId = parseInt(state.activeFilters.category);
-          filtered = filtered.filter(r => r.category_id === categoryId);
-        }
-        
-        filtered = applyQuickFilter(filtered, state.activeFilters.quickFilter);
-        filtered = sortRestaurants(filtered, state.activeFilters.sort);
-        
-        state.filteredRestaurants = filtered;
-        state.currentPage = 1;
-        
-        renderRestaurants();
-        updatePagination();
-        updateCounts();
-      }
-      
-      function applyQuickFilter(restaurants, filterType) {
-        switch(filterType) {
-          case 'trending':
-            return restaurants.filter(r => (r.rating || 0) >= 4.3);
-          case 'top-rated':
-            return restaurants.filter(r => (r.rating || 0) >= 4.5);
-          case 'new':
-            return restaurants.filter(r => Math.random() > 0.7);
-          default:
-            return restaurants;
-        }
-      }
-      
-      function sortRestaurants(restaurants, sortType) {
-        const sorted = [...restaurants];
-        
-        switch(sortType) {
-          case 'rating-desc':
-            return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-          case 'rating-asc':
-            return sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
-          case 'name-asc':
-            return sorted.sort((a, b) => a.name.localeCompare(b.name));
-          case 'name-desc':
-            return sorted.sort((a, b) => b.name.localeCompare(a.name));
-          default:
-            return sorted;
-        }
-      }
-      
-      // ---------- RENDERING ----------
-      function showLoadingSkeleton() {
-        const grid = document.getElementById('restaurantGrid');
-        if (!grid) return;
-        
-        grid.innerHTML = '';
-        grid.classList.add('skeleton-grid');
-        
-        for (let i = 0; i < 8; i++) {
-          const skeleton = document.createElement('div');
-          skeleton.className = 'skeleton-card';
-          skeleton.innerHTML = `
-            <div class="skeleton-image"></div>
-            <div class="skeleton-content">
-              <div class="skeleton-line" style="width: 70%"></div>
-              <div class="skeleton-line short"></div>
-              <div class="skeleton-line"></div>
-              <div class="skeleton-line" style="width: 40%"></div>
-            </div>
-          `;
-          grid.appendChild(skeleton);
-        }
-      }
-      
-      function createRestaurantCard(restaurant) {
-        const card = document.createElement('div');
-        card.className = 'restaurant-card';
-        card.dataset.id = restaurant.id;
-        
-        const rating = restaurant.rating || 0;
-        const categoryIcon = restaurant.category_icon || getCategoryIconFallback(restaurant.category);
-        const category = restaurant.category || 'Restaurant';
-        const logoUrl = getLogoUrl(restaurant);
-        const status = listManager.getRestaurantListStatus(restaurant.id);
-        const isTopRated = rating >= 4.5;
-        const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
-        const isCloudKitchen = restaurant.isCloudKitchen || false;
-        const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
-        const hasCloudBadge = isCloudKitchen;
-        
-        // Create list badges - BRING BACK ICONS with updated tooltip text
-        let listBadges = '';
-        
-        if (status.favorites) {
-          listBadges += `
-            <div class="list-badge">
-              ❤️
-              <div class="list-badge-tooltip">Favorited</div>
-            </div>
-          `;
-        }
-        
-        if (status.wantToGo) {
-          listBadges += `
-            <div class="list-badge">
-              📍
-              <div class="list-badge-tooltip">Want to go to</div>
-            </div>
-          `;
-        }
-        
-        if (status.visited) {
-          listBadges += `
-            <div class="list-badge">
-              ✓
-              <div class="list-badge-tooltip">Visited</div>
-            </div>
-          `;
-        }
-        
-        card.innerHTML = `
-          <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
-            <div class="card-image">
-              ${hasCoverImage ? `
-                <img class="restaurant-image" 
-                     data-src="${restaurant.coverImage}" 
-                     alt="${restaurant.name}" 
-                     width="300" 
-                     height="200">
-              ` : ''}
-              ${logoUrl ? `
-                <div class="logo-overlay">
-                  <img data-src="${logoUrl}" 
-                       alt="${restaurant.name} logo" 
-                       width="48" 
-                       height="48">
-                </div>
-              ` : ''}
-              
-              <!-- List badges container at top left - ICONS BROUGHT BACK -->
-              ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
-              
-              ${cloudBadge}
-              
-              <div class="menu-btn-container">
-                <button class="menu-btn" aria-label="Restaurant actions">
-                  <i class="fas fa-ellipsis-h"></i>
-                  <div class="menu-btn-tooltip">Save to lists</div>
-                </button>
-              </div>
-            </div>
-            <div class="card-content">
-              <div class="card-header">
-                <div class="card-title-wrapper">
-                  <h3 class="card-title">${restaurant.name}</h3>
-                  ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
-                </div>
-                <div class="card-rating">
-                  <i class="fas fa-star"></i>
-                  ${rating.toFixed(1)}
-                </div>
-              </div>
-              <div class="card-category">
-                <span>${categoryIcon}</span>
-                ${category}
-              </div>
-              <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
-              <div class="card-footer">
-                <div class="card-location">Click to view details</div>
-              </div>
-            </div>
-          </a>
-        `;
-        
-        const menuBtn = card.querySelector('.menu-btn');
-        if (menuBtn) {
-          menuBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showModal({
-              id: restaurant.id,
-              name: restaurant.name,
-              slug: restaurant.slug
-            });
-          });
-        }
-        
-        // Add click event for cloud badge on mobile
-        const cloudBadgeElement = card.querySelector('.cloud-badge');
-        if (cloudBadgeElement && window.innerWidth <= 768) {
-          cloudBadgeElement.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            alert('Cloud Kitchen');
-          });
-        }
-        
-        return card;
-      }
-      
-      async function renderRestaurants() {
-        const grid = document.getElementById('restaurantGrid');
-        const emptyState = document.querySelector('.empty-state');
-        
-        if (!grid) return;
-        
-        if (state.filteredRestaurants.length === 0) {
-          showEmptyState();
-          return;
-        }
-        
-        if (emptyState) {
-          emptyState.style.display = 'none';
-        }
-        
-        grid.classList.remove('skeleton-grid');
-        
-        let itemsToShow;
-        const startIdx = (state.currentPage - 1) * state.pageSize;
-        const endIdx = Math.min(startIdx + state.pageSize, state.filteredRestaurants.length);
-        itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
-        
-        grid.innerHTML = '';
-        
-        // Create document fragment for better performance
-        const fragment = document.createDocumentFragment();
-        
-        for (const restaurant of itemsToShow) {
-          const card = createRestaurantCard(restaurant);
-          fragment.appendChild(card);
-        }
-        
-        grid.appendChild(fragment);
-        
-        // Initialize IntersectionObserver for the new images
-        if (state.imageObserver) {
-          setTimeout(() => {
-            const images = grid.querySelectorAll('img[data-src]');
-            images.forEach(img => {
-              if (!img.classList.contains('observed')) {
-                state.imageObserver.observe(img);
-                img.classList.add('observed');
-              }
-            });
-          }, 100);
-        }
-        
-        // Create sentinel element for pagination detection only if NOT showing all
-        if (!state.showAllRestaurants) {
-          createSentinelElement();
-        }
-        
-        // Hide pagination initially - it will show when user scrolls near the end
-        hidePagination();
-      }
-      
-      function showEmptyState() {
-        const grid = document.getElementById('restaurantGrid');
-        if (!grid) return;
-        
-        grid.innerHTML = '';
-        grid.classList.remove('skeleton-grid');
-        
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.style.display = 'block';
-        emptyState.innerHTML = `
-          <i class="fas fa-utensils"></i>
-          <h3>No restaurants found</h3>
-          <p>Try adjusting your search or filters</p>
-          <button class="btn" id="resetEmpty" style="margin-top: 12px;">Reset All Filters</button>
-        `;
-        
-        grid.appendChild(emptyState);
-        
-        const resetBtn = document.getElementById('resetEmpty');
-        if (resetBtn) {
-          resetBtn.addEventListener('click', resetAllFilters);
-        }
-        
-        hidePagination();
-      }
-      
-      // ---------- PAGINATION ----------
-      function updatePagination() {
-        const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
-        state.totalPages = totalPages;
-        
-        // Check if we're showing "All" restaurants
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        const showingAll = itemsPerPageSelect && itemsPerPageSelect.value === state.totalRestaurantCount.toString();
-        state.showAllRestaurants = showingAll;
-        
-        // Update mobile pagination info
-        const mobilePageInfo = document.getElementById('mobilePageInfo');
-        if (mobilePageInfo) {
-          mobilePageInfo.innerHTML = `Page <span class="page-number">${state.currentPage}</span> of <span class="page-number">${totalPages}</span>`;
-        }
-        
-        const mobilePrevBtn = document.getElementById('mobilePrevBtn');
-        const mobileNextBtn = document.getElementById('mobileNextBtn');
-        
-        if (mobilePrevBtn) mobilePrevBtn.disabled = state.currentPage === 1;
-        if (mobileNextBtn) mobileNextBtn.disabled = state.currentPage === totalPages || showingAll;
-        
-        if (mobilePrevBtn) {
-          mobilePrevBtn.onclick = () => {
-            if (state.currentPage > 1) {
-              state.currentPage--;
-              renderRestaurants();
-              updatePagination();
-              updateCounts();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              hidePagination();
-            }
-          };
-        }
-        
-        if (mobileNextBtn) {
-          mobileNextBtn.onclick = () => {
-            if (state.currentPage < totalPages && !showingAll) {
-              state.currentPage++;
-              renderRestaurants();
-              updatePagination();
-              updateCounts();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              hidePagination();
-            }
-          };
-        }
-        
-        // Setup intersection observer only if we have enough content and NOT showing all
-        if (!showingAll && totalPages > 1 && state.currentPage < totalPages) {
-          setupPaginationObserver();
-        } else {
-          // Hide pagination if showing all or only one page
-          hidePagination();
-        }
-      }
-      
-      function setupPaginationObserver() {
-        // Clean up existing observer
-        if (state.paginationObserver) {
-          state.paginationObserver.disconnect();
-          state.paginationObserver = null;
-        }
-        
-        // Only set up observer if we have multiple pages and not showing all
-        if (state.totalPages <= 1 || state.showAllRestaurants) {
-          hidePagination();
-          return;
-        }
-        
-        // Create new observer that shows pagination when user is near bottom
-        state.paginationObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach(entry => {
-              // Show pagination when sentinel is near viewport AND we have more pages
-              if (entry.isIntersecting && state.currentPage < state.totalPages && !state.showAllRestaurants) {
-                showPagination();
-              } else {
-                hidePagination();
-              }
-            });
-          },
-          {
-            root: null,
-            rootMargin: '200px 0px', // Show 200px before sentinel reaches viewport
-            threshold: 0.1
-          }
-        );
-        
-        // Observe the sentinel element
-        const sentinel = document.querySelector('.pagination-sentinel');
-        if (sentinel && state.paginationObserver) {
-          state.paginationObserver.observe(sentinel);
-        }
-      }
-      
-      function createSentinelElement() {
-        // Remove existing sentinel if any
-        const existingSentinel = document.querySelector('.pagination-sentinel');
-        if (existingSentinel) {
-          existingSentinel.remove();
-        }
-        
-        // Only create sentinel if we have multiple pages and not showing all
-        if (state.totalPages <= 1 || state.showAllRestaurants) {
-          return null;
-        }
-        
-        // Create a sentinel element at the bottom of the grid
-        const grid = document.getElementById('restaurantGrid');
-        if (!grid) return null;
-        
-        const sentinel = document.createElement('div');
-        sentinel.className = 'pagination-sentinel';
-        sentinel.style.height = '1px';
-        sentinel.style.width = '100%';
-        
-        grid.appendChild(sentinel);
-        return sentinel;
-      }
-      
-      function showPagination() {
-        // Don't show pagination if we're showing all restaurants or only have one page
-        if (state.showAllRestaurants || state.totalPages <= 1 || state.currentPage >= state.totalPages) {
-          hidePagination();
-          return;
-        }
-        
-        const pagination = document.getElementById('mobilePagination');
-        if (pagination && state.totalPages > 1 && state.currentPage < state.totalPages) {
-          pagination.classList.add('visible');
-          state.isPaginationVisible = true;
-        }
-      }
-      
-      function hidePagination() {
-        const pagination = document.getElementById('mobilePagination');
-        if (pagination) {
-          pagination.classList.remove('visible');
-          state.isPaginationVisible = false;
-        }
-      }
-      
-      // ---------- UI UPDATES ----------
-      function updateCounts() {
-        const showingText = document.getElementById('showingText');
-        
-        if (!showingText) return;
-        
-        const totalFiltered = state.filteredRestaurants.length;
-        
-        if (totalFiltered === 0) {
-          showingText.textContent = 'No restaurants found';
-          hidePagination();
-        } else {
-          const startIdx = (state.currentPage - 1) * state.pageSize + 1;
-          const endIdx = Math.min(startIdx + state.pageSize - 1, totalFiltered);
-          
-          if (state.showAllRestaurants || state.pageSize >= totalFiltered) {
-            showingText.textContent = `Showing all ${totalFiltered} restaurants`;
-          } else if (startIdx === endIdx) {
-            showingText.textContent = `Showing restaurant ${startIdx} of ${totalFiltered}`;
-          } else {
-            showingText.textContent = `Showing ${startIdx}-${endIdx} of ${totalFiltered} restaurants`;
-          }
-        }
-      }
-      
-      // ---------- EVENT HANDLERS ----------
-      function setupEventListeners() {
-        const searchInput = document.getElementById('search');
-        const clearSearchBtn = document.getElementById('clearSearch');
-        
-        if (searchInput && clearSearchBtn) {
-          const debouncedSearch = debounce(() => {
-            state.activeFilters.search = searchInput.value.trim();
-            applyFilters();
-          }, 300);
-          
-          searchInput.addEventListener('input', () => {
-            clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
-            debouncedSearch();
-          });
-          
-          clearSearchBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            clearSearchBtn.style.display = 'none';
-            state.activeFilters.search = '';
-            applyFilters();
-          });
-        }
-        
-        const categorySelect = document.getElementById('categorySelect');
-        if (categorySelect) {
-          categorySelect.addEventListener('change', (e) => {
-            state.activeFilters.category = e.target.value;
-            applyFilters();
-          });
-        }
-        
-        const sortSelect = document.getElementById('sortSelect');
-        if (sortSelect) {
-          sortSelect.addEventListener('change', (e) => {
-            state.activeFilters.sort = e.target.value;
-            applyFilters();
-          });
-        }
-        
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        if (itemsPerPageSelect) {
-          itemsPerPageSelect.addEventListener('change', (e) => {
-            const newPageSize = parseInt(e.target.value);
-            state.pageSize = newPageSize;
+        };
+
+        // --- Filtering Logic ---
+        function applyFilters() {
+            let res = state.restaurants;
+            const search = document.getElementById('search').value.toLowerCase();
+            const cat = document.getElementById('categorySelect').value;
+            const sort = document.getElementById('sortSelect').value;
+            const quickFilter = document.querySelector('.filter-chip.active')?.dataset.filter || 'all';
+
+            // 1. Search
+            if(search) res = res.filter(r => r.name.toLowerCase().includes(search));
+            
+            // 2. Category
+            if(cat !== 'all') res = res.filter(r => r.category === cat); 
+
+            // 3. Quick Filter
+            if(quickFilter === 'top-rated') res = res.filter(r => r.rating >= 4.5);
+            else if(quickFilter === 'trending') res = res.filter(r => r.rating >= 4.0);
+            else if(quickFilter === 'new') res = res.filter((r,i) => i % 3 === 0); // Mock 'new' logic
+
+            // 4. Sort
+            if(sort === 'rating-desc') res.sort((a,b) => b.rating - a.rating);
+            if(sort === 'name-asc') res.sort((a,b) => a.name.localeCompare(b.name));
+
+            state.filtered = res;
             state.currentPage = 1;
-            state.showAllRestaurants = (e.target.value === state.totalRestaurantCount.toString());
-            
-            applyFilters();
-            
-            try {
-              localStorage.setItem('zo2y_items_per_page', e.target.value);
-            } catch (e) {}
-          });
-        }
-        
-        document.querySelectorAll('.filter-chip').forEach(chip => {
-          chip.addEventListener('click', (e) => {
-            const filterType = e.target.dataset.filter;
-            
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            e.target.classList.add('active');
-            
-            state.activeFilters.quickFilter = filterType;
-            applyFilters();
-          });
-        });
-        
-        const resetBtn = document.getElementById('resetFilters');
-        if (resetBtn) {
-          resetBtn.addEventListener('click', resetAllFilters);
-        }
-        
-        initializeViewControls();
-        
-        // Actions modal buttons
-        const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
-        const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
-        const modalVisitedBtn = document.getElementById('modalVisitedBtn');
-        const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        
-        if (modalFavoritesBtn) {
-          modalFavoritesBtn.addEventListener('click', async () => {
-            if (!state.currentModalRestaurant) return;
-            await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
-            updateModalButtons(state.currentModalRestaurant.id);
             renderRestaurants();
-          });
         }
-        
-        if (modalWantToGoBtn) {
-          modalWantToGoBtn.addEventListener('click', async () => {
-            if (!state.currentModalRestaurant) return;
-            await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
-            updateModalButtons(state.currentModalRestaurant.id);
-            renderRestaurants();
-          });
-        }
-        
-        if (modalVisitedBtn) {
-          modalVisitedBtn.addEventListener('click', async () => {
-            if (!state.currentModalRestaurant) return;
-            await listManager.toggleInList('visited', state.currentModalRestaurant.id);
-            updateModalButtons(state.currentModalRestaurant.id);
-            renderRestaurants();
-          });
-        }
-        
-        if (modalCustomListsBtn) {
-          modalCustomListsBtn.addEventListener('click', () => {
-            if (!state.currentModalRestaurant) {
-              showNotification('No restaurant selected', 'error');
-              return;
-            }
-            
-            hideModal();
-            
-            setTimeout(() => {
-              showCustomListsModal(state.currentModalRestaurant.id);
-            }, 100);
-          });
-        }
-        
-        if (modalCancelBtn) {
-          modalCancelBtn.addEventListener('click', hideModal);
-        }
-        
-        // Custom lists modal buttons
-        const closeListsBtn = document.getElementById('closeListsBtn');
-        const createListBtn = document.getElementById('createListBtn');
-        const saveListsBtn = document.getElementById('saveListsBtn');
-        const newListNameInput = document.getElementById('newListName');
-        
-        if (closeListsBtn) {
-          closeListsBtn.addEventListener('click', hideCustomListsModal);
-        }
-        
-        if (createListBtn) {
-          createListBtn.addEventListener('click', async () => {
-            const name = newListNameInput.value.trim();
-            if (!name) {
-              showNotification('Please enter a list name', 'warning');
-              return;
-            }
-            
-            const existingList = state.customLists.find(l => 
-              l.title.toLowerCase() === name.toLowerCase()
-            );
-            
-            if (existingList) {
-              showNotification(`"${name}" list already exists`, 'warning');
-              return;
-            }
-            
-            const newList = await customListsManager.createList(name);
-            if (newList) {
-              showNotification(`Created "${name}" list`, 'success');
-              newListNameInput.value = '';
-              
-              await customListsManager.refreshLists();
-              
-              state.selectedLists.add(newList.id);
-              
-              customListsManager.renderListsList(state.currentModalRestaurant?.id);
-            }
-          });
-        }
-        
-        if (saveListsBtn) {
-          saveListsBtn.addEventListener('click', saveListChanges);
-        }
-        
-        if (newListNameInput) {
-          newListNameInput.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-              createListBtn.click();
-            }
-          });
-        }
-        
-        const customListsModal = document.getElementById('customListsModal');
-        if (customListsModal) {
-          customListsModal.addEventListener('click', (e) => {
-            if (e.target === customListsModal) {
-              hideCustomListsModal();
-            }
-          });
-        }
-        
-        // Auth prompt modal buttons
-        const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
-        const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
-        const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
-        
-        if (authPromptSignupBtn) {
-          authPromptSignupBtn.addEventListener('click', () => {
-            window.location.href = 'sign-up.html';
-          });
-        }
-        
-        if (authPromptLoginBtn) {
-          authPromptLoginBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
-          });
-        }
-        
-        if (authPromptCloseBtn) {
-          authPromptCloseBtn.addEventListener('click', hideAuthPrompt);
-        }
-        
-        const authPromptModal = document.getElementById('authPromptModal');
-        if (authPromptModal) {
-          authPromptModal.addEventListener('click', (e) => {
-            if (e.target === authPromptModal) {
-              hideAuthPrompt();
-            }
-          });
-        }
-        
-        // Auth button
-        const authBtn = document.getElementById('authBtn');
-        if (authBtn) {
-          authBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
-          });
-        }
-        
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            hideModal();
-            hideCustomListsModal();
-            hideAuthPrompt();
-          }
-        });
-        
-        // Scroll event to show/hide pagination based on scroll position
-        window.addEventListener('scroll', handleScroll);
-        
-        // Window resize for banner switching and responsive adjustments
-        window.addEventListener('resize', () => {
-          if (state.currentUser) {
-            guestBanner.hide();
-          } else {
-            guestBanner.show();
-          }
-          
-          if (state.filteredRestaurants.length > 0) {
-            renderRestaurants();
-          }
-        });
-        
-        guestBanner.init();
-      }
-      
-      function handleScroll() {
-        // Don't show pagination if showing all restaurants
-        if (state.showAllRestaurants) {
-          hidePagination();
-          return;
-        }
-        
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight;
-        const clientHeight = document.documentElement.clientHeight;
-        const scrollBottom = scrollHeight - scrollTop - clientHeight;
-        
-        // Hide pagination when scrolling up near the top
-        if (scrollTop < 100 && state.isPaginationVisible) {
-          hidePagination();
-        }
-        
-        // Show pagination when near bottom (100px from bottom) and we have more pages
-        if (scrollBottom < 100 && state.totalPages > 1 && state.currentPage < state.totalPages) {
-          showPagination();
-        } else if (scrollBottom >= 100 && state.isPaginationVisible) {
-          hidePagination();
-        }
-        
-        state.lastScrollTop = scrollTop;
-      }
-      
-      function initializeViewControls() {
-        const gridButtons = document.querySelectorAll('.grid-btn');
-        const grid = document.getElementById('restaurantGrid');
-        
-        if (!grid || gridButtons.length === 0) return;
-        
-        gridButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const view = btn.dataset.view;
-            
-            gridButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            grid.classList.remove('grid-single', 'grid-double', 'grid-triple', 'grid-quad', 'grid-quint');
-            
-            // Set grid class based on view
-            grid.classList.add(`grid-${view}`);
-            
-            try {
-              localStorage.setItem('zo2y_grid_view', view);
-            } catch (e) {}
-            
-            if (state.filteredRestaurants.length > 0) {
-              renderRestaurants();
-            }
-          });
-        });
-        
-        try {
-          const savedView = localStorage.getItem('zo2y_grid_view') || 'double';
-          const savedBtn = document.querySelector(`.grid-btn[data-view="${savedView}"]`);
-          if (savedBtn) {
-            savedBtn.click();
-          }
-        } catch (e) {}
-      }
-      
-      function resetAllFilters() {
-        const searchInput = document.getElementById('search');
-        const clearSearchBtn = document.getElementById('clearSearch');
-        const categorySelect = document.getElementById('categorySelect');
-        const sortSelect = document.getElementById('sortSelect');
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        
-        if (searchInput) searchInput.value = '';
-        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
-        if (categorySelect) categorySelect.value = 'all';
-        if (sortSelect) sortSelect.value = 'rating-desc';
-        if (itemsPerPageSelect) {
-          itemsPerPageSelect.value = '20';
-          state.pageSize = 20;
-          state.showAllRestaurants = false;
-        }
-        
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        const allFilter = document.querySelector('[data-filter="all"]');
-        if (allFilter) allFilter.classList.add('active');
-        
-        state.activeFilters = {
-          search: '',
-          category: 'all',
-          quickFilter: 'all',
-          sort: 'rating-desc'
-        };
-        
-        state.currentPage = 1;
-        
-        applyFilters();
-        showNotification('Filters reset', 'info');
-      }
-      
-      function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-          const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-          };
-          clearTimeout(timeout);
-          timeout = setTimeout(later, wait);
-        };
-      }
-      
-      // ---------- AUTH MANAGEMENT ----------
-      async function updateAuthUI() {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session && session.user) {
-            state.isLoggedIn = true;
-            state.currentUser = session.user;
-            
-            guestBanner.hide();
-            
-            let profile = null;
-            try {
-              const { data: profileData, error: profileError } = await supabase
-                .from('user_profiles')
-                .select('username, full_name, avatar_url')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (!profileError) {
-                profile = profileData;
-              }
-            } catch (err) {
-              console.warn('Profile fetch error:', err);
-            }
-            
-            const displayName = profile?.username || 
-                              profile?.full_name || 
-                              session.user.email?.split('@')[0] || 
-                              'Profile';
-            
-            const authBtn = document.getElementById('authBtn');
-            if (authBtn) {
-              authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
-              authBtn.onclick = () => {
-                window.location.href = 'profile.html';
-              };
-            }
-            
-            await listManager.init();
-            await customListsManager.init();
-            
-          } else {
-            state.isLoggedIn = false;
-            state.currentUser = null;
-            
-            guestBanner.show();
-            
-            const authBtn = document.getElementById('authBtn');
-            if (authBtn) {
-              authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
-              authBtn.onclick = () => window.location.href = 'login.html';
-            }
-          }
-          
-          state.authChecked = true;
-          
-          if (state.filteredRestaurants.length > 0) {
-            renderRestaurants();
-          }
-          
-        } catch (error) {
-          console.error('Auth error:', error);
-          state.isLoggedIn = false;
-          state.currentUser = null;
-          state.authChecked = true;
-          
-          guestBanner.show();
-          
-          const authBtn = document.getElementById('authBtn');
-          if (authBtn) {
-            authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
-            authBtn.onclick = () => window.location.href = 'login.html';
-          }
-        }
-      }
-      
-      // ---------- INITIALIZATION ----------
-      async function init() {
-        if (!supabase) {
-          showNotification('Failed to connect to server', 'error');
-          return;
-        }
-        
-        // Initialize fixes
-        initFixedImageLoader();
-        fixMobileScrolling();
-        
-        showLoadingSkeleton();
-        setupEventListeners();
-        await loadRestaurantsData();
-        await updateAuthUI();
-        
-        supabase.auth.onAuthStateChange(updateAuthUI);
-        
-        // Force observe images after everything loads
-        setTimeout(() => {
-          if (state.imageObserver) {
-            const images = document.querySelectorAll('img[data-src]');
-            images.forEach(img => {
-              if (!img.classList.contains('observed')) {
-                state.imageObserver.observe(img);
-                img.classList.add('observed');
-              }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            // Pagination
+            document.getElementById('prevPage').onclick = () => {
+                if(state.currentPage > 1) { state.currentPage--; renderRestaurants(); window.scrollTo(0,0); }
+            };
+            document.getElementById('nextPage').onclick = () => {
+                const total = Math.ceil(state.filtered.length / state.pageSize);
+                if(state.currentPage < total) { state.currentPage++; renderRestaurants(); window.scrollTo(0,0); }
+            };
+
+            // Inputs
+            document.getElementById('search').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                document.getElementById('clearSearch').style.display = term ? 'block' : 'none';
+                applyFilters();
             });
-          }
-        }, 500);
-      }
-      
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else {
+            document.getElementById('clearSearch').onclick = () => {
+                document.getElementById('search').value = '';
+                document.getElementById('clearSearch').style.display = 'none';
+                applyFilters();
+            };
+            document.getElementById('categorySelect').onchange = applyFilters;
+            document.getElementById('sortSelect').onchange = applyFilters;
+            document.getElementById('itemsPerPage').onchange = (e) => {
+                state.pageSize = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+                state.currentPage = 1;
+                renderRestaurants();
+            };
+            document.getElementById('resetFilters').onclick = () => {
+                document.getElementById('search').value = '';
+                document.getElementById('categorySelect').value = 'all';
+                applyFilters();
+            };
+
+            // Grid Toggle
+            document.querySelectorAll('.grid-btn').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    elements.grid.className = `grid grid-${btn.dataset.view}`;
+                };
+            });
+
+            // Quick Filters
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.onclick = () => {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    applyFilters();
+                };
+            });
+
+            // Modal Closes
+            document.querySelectorAll('.cancel-btn, .close-lists-btn').forEach(btn => {
+                btn.onclick = () => document.querySelectorAll('.actions-modal, .custom-lists-modal, .auth-prompt-modal').forEach(m => m.classList.remove('active'));
+            });
+        }
+
+        // --- Utils ---
+        function showNotification(msg, type) {
+            const d = document.createElement('div');
+            d.className = `custom-notification notification-${type} notification-show`;
+            d.innerHTML = `<span>${msg}</span>`;
+            document.getElementById('notificationContainer').appendChild(d);
+            setTimeout(()=>d.remove(), 3000);
+        }
+        
+        function getCategoryIconFallback(name) {
+            const map = { 'Burgers':'🍔', 'Pizza':'🍕', 'Asian':'🍜', 'Chicken':'🍗' };
+            return map[name] || '🍴';
+        }
+
         init();
-      }
-      
     })();
   </script>
 </body>
