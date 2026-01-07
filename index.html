@@ -17,13 +17,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* CSS remains exactly the same as your original file */
         :root { --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); --shadow: 0 10px 30px rgba(0,0,0,0.3); --success: #10b981; --error: #ef4444; --info: #3b82f6; --surface: rgba(19, 35, 71, 0.6); }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; }
         a { color: inherit; text-decoration: none; }
         img { display: block; max-width: 100%; height: auto; }
-        .restaurant-image { display: block; width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); opacity: 0; transition: opacity 0.3s ease; } /* Added opacity for smooth load */
+        .restaurant-image { display: block; width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); opacity: 0; transition: opacity 0.3s ease; }
         .restaurant-image.loaded { opacity: 1; }
         .logo-overlay img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
         .guest-banner { display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px 20px; margin: 0 auto 20px auto; border-radius: 12px; max-width: 1200px; width: calc(100% - 32px); text-align: center; animation: slideDown 0.3s ease-out; }
@@ -39,8 +38,11 @@
         .nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 14px 16px; backdrop-filter: blur(10px) saturate(180%); background: var(--surface); border-bottom: 1px solid var(--border); transition: all 0.3s ease; }
         .nav-container { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; }
         .nav.scrolled { background: rgba(19, 35, 71, 0.95); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); }
-        .logo { height: 40px; cursor: pointer; transition: all 0.3s ease; flex-shrink: 0; }
+        
+        /* UPDATED LOGO CSS */
+        .logo { height: 40px; width: auto; cursor: pointer; transition: all 0.3s ease; flex-shrink: 0; }
         .logo:hover { transform: scale(1.05); }
+        
         .search-wrapper { width: 100%; max-width: 500px; position: relative; margin: 0 24px; }
         .search { width: 100%; padding: 10px 16px 10px 40px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; transition: all 0.3s ease; }
         .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
@@ -98,14 +100,17 @@
         .restaurant-card { background: var(--card); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; position: relative; transition: all 0.2s ease; display: flex; flex-direction: column; height: 100%; flex-shrink: 0; }
         .restaurant-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); border-color: var(--accent); }
         .card-image { height: 200px; position: relative; overflow: hidden; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); flex-shrink: 0; }
-        .logo-overlay { position: absolute; bottom: 12px; left: 12px; width: 48px; height: 48px; background: rgba(11, 22, 51, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 4px; border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 20; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.4); pointer-events: none; }
+        
+        /* UPDATED ICON SIZES */
+        .logo-overlay { position: absolute; bottom: 12px; left: 12px; width: 60px; height: 60px; background: rgba(11, 22, 51, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 4px; border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 20; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.4); pointer-events: none; }
         .restaurant-card:hover .logo-overlay { transform: scale(1.1); border-color: var(--accent); background: rgba(245,158,11,0.9); box-shadow: 0 8px 24px rgba(245,158,11,0.4); }
         .badge-container { position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 25; max-width: calc(100% - 80px); }
-        .user-list-badge { background: rgba(11, 22, 51, 0.9); color: var(--accent); padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; backdrop-filter: blur(10px); border: 1px solid var(--accent); display: flex; align-items: center; gap: 2px; white-space: nowrap; max-width: 100%; overflow: hidden; }
-        .menu-btn { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; background: rgba(11, 22, 51, 0.9); border: 2px solid var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 30; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .user-list-badge { background: rgba(11, 22, 51, 0.9); color: var(--accent); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; backdrop-filter: blur(10px); border: 1px solid var(--accent); display: flex; align-items: center; gap: 4px; white-space: nowrap; max-width: 100%; overflow: hidden; }
+        .menu-btn { position: absolute; top: 12px; right: 12px; width: 42px; height: 42px; background: rgba(11, 22, 51, 0.9); border: 2px solid var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 30; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .menu-btn:hover { background: var(--accent); transform: scale(1.1); }
-        .menu-btn i { color: var(--white); font-size: 16px; }
+        .menu-btn i { color: var(--white); font-size: 18px; }
         .menu-btn:hover i { color: #0b1633; }
+        
         .card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
         .card-header { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
         .card-title-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -118,7 +123,7 @@
         .card-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .card-location { color: var(--muted); font-size: 13px; font-weight: 500; }
         .slider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; transition: grid-template-columns 0.3s ease; }
-        @media (max-width: 768px) { .slider-grid { display: flex; grid-template-columns: none; gap: 16px; overflow-x: auto; padding: 8px 0 20px 0; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding-left: 16px; } .slider-grid::-webkit-scrollbar { display: none; } .restaurant-card { width: 280px; flex-shrink: 0; scroll-snap-align: start; } .card-image { height: 180px; } .restaurant-image { height: 180px; } .logo-overlay { width: 40px; height: 40px; bottom: 10px; left: 10px; } .menu-btn { width: 32px; height: 32px; top: 10px; right: 10px; } .card-header { flex-direction: column; align-items: flex-start; gap: 8px; } .card-title-wrapper { width: 100%; } }
+        @media (max-width: 768px) { .slider-grid { display: flex; grid-template-columns: none; gap: 16px; overflow-x: auto; padding: 8px 0 20px 0; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding-left: 16px; } .slider-grid::-webkit-scrollbar { display: none; } .restaurant-card { width: 280px; flex-shrink: 0; scroll-snap-align: start; } .card-image { height: 180px; } .restaurant-image { height: 180px; } .logo-overlay { width: 48px; height: 48px; bottom: 10px; left: 10px; } .menu-btn { width: 36px; height: 36px; top: 10px; right: 10px; } .card-header { flex-direction: column; align-items: flex-start; gap: 8px; } .card-title-wrapper { width: 100%; } }
         .restaurant-of-day { position: relative; background: transparent; border-radius: 20px; padding: 40px 0; margin: 40px 0; text-align: center; }
         .day-header { text-align: center; margin-bottom: 30px; }
         .day-header h2 { font-size: 2.2rem; font-weight: 800; color: var(--white); margin-bottom: 16px; position: relative; display: inline-block; }
@@ -240,12 +245,15 @@
         .notification-icon { margin-right: 12px; font-size: 1.2rem; }
         .notification-close { margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem; opacity: 0.8; transition: opacity 0.2s; padding: 0 0 0 12px; }
         .notification-close:hover { opacity: 1; }
+        
+        /* RESTORED ORIGINAL FOOTER CSS */
         footer { padding: 40px 20px 24px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 40px; background: var(--card); }
         .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: center; margin-bottom: 30px; }
         .footer-column h3 { color: var(--white); margin-bottom: 16px; font-size: 16px; font-weight: 600; }
         .footer-column a { display: block; margin-bottom: 10px; transition: all 0.3s ease; padding: 4px 0; font-size: 14px; }
         .footer-column a:hover { color: var(--accent); }
         .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; font-size: 14px; max-width: 1200px; margin: 0 auto; }
+        
         @media (max-width: 992px) { .hero-container { flex-direction: column-reverse; gap: 40px; text-align: center; } .hero-left { text-align: center; display: flex; flex-direction: column; align-items: center; } .hero-right { max-width: 100%; } .spotlight { max-width: 500px; margin: 0 auto; } .day-card .card-image { height: 200px; } .day-card-actions { flex-direction: column; } .slider-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
         @media (max-width: 768px) { .nav-container { flex-wrap: wrap; gap: 12px; } .search-wrapper { order: 3; margin: 12px 0 0 0; max-width: 100%; } .hero { min-height: 60vh; } .day-header h2 { font-size: 1.8rem; } .day-card .card-content { padding: 20px; } .day-card .card-title { font-size: 18px; } .footer-content { grid-template-columns: repeat(2, 1fr); text-align: left; } .custom-lists-content { padding: 20px; margin: 10px; max-height: 70vh; } }
         @media (max-width: 480px) { .hero { padding: 32px 12px; } .day-header h2 { font-size: 1.6rem; } .footer-content { grid-template-columns: 1fr; text-align: center; } .spotlight { height: 340px; } .spotlight-img-container { height: 200px; } .spotlight h3 { font-size: 18px; } .spotlight p { font-size: 13px; } .custom-lists-content { padding: 16px; } .list-item { padding: 12px; } .list-icon { width: 32px; height: 32px; font-size: 16px; } }
@@ -333,7 +341,7 @@
 
     <header class="nav" role="banner">
         <div class="nav-container">
-            <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'" width="120" height="40">
+            <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
             
             <div class="search-wrapper">
                 <span class="search-icon">🔎</span>
@@ -499,22 +507,30 @@
                 <h3>Explore</h3>
                 <a href="restraunts.html">All Restaurants</a>
                 <a href="categories.html">By Category</a>
+                <a href="#" id="searchFooterLink">Search</a>
             </div>
             <div class="footer-column">
                 <h3>Community</h3>
                 <a href="blog.html">Food Blog</a>
+                <a href="guides.html">Neighborhood Guides</a>
+                <a href="#" id="featuredLink">Featured</a>
             </div>
             <div class="footer-column">
                 <h3>Business</h3>
+                <a href="add-restaurant.html">Add Your Restaurant</a>
                 <a href="partners.html">Partnerships</a>
+                <a href="contact.html">Contact Us</a>
             </div>
             <div class="footer-column">
                 <h3>Support</h3>
+                <a href="about.html">About Zo2y</a>
+                <a href="help.html">Help Center</a>
                 <a href="terms.html">Terms & Privacy</a>
             </div>
         </div>
         <div class="footer-bottom">
-            <div style="margin-bottom:8px">© 2025 Zo2y</div>
+            <div style="margin-bottom:8px">© 2025 Zo2y — Built with ❤️ for food lovers</div>
+            <div style="font-size:12px; color:var(--muted)">Join thousands discovering authentic dining experiences</div>
         </div>
     </footer>
 
@@ -693,6 +709,7 @@
             const isTopRated = (restaurant.rating || 0) >= 4.5;
             
             // Optimization: loading="lazy" and decoding="async"
+            // FIXED: CHANGED "TOP" TO "TOP RATED"
             card.innerHTML = `
                 <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
                     <div class="card-image">
@@ -705,7 +722,7 @@
                         <div class="card-header">
                             <div class="card-title-wrapper">
                                 <h3 class="card-title">${restaurant.name}</h3>
-                                ${isTopRated ? '<div class="top-rated-badge">TOP</div>' : ''}
+                                ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
                             </div>
                             <div class="card-rating"><i class="fas fa-star"></i> ${(restaurant.rating||0).toFixed(1)}</div>
                         </div>
