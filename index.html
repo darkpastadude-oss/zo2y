@@ -22,10 +22,9 @@
         a { color: inherit; text-decoration: none; }
         img { display: block; max-width: 100%; height: auto; }
         
-        /* Image & Layout - OPTIMIZED: Added will-change */
+        /* Image System - OPTIMIZED with will-change */
         .restaurant-image { display: block; width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); opacity: 0; transition: opacity 0.3s ease; will-change: opacity; }
-        .restaurant-image.loaded { opacity: 1; }
-        .logo-overlay img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+        .logo-overlay img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; opacity: 0; transition: opacity 0.3s ease; }
         
         /* Banner & Nav */
         .guest-banner { display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px 20px; margin: 0 auto 20px auto; border-radius: 12px; max-width: 1200px; width: calc(100% - 32px); text-align: center; animation: slideDown 0.3s ease-out; }
@@ -57,8 +56,11 @@
         .suggestion-item { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
         .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover { background: rgba(255,255,255,0.05); }
+        .suggestion-logo { width: 32px; height: 32px; border-radius: 6px; overflow: hidden; margin-right: 12px; flex-shrink: 0; }
+        .suggestion-logo img { width: 100%; height: 100%; object-fit: cover; }
         .suggestion-info { flex: 1; min-width: 0; }
         .suggestion-name { font-weight: 500; font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .suggestion-category { font-size: 12px; color: var(--muted); }
         
         .nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
         .account-btn { background: transparent; color: var(--white); padding: 8px 16px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; font-size: 14px; white-space: nowrap; }
@@ -85,7 +87,6 @@
         .spotlight:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(245, 158, 11, 0.25); }
         .spotlight-img-container { width: 100%; height: 220px; border-radius: 0; overflow: hidden; background: var(--glass); position: relative; }
         .spotlight-food-image { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; opacity: 0; will-change: opacity; }
-        .spotlight-food-image.loaded { opacity: 1; }
         .spotlight:hover .spotlight-food-image { transform: scale(1.05); }
         .spotlight-logo-overlay { position: absolute; bottom: 12px; left: 12px; width: 48px; height: 48px; background: rgba(11, 22, 51, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 4px; border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 10; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); }
         .spotlight-logo-overlay img { width: 100%; height: 100%; object-fit: contain; }
@@ -550,17 +551,22 @@
     </footer>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    (function(){
+        // Supabase config
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         
+        // --- 404 FIX: Define Bucket URL ---
+        // If your bucket is named "images" instead of "restraunts", change this line:
+        const BUCKET_NAME = 'restraunts'; 
+        const STORAGE_BASE_URL = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/`;
+
         let supabase;
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } catch (error) {
             console.error('❌ Failed to initialize Supabase:', error);
-            showNotification('Connection error. Please refresh.', 'error');
-            return;
+            supabase = null;
         }
 
         const state = {
@@ -568,12 +574,15 @@
             filtered: [],
             isLoggedIn: false,
             currentModalRestaurant: null,
+            restaurantImages: new Map(), // RESTORED from reference
+            categories: new Map(),
             spotlightIndex: 0,
             spotlightRestaurants: [],
             spotlightInterval: null,
-            allRestaurants: [], // For search
+            allRestaurants: [],
             customLists: [],
-            selectedLists: new Set()
+            selectedLists: new Set(),
+            preloader: null
         };
 
         const elements = {
@@ -598,11 +607,67 @@
             slideIndicators: document.getElementById('slideIndicators')
         };
 
-        // --- Helper: Robust Image Loading (OPTIMIZED) ---
-        function loadImage(imgElement, url) {
-            if (!url || !imgElement) return;
+        // --- FAST IMAGE LOADING SYSTEM (Queue + Async Decode) ---
+        // This copies the user's requested "system" but optimizes the loadImage function
+        function initFastImageLoader() {
+            state.preloader = {
+                queue: [],
+                loading: 0,
+                maxConcurrent: 10, // Increased concurrency for speed
+                
+                addImage(url) {
+                    if (!url) return;
+                    this.queue.push(url);
+                    this.processQueue();
+                },
+                
+                processQueue() {
+                    while (this.loading < this.maxConcurrent && this.queue.length > 0) {
+                        const url = this.queue.shift();
+                        this.loadImage(url);
+                    }
+                },
+                
+                loadImage(url) {
+                    this.loading++;
+                    const img = new Image();
+                    // OPTIMIZATION: Use decode() API
+                    if (img.decode) {
+                        img.src = url;
+                        img.decode().then(() => {
+                            this.loading--;
+                            this.processQueue();
+                        }).catch(() => {
+                            this.loading--;
+                            this.processQueue();
+                        });
+                    } else {
+                        img.onload = img.onerror = () => {
+                            this.loading--;
+                            this.processQueue();
+                        };
+                        img.src = url;
+                    }
+                }
+            };
+        }
+
+        // --- 404 FIX: Resolve URL ---
+        function resolveImageUrl(path) {
+            if (!path) return null;
+            if (path.startsWith('http')) return path; // Already a full URL
+            // Prepend storage URL to filename
+            return `${STORAGE_BASE_URL}${path}`; 
+        }
+
+        // --- Main Image Loader Function ---
+        function loadImage(imgElement, rawPath) {
+            if (!rawPath || !imgElement) return;
             
-            // Only set src if different to avoid reloading
+            // Fix the path to be a full URL
+            const url = resolveImageUrl(rawPath);
+            
+            // Only set src if different
             if (imgElement.getAttribute('src') !== url) {
                 imgElement.src = url;
             }
@@ -612,11 +677,9 @@
                 imgElement.decode()
                     .then(() => imgElement.classList.add('loaded'))
                     .catch((e) => {
-                        // Fallback if decode fails (e.g. broken image)
-                        imgElement.classList.add('loaded');
+                        imgElement.classList.add('loaded'); // Fallback show
                     });
             } else {
-                // Legacy fallback
                 if(imgElement.complete) {
                     imgElement.classList.add('loaded');
                 } else {
@@ -627,12 +690,11 @@
 
         // --- Initialization ---
         async function init() {
+            initFastImageLoader(); // RESTORED QUEUE SYSTEM
             setupEventListeners();
             
-            // Wait for auth check first
             await updateAuthUI();
             
-            // Then fetch data in parallel
             await Promise.all([
                 loadRestaurants(), 
                 loadAllRestaurantsForSearch()
@@ -641,12 +703,18 @@
             supabase.auth.onAuthStateChange(updateAuthUI);
         }
 
-        // --- Data Fetching ---
+        // --- Data Fetching (RESTORED GALLERY LOGIC) ---
         async function loadRestaurants() {
             try {
+                await loadRestaurantImages(); // Load gallery first
+                
+                // RESTORED: Complex query joining categories
                 const { data, error } = await supabase
                     .from('restraunts')
-                    .select('id, slug, name, category, description, rating, logo_url, image')
+                    .select(`
+                        id, slug, name, category, category_id, description, rating, logo_url, image,
+                        categories ( name, icon, slug )
+                    `)
                     .order('rating', { ascending: false })
                     .limit(24);
                 
@@ -655,16 +723,16 @@
 
                 state.restaurants = data.map(r => ({
                     ...r,
-                    category_icon: getCategoryIconFallback(r.category),
-                    coverImage: r.image,
-                    logo: r.logo_url
+                    category_icon: r.categories ? r.categories.icon : getCategoryIconFallback(r.category),
+                    // Use the restored helper functions for image resolution
+                    coverImage: getCoverImageUrl(r.slug), 
+                    logo: getLogoUrl(r)
                 }));
 
                 // Render UI
                 renderRestaurants();
                 populateFilters();
                 
-                // Setup Spotlight immediately after data loads
                 state.spotlightRestaurants = state.restaurants.slice(0, 6);
                 updateSpotlight();
                 startSpotlightRotation();
@@ -674,6 +742,60 @@
             } catch (error) {
                 console.error('Error loading restaurants:', error);
             }
+        }
+
+        // --- RESTORED: Gallery Logic from reference code ---
+        async function loadRestaurantImages() {
+            try {
+                const { data: galleryData } = await supabase
+                    .from('restaurant_gallery')
+                    .select('restaurant_slug, image_url, image_type, is_primary')
+                    .order('sort_order');
+                
+                const { data: restaurantsData } = await supabase
+                    .from('restraunts')
+                    .select('slug, image, logo_url');
+                
+                state.restaurantImages.clear();
+                
+                if (galleryData) {
+                    galleryData.forEach(item => {
+                        if (!state.restaurantImages.has(item.restaurant_slug)) {
+                            state.restaurantImages.set(item.restaurant_slug, { cover: null, logo: null });
+                        }
+                        const images = state.restaurantImages.get(item.restaurant_slug);
+                        if (item.image_type === 'cover') images.cover = item.image_url;
+                        if (item.image_type === 'logo') images.logo = item.image_url;
+                    });
+                }
+                
+                if (restaurantsData) {
+                    restaurantsData.forEach(r => {
+                        if (!state.restaurantImages.has(r.slug)) {
+                            state.restaurantImages.set(r.slug, { cover: r.image, logo: r.logo_url });
+                        } else {
+                            const images = state.restaurantImages.get(r.slug);
+                            if (!images.cover) images.cover = r.image;
+                            if (!images.logo) images.logo = r.logo_url;
+                        }
+                    });
+                }
+            } catch (e) { console.error("Gallery load error", e); }
+        }
+
+        function getCoverImageUrl(slug) {
+            const images = state.restaurantImages.get(slug);
+            return images?.cover || null;
+        }
+
+        function getLogoUrl(r) {
+            if(!r) return null;
+            const images = state.restaurantImages.get(r.slug);
+            if(images?.logo) return images.logo;
+            if(r.logo_url) return r.logo_url;
+            if(r.image) return r.image; // Fallback
+            if(images?.cover) return images.cover;
+            return null;
         }
 
         async function loadAllRestaurantsForSearch() {
@@ -702,7 +824,6 @@
             const card = document.createElement('div');
             card.className = 'restaurant-card';
             
-            // Calculate status badges
             const status = listManager.getRestaurantListStatus(restaurant.id);
             let badgeText = '';
             if (status.favorites) badgeText += '❤️ ';
@@ -711,12 +832,15 @@
 
             const isTopRated = (restaurant.rating || 0) >= 4.5;
             
-            // OPTIMIZATION: Added decoding="async" and loading="lazy" for non-critical images
+            // Resolve URLs using the new 404 fix
+            const coverUrl = resolveImageUrl(restaurant.coverImage);
+            const logoUrl = resolveImageUrl(restaurant.logo || restaurant.logo_url);
+
             card.innerHTML = `
                 <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
                     <div class="card-image">
-                        ${restaurant.coverImage ? `<img class="restaurant-image" src="${restaurant.coverImage}" alt="${restaurant.name}" loading="lazy" decoding="async">` : ''}
-                        ${restaurant.logo_url ? `<div class="logo-overlay"><img src="${restaurant.logo_url}" alt="logo" loading="lazy" decoding="async"></div>` : ''}
+                        ${coverUrl ? `<img class="restaurant-image" src="${coverUrl}" alt="${restaurant.name}" loading="lazy" decoding="async">` : ''}
+                        ${logoUrl ? `<div class="logo-overlay"><img src="${logoUrl}" alt="logo" loading="lazy" decoding="async"></div>` : ''}
                         <button class="menu-btn" title="Save"><i class="fas fa-ellipsis-h"></i></button>
                         ${badgeText ? `<div class="badge-container"><div class="user-list-badge">${badgeText}</div></div>` : ''}
                     </div>
@@ -741,9 +865,8 @@
                 });
             }
             
-            // Helper to trigger the class addition for opacity fade
             const img = card.querySelector('.restaurant-image');
-            if(img) loadImage(img, restaurant.coverImage);
+            if(img) loadImage(img, restaurant.coverImage); // Use helper to handle opacity fade
 
             return card;
         }
@@ -753,12 +876,12 @@
             if (!state.spotlightRestaurants.length) return;
             const r = state.spotlightRestaurants[state.spotlightIndex];
             
-            // Ensure image src is set. If cached, loaded class added immediately
             if (r.coverImage) loadImage(elements.spotFoodImage, r.coverImage);
             
-            if (r.logo_url) {
+            const logoUrl = r.logo || r.logo_url;
+            if (logoUrl) {
                 elements.spotLogoOverlay.style.display = 'flex';
-                loadImage(elements.spotLogo, r.logo_url);
+                loadImage(elements.spotLogo, logoUrl);
             } else {
                 elements.spotLogoOverlay.style.display = 'none';
             }
@@ -767,12 +890,10 @@
             elements.spotDesc.textContent = r.description;
             elements.spotRating.textContent = `⭐ ${(r.rating||0).toFixed(1)}`;
             
-            // Event listeners
             const navigate = () => location.href = `restaurant.html?slug=${r.slug}`;
             elements.spotlightViewBtn.onclick = navigate;
             elements.spotlightCard.onclick = navigate;
             
-            // Dots
             elements.slideIndicators.innerHTML = state.spotlightRestaurants.map((_, i) => 
                 `<div class="slide-indicator ${i === state.spotlightIndex ? 'active' : ''}"></div>`
             ).join('');
@@ -812,11 +933,12 @@
             if (status.favorites) badgeText += '❤️ ';
             if (status.wantToGo) badgeText += '📍 ';
 
-            // OPTIMIZATION: decoding async on restaurant of the day
+            const coverUrl = resolveImageUrl(r.coverImage);
+
             elements.dayCard.innerHTML = `
                 <div class="day-badge">Restaurant of the Day</div>
                 <div class="card-image">
-                    <img class="restaurant-image" src="${r.coverImage}" alt="${r.name}" loading="lazy" decoding="async">
+                    <img class="restaurant-image" src="${coverUrl}" alt="${r.name}" loading="lazy" decoding="async">
                     ${badgeText ? `<div class="badge-container" style="top:60px"><div class="user-list-badge">${badgeText}</div></div>` : ''}
                 </div>
                 <div class="card-content">
@@ -953,7 +1075,6 @@
                 if(data) { state.customLists.unshift(data); return data; }
             },
             async loadStatusForRestaurant(rId) {
-                // Get checked state for this restaurant across all custom lists
                 const promises = state.customLists.map(async (list) => {
                     const { data } = await supabase.from('lists_restraunts').select('*').eq('list_id', list.id).eq('restraunt_id', rId);
                     if(data && data.length > 0) state.selectedLists.add(list.id);
@@ -1079,15 +1200,8 @@
                  const btn = document.getElementById('saveListsBtn');
                  btn.textContent = 'Saving...';
                  
-                 // Process changes using Promise.all
                  const promises = state.customLists.map(async (list) => {
                      const isSelected = state.selectedLists.has(list.id);
-                     // We need to check DB state to know if we are adding or removing
-                     // Ideally we cache initial state, but for robustness we can just toggle based on current status
-                     // However, customListsManager.toggleRestaurantInList flips it. 
-                     // Optimization: Check if it's currently in list via API check or just try insert/delete.
-                     
-                     // Simplified robust approach: Check status, if match select, do nothing. If mismatch, toggle.
                      const { data } = await supabase.from('lists_restraunts').select('*').eq('list_id', list.id).eq('restraunt_id', rId);
                      const currentlyIn = data && data.length > 0;
                      
@@ -1126,7 +1240,6 @@
                     </div>`;
                 }).join('') + `</div>`;
                 
-            // Click handlers
             container.querySelectorAll('.list-item').forEach(item => {
                 item.onclick = () => {
                     const id = parseInt(item.dataset.id) || item.dataset.id; // Supabase IDs might be int or uuid
@@ -1153,7 +1266,6 @@
 
         function hideModal() {
             document.getElementById('actionsModal').classList.remove('active');
-            // Keep restaurant in state in case we opened custom lists
         }
         
         function updateModalButtons(rId) {
@@ -1181,7 +1293,7 @@
         }
 
         init();
-    });
+    })();
     </script>
 </body>
 </html>
