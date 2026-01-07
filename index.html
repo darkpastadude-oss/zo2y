@@ -17,14 +17,475 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        :root { --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1); --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); --shadow: 0 10px 30px rgba(0,0,0,0.3); --success: #10b981; --error: #ef4444; --info: #3b82f6; --surface: rgba(19, 35, 71, 0.6); }
+        :root { 
+          --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
+          --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
+          --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+          --shadow: 0 10px 30px rgba(0,0,0,0.3);
+          --success: #10b981; --error: #ef4444; --info: #3b82f6;
+          --surface: rgba(19, 35, 71, 0.6);
+          --cloud-color: #3b82f6;
+        }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; }
         a { color: inherit; text-decoration: none; }
         img { display: block; max-width: 100%; height: auto; }
-        .restaurant-image { display: block; width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); opacity: 0; transition: opacity 0.3s ease; }
-        .restaurant-image.loaded { opacity: 1; }
-        .logo-overlay img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+        
+        /* Updated Card Styles to Match restaurants.html */
+        .restaurant-card { 
+          background: var(--card); 
+          border-radius: 16px; 
+          overflow: hidden; 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+          border: 1px solid var(--border);
+          cursor: pointer; 
+          position: relative;
+          transition: all 0.2s ease;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        } 
+        
+        .restaurant-card:hover { 
+          transform: translateY(-4px); 
+          box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+          border-color: var(--accent);
+        }
+        
+        .card-image-container {
+          position: relative;
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          padding: 16px 16px 0 16px;
+        }
+        
+        .logo-wrapper {
+          flex-shrink: 0;
+          width: 70px;
+          height: 70px;
+          position: relative;
+          z-index: 20;
+        }
+        
+        .logo-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 12px;
+          border: 2px solid var(--accent);
+          background: rgba(11, 22, 51, 0.9);
+          padding: 4px;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        
+        .logo-image.loaded {
+          opacity: 1;
+        }
+        
+        .restaurant-card:hover .logo-image {
+          transform: scale(1.05);
+          border-color: var(--accent);
+          background: rgba(245,158,11,0.9);
+          box-shadow: 0 8px 24px rgba(245,158,11,0.4);
+        }
+        
+        .main-image-container {
+          flex: 1;
+          height: 180px;
+          border-radius: 12px;
+          overflow: hidden;
+          background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+          position: relative;
+        }
+        
+        .restaurant-image {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0;
+          transition: opacity 0.5s ease;
+        }
+        
+        .restaurant-image.loaded {
+          opacity: 1;
+        }
+        
+        /* List badges - positioned on main image */
+        .list-badges-container {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          display: flex;
+          gap: 8px;
+          z-index: 30;
+          flex-direction: column;
+          align-items: flex-end;
+        }
+        
+        .list-badge {
+          background: rgba(11, 22, 51, 0.95);
+          color: var(--accent);
+          padding: 8px;
+          border-radius: 8px;
+          font-size: 18px;
+          border: 1px solid var(--accent);
+          cursor: help;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+        }
+        
+        .list-badge:hover {
+          transform: scale(1.1);
+          background: rgba(245, 158, 11, 0.95);
+          color: #0b1633;
+        }
+        
+        /* List badge tooltips */
+        .list-badge .list-badge-tooltip {
+          position: absolute;
+          top: 50%;
+          right: 100%;
+          transform: translateY(-50%) translateX(-10px);
+          background: var(--card);
+          border: 2px solid var(--accent);
+          border-radius: 12px;
+          padding: 10px 14px;
+          width: 140px;
+          z-index: 1001;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+          backdrop-filter: blur(10px);
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease;
+          pointer-events: none;
+          text-align: left;
+          font-size: 12px;
+          line-height: 1.4;
+          margin-right: 8px;
+          color: var(--white);
+        }
+        
+        .list-badge:hover .list-badge-tooltip {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(-50%) translateX(-20px);
+          pointer-events: auto;
+        }
+        
+        /* Cloud Kitchen Badge */
+        .cloud-badge {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          width: 40px;
+          height: 40px;
+          background: rgba(59, 130, 246, 0.95);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: help;
+          z-index: 100;
+          transition: all 0.3s ease;
+          border: 1px solid var(--cloud-color);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          color: white;
+          font-size: 20px;
+        }
+        
+        .cloud-badge:hover {
+          background: rgba(59, 130, 246, 1);
+          transform: scale(1.05);
+        }
+        
+        /* Cloud Kitchen Tooltip */
+        .cloud-badge .cloud-tooltip {
+          position: absolute;
+          top: 50%;
+          left: 0;
+          transform: translateX(-100%) translateY(-50%);
+          background: var(--card);
+          border: 2px solid var(--cloud-color);
+          border-radius: 12px;
+          padding: 12px 16px;
+          width: 160px;
+          z-index: 1001;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+          backdrop-filter: blur(10px);
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease;
+          pointer-events: none;
+          color: var(--white);
+          text-align: center;
+          font-weight: 600;
+        }
+        
+        .cloud-badge:hover .cloud-tooltip {
+          opacity: 1;
+          visibility: visible;
+          transform: translateX(-120%) translateY(-50%);
+          pointer-events: auto;
+        }
+        
+        /* Menu button */
+        .menu-btn-container {
+          position: absolute;
+          bottom: 12px;
+          right: 12px;
+          z-index: 30;
+        }
+        
+        .menu-btn {
+          width: 40px;
+          height: 40px;
+          background: rgba(11, 22, 51, 0.9);
+          border: 1px solid var(--accent);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          backdrop-filter: none;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          position: relative;
+        }
+        
+        .menu-btn:hover {
+          background: var(--accent);
+          transform: scale(1.1);
+        }
+        
+        .menu-btn i {
+          color: var(--white);
+          font-size: 18px;
+        }
+        
+        .menu-btn:hover i {
+          color: #0b1633;
+        }
+        
+        /* Menu button tooltip */
+        .menu-btn .menu-btn-tooltip {
+          position: absolute;
+          bottom: 100%;
+          right: 0;
+          margin-bottom: 8px;
+          background: var(--card);
+          border: 2px solid var(--accent);
+          border-radius: 12px;
+          padding: 10px 14px;
+          z-index: 1001;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+          backdrop-filter: blur(10px);
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease;
+          pointer-events: none;
+          font-size: 12px;
+          font-weight: 500;
+          white-space: nowrap;
+          min-width: 120px;
+          text-align: center;
+          color: var(--white);
+        }
+        
+        .menu-btn:hover .menu-btn-tooltip {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+        
+        /* Card content */
+        .card-content {
+          padding: 16px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .card-header {
+          margin-bottom: 8px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        
+        .card-title-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        
+        .card-title {
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 1.3;
+          margin: 0;
+          flex: 1;
+        }
+        
+        .top-rated-badge {
+          display: inline-block;
+          background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+          color: #0b1633;
+          padding: 3px 8px;
+          border-radius: 6px;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          border: 1px solid rgba(245, 158, 11, 0.5);
+          animation: glow 2s infinite alternate;
+          box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+          white-space: nowrap;
+        }
+        
+        @keyframes glow {
+          0% {
+            box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
+                        0 0 10px rgba(245, 158, 11, 0.3);
+          }
+          100% {
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
+                        0 0 20px rgba(245, 158, 11, 0.5),
+                        0 0 30px rgba(245, 158, 11, 0.3);
+          }
+        }
+        
+        .card-rating {
+          background: var(--gradient);
+          color: #0b1633;
+          padding: 4px 8px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        
+        .card-category {
+          color: var(--accent);
+          font-size: 13px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        
+        .card-description {
+          color: var(--muted);
+          font-size: 14px;
+          line-height: 1.5;
+          margin: 0 0 16px 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          flex: 1;
+        }
+        
+        .card-footer {
+          margin-top: auto;
+          padding-top: 12px;
+          border-top: 1px solid var(--border);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .card-location {
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 500;
+        }
+        
+        /* Mobile Responsive for Cards */
+        @media (max-width: 768px) {
+          .card-image-container {
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px 12px 0 12px;
+          }
+          
+          .logo-wrapper {
+            width: 60px;
+            height: 60px;
+            align-self: flex-start;
+          }
+          
+          .main-image-container {
+            height: 150px;
+            width: 100%;
+          }
+          
+          .list-badges-container {
+            top: 8px;
+            right: 8px;
+            gap: 4px;
+          }
+          
+          .list-badge {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+            padding: 6px;
+          }
+          
+          .cloud-badge {
+            top: 8px;
+            left: 8px;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+          }
+          
+          .menu-btn-container {
+            bottom: 8px;
+            right: 8px;
+          }
+          
+          .menu-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+          }
+          
+          /* Hide tooltips on mobile */
+          .cloud-tooltip,
+          .list-badge-tooltip,
+          .menu-btn-tooltip {
+            display: none !important;
+          }
+          
+          .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          
+          .card-title-wrapper {
+            width: 100%;
+          }
+        }
+        
+        /* Keep all your existing styles below */
         .guest-banner { display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px 20px; margin: 0 auto 20px auto; border-radius: 12px; max-width: 1200px; width: calc(100% - 32px); text-align: center; animation: slideDown 0.3s ease-out; }
         .guest-banner.show { display: block; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -94,30 +555,8 @@
         .slide-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s ease; }
         .slide-indicator.active { background: var(--accent); transform: scale(1.2); }
         .slide-indicator:hover { background: var(--accent); }
-        .restaurant-card { background: var(--card); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; position: relative; transition: all 0.2s ease; display: flex; flex-direction: column; height: 100%; flex-shrink: 0; }
-        .restaurant-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); border-color: var(--accent); }
-        .card-image { height: 200px; position: relative; overflow: hidden; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); flex-shrink: 0; }
-        .logo-overlay { position: absolute; bottom: 12px; left: 12px; width: 60px; height: 60px; background: rgba(11, 22, 51, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 4px; border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 20; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.4); pointer-events: none; }
-        .restaurant-card:hover .logo-overlay { transform: scale(1.1); border-color: var(--accent); background: rgba(245,158,11,0.9); box-shadow: 0 8px 24px rgba(245,158,11,0.4); }
-        .badge-container { position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 25; max-width: calc(100% - 80px); }
-        .user-list-badge { background: rgba(11, 22, 51, 0.9); color: var(--accent); padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; backdrop-filter: blur(10px); border: 1px solid var(--accent); display: flex; align-items: center; gap: 4px; white-space: nowrap; max-width: 100%; overflow: hidden; }
-        .menu-btn { position: absolute; top: 12px; right: 12px; width: 42px; height: 42px; background: rgba(11, 22, 51, 0.9); border: 2px solid var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 30; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .menu-btn:hover { background: var(--accent); transform: scale(1.1); }
-        .menu-btn i { color: var(--white); font-size: 18px; }
-        .menu-btn:hover i { color: #0b1633; }
-        .card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
-        .card-header { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-        .card-title-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .card-title { font-size: 16px; font-weight: 700; line-height: 1.3; margin: 0; flex: 1; }
-        .top-rated-badge { display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); color: #0b1633; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid rgba(245, 158, 11, 0.5); animation: glow 2s infinite alternate; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); white-space: nowrap; }
-        @keyframes glow { 0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.3); } 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.8), 0 0 20px rgba(245, 158, 11, 0.5), 0 0 30px rgba(245, 158, 11, 0.3); } }
-        .card-rating { background: var(--gradient); color: #0b1633; padding: 4px 8px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0; }
-        .card-category { color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-        .card-description { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 16px 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex: 1; min-height: 60px; }
-        .card-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .card-location { color: var(--muted); font-size: 13px; font-weight: 500; }
         .slider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; transition: grid-template-columns 0.3s ease; }
-        @media (max-width: 768px) { .slider-grid { display: flex; grid-template-columns: none; gap: 16px; overflow-x: auto; padding: 8px 0 20px 0; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding-left: 16px; } .slider-grid::-webkit-scrollbar { display: none; } .restaurant-card { width: 280px; flex-shrink: 0; scroll-snap-align: start; } .card-image { height: 180px; } .restaurant-image { height: 180px; } .logo-overlay { width: 48px; height: 48px; bottom: 10px; left: 10px; } .menu-btn { width: 36px; height: 36px; top: 10px; right: 10px; } .card-header { flex-direction: column; align-items: flex-start; gap: 8px; } .card-title-wrapper { width: 100%; } }
+        @media (max-width: 768px) { .slider-grid { display: flex; grid-template-columns: none; gap: 16px; overflow-x: auto; padding: 8px 0 20px 0; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding-left: 16px; } .slider-grid::-webkit-scrollbar { display: none; } .restaurant-card { width: 280px; flex-shrink: 0; scroll-snap-align: start; } .logo-wrapper { width: 50px; height: 50px; } .main-image-container { height: 140px; } .restaurant-image { height: 140px; } .menu-btn { width: 32px; height: 32px; } .card-header { flex-direction: column; align-items: flex-start; gap: 8px; } .card-title-wrapper { width: 100%; } }
         .restaurant-of-day { position: relative; background: transparent; border-radius: 20px; padding: 40px 0; margin: 40px 0; text-align: center; }
         .day-header { text-align: center; margin-bottom: 30px; }
         .day-header h2 { font-size: 2.2rem; font-weight: 800; color: var(--white); margin-bottom: 16px; position: relative; display: inline-block; }
@@ -240,7 +679,6 @@
         .notification-close { margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem; opacity: 0.8; transition: opacity 0.2s; padding: 0 0 0 12px; }
         .notification-close:hover { opacity: 1; }
         
-        /* RESTORED ORIGINAL FOOTER CSS */
         footer { padding: 40px 20px 24px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 40px; background: var(--card); }
         .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: center; margin-bottom: 30px; }
         .footer-column h3 { color: var(--white); margin-bottom: 16px; font-size: 16px; font-weight: 600; }
@@ -256,277 +694,7 @@
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-    <div id="actionsModal" class="actions-modal">
-        <div class="actions-content">
-            <div class="actions-header">
-                <h3 id="modalRestaurantName">Restaurant Name</h3>
-                <p>Add this restaurant to your lists</p>
-            </div>
-            <div class="action-buttons">
-                <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn">
-                    <i class="fas fa-heart"></i>
-                    <span id="favoritesText">Add to Favorites</span>
-                </button>
-                <button class="action-btn-modal" data-action="wantToGo" id="modalWantToGoBtn">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span id="wantToGoText">Want to Go</span>
-                </button>
-                <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn">
-                    <i class="fas fa-utensils"></i>
-                    <span id="visitedText">Mark as Visited</span>
-                </button>
-                <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
-                    <i class="fas fa-list"></i>
-                    <span>Custom Lists</span>
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-            <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
-        </div>
-    </div>
-
-    <div id="customListsModal" class="custom-lists-modal">
-        <div class="custom-lists-content">
-            <div class="lists-header">
-                <h3><i class="fas fa-list"></i> Custom Lists</h3>
-                <button class="close-lists-btn" id="closeListsBtn">×</button>
-            </div>
-            
-            <div class="lists-list-container" id="listsListContainer"></div>
-            
-            <div class="new-list-section">
-                <div class="new-list-input">
-                    <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
-                    <button class="create-list-btn" id="createListBtn">
-                        <i class="fas fa-plus"></i> Create
-                    </button>
-                </div>
-                <div class="lists-actions">
-                    <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="authPromptModal" class="auth-prompt-modal">
-        <div class="auth-prompt-content">
-            <div class="auth-prompt-icon">
-                <i class="fas fa-lock"></i>
-            </div>
-            <div class="auth-prompt-header">
-                <h3>Sign In Required</h3>
-                <p>You need to be signed in to save restaurants. Create an account to save your favorites!</p>
-            </div>
-            <div class="auth-prompt-buttons">
-                <button class="auth-prompt-btn auth-prompt-primary" id="authPromptSignupBtn">
-                    <i class="fas fa-user-plus"></i>
-                    Create Free Account
-                </button>
-                <button class="auth-prompt-btn auth-prompt-secondary" id="authPromptLoginBtn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Sign In to Existing Account
-                </button>
-            </div>
-            <button class="auth-prompt-close" id="authPromptCloseBtn">Maybe Later</button>
-        </div>
-    </div>
-
-    <div id="notificationContainer" class="notification-container"></div>
-
-    <header class="nav" role="banner">
-        <div class="nav-container">
-            <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
-            
-            <div class="search-wrapper">
-                <span class="search-icon">🔎</span>
-                <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
-                <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
-                <div id="searchSuggestions" class="search-suggestions"></div>
-            </div>
-            
-            <div class="nav-right">
-                <a class="ghost" href="restraunts.html">Explore All</a>
-                <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
-            </div>
-        </div>
-    </header>
-
-    <div id="guestBanner" class="guest-banner">
-        <div class="banner-content">
-            <span class="banner-text">Want to save your favorite restaurants?</span>
-            <div class="banner-actions">
-                <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
-                <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
-            </div>
-        </div>
-    </div>
-
-    <main>
-        <section class="hero" aria-labelledby="heroTitle">
-            <div class="hero-container">
-                <div class="hero-left">
-                    <div class="tag">Trusted by Food Lovers</div>
-                    <h1 id="heroTitle">Discover Hidden Gems & Local Favorites</h1>
-                    <p class="lead">Find authentic dining experiences based on real reviews.</p>
-                    <div class="cta-row">
-                        <button class="btn-primary logged-out" id="startJourneyBtn">
-                            <i class="fas fa-map-signs"></i>
-                            <span>Start Your Food Journey</span>
-                        </button>
-                        
-                        <button class="btn-primary logged-in" onclick="location.href='restraunts.html'">
-                            <i class="fas fa-utensils"></i>
-                            <span>Explore All Restaurants</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="hero-right">
-                    <div class="spotlight-wrapper">
-                        <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
-                            <div class="spotlight-img-container">
-                                <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food" fetchpriority="high">
-                                <div class="spotlight-logo-overlay" id="spotLogoOverlay">
-                                    <img id="spotLogo" src="" alt="Restaurant logo">
-                                </div>
-                            </div>
-                            <div class="spotlight-content">
-                                <div class="spotlight-text">
-                                    <h3 id="spotName">Loading...</h3>
-                                    <p id="spotDesc">Loading restaurant details...</p>
-                                    <div class="rating" id="spotRating">⭐ ...</div>
-                                </div>
-                                <div class="spotlight-actions">
-                                    <button class="btn-outline" id="spotlightViewBtn" style="padding:8px 16px; font-size:13px">View Details</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="slide-indicators" id="slideIndicators"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <h2>Featured Restaurants</h2>
-                    <p class="section-subtitle">Handpicked selections based on quality and authenticity</p>
-                </div>
-                <a href="restraunts.html" class="view-all">View All <span>→</span></a>
-            </div>
-            
-            <div class="filter-bar" id="filterBar"></div>
-            
-            <div class="slider-container">
-                <div id="featuredSlider" class="slider-grid skeleton-grid">
-                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                </div>
-            </div>
-            
-            <div class="load-more-container">
-                <button class="load-more-btn" onclick="location.href='restraunts.html'">
-                    <i class="fas fa-arrow-right"></i>
-                    View All Restaurants
-                </button>
-            </div>
-        </section>
-
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <h2>Nearby Restaurants</h2>
-                    <p class="section-subtitle">Great food close to you</p>
-                </div>
-            </div>
-            <div class="slider-container">
-                <div id="nearbySlider" class="slider-grid skeleton-grid">
-                      <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
-                </div>
-            </div>
-            <div class="load-more-container">
-                <button class="load-more-btn" onclick="location.href='restraunts.html'">
-                    <i class="fas fa-arrow-right"></i>
-                    View All Restaurants
-                </button>
-            </div>
-        </section>
-
-        <section class="section">
-            <div class="restaurant-of-day">
-                <div class="day-header">
-                    <h2>Restaurant of the Day</h2>
-                    <p>Our specially selected restaurant that stands out from the rest.</p>
-                </div>
-                <div class="day-card-container">
-                    <div id="dayCard" class="day-card">
-                        <div class="skeleton-card" style="width:100%; height:400px;">
-                            <div class="skeleton-image" style="height:250px"></div>
-                            <div class="skeleton-content">
-                                <div class="skeleton-line" style="width: 70%"></div>
-                                <div class="skeleton-line short"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <div class="app-download">
-                <h2>Get the Zo2y App</h2>
-                <p>Discover restaurants, save your favorites, and share reviews on the go.</p>
-                <div class="app-buttons">
-                    <a href="#" class="app-button" id="iosAppButton">
-                        <i class="fab fa-apple"></i>
-                        <div class="app-button-text"><span>Download on the</span><br><span>App Store</span></div>
-                    </a>
-                    <a href="#" class="app-button" id="androidAppButton">
-                        <i class="fab fa-google-play"></i>
-                        <div class="app-button-text"><span>Get it on</span><br><span>Google Play</span></div>
-                    </a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-content">
-            <div class="footer-column">
-                <h3>Explore</h3>
-                <a href="restraunts.html">All Restaurants</a>
-                <a href="categories.html">By Category</a>
-                <a href="#" id="searchFooterLink">Search</a>
-            </div>
-            <div class="footer-column">
-                <h3>Community</h3>
-                <a href="blog.html">Food Blog</a>
-                <a href="guides.html">Neighborhood Guides</a>
-                <a href="#" id="featuredLink">Featured</a>
-            </div>
-            <div class="footer-column">
-                <h3>Business</h3>
-                <a href="add-restaurant.html">Add Your Restaurant</a>
-                <a href="partners.html">Partnerships</a>
-                <a href="contact.html">Contact Us</a>
-            </div>
-            <div class="footer-column">
-                <h3>Support</h3>
-                <a href="about.html">About Zo2y</a>
-                <a href="help.html">Help Center</a>
-                <a href="terms.html">Terms & Privacy</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <div style="margin-bottom:8px">© 2025 Zo2y — Built with ❤️ for food lovers</div>
-            <div style="font-size:12px; color:var(--muted)">Join thousands discovering authentic dining experiences</div>
-        </div>
-    </footer>
+    <!-- ... (keep all your existing HTML structure) ... -->
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -555,7 +723,8 @@
             spotlightInterval: null,
             allRestaurants: [],
             customLists: [],
-            selectedLists: new Set()
+            selectedLists: new Set(),
+            cloudKitchens: new Set()
         };
 
         const elements = {
@@ -580,34 +749,101 @@
             slideIndicators: document.getElementById('slideIndicators')
         };
 
-        // --- Optimized Loading Logic ---
+        // ---------- CLOUD KITCHEN MANAGER ----------
+        const cloudKitchenManager = {
+            async loadCloudKitchens() {
+                try {
+                    const { data: cloudKitchens, error } = await supabase
+                        .from('cloud_kitchens')
+                        .select('restaurant_id');
+                    
+                    if (error) {
+                        console.warn('Error loading cloud kitchens:', error);
+                        return;
+                    }
+                    
+                    if (cloudKitchens && cloudKitchens.length > 0) {
+                        state.cloudKitchens.clear();
+                        cloudKitchens.forEach(ck => {
+                            state.cloudKitchens.add(ck.restaurant_id);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading cloud kitchens:', error);
+                }
+            },
+            
+            isCloudKitchen(restaurantId) {
+                return state.cloudKitchens.has(restaurantId);
+            },
+            
+            createCloudBadge(restaurantId) {
+                if (!this.isCloudKitchen(restaurantId)) return '';
+                
+                return `
+                    <div class="cloud-badge" aria-label="Cloud Kitchen">
+                        <i class="fas fa-cloud"></i>
+                        <div class="cloud-tooltip">
+                            Cloud Kitchen
+                        </div>
+                    </div>
+                `;
+            }
+        };
 
-        function loadImage(imgElement, url) {
-            if (!url || !imgElement) return;
-            imgElement.src = url;
-            imgElement.onload = () => imgElement.classList.add('loaded');
+        // ---------- FIX FOR SPOTLIGHT IMAGE LOADING ----------
+        function preloadImage(url, callback) {
+            if (!url) return callback(false);
+            
+            const img = new Image();
+            img.onload = () => callback(true);
+            img.onerror = () => callback(false);
+            img.src = url;
         }
 
-        // Parallel Fetching: Start all requests at once
+        // Optimized Loading Logic
+        function loadImage(imgElement, url) {
+            if (!url || !imgElement) return;
+            
+            // Preload the image
+            preloadImage(url, (success) => {
+                if (success) {
+                    imgElement.src = url;
+                    imgElement.onload = () => {
+                        imgElement.classList.add('loaded');
+                        // Force redraw for spotlight
+                        if (imgElement.id === 'spotFoodImage') {
+                            imgElement.style.opacity = '0';
+                            setTimeout(() => {
+                                imgElement.style.opacity = '1';
+                            }, 10);
+                        }
+                    };
+                } else {
+                    // Fallback image or hide
+                    imgElement.style.display = 'none';
+                }
+            });
+        }
+
         async function init() {
             setupEventListeners();
+            await cloudKitchenManager.loadCloudKitchens();
             
-            // Promise.all allows fetching user session and public data simultaneously
+            // Load all data in parallel
             await Promise.all([
                 updateAuthUI(),
                 loadRestaurants(), 
                 loadAllRestaurantsForSearch()
             ]);
             
-            // Listen for auth changes *after* initial load
             supabase.auth.onAuthStateChange(updateAuthUI);
         }
 
-        // --- Data Fetching ---
-
+        // Data Fetching
         async function loadRestaurants() {
             try {
-                // Fetch basic data first to render immediately
+                // Fetch basic data first
                 const { data, error } = await supabase
                     .from('restraunts')
                     .select('id, slug, name, category, description, rating, logo_url, image')
@@ -617,15 +853,16 @@
                 if (error) throw error;
                 if (!data || data.length === 0) return;
 
-                // Process basic data
+                // Process data
                 state.restaurants = data.map(r => ({
                     ...r,
                     category_icon: getCategoryIconFallback(r.category),
-                    coverImage: r.image, // Use internal image for immediate load
-                    logo: r.logo_url
+                    coverImage: r.image,
+                    logo: r.logo_url,
+                    isCloudKitchen: cloudKitchenManager.isCloudKitchen(r.id)
                 }));
 
-                // Initial Render (Fastest Paint)
+                // Initial Render
                 renderRestaurants();
                 populateFilters();
                 
@@ -635,8 +872,8 @@
                 startSpotlightRotation();
                 setupRestaurantOfTheDay();
 
-                // Fetch high-res images/categories in background if needed
-                loadRestaurantImages(); 
+                // Load high-res images in background
+                loadRestaurantImages();
 
             } catch (error) {
                 console.error('Error loading restaurants:', error);
@@ -644,35 +881,28 @@
         }
 
         async function loadRestaurantImages() {
-             // Background task to fetch gallery images if they differ from main
             try {
                 const { data } = await supabase.from('restaurant_gallery')
                     .select('restaurant_slug, image_url, image_type')
                     .eq('is_primary', true);
                 
                 if (data) {
-                    let updates = false;
                     data.forEach(item => {
                         const r = state.restaurants.find(x => x.slug === item.restaurant_slug);
                         if (r && item.image_type === 'cover') {
                             r.coverImage = item.image_url;
-                            updates = true;
                         }
                     });
-                    // Only re-render if necessary (avoid layout shift)
-                    // if(updates) renderRestaurants(); 
                 }
-            } catch (e) { /* ignore background errors */ }
+            } catch (e) { /* ignore */ }
         }
 
         async function loadAllRestaurantsForSearch() {
-            // Background fetch for search autocomplete
             const { data } = await supabase.from('restraunts').select('slug, name, category, description, logo_url');
             if(data) state.allRestaurants = data;
         }
 
-        // --- Rendering (Optimized with DocumentFragment) ---
-
+        // ---------- RENDERING (Updated to match restaurants.html style) ----------
         function renderRestaurants() {
             const featured = state.restaurants.slice(0, 12);
             const nearby = state.restaurants.slice(12, 24);
@@ -680,9 +910,9 @@
             const renderBatch = (list, container) => {
                 container.classList.remove('skeleton-grid');
                 container.innerHTML = '';
-                const fragment = document.createDocumentFragment(); // PERFORMANCE: Use fragment
+                const fragment = document.createDocumentFragment();
                 list.forEach((r, i) => fragment.appendChild(createCard(r, i)));
-                container.appendChild(fragment); // One DOM update per section
+                container.appendChild(fragment);
             };
 
             renderBatch(featured, elements.featuredSlider);
@@ -693,23 +923,79 @@
             const card = document.createElement('div');
             card.className = 'restaurant-card';
             
-            // Calculate badge status (bookmarks etc) if logged in
+            const rating = restaurant.rating || 0;
+            const categoryIcon = restaurant.category_icon || getCategoryIconFallback(restaurant.category);
+            const category = restaurant.category || 'Restaurant';
+            const logoUrl = restaurant.logo_url;
             const status = listManager.getRestaurantListStatus(restaurant.id);
-            let badgeText = '';
-            if (status.favorites) badgeText += '❤️ ';
-            if (status.wantToGo) badgeText += '📍 ';
-            if (status.visited) badgeText += '✓ ';
-
-            const isTopRated = (restaurant.rating || 0) >= 4.5;
+            const isTopRated = rating >= 4.5;
+            const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
+            const isCloudKitchen = restaurant.isCloudKitchen || false;
+            const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
             
-            // Optimization: loading="lazy" and decoding="async"
+            // Create list badges with tooltips
+            let listBadges = '';
+            
+            if (status.favorites) {
+                listBadges += `
+                    <div class="list-badge">
+                        ❤️
+                        <div class="list-badge-tooltip">Added to Favorites</div>
+                    </div>
+                `;
+            }
+            
+            if (status.wantToGo) {
+                listBadges += `
+                    <div class="list-badge">
+                        📍
+                        <div class="list-badge-tooltip">Marked as Want to Go</div>
+                    </div>
+                `;
+            }
+            
+            if (status.visited) {
+                listBadges += `
+                    <div class="list-badge">
+                        ✓
+                        <div class="list-badge-tooltip">Marked as Visited</div>
+                    </div>
+                `;
+            }
+            
             card.innerHTML = `
                 <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
-                    <div class="card-image">
-                        ${restaurant.coverImage ? `<img class="restaurant-image" src="${restaurant.coverImage}" alt="${restaurant.name}" loading="lazy" decoding="async">` : ''}
-                        ${restaurant.logo_url ? `<div class="logo-overlay"><img src="${restaurant.logo_url}" alt="logo" loading="lazy" decoding="async"></div>` : ''}
-                        <button class="menu-btn" title="Save"><i class="fas fa-ellipsis-h"></i></button>
-                        ${badgeText ? `<div class="badge-container"><div class="user-list-badge">${badgeText}</div></div>` : ''}
+                    <div class="card-image-container">
+                        ${logoUrl ? `
+                            <div class="logo-wrapper">
+                                <img class="logo-image" 
+                                     data-src="${logoUrl}" 
+                                     alt="${restaurant.name} logo" 
+                                     width="70" 
+                                     height="70">
+                            </div>
+                        ` : ''}
+                        
+                        <div class="main-image-container">
+                            ${hasCoverImage ? `
+                                <img class="restaurant-image" 
+                                     data-src="${restaurant.coverImage}" 
+                                     alt="${restaurant.name}" 
+                                     width="300" 
+                                     height="180">
+                            ` : ''}
+                            
+                            ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
+                            
+                            ${cloudBadge}
+                            
+                            <div class="menu-btn-container">
+                                <button class="menu-btn" aria-label="Restaurant actions">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                    <div class="menu-btn-tooltip">Save to lists</div>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-content">
                         <div class="card-header">
@@ -717,38 +1003,82 @@
                                 <h3 class="card-title">${restaurant.name}</h3>
                                 ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
                             </div>
-                            <div class="card-rating"><i class="fas fa-star"></i> ${(restaurant.rating||0).toFixed(1)}</div>
+                            <div class="card-rating">
+                                <i class="fas fa-star"></i>
+                                ${rating.toFixed(1)}
+                            </div>
                         </div>
-                        <div class="card-category"><span>${restaurant.category_icon}</span> ${restaurant.category}</div>
-                        <p class="card-description">${restaurant.description || 'Tasty food.'}</p>
+                        <div class="card-category">
+                            <span>${categoryIcon}</span>
+                            ${category}
+                        </div>
+                        <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
+                        <div class="card-footer">
+                            <div class="card-location">Click to view details</div>
+                        </div>
                     </div>
-                </a>`;
-
+                </a>
+            `;
+            
             // Attach Menu Event
             const menuBtn = card.querySelector('.menu-btn');
             if(menuBtn) {
                 menuBtn.addEventListener('click', (e) => {
-                    e.preventDefault(); e.stopPropagation();
+                    e.preventDefault(); 
+                    e.stopPropagation();
                     showModal(restaurant);
                 });
             }
-            // Load image listener (for fade in)
-            const img = card.querySelector('.restaurant-image');
-            if(img) img.onload = () => img.classList.add('loaded');
+            
+            // Load images
+            const mainImage = card.querySelector('.restaurant-image');
+            if(mainImage && mainImage.dataset.src) {
+                preloadImage(mainImage.dataset.src, (success) => {
+                    if(success) {
+                        mainImage.src = mainImage.dataset.src;
+                        mainImage.onload = () => mainImage.classList.add('loaded');
+                    }
+                });
+            }
+            
+            const logoImage = card.querySelector('.logo-image');
+            if(logoImage && logoImage.dataset.src) {
+                preloadImage(logoImage.dataset.src, (success) => {
+                    if(success) {
+                        logoImage.src = logoImage.dataset.src;
+                        logoImage.onload = () => logoImage.classList.add('loaded');
+                    }
+                });
+            }
 
             return card;
         }
 
-        // --- Spotlight & Filters ---
-
+        // ---------- SPOTLIGHT & FILTERS ----------
         function updateSpotlight() {
             if (!state.spotlightRestaurants.length) return;
             const r = state.spotlightRestaurants[state.spotlightIndex];
             
-            if (r.coverImage) loadImage(elements.spotFoodImage, r.coverImage);
+            // Preload and load spotlight image
+            if (r.coverImage) {
+                preloadImage(r.coverImage, (success) => {
+                    if (success) {
+                        elements.spotFoodImage.src = r.coverImage;
+                        elements.spotFoodImage.onload = () => {
+                            elements.spotFoodImage.classList.add('loaded');
+                        };
+                    }
+                });
+            }
+            
             if (r.logo_url) {
                 elements.spotLogoOverlay.style.display = 'flex';
-                loadImage(elements.spotLogo, r.logo_url);
+                preloadImage(r.logo_url, (success) => {
+                    if (success) {
+                        elements.spotLogo.src = r.logo_url;
+                        elements.spotLogo.onload = () => elements.spotLogo.classList.add('loaded');
+                    }
+                });
             } else {
                 elements.spotLogoOverlay.style.display = 'none';
             }
@@ -765,7 +1095,12 @@
             ).join('');
             
             elements.slideIndicators.querySelectorAll('.slide-indicator').forEach((dot, i) => {
-                dot.onclick = (e) => { e.stopPropagation(); state.spotlightIndex = i; updateSpotlight(); resetSpotlightInterval(); };
+                dot.onclick = (e) => { 
+                    e.stopPropagation(); 
+                    state.spotlightIndex = i; 
+                    updateSpotlight(); 
+                    resetSpotlightInterval(); 
+                };
             });
         }
 
@@ -789,30 +1124,81 @@
             if(!state.restaurants.length) return;
             const r = state.restaurants.find(r => (r.rating || 0) >= 4.5) || state.restaurants[0];
             const status = listManager.getRestaurantListStatus(r.id);
-            let badgeText = '';
-            if (status.favorites) badgeText += '❤️ ';
-            if (status.wantToGo) badgeText += '📍 ';
+            
+            // Create list badges for day card
+            let listBadges = '';
+            if (status.favorites) listBadges += '<div class="list-badge">❤️</div>';
+            if (status.wantToGo) listBadges += '<div class="list-badge">📍</div>';
+            if (status.visited) listBadges += '<div class="list-badge">✓</div>';
 
             elements.dayCard.innerHTML = `
                 <div class="day-badge">Restaurant of the Day</div>
-                <div class="card-image">
-                    <img class="restaurant-image" src="${r.coverImage}" alt="${r.name}" loading="lazy">
-                    ${badgeText ? `<div class="badge-container" style="top:60px"><div class="user-list-badge">${badgeText}</div></div>` : ''}
+                <div class="card-image-container" style="padding:20px 20px 0 20px;">
+                    ${r.logo_url ? `
+                        <div class="logo-wrapper" style="width:80px;height:80px;">
+                            <img class="logo-image" 
+                                 data-src="${r.logo_url}" 
+                                 alt="${r.name} logo" 
+                                 width="80" 
+                                 height="80">
+                        </div>
+                    ` : ''}
+                    
+                    <div class="main-image-container" style="height:200px;">
+                        ${r.coverImage ? `
+                            <img class="restaurant-image" 
+                                 data-src="${r.coverImage}" 
+                                 alt="${r.name}" 
+                                 width="400" 
+                                 height="200">
+                        ` : ''}
+                        
+                        ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
+                        
+                        <div class="menu-btn-container">
+                            <button class="menu-btn" aria-label="Restaurant actions" id="dayCardSaveBtn">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <div class="menu-btn-tooltip">Save to lists</div>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-content">
                     <h3 class="card-title">${r.name}</h3>
                     <p class="card-description">${r.description}</p>
                     <div class="day-card-actions">
                          <button class="day-card-btn day-card-btn-primary" onclick="location.href='restaurant.html?slug=${r.slug}'">View</button>
-                         <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">Save</button>
                     </div>
                 </div>
             `;
-            const img = elements.dayCard.querySelector('img');
-            if(img) img.onload = () => img.classList.add('loaded');
             
-            const saveBtn = document.getElementById('dayCardSaveBtn');
-            if(saveBtn) saveBtn.onclick = (e) => { e.stopPropagation(); showModal(r); };
+            // Load images for day card
+            const dayMainImage = elements.dayCard.querySelector('.restaurant-image');
+            if(dayMainImage && dayMainImage.dataset.src) {
+                preloadImage(dayMainImage.dataset.src, (success) => {
+                    if(success) {
+                        dayMainImage.src = dayMainImage.dataset.src;
+                        dayMainImage.onload = () => dayMainImage.classList.add('loaded');
+                    }
+                });
+            }
+            
+            const dayLogoImage = elements.dayCard.querySelector('.logo-image');
+            if(dayLogoImage && dayLogoImage.dataset.src) {
+                preloadImage(dayLogoImage.dataset.src, (success) => {
+                    if(success) {
+                        dayLogoImage.src = dayLogoImage.dataset.src;
+                        dayLogoImage.onload = () => dayLogoImage.classList.add('loaded');
+                    }
+                });
+            }
+            
+            const saveBtn = elements.dayCard.querySelector('#dayCardSaveBtn');
+            if(saveBtn) saveBtn.onclick = (e) => { 
+                e.stopPropagation(); 
+                showModal(r); 
+            };
+            
             elements.dayCard.onclick = () => location.href=`restaurant.html?slug=${r.slug}`;
         }
 
@@ -832,7 +1218,7 @@
         }
 
         function filterRestaurants(filter) {
-            let filtered = state.restaurants.slice(0, 12); // Always take top 12 based on initial sort
+            let filtered = state.restaurants.slice(0, 12);
             if (filter === 'top-rated') filtered = filtered.filter(r => (r.rating||0) >= 4.5);
             else if (filter !== 'all') filtered = filtered.filter(r => r.category === filter);
             
@@ -843,13 +1229,14 @@
             container.appendChild(fragment);
         }
 
-        // --- Helpers ---
+        // ---------- HELPERS ----------
         function getCategoryIconFallback(name) {
             const map = { 'Burgers': '🍔', 'Chicken': '🍗', 'Pizza': '🍕', 'Asian': '🍜', 'Cafe & Bakery': '☕' };
             return map[name] || '🍴';
         }
 
-        // --- Auth & Lists Logic ---
+        // ---------- AUTH & LISTS LOGIC ----------
+        // Keep your existing listManager, customListsManager, and all other logic
         const listManager = {
             userLists: [],
             currentLists: { favorites: null, visited: null, wantToGo: null },
@@ -860,16 +1247,13 @@
                 const { data } = await supabase.from('lists').select('*').eq('user_id', user.id);
                 this.userLists = data || [];
                 
-                // Helper to setup lists locally without waiting
                 this.currentLists.favorites = this.userLists.find(l => l.title === 'Favorites');
                 this.currentLists.visited = this.userLists.find(l => l.title === 'Visited');
                 this.currentLists.wantToGo = this.userLists.find(l => l.title === 'Want to Go');
                 
-                // Load actual items
                 await this.loadListRestaurants();
             },
             async loadListRestaurants() {
-                // Fetch all list items in one go
                 const listIds = this.userLists.map(l => l.id);
                 if(!listIds.length) return;
                 
@@ -887,7 +1271,6 @@
             async toggleInList(type, rId) {
                 let list = this.currentLists[type];
                 if(!list) {
-                      // Create if missing on fly
                       const titles = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' };
                       const { data: { user } } = await supabase.auth.getUser();
                       const { data } = await supabase.from('lists').insert([{ user_id: user.id, title: titles[type] }]).select().single();
@@ -916,441 +1299,9 @@
             }
         };
 
-        const customListsManager = {
-            async init() {
-                if (state.isLoggedIn) {
-                    await this.loadCustomLists();
-                }
-            },
-            
-            async loadCustomLists() {
-                try {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) return;
-                    
-                    // Get all custom lists (excluding default lists)
-                    const { data: lists, error } = await supabase
-                        .from('lists')
-                        .select('*')
-                        .eq('user_id', user.id)
-                        .neq('title', 'Favorites')
-                        .neq('title', 'Visited')
-                        .neq('title', 'Want to Go')
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) throw error;
-                    state.customLists = lists || [];
-                    
-                } catch (error) {
-                    console.error('Error loading custom lists:', error);
-                    state.customLists = [];
-                }
-            },
-            
-            async createList(name) {
-                try {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) return null;
-                    
-                    const { data: newList, error } = await supabase
-                        .from('lists')
-                        .insert([{
-                            user_id: user.id,
-                            title: name,
-                            description: 'Custom list for restaurants',
-                            created_at: new Date().toISOString()
-                        }])
-                        .select()
-                        .single();
-                    
-                    if (error) throw error;
-                    state.customLists.unshift(newList);
-                    return newList;
-                    
-                } catch (error) {
-                    console.error('Error creating list:', error);
-                    showNotification('Error creating list', 'error');
-                    return null;
-                }
-            },
-            
-            async checkRestaurantInList(restaurantId, listId) {
-                try {
-                    const { data, error } = await supabase
-                        .from('lists_restraunts')
-                        .select('*')
-                        .eq('list_id', listId)
-                        .eq('restraunt_id', restaurantId);
-                    
-                    if (error) return false;
-                    return data && data.length > 0;
-                } catch (error) {
-                    return false;
-                }
-            },
-            
-            async toggleRestaurantInList(restaurantId, listId) {
-                try {
-                    const isInList = await this.checkRestaurantInList(restaurantId, listId);
-                    
-                    if (isInList) {
-                        // Remove from list
-                        const { error } = await supabase
-                            .from('lists_restraunts')
-                            .delete()
-                            .eq('list_id', listId)
-                            .eq('restraunt_id', restaurantId);
-                        
-                        if (error) throw error;
-                        return false; // Removed
-                    } else {
-                        // Add to list
-                        const { error } = await supabase
-                            .from('lists_restraunts')
-                            .insert([{
-                                list_id: listId,
-                                restraunt_id: restaurantId,
-                                added_at: new Date().toISOString()
-                            }]);
-                        
-                        if (error) throw error;
-                        return true; // Added
-                    }
-                } catch (error) {
-                    console.error('Error toggling restaurant in list:', error);
-                    return null;
-                }
-            },
-            
-            async loadRestaurantListsStatus(restaurantId) {
-                if (!state.isLoggedIn || !restaurantId) return {};
-                const status = {};
-                // Check each list in parallel
-                const promises = state.customLists.map(async (list) => {
-                    status[list.id] = await this.checkRestaurantInList(restaurantId, list.id);
-                });
-                await Promise.all(promises);
-                return status;
-            },
-            
-            renderListsList(restaurantId) {
-                const container = document.getElementById('listsListContainer');
-                if (!container) return;
-                
-                if (state.customLists.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-lists">
-                            <i class="fas fa-list"></i>
-                            <h4>No custom lists yet</h4>
-                            <p>Create your first list to organize restaurants</p>
-                        </div>`;
-                    return;
-                }
-                
-                let html = '<div class="lists-list">';
-                state.customLists.forEach(list => {
-                    const isChecked = state.selectedLists.has(list.id);
-                    const listIcon = list.icon || '📋';
-                    html += `
-                        <div class="list-item ${isChecked ? 'active' : ''}" data-list-id="${list.id}">
-                            <div class="list-info">
-                                <div class="list-icon">${listIcon}</div>
-                                <div>
-                                    <span class="list-name">${list.title}</span>
-                                    ${list.description ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">${list.description}</div>` : ''}
-                                </div>
-                            </div>
-                            <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
-                        </div>`;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-                
-                // Add event listeners
-                container.querySelectorAll('.list-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const listId = item.dataset.listId;
-                        const checkbox = item.querySelector('.list-checkbox');
-                        
-                        if (state.selectedLists.has(listId)) {
-                            state.selectedLists.delete(listId);
-                            item.classList.remove('active');
-                            checkbox.classList.remove('checked');
-                        } else {
-                            state.selectedLists.add(listId);
-                            item.classList.add('active');
-                            checkbox.classList.add('checked');
-                            // Animation reset hack
-                            checkbox.style.animation = 'none';
-                            setTimeout(() => { checkbox.style.animation = 'checkPop 0.3s ease'; }, 10);
-                        }
-                    });
-                });
-            },
-            
-            async refreshLists() {
-                await this.loadCustomLists();
-            }
-        };
+        // Keep all your other existing functions (customListsManager, showModal, hideModal, etc.)
 
-        // --- Auth UI Updates ---
-        async function updateAuthUI() {
-            const { data: { session } } = await supabase.auth.getSession();
-            state.isLoggedIn = !!session;
-
-            if (state.isLoggedIn) {
-                elements.guestBanner.classList.remove('show');
-                elements.startJourneyBtn.style.display = 'none';
-                document.querySelector('.btn-primary.logged-in').style.display = 'flex';
-                
-                const user = session.user;
-                const name = user.user_metadata?.username || user.email?.split('@')[0] || 'Account';
-                elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>${name}</span>`;
-                elements.userAccountBtn.onclick = () => location.href = 'profile.html';
-
-                await listManager.init();
-                await customListsManager.init();
-                renderRestaurants(); // Re-render to show badges
-                setupRestaurantOfTheDay();
-            } else {
-                elements.guestBanner.classList.add('show');
-                elements.startJourneyBtn.style.display = 'flex';
-                document.querySelector('.btn-primary.logged-in').style.display = 'none';
-                elements.userAccountBtn.onclick = () => location.href = 'login.html';
-            }
-        }
-
-        // --- Custom Lists Modal Logic ---
-        async function showCustomListsModal(restaurantId) {
-            if (!restaurantId) {
-                showNotification('No restaurant selected', 'error');
-                return;
-            }
-            if (!state.isLoggedIn) {
-                showAuthPrompt();
-                return;
-            }
-            
-            const restaurant = state.restaurants.find(r => r.id === restaurantId);
-            if (!restaurant) {
-                showNotification('Restaurant not found', 'error');
-                return;
-            }
-            
-            state.currentModalRestaurant = restaurant;
-            
-            // Ensure lists are loaded
-            if (!state.customLists || state.customLists.length === 0) {
-                await customListsManager.refreshLists();
-            }
-            
-            // Load status
-            try {
-                const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
-                state.selectedLists.clear();
-                for (const [listId, isChecked] of Object.entries(status)) {
-                    if (isChecked) state.selectedLists.add(listId);
-                }
-                
-                customListsManager.renderListsList(restaurantId);
-                
-                const modal = document.getElementById('customListsModal');
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                
-                setTimeout(() => {
-                    const inp = document.getElementById('newListName');
-                    if (inp) inp.focus();
-                }, 300);
-            } catch (error) {
-                console.error('Error loading list status:', error);
-                showNotification('Error loading lists', 'error');
-            }
-        }
-
-        function hideCustomListsModal() {
-            document.getElementById('customListsModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-            state.selectedLists.clear();
-        }
-
-        async function saveListChanges() {
-            if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
-                hideCustomListsModal(); return;
-            }
-            
-            const restaurantId = state.currentModalRestaurant.id;
-            const saveBtn = document.getElementById('saveListsBtn');
-            const originalText = saveBtn.textContent;
-            
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-            
-            try {
-                let changesMade = false;
-                for (const list of state.customLists) {
-                    const shouldBeInList = state.selectedLists.has(list.id);
-                    const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
-                    
-                    if (shouldBeInList && !isInList) {
-                        await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-                        changesMade = true;
-                    } else if (!shouldBeInList && isInList) {
-                        await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-                        changesMade = true;
-                    }
-                }
-                
-                if (changesMade) showNotification('List changes saved successfully!', 'success');
-                else showNotification('No changes made', 'info');
-                
-                hideCustomListsModal();
-                renderRestaurants(); // update UI
-                
-            } catch (error) {
-                console.error('Error saving:', error);
-                showNotification('Error saving changes', 'error');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-            }
-        }
-
-        function showAuthPrompt() {
-            document.getElementById('authPromptModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-        function hideAuthPrompt() {
-            document.getElementById('authPromptModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // --- UI Interactions ---
-        function setupEventListeners() {
-            // Search
-            elements.search.addEventListener('input', function() {
-                elements.clearSearch.style.display = this.value ? 'block' : 'none';
-                const term = this.value.toLowerCase();
-                if(!term) { elements.searchSuggestions.classList.remove('show'); return; }
-                
-                const matches = state.allRestaurants.filter(r => r.name.toLowerCase().includes(term)).slice(0,5);
-                if(matches.length) {
-                    elements.searchSuggestions.innerHTML = matches.map(r => 
-                        `<div class="suggestion-item" onclick="location.href='restaurant.html?slug=${r.slug}'">
-                            <div class="suggestion-info"><div class="suggestion-name">${r.name}</div></div>
-                         </div>`
-                    ).join('');
-                    elements.searchSuggestions.classList.add('show');
-                } else elements.searchSuggestions.classList.remove('show');
-            });
-
-            elements.search.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') location.href = `restraunts.html?search=${encodeURIComponent(elements.search.value)}`;
-            });
-
-            // Modals
-            document.getElementById('modalCancelBtn').onclick = hideModal;
-            document.getElementById('actionsModal').onclick = (e) => { if(e.target === document.getElementById('actionsModal')) hideModal(); };
-            
-            // Standard List Buttons
-            ['Favorites', 'WantToGo', 'Visited'].forEach(type => {
-                const btn = document.getElementById(`modal${type}Btn`);
-                if(btn) btn.onclick = async () => {
-                    if(!state.currentModalRestaurant) return;
-                    await listManager.toggleInList(type.charAt(0).toLowerCase() + type.slice(1), state.currentModalRestaurant.id);
-                    updateModalButtons(state.currentModalRestaurant.id); // Update text immediately
-                    hideModal();
-                    renderRestaurants(); // update badges
-                    setupRestaurantOfTheDay();
-                };
-            });
-            
-            // Custom List Logic
-             document.getElementById('modalCustomListsBtn').onclick = () => {
-                 if(!state.currentModalRestaurant) return;
-                 const rId = state.currentModalRestaurant.id;
-                 hideModal();
-                 showCustomListsModal(rId);
-             };
-             
-             document.getElementById('closeListsBtn').onclick = hideCustomListsModal;
-             document.getElementById('saveListsBtn').onclick = saveListChanges;
-             
-             document.getElementById('createListBtn').addEventListener('click', async () => {
-                 const name = document.getElementById('newListName').value.trim();
-                 if(!name) { showNotification('Enter list name', 'warning'); return; }
-                 
-                 const exists = state.customLists.find(l => l.title.toLowerCase() === name.toLowerCase());
-                 if(exists) { showNotification('List already exists', 'warning'); return; }
-                 
-                 const newList = await customListsManager.createList(name);
-                 if(newList) {
-                     showNotification(`Created "${name}"`, 'success');
-                     document.getElementById('newListName').value = '';
-                     await customListsManager.refreshLists();
-                     state.selectedLists.add(newList.id);
-                     customListsManager.renderListsList(state.currentModalRestaurant?.id);
-                 }
-             });
-
-             // Auth prompt listeners
-             document.getElementById('authPromptCloseBtn').onclick = hideAuthPrompt;
-             document.getElementById('authPromptLoginBtn').onclick = () => location.href = 'login.html';
-             document.getElementById('authPromptSignupBtn').onclick = () => location.href = 'sign-up.html';
-             document.getElementById('authPromptModal').onclick = (e) => { if(e.target === document.getElementById('authPromptModal')) hideAuthPrompt(); };
-        }
-
-        function showModal(r) {
-            if (!state.isLoggedIn) { showAuthPrompt(); return; }
-            state.currentModalRestaurant = r;
-            document.getElementById('modalRestaurantName').textContent = r.name;
-            updateModalButtons(r.id);
-            document.getElementById('actionsModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function hideModal() {
-            document.getElementById('actionsModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-            state.currentModalRestaurant = null;
-        }
-
-        function updateModalButtons(restaurantId) {
-            const status = listManager.getRestaurantListStatus(restaurantId);
-            
-            const favBtn = document.getElementById('modalFavoritesBtn');
-            const wantBtn = document.getElementById('modalWantToGoBtn');
-            const visitedBtn = document.getElementById('modalVisitedBtn');
-
-            // Toggle Class
-            favBtn.classList.toggle('active', status.favorites);
-            wantBtn.classList.toggle('active', status.wantToGo);
-            visitedBtn.classList.toggle('active', status.visited);
-
-            // Toggle Text ("Add to" vs "Remove from")
-            favBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
-            wantBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
-            visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
-        }
-
-        function showNotification(msg, type) {
-            const div = document.createElement('div');
-            div.className = `custom-notification notification-${type} notification-show`;
-            
-            let iconClass = "fas fa-info-circle";
-            if (type === "success") iconClass = "fas fa-check-circle";
-            if (type === "error") iconClass = "fas fa-exclamation-circle";
-            
-            div.innerHTML = `<i class="notification-icon ${iconClass}"></i><span class="notification-message">${msg}</span>`;
-            document.getElementById('notificationContainer').appendChild(div);
-            setTimeout(() => {
-                div.classList.remove("notification-show");
-                setTimeout(() => div.remove(), 400);
-            }, 3000);
-        }
-
-        // Initialize immediately
+        // ---------- INITIALIZATION ----------
         init();
     });
     </script>
