@@ -18,13 +18,20 @@
     
     <style>
         :root { 
-          --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
-          --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
-          --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-          --shadow: 0 10px 30px rgba(0,0,0,0.3);
-          --success: #10b981; --error: #ef4444; --info: #3b82f6;
-          --surface: rgba(19, 35, 71, 0.6);
-          --cloud-color: #3b82f6;
+            --bg: #0b1633; 
+            --card: #132347; 
+            --muted: #8ca3c7; 
+            --accent: #f59e0b; 
+            --glass: rgba(255,255,255,0.03); 
+            --white: #ffffff; 
+            --border: rgba(255,255,255,0.1);
+            --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            --shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --success: #10b981; 
+            --error: #ef4444; 
+            --info: #3b82f6;
+            --surface: rgba(19, 35, 71, 0.6);
+            --cloud-color: #3b82f6;
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,669 +39,2245 @@
         a { color: inherit; text-decoration: none; }
         img { display: block; max-width: 100%; height: auto; }
         
-        /* Updated Card Styles to Match restaurants.html */
+        /* Guest Banner */
+        .guest-banner { 
+            display: none; 
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%); 
+            border: 1px solid rgba(245, 158, 11, 0.2); 
+            padding: 12px 20px; 
+            margin: 0 auto 20px auto; 
+            border-radius: 12px; 
+            max-width: 1200px; 
+            width: calc(100% - 32px); 
+            text-align: center; 
+            animation: slideDown 0.3s ease-out; 
+        }
+        .guest-banner.show { display: block; }
+        @keyframes slideDown { 
+            from { opacity: 0; transform: translateY(-20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .banner-content { 
+            display: flex; 
+            flex-wrap: wrap; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+            color: var(--muted); 
+            font-size: 14px; 
+        }
+        .banner-actions { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+        }
+        .banner-btn { 
+            padding: 6px 14px; 
+            border-radius: 8px; 
+            font-weight: 500; 
+            font-size: 13px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            border: none; 
+        }
+        .banner-btn-outline { 
+            background: transparent; 
+            color: var(--accent); 
+            border: 1px solid var(--accent); 
+        }
+        .banner-btn-outline:hover { 
+            background: rgba(245, 158, 11, 0.1); 
+        }
+        .banner-btn-primary { 
+            background: var(--accent); 
+            color: #111; 
+            border: 1px solid var(--accent); 
+        }
+        .banner-btn-primary:hover { 
+            background: #ffb84d; 
+            transform: translateY(-1px); 
+        }
+        
+        /* Navigation */
+        .nav { 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 14px 16px; 
+            backdrop-filter: blur(10px) saturate(180%); 
+            background: var(--surface); 
+            border-bottom: 1px solid var(--border); 
+            transition: all 0.3s ease; 
+        }
+        .nav-container { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            width: 100%; 
+            max-width: 1200px; 
+        }
+        .nav.scrolled { 
+            background: rgba(19, 35, 71, 0.95); 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); 
+        }
+        .logo { 
+            height: 40px; 
+            width: auto; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            flex-shrink: 0; 
+        }
+        .logo:hover { 
+            transform: scale(1.05); 
+        }
+        .search-wrapper { 
+            width: 100%; 
+            max-width: 500px; 
+            position: relative; 
+            margin: 0 24px; 
+        }
+        .search { 
+            width: 100%; 
+            padding: 10px 16px 10px 40px; 
+            border-radius: 20px; 
+            border: 1px solid var(--border); 
+            background: var(--card); 
+            color: var(--white); 
+            outline: none; 
+            font-size: 14px; 
+            transition: all 0.3s ease; 
+        }
+        .search:focus { 
+            border-color: var(--accent); 
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
+        }
+        .search-icon { 
+            position: absolute; 
+            left: 12px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            opacity: 0.6; 
+            pointer-events: none; 
+        }
+        .clear-search { 
+            position: absolute; 
+            right: 12px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            background: none; 
+            border: none; 
+            color: var(--muted); 
+            cursor: pointer; 
+            display: none; 
+            padding: 4px; 
+        }
+        .clear-search:hover { 
+            color: var(--white); 
+        }
+        .search-suggestions { 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            right: 0; 
+            background: var(--card); 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            margin-top: 8px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+            display: none; 
+            z-index: 1000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+        }
+        .search-suggestions.show { 
+            display: block; 
+        }
+        .suggestion-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px 16px; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            border-bottom: 1px solid var(--border); 
+        }
+        .suggestion-item:last-child { 
+            border-bottom: none; 
+        }
+        .suggestion-item:hover { 
+            background: rgba(255,255,255,0.05); 
+        }
+        .suggestion-logo { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            margin-right: 12px; 
+            flex-shrink: 0; 
+        }
+        .suggestion-logo img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+        .suggestion-info { 
+            flex: 1; 
+            min-width: 0; 
+        }
+        .suggestion-name { 
+            font-weight: 500; 
+            font-size: 14px; 
+            margin-bottom: 2px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        .suggestion-category { 
+            font-size: 12px; 
+            color: var(--muted); 
+        }
+        .nav-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            flex-shrink: 0; 
+        }
+        .account-btn { 
+            background: transparent; 
+            color: var(--white); 
+            padding: 8px 16px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            cursor: pointer; 
+            font-weight: 500; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            transition: all 0.3s ease; 
+            font-size: 14px; 
+            white-space: nowrap; 
+        }
+        .account-btn:hover { 
+            background: rgba(245, 158, 11, 0.1); 
+            border-color: var(--accent); 
+        }
+        .nav a.ghost { 
+            color: var(--muted); 
+            padding: 8px 14px; 
+            border-radius: 12px; 
+            font-size: 14px; 
+            font-weight: 500; 
+            transition: all 0.3s ease; 
+            white-space: nowrap; 
+        }
+        .nav a.ghost:hover { 
+            color: var(--accent); 
+            background: rgba(245, 158, 11, 0.05); 
+        }
+        
+        /* Hero Section */
+        .hero { 
+            position: relative; 
+            min-height: 70vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 40px 16px; 
+        }
+        .hero-container { 
+            position: relative; 
+            z-index: 6; 
+            display: flex; 
+            align-items: center; 
+            gap: 60px; 
+            width: 100%; 
+            max-width: 1200px; 
+        }
+        .hero-left { 
+            flex: 1; 
+            min-width: 0; 
+        }
+        .tag { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+            color: var(--accent); 
+            font-weight: 600; 
+            font-size: 13px; 
+            padding: 6px 12px; 
+            border-radius: 999px; 
+            margin-bottom: 16px; 
+            border: 1px solid rgba(245, 158, 11, 0.2); 
+            background: rgba(245, 158, 11, 0.05); 
+        }
+        h1 { 
+            font-size: clamp(1.75rem, 5vw, 2.5rem); 
+            line-height: 1.1; 
+            margin: 0 0 12px 0; 
+            font-weight: 700; 
+            letter-spacing: -0.5px; 
+            color: var(--white); 
+        }
+        .lead { 
+            color: var(--muted); 
+            font-size: clamp(0.875rem, 2vw, 1rem); 
+            margin-bottom: 24px; 
+            max-width: 500px; 
+            line-height: 1.6; 
+            font-weight: 400; 
+        }
+        .cta-row { 
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+            flex-wrap: wrap; 
+        }
+        .btn-primary { 
+            background: var(--gradient); 
+            color: #0b1633; 
+            padding: 12px 24px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 14px; 
+            transition: all 0.3s ease; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); 
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px) scale(1.03); 
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4); 
+        }
+        .btn-primary.logged-out { 
+            background: var(--gradient); 
+            border: 1px solid var(--accent); 
+        }
+        .btn-primary.logged-in { 
+            background: var(--gradient); 
+            color: #0b1633; 
+            border: 1px solid var(--accent); 
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); 
+        }
+        .btn-primary.logged-in:hover { 
+            transform: translateY(-2px) scale(1.03); 
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4); 
+        }
+        .btn-outline { 
+            background: transparent; 
+            color: var(--white); 
+            padding: 12px 24px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            font-weight: 500; 
+            transition: all 0.3s ease; 
+            font-size: 14px; 
+        }
+        .btn-outline:hover { 
+            border-color: var(--accent); 
+            background: rgba(245, 158, 11, 0.05); 
+        }
+        .hero-right { 
+            width: 100%; 
+            max-width: 500px; 
+            min-width: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+        }
+        
+        /* Spotlight */
+        .spotlight-wrapper { 
+            width: 100%; 
+            position: relative; 
+        }
+        .spotlight { 
+            width: 100%; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            background: var(--card); 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); 
+            border: 2px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            position: relative; 
+            z-index: 2; 
+            transition: all 0.3s ease; 
+            cursor: pointer; 
+            height: 360px; 
+        }
+        .spotlight:hover { 
+            transform: translateY(-5px); 
+            border-color: var(--accent); 
+            box-shadow: 0 20px 50px rgba(245, 158, 11, 0.25); 
+        }
+        .spotlight-img-container { 
+            width: 100%; 
+            height: 220px; 
+            border-radius: 0; 
+            overflow: hidden; 
+            background: var(--glass); 
+            position: relative; 
+        }
+        .spotlight-food-image { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            display: block; 
+            transition: transform 0.5s ease; 
+        }
+        .spotlight:hover .spotlight-food-image { 
+            transform: scale(1.05); 
+        }
+        .spotlight-logo-overlay { 
+            position: absolute; 
+            bottom: 12px; 
+            left: 12px; 
+            width: 48px; 
+            height: 48px; 
+            background: rgba(11, 22, 51, 0.9); 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 4px; 
+            border: 2px solid var(--accent); 
+            backdrop-filter: blur(10px); 
+            z-index: 10; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); 
+        }
+        .spotlight-logo-overlay img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+        }
+        .spotlight-content { 
+            padding: 20px; 
+            flex: 1; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+        }
+        .spotlight-text { 
+            margin-bottom: 16px; 
+        }
+        .spotlight h3 { 
+            margin: 0 0 8px 0; 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: var(--white); 
+            line-height: 1.3; 
+        }
+        .spotlight p { 
+            margin: 0; 
+            color: var(--muted); 
+            font-size: 14px; 
+            line-height: 1.5; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+            margin-bottom: 12px; 
+        }
+        .spotlight .rating { 
+            color: var(--accent); 
+            font-weight: 600; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            font-size: 14px; 
+        }
+        .spotlight-actions { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .slide-indicators { 
+            display: flex; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-top: 16px; 
+        }
+        .slide-indicator { 
+            width: 10px; 
+            height: 10px; 
+            border-radius: 50%; 
+            background: var(--border); 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+        }
+        .slide-indicator.active { 
+            background: var(--accent); 
+            transform: scale(1.2); 
+        }
+        .slide-indicator:hover { 
+            background: var(--accent); 
+        }
+        
+        /* Restaurant Cards - MATCHING restaurants.html STYLE */
         .restaurant-card { 
-          background: var(--card); 
-          border-radius: 16px; 
-          overflow: hidden; 
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-          border: 1px solid var(--border);
-          cursor: pointer; 
-          position: relative;
-          transition: all 0.2s ease;
-          display: flex;
-          flex-direction: column;
-          height: 100%;
+            background: var(--card); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            border: 1px solid var(--border);
+            cursor: pointer; 
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         } 
         
         .restaurant-card:hover { 
-          transform: translateY(-4px); 
-          box-shadow: 0 12px 24px rgba(0,0,0,0.2);
-          border-color: var(--accent);
+            transform: translateY(-4px); 
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            border-color: var(--accent);
         }
         
         .card-image-container {
-          position: relative;
-          display: flex;
-          align-items: flex-start;
-          gap: 16px;
-          padding: 16px 16px 0 16px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 16px 0 16px;
         }
         
         .logo-wrapper {
-          flex-shrink: 0;
-          width: 70px;
-          height: 70px;
-          position: relative;
-          z-index: 20;
+            flex-shrink: 0;
+            width: 70px;
+            height: 70px;
+            position: relative;
+            z-index: 20;
         }
         
         .logo-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 12px;
-          border: 2px solid var(--accent);
-          background: rgba(11, 22, 51, 0.9);
-          padding: 4px;
-          opacity: 0;
-          transition: opacity 0.3s ease;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+            background: rgba(11, 22, 51, 0.9);
+            padding: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
         .logo-image.loaded {
-          opacity: 1;
+            opacity: 1;
         }
         
         .restaurant-card:hover .logo-image {
-          transform: scale(1.05);
-          border-color: var(--accent);
-          background: rgba(245,158,11,0.9);
-          box-shadow: 0 8px 24px rgba(245,158,11,0.4);
+            transform: scale(1.05);
+            border-color: var(--accent);
+            background: rgba(245,158,11,0.9);
+            box-shadow: 0 8px 24px rgba(245,158,11,0.4);
         }
         
         .main-image-container {
-          flex: 1;
-          height: 180px;
-          border-radius: 12px;
-          overflow: hidden;
-          background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-          position: relative;
+            flex: 1;
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+            position: relative;
         }
         
         .restaurant-image {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          opacity: 0;
-          transition: opacity 0.5s ease;
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
         
         .restaurant-image.loaded {
-          opacity: 1;
+            opacity: 1;
         }
         
         /* List badges - positioned on main image */
         .list-badges-container {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          display: flex;
-          gap: 8px;
-          z-index: 30;
-          flex-direction: column;
-          align-items: flex-end;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+            z-index: 30;
+            flex-direction: column;
+            align-items: flex-end;
         }
         
         .list-badge {
-          background: rgba(11, 22, 51, 0.95);
-          color: var(--accent);
-          padding: 8px;
-          border-radius: 8px;
-          font-size: 18px;
-          border: 1px solid var(--accent);
-          cursor: help;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 40px;
-          height: 40px;
+            background: rgba(11, 22, 51, 0.95);
+            color: var(--accent);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 18px;
+            border: 1px solid var(--accent);
+            cursor: help;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
         }
         
         .list-badge:hover {
-          transform: scale(1.1);
-          background: rgba(245, 158, 11, 0.95);
-          color: #0b1633;
+            transform: scale(1.1);
+            background: rgba(245, 158, 11, 0.95);
+            color: #0b1633;
         }
         
         /* List badge tooltips */
         .list-badge .list-badge-tooltip {
-          position: absolute;
-          top: 50%;
-          right: 100%;
-          transform: translateY(-50%) translateX(-10px);
-          background: var(--card);
-          border: 2px solid var(--accent);
-          border-radius: 12px;
-          padding: 10px 14px;
-          width: 140px;
-          z-index: 1001;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-          backdrop-filter: blur(10px);
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
-          pointer-events: none;
-          text-align: left;
-          font-size: 12px;
-          line-height: 1.4;
-          margin-right: 8px;
-          color: var(--white);
+            position: absolute;
+            top: 50%;
+            right: 100%;
+            transform: translateY(-50%) translateX(-10px);
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 10px 14px;
+            width: 140px;
+            z-index: 1001;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            text-align: left;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-right: 8px;
+            color: var(--white);
         }
         
         .list-badge:hover .list-badge-tooltip {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(-50%) translateX(-20px);
-          pointer-events: auto;
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(-20px);
+            pointer-events: auto;
         }
         
         /* Cloud Kitchen Badge */
         .cloud-badge {
-          position: absolute;
-          top: 12px;
-          left: 12px;
-          width: 40px;
-          height: 40px;
-          background: rgba(59, 130, 246, 0.95);
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: help;
-          z-index: 100;
-          transition: all 0.3s ease;
-          border: 1px solid var(--cloud-color);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          color: white;
-          font-size: 20px;
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 40px;
+            height: 40px;
+            background: rgba(59, 130, 246, 0.95);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: help;
+            z-index: 100;
+            transition: all 0.3s ease;
+            border: 1px solid var(--cloud-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            color: white;
+            font-size: 20px;
         }
         
         .cloud-badge:hover {
-          background: rgba(59, 130, 246, 1);
-          transform: scale(1.05);
+            background: rgba(59, 130, 246, 1);
+            transform: scale(1.05);
         }
         
         /* Cloud Kitchen Tooltip */
         .cloud-badge .cloud-tooltip {
-          position: absolute;
-          top: 50%;
-          left: 0;
-          transform: translateX(-100%) translateY(-50%);
-          background: var(--card);
-          border: 2px solid var(--cloud-color);
-          border-radius: 12px;
-          padding: 12px 16px;
-          width: 160px;
-          z-index: 1001;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-          backdrop-filter: blur(10px);
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
-          pointer-events: none;
-          color: var(--white);
-          text-align: center;
-          font-weight: 600;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateX(-100%) translateY(-50%);
+            background: var(--card);
+            border: 2px solid var(--cloud-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            width: 160px;
+            z-index: 1001;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            color: var(--white);
+            text-align: center;
+            font-weight: 600;
         }
         
         .cloud-badge:hover .cloud-tooltip {
-          opacity: 1;
-          visibility: visible;
-          transform: translateX(-120%) translateY(-50%);
-          pointer-events: auto;
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-120%) translateY(-50%);
+            pointer-events: auto;
         }
         
         /* Menu button */
         .menu-btn-container {
-          position: absolute;
-          bottom: 12px;
-          right: 12px;
-          z-index: 30;
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            z-index: 30;
         }
         
         .menu-btn {
-          width: 40px;
-          height: 40px;
-          background: rgba(11, 22, 51, 0.9);
-          border: 1px solid var(--accent);
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          backdrop-filter: none;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          position: relative;
+            width: 40px;
+            height: 40px;
+            background: rgba(11, 22, 51, 0.9);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
         }
         
         .menu-btn:hover {
-          background: var(--accent);
-          transform: scale(1.1);
+            background: var(--accent);
+            transform: scale(1.1);
         }
         
         .menu-btn i {
-          color: var(--white);
-          font-size: 18px;
+            color: var(--white);
+            font-size: 18px;
         }
         
         .menu-btn:hover i {
-          color: #0b1633;
+            color: #0b1633;
         }
         
         /* Menu button tooltip */
         .menu-btn .menu-btn-tooltip {
-          position: absolute;
-          bottom: 100%;
-          right: 0;
-          margin-bottom: 8px;
-          background: var(--card);
-          border: 2px solid var(--accent);
-          border-radius: 12px;
-          padding: 10px 14px;
-          z-index: 1001;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-          backdrop-filter: blur(10px);
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
-          pointer-events: none;
-          font-size: 12px;
-          font-weight: 500;
-          white-space: nowrap;
-          min-width: 120px;
-          text-align: center;
-          color: var(--white);
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            margin-bottom: 8px;
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 10px 14px;
+            z-index: 1001;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 120px;
+            text-align: center;
+            color: var(--white);
         }
         
         .menu-btn:hover .menu-btn-tooltip {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
         
         /* Card content */
         .card-content {
-          padding: 16px;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
         .card-header {
-          margin-bottom: 8px;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
         }
         
         .card-title-wrapper {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         .card-title {
-          font-size: 16px;
-          font-weight: 700;
-          line-height: 1.3;
-          margin: 0;
-          flex: 1;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin: 0;
+            flex: 1;
         }
         
         .top-rated-badge {
-          display: inline-block;
-          background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-          color: #0b1633;
-          padding: 3px 8px;
-          border-radius: 6px;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.5px;
-          text-transform: uppercase;
-          border: 1px solid rgba(245, 158, 11, 0.5);
-          animation: glow 2s infinite alternate;
-          box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-          white-space: nowrap;
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+            color: #0b1633;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            animation: glow 2s infinite alternate;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+            white-space: nowrap;
         }
         
         @keyframes glow {
-          0% {
-            box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
-                        0 0 10px rgba(245, 158, 11, 0.3);
-          }
-          100% {
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
-                        0 0 20px rgba(245, 158, 11, 0.5),
-                        0 0 30px rgba(245, 158, 11, 0.3);
-          }
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
+                            0 0 10px rgba(245, 158, 11, 0.3);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
+                            0 0 20px rgba(245, 158, 11, 0.5),
+                            0 0 30px rgba(245, 158, 11, 0.3);
+            }
         }
         
         .card-rating {
-          background: var(--gradient);
-          color: #0b1633;
-          padding: 4px 8px;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 700;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          white-space: nowrap;
-          flex-shrink: 0;
+            background: var(--gradient);
+            color: #0b1633;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         
         .card-category {
-          color: var(--accent);
-          font-size: 13px;
-          font-weight: 600;
-          margin-bottom: 12px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         
         .card-description {
-          color: var(--muted);
-          font-size: 14px;
-          line-height: 1.5;
-          margin: 0 0 16px 0;
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          flex: 1;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0 0 16px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
         }
         
         .card-footer {
-          margin-top: auto;
-          padding-top: 12px;
-          border-top: 1px solid var(--border);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .card-location {
-          color: var(--muted);
-          font-size: 13px;
-          font-weight: 500;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 500;
         }
         
-        /* Mobile Responsive for Cards */
+        /* Grid Layout */
+        .slider-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 20px; 
+            transition: grid-template-columns 0.3s ease; 
+        }
+        
+        /* Restaurant of the Day */
+        .restaurant-of-day { 
+            position: relative; 
+            background: transparent; 
+            border-radius: 20px; 
+            padding: 40px 0; 
+            margin: 40px 0; 
+            text-align: center; 
+        }
+        .day-header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .day-header h2 { 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            color: var(--white); 
+            margin-bottom: 16px; 
+            position: relative; 
+            display: inline-block; 
+        }
+        .day-header h2::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: -16px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 100px; 
+            height: 4px; 
+            background: var(--gradient); 
+            border-radius: 3px; 
+        }
+        .day-header p { 
+            color: var(--muted); 
+            font-size: 1rem; 
+            max-width: 600px; 
+            margin: 24px auto 0; 
+            line-height: 1.6; 
+        }
+        .day-card-container { 
+            display: flex; 
+            justify-content: center; 
+        }
+        .day-card { 
+            background: var(--card); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            border: 1px solid var(--border); 
+            cursor: pointer; 
+            position: relative; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            flex-direction: column; 
+            width: 100%; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            height: auto; 
+        }
+        .day-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2); 
+            border-color: var(--accent); 
+        }
+        .day-card .card-image { 
+            height: 250px; 
+        }
+        .day-card .card-content { 
+            padding: 20px; 
+        }
+        .day-card .card-title { 
+            font-size: 20px; 
+            font-weight: 800; 
+            margin-bottom: 8px; 
+        }
+        .day-card .card-rating { 
+            padding: 6px 12px; 
+            font-size: 14px; 
+            font-weight: 800; 
+        }
+        .day-card .card-category { 
+            font-size: 14px; 
+            margin-bottom: 16px; 
+        }
+        .day-card .card-description { 
+            font-size: 14px; 
+            line-height: 1.6; 
+            margin-bottom: 20px; 
+            -webkit-line-clamp: 3; 
+            min-height: auto; 
+        }
+        .day-card-actions { 
+            display: flex; 
+            gap: 16px; 
+            margin-top: 20px; 
+        }
+        .day-card-btn { 
+            flex: 1; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            transition: all 0.3s ease; 
+            font-size: 14px; 
+        }
+        .day-card-btn-primary { 
+            background: var(--gradient); 
+            color: #0b1633; 
+        }
+        .day-card-btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4); 
+        }
+        .day-card-btn-outline { 
+            background: transparent; 
+            color: var(--white); 
+            border: 2px solid var(--border); 
+        }
+        .day-card-btn-outline:hover { 
+            background: rgba(245, 158, 11, 0.1); 
+            border-color: var(--accent); 
+            transform: translateY(-2px); 
+        }
+        .day-badge { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            background: var(--gradient); 
+            color: #0b1633; 
+            padding: 8px 16px; 
+            border-radius: 10px; 
+            font-size: 12px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            border: 2px solid rgba(245, 158, 11, 0.5); 
+            z-index: 35; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+        }
+        
+        /* Sections */
+        .section { 
+            padding: 40px 16px; 
+            position: relative; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        .section-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+        }
+        .section h2 { 
+            font-size: clamp(1.5rem, 3vw, 2rem); 
+            margin: 0; 
+            color: var(--white); 
+            font-weight: 600; 
+        }
+        .section-subtitle { 
+            color: var(--muted); 
+            font-size: 14px; 
+            margin-top: 4px; 
+            max-width: 500px; 
+            line-height: 1.5; 
+        }
+        .view-all { 
+            color: var(--accent); 
+            font-weight: 500; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            transition: all 0.3s ease; 
+            font-size: 14px; 
+            white-space: nowrap; 
+        }
+        .view-all:hover { 
+            gap: 8px; 
+        }
+        
+        /* Filter Bar */
+        .filter-bar { 
+            display: flex; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-bottom: 24px; 
+            overflow-x: auto; 
+            padding: 4px 0 12px 0; 
+            scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        .filter-bar::-webkit-scrollbar { 
+            display: none; 
+        }
+        .filter-btn { 
+            padding: 8px 16px; 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            color: var(--muted); 
+            font-size: 13px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            white-space: nowrap; 
+            flex-shrink: 0; 
+        }
+        .filter-btn.active, .filter-btn:hover { 
+            background: var(--accent); 
+            color: #111; 
+            border-color: var(--accent); 
+        }
+        
+        /* Skeleton Loading */
+        .skeleton-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 20px; 
+        }
+        .skeleton-card { 
+            background: var(--card); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            border: 1px solid var(--border); 
+        }
+        .skeleton-image { 
+            height: 200px; 
+            background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%); 
+            background-size: 200% 100%; 
+            animation: loading 1.5s infinite; 
+        }
+        .skeleton-content { 
+            padding: 16px; 
+        }
+        .skeleton-line { 
+            height: 12px; 
+            background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%); 
+            background-size: 200% 100%; 
+            animation: loading 1.5s infinite; 
+            margin-bottom: 8px; 
+            border-radius: 4px; 
+        }
+        .skeleton-line.short { 
+            width: 60%; 
+        }
+        @keyframes loading { 
+            0% { background-position: 200% 0; } 
+            100% { background-position: -200% 0; } 
+        }
+        
+        /* Load More */
+        .load-more-container { 
+            display: flex; 
+            justify-content: center; 
+            margin-top: 20px; 
+        }
+        .load-more-btn { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            color: var(--white); 
+            padding: 10px 24px; 
+            border-radius: 12px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        .load-more-btn:hover { 
+            background: var(--accent); 
+            color: #111; 
+            border-color: var(--accent); 
+            transform: translateY(-2px); 
+        }
+        
+        /* App Download */
+        .app-download { 
+            background: var(--card); 
+            border-radius: 16px; 
+            padding: 40px 24px; 
+            text-align: center; 
+            margin: 40px auto; 
+            border: 1px solid var(--border); 
+            max-width: 800px; 
+        }
+        .app-download h2 { 
+            font-size: 2rem; 
+            margin-bottom: 16px; 
+            color: var(--white); 
+        }
+        .app-download p { 
+            font-size: 16px; 
+            color: var(--muted); 
+            margin-bottom: 32px; 
+            max-width: 500px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            line-height: 1.6; 
+        }
+        .app-buttons { 
+            display: flex; 
+            gap: 16px; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+        }
+        .app-button { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            padding: 12px 20px; 
+            background: var(--bg); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            color: var(--white); 
+            text-decoration: none; 
+            transition: all 0.3s ease; 
+            cursor: pointer; 
+        }
+        .app-button:hover { 
+            background: var(--accent); 
+            color: #111; 
+            transform: translateY(-2px); 
+        }
+        
+        /* Modal Styles */
+        .actions-modal, .auth-prompt-modal, .custom-lists-modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: rgba(11, 22, 51, 0.95); 
+            backdrop-filter: blur(20px); 
+            z-index: 1000; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+        }
+        .actions-modal.active, .auth-prompt-modal.active, .custom-lists-modal.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+        .actions-content, .auth-prompt-content, .custom-lists-content { 
+            background: var(--card); 
+            border-radius: 20px; 
+            padding: 30px; 
+            max-width: 400px; 
+            width: 100%; 
+            border: 2px solid var(--accent); 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); 
+            animation: modalSlideIn 0.3s ease-out; 
+            text-align: center; 
+        }
+        .custom-lists-content { 
+            max-width: 500px; 
+            max-height: 80vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        @keyframes modalSlideIn { 
+            from { 
+                opacity: 0; 
+                transform: translateY(-20px); 
+            } 
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            } 
+        }
+        .actions-header, .lists-header { 
+            margin-bottom: 24px; 
+        }
+        .actions-header h3, .lists-header h3 { 
+            font-size: 22px; 
+            margin-bottom: 8px; 
+            color: var(--white); 
+            font-weight: 600; 
+        }
+        .actions-header p { 
+            color: var(--muted); 
+            font-size: 14px; 
+        }
+        .action-buttons { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            margin-bottom: 24px; 
+        }
+        .action-btn-modal { 
+            background: var(--bg); 
+            border: 1px solid var(--border); 
+            color: var(--white); 
+            padding: 16px 20px; 
+            border-radius: 16px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            text-align: left; 
+            font-size: 15px; 
+            justify-content: space-between; 
+        }
+        .action-btn-modal:hover { 
+            background: var(--accent); 
+            color: #0b1633; 
+            transform: translateY(-2px); 
+            border-color: var(--accent); 
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3); 
+        }
+        .action-btn-modal.active { 
+            background: var(--accent); 
+            color: #0b1633; 
+            border-color: var(--accent); 
+        }
+        .action-btn-modal.custom-lists-btn { 
+            border: 1px solid var(--accent); 
+        }
+        .action-btn-modal i { 
+            font-size: 18px; 
+            width: 24px; 
+        }
+        .lists-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
+        .lists-header h3 { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .lists-header h3 i { 
+            color: var(--accent); 
+        }
+        .close-lists-btn { 
+            background: none; 
+            border: none; 
+            color: var(--muted); 
+            font-size: 24px; 
+            cursor: pointer; 
+            width: 40px; 
+            height: 40px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 12px; 
+            transition: all 0.3s ease; 
+        }
+        .close-lists-btn:hover { 
+            background: rgba(255,255,255,0.1); 
+            color: var(--white); 
+        }
+        .lists-list-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            margin-bottom: 20px; 
+            padding-right: 10px; 
+        }
+        .lists-list-container::-webkit-scrollbar { 
+            width: 8px; 
+        }
+        .lists-list-container::-webkit-scrollbar-track { 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 10px; 
+        }
+        .lists-list-container::-webkit-scrollbar-thumb { 
+            background: var(--accent); 
+            border-radius: 10px; 
+        }
+        .lists-list { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+        }
+        .list-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 14px 16px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+        }
+        .list-item:hover { 
+            background: rgba(245, 158, 11, 0.1); 
+            border-color: var(--accent); 
+            transform: translateX(5px); 
+        }
+        .list-item.active { 
+            background: rgba(245, 158, 11, 0.2); 
+            border-color: var(--accent); 
+        }
+        .list-info { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            flex: 1; 
+        }
+        .list-icon { 
+            width: 40px; 
+            height: 40px; 
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); 
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: #0b1633; 
+            font-size: 18px; 
+            font-weight: 600; 
+        }
+        .list-name { 
+            font-weight: 500; 
+            color: var(--white); 
+        }
+        .list-checkbox { 
+            width: 20px; 
+            height: 20px; 
+            border: 2px solid var(--border); 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0; 
+            transition: all 0.2s ease; 
+            position: relative; 
+        }
+        .list-checkbox.checked { 
+            background: var(--accent); 
+            border-color: var(--accent); 
+            animation: checkPop 0.3s ease; 
+        }
+        @keyframes checkPop { 
+            0% { transform: scale(1); } 
+            50% { transform: scale(1.1); } 
+            100% { transform: scale(1); } 
+        }
+        .list-checkbox.checked::after { 
+            content: "✓"; 
+            color: #0b1633; 
+            font-size: 12px; 
+            font-weight: bold; 
+        }
+        .empty-lists { 
+            text-align: center; 
+            padding: 40px 20px; 
+            color: var(--muted); 
+        }
+        .empty-lists i { 
+            font-size: 48px; 
+            margin-bottom: 16px; 
+            opacity: 0.5; 
+            color: var(--accent); 
+        }
+        .empty-lists h4 { 
+            margin-bottom: 8px; 
+            color: var(--white); 
+        }
+        .new-list-section { 
+            padding-top: 20px; 
+            border-top: 1px solid var(--border); 
+        }
+        .new-list-input { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+        }
+        .new-list-input input { 
+            flex: 1; 
+            padding: 12px 16px; 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            color: var(--white); 
+            font-size: 14px; 
+            outline: none; 
+            transition: all 0.3s ease; 
+        }
+        .new-list-input input:focus { 
+            border-color: var(--accent); 
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
+        }
+        .create-list-btn { 
+            background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); 
+            color: #0b1633; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            white-space: nowrap; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        .create-list-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); 
+        }
+        .create-list-btn:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+            transform: none; 
+        }
+        .lists-actions { 
+            display: flex; 
+            gap: 12px; 
+            margin-top: 10px; 
+        }
+        .lists-save-btn { 
+            flex: 1; 
+            background: var(--accent); 
+            color: #0b1633; 
+            border: none; 
+            padding: 14px 20px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+        }
+        .lists-save-btn:hover:not(:disabled) { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); 
+        }
+        .lists-save-btn:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+            transform: none; 
+        }
+        .cancel-btn { 
+            background: transparent; 
+            color: var(--muted); 
+            border: 1px solid var(--border); 
+            padding: 14px 20px; 
+            border-radius: 16px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            width: 100%; 
+        }
+        .cancel-btn:hover { 
+            background: rgba(255,255,255,0.05); 
+            color: var(--white); 
+        }
+        .auth-prompt-modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: rgba(11, 22, 51, 0.98); 
+            backdrop-filter: blur(20px); 
+            z-index: 1002; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+        }
+        .auth-prompt-modal.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+        .auth-prompt-content { 
+            background: var(--card); 
+            border-radius: 20px; 
+            padding: 40px; 
+            max-width: 480px; 
+            width: 100%; 
+            border: 2px solid var(--accent); 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4); 
+            animation: modalSlideIn 0.3s ease-out; 
+            text-align: center; 
+        }
+        .auth-prompt-icon { 
+            width: 80px; 
+            height: 80px; 
+            background: var(--gradient); 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0 auto 24px; 
+            font-size: 32px; 
+            color: #0b1633; 
+        }
+        .auth-prompt-header h3 { 
+            font-size: 28px; 
+            margin-bottom: 12px; 
+            color: var(--white); 
+            font-weight: 700; 
+        }
+        .auth-prompt-header p { 
+            color: var(--muted); 
+            font-size: 16px; 
+            line-height: 1.5; 
+            margin-bottom: 32px; 
+        }
+        .auth-prompt-buttons { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            margin-bottom: 24px; 
+        }
+        .auth-prompt-btn { 
+            padding: 18px 24px; 
+            border-radius: 16px; 
+            font-weight: 600; 
+            font-size: 16px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            border: none; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 12px; 
+        }
+        .auth-prompt-primary { 
+            background: var(--gradient); 
+            color: #0b1633; 
+        }
+        .auth-prompt-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4); 
+        }
+        .auth-prompt-secondary { 
+            background: transparent; 
+            color: var(--white); 
+            border: 2px solid var(--border); 
+        }
+        .auth-prompt-secondary:hover { 
+            background: rgba(255,255,255,0.05); 
+            border-color: var(--accent); 
+        }
+        .auth-prompt-close { 
+            background: transparent; 
+            color: var(--muted); 
+            border: none; 
+            padding: 12px; 
+            border-radius: 12px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            width: 100%; 
+            font-size: 15px; 
+        }
+        .auth-prompt-close:hover { 
+            background: rgba(255,255,255,0.05); 
+            color: var(--white); 
+        }
+        
+        /* Notifications */
+        .notification-container { 
+            position: fixed; 
+            top: 20px; 
+            right: 16px; 
+            z-index: 1000; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            max-width: calc(100% - 32px); 
+        }
+        .custom-notification { 
+            padding: 16px 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            display: flex; 
+            align-items: center; 
+            transform: translateX(120%); 
+            transition: transform 0.4s ease; 
+            backdrop-filter: blur(10px); 
+            border: 1px solid var(--border); 
+            font-weight: 500; 
+        }
+        .notification-success { 
+            background: rgba(16, 185, 129, 0.95); 
+            color: white; 
+        }
+        .notification-error { 
+            background: rgba(239, 68, 68, 0.95); 
+            color: white; 
+        }
+        .notification-info { 
+            background: rgba(59, 130, 246, 0.95); 
+            color: white; 
+        }
+        .notification-warning { 
+            background: rgba(245, 158, 11, 0.95); 
+            color: #0b1633; 
+            font-weight: 600; 
+        }
+        .notification-show { 
+            transform: translateX(0); 
+        }
+        .notification-icon { 
+            margin-right: 12px; 
+            font-size: 1.2rem; 
+        }
+        .notification-close { 
+            margin-left: auto; 
+            background: none; 
+            border: none; 
+            color: inherit; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            opacity: 0.8; 
+            transition: opacity 0.2s; 
+            padding: 0 0 0 12px; 
+        }
+        .notification-close:hover { 
+            opacity: 1; 
+        }
+        
+        /* Footer */
+        footer { 
+            padding: 40px 20px 24px; 
+            color: var(--muted); 
+            text-align: center; 
+            border-top: 1px solid var(--border); 
+            margin-top: 40px; 
+            background: var(--card); 
+        }
+        .footer-content { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 30px; 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .footer-column h3 { 
+            color: var(--white); 
+            margin-bottom: 16px; 
+            font-size: 16px; 
+            font-weight: 600; 
+        }
+        .footer-column a { 
+            display: block; 
+            margin-bottom: 10px; 
+            transition: all 0.3s ease; 
+            padding: 4px 0; 
+            font-size: 14px; 
+        }
+        .footer-column a:hover { 
+            color: var(--accent); 
+        }
+        .footer-bottom { 
+            border-top: 1px solid var(--border); 
+            padding-top: 20px; 
+            font-size: 14px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
-          .card-image-container {
-            flex-direction: column;
-            gap: 12px;
-            padding: 12px 12px 0 12px;
-          }
-          
-          .logo-wrapper {
-            width: 60px;
-            height: 60px;
-            align-self: flex-start;
-          }
-          
-          .main-image-container {
-            height: 150px;
-            width: 100%;
-          }
-          
-          .list-badges-container {
-            top: 8px;
-            right: 8px;
-            gap: 4px;
-          }
-          
-          .list-badge {
-            width: 32px;
-            height: 32px;
-            font-size: 14px;
-            padding: 6px;
-          }
-          
-          .cloud-badge {
-            top: 8px;
-            left: 8px;
-            width: 32px;
-            height: 32px;
-            font-size: 16px;
-          }
-          
-          .menu-btn-container {
-            bottom: 8px;
-            right: 8px;
-          }
-          
-          .menu-btn {
-            width: 32px;
-            height: 32px;
-            font-size: 14px;
-          }
-          
-          /* Hide tooltips on mobile */
-          .cloud-tooltip,
-          .list-badge-tooltip,
-          .menu-btn-tooltip {
-            display: none !important;
-          }
-          
-          .card-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-          }
-          
-          .card-title-wrapper {
-            width: 100%;
-          }
+            .card-image-container {
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px 12px 0 12px;
+            }
+            
+            .logo-wrapper {
+                width: 60px;
+                height: 60px;
+                align-self: flex-start;
+            }
+            
+            .main-image-container {
+                height: 150px;
+                width: 100%;
+            }
+            
+            .list-badges-container {
+                top: 8px;
+                right: 8px;
+                gap: 4px;
+            }
+            
+            .list-badge {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+                padding: 6px;
+            }
+            
+            .cloud-badge {
+                top: 8px;
+                left: 8px;
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+            
+            .menu-btn-container {
+                bottom: 8px;
+                right: 8px;
+            }
+            
+            .menu-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            
+            /* Hide tooltips on mobile */
+            .cloud-tooltip,
+            .list-badge-tooltip,
+            .menu-btn-tooltip {
+                display: none !important;
+            }
+            
+            /* Mobile Grid */
+            .slider-grid { 
+                display: flex; 
+                grid-template-columns: none; 
+                gap: 16px; 
+                overflow-x: auto; 
+                padding: 8px 0 20px 0; 
+                scroll-snap-type: x mandatory; 
+                scrollbar-width: none; 
+                -webkit-overflow-scrolling: touch; 
+                margin: 0 -16px; 
+                padding-left: 16px; 
+            } 
+            .slider-grid::-webkit-scrollbar { 
+                display: none; 
+            } 
+            .restaurant-card { 
+                width: 280px; 
+                flex-shrink: 0; 
+                scroll-snap-align: start; 
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .card-title-wrapper {
+                width: 100%;
+            }
+            
+            /* Navigation */
+            .nav-container { 
+                flex-wrap: wrap; 
+                gap: 12px; 
+            } 
+            .search-wrapper { 
+                order: 3; 
+                margin: 12px 0 0 0; 
+                max-width: 100%; 
+            }
+            .hero { 
+                min-height: 60vh; 
+            }
+            .hero-container { 
+                flex-direction: column-reverse; 
+                gap: 40px; 
+                text-align: center; 
+            } 
+            .hero-left { 
+                text-align: center; 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+            } 
+            .hero-right { 
+                max-width: 100%; 
+            } 
+            .spotlight { 
+                max-width: 500px; 
+                margin: 0 auto; 
+            }
+            .day-header h2 { 
+                font-size: 1.8rem; 
+            }
+            .day-card .card-content { 
+                padding: 20px; 
+            }
+            .day-card .card-title { 
+                font-size: 18px; 
+            }
+            .footer-content { 
+                grid-template-columns: repeat(2, 1fr); 
+                text-align: left; 
+            }
+            .custom-lists-content { 
+                padding: 20px; 
+                margin: 10px; 
+                max-height: 70vh; 
+            }
         }
         
-        /* Keep all your existing styles below */
-        .guest-banner { display: none; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px 20px; margin: 0 auto 20px auto; border-radius: 12px; max-width: 1200px; width: calc(100% - 32px); text-align: center; animation: slideDown 0.3s ease-out; }
-        .guest-banner.show { display: block; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .banner-content { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 14px; }
-        .banner-actions { display: flex; gap: 8px; align-items: center; }
-        .banner-btn { padding: 6px 14px; border-radius: 8px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; border: none; }
-        .banner-btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-        .banner-btn-outline:hover { background: rgba(245, 158, 11, 0.1); }
-        .banner-btn-primary { background: var(--accent); color: #111; border: 1px solid var(--accent); }
-        .banner-btn-primary:hover { background: #ffb84d; transform: translateY(-1px); }
-        .nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 14px 16px; backdrop-filter: blur(10px) saturate(180%); background: var(--surface); border-bottom: 1px solid var(--border); transition: all 0.3s ease; }
-        .nav-container { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; }
-        .nav.scrolled { background: rgba(19, 35, 71, 0.95); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); }
-        .logo { height: 40px; width: auto; cursor: pointer; transition: all 0.3s ease; flex-shrink: 0; }
-        .logo:hover { transform: scale(1.05); }
-        .search-wrapper { width: 100%; max-width: 500px; position: relative; margin: 0 24px; }
-        .search { width: 100%; padding: 10px 16px 10px 40px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--white); outline: none; font-size: 14px; transition: all 0.3s ease; }
-        .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
-        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
-        .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
-        .clear-search:hover { color: var(--white); }
-        .search-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--card); border-radius: 12px; border: 1px solid var(--border); margin-top: 8px; max-height: 300px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .search-suggestions.show { display: block; }
-        .suggestion-item { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
-        .suggestion-item:last-child { border-bottom: none; }
-        .suggestion-item:hover { background: rgba(255,255,255,0.05); }
-        .suggestion-logo { width: 32px; height: 32px; border-radius: 6px; overflow: hidden; margin-right: 12px; flex-shrink: 0; }
-        .suggestion-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .suggestion-info { flex: 1; min-width: 0; }
-        .suggestion-name { font-weight: 500; font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .suggestion-category { font-size: 12px; color: var(--muted); }
-        .nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-        .account-btn { background: transparent; color: var(--white); padding: 8px 16px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; font-size: 14px; white-space: nowrap; }
-        .account-btn:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); }
-        .nav a.ghost { color: var(--muted); padding: 8px 14px; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; }
-        .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
-        .hero { position: relative; min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
-        .hero-container { position: relative; z-index: 6; display: flex; align-items: center; gap: 60px; width: 100%; max-width: 1200px; }
-        .hero-left { flex: 1; min-width: 0; }
-        .tag { display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: var(--accent); font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 999px; margin-bottom: 16px; border: 1px solid rgba(245, 158, 11, 0.2); background: rgba(245, 158, 11, 0.05); }
-        h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.1; margin: 0 0 12px 0; font-weight: 700; letter-spacing: -0.5px; color: var(--white); }
-        .lead { color: var(--muted); font-size: clamp(0.875rem, 2vw, 1rem); margin-bottom: 24px; max-width: 500px; line-height: 1.6; font-weight: 400; }
-        .cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .btn-primary { background: var(--gradient); color: #0b1633; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
-        .btn-primary:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4); }
-        .btn-primary.logged-out { background: var(--gradient); border: 1px solid var(--accent); }
-        .btn-primary.logged-in { background: var(--gradient); color: #0b1633; border: 1px solid var(--accent); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
-        .btn-primary.logged-in:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4); }
-        .btn-outline { background: transparent; color: var(--white); padding: 12px 24px; border-radius: 12px; border: 1px solid var(--border); font-weight: 500; transition: all 0.3s ease; font-size: 14px; }
-        .btn-outline:hover { border-color: var(--accent); background: rgba(245, 158, 11, 0.05); }
-        .hero-right { width: 100%; max-width: 500px; min-width: 0; display: flex; align-items: center; justify-content: center; position: relative; }
-        .spotlight-wrapper { width: 100%; position: relative; }
-        .spotlight { width: 100%; border-radius: 20px; overflow: hidden; background: var(--card); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); border: 2px solid var(--border); display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; transition: all 0.3s ease; cursor: pointer; height: 360px; }
-        .spotlight:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(245, 158, 11, 0.25); }
-        .spotlight-img-container { width: 100%; height: 220px; border-radius: 0; overflow: hidden; background: var(--glass); position: relative; }
-        .spotlight-food-image { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
-        .spotlight:hover .spotlight-food-image { transform: scale(1.05); }
-        .spotlight-logo-overlay { position: absolute; bottom: 12px; left: 12px; width: 48px; height: 48px; background: rgba(11, 22, 51, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 4px; border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 10; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); }
-        .spotlight-logo-overlay img { width: 100%; height: 100%; object-fit: contain; }
-        .spotlight-content { padding: 20px; flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: space-between; }
-        .spotlight-text { margin-bottom: 16px; }
-        .spotlight h3 { margin: 0 0 8px 0; font-size: 20px; font-weight: 700; color: var(--white); line-height: 1.3; }
-        .spotlight p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; }
-        .spotlight .rating { color: var(--accent); font-weight: 600; display: flex; align-items: center; gap: 6px; font-size: 14px; }
-        .spotlight-actions { display: flex; justify-content: space-between; align-items: center; }
-        .slide-indicators { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
-        .slide-indicator { width: 10px; height: 10px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s ease; }
-        .slide-indicator.active { background: var(--accent); transform: scale(1.2); }
-        .slide-indicator:hover { background: var(--accent); }
-        .slider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; transition: grid-template-columns 0.3s ease; }
-        @media (max-width: 768px) { .slider-grid { display: flex; grid-template-columns: none; gap: 16px; overflow-x: auto; padding: 8px 0 20px 0; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding-left: 16px; } .slider-grid::-webkit-scrollbar { display: none; } .restaurant-card { width: 280px; flex-shrink: 0; scroll-snap-align: start; } .logo-wrapper { width: 50px; height: 50px; } .main-image-container { height: 140px; } .restaurant-image { height: 140px; } .menu-btn { width: 32px; height: 32px; } .card-header { flex-direction: column; align-items: flex-start; gap: 8px; } .card-title-wrapper { width: 100%; } }
-        .restaurant-of-day { position: relative; background: transparent; border-radius: 20px; padding: 40px 0; margin: 40px 0; text-align: center; }
-        .day-header { text-align: center; margin-bottom: 30px; }
-        .day-header h2 { font-size: 2.2rem; font-weight: 800; color: var(--white); margin-bottom: 16px; position: relative; display: inline-block; }
-        .day-header h2::after { content: ''; position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); width: 100px; height: 4px; background: var(--gradient); border-radius: 3px; }
-        .day-header p { color: var(--muted); font-size: 1rem; max-width: 600px; margin: 24px auto 0; line-height: 1.6; }
-        .day-card-container { display: flex; justify-content: center; }
-        .day-card { background: var(--card); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border); cursor: pointer; position: relative; transition: all 0.2s ease; display: flex; flex-direction: column; width: 100%; max-width: 600px; margin: 0 auto; height: auto; }
-        .day-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); border-color: var(--accent); }
-        .day-card .card-image { height: 250px; }
-        .day-card .card-content { padding: 20px; }
-        .day-card .card-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
-        .day-card .card-rating { padding: 6px 12px; font-size: 14px; font-weight: 800; }
-        .day-card .card-category { font-size: 14px; margin-bottom: 16px; }
-        .day-card .card-description { font-size: 14px; line-height: 1.6; margin-bottom: 20px; -webkit-line-clamp: 3; min-height: auto; }
-        .day-card-actions { display: flex; gap: 16px; margin-top: 20px; }
-        .day-card-btn { flex: 1; padding: 12px 20px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s ease; font-size: 14px; }
-        .day-card-btn-primary { background: var(--gradient); color: #0b1633; }
-        .day-card-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4); }
-        .day-card-btn-outline { background: transparent; color: var(--white); border: 2px solid var(--border); }
-        .day-card-btn-outline:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); transform: translateY(-2px); }
-        .day-badge { position: absolute; top: 20px; left: 20px; background: var(--gradient); color: #0b1633; padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; border: 2px solid rgba(245, 158, 11, 0.5); z-index: 35; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .section { padding: 40px 16px; position: relative; max-width: 1200px; margin: 0 auto; }
-        .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-        .section h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin: 0; color: var(--white); font-weight: 600; }
-        .section-subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; max-width: 500px; line-height: 1.5; }
-        .view-all { color: var(--accent); font-weight: 500; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; font-size: 14px; white-space: nowrap; }
-        .view-all:hover { gap: 8px; }
-        .filter-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; overflow-x: auto; padding: 4px 0 12px 0; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-        .filter-bar::-webkit-scrollbar { display: none; }
-        .filter-btn { padding: 8px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; flex-shrink: 0; }
-        .filter-btn.active, .filter-btn:hover { background: var(--accent); color: #111; border-color: var(--accent); }
-        .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .skeleton-card { background: var(--card); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
-        .skeleton-image { height: 200px; background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-        .skeleton-content { padding: 16px; }
-        .skeleton-line { height: 12px; background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; margin-bottom: 8px; border-radius: 4px; }
-        .skeleton-line.short { width: 60%; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .load-more-container { display: flex; justify-content: center; margin-top: 20px; }
-        .load-more-btn { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 10px 24px; border-radius: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
-        .load-more-btn:hover { background: var(--accent); color: #111; border-color: var(--accent); transform: translateY(-2px); }
-        .app-download { background: var(--card); border-radius: 16px; padding: 40px 24px; text-align: center; margin: 40px auto; border: 1px solid var(--border); max-width: 800px; }
-        .app-download h2 { font-size: 2rem; margin-bottom: 16px; color: var(--white); }
-        .app-download p { font-size: 16px; color: var(--muted); margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; }
-        .app-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-        .app-button { display: flex; align-items: center; gap: 10px; padding: 12px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; color: var(--white); text-decoration: none; transition: all 0.3s ease; cursor: pointer; }
-        .app-button:hover { background: var(--accent); color: #111; transform: translateY(-2px); }
-        .actions-modal, .auth-prompt-modal, .custom-lists-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 22, 51, 0.95); backdrop-filter: blur(20px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s ease; }
-        .actions-modal.active, .auth-prompt-modal.active, .custom-lists-modal.active { display: flex; opacity: 1; }
-        .actions-content, .auth-prompt-content, .custom-lists-content { background: var(--card); border-radius: 20px; padding: 30px; max-width: 400px; width: 100%; border: 2px solid var(--accent); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); animation: modalSlideIn 0.3s ease-out; text-align: center; }
-        .custom-lists-content { max-width: 500px; max-height: 80vh; display: flex; flex-direction: column; }
-        @keyframes modalSlideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .actions-header, .lists-header { margin-bottom: 24px; }
-        .actions-header h3, .lists-header h3 { font-size: 22px; margin-bottom: 8px; color: var(--white); font-weight: 600; }
-        .actions-header p { color: var(--muted); font-size: 14px; }
-        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
-        .action-btn-modal { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 16px 20px; border-radius: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; text-align: left; font-size: 15px; justify-content: space-between; }
-        .action-btn-modal:hover { background: var(--accent); color: #0b1633; transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
-        .action-btn-modal.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
-        .action-btn-modal.custom-lists-btn { border: 1px solid var(--accent); }
-        .action-btn-modal i { font-size: 18px; width: 24px; }
-        .lists-header { display: flex; align-items: center; justify-content: space-between; }
-        .lists-header h3 { display: flex; align-items: center; gap: 10px; }
-        .lists-header h3 i { color: var(--accent); }
-        .close-lists-btn { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease; }
-        .close-lists-btn:hover { background: rgba(255,255,255,0.1); color: var(--white); }
-        .lists-list-container { flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; }
-        .lists-list-container::-webkit-scrollbar { width: 8px; }
-        .lists-list-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .lists-list-container::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-        .lists-list { display: flex; flex-direction: column; gap: 8px; }
-        .list-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: all 0.3s ease; }
-        .list-item:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); transform: translateX(5px); }
-        .list-item.active { background: rgba(245, 158, 11, 0.2); border-color: var(--accent); }
-        .list-info { display: flex; align-items: center; gap: 12px; flex: 1; }
-        .list-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-size: 18px; font-weight: 600; }
-        .list-name { font-weight: 500; color: var(--white); }
-        .list-checkbox { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease; position: relative; }
-        .list-checkbox.checked { background: var(--accent); border-color: var(--accent); animation: checkPop 0.3s ease; }
-        @keyframes checkPop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .list-checkbox.checked::after { content: "✓"; color: #0b1633; font-size: 12px; font-weight: bold; }
-        .empty-lists { text-align: center; padding: 40px 20px; color: var(--muted); }
-        .empty-lists i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; color: var(--accent); }
-        .empty-lists h4 { margin-bottom: 8px; color: var(--white); }
-        .new-list-section { padding-top: 20px; border-top: 1px solid var(--border); }
-        .new-list-input { display: flex; gap: 10px; margin-bottom: 15px; }
-        .new-list-input input { flex: 1; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 12px; color: var(--white); font-size: 14px; outline: none; transition: all 0.3s ease; }
-        .new-list-input input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
-        .create-list-btn { background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); color: #0b1633; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
-        .create-list-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
-        .create-list-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .lists-actions { display: flex; gap: 12px; margin-top: 10px; }
-        .lists-save-btn { flex: 1; background: var(--accent); color: #0b1633; border: none; padding: 14px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-        .lists-save-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
-        .lists-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .cancel-btn { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 14px 20px; border-radius: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; width: 100%; }
-        .cancel-btn:hover { background: rgba(255,255,255,0.05); color: var(--white); }
-        .auth-prompt-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 22, 51, 0.98); backdrop-filter: blur(20px); z-index: 1002; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s ease; }
-        .auth-prompt-modal.active { display: flex; opacity: 1; }
-        .auth-prompt-content { background: var(--card); border-radius: 20px; padding: 40px; max-width: 480px; width: 100%; border: 2px solid var(--accent); box-shadow: 0 30px 60px rgba(0,0,0,0.4); animation: modalSlideIn 0.3s ease-out; text-align: center; }
-        .auth-prompt-icon { width: 80px; height: 80px; background: var(--gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; color: #0b1633; }
-        .auth-prompt-header h3 { font-size: 28px; margin-bottom: 12px; color: var(--white); font-weight: 700; }
-        .auth-prompt-header p { color: var(--muted); font-size: 16px; line-height: 1.5; margin-bottom: 32px; }
-        .auth-prompt-buttons { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
-        .auth-prompt-btn { padding: 18px 24px; border-radius: 16px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 12px; }
-        .auth-prompt-primary { background: var(--gradient); color: #0b1633; }
-        .auth-prompt-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4); }
-        .auth-prompt-secondary { background: transparent; color: var(--white); border: 2px solid var(--border); }
-        .auth-prompt-secondary:hover { background: rgba(255,255,255,0.05); border-color: var(--accent); }
-        .auth-prompt-close { background: transparent; color: var(--muted); border: none; padding: 12px; border-radius: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; width: 100%; font-size: 15px; }
-        .auth-prompt-close:hover { background: rgba(255,255,255,0.05); color: var(--white); }
-        .notification-container { position: fixed; top: 20px; right: 16px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; max-width: calc(100% - 32px); }
-        .custom-notification { padding: 16px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; transform: translateX(120%); transition: transform 0.4s ease; backdrop-filter: blur(10px); border: 1px solid var(--border); font-weight: 500; }
-        .notification-success { background: rgba(16, 185, 129, 0.95); color: white; }
-        .notification-error { background: rgba(239, 68, 68, 0.95); color: white; }
-        .notification-info { background: rgba(59, 130, 246, 0.95); color: white; }
-        .notification-warning { background: rgba(245, 158, 11, 0.95); color: #0b1633; font-weight: 600; }
-        .notification-show { transform: translateX(0); }
-        .notification-icon { margin-right: 12px; font-size: 1.2rem; }
-        .notification-close { margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem; opacity: 0.8; transition: opacity 0.2s; padding: 0 0 0 12px; }
-        .notification-close:hover { opacity: 1; }
+        @media (max-width: 480px) {
+            .hero { 
+                padding: 32px 12px; 
+            }
+            .day-header h2 { 
+                font-size: 1.6rem; 
+            }
+            .footer-content { 
+                grid-template-columns: 1fr; 
+                text-align: center; 
+            }
+            .spotlight { 
+                height: 340px; 
+            }
+            .spotlight-img-container { 
+                height: 200px; 
+            }
+            .spotlight h3 { 
+                font-size: 18px; 
+            }
+            .spotlight p { 
+                font-size: 13px; 
+            }
+            .custom-lists-content { 
+                padding: 16px; 
+            }
+            .list-item { 
+                padding: 12px; 
+            }
+            .list-icon { 
+                width: 32px; 
+                height: 32px; 
+                font-size: 16px; 
+            }
+        }
         
-        footer { padding: 40px 20px 24px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 40px; background: var(--card); }
-        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: center; margin-bottom: 30px; }
-        .footer-column h3 { color: var(--white); margin-bottom: 16px; font-size: 16px; font-weight: 600; }
-        .footer-column a { display: block; margin-bottom: 10px; transition: all 0.3s ease; padding: 4px 0; font-size: 14px; }
-        .footer-column a:hover { color: var(--accent); }
-        .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; font-size: 14px; max-width: 1200px; margin: 0 auto; }
-        
-        @media (max-width: 992px) { .hero-container { flex-direction: column-reverse; gap: 40px; text-align: center; } .hero-left { text-align: center; display: flex; flex-direction: column; align-items: center; } .hero-right { max-width: 100%; } .spotlight { max-width: 500px; margin: 0 auto; } .day-card .card-image { height: 200px; } .day-card-actions { flex-direction: column; } .slider-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
-        @media (max-width: 768px) { .nav-container { flex-wrap: wrap; gap: 12px; } .search-wrapper { order: 3; margin: 12px 0 0 0; max-width: 100%; } .hero { min-height: 60vh; } .day-header h2 { font-size: 1.8rem; } .day-card .card-content { padding: 20px; } .day-card .card-title { font-size: 18px; } .footer-content { grid-template-columns: repeat(2, 1fr); text-align: left; } .custom-lists-content { padding: 20px; margin: 10px; max-height: 70vh; } }
-        @media (max-width: 480px) { .hero { padding: 32px 12px; } .day-header h2 { font-size: 1.6rem; } .footer-content { grid-template-columns: 1fr; text-align: center; } .spotlight { height: 340px; } .spotlight-img-container { height: 200px; } .spotlight h3 { font-size: 18px; } .spotlight p { font-size: 13px; } .custom-lists-content { padding: 16px; } .list-item { padding: 12px; } .list-icon { width: 32px; height: 32px; font-size: 16px; } }
+        @media (max-width: 992px) {
+            .hero-container { 
+                flex-direction: column-reverse; 
+                gap: 40px; 
+                text-align: center; 
+            } 
+            .hero-left { 
+                text-align: center; 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+            } 
+            .hero-right { 
+                max-width: 100%; 
+            } 
+            .spotlight { 
+                max-width: 500px; 
+                margin: 0 auto; 
+            } 
+            .day-card .card-image { 
+                height: 200px; 
+            } 
+            .day-card-actions { 
+                flex-direction: column; 
+            } 
+            .slider-grid { 
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            }
+        }
     </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-    <!-- ... (keep all your existing HTML structure) ... -->
+    <!-- Modals -->
+    <div id="actionsModal" class="actions-modal">
+        <div class="actions-content">
+            <div class="actions-header">
+                <h3 id="modalRestaurantName">Restaurant Name</h3>
+                <p>Add this restaurant to your lists</p>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn-modal" data-action="favorites" id="modalFavoritesBtn">
+                    <i class="fas fa-heart"></i>
+                    <span id="favoritesText">Add to Favorites</span>
+                </button>
+                <button class="action-btn-modal" data-action="wantToGo" id="modalWantToGoBtn">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="wantToGoText">Want to Go</span>
+                </button>
+                <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn">
+                    <i class="fas fa-utensils"></i>
+                    <span id="visitedText">Mark as Visited</span>
+                </button>
+                <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
+                    <i class="fas fa-list"></i>
+                    <span>Custom Lists</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <button class="cancel-btn" id="modalCancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="customListsModal" class="custom-lists-modal">
+        <div class="custom-lists-content">
+            <div class="lists-header">
+                <h3><i class="fas fa-list"></i> Custom Lists</h3>
+                <button class="close-lists-btn" id="closeListsBtn">×</button>
+            </div>
+            
+            <div class="lists-list-container" id="listsListContainer"></div>
+            
+            <div class="new-list-section">
+                <div class="new-list-input">
+                    <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
+                    <button class="create-list-btn" id="createListBtn">
+                        <i class="fas fa-plus"></i> Create
+                    </button>
+                </div>
+                <div class="lists-actions">
+                    <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="authPromptModal" class="auth-prompt-modal">
+        <div class="auth-prompt-content">
+            <div class="auth-prompt-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div class="auth-prompt-header">
+                <h3>Sign In Required</h3>
+                <p>You need to be signed in to save restaurants. Create an account to save your favorites!</p>
+            </div>
+            <div class="auth-prompt-buttons">
+                <button class="auth-prompt-btn auth-prompt-primary" id="authPromptSignupBtn">
+                    <i class="fas fa-user-plus"></i>
+                    Create Free Account
+                </button>
+                <button class="auth-prompt-btn auth-prompt-secondary" id="authPromptLoginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In to Existing Account
+                </button>
+            </div>
+            <button class="auth-prompt-close" id="authPromptCloseBtn">Maybe Later</button>
+        </div>
+    </div>
+
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Navigation -->
+    <header class="nav" role="banner">
+        <div class="nav-container">
+            <img src="images/logo.png" alt="Zo2y logo" class="logo" onclick="location.href='index.html'">
+            
+            <div class="search-wrapper">
+                <span class="search-icon">🔎</span>
+                <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
+                <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+                <div id="searchSuggestions" class="search-suggestions"></div>
+            </div>
+            
+            <div class="nav-right">
+                <a class="ghost" href="restraunts.html">Explore All</a>
+                <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Guest Banner -->
+    <div id="guestBanner" class="guest-banner">
+        <div class="banner-content">
+            <span class="banner-text">Want to save your favorite restaurants?</span>
+            <div class="banner-actions">
+                <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
+                <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <section class="hero" aria-labelledby="heroTitle">
+            <div class="hero-container">
+                <div class="hero-left">
+                    <div class="tag">Trusted by Food Lovers</div>
+                    <h1 id="heroTitle">Discover Hidden Gems & Local Favorites</h1>
+                    <p class="lead">Find authentic dining experiences based on real reviews.</p>
+                    <div class="cta-row">
+                        <button class="btn-primary logged-out" id="startJourneyBtn">
+                            <i class="fas fa-map-signs"></i>
+                            <span>Start Your Food Journey</span>
+                        </button>
+                        
+                        <button class="btn-primary logged-in" onclick="location.href='restraunts.html'">
+                            <i class="fas fa-utensils"></i>
+                            <span>Explore All Restaurants</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="spotlight-wrapper">
+                        <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
+                            <div class="spotlight-img-container">
+                                <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food" fetchpriority="high">
+                                <div class="spotlight-logo-overlay" id="spotLogoOverlay">
+                                    <img id="spotLogo" src="" alt="Restaurant logo">
+                                </div>
+                            </div>
+                            <div class="spotlight-content">
+                                <div class="spotlight-text">
+                                    <h3 id="spotName">Loading...</h3>
+                                    <p id="spotDesc">Loading restaurant details...</p>
+                                    <div class="rating" id="spotRating">⭐ ...</div>
+                                </div>
+                                <div class="spotlight-actions">
+                                    <button class="btn-outline" id="spotlightViewBtn" style="padding:8px 16px; font-size:13px">View Details</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slide-indicators" id="slideIndicators"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Restaurants -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Featured Restaurants</h2>
+                    <p class="section-subtitle">Handpicked selections based on quality and authenticity</p>
+                </div>
+                <a href="restraunts.html" class="view-all">View All <span>→</span></a>
+            </div>
+            
+            <div class="filter-bar" id="filterBar"></div>
+            
+            <div class="slider-container">
+                <div id="featuredSlider" class="slider-grid skeleton-grid">
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                </div>
+            </div>
+            
+            <div class="load-more-container">
+                <button class="load-more-btn" onclick="location.href='restraunts.html'">
+                    <i class="fas fa-arrow-right"></i>
+                    View All Restaurants
+                </button>
+            </div>
+        </section>
+
+        <!-- Nearby Restaurants -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Nearby Restaurants</h2>
+                    <p class="section-subtitle">Great food close to you</p>
+                </div>
+            </div>
+            <div class="slider-container">
+                <div id="nearbySlider" class="slider-grid skeleton-grid">
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-content"><div class="skeleton-line" style="width: 70%"></div><div class="skeleton-line short"></div></div></div>
+                </div>
+            </div>
+            <div class="load-more-container">
+                <button class="load-more-btn" onclick="location.href='restraunts.html'">
+                    <i class="fas fa-arrow-right"></i>
+                    View All Restaurants
+                </button>
+            </div>
+        </section>
+
+        <!-- Restaurant of the Day -->
+        <section class="section">
+            <div class="restaurant-of-day">
+                <div class="day-header">
+                    <h2>Restaurant of the Day</h2>
+                    <p>Our specially selected restaurant that stands out from the rest.</p>
+                </div>
+                <div class="day-card-container">
+                    <div id="dayCard" class="day-card">
+                        <div class="skeleton-card" style="width:100%; height:400px;">
+                            <div class="skeleton-image" style="height:250px"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line" style="width: 70%"></div>
+                                <div class="skeleton-line short"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- App Download -->
+        <section class="section">
+            <div class="app-download">
+                <h2>Get the Zo2y App</h2>
+                <p>Discover restaurants, save your favorites, and share reviews on the go.</p>
+                <div class="app-buttons">
+                    <a href="#" class="app-button" id="iosAppButton">
+                        <i class="fab fa-apple"></i>
+                        <div class="app-button-text"><span>Download on the</span><br><span>App Store</span></div>
+                    </a>
+                    <a href="#" class="app-button" id="androidAppButton">
+                        <i class="fab fa-google-play"></i>
+                        <div class="app-button-text"><span>Get it on</span><br><span>Google Play</span></div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Explore</h3>
+                <a href="restraunts.html">All Restaurants</a>
+                <a href="categories.html">By Category</a>
+                <a href="#" id="searchFooterLink">Search</a>
+            </div>
+            <div class="footer-column">
+                <h3>Community</h3>
+                <a href="blog.html">Food Blog</a>
+                <a href="guides.html">Neighborhood Guides</a>
+                <a href="#" id="featuredLink">Featured</a>
+            </div>
+            <div class="footer-column">
+                <h3>Business</h3>
+                <a href="add-restaurant.html">Add Your Restaurant</a>
+                <a href="partners.html">Partnerships</a>
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <div class="footer-column">
+                <h3>Support</h3>
+                <a href="about.html">About Zo2y</a>
+                <a href="help.html">Help Center</a>
+                <a href="terms.html">Terms & Privacy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div style="margin-bottom:8px">© 2025 Zo2y — Built with ❤️ for food lovers</div>
+            <div style="font-size:12px; color:var(--muted)">Join thousands discovering authentic dining experiences</div>
+        </div>
+    </footer>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -749,6 +2332,84 @@
             slideIndicators: document.getElementById('slideIndicators')
         };
 
+        // ---------- HELPER FUNCTIONS ----------
+        function preloadImage(url, callback) {
+            if (!url) return callback(false);
+            
+            const img = new Image();
+            img.onload = () => callback(true);
+            img.onerror = () => callback(false);
+            img.src = url;
+        }
+
+        function showNotification(message, type = "info", duration = 2500) {
+            const container = document.getElementById("notificationContainer");
+            if (!container) return;
+            
+            const notification = document.createElement("div");
+            notification.className = `custom-notification notification-${type}`;
+            
+            let iconClass;
+            if (type === "success") {
+                iconClass = "fas fa-check-circle";
+            } else if (type === "error") {
+                iconClass = "fas fa-exclamation-circle";
+            } else if (type === "warning") {
+                iconClass = "fas fa-exclamation-triangle";
+            } else {
+                iconClass = "fas fa-info-circle";
+            }
+            
+            notification.innerHTML = `
+                <i class="notification-icon ${iconClass}"></i>
+                <span class="notification-message">${message}</span>
+                <button class="notification-close" aria-label="Close notification">×</button>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add("notification-show");
+            }, 10);
+            
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                notification.classList.remove("notification-show");
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 400);
+            });
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.classList.remove("notification-show");
+                    setTimeout(() => notification.remove(), 400);
+                }
+            }, duration);
+        }
+
+        function getCategoryIconFallback(name) {
+            const map = { 
+                'Burgers': '🍔', 
+                'Chicken': '🍗', 
+                'Pizza': '🍕', 
+                'Asian': '🍜', 
+                'Cafe & Bakery': '☕',
+                'Middle Eastern': '🥙',
+                'Mexican': '🌮',
+                'Fast Food': '🍟',
+                'Italian': '🍝',
+                'Seafood': '🐟',
+                'Breakfast': '🥞',
+                'Desserts': '🍰',
+                'Indian': '🍛',
+                'BBQ & Ribs': '🥩',
+                'International': '🌍'
+            };
+            return map[name] || '🍴';
+        }
+
         // ---------- CLOUD KITCHEN MANAGER ----------
         const cloudKitchenManager = {
             async loadCloudKitchens() {
@@ -791,134 +2452,102 @@
             }
         };
 
-        // ---------- FIX FOR SPOTLIGHT IMAGE LOADING ----------
-        function preloadImage(url, callback) {
-            if (!url) return callback(false);
-            
-            const img = new Image();
-            img.onload = () => callback(true);
-            img.onerror = () => callback(false);
-            img.src = url;
-        }
-
-        // Optimized Loading Logic
-        function loadImage(imgElement, url) {
-            if (!url || !imgElement) return;
-            
-            // Preload the image
-            preloadImage(url, (success) => {
-                if (success) {
-                    imgElement.src = url;
-                    imgElement.onload = () => {
-                        imgElement.classList.add('loaded');
-                        // Force redraw for spotlight
-                        if (imgElement.id === 'spotFoodImage') {
-                            imgElement.style.opacity = '0';
-                            setTimeout(() => {
-                                imgElement.style.opacity = '1';
-                            }, 10);
-                        }
-                    };
-                } else {
-                    // Fallback image or hide
-                    imgElement.style.display = 'none';
-                }
-            });
-        }
-
-        async function init() {
-            setupEventListeners();
-            await cloudKitchenManager.loadCloudKitchens();
-            
-            // Load all data in parallel
-            await Promise.all([
-                updateAuthUI(),
-                loadRestaurants(), 
-                loadAllRestaurantsForSearch()
-            ]);
-            
-            supabase.auth.onAuthStateChange(updateAuthUI);
-        }
-
-        // Data Fetching
-        async function loadRestaurants() {
-            try {
-                // Fetch basic data first
-                const { data, error } = await supabase
-                    .from('restraunts')
-                    .select('id, slug, name, category, description, rating, logo_url, image')
-                    .order('rating', { ascending: false })
-                    .limit(24);
+        // ---------- LIST MANAGER ----------
+        const listManager = {
+            userLists: [],
+            currentLists: { favorites: null, visited: null, wantToGo: null },
+            async init() {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
                 
-                if (error) throw error;
-                if (!data || data.length === 0) return;
-
-                // Process data
-                state.restaurants = data.map(r => ({
-                    ...r,
-                    category_icon: getCategoryIconFallback(r.category),
-                    coverImage: r.image,
-                    logo: r.logo_url,
-                    isCloudKitchen: cloudKitchenManager.isCloudKitchen(r.id)
-                }));
-
-                // Initial Render
-                renderRestaurants();
-                populateFilters();
+                const { data } = await supabase.from('lists').select('*').eq('user_id', user.id);
+                this.userLists = data || [];
                 
-                // Initialize spotlight
-                state.spotlightRestaurants = state.restaurants.slice(0, 6);
-                updateSpotlight();
-                startSpotlightRotation();
-                setupRestaurantOfTheDay();
-
-                // Load high-res images in background
-                loadRestaurantImages();
-
-            } catch (error) {
-                console.error('Error loading restaurants:', error);
-            }
-        }
-
-        async function loadRestaurantImages() {
-            try {
-                const { data } = await supabase.from('restaurant_gallery')
-                    .select('restaurant_slug, image_url, image_type')
-                    .eq('is_primary', true);
+                this.currentLists.favorites = this.userLists.find(l => l.title === 'Favorites');
+                this.currentLists.visited = this.userLists.find(l => l.title === 'Visited');
+                this.currentLists.wantToGo = this.userLists.find(l => l.title === 'Want to Go');
                 
-                if (data) {
+                await this.loadListRestaurants();
+            },
+            async loadListRestaurants() {
+                const listIds = this.userLists.map(l => l.id);
+                if(!listIds.length) return;
+                
+                const { data } = await supabase.from('lists_restraunts').select('list_id, restraunt_id').in('list_id', listIds);
+                if(data) {
                     data.forEach(item => {
-                        const r = state.restaurants.find(x => x.slug === item.restaurant_slug);
-                        if (r && item.image_type === 'cover') {
-                            r.coverImage = item.image_url;
+                        const list = this.userLists.find(l => l.id === item.list_id);
+                        if(list) {
+                            if(!list.restaurants) list.restaurants = [];
+                            list.restaurants.push(item.restraunt_id);
                         }
                     });
                 }
-            } catch (e) { /* ignore */ }
-        }
+            },
+            async toggleInList(type, rId) {
+                let list = this.currentLists[type];
+                if(!list) {
+                    const titles = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' };
+                    const { data: { user } } = await supabase.auth.getUser();
+                    const { data } = await supabase.from('lists').insert([{ user_id: user.id, title: titles[type] }]).select().single();
+                    if(data) {
+                        this.userLists.push(data);
+                        this.currentLists[type] = data;
+                        list = data;
+                    } else return;
+                }
+                
+                const isIn = list.restaurants?.includes(rId);
+                if(isIn) {
+                    await supabase.from('lists_restraunts').delete().match({ list_id: list.id, restraunt_id: rId });
+                    list.restaurants = list.restaurants.filter(id => id !== rId);
+                    showNotification(`Removed from ${list.title}`, 'info');
+                } else {
+                    await supabase.from('lists_restraunts').insert([{ list_id: list.id, restraunt_id: rId }]);
+                    if(!list.restaurants) list.restaurants = [];
+                    list.restaurants.push(rId);
+                    showNotification(`Added to ${list.title}`, 'success');
+                }
+            },
+            getRestaurantListStatus(rId) {
+                const check = (type) => this.currentLists[type]?.restaurants?.includes(rId) || false;
+                return { favorites: check('favorites'), wantToGo: check('wantToGo'), visited: check('visited') };
+            }
+        };
 
-        async function loadAllRestaurantsForSearch() {
-            const { data } = await supabase.from('restraunts').select('slug, name, category, description, logo_url');
-            if(data) state.allRestaurants = data;
-        }
+        // ---------- CUSTOM LISTS MANAGER ----------
+        const customListsManager = {
+            async init() {
+                if (state.isLoggedIn) {
+                    await this.loadCustomLists();
+                }
+            },
+            
+            async loadCustomLists() {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .neq('title', 'Favorites')
+                        .neq('title', 'Visited')
+                        .neq('title', 'Want to Go')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    state.customLists = lists || [];
+                    
+                } catch (error) {
+                    console.error('Error loading custom lists:', error);
+                    state.customLists = [];
+                }
+            }
+        };
 
-        // ---------- RENDERING (Updated to match restaurants.html style) ----------
-        function renderRestaurants() {
-            const featured = state.restaurants.slice(0, 12);
-            const nearby = state.restaurants.slice(12, 24);
-
-            const renderBatch = (list, container) => {
-                container.classList.remove('skeleton-grid');
-                container.innerHTML = '';
-                const fragment = document.createDocumentFragment();
-                list.forEach((r, i) => fragment.appendChild(createCard(r, i)));
-                container.appendChild(fragment);
-            };
-
-            renderBatch(featured, elements.featuredSlider);
-            renderBatch(nearby, elements.nearbySlider);
-        }
-
+        // ---------- CARD CREATION ----------
         function createCard(restaurant, index) {
             const card = document.createElement('div');
             card.className = 'restaurant-card';
@@ -1054,7 +2683,7 @@
             return card;
         }
 
-        // ---------- SPOTLIGHT & FILTERS ----------
+        // ---------- SPOTLIGHT FUNCTIONS ----------
         function updateSpotlight() {
             if (!state.spotlightRestaurants.length) return;
             const r = state.spotlightRestaurants[state.spotlightIndex];
@@ -1120,6 +2749,7 @@
             }
         }
 
+        // ---------- RESTAURANT OF THE DAY ----------
         function setupRestaurantOfTheDay() {
             if(!state.restaurants.length) return;
             const r = state.restaurants.find(r => (r.rating || 0) >= 4.5) || state.restaurants[0];
@@ -1202,6 +2832,7 @@
             elements.dayCard.onclick = () => location.href=`restaurant.html?slug=${r.slug}`;
         }
 
+        // ---------- FILTER FUNCTIONS ----------
         function populateFilters() {
             const categories = [...new Set(state.restaurants.map(r => r.category).filter(Boolean))].slice(0, 5);
             elements.filterBar.innerHTML = `<div class="filter-btn active" data-filter="all">All</div>` +
@@ -1229,79 +2860,277 @@
             container.appendChild(fragment);
         }
 
-        // ---------- HELPERS ----------
-        function getCategoryIconFallback(name) {
-            const map = { 'Burgers': '🍔', 'Chicken': '🍗', 'Pizza': '🍕', 'Asian': '🍜', 'Cafe & Bakery': '☕' };
-            return map[name] || '🍴';
+        // ---------- RENDERING ----------
+        function renderRestaurants() {
+            const featured = state.restaurants.slice(0, 12);
+            const nearby = state.restaurants.slice(12, 24);
+
+            const renderBatch = (list, container) => {
+                container.classList.remove('skeleton-grid');
+                container.innerHTML = '';
+                const fragment = document.createDocumentFragment();
+                list.forEach((r, i) => fragment.appendChild(createCard(r, i)));
+                container.appendChild(fragment);
+            };
+
+            renderBatch(featured, elements.featuredSlider);
+            renderBatch(nearby, elements.nearbySlider);
         }
 
-        // ---------- AUTH & LISTS LOGIC ----------
-        // Keep your existing listManager, customListsManager, and all other logic
-        const listManager = {
-            userLists: [],
-            currentLists: { favorites: null, visited: null, wantToGo: null },
-            async init() {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return;
-                
-                const { data } = await supabase.from('lists').select('*').eq('user_id', user.id);
-                this.userLists = data || [];
-                
-                this.currentLists.favorites = this.userLists.find(l => l.title === 'Favorites');
-                this.currentLists.visited = this.userLists.find(l => l.title === 'Visited');
-                this.currentLists.wantToGo = this.userLists.find(l => l.title === 'Want to Go');
-                
-                await this.loadListRestaurants();
-            },
-            async loadListRestaurants() {
-                const listIds = this.userLists.map(l => l.id);
-                if(!listIds.length) return;
-                
-                const { data } = await supabase.from('lists_restraunts').select('list_id, restraunt_id').in('list_id', listIds);
-                if(data) {
-                    data.forEach(item => {
-                        const list = this.userLists.find(l => l.id === item.list_id);
-                        if(list) {
-                            if(!list.restaurants) list.restaurants = [];
-                            list.restaurants.push(item.restraunt_id);
-                        }
-                    });
-                }
-            },
-            async toggleInList(type, rId) {
-                let list = this.currentLists[type];
-                if(!list) {
-                      const titles = { favorites: 'Favorites', visited: 'Visited', wantToGo: 'Want to Go' };
-                      const { data: { user } } = await supabase.auth.getUser();
-                      const { data } = await supabase.from('lists').insert([{ user_id: user.id, title: titles[type] }]).select().single();
-                      if(data) {
-                          this.userLists.push(data);
-                          this.currentLists[type] = data;
-                          list = data;
-                      } else return;
-                }
-                
-                const isIn = list.restaurants?.includes(rId);
-                if(isIn) {
-                    await supabase.from('lists_restraunts').delete().match({ list_id: list.id, restraunt_id: rId });
-                    list.restaurants = list.restaurants.filter(id => id !== rId);
-                    showNotification(`Removed from ${list.title}`, 'info');
-                } else {
-                    await supabase.from('lists_restraunts').insert([{ list_id: list.id, restraunt_id: rId }]);
-                    if(!list.restaurants) list.restaurants = [];
-                    list.restaurants.push(rId);
-                    showNotification(`Added to ${list.title}`, 'success');
-                }
-            },
-            getRestaurantListStatus(rId) {
-                const check = (type) => this.currentLists[type]?.restaurants?.includes(rId) || false;
-                return { favorites: check('favorites'), wantToGo: check('wantToGo'), visited: check('visited') };
+        // ---------- MODAL FUNCTIONS ----------
+        function showModal(restaurantData) {
+            if (!restaurantData) return;
+            
+            if (!state.isLoggedIn) {
+                showAuthPrompt();
+                return;
             }
-        };
+            
+            state.currentModalRestaurant = restaurantData;
+            document.getElementById('modalRestaurantName').textContent = restaurantData.name;
+            
+            updateModalButtons(restaurantData.id);
+            
+            const modal = document.getElementById('actionsModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
 
-        // Keep all your other existing functions (customListsManager, showModal, hideModal, etc.)
+        function hideModal() {
+            const modal = document.getElementById('actionsModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function updateModalButtons(restaurantId) {
+            const status = listManager.getRestaurantListStatus(restaurantId);
+            
+            const favoritesBtn = document.getElementById('modalFavoritesBtn');
+            const wantToGoBtn = document.getElementById('modalWantToGoBtn');
+            const visitedBtn = document.getElementById('modalVisitedBtn');
+            
+            if (favoritesBtn) {
+                favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+                favoritesBtn.classList.toggle('active', status.favorites);
+            }
+            
+            if (wantToGoBtn) {
+                wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+                wantToGoBtn.classList.toggle('active', status.wantToGo);
+            }
+            
+            if (visitedBtn) {
+                visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+                visitedBtn.classList.toggle('active', status.visited);
+            }
+        }
+
+        function showAuthPrompt() {
+            const modal = document.getElementById('authPromptModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideAuthPrompt() {
+            const modal = document.getElementById('authPromptModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // ---------- DATA LOADING ----------
+        async function loadRestaurants() {
+            try {
+                const { data, error } = await supabase
+                    .from('restraunts')
+                    .select('id, slug, name, category, description, rating, logo_url, image')
+                    .order('rating', { ascending: false })
+                    .limit(24);
+                
+                if (error) throw error;
+                if (!data || data.length === 0) return;
+
+                state.restaurants = data.map(r => ({
+                    ...r,
+                    category_icon: getCategoryIconFallback(r.category),
+                    coverImage: r.image,
+                    logo: r.logo_url,
+                    isCloudKitchen: cloudKitchenManager.isCloudKitchen(r.id)
+                }));
+
+                renderRestaurants();
+                populateFilters();
+                
+                state.spotlightRestaurants = state.restaurants.slice(0, 6);
+                updateSpotlight();
+                startSpotlightRotation();
+                setupRestaurantOfTheDay();
+
+            } catch (error) {
+                console.error('Error loading restaurants:', error);
+            }
+        }
+
+        async function loadAllRestaurantsForSearch() {
+            const { data } = await supabase.from('restraunts').select('slug, name, category, description, logo_url');
+            if(data) state.allRestaurants = data;
+        }
+
+        // ---------- AUTH MANAGEMENT ----------
+        async function updateAuthUI() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session && session.user) {
+                state.isLoggedIn = true;
+                
+                // Hide guest banner
+                elements.guestBanner.classList.remove('show');
+                elements.startJourneyBtn.style.display = 'none';
+                document.querySelector('.btn-primary.logged-in').style.display = 'flex';
+                
+                // Update account button
+                const user = session.user;
+                const name = user.user_metadata?.username || user.email?.split('@')[0] || 'Account';
+                elements.userAccountBtn.innerHTML = `<i class="fas fa-user"></i><span>${name}</span>`;
+                elements.userAccountBtn.onclick = () => location.href = 'profile.html';
+
+                await listManager.init();
+                await customListsManager.init();
+                renderRestaurants();
+                setupRestaurantOfTheDay();
+            } else {
+                state.isLoggedIn = false;
+                
+                // Show guest banner
+                elements.guestBanner.classList.add('show');
+                elements.startJourneyBtn.style.display = 'flex';
+                document.querySelector('.btn-primary.logged-in').style.display = 'none';
+                elements.userAccountBtn.onclick = () => location.href = 'login.html';
+            }
+        }
+
+        // ---------- EVENT LISTENERS ----------
+        function setupEventListeners() {
+            // Search
+            elements.search.addEventListener('input', function() {
+                elements.clearSearch.style.display = this.value ? 'block' : 'none';
+                const term = this.value.toLowerCase();
+                if(!term) { 
+                    elements.searchSuggestions.classList.remove('show'); 
+                    return; 
+                }
+                
+                const matches = state.allRestaurants.filter(r => 
+                    r.name.toLowerCase().includes(term) ||
+                    (r.category && r.category.toLowerCase().includes(term))
+                ).slice(0,5);
+                
+                if(matches.length) {
+                    elements.searchSuggestions.innerHTML = matches.map(r => 
+                        `<div class="suggestion-item" onclick="location.href='restaurant.html?slug=${r.slug}'">
+                            <div class="suggestion-info">
+                                <div class="suggestion-name">${r.name}</div>
+                                <div class="suggestion-category">${r.category || 'Restaurant'}</div>
+                            </div>
+                         </div>`
+                    ).join('');
+                    elements.searchSuggestions.classList.add('show');
+                } else {
+                    elements.searchSuggestions.classList.remove('show');
+                }
+            });
+
+            elements.search.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    location.href = `restraunts.html?search=${encodeURIComponent(elements.search.value)}`;
+                }
+            });
+
+            elements.clearSearch.addEventListener('click', () => {
+                elements.search.value = '';
+                elements.clearSearch.style.display = 'none';
+                elements.searchSuggestions.classList.remove('show');
+            });
+
+            // Start Journey Button
+            elements.startJourneyBtn.addEventListener('click', () => {
+                location.href = 'sign-up.html';
+            });
+
+            // Banner buttons
+            document.getElementById('bannerLoginBtn').addEventListener('click', () => {
+                location.href = 'login.html';
+            });
+
+            document.getElementById('bannerSignupBtn').addEventListener('click', () => {
+                location.href = 'sign-up.html';
+            });
+
+            // Modal buttons
+            document.getElementById('modalCancelBtn').addEventListener('click', hideModal);
+            document.getElementById('actionsModal').addEventListener('click', (e) => {
+                if(e.target === document.getElementById('actionsModal')) hideModal();
+            });
+
+            // List action buttons
+            document.getElementById('modalFavoritesBtn').addEventListener('click', async () => {
+                if(!state.currentModalRestaurant) return;
+                await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+                updateModalButtons(state.currentModalRestaurant.id);
+                renderRestaurants();
+                setupRestaurantOfTheDay();
+                hideModal();
+            });
+
+            document.getElementById('modalWantToGoBtn').addEventListener('click', async () => {
+                if(!state.currentModalRestaurant) return;
+                await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+                updateModalButtons(state.currentModalRestaurant.id);
+                renderRestaurants();
+                setupRestaurantOfTheDay();
+                hideModal();
+            });
+
+            document.getElementById('modalVisitedBtn').addEventListener('click', async () => {
+                if(!state.currentModalRestaurant) return;
+                await listManager.toggleInList('visited', state.currentModalRestaurant.id);
+                updateModalButtons(state.currentModalRestaurant.id);
+                renderRestaurants();
+                setupRestaurantOfTheDay();
+                hideModal();
+            });
+
+            // Auth prompt buttons
+            document.getElementById('authPromptCloseBtn').addEventListener('click', hideAuthPrompt);
+            document.getElementById('authPromptLoginBtn').addEventListener('click', () => location.href = 'login.html');
+            document.getElementById('authPromptSignupBtn').addEventListener('click', () => location.href = 'sign-up.html');
+            document.getElementById('authPromptModal').addEventListener('click', (e) => {
+                if(e.target === document.getElementById('authPromptModal')) hideAuthPrompt();
+            });
+
+            // Escape key to close modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideModal();
+                    hideAuthPrompt();
+                }
+            });
+        }
 
         // ---------- INITIALIZATION ----------
+        async function init() {
+            setupEventListeners();
+            await cloudKitchenManager.loadCloudKitchens();
+            
+            // Load all data in parallel
+            await Promise.all([
+                updateAuthUI(),
+                loadRestaurants(), 
+                loadAllRestaurantsForSearch()
+            ]);
+            
+            supabase.auth.onAuthStateChange(updateAuthUI);
+        }
+
         init();
     });
     </script>
