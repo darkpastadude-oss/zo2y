@@ -6,841 +6,683 @@
     <title>Zo2y — All Restaurants</title>
     
     <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
-    <link rel="dns-prefetch" href="https://gfkhjbztayjyojsgdpgk.supabase.co">
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="images/logo.png">
 
     <style>
         :root { 
-            --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
-            --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
+            --bg: #0b1633; 
+            --card: #132347; 
+            --muted: #8ca3c7; 
+            --accent: #f59e0b; 
+            --white: #ffffff; 
+            --border: rgba(255,255,255,0.1);
             --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-            --shadow: 0 10px 30px rgba(0,0,0,0.3);
-            --success: #10b981; --error: #ef4444; --info: #3b82f6;
-            --surface: rgba(19, 35, 71, 0.6);
+            --surface: rgba(19, 35, 71, 0.95);
             --cloud-color: #3b82f6;
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; } 
-        html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; min-height: 100vh; } 
         a { color: inherit; text-decoration: none; } 
+        img { display: block; max-width: 100%; }
 
-        /* Enhanced Header */
+        /* --- Header --- */
         header { 
-            position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; 
-            gap: 20px; padding: 14px 24px; backdrop-filter: blur(10px) saturate(180%);
-            background: var(--surface); border-bottom: 1px solid var(--border); 
+            position: sticky; top: 0; z-index: 100; 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 32px; background: var(--surface); 
+            backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); 
         } 
-        .logo { height: 40px; cursor: pointer; transition: transform 0.3s ease; }
-        .logo:hover { transform: scale(1.05); }
-        .toolbar { display: flex; gap: 12px; margin-left: auto; align-items: center; flex-wrap: wrap; } 
-
-        /* Search */
-        .search-wrapper { width: 320px; position: relative; }
-        .search { 
-            width: 100%; padding: 10px 16px 10px 40px; border-radius: 20px; 
-            border: 1px solid var(--border); background: var(--card); color: var(--white); 
-            outline: none; font-size: 14px; transition: all 0.3s ease;
-        } 
-        .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); } 
-        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
-        .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
+        .logo { height: 32px; cursor: pointer; }
         
-        /* Buttons */
-        .btn { background: var(--card); border: 1px solid var(--border); color: var(--white); padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap; } 
-        .btn:hover { background: var(--accent); color: #0b1633; }
-        .btn-primary { background: var(--gradient); border: none; color: #0b1633; font-weight: 600; }
-        .account-btn { background: transparent; color: var(--white); padding: 8px 16px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; font-size: 14px; }
-        .account-btn:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); }
-
-        /* Controls */
-        .container { max-width: 1200px; margin: 24px auto; padding: 0 20px; min-height: calc(100vh - 200px); } 
-        .page-header { margin-bottom: 24px; }
-        .page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-        .page-header p { color: var(--muted); font-size: 14px; }
-
-        .quick-filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 10px; scrollbar-width: none; }
-        .filter-chip { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .filter-chip.active, .filter-chip:hover { background: var(--accent); color: #0b1633; border-color: var(--accent); }
-
-        .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 16px; border: 1px solid var(--border); } 
-        .controls-info { color: var(--muted); font-size: 14px; font-weight: 500; margin-right: auto; } 
-        .sort-select { background: var(--bg); border: 1px solid var(--border); color: var(--white); padding: 8px 12px; border-radius: 10px; font-size: 13px; cursor: pointer; min-width: 140px; }
+        .nav-right { display: flex; gap: 16px; align-items: center; }
+        .search-wrapper { position: relative; width: 300px; }
+        .search-input { 
+            width: 100%; background: #1a2d55; border: 1px solid var(--border); 
+            color: white; padding: 10px 16px 10px 40px; border-radius: 20px; outline: none; transition: 0.3s;
+        }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(245,158,11,0.2); }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+        .btn-outline { border: 1px solid var(--border); background: transparent; color: var(--white); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
         
-        .view-controls { display: flex; align-items: center; gap: 10px; }
-        .grid-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; background: var(--bg); border: 1px solid var(--border); color: var(--muted); }
-        .grid-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+        .account-btn { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; padding: 8px 16px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--border); color: white; }
 
-        /* Grid Layouts */
-        .grid { display: grid; gap: 20px; transition: all 0.3s ease; }
-        .grid-quad { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-        .grid-single { grid-template-columns: 1fr; } /* List view */
+        /* --- Main Layout --- */
+        .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px; padding-bottom: 100px; }
+        
+        .page-title h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+        .page-title p { color: var(--muted); margin-bottom: 24px; }
 
-        /* --- RESTAURANT CARD --- */
+        /* --- Filters & Controls --- */
+        .quick-filters { display: flex; gap: 10px; margin-bottom: 24px; }
+        .filter-pill { 
+            background: #1a2d55; border: 1px solid var(--border); color: var(--muted); 
+            padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; 
+        }
+        .filter-pill:hover { color: white; border-color: var(--accent); }
+        .filter-pill.active { background: var(--accent); color: #0b1633; border-color: var(--accent); font-weight: 700; }
+
+        .controls-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(19, 35, 71, 0.5); padding: 16px; border-radius: 12px; 
+            border: 1px solid var(--border); margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+        }
+        .showing-text { color: var(--muted); font-size: 14px; }
+        .controls-right { display: flex; gap: 12px; align-items: center; }
+        
+        select { 
+            background: #0b1633; border: 1px solid var(--border); color: white; 
+            padding: 8px 12px; border-radius: 8px; outline: none; cursor: pointer; 
+        }
+        .view-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .view-btn.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+
+        /* --- Grid --- */
+        .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+        
+        /* List View Modifier */
+        .grid.list-view { grid-template-columns: 1fr; }
+        .grid.list-view .restaurant-card { flex-direction: row; height: 220px; }
+        .grid.list-view .card-image { width: 300px; height: 100%; }
+        .grid.list-view .logo-overlay { bottom: 12px; left: 12px; }
+
+        /* --- Card Styles --- */
         .restaurant-card { 
-            background: var(--card); border-radius: 16px; overflow: hidden; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border);
-            cursor: pointer; position: relative; transition: all 0.2s ease; 
-            display: flex; flex-direction: column; height: 100%;
-        } 
-        .restaurant-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); border-color: var(--accent); }
-
-        /* Horizontal Layout (List View) */
-        .grid-single .restaurant-card { flex-direction: row; height: 180px; }
-        .grid-single .card-image { width: 280px; height: 100%; flex-shrink: 0; }
-        .grid-single .card-content { justify-content: center; }
-
-        .card-image { height: 200px; position: relative; overflow: hidden; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); }
-        .restaurant-image { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s ease; }
-        .restaurant-image.loaded { opacity: 1; }
-
-        /* Logo Overlay - Bottom Left (Increased Size) */
-        .logo-overlay { 
-            position: absolute; bottom: 12px; left: 12px; 
-            width: 56px; height: 56px; 
-            background: rgba(11, 22, 51, 0.9); border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; padding: 4px; 
-            border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 20; 
-            transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.4); 
-            pointer-events: none;
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px; 
+            overflow: hidden; display: flex; flex-direction: column; position: relative; 
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
         }
-        .restaurant-card:hover .logo-overlay { 
-            transform: scale(1.1); border-color: var(--accent); background: rgba(245,158,11,0.9); 
-        }
+        .restaurant-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
-        /* List Icons - Top Left (Stacked) */
-        .list-badges-container {
-            position: absolute; top: 12px; left: 12px; 
-            display: flex; flex-direction: column; gap: 8px; z-index: 30;
-        }
-        .list-badge {
-            background: rgba(11, 22, 51, 0.95); color: var(--accent);
-            width: 36px; height: 36px; 
-            border-radius: 10px; font-size: 18px; 
-            border: 1px solid var(--accent); cursor: help;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease;
-        }
-        .list-badge:hover { transform: scale(1.1); background: var(--accent); color: #0b1633; }
+        .card-image { height: 220px; position: relative; background: #1a2d55; overflow: hidden; }
+        .res-img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.4s ease; }
+        .res-img.loaded { opacity: 1; }
 
-        /* Menu Button - Top Right */
-        .menu-btn-container { position: absolute; top: 12px; right: 12px; z-index: 30; }
-        .menu-btn { 
-            width: 40px; height: 40px;
-            background: rgba(11, 22, 51, 0.9); border: 2px solid var(--accent); 
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s ease;
-            color: var(--white); font-size: 18px;
-        }
-        .menu-btn:hover { background: var(--accent); color: #0b1633; transform: scale(1.1); }
-
-        /* Cloud Kitchen Badge */
-        .cloud-badge {
-            position: absolute; top: 12px; right: 60px; /* Spaced from menu btn */
-            width: 40px; height: 40px;
-            background: rgba(59, 130, 246, 0.95); border: 1px solid #3b82f6;
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 20px; z-index: 29; cursor: help;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
+        /* Card Overlays */
+        .top-badges { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; z-index: 2; }
+        .list-badge { width: 32px; height: 32px; background: rgba(11,22,51,0.9); border: 1px solid var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         
-        /* Cloud Tooltip */
+        .menu-btn { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; background: rgba(11,22,51,0.9); border: 1px solid var(--border); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; transition: 0.2s; }
+        .menu-btn:hover { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+
+        /* Cloud Badge + Tooltip */
+        .cloud-badge { 
+            position: absolute; top: 12px; right: 60px; width: 40px; height: 40px; 
+            background: var(--cloud-color); border-radius: 50%; color: white; 
+            display: flex; align-items: center; justify-content: center; z-index: 5;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
         .cloud-tooltip {
-            position: absolute; top: 110%; right: 0;
+            position: absolute; top: 110%; right: -10px; width: 220px;
             background: var(--card); border: 1px solid var(--cloud-color);
-            color: var(--white); padding: 12px; border-radius: 12px;
-            font-size: 12px; width: 220px; opacity: 0; visibility: hidden;
-            transition: all 0.2s ease; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            font-weight: 500; line-height: 1.4; text-align: left;
+            padding: 12px; border-radius: 12px; font-size: 12px;
+            color: var(--muted); visibility: hidden; opacity: 0; 
+            transform: translateY(10px); transition: 0.3s; pointer-events: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: left;
         }
-        .cloud-badge:hover .cloud-tooltip { opacity: 1; visibility: visible; transform: translateY(5px); }
-        .tooltip-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-weight: 700; color: var(--cloud-color); font-size: 14px; }
+        .cloud-tooltip strong { color: var(--white); display: block; margin-bottom: 4px; }
+        .cloud-badge:hover .cloud-tooltip { visibility: visible; opacity: 1; transform: translateY(0); }
 
-        /* Content Area */
-        .card-content { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-        .card-header { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-        .card-title-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
-        .card-title { font-size: 18px; font-weight: 700; line-height: 1.3; margin: 0; }
+        .logo-overlay { 
+            position: absolute; bottom: 12px; left: 12px; width: 60px; height: 60px; 
+            background: rgba(11,22,51,0.95); border-radius: 12px; border: 1px solid var(--border);
+            padding: 4px; display: flex; align-items: center; justify-content: center;
+        }
+        .logo-img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Card Content */
+        .card-details { padding: 20px; display: flex; flex-direction: column; flex: 1; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .card-title { font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; }
+        .top-rated-tag { 
+            background: var(--gradient); color: #0b1633; font-size: 10px; font-weight: 800; 
+            padding: 4px 8px; border-radius: 6px; text-transform: uppercase; margin-left: 8px;
+            display: inline-block; vertical-align: middle;
+        }
+        .rating { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 14px; color: #facc15; display: flex; align-items: center; gap: 4px; }
         
-        .top-rated-badge { 
-            display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); 
-            color: #0b1633; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; 
-            letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid rgba(245, 158, 11, 0.5);
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); white-space: nowrap;
-        }
-
-        .card-rating { 
-            background: var(--gradient); color: #0b1633; padding: 4px 8px; 
-            border-radius: 8px; font-size: 13px; font-weight: 700; 
-            display: flex; align-items: center; gap: 4px; flex-shrink: 0; 
-        }
+        .card-meta { display: flex; align-items: center; gap: 8px; color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+        .card-desc { color: var(--muted); font-size: 14px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 16px; }
         
-        .card-category { color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .card-description { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .card-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
-        .card-location { color: var(--muted); font-size: 13px; font-weight: 500; }
-
-        /* Pagination Bar */
+        /* --- Pagination Bar (Floating) --- */
         .pagination-bar { 
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); 
-            background: rgba(19, 35, 71, 0.95); backdrop-filter: blur(10px); 
-            padding: 10px 20px; border-radius: 50px; border: 1px solid var(--accent); 
-            display: flex; gap: 20px; align-items: center; z-index: 900; 
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5); opacity: 0;
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%);
+            background: #1a2d55; border: 1px solid var(--accent); padding: 8px 24px;
+            border-radius: 50px; display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 900; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .pagination-bar.visible { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .page-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 16px; }
-        .page-btn:hover:not(:disabled) { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+        .pagination-bar.visible { transform: translateX(-50%) translateY(0); }
+        .page-text { font-weight: 600; font-size: 14px; }
+        .page-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .page-btn:hover:not(:disabled) { background: var(--accent); color: #0b1633; }
         .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .page-info { font-weight: 600; color: var(--white); font-size: 15px; min-width: 80px; text-align: center; }
 
-        /* Footer */
-        footer { padding: 40px 20px 24px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); margin-top: 40px; background: var(--card); }
-        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: center; margin-bottom: 30px; }
-        .footer-column h3 { color: var(--white); margin-bottom: 16px; font-size: 16px; font-weight: 600; }
-        .footer-column a { display: block; margin-bottom: 10px; transition: all 0.3s ease; padding: 4px 0; font-size: 14px; }
-        .footer-column a:hover { color: var(--accent); }
-        .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; font-size: 14px; max-width: 1200px; margin: 0 auto; }
+        /* --- Modals --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: var(--card); border: 1px solid var(--accent); padding: 30px; border-radius: 20px; width: 90%; max-width: 420px; text-align: center; animation: popUp 0.3s ease; }
+        @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .action-list { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .action-item { background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); color: white; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; font-weight: 500; }
+        .action-item:hover { border-color: var(--accent); background: rgba(245,158,11,0.1); }
+        .action-item.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
+        
+        /* Custom List Modal Specifics */
+        .list-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 8px; border: 1px solid transparent; cursor: pointer; }
+        .list-row.selected { border-color: var(--accent); background: rgba(245,158,11,0.1); }
+        .checkbox { width: 20px; height: 20px; border: 2px solid var(--muted); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .list-row.selected .checkbox { background: var(--accent); border-color: var(--accent); }
+        .list-row.selected .checkbox::after { content: '✓'; color: #0b1633; font-size: 14px; font-weight: bold; }
 
-        /* Modals & Notification CSS (Standard) */
-        .actions-modal, .custom-lists-modal, .auth-prompt-modal { display: none; position: fixed; inset: 0; background: rgba(11,22,51,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .actions-modal.active, .custom-lists-modal.active, .auth-prompt-modal.active { display: flex; }
-        .actions-content, .custom-lists-content, .auth-prompt-content { background: var(--card); padding: 30px; border-radius: 20px; border: 2px solid var(--accent); width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; }
-        .action-btn-modal { background: var(--bg); border: 1px solid var(--border); color: white; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s; font-size: 15px; }
-        .action-btn-modal:hover, .action-btn-modal.active { background: var(--accent); color: #0b1633; border-color: var(--accent); }
-        .cancel-btn, .close-lists-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 12px; border-radius: 12px; width: 100%; cursor: pointer; margin-top: 10px; }
-        
-        .notification-container { position: fixed; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
-        .custom-notification { background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideInRight 0.3s ease; }
-        .notification-success { border-left: 4px solid var(--success); }
-        .notification-error { border-left: 4px solid var(--error); }
-        
-        /* Lists specific */
-        .lists-list-container { max-height: 300px; overflow-y: auto; margin-bottom: 20px; text-align: left; }
-        .list-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
-        .list-item:hover { background: rgba(255,255,255,0.05); }
-        .list-item.active { border-color: var(--accent); background: rgba(245,158,11,0.1); }
-        .list-icon { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; }
-        .list-checkbox { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 6px; margin-left: auto; display: flex; align-items: center; justify-content: center; }
-        .list-item.active .list-checkbox { background: var(--accent); border-color: var(--accent); }
-        .list-item.active .list-checkbox::after { content: '✓'; color: #0b1633; font-size: 12px; font-weight: bold; }
-        
-        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        /* Notification */
+        #notificationContainer { position: fixed; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+        .notify { background: var(--card); border-left: 4px solid var(--accent); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; color: white; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
-            header { flex-wrap: wrap; }
-            .search-wrapper { width: 100%; order: 3; margin-top: 10px; }
-            .grid-quad { grid-template-columns: 1fr; }
-            .grid-single .restaurant-card { flex-direction: column; height: auto; }
-            .grid-single .card-image { width: 100%; height: 200px; }
-            .controls { flex-direction: column; align-items: flex-start; }
-            .sort-controls { width: 100%; overflow-x: auto; }
-            .footer-content { grid-template-columns: repeat(2, 1fr); text-align: left; }
-            .cloud-tooltip { display: none; /* No hover on mobile */ }
+            .grid { grid-template-columns: 1fr; }
+            .grid.list-view .restaurant-card { flex-direction: column; height: auto; }
+            .grid.list-view .card-image { width: 100%; height: 200px; }
+            .controls-bar { flex-direction: column; align-items: flex-start; }
+            .controls-right { width: 100%; justify-content: space-between; margin-top: 10px; }
+            .pagination-bar { bottom: 20px; width: 90%; justify-content: space-between; }
         }
     </style>
 </head>
 <body>
 
-  <div id="actionsModal" class="actions-modal">
-    <div class="actions-content">
-      <h3 id="modalRestaurantName" style="margin-bottom: 5px; color:white;">Restaurant</h3>
-      <p style="color:var(--muted); font-size:14px;">Manage your lists</p>
-      <div class="action-buttons">
-        <button class="action-btn-modal" id="modalFavoritesBtn"><i class="fas fa-heart"></i> <span>Favorites</span></button>
-        <button class="action-btn-modal" id="modalWantToGoBtn"><i class="fas fa-map-marker-alt"></i> <span>Want to Go</span></button>
-        <button class="action-btn-modal" id="modalVisitedBtn"><i class="fas fa-utensils"></i> <span>Visited</span></button>
-        <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn"><i class="fas fa-list"></i> <span>Custom Lists</span> <i class="fas fa-chevron-right" style="margin-left:auto"></i></button>
-      </div>
-      <button class="cancel-btn" id="modalCancelBtn">Close</button>
-    </div>
-  </div>
-
-  <div id="customListsModal" class="custom-lists-modal">
-    <div class="custom-lists-content">
-      <div class="lists-header">
-        <h3 style="color:white; margin:0"><i class="fas fa-list" style="color:var(--accent)"></i> Custom Lists</h3>
-        <button class="close-lists-btn" id="closeListsBtn" style="width:auto; margin:0; border:none;">×</button>
-      </div>
-      <div id="listsListContainer" class="lists-list-container"></div>
-      <div class="new-list-section" style="border-top:1px solid var(--border); padding-top:15px;">
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-          <input type="text" id="newListName" placeholder="New list name..." style="flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:white;">
-          <button id="createListBtn" class="btn-primary" style="padding:10px 15px; border-radius:10px;">Create</button>
+    <div id="actionsModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalResName" style="margin-bottom: 5px;">Restaurant Name</h3>
+            <p style="color:var(--muted); font-size:14px;">Manage your lists</p>
+            <div class="action-list">
+                <div class="action-item" id="actFav"><div style="display:flex; gap:10px; align-items:center"><i class="fas fa-heart"></i> <span>Favorites</span></div></div>
+                <div class="action-item" id="actWant"><div style="display:flex; gap:10px; align-items:center"><i class="fas fa-map-marker-alt"></i> <span>Want to Go</span></div></div>
+                <div class="action-item" id="actVisit"><div style="display:flex; gap:10px; align-items:center"><i class="fas fa-check"></i> <span>Visited</span></div></div>
+                <div class="action-item" id="actCustom" style="border-color:var(--accent);"><div style="display:flex; gap:10px; align-items:center"><i class="fas fa-list"></i> <span>Custom Lists</span></div> <i class="fas fa-chevron-right"></i></div>
+            </div>
+            <button class="btn-outline" style="width:100%" onclick="closeModals()">Close</button>
         </div>
-        <button id="saveListsBtn" class="btn-primary" style="width:100%; padding:12px; border-radius:12px;">Save Changes</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="authPromptModal" class="auth-prompt-modal">
-    <div class="auth-prompt-content">
-      <div style="font-size:40px; color:var(--accent); margin-bottom:20px;"><i class="fas fa-lock"></i></div>
-      <h3 style="color:white; margin-bottom:10px;">Sign In Required</h3>
-      <p style="color:var(--muted); margin-bottom:20px;">Create an account to save restaurants and track your food journey.</p>
-      <div style="display:flex; gap:10px; flex-direction:column;">
-        <button class="btn-primary" style="padding:12px; border-radius:12px;" onclick="location.href='sign-up.html'">Create Account</button>
-        <button class="cancel-btn" onclick="location.href='login.html'">Sign In</button>
-      </div>
-      <button class="cancel-btn" style="border:none; margin-top:15px;" onclick="document.getElementById('authPromptModal').classList.remove('active')">Maybe Later</button>
-    </div>
-  </div>
-
-  <div id="notificationContainer" class="notification-container"></div>
-
-  <header class="nav">
-    <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
-    <div class="toolbar">
-      <div class="search-wrapper">
-        <span class="search-icon">🔎</span>
-        <input type="text" id="search" class="search" placeholder="Search restaurants...">
-        <button class="clear-search" id="clearSearch">✕</button>
-      </div>
-      <button class="btn" id="resetFilters">Clear Filters</button>
-      <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
-    </div>
-  </header>
-
-  <main class="container">
-    <div class="page-header">
-      <h1>All Restaurants</h1>
-      <p>Discover and explore the best local spots</p>
-    </div>
-    
-    <div class="quick-filters" id="quickFilters">
-        <div class="filter-chip active" data-filter="all">All</div>
-        <div class="filter-chip" data-filter="top-rated">⭐ Top Rated</div>
-        <div class="filter-chip" data-filter="trending">🔥 Trending</div>
-        <div class="filter-chip" data-filter="new">🆕 New</div>
     </div>
 
-    <div class="controls">
-      <div class="controls-info"><span id="showingText">Loading...</span></div>
-      <div class="sort-controls">
-        <select id="categorySelect" class="sort-select"><option value="all">All Categories</option></select>
-        <select id="sortSelect" class="sort-select">
-          <option value="rating-desc">Rating: High to Low</option>
-          <option value="name-asc">Name: A-Z</option>
-        </select>
-        <div class="items-per-page" style="margin-left:10px; color:var(--muted); font-size:13px;">
-           Show: <select id="itemsPerPage" class="sort-select" style="min-width:60px;"><option value="20">20</option><option value="all">All</option></select>
+    <div id="customListModal" class="modal-overlay">
+        <div class="modal-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3>Save to List</h3>
+                <button style="background:none; border:none; color:white; font-size:24px; cursor:pointer;" onclick="closeModals()">×</button>
+            </div>
+            
+            <div id="customListContainer" style="max-height: 250px; overflow-y: auto; text-align:left; margin-bottom:20px;">
+                </div>
+
+            <div style="border-top:1px solid var(--border); padding-top:15px; display:flex; gap:10px;">
+                <input type="text" id="newListName" placeholder="New list name..." style="flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:white; padding:10px; border-radius:8px; outline:none;">
+                <button style="background:var(--accent); border:none; color:#0b1633; font-weight:700; padding:0 15px; border-radius:8px; cursor:pointer;" id="createListBtn">+</button>
+            </div>
+            <button style="width:100%; margin-top:15px; background:var(--accent); border:none; padding:12px; border-radius:10px; font-weight:700; color:#0b1633; cursor:pointer;" id="saveCustomBtn">Done</button>
         </div>
-      </div>
-      <div class="view-controls">
-          <button class="grid-btn active" data-view="quad"><i class="fas fa-th"></i></button>
-          <button class="grid-btn" data-view="single"><i class="fas fa-list"></i></button>
-      </div>
     </div>
-    
-    <div id="restaurantGrid" class="grid grid-quad"></div>
-  </main>
-  
-  <div id="paginationBar" class="pagination-bar">
-      <button class="page-btn" id="prevPage"><i class="fas fa-chevron-left"></i></button>
-      <div class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></div>
-      <button class="page-btn" id="nextPage"><i class="fas fa-chevron-right"></i></button>
-  </div>
 
-  <footer>
-    <div class="footer-content">
-      <div class="footer-column">
-        <h3>Explore</h3>
-        <a href="restraunts.html">All Restaurants</a>
-        <a href="categories.html">By Category</a>
-      </div>
-      <div class="footer-column">
-        <h3>Community</h3>
-        <a href="blog.html">Food Blog</a>
-      </div>
-      <div class="footer-column">
-        <h3>Business</h3>
-        <a href="add-restaurant.html">Add Your Restaurant</a>
-      </div>
-      <div class="footer-column">
-        <h3>Support</h3>
-        <a href="about.html">About Zo2y</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <div style="margin-bottom:8px">© 2025 Zo2y</div>
-    </div>
-  </footer>
+    <div id="notificationContainer"></div>
 
-  <script>
-    (function(){
+    <header>
+        <img src="images/logo.png" alt="Zo2y Logo" class="logo" onclick="window.location.href='index.html'">
+        <div class="nav-right">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search restaurants...">
+            </div>
+            <button class="account-btn" id="accountBtn"><i class="fas fa-user"></i> <span>Account</span></button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-title">
+            <h1>All Restaurants</h1>
+            <p>Discover and explore the best local spots</p>
+        </div>
+
+        <div class="quick-filters">
+            <button class="filter-pill active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="top-rated">⭐ Top Rated</button>
+            <button class="filter-pill" data-filter="trending">🔥 Trending</button>
+            <button class="filter-pill" data-filter="new">🆕 New</button>
+        </div>
+
+        <div class="controls-bar">
+            <span class="showing-text" id="showingText">Loading...</span>
+            
+            <div class="controls-right">
+                <select id="categoryFilter">
+                    <option value="all">All Categories</option>
+                </select>
+                
+                <select id="sortFilter">
+                    <option value="rating-desc">Rating: High to Low</option>
+                    <option value="name-asc">Name: A-Z</option>
+                </select>
+
+                <div style="display:flex; gap:5px;">
+                    <button class="view-btn active" id="viewGrid"><i class="fas fa-th-large"></i></button>
+                    <button class="view-btn" id="viewList"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="restaurantGrid" class="grid">
+            </div>
+    </div>
+
+    <div id="paginationBar" class="pagination-bar">
+        <button class="page-btn" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+        <span class="page-text" id="pageIndicator">Page 1 of 2</span>
+        <button class="page-btn" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <script>
+    (function() {
         const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // State
         const state = {
-            restaurants: [], filtered: [], isLoggedIn: false,
-            currentModalRestaurant: null, customLists: [], selectedLists: new Set(),
-            cloudKitchens: new Set(),
-            currentPage: 1, pageSize: 20
+            allRestaurants: [],
+            filtered: [],
+            categories: [],
+            customLists: [],
+            selectedListIds: new Set(),
+            cloudIds: new Set(),
+            user: null,
+            currentPage: 1,
+            pageSize: 20,
+            currentModalRes: null
         };
 
-        const elements = {
-            grid: document.getElementById('restaurantGrid'),
-            search: document.getElementById('search'),
-            showingText: document.getElementById('showingText'),
-            paginationBar: document.getElementById('paginationBar'),
-            currentPageSpan: document.getElementById('currentPage'),
-            totalPagesSpan: document.getElementById('totalPages')
-        };
+        // DOM Elements
+        const grid = document.getElementById('restaurantGrid');
+        const paginationBar = document.getElementById('paginationBar');
+        const showingText = document.getElementById('showingText');
 
-        // --- Optimized Loading Logic ---
-        function loadImage(imgElement, url) {
-            if (!url || !imgElement) return;
-            // Only set src if different to avoid reloading
-            if (imgElement.getAttribute('src') !== url) imgElement.src = url;
-            
-            // Standard load handler
-            if(imgElement.complete) imgElement.classList.add('loaded');
-            else imgElement.onload = () => imgElement.classList.add('loaded');
-        }
-
+        // Init
         async function init() {
-            // 1. Check Auth
+            // Check Session
             const { data: { session } } = await supabase.auth.getSession();
-            state.isLoggedIn = !!session;
-            
-            if(state.isLoggedIn) {
-                const user = session.user;
-                document.getElementById('userAccountBtn').innerHTML = `<i class="fas fa-user"></i> <span>${user.user_metadata?.username || 'Profile'}</span>`;
-                document.getElementById('userAccountBtn').onclick = () => location.href = 'profile.html';
-                // Load user lists
-                await loadLists(user.id);
-            } else {
-                document.getElementById('userAccountBtn').onclick = () => location.href = 'login.html';
-            }
+            state.user = session?.user || null;
+            updateAuthUI();
 
-            setupEventListeners();
-            
-            // 2. Load Data in Parallel (Fastest)
+            if(state.user) await loadUserLists();
+
+            // Parallel Load
             await Promise.all([loadCloudKitchens(), loadRestaurants(), loadCategories()]);
+            
+            // Events
+            setupEvents();
         }
 
+        function updateAuthUI() {
+            const btn = document.getElementById('accountBtn');
+            if(state.user) {
+                btn.innerHTML = `<i class="fas fa-user"></i> <span>${state.user.user_metadata?.username || 'Profile'}</span>`;
+                btn.onclick = () => location.href = 'profile.html';
+            } else {
+                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> <span>Sign In</span>`;
+                btn.onclick = () => location.href = 'login.html';
+            }
+        }
+
+        // --- Data Loading ---
         async function loadCloudKitchens() {
             const { data } = await supabase.from('cloud_kitchens').select('restaurant_id');
-            if(data) data.forEach(ck => state.cloudKitchens.add(ck.restaurant_id));
+            if(data) data.forEach(ck => state.cloudIds.add(ck.restaurant_id));
         }
 
         async function loadRestaurants() {
-            // Fetch basic data for ALL restaurants sorted by rating
             const { data } = await supabase.from('restraunts').select('*').order('rating', {ascending:false});
             if(data) {
-                state.restaurants = data;
-                applyFilters(); // Renders the grid
+                state.allRestaurants = data;
+                applyFilters();
             }
         }
 
         async function loadCategories() {
             const { data } = await supabase.from('categories').select('*');
             if(data) {
-                const select = document.getElementById('categorySelect');
+                const sel = document.getElementById('categoryFilter');
                 data.forEach(c => {
                     const opt = document.createElement('option');
-                    opt.value = c.name; 
-                    opt.textContent = `${c.icon || '🍴'} ${c.name}`;
-                    select.appendChild(opt);
+                    opt.value = c.name;
+                    opt.textContent = (c.icon || '🍴') + ' ' + c.name;
+                    sel.appendChild(opt);
                 });
             }
         }
 
-        async function loadLists(userId) {
-            const { data } = await supabase.from('lists').select('*').eq('user_id', userId).order('created_at');
+        async function loadUserLists() {
+            const { data } = await supabase.from('lists').select('*').eq('user_id', state.user.id);
             if(data) state.customLists = data;
         }
 
-        // --- Lists Logic ---
+        // --- Core Logic ---
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const cat = document.getElementById('categoryFilter').value;
+            const sort = document.getElementById('sortFilter').value;
+            const quick = document.querySelector('.filter-pill.active').dataset.filter;
 
-        async function toggleList(listId, rId, btn) {
-             // Check existence
-             const { data } = await supabase.from('lists_restraunts').select('*').eq('list_id', listId).eq('restraunt_id', rId);
-             const exists = data && data.length > 0;
+            let res = state.allRestaurants.filter(r => r.name.toLowerCase().includes(search));
 
-             if(exists) {
-                 await supabase.from('lists_restraunts').delete().match({ list_id: listId, restraunt_id: rId });
-                 if(btn) {
-                     btn.classList.remove('active');
-                     // Dynamic Text Update
-                     const text = btn.querySelector('span').textContent;
-                     btn.querySelector('span').textContent = text.replace('Remove from', 'Add to');
-                 }
-                 showNotification('Removed from list', 'info');
-             } else {
-                 await supabase.from('lists_restraunts').insert([{ list_id: listId, restraunt_id: rId }]);
-                 if(btn) {
-                     btn.classList.add('active');
-                     const text = btn.querySelector('span').textContent;
-                     btn.querySelector('span').textContent = text.replace('Add to', 'Remove from');
-                 }
-                 showNotification('Added to list', 'success');
-             }
-             // Re-render only badges for visible cards? 
-             // For simplicity/accuracy in this snippet, we re-render the current view
-             renderRestaurants(); 
-        }
+            if(cat !== 'all') res = res.filter(r => r.category === cat);
 
-        async function getRestaurantLists(rId) {
-            if(!state.isLoggedIn) return new Set();
-            const { data } = await supabase.from('lists_restraunts').select('list_id').eq('restraunt_id', rId);
-            const set = new Set();
-            if(data) data.forEach(i => set.add(i.list_id));
-            return set;
-        }
-
-        // --- Rendering ---
-
-        function renderRestaurants() {
-            elements.grid.innerHTML = '';
+            if(quick === 'top-rated') res = res.filter(r => r.rating >= 4.5);
+            else if(quick === 'trending') res = res.filter(r => r.rating >= 4.0);
             
-            // Pagination Logic
+            if(sort === 'rating-desc') res.sort((a,b) => b.rating - a.rating);
+            if(sort === 'name-asc') res.sort((a,b) => a.name.localeCompare(b.name));
+
+            state.filtered = res;
+            state.currentPage = 1;
+            render();
+        }
+
+        function render() {
+            grid.innerHTML = '';
+            
+            // Pagination Slicing
             const start = (state.currentPage - 1) * state.pageSize;
-            const end = state.pageSize === 'all' ? state.filtered.length : start + state.pageSize;
-            const list = state.filtered.slice(start, end);
-            
-            const frag = document.createDocumentFragment();
-            list.forEach(r => {
-                const card = createCard(r);
-                frag.appendChild(card);
-            });
-            elements.grid.appendChild(frag);
+            const end = start + state.pageSize;
+            const pageData = state.filtered.slice(start, end);
 
-            // Update Counts Text
-            elements.showingText.textContent = `Showing ${list.length} of ${state.filtered.length} restaurants`;
-            
-            // Pagination Bar UI
-            const totalPages = state.pageSize === 'all' ? 1 : Math.ceil(state.filtered.length / state.pageSize);
-            elements.currentPageSpan.textContent = state.currentPage;
-            elements.totalPagesSpan.textContent = totalPages;
-            
-            document.getElementById('prevPage').disabled = state.currentPage === 1;
-            document.getElementById('nextPage').disabled = state.currentPage === totalPages || totalPages === 0;
-            
-            if(totalPages > 1) elements.paginationBar.classList.add('visible');
-            else elements.paginationBar.classList.remove('visible');
+            const fragment = document.createDocumentFragment();
+            pageData.forEach(r => fragment.appendChild(createCard(r)));
+            grid.appendChild(fragment);
+
+            // Update Text
+            showingText.textContent = `Showing ${pageData.length} of ${state.filtered.length} restaurants`;
+
+            // Update Pagination UI
+            const totalPages = Math.ceil(state.filtered.length / state.pageSize);
+            document.getElementById('pageIndicator').textContent = `Page ${state.currentPage} of ${totalPages}`;
+            document.getElementById('prevBtn').disabled = state.currentPage === 1;
+            document.getElementById('nextBtn').disabled = state.currentPage === totalPages || totalPages === 0;
+
+            // Initial Scroll Check
+            handleScroll();
         }
 
         function createCard(r) {
-            const div = document.createElement('div');
-            div.className = 'restaurant-card';
+            const el = document.createElement('div');
+            el.className = 'restaurant-card';
+            
             const isTop = r.rating >= 4.5;
-            const isCloud = state.cloudKitchens.has(r.id);
+            const isCloud = state.cloudIds.has(r.id);
+            const iconMap = {'Burgers':'🍔','Pizza':'🍕','Chicken':'🍗','Asian':'🍜'};
+            const catIcon = iconMap[r.category] || '🍴';
 
-            div.innerHTML = `
-                <a href="restaurant.html?slug=${r.slug}" class="card-link" style="text-decoration:none; color:inherit; display:flex; flex-direction:column; height:100%;">
-                    <div class="card-image">
-                        <img src="${r.image}" class="restaurant-image" loading="lazy">
-                        ${r.logo_url ? `<div class="logo-overlay"><img src="${r.logo_url}"></div>` : ''}
-                        
-                        <div class="list-badges-container" id="badges-${r.id}"></div>
+            el.innerHTML = `
+                <div class="card-image" onclick="location.href='restaurant.html?slug=${r.slug}'">
+                    <img src="${r.image}" class="res-img" onload="this.classList.add('loaded')">
+                    
+                    ${r.logo_url ? `<div class="logo-overlay"><img src="${r.logo_url}" class="logo-img"></div>` : ''}
+                    
+                    <div class="top-badges" id="badges-${r.id}"></div>
 
-                        ${isCloud ? `
-                        <div class="cloud-badge">
-                            <i class="fas fa-cloud"></i>
-                            <div class="cloud-tooltip">
-                                <div class="tooltip-header"><i class="fas fa-info-circle"></i> <h4>Cloud Kitchen</h4></div>
-                                <p>A delivery-only restaurant with no physical dine-in space.</p>
-                            </div>
-                        </div>` : ''}
-                        
-                        <div class="menu-btn-container">
-                             <button class="menu-btn save-trigger"><i class="fas fa-ellipsis-h"></i></button>
+                    ${isCloud ? `
+                    <div class="cloud-badge">
+                        <i class="fas fa-cloud"></i>
+                        <div class="cloud-tooltip">
+                            <strong>Cloud Kitchen</strong>
+                            A delivery-only restaurant concept with no dine-in space.
                         </div>
+                    </div>` : ''}
+
+                    <div class="menu-btn" onclick="event.stopPropagation(); openModal('${r.id}')"><i class="fas fa-ellipsis-h"></i></div>
+                </div>
+                <div class="card-details" onclick="location.href='restaurant.html?slug=${r.slug}'">
+                    <div class="card-header">
+                        <div style="flex:1">
+                            <h3 class="card-title">${r.name} ${isTop ? '<span class="top-rated-tag">Top Rated</span>' : ''}</h3>
+                        </div>
+                        <div class="rating"><i class="fas fa-star"></i> ${r.rating.toFixed(1)}</div>
                     </div>
-                    <div class="card-content">
-                        <div class="card-header">
-                            <div class="card-title-wrapper">
-                                <h3 class="card-title">${r.name}</h3>
-                                ${isTop ? `<span class="top-rated-badge">TOP RATED</span>` : ''}
-                            </div>
-                            <div class="card-rating"><i class="fas fa-star"></i> ${r.rating.toFixed(1)}</div>
-                        </div>
-                        <div class="card-category"><span>🍴</span> ${r.category}</div>
-                        <p class="card-description">${r.description}</p>
-                        <div class="card-footer">
-                            <span class="card-location">View Details</span>
-                        </div>
-                    </div>
-                </a>
+                    <div class="card-meta"><span>${catIcon}</span> ${r.category}</div>
+                    <p class="card-desc">${r.description || 'Delicious food served hot and fresh.'}</p>
+                </div>
             `;
-
-            // Trigger Load Image Logic manually after insert
-            const img = div.querySelector('.restaurant-image');
-            loadImage(img, r.image);
-
-            div.querySelector('.save-trigger').addEventListener('click', (e) => {
-                e.preventDefault(); e.stopPropagation();
-                openActionsModal(r);
-            });
-
-            // Async load badges (Heart, Pin, Check)
-            updateCardBadges(div, r.id);
-
-            return div;
+            
+            // Async load badges to keep rendering fast
+            loadBadges(r.id, el.querySelector('.top-badges'));
+            return el;
         }
 
-        async function updateCardBadges(card, rId) {
-            if(!state.isLoggedIn) return;
-            
-            // Check lists for this specific restaurant
+        async function loadBadges(rId, container) {
+            if(!state.user) return;
+            // Fetch list membership
             const { data } = await supabase.from('lists_restraunts').select('list_id').eq('restraunt_id', rId);
             if(!data) return;
+            
+            const myLists = state.customLists;
+            const membership = new Set(data.map(x => x.list_id));
 
-            const badgeContainer = card.querySelector('.list-badges-container');
-            badgeContainer.innerHTML = '';
-            
-            const ids = new Set(data.map(d => d.list_id));
-            
-            state.customLists.forEach(l => {
-                if(ids.has(l.id)) {
-                   let icon = '';
-                   if(l.title === 'Favorites') icon = '❤️';
-                   else if(l.title === 'Want to Go') icon = '📍';
-                   else if(l.title === 'Visited') icon = '✓';
-                   
-                   if(icon) {
-                       const el = document.createElement('div');
-                       el.className = 'list-badge';
-                       el.innerHTML = icon;
-                       badgeContainer.appendChild(el);
-                   }
+            myLists.forEach(l => {
+                if(membership.has(l.id)) {
+                    let icon = '';
+                    if(l.title === 'Favorites') icon = '❤️';
+                    else if(l.title === 'Want to Go') icon = '📍';
+                    else if(l.title === 'Visited') icon = '✓';
+                    
+                    if(icon) {
+                        const b = document.createElement('div');
+                        b.className = 'list-badge';
+                        b.innerHTML = icon;
+                        container.appendChild(b);
+                    }
                 }
             });
         }
 
-        // --- Modals & Actions ---
+        // --- Pagination Logic (Scroll Based) ---
+        function handleScroll() {
+            // Logic: Is the user near the bottom?
+            const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+            const currentScroll = window.scrollY;
+            const threshold = 150; // Show when 150px from bottom
 
-        async function openActionsModal(r) {
-            if(!state.isLoggedIn) { document.getElementById('authPromptModal').classList.add('active'); return; }
-            state.currentModalRestaurant = r;
-            document.getElementById('modalRestaurantName').textContent = r.name;
+            const totalPages = Math.ceil(state.filtered.length / state.pageSize);
+            
+            // Only show if there are multiple pages AND we are near the bottom
+            if (totalPages > 1 && (scrollTotal - currentScroll) < 400) {
+                paginationBar.classList.add('visible');
+            } else {
+                paginationBar.classList.remove('visible');
+            }
+        }
+
+        // --- Modals ---
+        window.openModal = async (rId) => {
+            if(!state.user) { location.href = 'login.html'; return; }
+            
+            state.currentModalRes = state.allRestaurants.find(r => r.id === rId);
+            document.getElementById('modalResName').textContent = state.currentModalRes.name;
             document.getElementById('actionsModal').classList.add('active');
-            
-            // Get current status to set button state text
-            const listIds = await getRestaurantLists(r.id);
-            
-            const setBtn = (id, title) => {
-                const btn = document.getElementById(id);
+
+            // Determine button states based on db
+            const { data } = await supabase.from('lists_restraunts').select('list_id').eq('restraunt_id', rId);
+            const activeIds = new Set(data?.map(x => x.list_id) || []);
+
+            const setupBtn = (eleId, title) => {
+                const btn = document.getElementById(eleId);
                 const list = state.customLists.find(l => l.title === title);
-                if(list && listIds.has(list.id)) {
+                const isActive = list && activeIds.has(list.id);
+                
+                if(isActive) {
                     btn.classList.add('active');
                     btn.querySelector('span').textContent = 'Remove from ' + title;
                 } else {
                     btn.classList.remove('active');
                     btn.querySelector('span').textContent = 'Add to ' + title;
                 }
-                // Clear old listeners by cloning
-                const newBtn = btn.cloneNode(true);
-                btn.parentNode.replaceChild(newBtn, btn);
-                newBtn.onclick = () => toggleList(list?.id, r.id, newBtn);
+                
+                // Set click
+                btn.onclick = async () => {
+                    if(!list) {
+                        // Create default list if missing
+                        const {data:nl} = await supabase.from('lists').insert([{user_id:state.user.id, title:title}]).select().single();
+                        state.customLists.push(nl);
+                        await toggleList(nl.id, rId);
+                    } else {
+                        await toggleList(list.id, rId);
+                    }
+                    openModal(rId); // refresh modal state
+                    render(); // refresh grid badges
+                };
             };
 
-            setBtn('modalFavoritesBtn', 'Favorites');
-            setBtn('modalWantToGoBtn', 'Want to Go');
-            setBtn('modalVisitedBtn', 'Visited');
-        }
-
-        // --- Custom Lists Logic ---
-        
-        // Open Custom List Modal
-        document.getElementById('modalCustomListsBtn').onclick = async () => {
-            document.getElementById('actionsModal').classList.remove('active');
-            const modal = document.getElementById('customListsModal');
-            modal.classList.add('active');
+            setupBtn('actFav', 'Favorites');
+            setupBtn('actWant', 'Want to Go');
+            setupBtn('actVisit', 'Visited');
             
-            const container = document.getElementById('listsListContainer');
-            container.innerHTML = '<div style="padding:20px; text-align:center">Loading...</div>';
-            
-            const rId = state.currentModalRestaurant.id;
-            const listIds = await getRestaurantLists(rId);
-            state.selectedLists = new Set(listIds);
-
-            renderCustomListItems();
+            // Custom list button
+            document.getElementById('actCustom').onclick = () => {
+                document.getElementById('actionsModal').classList.remove('active');
+                openCustomModal(activeIds);
+            };
         };
 
-        function renderCustomListItems() {
-            const container = document.getElementById('listsListContainer');
+        async function toggleList(listId, rId) {
+            // Check if exists
+            const {data} = await supabase.from('lists_restraunts').select('*').match({list_id:listId, restraunt_id:rId});
+            if(data.length > 0) {
+                await supabase.from('lists_restraunts').delete().match({list_id:listId, restraunt_id:rId});
+                showNotify('Removed from list', 'info');
+            } else {
+                await supabase.from('lists_restraunts').insert([{list_id:listId, restraunt_id:rId}]);
+                showNotify('Added to list', 'success');
+            }
+        }
+
+        function openCustomModal(activeIds) {
+            state.selectedListIds = new Set(activeIds); // Clone current state
+            const container = document.getElementById('customListContainer');
             container.innerHTML = '';
             
-            // Filter out default lists from this view
+            // Filter out default lists
             const customs = state.customLists.filter(l => !['Favorites','Visited','Want to Go'].includes(l.title));
             
-            if(customs.length === 0) {
-                container.innerHTML = '<div class="empty-lists"><i class="fas fa-list"></i><p>No custom lists yet</p></div>';
-            }
+            if(customs.length === 0) container.innerHTML = '<p style="color:var(--muted); text-align:center;">No custom lists yet.</p>';
 
             customs.forEach(l => {
                 const div = document.createElement('div');
-                const isSel = state.selectedLists.has(l.id);
-                div.className = `list-item ${isSel ? 'active' : ''}`;
-                div.innerHTML = `
-                    <div class="list-info">
-                        <div class="list-icon">📋</div>
-                        <span class="list-name">${l.title}</span>
-                    </div>
-                    <div class="list-checkbox ${isSel ? 'checked' : ''}"></div>
-                `;
+                const isSel = state.selectedListIds.has(l.id);
+                div.className = `list-row ${isSel ? 'selected' : ''}`;
+                div.innerHTML = `<span>${l.title}</span> <div class="checkbox"></div>`;
                 div.onclick = () => {
-                    if(state.selectedLists.has(l.id)) state.selectedLists.delete(l.id);
-                    else state.selectedLists.add(l.id);
-                    renderCustomListItems(); // Re-render to show check
+                    if(state.selectedListIds.has(l.id)) state.selectedListIds.delete(l.id);
+                    else state.selectedListIds.add(l.id);
+                    openCustomModal(state.selectedListIds); // re-render self
                 };
                 container.appendChild(div);
             });
+
+            document.getElementById('customListModal').classList.add('active');
         }
 
-        // Save Custom Lists
-        document.getElementById('saveListsBtn').onclick = async () => {
-            const rId = state.currentModalRestaurant.id;
-            const currentIds = await getRestaurantLists(rId); // Re-fetch absolute truth
-            
-            const customs = state.customLists.filter(l => !['Favorites','Visited','Want to Go'].includes(l.title));
-            
-            for(const list of customs) {
-                const wasIn = currentIds.has(list.id);
-                const nowIn = state.selectedLists.has(list.id);
-                
-                if(wasIn && !nowIn) {
-                    await supabase.from('lists_restraunts').delete().match({list_id: list.id, restraunt_id: rId});
-                } else if(!wasIn && nowIn) {
-                    await supabase.from('lists_restraunts').insert([{list_id: list.id, restraunt_id: rId}]);
-                }
-            }
-            
-            document.getElementById('customListsModal').classList.remove('active');
-            showNotification('Lists updated', 'success');
-            renderRestaurants(); // update badges on grid
+        window.closeModals = () => {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
         };
 
-        // Create New List
-        document.getElementById('createListBtn').onclick = async () => {
-            const input = document.getElementById('newListName');
-            const name = input.value.trim();
-            if(!name || !state.isLoggedIn) return;
+        // --- Events ---
+        function setupEvents() {
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('sortFilter').addEventListener('change', applyFilters);
             
-            const { data: { user } } = await supabase.auth.getSession().then(res => res.data);
-            const { data } = await supabase.from('lists').insert([{user_id: user.id, title: name, description:'Custom list'}]).select().single();
-            
-            if(data) {
-                state.customLists.push(data);
-                state.selectedLists.add(data.id); // Auto check new list
-                input.value = '';
-                renderCustomListItems();
-                showNotification('List created', 'success');
-            }
-        };
-
-        // --- Filtering Logic ---
-        function applyFilters() {
-            let res = state.restaurants;
-            const search = document.getElementById('search').value.toLowerCase();
-            const cat = document.getElementById('categorySelect').value;
-            const sort = document.getElementById('sortSelect').value;
-            const quickFilter = document.querySelector('.filter-chip.active')?.dataset.filter || 'all';
-
-            // 1. Search
-            if(search) res = res.filter(r => r.name.toLowerCase().includes(search));
-            
-            // 2. Category
-            if(cat !== 'all') res = res.filter(r => r.category === cat); 
-
-            // 3. Quick Filter
-            if(quickFilter === 'top-rated') res = res.filter(r => r.rating >= 4.5);
-            else if(quickFilter === 'trending') res = res.filter(r => r.rating >= 4.0);
-            else if(quickFilter === 'new') res = res.filter((r,i) => i % 3 === 0); // Mock 'new' logic
-
-            // 4. Sort
-            if(sort === 'rating-desc') res.sort((a,b) => b.rating - a.rating);
-            if(sort === 'name-asc') res.sort((a,b) => a.name.localeCompare(b.name));
-
-            state.filtered = res;
-            state.currentPage = 1;
-            renderRestaurants();
-        }
-
-        // --- Event Listeners ---
-        function setupEventListeners() {
-            // Pagination
-            document.getElementById('prevPage').onclick = () => {
-                if(state.currentPage > 1) { state.currentPage--; renderRestaurants(); window.scrollTo(0,0); }
-            };
-            document.getElementById('nextPage').onclick = () => {
-                const total = Math.ceil(state.filtered.length / state.pageSize);
-                if(state.currentPage < total) { state.currentPage++; renderRestaurants(); window.scrollTo(0,0); }
-            };
-
-            // Inputs
-            document.getElementById('search').addEventListener('input', (e) => {
-                const term = e.target.value.toLowerCase();
-                document.getElementById('clearSearch').style.display = term ? 'block' : 'none';
-                applyFilters();
-            });
-            document.getElementById('clearSearch').onclick = () => {
-                document.getElementById('search').value = '';
-                document.getElementById('clearSearch').style.display = 'none';
-                applyFilters();
-            };
-            document.getElementById('categorySelect').onchange = applyFilters;
-            document.getElementById('sortSelect').onchange = applyFilters;
-            document.getElementById('itemsPerPage').onchange = (e) => {
-                state.pageSize = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
-                state.currentPage = 1;
-                renderRestaurants();
-            };
-            document.getElementById('resetFilters').onclick = () => {
-                document.getElementById('search').value = '';
-                document.getElementById('categorySelect').value = 'all';
-                applyFilters();
-            };
-
-            // Grid Toggle
-            document.querySelectorAll('.grid-btn').forEach(btn => {
+            // Pills
+            document.querySelectorAll('.filter-pill').forEach(btn => {
                 btn.onclick = () => {
-                    document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    elements.grid.className = `grid grid-${btn.dataset.view}`;
-                };
-            });
-
-            // Quick Filters
-            document.querySelectorAll('.filter-chip').forEach(chip => {
-                chip.onclick = () => {
-                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-                    chip.classList.add('active');
                     applyFilters();
                 };
             });
 
-            // Modal Closes
-            document.querySelectorAll('.cancel-btn, .close-lists-btn').forEach(btn => {
-                btn.onclick = () => document.querySelectorAll('.actions-modal, .custom-lists-modal, .auth-prompt-modal').forEach(m => m.classList.remove('active'));
-            });
+            // View Switch
+            document.getElementById('viewGrid').onclick = () => {
+                grid.classList.remove('list-view');
+                document.getElementById('viewGrid').classList.add('active');
+                document.getElementById('viewList').classList.remove('active');
+            };
+            document.getElementById('viewList').onclick = () => {
+                grid.classList.add('list-view');
+                document.getElementById('viewList').classList.add('active');
+                document.getElementById('viewGrid').classList.remove('active');
+            };
+
+            // Pagination
+            document.getElementById('prevBtn').onclick = () => {
+                if(state.currentPage > 1) { state.currentPage--; render(); window.scrollTo(0,0); }
+            };
+            document.getElementById('nextBtn').onclick = () => {
+                const total = Math.ceil(state.filtered.length / state.pageSize);
+                if(state.currentPage < total) { state.currentPage++; render(); window.scrollTo(0,0); }
+            };
+
+            // Scroll Listener
+            window.addEventListener('scroll', handleScroll);
+
+            // Custom List Logic
+            document.getElementById('createListBtn').onclick = async () => {
+                const name = document.getElementById('newListName').value;
+                if(!name) return;
+                const {data} = await supabase.from('lists').insert([{user_id:state.user.id, title:name}]).select().single();
+                if(data) {
+                    state.customLists.push(data);
+                    state.selectedListIds.add(data.id);
+                    document.getElementById('newListName').value = '';
+                    openCustomModal(state.selectedListIds);
+                }
+            };
+
+            document.getElementById('saveCustomBtn').onclick = async () => {
+                const rId = state.currentModalRes.id;
+                // Get fresh list from DB to diff
+                const { data } = await supabase.from('lists_restraunts').select('list_id').eq('restraunt_id', rId);
+                const dbIds = new Set(data.map(x => x.list_id));
+                const currentIds = state.selectedListIds;
+
+                // Only touch custom lists
+                const customOnly = state.customLists.filter(l => !['Favorites','Visited','Want to Go'].includes(l.title));
+                
+                for(const list of customOnly) {
+                    const inDb = dbIds.has(list.id);
+                    const inUI = currentIds.has(list.id);
+                    
+                    if(inDb && !inUI) await supabase.from('lists_restraunts').delete().match({list_id:list.id, restraunt_id:rId});
+                    if(!inDb && inUI) await supabase.from('lists_restraunts').insert([{list_id:list.id, restraunt_id:rId}]);
+                }
+                
+                closeModals();
+                showNotify('Lists updated!', 'success');
+                render(); // refresh badges
+            };
         }
 
-        // --- Utils ---
-        function showNotification(msg, type) {
+        function showNotify(msg, type) {
             const d = document.createElement('div');
-            d.className = `custom-notification notification-${type} notification-show`;
-            d.innerHTML = `<span>${msg}</span>`;
+            d.className = 'notify';
+            d.style.borderColor = type === 'success' ? '#10b981' : '#3b82f6';
+            d.innerHTML = `<i class="fas fa-info-circle"></i> <span>${msg}</span>`;
             document.getElementById('notificationContainer').appendChild(d);
-            setTimeout(()=>d.remove(), 3000);
-        }
-        
-        function getCategoryIconFallback(name) {
-            const map = { 'Burgers':'🍔', 'Pizza':'🍕', 'Asian':'🍜', 'Chicken':'🍗' };
-            return map[name] || '🍴';
+            setTimeout(() => d.remove(), 3000);
         }
 
         init();
     })();
-  </script>
+    </script>
 </body>
 </html>
