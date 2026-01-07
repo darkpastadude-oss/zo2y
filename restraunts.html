@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -21,19 +22,8 @@
     html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
     a { color: inherit; text-decoration: none; } 
     
-    /* Mobile Guest Banner - NON-STICKY */
-    .guest-banner.mobile {
-      display: block;
-      position: relative;
-      z-index: 100;
-      padding: 12px 16px;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(255, 184, 77, 0.2) 100%);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-      margin-bottom: 0;
-      width: 100%;
-    }
-    
-    .guest-banner.desktop {
+    /* Guest Banner */
+    .guest-banner {
       display: none;
       max-width: 800px;
       width: calc(100% - 40px);
@@ -43,6 +33,10 @@
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
       padding: 10px 20px;
       text-align: center;
+    }
+    
+    .guest-banner.show {
+      display: block;
     }
     
     .banner-content {
@@ -97,7 +91,7 @@
       transform: translateY(-1px);
     }
     
-    /* Enhanced Header - NON-STICKY on mobile */
+    /* Enhanced Header */
     header { 
       position: sticky; 
       top: 0; 
@@ -110,14 +104,6 @@
       background: var(--surface); 
       border-bottom: 1px solid var(--border); 
     } 
-    
-    /* Non-sticky header on mobile */
-    @media (max-width: 768px) {
-      header {
-        position: relative;
-        backdrop-filter: none;
-      }
-    }
     
     .logo { 
       height: 40px; 
@@ -384,28 +370,19 @@
       transition: grid-template-columns 0.3s ease;
       min-height: 200px;
       align-items: stretch;
-      position: relative;
     }
     
-    /* Grid variations - FIXED FOR DESKTOP */
+    /* Grid variations - FIXED */
     .grid-single {
       grid-template-columns: 1fr;
     }
     
     .grid-double {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
     
     .grid-triple {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .grid-quad {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .grid-quint {
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     }
     
     /* Restaurant Card */
@@ -440,7 +417,7 @@
     .restaurant-image {
       display: block;
       width: 100%;
-      height: 200px;
+      height: 100%;
       object-fit: cover;
       background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
       opacity: 0;
@@ -451,7 +428,7 @@
       opacity: 1;
     }
     
-    /* List badges - TOP LEFT (Icon only, text shows on hover) - BRING BACK ICONS */
+    /* List badges */
     .list-badges-container {
       position: absolute;
       top: 12px;
@@ -487,7 +464,7 @@
       color: #0b1633;
     }
     
-    /* List badge tooltips - UPDATED TEXT */
+    /* List badge tooltips */
     .list-badge .list-badge-tooltip {
       position: absolute;
       top: 50%;
@@ -519,7 +496,7 @@
       pointer-events: auto;
     }
     
-    /* Cloud Kitchen Badge - TOP LEFT before menu button */
+    /* Cloud Kitchen Badge */
     .cloud-badge {
       position: absolute;
       top: 12px;
@@ -545,7 +522,7 @@
       transform: scale(1.05);
     }
     
-    /* Cloud Kitchen Tooltip - SIMPLIFIED */
+    /* Cloud Kitchen Tooltip */
     .cloud-badge .cloud-tooltip {
       position: absolute;
       top: -10px;
@@ -575,25 +552,7 @@
       pointer-events: auto;
     }
     
-    .tooltip-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    
-    .tooltip-header i {
-      color: var(--cloud-color);
-      font-size: 18px;
-    }
-    
-    .tooltip-header h4 {
-      color: var(--white);
-      font-size: 16px;
-      margin: 0;
-    }
-    
-    /* Menu button - TOP RIGHT */
+    /* Menu button */
     .menu-btn-container {
       position: absolute;
       top: 12px;
@@ -662,7 +621,7 @@
       transform: translateY(0);
     }
     
-    /* Logo overlay in bottom right */
+    /* Logo overlay */
     .logo-overlay {
       position: absolute;
       bottom: 12px;
@@ -813,7 +772,7 @@
       font-weight: 500;
     }
     
-    /* NEW: Mobile Pagination - For BOTH mobile and desktop */
+    /* Mobile Pagination */
     .mobile-pagination {
       position: fixed;
       bottom: 0;
@@ -827,12 +786,12 @@
       backdrop-filter: blur(10px);
       transform: translateY(100%);
       transition: transform 0.3s ease;
-      display: none; /* Initially hidden */
+      display: none;
     }
     
     .mobile-pagination.visible {
       transform: translateY(0);
-      display: block; /* Show when visible */
+      display: block;
     }
     
     .mobile-pagination-controls {
@@ -877,12 +836,6 @@
       color: var(--muted);
     }
     
-    .mobile-pagination-btn:disabled:hover {
-      transform: none;
-      box-shadow: none;
-      background: var(--card);
-    }
-    
     .mobile-pagination-info {
       flex: 1;
       color: var(--white);
@@ -907,17 +860,10 @@
     
     /* Chrome Mobile Scrolling Fix */
     @supports (padding: max(0px)) {
-      body, .container, main {
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-      }
-      
       .container {
-        min-height: calc(100vh - env(safe-area-inset-bottom) - 200px);
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
       }
       
-      /* Add extra padding for mobile pagination */
       .mobile-pagination {
         padding-bottom: max(12px, env(safe-area-inset-bottom));
       }
@@ -925,59 +871,12 @@
     
     /* Responsive */
     @media (max-width: 768px) {
-      /* Header non-sticky on mobile */
       header {
         position: relative;
         top: 0;
         backdrop-filter: none;
         padding: 12px 16px;
         flex-wrap: wrap;
-      }
-      
-      /* Chrome Mobile Safe Area Fix */
-      @supports (padding: max(0px)) {
-        .container {
-          padding-bottom: max(16px, env(safe-area-inset-bottom));
-          padding-left: max(16px, env(safe-area-inset-left));
-          padding-right: max(16px, env(safe-area-inset-right));
-          min-height: calc(100vh - env(safe-area-inset-bottom) - 180px);
-        }
-      }
-      
-      /* Mobile banner adjustments */
-      .guest-banner.mobile {
-        position: relative;
-        top: 0;
-        z-index: 100;
-        padding: 10px 12px;
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(255, 184, 77, 0.15) 100%);
-        border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-        margin-bottom: 0;
-      }
-      
-      .guest-banner.desktop {
-        display: none;
-      }
-      
-      .banner-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-      }
-      
-      .banner-text {
-        font-size: 13px;
-        margin-right: 0;
-      }
-      
-      .banner-actions {
-        width: 100%;
-        justify-content: center;
-      }
-      
-      .banner-btn {
-        padding: 8px 16px;
-        font-size: 13px;
       }
       
       /* Hide tooltips on mobile */
@@ -987,7 +886,7 @@
         display: none !important;
       }
       
-      /* List badges on mobile - icon only */
+      /* List badges on mobile */
       .list-badges-container {
         top: 10px;
         left: 10px;
@@ -1025,7 +924,7 @@
         right: 14px;
       }
       
-      /* Grid adjustments for mobile - KEEP MOBILE AS IS */
+      /* Grid adjustments for mobile */
       .grid {
         gap: 12px;
       }
@@ -1040,16 +939,6 @@
       }
       
       .grid-triple {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-      }
-      
-      .grid-quad {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-      
-      .grid-quint {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
       }
@@ -1130,36 +1019,17 @@
     }
     
     @media (min-width: 769px) {
-      /* Desktop banner adjustments */
-      .guest-banner.mobile {
-        display: none;
-      }
-      
-      .guest-banner.desktop {
-        display: block;
-      }
-      
       /* Desktop Grid Options */
       .grid-single {
         grid-template-columns: 1fr;
-        gap: 20px;
       }
       
       .grid-double {
         grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
       }
       
       .grid-triple {
         grid-template-columns: repeat(5, 1fr);
-        gap: 20px;
-      }
-      
-      /* Hide quad and quint classes for desktop since we're using double=4 and triple=5 */
-      .grid-quad,
-      .grid-quint {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 20px;
       }
     }
     
@@ -1828,32 +1698,47 @@
       background: rgba(255,255,255,0.1);
     }
     
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    
+    .empty-state i {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+      color: var(--accent);
+    }
+    
+    .empty-state h3 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      color: var(--white);
+    }
+    
+    .empty-state p {
+      font-size: 16px;
+      max-width: 400px;
+      margin: 0 auto 24px;
+    }
+    
     /* Pagination Sentinel */
     .pagination-sentinel {
-      position: absolute;
-      bottom: 100px;
-      width: 100%;
       height: 1px;
+      width: 100%;
       pointer-events: none;
       opacity: 0;
+      margin-top: 20px;
     }
   </style>
   
   <link rel="icon" type="image/png" href="images/logo.png">
 </head>
 <body>
-  <!-- Mobile Guest Banner - NON-STICKY -->
-  <div id="guestBannerMobile" class="guest-banner mobile">
-    <div class="banner-content">
-      <span class="banner-text">Want to save favorites?</span>
-      <div class="banner-actions">
-        <button class="banner-btn banner-btn-primary" id="bannerMobileSignupBtn">Sign Up Free</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Desktop Guest Banner -->
-  <div id="guestBannerDesktop" class="guest-banner desktop">
+  <!-- Guest Banner -->
+  <div id="guestBanner" class="guest-banner">
     <div class="banner-content">
       <span class="banner-text">Want to save your favorite restaurants?</span>
       <div class="banner-actions">
@@ -1937,7 +1822,7 @@
     </div>
   </main>
 
-  <!-- Mobile Pagination - Fixed at bottom, shows when near end, for BOTH mobile and desktop -->
+  <!-- Mobile Pagination -->
   <div id="mobilePagination" class="mobile-pagination">
     <div class="mobile-pagination-controls">
       <button class="mobile-pagination-btn" id="mobilePrevBtn" disabled>
@@ -2063,6 +1948,7 @@
         cloudKitchens: new Set(),
         currentPage: 1,
         pageSize: 20,
+        totalPages: 1,
         isLoading: false,
         activeFilters: {
           search: '',
@@ -2077,15 +1963,11 @@
         authChecked: false,
         customLists: [],
         selectedLists: new Set(),
-        isViewAll: false,
-        viewAllButtonText: "View All",
-        totalRestaurantCount: 0,
-        imageObserver: null,
-        totalPages: 1,
         isPaginationVisible: false,
-        paginationObserver: null,
-        lastScrollTop: 0,
-        showAllRestaurants: false
+        showAllMode: false,
+        imageObserver: null,
+        sentinelObserver: null,
+        lastScrollPosition: 0
       };
       
       // ---------- FIXED IMAGE LOADING SYSTEM ----------
@@ -2128,26 +2010,6 @@
         
         // Initial observation
         setTimeout(observeNewImages, 100);
-      }
-      
-      // ---------- FIX SCROLLING ISSUE ----------
-      function fixMobileScrolling() {
-        // Fix for iOS Safari scrolling issues
-        if (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) {
-          // Prevent elastic scrolling issues
-          document.addEventListener('touchmove', function(e) {
-            if (e.scale !== 1) { e.preventDefault(); }
-          }, { passive: false });
-          
-          // Fix 100vh issue
-          const setVH = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-          };
-          
-          setVH();
-          window.addEventListener('resize', setVH);
-        }
       }
       
       // ---------- CLOUD KITCHEN MANAGER ----------
@@ -2783,15 +2645,8 @@
       // ---------- GUEST BANNER ----------
       const guestBanner = {
         init: function() {
-          const mobileSignupBtn = document.getElementById('bannerMobileSignupBtn');
           const loginBtn = document.getElementById('bannerLoginBtn');
           const signupBtn = document.getElementById('bannerSignupBtn');
-          
-          if (mobileSignupBtn) {
-            mobileSignupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-up.html';
-            });
-          }
           
           if (loginBtn) {
             loginBtn.addEventListener('click', () => {
@@ -2804,29 +2659,16 @@
               window.location.href = 'sign-up.html';
             });
           }
-          
-          this.show();
         },
         
         show: function() {
-          const mobileBanner = document.getElementById('guestBannerMobile');
-          const desktopBanner = document.getElementById('guestBannerDesktop');
-          
-          if (window.innerWidth <= 768) {
-            if (mobileBanner) mobileBanner.style.display = 'block';
-            if (desktopBanner) desktopBanner.style.display = 'none';
-          } else {
-            if (mobileBanner) mobileBanner.style.display = 'none';
-            if (desktopBanner) desktopBanner.style.display = 'block';
-          }
+          const banner = document.getElementById('guestBanner');
+          if (banner) banner.classList.add('show');
         },
         
         hide: function() {
-          const mobileBanner = document.getElementById('guestBannerMobile');
-          const desktopBanner = document.getElementById('guestBannerDesktop');
-          
-          if (mobileBanner) mobileBanner.style.display = 'none';
-          if (desktopBanner) desktopBanner.style.display = 'none';
+          const banner = document.getElementById('guestBanner');
+          if (banner) banner.classList.remove('show');
         }
       };
       
@@ -3007,9 +2849,6 @@
             return;
           }
           
-          state.totalRestaurantCount = data.length;
-          updateItemsPerPageDropdown();
-          
           state.restaurants = data.map(restaurant => ({
             id: restaurant.id,
             slug: restaurant.slug,
@@ -3026,9 +2865,9 @@
           
           await loadCategories();
           populateCategoryDropdown();
+          updateItemsPerPageDropdown();
           
           applyFilters();
-          updateCounts();
           
         } catch (error) {
           console.error('Error loading restaurants:', error);
@@ -3048,9 +2887,6 @@
         option20.textContent = '20';
         select.appendChild(option20);
         
-        const total = state.totalRestaurantCount;
-        
-        // Fixed options: 20, 40, 60, All
         const option40 = document.createElement('option');
         option40.value = '40';
         option40.textContent = '40';
@@ -3062,7 +2898,7 @@
         select.appendChild(option60);
         
         const optionAll = document.createElement('option');
-        optionAll.value = total.toString();
+        optionAll.value = state.restaurants.length.toString();
         optionAll.textContent = 'All';
         select.appendChild(optionAll);
         
@@ -3073,11 +2909,7 @@
             if (validOptions.includes(savedItems)) {
               select.value = savedItems;
               state.pageSize = parseInt(savedItems);
-              state.showAllRestaurants = (savedItems === total.toString());
-            } else if (parseInt(savedItems) > total) {
-              select.value = total.toString();
-              state.pageSize = total;
-              state.showAllRestaurants = true;
+              state.showAllMode = (savedItems === state.restaurants.length.toString());
             }
           }
         } catch (e) {}
@@ -3095,9 +2927,6 @@
           showEmptyState();
           return;
         }
-        
-        state.totalRestaurantCount = data.length;
-        updateItemsPerPageDropdown();
         
         const categoryMap = new Map();
         data.forEach((restaurant, index) => {
@@ -3138,8 +2967,8 @@
         });
         
         populateCategoryDropdown();
+        updateItemsPerPageDropdown();
         applyFilters();
-        updateCounts();
       }
       
       function normalizeCategoryName(categoryName) {
@@ -3241,10 +3070,11 @@
         
         state.filteredRestaurants = filtered;
         state.currentPage = 1;
+        state.totalPages = Math.ceil(filtered.length / state.pageSize);
         
         renderRestaurants();
-        updatePagination();
         updateCounts();
+        updatePagination();
       }
       
       function applyQuickFilter(restaurants, filterType) {
@@ -3315,9 +3145,8 @@
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         const isCloudKitchen = restaurant.isCloudKitchen || false;
         const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
-        const hasCloudBadge = isCloudKitchen;
         
-        // Create list badges - BRING BACK ICONS with updated tooltip text
+        // Create list badges
         let listBadges = '';
         
         if (status.favorites) {
@@ -3366,7 +3195,6 @@
                 </div>
               ` : ''}
               
-              <!-- List badges container at top left - ICONS BROUGHT BACK -->
               ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
               
               ${cloudBadge}
@@ -3414,23 +3242,11 @@
           });
         }
         
-        // Add click event for cloud badge on mobile
-        const cloudBadgeElement = card.querySelector('.cloud-badge');
-        if (cloudBadgeElement && window.innerWidth <= 768) {
-          cloudBadgeElement.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            alert('Cloud Kitchen');
-          });
-        }
-        
         return card;
       }
       
       async function renderRestaurants() {
         const grid = document.getElementById('restaurantGrid');
-        const emptyState = document.querySelector('.empty-state');
-        
         if (!grid) return;
         
         if (state.filteredRestaurants.length === 0) {
@@ -3438,16 +3254,18 @@
           return;
         }
         
-        if (emptyState) {
-          emptyState.style.display = 'none';
-        }
-        
         grid.classList.remove('skeleton-grid');
         
         let itemsToShow;
-        const startIdx = (state.currentPage - 1) * state.pageSize;
-        const endIdx = Math.min(startIdx + state.pageSize, state.filteredRestaurants.length);
-        itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
+        if (state.showAllMode) {
+          // Show all restaurants
+          itemsToShow = state.filteredRestaurants;
+        } else {
+          // Show paginated results
+          const startIdx = (state.currentPage - 1) * state.pageSize;
+          const endIdx = Math.min(startIdx + state.pageSize, state.filteredRestaurants.length);
+          itemsToShow = state.filteredRestaurants.slice(startIdx, endIdx);
+        }
         
         grid.innerHTML = '';
         
@@ -3474,13 +3292,13 @@
           }, 100);
         }
         
-        // Create sentinel element for pagination detection only if NOT showing all
-        if (!state.showAllRestaurants) {
-          createSentinelElement();
+        // Add sentinel for pagination only if not in "show all" mode
+        if (!state.showAllMode && state.totalPages > 1 && state.currentPage < state.totalPages) {
+          addPaginationSentinel();
+        } else {
+          removePaginationSentinel();
+          hidePagination();
         }
-        
-        // Hide pagination initially - it will show when user scrolls near the end
-        hidePagination();
       }
       
       function showEmptyState() {
@@ -3492,7 +3310,6 @@
         
         const emptyState = document.createElement('div');
         emptyState.className = 'empty-state';
-        emptyState.style.display = 'block';
         emptyState.innerHTML = `
           <i class="fas fa-utensils"></i>
           <h3>No restaurants found</h3>
@@ -3512,13 +3329,7 @@
       
       // ---------- PAGINATION ----------
       function updatePagination() {
-        const totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
-        state.totalPages = totalPages;
-        
-        // Check if we're showing "All" restaurants
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        const showingAll = itemsPerPageSelect && itemsPerPageSelect.value === state.totalRestaurantCount.toString();
-        state.showAllRestaurants = showingAll;
+        const totalPages = state.totalPages;
         
         // Update mobile pagination info
         const mobilePageInfo = document.getElementById('mobilePageInfo');
@@ -3529,12 +3340,12 @@
         const mobilePrevBtn = document.getElementById('mobilePrevBtn');
         const mobileNextBtn = document.getElementById('mobileNextBtn');
         
-        if (mobilePrevBtn) mobilePrevBtn.disabled = state.currentPage === 1;
-        if (mobileNextBtn) mobileNextBtn.disabled = state.currentPage === totalPages || showingAll;
+        if (mobilePrevBtn) mobilePrevBtn.disabled = state.currentPage === 1 || state.showAllMode;
+        if (mobileNextBtn) mobileNextBtn.disabled = state.currentPage === totalPages || state.showAllMode;
         
         if (mobilePrevBtn) {
           mobilePrevBtn.onclick = () => {
-            if (state.currentPage > 1) {
+            if (state.currentPage > 1 && !state.showAllMode) {
               state.currentPage--;
               renderRestaurants();
               updatePagination();
@@ -3547,7 +3358,7 @@
         
         if (mobileNextBtn) {
           mobileNextBtn.onclick = () => {
-            if (state.currentPage < totalPages && !showingAll) {
+            if (state.currentPage < totalPages && !state.showAllMode) {
               state.currentPage++;
               renderRestaurants();
               updatePagination();
@@ -3558,37 +3369,33 @@
           };
         }
         
-        // Setup intersection observer only if we have enough content and NOT showing all
-        if (!showingAll && totalPages > 1 && state.currentPage < totalPages) {
-          setupPaginationObserver();
-        } else {
-          // Hide pagination if showing all or only one page
-          hidePagination();
-        }
+        // Hide pagination initially
+        hidePagination();
       }
       
-      function setupPaginationObserver() {
-        // Clean up existing observer
-        if (state.paginationObserver) {
-          state.paginationObserver.disconnect();
-          state.paginationObserver = null;
+      function addPaginationSentinel() {
+        // Remove existing sentinel if any
+        removePaginationSentinel();
+        
+        // Create a sentinel element at the bottom of the grid
+        const grid = document.getElementById('restaurantGrid');
+        if (!grid) return;
+        
+        const sentinel = document.createElement('div');
+        sentinel.className = 'pagination-sentinel';
+        
+        grid.appendChild(sentinel);
+        
+        // Setup intersection observer to show pagination when sentinel is near
+        if (state.sentinelObserver) {
+          state.sentinelObserver.disconnect();
         }
         
-        // Only set up observer if we have multiple pages and not showing all
-        if (state.totalPages <= 1 || state.showAllRestaurants) {
-          hidePagination();
-          return;
-        }
-        
-        // Create new observer that shows pagination when user is near bottom
-        state.paginationObserver = new IntersectionObserver(
+        state.sentinelObserver = new IntersectionObserver(
           (entries) => {
             entries.forEach(entry => {
-              // Show pagination when sentinel is near viewport AND we have more pages
-              if (entry.isIntersecting && state.currentPage < state.totalPages && !state.showAllRestaurants) {
+              if (entry.isIntersecting && !state.showAllMode && state.currentPage < state.totalPages) {
                 showPagination();
-              } else {
-                hidePagination();
               }
             });
           },
@@ -3599,47 +3406,30 @@
           }
         );
         
-        // Observe the sentinel element
-        const sentinel = document.querySelector('.pagination-sentinel');
-        if (sentinel && state.paginationObserver) {
-          state.paginationObserver.observe(sentinel);
-        }
+        state.sentinelObserver.observe(sentinel);
       }
       
-      function createSentinelElement() {
-        // Remove existing sentinel if any
-        const existingSentinel = document.querySelector('.pagination-sentinel');
-        if (existingSentinel) {
-          existingSentinel.remove();
+      function removePaginationSentinel() {
+        if (state.sentinelObserver) {
+          state.sentinelObserver.disconnect();
+          state.sentinelObserver = null;
         }
         
-        // Only create sentinel if we have multiple pages and not showing all
-        if (state.totalPages <= 1 || state.showAllRestaurants) {
-          return null;
+        const sentinel = document.querySelector('.pagination-sentinel');
+        if (sentinel) {
+          sentinel.remove();
         }
-        
-        // Create a sentinel element at the bottom of the grid
-        const grid = document.getElementById('restaurantGrid');
-        if (!grid) return null;
-        
-        const sentinel = document.createElement('div');
-        sentinel.className = 'pagination-sentinel';
-        sentinel.style.height = '1px';
-        sentinel.style.width = '100%';
-        
-        grid.appendChild(sentinel);
-        return sentinel;
       }
       
       function showPagination() {
-        // Don't show pagination if we're showing all restaurants or only have one page
-        if (state.showAllRestaurants || state.totalPages <= 1 || state.currentPage >= state.totalPages) {
+        // Don't show pagination if showing all restaurants or only have one page
+        if (state.showAllMode || state.totalPages <= 1 || state.currentPage >= state.totalPages) {
           hidePagination();
           return;
         }
         
         const pagination = document.getElementById('mobilePagination');
-        if (pagination && state.totalPages > 1 && state.currentPage < state.totalPages) {
+        if (pagination) {
           pagination.classList.add('visible');
           state.isPaginationVisible = true;
         }
@@ -3663,14 +3453,13 @@
         
         if (totalFiltered === 0) {
           showingText.textContent = 'No restaurants found';
-          hidePagination();
+        } else if (state.showAllMode) {
+          showingText.textContent = `Showing all ${totalFiltered} restaurants`;
         } else {
           const startIdx = (state.currentPage - 1) * state.pageSize + 1;
           const endIdx = Math.min(startIdx + state.pageSize - 1, totalFiltered);
           
-          if (state.showAllRestaurants || state.pageSize >= totalFiltered) {
-            showingText.textContent = `Showing all ${totalFiltered} restaurants`;
-          } else if (startIdx === endIdx) {
+          if (startIdx === endIdx) {
             showingText.textContent = `Showing restaurant ${startIdx} of ${totalFiltered}`;
           } else {
             showingText.textContent = `Showing ${startIdx}-${endIdx} of ${totalFiltered} restaurants`;
@@ -3724,13 +3513,15 @@
             const newPageSize = parseInt(e.target.value);
             state.pageSize = newPageSize;
             state.currentPage = 1;
-            state.showAllRestaurants = (e.target.value === state.totalRestaurantCount.toString());
+            state.showAllMode = (e.target.value === state.restaurants.length.toString());
+            state.totalPages = Math.ceil(state.filteredRestaurants.length / state.pageSize);
             
-            applyFilters();
-            
+            // Save preference
             try {
               localStorage.setItem('zo2y_items_per_page', e.target.value);
             } catch (e) {}
+            
+            applyFilters();
           });
         }
         
@@ -3917,14 +3708,8 @@
         // Scroll event to show/hide pagination based on scroll position
         window.addEventListener('scroll', handleScroll);
         
-        // Window resize for banner switching and responsive adjustments
+        // Window resize for responsive adjustments
         window.addEventListener('resize', () => {
-          if (state.currentUser) {
-            guestBanner.hide();
-          } else {
-            guestBanner.show();
-          }
-          
           if (state.filteredRestaurants.length > 0) {
             renderRestaurants();
           }
@@ -3935,7 +3720,7 @@
       
       function handleScroll() {
         // Don't show pagination if showing all restaurants
-        if (state.showAllRestaurants) {
+        if (state.showAllMode) {
           hidePagination();
           return;
         }
@@ -3950,14 +3735,12 @@
           hidePagination();
         }
         
-        // Show pagination when near bottom (100px from bottom) and we have more pages
-        if (scrollBottom < 100 && state.totalPages > 1 && state.currentPage < state.totalPages) {
+        // Show pagination when near bottom (150px from bottom) and we have more pages
+        if (scrollBottom < 150 && state.totalPages > 1 && state.currentPage < state.totalPages) {
           showPagination();
-        } else if (scrollBottom >= 100 && state.isPaginationVisible) {
-          hidePagination();
         }
         
-        state.lastScrollTop = scrollTop;
+        state.lastScrollPosition = scrollTop;
       }
       
       function initializeViewControls() {
@@ -3973,9 +3756,7 @@
             gridButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            grid.classList.remove('grid-single', 'grid-double', 'grid-triple', 'grid-quad', 'grid-quint');
-            
-            // Set grid class based on view
+            grid.classList.remove('grid-single', 'grid-double', 'grid-triple');
             grid.classList.add(`grid-${view}`);
             
             try {
@@ -4002,17 +3783,11 @@
         const clearSearchBtn = document.getElementById('clearSearch');
         const categorySelect = document.getElementById('categorySelect');
         const sortSelect = document.getElementById('sortSelect');
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
         
         if (searchInput) searchInput.value = '';
         if (clearSearchBtn) clearSearchBtn.style.display = 'none';
         if (categorySelect) categorySelect.value = 'all';
         if (sortSelect) sortSelect.value = 'rating-desc';
-        if (itemsPerPageSelect) {
-          itemsPerPageSelect.value = '20';
-          state.pageSize = 20;
-          state.showAllRestaurants = false;
-        }
         
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
         const allFilter = document.querySelector('[data-filter="all"]');
@@ -4129,7 +3904,6 @@
         
         // Initialize fixes
         initFixedImageLoader();
-        fixMobileScrolling();
         
         showLoadingSkeleton();
         setupEventListeners();
