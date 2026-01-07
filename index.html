@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Zo2y — Discover Local Favorites</title>
     
+    <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+    <link rel="dns-prefetch" href="https://gfkhjbztayjyojsgdpgk.supabase.co">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     
@@ -19,8 +22,8 @@
         a { color: inherit; text-decoration: none; }
         img { display: block; max-width: 100%; height: auto; }
         
-        /* Image & Layout */
-        .restaurant-image { display: block; width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); opacity: 0; transition: opacity 0.3s ease; }
+        /* Image & Layout - OPTIMIZED: Added will-change */
+        .restaurant-image { display: block; width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); opacity: 0; transition: opacity 0.3s ease; will-change: opacity; }
         .restaurant-image.loaded { opacity: 1; }
         .logo-overlay img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
         
@@ -81,7 +84,7 @@
         .spotlight { width: 100%; border-radius: 20px; overflow: hidden; background: var(--card); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3); border: 2px solid var(--border); display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; transition: all 0.3s ease; cursor: pointer; height: 360px; }
         .spotlight:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(245, 158, 11, 0.25); }
         .spotlight-img-container { width: 100%; height: 220px; border-radius: 0; overflow: hidden; background: var(--glass); position: relative; }
-        .spotlight-food-image { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; opacity: 0; }
+        .spotlight-food-image { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; opacity: 0; will-change: opacity; }
         .spotlight-food-image.loaded { opacity: 1; }
         .spotlight:hover .spotlight-food-image { transform: scale(1.05); }
         .spotlight-logo-overlay { position: absolute; bottom: 12px; left: 12px; width: 48px; height: 48px; background: rgba(11, 22, 51, 0.9); border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 4px; border: 2px solid var(--accent); backdrop-filter: blur(10px); z-index: 10; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); }
@@ -402,9 +405,9 @@
                     <div class="spotlight-wrapper">
                         <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
                             <div class="spotlight-img-container">
-                                <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food" fetchpriority="high">
+                                <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food" fetchpriority="high" decoding="async">
                                 <div class="spotlight-logo-overlay" id="spotLogoOverlay">
-                                    <img id="spotLogo" src="" alt="Restaurant logo">
+                                    <img id="spotLogo" src="" alt="Restaurant logo" decoding="async">
                                 </div>
                             </div>
                             <div class="spotlight-content">
@@ -595,15 +598,30 @@
             slideIndicators: document.getElementById('slideIndicators')
         };
 
-        // --- Helper: Robust Image Loading ---
+        // --- Helper: Robust Image Loading (OPTIMIZED) ---
         function loadImage(imgElement, url) {
             if (!url || !imgElement) return;
-            imgElement.src = url;
-            // Immediate check for cached images
-            if(imgElement.complete) {
-                imgElement.classList.add('loaded');
+            
+            // Only set src if different to avoid reloading
+            if (imgElement.getAttribute('src') !== url) {
+                imgElement.src = url;
+            }
+
+            // Optimization: Use decode() for smoother frame handling
+            if (imgElement.decode) {
+                imgElement.decode()
+                    .then(() => imgElement.classList.add('loaded'))
+                    .catch((e) => {
+                        // Fallback if decode fails (e.g. broken image)
+                        imgElement.classList.add('loaded');
+                    });
             } else {
-                imgElement.onload = () => imgElement.classList.add('loaded');
+                // Legacy fallback
+                if(imgElement.complete) {
+                    imgElement.classList.add('loaded');
+                } else {
+                    imgElement.onload = () => imgElement.classList.add('loaded');
+                }
             }
         }
 
@@ -693,11 +711,12 @@
 
             const isTopRated = (restaurant.rating || 0) >= 4.5;
             
+            // OPTIMIZATION: Added decoding="async" and loading="lazy" for non-critical images
             card.innerHTML = `
                 <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
                     <div class="card-image">
-                        ${restaurant.coverImage ? `<img class="restaurant-image" src="${restaurant.coverImage}" alt="${restaurant.name}" loading="lazy">` : ''}
-                        ${restaurant.logo_url ? `<div class="logo-overlay"><img src="${restaurant.logo_url}" alt="logo" loading="lazy"></div>` : ''}
+                        ${restaurant.coverImage ? `<img class="restaurant-image" src="${restaurant.coverImage}" alt="${restaurant.name}" loading="lazy" decoding="async">` : ''}
+                        ${restaurant.logo_url ? `<div class="logo-overlay"><img src="${restaurant.logo_url}" alt="logo" loading="lazy" decoding="async"></div>` : ''}
                         <button class="menu-btn" title="Save"><i class="fas fa-ellipsis-h"></i></button>
                         ${badgeText ? `<div class="badge-container"><div class="user-list-badge">${badgeText}</div></div>` : ''}
                     </div>
@@ -722,6 +741,7 @@
                 });
             }
             
+            // Helper to trigger the class addition for opacity fade
             const img = card.querySelector('.restaurant-image');
             if(img) loadImage(img, restaurant.coverImage);
 
@@ -792,10 +812,11 @@
             if (status.favorites) badgeText += '❤️ ';
             if (status.wantToGo) badgeText += '📍 ';
 
+            // OPTIMIZATION: decoding async on restaurant of the day
             elements.dayCard.innerHTML = `
                 <div class="day-badge">Restaurant of the Day</div>
                 <div class="card-image">
-                    <img class="restaurant-image" src="${r.coverImage}" alt="${r.name}" loading="lazy">
+                    <img class="restaurant-image" src="${r.coverImage}" alt="${r.name}" loading="lazy" decoding="async">
                     ${badgeText ? `<div class="badge-container" style="top:60px"><div class="user-list-badge">${badgeText}</div></div>` : ''}
                 </div>
                 <div class="card-content">
