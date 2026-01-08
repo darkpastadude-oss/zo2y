@@ -117,6 +117,12 @@
             position: relative; 
             margin: 0 24px; 
             order: 4;
+            flex: 1;
+        }
+        
+        .search-container {
+            position: relative;
+            width: 100%;
         }
         
         .search { 
@@ -134,6 +140,127 @@
         .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
         .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
         .clear-search:hover { color: var(--white); }
+        
+        /* Search Dropdown */
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 8px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            backdrop-filter: blur(20px);
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+            animation: slideDown 0.2s ease;
+        }
+        
+        .search-dropdown.active {
+            display: block;
+        }
+        
+        .search-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .search-dropdown::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .search-dropdown::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+        
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-item:hover {
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .search-result-item.active {
+            background: rgba(245, 158, 11, 0.15);
+        }
+        
+        .search-result-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .search-result-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .search-result-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .search-result-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--white);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .search-result-category {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .search-result-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
         
         .nav-right { 
             display: flex; 
@@ -172,6 +299,10 @@
                 background: rgba(19, 35, 71, 0.95);
             }
             
+            .nav-container {
+                gap: 8px;
+            }
+            
             .logo {
                 height: 36px;
                 order: 1;
@@ -180,7 +311,6 @@
             .mobile-search-toggle {
                 display: flex;
                 order: 2;
-                margin-left: auto;
             }
             
             .search-wrapper {
@@ -189,6 +319,15 @@
                 max-width: 100%;
                 margin: 8px 0 0 0;
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(19, 35, 71, 0.98);
+                backdrop-filter: blur(20px);
+                padding: 16px;
+                z-index: 999;
+                border-bottom: 1px solid var(--border);
             }
             
             .search-wrapper.active {
@@ -196,14 +335,25 @@
                 animation: slideDown 0.3s ease;
             }
             
+            .search-dropdown {
+                position: fixed;
+                top: calc(100% + 8px);
+                left: 16px;
+                right: 16px;
+                max-height: 50vh;
+                z-index: 1001;
+            }
+            
             .nav-right {
                 order: 3;
                 margin-left: auto;
+                gap: 8px;
             }
             
             .ghost {
                 padding: 8px 12px;
                 font-size: 13px;
+                display: none; /* Hide Explore All on mobile */
             }
             
             .account-btn {
@@ -229,11 +379,18 @@
                 display: block !important;
                 order: 2;
                 margin: 0 24px;
+                position: static;
+                background: transparent;
+                padding: 0;
             }
             
             .nav-right {
                 order: 3;
                 margin-left: 0;
+            }
+            
+            .ghost {
+                display: block;
             }
         }
         
@@ -646,7 +803,7 @@
         .footer-column a:hover { color: var(--accent); }
         .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; font-size: 14px; max-width: 1200px; margin: 0 auto; }
         
-        /* Modals (same as original) */
+        /* Modals */
         .actions-modal, .auth-prompt-modal, .custom-lists-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 22, 51, 0.95); backdrop-filter: blur(20px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s ease; }
         .actions-modal.active, .auth-prompt-modal.active, .custom-lists-modal.active { display: flex; opacity: 1; }
         .actions-content, .auth-prompt-content, .custom-lists-content { background: var(--card); border-radius: 20px; padding: 30px; max-width: 400px; width: 100%; border: 2px solid var(--accent); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); animation: modalSlideIn 0.3s ease-out; text-align: center; }
@@ -754,9 +911,14 @@
             </button>
             
             <div class="search-wrapper" id="searchWrapper">
-                <span class="search-icon">🔎</span>
-                <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
-                <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+                <div class="search-container">
+                    <span class="search-icon">🔎</span>
+                    <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
+                    <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+                    
+                    <!-- Search Dropdown -->
+                    <div class="search-dropdown" id="searchDropdown"></div>
+                </div>
             </div>
             
             <div class="nav-right">
@@ -1063,7 +1225,281 @@
                 spotlightRestaurants: [],
                 spotlightInterval: null,
                 allRestaurants: [],
-                imageObserver: null
+                imageObserver: null,
+                searchResults: [],
+                searchDebounceTimer: null,
+                selectedSearchIndex: -1,
+                isMobileSearchOpen: false
+            };
+            
+            // ---------- SEARCH MANAGER ----------
+            const searchManager = {
+                async loadAllRestaurantsForSearch() {
+                    try {
+                        const { data, error } = await supabase
+                            .from('restraunts')
+                            .select('id, slug, name, category, rating, logo_url, image')
+                            .order('name', { ascending: true });
+                        
+                        if (error) {
+                            console.warn('Could not load restaurants for search:', error);
+                            return [];
+                        }
+                        
+                        state.allRestaurants = data || [];
+                        
+                        // Load logos
+                        for (const restaurant of state.allRestaurants) {
+                            const logoUrl = getLogoUrl(restaurant);
+                            restaurant.logo_url = logoUrl;
+                        }
+                        
+                        return state.allRestaurants;
+                    } catch (error) {
+                        console.error('Error loading restaurants for search:', error);
+                        return [];
+                    }
+                },
+                
+                searchRestaurants(query) {
+                    if (!query || query.trim() === '') {
+                        state.searchResults = [];
+                        this.renderSearchResults([]);
+                        return;
+                    }
+                    
+                    const searchTerm = query.toLowerCase().trim();
+                    
+                    // Search in name and category
+                    const results = state.allRestaurants.filter(restaurant => {
+                        const nameMatch = restaurant.name.toLowerCase().includes(searchTerm);
+                        const categoryMatch = restaurant.category && 
+                                             restaurant.category.toLowerCase().includes(searchTerm);
+                        return nameMatch || categoryMatch;
+                    });
+                    
+                    // Sort by relevance (exact matches first, then partial matches)
+                    results.sort((a, b) => {
+                        const aName = a.name.toLowerCase();
+                        const bName = b.name.toLowerCase();
+                        
+                        // Exact match at start gets highest priority
+                        if (aName.startsWith(searchTerm) && !bName.startsWith(searchTerm)) return -1;
+                        if (!aName.startsWith(searchTerm) && bName.startsWith(searchTerm)) return 1;
+                        
+                        // Then sort by rating
+                        return (b.rating || 0) - (a.rating || 0);
+                    });
+                    
+                    state.searchResults = results.slice(0, 8); // Limit to 8 results
+                    this.renderSearchResults(state.searchResults);
+                },
+                
+                renderSearchResults(results) {
+                    const dropdown = document.getElementById('searchDropdown');
+                    if (!dropdown) return;
+                    
+                    if (results.length === 0) {
+                        const searchQuery = document.getElementById('search').value.trim();
+                        if (searchQuery) {
+                            dropdown.innerHTML = `
+                                <div class="no-results">
+                                    <i class="fas fa-search" style="font-size:24px; margin-bottom:8px; opacity:0.5"></i>
+                                    <p>No restaurants found for "${searchQuery}"</p>
+                                    <p style="font-size:12px; margin-top:8px">Try a different search term</p>
+                                </div>
+                            `;
+                            dropdown.classList.add('active');
+                        } else {
+                            dropdown.innerHTML = '';
+                            dropdown.classList.remove('active');
+                        }
+                        return;
+                    }
+                    
+                    let html = '';
+                    
+                    results.forEach((restaurant, index) => {
+                        const rating = restaurant.rating || 0;
+                        const categoryIcon = getCategoryIconFallback(restaurant.category);
+                        
+                        html += `
+                            <div class="search-result-item ${index === state.selectedSearchIndex ? 'active' : ''}" 
+                                 data-index="${index}" 
+                                 data-slug="${restaurant.slug}"
+                                 onclick="window.location.href='restaurant.html?slug=${restaurant.slug}'">
+                                <div class="search-result-logo">
+                                    ${restaurant.logo_url ? 
+                                        `<img src="${restaurant.logo_url}" alt="${restaurant.name} logo" loading="lazy">` : 
+                                        `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                                            ${categoryIcon}
+                                         </div>`
+                                    }
+                                </div>
+                                <div class="search-result-info">
+                                    <div class="search-result-name">${restaurant.name}</div>
+                                    <div class="search-result-category">
+                                        <span>${categoryIcon}</span>
+                                        ${restaurant.category || 'Restaurant'}
+                                    </div>
+                                </div>
+                                ${rating > 0 ? `
+                                    <div class="search-result-rating">
+                                        <i class="fas fa-star"></i>
+                                        ${rating.toFixed(1)}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    dropdown.innerHTML = html;
+                    dropdown.classList.add('active');
+                },
+                
+                handleSearchInput(query) {
+                    if (state.searchDebounceTimer) {
+                        clearTimeout(state.searchDebounceTimer);
+                    }
+                    
+                    state.searchDebounceTimer = setTimeout(() => {
+                        this.searchRestaurants(query);
+                    }, 300);
+                },
+                
+                handleKeyDown(e) {
+                    const dropdown = document.getElementById('searchDropdown');
+                    if (!dropdown || !dropdown.classList.contains('active')) return;
+                    
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        this.selectNextResult();
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        this.selectPreviousResult();
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.navigateToSelectedResult();
+                    } else if (e.key === 'Escape') {
+                        this.hideDropdown();
+                    }
+                },
+                
+                selectNextResult() {
+                    if (state.searchResults.length === 0) return;
+                    
+                    state.selectedSearchIndex = 
+                        state.selectedSearchIndex < state.searchResults.length - 1 ? 
+                        state.selectedSearchIndex + 1 : 0;
+                    
+                    this.updateSelectedResult();
+                },
+                
+                selectPreviousResult() {
+                    if (state.searchResults.length === 0) return;
+                    
+                    state.selectedSearchIndex = 
+                        state.selectedSearchIndex > 0 ? 
+                        state.selectedSearchIndex - 1 : state.searchResults.length - 1;
+                    
+                    this.updateSelectedResult();
+                },
+                
+                updateSelectedResult() {
+                    const dropdown = document.getElementById('searchDropdown');
+                    if (!dropdown) return;
+                    
+                    const items = dropdown.querySelectorAll('.search-result-item');
+                    items.forEach((item, index) => {
+                        item.classList.toggle('active', index === state.selectedSearchIndex);
+                    });
+                    
+                    // Scroll into view
+                    const selectedItem = dropdown.querySelector('.search-result-item.active');
+                    if (selectedItem) {
+                        selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                },
+                
+                navigateToSelectedResult() {
+                    if (state.selectedSearchIndex >= 0 && 
+                        state.selectedSearchIndex < state.searchResults.length) {
+                        const restaurant = state.searchResults[state.selectedSearchIndex];
+                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+                    } else {
+                        // If no selection, perform regular search
+                        const searchTerm = document.getElementById('search').value.trim();
+                        if (searchTerm) {
+                            window.location.href = `restraunts.html?search=${encodeURIComponent(searchTerm)}`;
+                        }
+                    }
+                },
+                
+                showDropdown() {
+                    const dropdown = document.getElementById('searchDropdown');
+                    const searchInput = document.getElementById('search');
+                    
+                    if (dropdown && searchInput.value.trim() && state.searchResults.length > 0) {
+                        dropdown.classList.add('active');
+                    }
+                },
+                
+                hideDropdown() {
+                    const dropdown = document.getElementById('searchDropdown');
+                    if (dropdown) {
+                        dropdown.classList.remove('active');
+                        state.selectedSearchIndex = -1;
+                    }
+                },
+                
+                handleClickOutside(e) {
+                    const searchContainer = document.querySelector('.search-container');
+                    const searchInput = document.getElementById('search');
+                    const dropdown = document.getElementById('searchDropdown');
+                    
+                    if (searchContainer && !searchContainer.contains(e.target) && 
+                        dropdown && dropdown.classList.contains('active')) {
+                        this.hideDropdown();
+                    }
+                    
+                    // Close mobile search when clicking outside
+                    if (window.innerWidth <= 768) {
+                        const searchWrapper = document.getElementById('searchWrapper');
+                        const mobileToggle = document.getElementById('mobileSearchToggle');
+                        
+                        if (searchWrapper && mobileToggle && 
+                            searchWrapper.classList.contains('active') &&
+                            !searchWrapper.contains(e.target) && 
+                            !mobileToggle.contains(e.target)) {
+                            searchWrapper.classList.remove('active');
+                            this.hideDropdown();
+                            state.isMobileSearchOpen = false;
+                        }
+                    }
+                },
+                
+                toggleMobileSearch() {
+                    const searchWrapper = document.getElementById('searchWrapper');
+                    if (!searchWrapper) return;
+                    
+                    state.isMobileSearchOpen = !state.isMobileSearchOpen;
+                    searchWrapper.classList.toggle('active', state.isMobileSearchOpen);
+                    
+                    if (state.isMobileSearchOpen) {
+                        // Focus the search input
+                        const searchInput = document.getElementById('search');
+                        if (searchInput) {
+                            searchInput.focus();
+                            
+                            // Load search data if not already loaded
+                            if (state.allRestaurants.length === 0) {
+                                this.loadAllRestaurantsForSearch();
+                            }
+                        }
+                    } else {
+                        this.hideDropdown();
+                    }
+                }
             };
             
             // ---------- FIXED IMAGE LOADING SYSTEM ----------
@@ -1560,215 +1996,40 @@
                 }
             };
             
-            // ---------- CUSTOM LISTS MODAL ----------
-            async function showCustomListsModal(restaurantId) {
-                if (!restaurantId) {
-                    showNotification('No restaurant selected', 'error');
-                    return;
+            // ---------- HELPER FUNCTIONS ----------
+            function getLogoUrl(restaurant) {
+                if (restaurant.logo_url) {
+                    return restaurant.logo_url;
                 }
                 
-                if (!state.isLoggedIn) {
-                    showAuthPrompt();
-                    return;
+                if (restaurant.image) {
+                    return restaurant.image;
                 }
                 
-                const restaurant = state.restaurants.find(r => r.id === restaurantId);
-                if (!restaurant) {
-                    showNotification('Restaurant not found', 'error');
-                    return;
-                }
-                
-                state.currentModalRestaurant = restaurant;
-                
-                if (!state.customLists || state.customLists.length === 0) {
-                    await customListsManager.refreshLists();
-                }
-                
-                try {
-                    const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
-                    
-                    state.selectedLists.clear();
-                    for (const [listId, isChecked] of Object.entries(status)) {
-                        if (isChecked) {
-                            state.selectedLists.add(listId);
-                        }
-                    }
-                    
-                    customListsManager.renderListsList(restaurantId);
-                    
-                    const modal = document.getElementById('customListsModal');
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    
-                    setTimeout(() => {
-                        const newListInput = document.getElementById('newListName');
-                        if (newListInput) newListInput.focus();
-                    }, 300);
-                    
-                } catch (error) {
-                    console.error('Error loading list status:', error);
-                    showNotification('Error loading lists', 'error');
-                    
-                    const modal = document.getElementById('customListsModal');
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                }
+                return null;
             }
             
-            function hideCustomListsModal() {
-                const modal = document.getElementById('customListsModal');
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-                state.selectedLists.clear();
+            function getCategoryIconFallback(categoryName) {
+                const icons = {
+                    'Burgers': '🍔',
+                    'Chicken': '🍗',
+                    'Middle Eastern': '🥙',
+                    'Pizza': '🍕',
+                    'Asian': '🍜',
+                    'Mexican': '🌮',
+                    'Cafe & Bakery': '☕',
+                    'Fast Food': '🍟',
+                    'Seafood': '🐟',
+                    'Breakfast': '🥞',
+                    'Desserts': '🍰',
+                    'Indian': '🍛',
+                    'BBQ & Ribs': '🥩',
+                    'International': '🌍'
+                };
+                
+                return icons[categoryName] || '🍴';
             }
             
-            async function saveListChanges() {
-                if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
-                    showNotification('No restaurant selected', 'error');
-                    hideCustomListsModal();
-                    return;
-                }
-                
-                const restaurantId = state.currentModalRestaurant.id;
-                const saveBtn = document.getElementById('saveListsBtn');
-                const originalText = saveBtn.textContent;
-                
-                saveBtn.disabled = true;
-                saveBtn.textContent = 'Saving...';
-                
-                try {
-                    let changesMade = false;
-                    
-                    for (const list of state.customLists) {
-                        const shouldBeInList = state.selectedLists.has(list.id);
-                        const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
-                        
-                        if (shouldBeInList && !isInList) {
-                            const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-                            if (success) {
-                                changesMade = true;
-                            }
-                        } else if (!shouldBeInList && isInList) {
-                            const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
-                            if (success !== null) {
-                                changesMade = true;
-                            }
-                        }
-                    }
-                    
-                    if (changesMade) {
-                        showNotification('List changes saved successfully!', 'success');
-                    } else {
-                        showNotification('No changes made', 'info');
-                    }
-                    
-                    hideCustomListsModal();
-                    
-                    renderFeaturedRestaurants();
-                    renderNearbyRestaurants();
-                    setupRestaurantOfTheDay();
-                    
-                } catch (error) {
-                    console.error('Error saving list changes:', error);
-                    showNotification('Error saving changes', 'error');
-                } finally {
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = originalText;
-                }
-            }
-            
-            // ---------- AUTH PROMPT MODAL ----------
-            function showAuthPrompt() {
-                const modal = document.getElementById('authPromptModal');
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-            
-            function hideAuthPrompt() {
-                const modal = document.getElementById('authPromptModal');
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-            
-            // ---------- ACTIONS MODAL ----------
-            function showModal(restaurantData) {
-                if (!restaurantData) return;
-                
-                if (!state.isLoggedIn) {
-                    showAuthPrompt();
-                    return;
-                }
-                
-                state.currentModalRestaurant = restaurantData;
-                document.getElementById('modalRestaurantName').textContent = restaurantData.name;
-                
-                updateModalButtons(restaurantData.id);
-                
-                const modal = document.getElementById('actionsModal');
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-            
-            function hideModal() {
-                const modal = document.getElementById('actionsModal');
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-            
-            function updateModalButtons(restaurantId) {
-                const status = listManager.getRestaurantListStatus(restaurantId);
-                
-                const favoritesBtn = document.getElementById('modalFavoritesBtn');
-                const wantToGoBtn = document.getElementById('modalWantToGoBtn');
-                const visitedBtn = document.getElementById('modalVisitedBtn');
-                
-                if (favoritesBtn) {
-                    favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
-                    favoritesBtn.classList.toggle('active', status.favorites);
-                }
-                
-                if (wantToGoBtn) {
-                    wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
-                    wantToGoBtn.classList.toggle('active', status.wantToGo);
-                }
-                
-                if (visitedBtn) {
-                    visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
-                    visitedBtn.classList.toggle('active', status.visited);
-                }
-            }
-            
-            // ---------- GUEST BANNER ----------
-            const guestBanner = {
-                init: function() {
-                    const loginBtn = document.getElementById('bannerLoginBtn');
-                    const signupBtn = document.getElementById('bannerSignupBtn');
-                    
-                    if (loginBtn) {
-                        loginBtn.addEventListener('click', () => {
-                            window.location.href = 'login.html';
-                        });
-                    }
-                    
-                    if (signupBtn) {
-                        signupBtn.addEventListener('click', () => {
-                            window.location.href = 'sign-up.html';
-                        });
-                    }
-                },
-                
-                show: function() {
-                    const banner = document.getElementById('guestBanner');
-                    if (banner) banner.classList.add('show');
-                },
-                
-                hide: function() {
-                    const banner = document.getElementById('guestBanner');
-                    if (banner) banner.classList.remove('show');
-                }
-            };
-            
-            // ---------- DATA LOADING ----------
             async function loadRestaurantImages() {
                 try {
                     const { data: galleryData, error: galleryError } = await supabase
@@ -1834,99 +2095,6 @@
             function getCoverImageUrl(restaurantSlug) {
                 const images = state.restaurantImages.get(restaurantSlug);
                 return images?.cover || null;
-            }
-            
-            function getLogoUrl(restaurant) {
-                const images = state.restaurantImages.get(restaurant.slug);
-                if (images?.logo) {
-                    return images.logo;
-                }
-                
-                if (restaurant.logo_url) {
-                    return restaurant.logo_url;
-                }
-                
-                if (restaurant.image) {
-                    return restaurant.image;
-                }
-                
-                return null;
-            }
-            
-            async function loadRestaurantsData() {
-                try {
-                    await cloudKitchenManager.loadCloudKitchens();
-                    await loadRestaurantImages();
-                    
-                    const { data, error } = await supabase
-                        .from('restraunts')
-                        .select('id, slug, name, category, description, rating, logo_url, image')
-                        .order('rating', { ascending: false })
-                        .limit(48);
-                    
-                    if (error) {
-                        console.warn('Could not load restaurants:', error);
-                        return;
-                    }
-                    
-                    if (!data || data.length === 0) {
-                        console.warn('No restaurants found');
-                        return;
-                    }
-                    
-                    state.restaurants = data.map(restaurant => ({
-                        id: restaurant.id,
-                        slug: restaurant.slug,
-                        name: restaurant.name,
-                        category: restaurant.category || 'Restaurant',
-                        description: restaurant.description,
-                        rating: restaurant.rating,
-                        logo_url: getLogoUrl(restaurant),
-                        coverImage: getCoverImageUrl(restaurant.slug),
-                        isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
-                    }));
-                    
-                    // Load all restaurants for search
-                    const { data: allData } = await supabase
-                        .from('restraunts')
-                        .select('slug, name, category, logo_url')
-                        .order('name', { ascending: true });
-                    
-                    if (allData) {
-                        state.allRestaurants = allData;
-                    }
-                    
-                    renderFeaturedRestaurants();
-                    renderNearbyRestaurants();
-                    setupSpotlight();
-                    setupRestaurantOfTheDay();
-                    populateFilters();
-                    
-                } catch (error) {
-                    console.error('Error loading restaurants:', error);
-                    showNotification('Failed to load restaurants', 'error');
-                }
-            }
-            
-            function getCategoryIconFallback(categoryName) {
-                const icons = {
-                    'Burgers': '🍔',
-                    'Chicken': '🍗',
-                    'Middle Eastern': '🥙',
-                    'Pizza': '🍕',
-                    'Asian': '🍜',
-                    'Mexican': '🌮',
-                    'Cafe & Bakery': '☕',
-                    'Fast Food': '🍟',
-                    'Seafood': '🐟',
-                    'Breakfast': '🥞',
-                    'Desserts': '🍰',
-                    'Indian': '🍛',
-                    'BBQ & Ribs': '🥩',
-                    'International': '🌍'
-                };
-                
-                return icons[categoryName] || '🍴';
             }
             
             // ---------- CARD CREATION ----------
@@ -2372,6 +2540,260 @@
                 }
             }
             
+            // ---------- DATA LOADING ----------
+            async function loadRestaurantsData() {
+                try {
+                    await cloudKitchenManager.loadCloudKitchens();
+                    await loadRestaurantImages();
+                    
+                    const { data, error } = await supabase
+                        .from('restraunts')
+                        .select('id, slug, name, category, description, rating, logo_url, image')
+                        .order('rating', { ascending: false })
+                        .limit(48);
+                    
+                    if (error) {
+                        console.warn('Could not load restaurants:', error);
+                        return;
+                    }
+                    
+                    if (!data || data.length === 0) {
+                        console.warn('No restaurants found');
+                        return;
+                    }
+                    
+                    state.restaurants = data.map(restaurant => ({
+                        id: restaurant.id,
+                        slug: restaurant.slug,
+                        name: restaurant.name,
+                        category: restaurant.category || 'Restaurant',
+                        description: restaurant.description,
+                        rating: restaurant.rating,
+                        logo_url: getLogoUrl(restaurant),
+                        coverImage: getCoverImageUrl(restaurant.slug),
+                        isCloudKitchen: cloudKitchenManager.isCloudKitchen(restaurant.id)
+                    }));
+                    
+                    renderFeaturedRestaurants();
+                    renderNearbyRestaurants();
+                    setupSpotlight();
+                    setupRestaurantOfTheDay();
+                    populateFilters();
+                    
+                } catch (error) {
+                    console.error('Error loading restaurants:', error);
+                    showNotification('Failed to load restaurants', 'error');
+                }
+            }
+            
+            // ---------- CUSTOM LISTS MODAL ----------
+            async function showCustomListsModal(restaurantId) {
+                if (!restaurantId) {
+                    showNotification('No restaurant selected', 'error');
+                    return;
+                }
+                
+                if (!state.isLoggedIn) {
+                    showAuthPrompt();
+                    return;
+                }
+                
+                const restaurant = state.restaurants.find(r => r.id === restaurantId);
+                if (!restaurant) {
+                    showNotification('Restaurant not found', 'error');
+                    return;
+                }
+                
+                state.currentModalRestaurant = restaurant;
+                
+                if (!state.customLists || state.customLists.length === 0) {
+                    await customListsManager.refreshLists();
+                }
+                
+                try {
+                    const status = await customListsManager.loadRestaurantListsStatus(restaurantId);
+                    
+                    state.selectedLists.clear();
+                    for (const [listId, isChecked] of Object.entries(status)) {
+                        if (isChecked) {
+                            state.selectedLists.add(listId);
+                        }
+                    }
+                    
+                    customListsManager.renderListsList(restaurantId);
+                    
+                    const modal = document.getElementById('customListsModal');
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    setTimeout(() => {
+                        const newListInput = document.getElementById('newListName');
+                        if (newListInput) newListInput.focus();
+                    }, 300);
+                    
+                } catch (error) {
+                    console.error('Error loading list status:', error);
+                    showNotification('Error loading lists', 'error');
+                    
+                    const modal = document.getElementById('customListsModal');
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+            
+            function hideCustomListsModal() {
+                const modal = document.getElementById('customListsModal');
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                state.selectedLists.clear();
+            }
+            
+            async function saveListChanges() {
+                if (!state.currentModalRestaurant || !state.currentModalRestaurant.id) {
+                    showNotification('No restaurant selected', 'error');
+                    hideCustomListsModal();
+                    return;
+                }
+                
+                const restaurantId = state.currentModalRestaurant.id;
+                const saveBtn = document.getElementById('saveListsBtn');
+                const originalText = saveBtn.textContent;
+                
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                
+                try {
+                    let changesMade = false;
+                    
+                    for (const list of state.customLists) {
+                        const shouldBeInList = state.selectedLists.has(list.id);
+                        const isInList = await customListsManager.checkRestaurantInList(restaurantId, list.id);
+                        
+                        if (shouldBeInList && !isInList) {
+                            const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+                            if (success) {
+                                changesMade = true;
+                            }
+                        } else if (!shouldBeInList && isInList) {
+                            const success = await customListsManager.toggleRestaurantInList(restaurantId, list.id);
+                            if (success !== null) {
+                                changesMade = true;
+                            }
+                        }
+                    }
+                    
+                    if (changesMade) {
+                        showNotification('List changes saved successfully!', 'success');
+                    } else {
+                        showNotification('No changes made', 'info');
+                    }
+                    
+                    hideCustomListsModal();
+                    
+                    renderFeaturedRestaurants();
+                    renderNearbyRestaurants();
+                    setupRestaurantOfTheDay();
+                    
+                } catch (error) {
+                    console.error('Error saving list changes:', error);
+                    showNotification('Error saving changes', 'error');
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                }
+            }
+            
+            // ---------- AUTH PROMPT MODAL ----------
+            function showAuthPrompt() {
+                const modal = document.getElementById('authPromptModal');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function hideAuthPrompt() {
+                const modal = document.getElementById('authPromptModal');
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            
+            // ---------- ACTIONS MODAL ----------
+            function showModal(restaurantData) {
+                if (!restaurantData) return;
+                
+                if (!state.isLoggedIn) {
+                    showAuthPrompt();
+                    return;
+                }
+                
+                state.currentModalRestaurant = restaurantData;
+                document.getElementById('modalRestaurantName').textContent = restaurantData.name;
+                
+                updateModalButtons(restaurantData.id);
+                
+                const modal = document.getElementById('actionsModal');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function hideModal() {
+                const modal = document.getElementById('actionsModal');
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            
+            function updateModalButtons(restaurantId) {
+                const status = listManager.getRestaurantListStatus(restaurantId);
+                
+                const favoritesBtn = document.getElementById('modalFavoritesBtn');
+                const wantToGoBtn = document.getElementById('modalWantToGoBtn');
+                const visitedBtn = document.getElementById('modalVisitedBtn');
+                
+                if (favoritesBtn) {
+                    favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+                    favoritesBtn.classList.toggle('active', status.favorites);
+                }
+                
+                if (wantToGoBtn) {
+                    wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+                    wantToGoBtn.classList.toggle('active', status.wantToGo);
+                }
+                
+                if (visitedBtn) {
+                    visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+                    visitedBtn.classList.toggle('active', status.visited);
+                }
+            }
+            
+            // ---------- GUEST BANNER ----------
+            const guestBanner = {
+                init: function() {
+                    const loginBtn = document.getElementById('bannerLoginBtn');
+                    const signupBtn = document.getElementById('bannerSignupBtn');
+                    
+                    if (loginBtn) {
+                        loginBtn.addEventListener('click', () => {
+                            window.location.href = 'login.html';
+                        });
+                    }
+                    
+                    if (signupBtn) {
+                        signupBtn.addEventListener('click', () => {
+                            window.location.href = 'sign-up.html';
+                        });
+                    }
+                },
+                
+                show: function() {
+                    const banner = document.getElementById('guestBanner');
+                    if (banner) banner.classList.add('show');
+                },
+                
+                hide: function() {
+                    const banner = document.getElementById('guestBanner');
+                    if (banner) banner.classList.remove('show');
+                }
+            };
+            
             // ---------- AUTH MANAGEMENT ----------
             async function updateAuthUI() {
                 try {
@@ -2473,56 +2895,53 @@
             function setupEventListeners() {
                 // Mobile search toggle
                 const mobileSearchToggle = document.getElementById('mobileSearchToggle');
-                const searchWrapper = document.getElementById('searchWrapper');
                 
-                if (mobileSearchToggle && searchWrapper) {
+                if (mobileSearchToggle) {
                     mobileSearchToggle.addEventListener('click', () => {
-                        searchWrapper.classList.toggle('active');
-                        if (searchWrapper.classList.contains('active')) {
-                            document.getElementById('search').focus();
-                        }
-                    });
-                    
-                    // Close search when clicking outside on mobile
-                    document.addEventListener('click', (e) => {
-                        if (window.innerWidth <= 768) {
-                            if (!searchWrapper.contains(e.target) && 
-                                !mobileSearchToggle.contains(e.target) &&
-                                searchWrapper.classList.contains('active')) {
-                                searchWrapper.classList.remove('active');
-                            }
-                        }
+                        searchManager.toggleMobileSearch();
                     });
                 }
                 
-                // Search
+                // Search input
                 const searchInput = document.getElementById('search');
                 const clearSearchBtn = document.getElementById('clearSearch');
                 
                 if (searchInput && clearSearchBtn) {
-                    const debouncedSearch = debounce(() => {
-                        const searchTerm = searchInput.value.trim();
-                        if (searchTerm) {
-                            location.href = `restraunts.html?search=${encodeURIComponent(searchTerm)}`;
+                    // Load search data on focus
+                    searchInput.addEventListener('focus', async () => {
+                        if (state.allRestaurants.length === 0) {
+                            await searchManager.loadAllRestaurantsForSearch();
                         }
-                    }, 300);
-                    
-                    searchInput.addEventListener('input', () => {
-                        clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
+                        searchManager.showDropdown();
                     });
                     
-                    searchInput.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') {
-                            const searchTerm = searchInput.value.trim();
-                            if (searchTerm) {
-                                location.href = `restraunts.html?search=${encodeURIComponent(searchTerm)}`;
-                            }
+                    searchInput.addEventListener('input', () => {
+                        const query = searchInput.value;
+                        clearSearchBtn.style.display = query ? 'block' : 'none';
+                        
+                        searchManager.handleSearchInput(query);
+                        
+                        if (query.trim()) {
+                            searchManager.showDropdown();
+                        } else {
+                            searchManager.hideDropdown();
                         }
+                    });
+                    
+                    searchInput.addEventListener('keydown', (e) => {
+                        searchManager.handleKeyDown(e);
                     });
                     
                     clearSearchBtn.addEventListener('click', () => {
                         searchInput.value = '';
                         clearSearchBtn.style.display = 'none';
+                        searchManager.hideDropdown();
+                        searchInput.focus();
+                    });
+                    
+                    // Hide dropdown when clicking outside
+                    document.addEventListener('click', (e) => {
+                        searchManager.handleClickOutside(e);
                     });
                 }
                 
@@ -2531,7 +2950,10 @@
                 if (searchFooterLink) {
                     searchFooterLink.addEventListener('click', (e) => {
                         e.preventDefault();
-                        document.getElementById('search').focus();
+                        const searchInput = document.getElementById('search');
+                        if (searchInput) {
+                            searchInput.focus();
+                        }
                     });
                 }
                 
@@ -2749,18 +3171,6 @@
                 });
             }
             
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-            
             // ---------- INITIALIZATION ----------
             async function init() {
                 if (!supabase) {
@@ -2772,6 +3182,7 @@
                 initFixedImageLoader();
                 
                 setupEventListeners();
+                await searchManager.loadAllRestaurantsForSearch();
                 await loadRestaurantsData();
                 await updateAuthUI();
                 
