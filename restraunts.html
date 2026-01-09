@@ -7,8 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style> 
-  
+  <style>
   :root { 
   --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
   --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
@@ -104,6 +103,7 @@ header {
   backdrop-filter: blur(10px) saturate(180%);
   background: var(--surface); 
   border-bottom: 1px solid var(--border); 
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 } 
 
 .logo { 
@@ -870,74 +870,38 @@ header {
   }
 }
 
-/* === MOBILE FIXES START HERE === */
+/* =============================== */
+/* MOBILE RESPONSIVE STYLES */
+/* =============================== */
 @media (max-width: 768px) {
+  /* Enhanced Sticky Header for Mobile */
   header {
-    position: relative;
+    position: fixed;
     top: 0;
-    backdrop-filter: none;
-    padding: 12px 16px;
-    flex-wrap: wrap;
+    left: 0;
+    right: 0;
+    backdrop-filter: blur(10px) saturate(180%);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    z-index: 1000;
+    transform: translateY(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  /* Hide logo overlay on mobile */
-  .logo-overlay {
-    display: none;
+  /* Hide header when scrolling down */
+  header.header-hidden {
+    transform: translateY(-100%);
   }
   
-  /* Add logo indicator in card header */
-  .card-title-wrapper::before {
-    content: '';
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    background: var(--gradient);
-    border-radius: 5px;
-    margin-right: 8px;
-    flex-shrink: 0;
-    background-image: var(--gradient);
+  /* Show header when scrolling up */
+  header.header-visible {
+    transform: translateY(0);
   }
   
-  /* Simplify image layer on mobile */
-  .card-image {
-    height: 140px;
-  }
-  
-  .restaurant-image {
-    height: 140px;
-  }
-  
-  /* Reduce badge sizes and spacing */
-  .list-badges-container {
-    top: 10px;
-    left: 10px;
-    gap: 4px;
-  }
-  
-  .list-badge {
-    padding: 6px;
-    font-size: 16px;
-    width: 36px;
-    height: 36px;
-  }
-  
-  /* Adjust cloud badge position */
-  .cloud-badge {
-    top: 10px;
-    right: 48px; /* More space from edge */
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-  }
-  
-  /* Simplify menu button */
-  .menu-btn {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .menu-btn i {
-    font-size: 16px;
+  /* Add padding to container to account for fixed header */
+  .container {
+    padding-top: 60px;
   }
   
   /* Hide tooltips on mobile */
@@ -947,21 +911,69 @@ header {
     display: none !important;
   }
   
-  /* Reduce description lines */
-  .card-description {
-    -webkit-line-clamp: 2;
-    font-size: 13px;
-    margin-bottom: 12px;
+  /* Remove Top Rated badge on mobile */
+  .top-rated-badge {
+    display: none;
   }
   
-  /* Improve spacing in card content */
-  .card-content {
-    padding: 14px;
+  /* Make list badges smaller */
+  .list-badges-container {
+    top: 8px;
+    left: 8px;
+    gap: 4px;
   }
   
-  .card-header {
-    gap: 6px;
-    margin-bottom: 6px;
+  .list-badge {
+    padding: 4px;
+    font-size: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border-width: 1px;
+  }
+  
+  /* Cloud badge - smaller and reposition */
+  .cloud-badge {
+    top: 8px;
+    right: 44px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    border-radius: 6px;
+  }
+  
+  /* Menu button - smaller */
+  .menu-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+  }
+  
+  .menu-btn i {
+    font-size: 14px;
+  }
+  
+  /* Logo overlay - restored to bottom left and smaller */
+  .logo-overlay {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border-width: 1px;
+    padding: 3px;
+  }
+  
+  /* Make rating badge smaller and less prominent */
+  .card-rating {
+    padding: 3px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(245, 158, 11, 0.3);
   }
   
   /* Grid adjustments for mobile */
@@ -983,6 +995,41 @@ header {
     gap: 10px;
   }
   
+  /* Adjust card content for smaller screens */
+  .card-image {
+    height: 140px;
+  }
+  
+  .restaurant-image {
+    height: 140px;
+  }
+  
+  /* Reduce description lines */
+  .card-description {
+    -webkit-line-clamp: 2;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  
+  /* Improve spacing in card content */
+  .card-content {
+    padding: 12px;
+  }
+  
+  .card-header {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  
+  .card-title {
+    font-size: 15px;
+  }
+  
+  .card-category {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  
   /* Controls adjustments */
   .controls-info {
     font-size: 13px;
@@ -1002,6 +1049,8 @@ header {
   .sort-select {
     flex: 1;
     min-width: 0;
+    font-size: 13px;
+    padding: 8px 10px;
   }
   
   .view-controls {
@@ -1032,6 +1081,7 @@ header {
   .quick-filters {
     margin: 0 -16px;
     padding-left: 16px;
+    padding-bottom: 12px;
   }
   
   .container {
@@ -1039,13 +1089,54 @@ header {
   }
   
   .card-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 8px;
   }
   
   .card-title-wrapper {
     width: 100%;
+  }
+  
+  /* Guest banner adjustment */
+  .guest-banner {
+    margin-top: 60px;
+    margin-bottom: 16px;
+    width: calc(100% - 32px);
+  }
+  
+  /* Mobile pagination adjustment */
+  .mobile-pagination {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  
+  /* Page header adjustment */
+  .page-header {
+    margin-top: 8px;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .page-header p {
+    font-size: 13px;
+  }
+  
+  /* Banner content adjustment */
+  .banner-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .banner-text {
+    margin-right: 0;
+  }
+  
+  .banner-actions {
+    width: 100%;
+    justify-content: center;
   }
 }
 
