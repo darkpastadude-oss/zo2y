@@ -21,75 +21,43 @@
 * { box-sizing: border-box; margin: 0; padding: 0; } 
 html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
 a { color: inherit; text-decoration: none; } 
+img { display: block; max-width: 100%; height: auto; }
 
-/* Guest Banner */
+/* Enhanced Guest Banner - Fixed Position */
 .guest-banner {
   display: none;
-  max-width: 800px;
-  width: calc(100% - 40px);
-  border-radius: 12px;
-  margin: 20px auto 20px auto;
-  border: 1px solid rgba(245, 158, 11, 0.2);
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-  padding: 10px 20px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  padding: 12px 20px;
+  margin: 0 auto 20px auto;
+  border-radius: 12px;
+  max-width: 1200px;
+  width: calc(100% - 32px);
   text-align: center;
+  animation: slideDown 0.3s ease-out;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 999;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-.guest-banner.show {
+.guest-banner.show { 
   display: block;
+  transform: translateX(-50%) translateY(0);
 }
+.guest-banner.hidden {
+  transform: translateX(-50%) translateY(-100%);
+}
+@keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
-.banner-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.banner-text {
-  margin-right: 8px;
-  font-size: 13px;
-}
-
-.banner-actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.banner-btn {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  white-space: nowrap;
-}
-
-.banner-btn-outline {
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-}
-
-.banner-btn-outline:hover {
-  background: rgba(245, 158, 11, 0.1);
-}
-
-.banner-btn-primary {
-  background: var(--accent);
-  color: #111;
-  border: 1px solid var(--accent);
-}
-
-.banner-btn-primary:hover {
-  background: #ffb84d;
-  transform: translateY(-1px);
-}
+.banner-content { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 14px; }
+.banner-actions { display: flex; gap: 8px; align-items: center; }
+.banner-btn { padding: 6px 14px; border-radius: 8px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; border: none; }
+.banner-btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.banner-btn-outline:hover { background: rgba(245, 158, 11, 0.1); }
+.banner-btn-primary { background: var(--accent); color: #111; border: 1px solid var(--accent); }
+.banner-btn-primary:hover { background: #ffb84d; transform: translateY(-1px); }
 
 /* Enhanced Header */
 header { 
@@ -103,8 +71,10 @@ header {
   backdrop-filter: blur(10px) saturate(180%);
   background: var(--surface); 
   border-bottom: 1px solid var(--border); 
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
 } 
+
+header.scrolled { background: rgba(19, 35, 71, 0.95); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); }
 
 .logo { 
   height: 40px; 
@@ -622,11 +592,11 @@ header {
   transform: translateY(0);
 }
 
-/* Logo overlay */
+/* Logo overlay - ALWAYS ON LEFT */
 .logo-overlay {
   position: absolute;
   bottom: 12px;
-  right: 12px;
+  left: 12px;
   width: 48px;
   height: 48px;
   background: rgba(11, 22, 51, 0.9);
@@ -693,42 +663,20 @@ header {
   flex: 1;
 }
 
-/* Top rated badge */
+/* REMOVED Top rated badge */
 .top-rated-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-  color: #0b1633;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  animation: glow 2s infinite alternate;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-  white-space: nowrap;
+  display: none !important;
 }
 
-@keyframes glow {
-  0% {
-    box-shadow: 0 0 5px rgba(245, 158, 11, 0.5),
-                0 0 10px rgba(245, 158, 11, 0.3);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.8),
-                0 0 20px rgba(245, 158, 11, 0.5),
-                0 0 30px rgba(245, 158, 11, 0.3);
-  }
-}
-
+/* Rating badge - subtle for both desktop and mobile */
 .card-rating {
-  background: var(--gradient);
-  color: #0b1633;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -881,11 +829,10 @@ header {
     left: 0;
     right: 0;
     backdrop-filter: blur(10px) saturate(180%);
-    background: var(--surface);
+    background: rgba(19, 35, 71, 0.95);
     border-bottom: 1px solid var(--border);
     padding: 10px 16px;
     z-index: 1000;
-    transform: translateY(0);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
@@ -904,16 +851,26 @@ header {
     padding-top: 60px;
   }
   
+  /* Guest banner adjustment */
+  .guest-banner {
+    margin-top: 60px;
+    position: fixed;
+    top: 60px;
+  }
+  
+  .guest-banner.show {
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  .guest-banner.hidden {
+    transform: translateX(-50%) translateY(-100%);
+  }
+  
   /* Hide tooltips on mobile */
   .cloud-tooltip,
   .list-badge-tooltip,
   .menu-btn-tooltip {
     display: none !important;
-  }
-  
-  /* Remove Top Rated badge on mobile */
-  .top-rated-badge {
-    display: none;
   }
   
   /* Make list badges smaller */
@@ -929,7 +886,6 @@ header {
     width: 32px;
     height: 32px;
     border-radius: 6px;
-    border-width: 1px;
   }
   
   /* Cloud badge - smaller and reposition */
@@ -953,7 +909,7 @@ header {
     font-size: 14px;
   }
   
-  /* Logo overlay - restored to bottom left and smaller */
+  /* Logo overlay - ALWAYS ON LEFT and smaller on mobile */
   .logo-overlay {
     position: absolute;
     bottom: 8px;
@@ -963,17 +919,6 @@ header {
     border-radius: 8px;
     border-width: 1px;
     padding: 3px;
-  }
-  
-  /* Make rating badge smaller and less prominent */
-  .card-rating {
-    padding: 3px 6px;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 6px;
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--accent);
-    border: 1px solid rgba(245, 158, 11, 0.3);
   }
   
   /* Grid adjustments for mobile */
@@ -1098,13 +1043,6 @@ header {
     width: 100%;
   }
   
-  /* Guest banner adjustment */
-  .guest-banner {
-    margin-top: 60px;
-    margin-bottom: 16px;
-    width: calc(100% - 32px);
-  }
-  
   /* Mobile pagination adjustment */
   .mobile-pagination {
     padding-bottom: max(12px, env(safe-area-inset-bottom));
@@ -1152,6 +1090,13 @@ header {
   
   .grid-triple {
     grid-template-columns: repeat(5, 1fr);
+  }
+  
+  /* Logo stays on left for desktop too */
+  .logo-overlay {
+    left: 12px;
+    bottom: 12px;
+    right: auto;
   }
 }
 
@@ -2092,6 +2037,50 @@ header {
         lastScrollPosition: 0
       };
       
+      // ---------- SCROLL HIDE/SHOW FUNCTIONALITY ----------
+      let lastScrollTop = 0;
+      const scrollThreshold = 100;
+      
+      function initScrollHideShow() {
+        window.addEventListener('scroll', handleHeaderScroll);
+      }
+      
+      function handleHeaderScroll() {
+        const header = document.querySelector('header');
+        const guestBanner = document.getElementById('guestBanner');
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > scrollThreshold) {
+          if (scrollTop > lastScrollTop) {
+            // Scrolling down - hide both
+            header.classList.add('header-hidden');
+            header.classList.remove('header-visible');
+            if (guestBanner && guestBanner.classList.contains('show')) {
+              guestBanner.classList.add('hidden');
+            }
+          } else {
+            // Scrolling up - show both
+            header.classList.remove('header-hidden');
+            header.classList.add('header-visible');
+            if (guestBanner && guestBanner.classList.contains('show')) {
+              guestBanner.classList.remove('hidden');
+            }
+          }
+        } else {
+          // Near top - always show
+          header.classList.remove('header-hidden');
+          header.classList.add('header-visible');
+          if (guestBanner && guestBanner.classList.contains('show')) {
+            guestBanner.classList.remove('hidden');
+          }
+        }
+        
+        lastScrollTop = scrollTop;
+        
+        // Also handle pagination visibility
+        handleScroll();
+      }
+      
       // ---------- FIXED IMAGE LOADING SYSTEM ----------
       function initFixedImageLoader() {
         if (state.imageObserver) return;
@@ -2785,12 +2774,18 @@ header {
         
         show: function() {
           const banner = document.getElementById('guestBanner');
-          if (banner) banner.classList.add('show');
+          if (banner) {
+            banner.classList.add('show');
+            banner.classList.remove('hidden');
+          }
         },
         
         hide: function() {
           const banner = document.getElementById('guestBanner');
-          if (banner) banner.classList.remove('show');
+          if (banner) {
+            banner.classList.remove('show');
+            banner.classList.add('hidden');
+          }
         }
       };
       
@@ -3263,7 +3258,6 @@ header {
         const category = restaurant.category || 'Restaurant';
         const logoUrl = getLogoUrl(restaurant);
         const status = listManager.getRestaurantListStatus(restaurant.id);
-        const isTopRated = rating >= 4.5;
         const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
         const isCloudKitchen = restaurant.isCloudKitchen || false;
         const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
@@ -3332,7 +3326,6 @@ header {
               <div class="card-header">
                 <div class="card-title-wrapper">
                   <h3 class="card-title">${restaurant.name}</h3>
-                  ${isTopRated ? '<div class="top-rated-badge">TOP RATED</div>' : ''}
                 </div>
                 <div class="card-rating">
                   <i class="fas fa-star"></i>
@@ -3838,6 +3831,7 @@ header {
         });
         
         guestBanner.init();
+        initScrollHideShow();
       }
       
       function handleScroll() {
