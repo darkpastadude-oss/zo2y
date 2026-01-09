@@ -2100,6 +2100,71 @@
         .w-100 {
             width: 100%;
         }
+
+        /* === MOBILE MENU STYLES === */
+        .mobile-menu-items {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mobile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            color: var(--white);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .mobile-menu-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .mobile-menu-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .mobile-menu-item.logout {
+            color: var(--error);
+        }
+
+        .mobile-menu-item.logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .mobile-menu-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        /* Mobile-specific modal positioning */
+        @media (max-width: 768px) {
+            #mobileMenuModal .modal-content {
+                position: fixed;
+                top: 60px;
+                right: 10px;
+                left: auto;
+                width: 280px;
+                max-height: calc(100vh - 70px);
+                transform: none;
+                animation: slideInDown 0.2s ease;
+                border: 1px solid var(--border);
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            }
+            
+            @keyframes slideInDown {
+                from { transform: translateY(-20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        }
     </style>
     <link rel="icon" type="image/png" href="images/logo.png">
 </head>
@@ -2167,6 +2232,9 @@
                         </button>
                         <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
                             <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="btn btn-secondary" onclick="ProfileManager.logout()" style="margin-left: auto;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
                         <button class="btn btn-secondary d-none" id="followButton">
                             Follow
@@ -2804,6 +2872,57 @@
     <!-- Toast Container for Desktop -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Mobile Menu Modal -->
+    <div class="modal" id="mobileMenuModal">
+        <div class="modal-content" style="max-width: 300px; position: fixed; top: 60px; right: 20px; max-height: calc(100vh - 80px);">
+            <div class="modal-body">
+                <div class="mobile-menu-items">
+                    <a href="index.html" class="mobile-menu-item">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('addEntryModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Journal Entry</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showCreateListModal(); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-list"></i>
+                        <span>Create New List</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('editProfileModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-user-edit"></i>
+                        <span>Edit Profile</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('communitySearchModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-search"></i>
+                        <span>Search Users</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('avatarModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Change Avatar</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="window.location.href='settings.html'">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </div>
+                    
+                    <div class="mobile-menu-divider"></div>
+                    
+                    <div class="mobile-menu-item logout" onclick="ProfileManager.logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
@@ -2890,6 +3009,7 @@
                     });
                 });
                 
+                document.querySelector('.mobile-menu-btn').addEventListener('click', () => showMobileMenu());
                 updateMobileStats();
             }
 
@@ -2971,6 +3091,20 @@
                 if (modal) {
                     modal.classList.remove('active');
                     document.body.style.overflow = '';
+                }
+            }
+
+            // ===== LOGOUT FUNCTION =====
+            async function logout() {
+                try {
+                    showToast('Logging out...', 'info');
+                    await supabase.auth.signOut();
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1000);
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    showToast('Error logging out', 'error');
                 }
             }
 
@@ -3180,32 +3314,32 @@
                 followButton.onclick = () => toggleFollow(targetUserId, followButton);
             }
 
-            // PASTE THIS CORRECTED CODE
-async function checkIfFollowing(userId) {
-    const cacheKey = `${currentUser.id}_${userId}`; // Changed 'this.currentUser' to 'currentUser'
-    
-    if (followStatusCache.has(cacheKey)) { // Changed 'this.followStatusCache' to 'followStatusCache'
-        return followStatusCache.get(cacheKey);
-    }
-    
-    try {
-        const { data, error } = await supabase // Changed 'this.supabase' to 'supabase'
-            .from('follows')
-            .select('id')
-            .eq('follower_id', currentUser.id)
-            .eq('followed_id', userId)
-            .maybeSingle(); 
+            async function checkIfFollowing(userId) {
+                const cacheKey = `${currentUser.id}_${userId}`;
+                
+                if (followStatusCache.has(cacheKey)) {
+                    return followStatusCache.get(cacheKey);
+                }
+                
+                try {
+                    const { data, error } = await supabase
+                        .from('follows')
+                        .select('id')
+                        .eq('follower_id', currentUser.id)
+                        .eq('followed_id', userId)
+                        .maybeSingle(); 
 
-        const isFollowing = !!data && !error;
-        followStatusCache.set(cacheKey, isFollowing);
-        
-        return isFollowing;
-        
-    } catch (error) {
-        console.error('Error checking follow status:', error);
-        return false;
-    }
-}
+                    const isFollowing = !!data && !error;
+                    followStatusCache.set(cacheKey, isFollowing);
+                    
+                    return isFollowing;
+                    
+                } catch (error) {
+                    console.error('Error checking follow status:', error);
+                    return false;
+                }
+            }
+
             async function toggleFollow(userId, buttonElement) {
                 try {
                     const isFollowing = await checkIfFollowing(userId);
@@ -3908,7 +4042,8 @@ async function checkIfFollowing(userId) {
                     }
                 );
             }
-async function showList(listId) {
+
+            async function showList(listId) {
                 let list;
                 
                 if (listId === 'favorites') {
@@ -4179,7 +4314,7 @@ async function showList(listId) {
                 currentActiveList = null;
             }
 
-                        function hideMobileListDetail() {
+            function hideMobileListDetail() {
                 const listDetailSection = document.getElementById('mobileListDetailSection');
                 if (listDetailSection) {
                     listDetailSection.style.display = 'none';
@@ -4195,6 +4330,7 @@ async function showList(listId) {
                 
                 currentActiveList = null;
             }
+
             // ===== FOOD JOURNAL =====
             const foodJournal = {
                 async init() {
@@ -5281,7 +5417,11 @@ async function showList(listId) {
 
             // ===== MOBILE MENU FUNCTIONS =====
             function showMobileMenu() {
-                showToast('Mobile menu would open here', 'info');
+                const modal = document.getElementById('mobileMenuModal');
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
             }
 
             // ===== AVATAR FUNCTIONS =====
@@ -5404,13 +5544,11 @@ async function showList(listId) {
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', async (e) => {
                         e.preventDefault();
-                        if (confirm('Are you sure you want to logout?')) {
-                            showToast('Logging out...', 'info');
-                            await supabase.auth.signOut();
-                            setTimeout(() => {
-                                window.location.href = 'login.html';
-                            }, 1000);
-                        }
+                        showConfirmModal(
+                            'Logout',
+                            'Are you sure you want to logout?',
+                            () => logout()
+                        );
                     });
                 }
                 
@@ -5484,18 +5622,6 @@ async function showList(listId) {
                 showToast('List sorting feature coming soon!', 'info');
             }
 
-            async function logout() {
-                if (confirm('Are you sure you want to logout?')) {
-                    try {
-                        await supabase.auth.signOut();
-                        window.location.href = 'login.html';
-                    } catch (error) {
-                        console.error('Error logging out:', error);
-                        showToast('Error logging out', 'error');
-                    }
-                }
-            }
-
             function updateMobileStats() {
                 // Stats are already updated in updateStatsUI
             }
@@ -5542,4 +5668,4 @@ async function showList(listId) {
         });
     </script>
 </body>
-</html> 
+</html>
