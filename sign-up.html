@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Zo2y - Sign Up</title>
-    <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+<link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -124,6 +124,72 @@ body {
 
 .loading { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,.3); border-radius:50%; border-top-color:#fff; animation:spin 1s ease-in-out infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
+
+/* Password strength indicator */
+.password-strength {
+  margin-top: 8px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-color);
+  overflow: hidden;
+}
+
+.strength-meter {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.strength-weak { background: #ef4444; }
+.strength-fair { background: #f59e0b; }
+.strength-good { background: #3b82f6; }
+.strength-strong { background: #10b981; }
+
+.password-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  display: none;
+}
+
+.password-hint.show {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Error message styling */
+.error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  display: none;
+}
+
+.error-message.show {
+  display: block;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.success-message {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  display: none;
+}
+
+.success-message.show {
+  display: block;
+  animation: fadeIn 0.3s ease-out;
+}
 </style>
 </head>
 <body>
@@ -136,6 +202,10 @@ body {
 
   <div class="signup-card">
     <h2>Create your account</h2>
+    
+    <!-- Messages -->
+    <div id="errorMessage" class="error-message"></div>
+    <div id="successMessage" class="success-message"></div>
 
     <button class="google-btn" id="googleSignup">
       <svg width="20" height="20" viewBox="0 0 24 24">
@@ -160,7 +230,11 @@ body {
       </div>
       <div class="input-group">
         <i class="fas fa-lock"></i>
-        <input type="password" placeholder="Password" id="password" required>
+        <input type="password" placeholder="Password" id="password" required minlength="6">
+        <div class="password-strength">
+          <div class="strength-meter" id="strengthMeter"></div>
+        </div>
+        <div class="password-hint" id="passwordHint">Password must be at least 6 characters</div>
       </div>
       <button type="submit" class="submit-btn" id="submitBtn">
         <i class="fas fa-user-plus"></i> <span>Create Account</span>
@@ -175,222 +249,394 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-// INITIALIZATION with proper configuration
+// INITIALIZATION for zo2y.com domain
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
+// Create Supabase client with domain-specific config
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     storage: localStorage,
-    flowType: 'pkce'
+    flowType: 'pkce',
+    redirectTo: window.location.origin + window.location.pathname // Dynamic redirect
   }
 });
 
-// Check for OAuth callback FIRST
-async function handleAuthRedirect() {
+// Utility functions
+function showError(message) {
+  const errorDiv = document.getElementById('errorMessage');
+  errorDiv.textContent = message;
+  errorDiv.classList.add('show');
+  const successDiv = document.getElementById('successMessage');
+  successDiv.classList.remove('show');
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    errorDiv.classList.remove('show');
+  }, 5000);
+}
+
+function showSuccess(message) {
+  const successDiv = document.getElementById('successMessage');
+  successDiv.textContent = message;
+  successDiv.classList.add('show');
+  const errorDiv = document.getElementById('errorMessage');
+  errorDiv.classList.remove('show');
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    successDiv.classList.remove('show');
+  }, 5000);
+}
+
+// Password strength checker
+function checkPasswordStrength(password) {
+  const meter = document.getElementById('strengthMeter');
+  const hint = document.getElementById('passwordHint');
+  
+  if (!password) {
+    meter.style.width = '0%';
+    meter.className = 'strength-meter';
+    hint.classList.remove('show');
+    return;
+  }
+  
+  let strength = 0;
+  let hintText = '';
+  
+  // Length check
+  if (password.length >= 6) strength += 25;
+  if (password.length >= 8) strength += 25;
+  
+  // Complexity checks
+  if (/[A-Z]/.test(password)) strength += 25;
+  if (/[0-9]/.test(password)) strength += 25;
+  if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+  
+  // Cap at 100
+  strength = Math.min(strength, 100);
+  
+  meter.style.width = strength + '%';
+  
+  // Set color and hint
+  if (strength < 50) {
+    meter.className = 'strength-meter strength-weak';
+    hintText = 'Weak password';
+  } else if (strength < 75) {
+    meter.className = 'strength-meter strength-fair';
+    hintText = 'Fair password';
+  } else if (strength < 90) {
+    meter.className = 'strength-meter strength-good';
+    hintText = 'Good password';
+  } else {
+    meter.className = 'strength-meter strength-strong';
+    hintText = 'Strong password';
+  }
+  
+  hint.textContent = hintText;
+  hint.classList.add('show');
+}
+
+// Function to handle OAuth callbacks and existing sessions
+async function initializeAuth() {
+  console.log('🔍 Initializing auth for signup page...');
+  
   try {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    // Check URL for OAuth callback parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    const error = urlParams.get('error');
     
     if (error) {
-      console.error('Session error:', error);
+      console.error('OAuth error in URL:', error);
+      showError('Authentication failed: ' + error);
+      
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
       return;
     }
     
-    if (session) {
-      console.log('✅ User already has a session, redirecting to homepage');
-      console.log('User email:', session.user.email);
-      console.log('User ID:', session.user.id);
+    if (accessToken && refreshToken) {
+      console.log('🔄 Processing OAuth callback...');
       
-      // Check if profile exists
-      const { data: profile, error: profileError } = await supabaseClient
-        .from('user_profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      // Set the session manually
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
       
-      if (profileError) {
-        console.log('Profile not found, creating manually...');
-        // Create profile manually
-        await supabaseClient
-          .from('user_profiles')
-          .insert([
-            {
-              id: session.user.id,
-              email: session.user.email,
-              username: session.user.email?.split('@')[0] || 'user',
-              full_name: session.user.user_metadata?.full_name || 
-                        session.user.user_metadata?.name || 
-                        session.user.email?.split('@')[0] || 'User',
-              avatar_url: session.user.user_metadata?.avatar_url || null
-            }
-          ]);
-      } else {
-        console.log('✅ Profile found:', profile);
+      if (sessionError) {
+        console.error('Error setting session:', sessionError);
+        showError('Authentication error: ' + sessionError.message);
+        return;
       }
+      
+      if (sessionData.session) {
+        console.log('✅ OAuth successful! User:', sessionData.session.user.email);
+        
+        // Ensure profile exists
+        await ensureUserProfile(sessionData.session.user);
+        
+        // Clear URL parameters and redirect
+        window.history.replaceState({}, document.title, window.location.pathname);
+        window.location.href = 'index.html';
+        return;
+      }
+    }
+    
+    // Check if we already have a session
+    const { data: { session }, error: sessionCheckError } = await supabaseClient.auth.getSession();
+    
+    if (sessionCheckError) {
+      console.error('Session check error:', sessionCheckError);
+      return;
+    }
+    
+    // If we have a session, redirect to homepage
+    if (session) {
+      console.log('✅ Existing session found for:', session.user.email);
+      
+      // Ensure profile exists
+      await ensureUserProfile(session.user);
       
       // Redirect to homepage
       window.location.href = 'index.html';
       return;
     }
     
-    // Check for OAuth callback in URL
-    const hash = window.location.hash;
-    if (hash.includes('access_token') || hash.includes('error')) {
-      console.log('Handling OAuth callback...');
-      
-      const { data, error } = await supabaseClient.auth.getSession();
-      
-      if (error) {
-        console.error('OAuth error:', error);
-        alert('Authentication failed: ' + error.message);
-        return;
-      }
-      
-      if (data.session) {
-        console.log('✅ OAuth successful! User:', data.session.user.email);
-        
-        // Give the trigger time to work
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Check profile
-        const { data: profile, error: profileError } = await supabaseClient
-          .from('user_profiles')
-          .select('*')
-          .eq('id', data.session.user.id)
-          .single();
-        
-        if (profileError) {
-          console.log('Creating profile after OAuth...');
-          await supabaseClient
-            .from('user_profiles')
-            .insert([
-              {
-                id: data.session.user.id,
-                email: data.session.user.email,
-                username: data.session.user.email?.split('@')[0] || 'user',
-                full_name: data.session.user.user_metadata?.full_name || 
-                          data.session.user.user_metadata?.name || 
-                          data.session.user.email?.split('@')[0] || 'User',
-                avatar_url: data.session.user.user_metadata?.avatar_url || null
-              }
-            ]);
-        }
-        
-        // Redirect to homepage
-        window.location.href = 'index.html';
-      }
-    }
+    console.log('ℹ️ No active session or OAuth callback detected');
+    
   } catch (error) {
-    console.error('Auth redirect error:', error);
+    console.error('Auth initialization error:', error);
+    showError('Failed to initialize authentication');
   }
 }
 
+// Function to ensure user profile exists
+async function ensureUserProfile(user) {
+  try {
+    console.log('🔍 Checking profile for user:', user.id);
+    
+    // Check if profile exists
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (profileError && profileError.code === 'PGRST116') {
+      console.log('📝 Creating new profile...');
+      
+      // Generate unique username with random suffix
+      const usernameBase = user.email?.split('@')[0] || 'user';
+      const randomSuffix = Math.random().toString(36).substring(2, 6);
+      const username = `${usernameBase}_${randomSuffix}`;
+      
+      // Create profile
+      const { error: insertError } = await supabaseClient
+        .from('user_profiles')
+        .insert([
+          {
+            id: user.id,
+            email: user.email,
+            username: username,
+            full_name: user.user_metadata?.full_name || 
+                      user.user_metadata?.name || 
+                      usernameBase,
+            avatar_url: user.user_metadata?.avatar_url || null
+          }
+        ]);
+      
+      if (insertError) {
+        console.error('Failed to create profile:', insertError);
+        // Don't throw error - allow user to continue without profile
+      } else {
+        console.log('✅ Profile created successfully');
+      }
+    } else if (profile) {
+      console.log('✅ Profile already exists');
+    }
+  } catch (error) {
+    console.error('Error ensuring profile:', error);
+    // Don't throw error - allow user to continue
+  }
+}
+
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
-  // Handle auth redirects first
-  await handleAuthRedirect();
+  // Handle auth first
+  await initializeAuth();
   
+  // Get DOM elements
   const signupForm = document.getElementById('signupForm');
   const googleBtn = document.getElementById('googleSignup');
   const submitBtn = document.getElementById('submitBtn');
-
+  const passwordInput = document.getElementById('password');
+  
+  // Password strength indicator
+  passwordInput.addEventListener('input', (e) => {
+    checkPasswordStrength(e.target.value);
+  });
+  
   // EMAIL/PASSWORD SIGNUP
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const fullName = document.getElementById('fullName').value.trim();
-    const email = document.getElementById('email').value.trim();
+    const email = document.getElementById('email').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
     
     // Validation
     if (!fullName || !email || !password) {
-      return alert('Please fill all fields');
+      showError('Please fill all fields');
+      return;
     }
     
     if (password.length < 6) {
-      return alert('Password must be at least 6 characters long');
+      showError('Password must be at least 6 characters long');
+      return;
     }
     
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showError('Please enter a valid email address');
+      return;
+    }
+    
+    // Show loading state
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<div class="loading"></div>';
     submitBtn.disabled = true;
+    
+    // Clear any existing messages
+    const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
+    errorDiv.classList.remove('show');
+    successDiv.classList.remove('show');
 
     try {
-      // Sign up with email and password
+      console.log('📧 Signing up with email:', email);
+      
       const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
         options: { 
           data: { 
-            full_name: fullName 
+            full_name: fullName,
+            name: fullName
           }, 
           emailRedirectTo: window.location.origin + '/index.html'
         }
       });
 
       if (error) {
-        console.error('Signup error:', error);
+        console.error('Signup error details:', error);
+        
+        // User-friendly error messages
+        if (error.message.includes('User already registered')) {
+          showError('An account with this email already exists. Please sign in instead.');
+        } else if (error.message.includes('Invalid email')) {
+          showError('Please enter a valid email address.');
+        } else if (error.message.includes('Password should be at least')) {
+          showError('Password must be at least 6 characters long.');
+        } else if (error.message.includes('rate limit')) {
+          showError('Too many signup attempts. Please try again in a few minutes.');
+        } else {
+          showError('Signup failed: ' + error.message);
+        }
+        
         throw error;
       }
       
       console.log('Signup response:', data);
       
-      // If session exists, they are logged in
+      // If session exists (auto-confirmed), redirect to homepage
       if (data.session) {
-        console.log('✅ Email signup successful! User ID:', data.user.id);
+        console.log('✅ Email signup successful! User:', data.user.email);
         
-        // Check if profile was created by trigger
+        // Give the trigger a moment to create the profile
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const { data: profile, error: profileError } = await supabaseClient
-          .from('user_profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-        
-        if (profileError) {
-          console.log('Creating profile for email signup...');
-          await supabaseClient
+        // Manually create profile if trigger failed
+        try {
+          // Generate unique username with random suffix
+          const usernameBase = email.split('@')[0];
+          const randomSuffix = Math.random().toString(36).substring(2, 6);
+          const username = `${usernameBase}_${randomSuffix}`;
+          
+          const { error: profileError } = await supabaseClient
             .from('user_profiles')
-            .insert([
+            .upsert([
               {
                 id: data.user.id,
                 email: data.user.email,
-                username: data.user.email?.split('@')[0] || 'user',
+                username: username,
                 full_name: fullName,
                 avatar_url: null
               }
             ]);
+          
+          if (profileError) {
+            console.warn('Profile creation had issue:', profileError);
+            // Continue anyway - profile might have been created by trigger
+          }
+        } catch (profileErr) {
+          console.warn('Failed to manually create profile:', profileErr);
         }
         
-        // Redirect to homepage
-        window.location.href = 'index.html';
+        // Show success message
+        showSuccess('Account created successfully! Redirecting...');
+        
+        // Small delay for user to see success message
+        setTimeout(() => {
+          // Redirect to homepage
+          window.location.href = 'index.html';
+        }, 1500);
+        
       } else {
-        alert('🎉 Sign up successful! Please check your email to confirm your account.');
+        // Email confirmation required
+        showSuccess('🎉 Account created! Please check your email to confirm your account. Check your spam folder if you don\'t see it.');
         signupForm.reset();
+        
+        // Reset password strength meter
+        const meter = document.getElementById('strengthMeter');
+        meter.style.width = '0%';
+        meter.className = 'strength-meter';
+        document.getElementById('passwordHint').classList.remove('show');
       }
     } catch (error) {
       console.error('Signup error:', error);
-      alert('Error: ' + error.message);
+      // Error already handled above
     } finally {
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
     }
   });
 
-  // GOOGLE SIGNUP - UPDATED
+  // GOOGLE SIGNUP
   googleBtn.addEventListener('click', async () => {
     googleBtn.disabled = true;
     const originalText = googleBtn.innerHTML;
     googleBtn.innerHTML = '<div class="loading"></div>';
     
+    // Clear any existing messages
+    const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
+    errorDiv.classList.remove('show');
+    successDiv.classList.remove('show');
+    
     try {
+      console.log('🔵 Starting Google OAuth...');
+      
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/sign-up.html', // Redirect back to this page
+          redirectTo: window.location.origin + '/sign-up.html',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -403,12 +649,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw error;
       }
       
-      // Note: The redirect will happen automatically
-      // The handleAuthRedirect function above will catch it
+      console.log('Google OAuth initiated');
+      // The browser will redirect to Google, then back to sign-up.html
+      // The initializeAuth() function will handle the callback
       
     } catch (error) {
       console.error('Google sign up error:', error);
-      alert('Google sign up error: ' + error.message);
+      showError('Google sign up failed: ' + error.message);
       googleBtn.innerHTML = originalText;
       googleBtn.disabled = false;
     }
