@@ -183,92 +183,237 @@ body{
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-// INITIALIZATION FIX
+// INITIALIZATION with proper configuration
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// EMAIL/PASSWORD LOGIN
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const rememberMe = document.getElementById('remember').checked;
-
-  if (!email || !password) return alert('Please fill all fields');
-
-  const loginBtn = document.getElementById('loginBtn');
-  const originalText = loginBtn.innerHTML;
-  loginBtn.innerHTML = '<div class="loading"></div>';
-  loginBtn.disabled = true;
-
-  try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    
-    // Success: Handle "Remember Me"
-    if (rememberMe) localStorage.setItem('rememberEmail', email);
-    else localStorage.removeItem('rememberEmail');
-
-    // Redirect to main page
-    window.location.href = 'index.html';
-  } catch (err) {
-    alert(err.message.includes('Invalid login credentials') ? 'Invalid email or password' : err.message);
-  } finally {
-    loginBtn.innerHTML = originalText;
-    loginBtn.disabled = false;
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    storage: localStorage,
+    flowType: 'pkce'
   }
 });
 
-// GOOGLE LOGIN
-document.getElementById('googleLogin').addEventListener('click', async () => {
-  const btn = document.getElementById('googleLogin');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<div class="loading"></div>';
-  btn.disabled = true;
-  
+// Check for OAuth callback FIRST
+async function handleAuthRedirect() {
   try {
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/index.html',
-        queryParams: { access_type: 'offline', prompt: 'consent' }
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    
+    if (error) {
+      console.error('Session error:', error);
+      return;
+    }
+    
+    if (session) {
+      console.log('✅ User already has a session, redirecting to homepage');
+      console.log('User email:', session.user.email);
+      
+      // Check if profile exists
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('user_profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (profileError) {
+        console.log('Profile not found, creating manually...');
+        await supabaseClient
+          .from('user_profiles')
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              username: session.user.email?.split('@')[0] || 'user',
+              full_name: session.user.user_metadata?.full_name || 
+                        session.user.user_metadata?.name || 
+                        session.user.email?.split('@')[0] || 'User',
+              avatar_url: session.user.user_metadata?.avatar_url || null
+            }
+          ]);
       }
-    });
+      
+      window.location.href = 'index.html';
+      return;
+    }
     
-    if (error) throw error;
-  } catch (err) {
-    alert('Google login error: ' + err.message);
-    btn.innerHTML = originalText;
-    btn.disabled = false;
+    // Check for OAuth callback in URL
+    const hash = window.location.hash;
+    if (hash.includes('access_token') || hash.includes('error')) {
+      console.log('Handling OAuth callback...');
+      
+      const { data, error } = await supabaseClient.auth.getSession();
+      
+      if (error) {
+        console.error('OAuth error:', error);
+        alert('Authentication failed: ' + error.message);
+        return;
+      }
+      
+      if (data.session) {
+        console.log('✅ OAuth successful! User:', data.session.user.email);
+        
+        // Give the trigger time to work
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Check profile
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('user_profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .single();
+        
+        if (profileError) {
+          console.log('Creating profile after OAuth...');
+          await supabaseClient
+            .from('user_profiles')
+            .insert([
+              {
+                id: data.session.user.id,
+                email: data.session.user.email,
+                username: data.session.user.email?.split('@')[0] || 'user',
+                full_name: data.session.user.user_metadata?.full_name || 
+                          data.session.user.user_metadata?.name || 
+                          data.session.user.email?.split('@')[0] || 'User',
+                avatar_url: data.session.user.user_metadata?.avatar_url || null
+              }
+            ]);
+        }
+        
+        window.location.href = 'index.html';
+      }
+    }
+  } catch (error) {
+    console.error('Auth redirect error:', error);
   }
-});
-
-// REMEMBER EMAIL CHECK
-const rememberedEmail = localStorage.getItem('rememberEmail');
-if (rememberedEmail) {
-  document.getElementById('email').value = rememberedEmail;
-  document.getElementById('remember').checked = true;
-} else {
-  // Set focus to email if empty
-  document.getElementById('email').focus();
 }
 
-// FORGOT PASSWORD
-document.getElementById('forgotPassword').addEventListener('click', async (e) => {
-  e.preventDefault();
-  const email = prompt('Please enter your email to reset password:');
-  if (!email) return;
+document.addEventListener('DOMContentLoaded', async () => {
+  // Handle auth redirects first
+  await handleAuthRedirect();
   
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/reset-password.html'
+  // EMAIL/PASSWORD LOGIN
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const rememberMe = document.getElementById('remember').checked;
+
+    if (!email || !password) return alert('Please fill all fields');
+
+    const loginBtn = document.getElementById('loginBtn');
+    const originalText = loginBtn.innerHTML;
+    loginBtn.innerHTML = '<div class="loading"></div>';
+    loginBtn.disabled = true;
+
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Login successful! User ID:', data.user.id);
+      
+      // Handle "Remember Me"
+      if (rememberMe) localStorage.setItem('rememberEmail', email);
+      else localStorage.removeItem('rememberEmail');
+      
+      // Check profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (profileError) {
+        console.log('Creating profile for login...');
+        await supabaseClient
+          .from('user_profiles')
+          .insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              username: data.user.email?.split('@')[0] || 'user',
+              full_name: data.user.user_metadata?.full_name || 
+                        data.user.user_metadata?.name || 
+                        data.user.email?.split('@')[0] || 'User',
+              avatar_url: data.user.user_metadata?.avatar_url || null
+            }
+          ]);
+      }
+      
+      // Redirect to main page
+      window.location.href = 'index.html';
+    } catch (err) {
+      console.error('Login error:', err);
+      alert(err.message.includes('Invalid login credentials') ? 'Invalid email or password' : err.message);
+    } finally {
+      loginBtn.innerHTML = originalText;
+      loginBtn.disabled = false;
+    }
   });
-  
-  if (error) {
-    alert('Error sending reset email: ' + error.message);
+
+  // GOOGLE LOGIN - UPDATED
+  document.getElementById('googleLogin').addEventListener('click', async () => {
+    const btn = document.getElementById('googleLogin');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<div class="loading"></div>';
+    btn.disabled = true;
+    
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/login.html', // Redirect back to this page
+          queryParams: { access_type: 'offline', prompt: 'consent' }
+        }
+      });
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
+      
+      // Redirect will happen automatically
+      
+    } catch (err) {
+      console.error('Google login error:', err);
+      alert('Google login error: ' + err.message);
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  });
+
+  // REMEMBER EMAIL CHECK
+  const rememberedEmail = localStorage.getItem('rememberEmail');
+  if (rememberedEmail) {
+    document.getElementById('email').value = rememberedEmail;
+    document.getElementById('remember').checked = true;
   } else {
-    alert('Password reset email sent! Please check your inbox.');
+    document.getElementById('email').focus();
   }
+
+  // FORGOT PASSWORD
+  document.getElementById('forgotPassword').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = prompt('Please enter your email to reset password:');
+    if (!email) return;
+    
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password.html'
+    });
+    
+    if (error) {
+      alert('Error sending reset email: ' + error.message);
+    } else {
+      alert('Password reset email sent! Please check your inbox.');
+    }
+  });
 });
 </script>
 </body>

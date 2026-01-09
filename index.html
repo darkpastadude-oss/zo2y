@@ -2749,6 +2749,63 @@
                 showNotification('Connection error. Please refresh.', 'error');
                 supabase = null;
             }
+            // Add this at the top of your index.html script, after initializing Supabase
+async function checkSessionOnLoad() {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    console.log('🔍 Checking session on homepage load...');
+    
+    if (error) {
+      console.error('Session check error:', error);
+      return;
+    }
+    
+    if (session) {
+      console.log('✅ Session found for user:', session.user.email);
+      console.log('Session expires at:', new Date(session.expires_at * 1000));
+      
+      // Check if profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (profileError) {
+        console.log('⚠️ Profile not found, creating...');
+        const { error: insertError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              username: session.user.email?.split('@')[0] || 'user',
+              full_name: session.user.user_metadata?.full_name || 
+                        session.user.user_metadata?.name || 
+                        session.user.email?.split('@')[0] || 'User',
+              avatar_url: session.user.user_metadata?.avatar_url || null
+            }
+          ]);
+        
+        if (insertError) {
+          console.error('Failed to create profile:', insertError);
+        } else {
+          console.log('✅ Profile created');
+        }
+      } else {
+        console.log('✅ Profile exists:', profile);
+      }
+    } else {
+      console.log('❌ No session found');
+    }
+  } catch (error) {
+    console.error('Error in checkSessionOnLoad:', error);
+  }
+}
+
+// Call this function at the beginning of your init() function
+// Add it before the updateAuthUI() call
             
             // ---------- GLOBAL STATE ----------
             const state = {

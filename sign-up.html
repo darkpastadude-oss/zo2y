@@ -175,12 +175,123 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
-// INITIALIZATION FIX: using window.supabase and naming the client variable 'supabaseClient'
+// INITIALIZATION with proper configuration
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-document.addEventListener('DOMContentLoaded', () => {
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    storage: localStorage,
+    flowType: 'pkce'
+  }
+});
+
+// Check for OAuth callback FIRST
+async function handleAuthRedirect() {
+  try {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    
+    if (error) {
+      console.error('Session error:', error);
+      return;
+    }
+    
+    if (session) {
+      console.log('✅ User already has a session, redirecting to homepage');
+      console.log('User email:', session.user.email);
+      console.log('User ID:', session.user.id);
+      
+      // Check if profile exists
+      const { data: profile, error: profileError } = await supabaseClient
+        .from('user_profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (profileError) {
+        console.log('Profile not found, creating manually...');
+        // Create profile manually
+        await supabaseClient
+          .from('user_profiles')
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              username: session.user.email?.split('@')[0] || 'user',
+              full_name: session.user.user_metadata?.full_name || 
+                        session.user.user_metadata?.name || 
+                        session.user.email?.split('@')[0] || 'User',
+              avatar_url: session.user.user_metadata?.avatar_url || null
+            }
+          ]);
+      } else {
+        console.log('✅ Profile found:', profile);
+      }
+      
+      // Redirect to homepage
+      window.location.href = 'index.html';
+      return;
+    }
+    
+    // Check for OAuth callback in URL
+    const hash = window.location.hash;
+    if (hash.includes('access_token') || hash.includes('error')) {
+      console.log('Handling OAuth callback...');
+      
+      const { data, error } = await supabaseClient.auth.getSession();
+      
+      if (error) {
+        console.error('OAuth error:', error);
+        alert('Authentication failed: ' + error.message);
+        return;
+      }
+      
+      if (data.session) {
+        console.log('✅ OAuth successful! User:', data.session.user.email);
+        
+        // Give the trigger time to work
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Check profile
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('user_profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .single();
+        
+        if (profileError) {
+          console.log('Creating profile after OAuth...');
+          await supabaseClient
+            .from('user_profiles')
+            .insert([
+              {
+                id: data.session.user.id,
+                email: data.session.user.email,
+                username: data.session.user.email?.split('@')[0] || 'user',
+                full_name: data.session.user.user_metadata?.full_name || 
+                          data.session.user.user_metadata?.name || 
+                          data.session.user.email?.split('@')[0] || 'User',
+                avatar_url: data.session.user.user_metadata?.avatar_url || null
+              }
+            ]);
+        }
+        
+        // Redirect to homepage
+        window.location.href = 'index.html';
+      }
+    }
+  } catch (error) {
+    console.error('Auth redirect error:', error);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Handle auth redirects first
+  await handleAuthRedirect();
+  
   const signupForm = document.getElementById('signupForm');
   const googleBtn = document.getElementById('googleSignup');
   const submitBtn = document.getElementById('submitBtn');
@@ -207,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     try {
-      // We pass full_name in metadata so the SQL trigger can pick it up
+      // Sign up with email and password
       const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
@@ -219,34 +330,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Signup error:', error);
+        throw error;
+      }
       
-      // If session exists, they are logged in. If not, they need to confirm email.
+      console.log('Signup response:', data);
+      
+      // If session exists, they are logged in
       if (data.session) {
+        console.log('✅ Email signup successful! User ID:', data.user.id);
+        
+        // Check if profile was created by trigger
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('user_profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (profileError) {
+          console.log('Creating profile for email signup...');
+          await supabaseClient
+            .from('user_profiles')
+            .insert([
+              {
+                id: data.user.id,
+                email: data.user.email,
+                username: data.user.email?.split('@')[0] || 'user',
+                full_name: fullName,
+                avatar_url: null
+              }
+            ]);
+        }
+        
+        // Redirect to homepage
         window.location.href = 'index.html';
       } else {
         alert('🎉 Sign up successful! Please check your email to confirm your account.');
         signupForm.reset();
       }
     } catch (error) {
-      alert(error.message);
+      console.error('Signup error:', error);
+      alert('Error: ' + error.message);
     } finally {
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
     }
   });
 
-  // GOOGLE SIGNUP
+  // GOOGLE SIGNUP - UPDATED
   googleBtn.addEventListener('click', async () => {
     googleBtn.disabled = true;
     const originalText = googleBtn.innerHTML;
     googleBtn.innerHTML = '<div class="loading"></div>';
     
     try {
-      const { error } = await supabaseClient.auth.signInWithOAuth({
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/index.html',
+          redirectTo: window.location.origin + '/sign-up.html', // Redirect back to this page
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -254,8 +398,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
+      
+      // Note: The redirect will happen automatically
+      // The handleAuthRedirect function above will catch it
+      
     } catch (error) {
+      console.error('Google sign up error:', error);
       alert('Google sign up error: ' + error.message);
       googleBtn.innerHTML = originalText;
       googleBtn.disabled = false;
@@ -263,6 +415,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-
 </body>
 </html>
