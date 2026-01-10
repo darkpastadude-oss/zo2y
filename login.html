@@ -262,7 +262,7 @@ body{
   
   // Helper functions
   function showError(msg) {
-    errorMessage.textContent = msg;
+    errorMessage.innerHTML = msg;
     errorMessage.classList.add('show');
     successMessage.classList.remove('show');
     setTimeout(() => errorMessage.classList.remove('show'), 5000);
@@ -285,6 +285,64 @@ body{
     loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
   }
   
+  // Function to create/update user profile (same as sign-up)
+  async function createUserProfile(user) {
+    try {
+      const userData = user.user_metadata || {};
+      const username = userData.full_name || userData.name || user.email?.split('@')[0] || 'User';
+      
+      // Check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking profile:', checkError);
+        return null;
+      }
+      
+      // If profile doesn't exist, create it (for OAuth users)
+      if (!existingProfile) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              id: user.id,
+              username: username,
+              full_name: userData.full_name || userData.name || username,
+              avatar_url: userData.avatar_url || userData.picture || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              is_private: false,
+              visited_count: 0,
+              favorites_count: 0,
+              followers_count: 0,
+              following_count: 0
+            }
+          ])
+          .select()
+          .single();
+        
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return null;
+        }
+        
+        console.log('✅ User profile created for OAuth login:', newProfile);
+        return newProfile;
+      } else {
+        console.log('✅ User profile exists:', existingProfile);
+        return existingProfile;
+      }
+      
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      return null;
+    }
+  }
+  
   // Check for existing session data in localStorage
   function checkRememberMe() {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
@@ -303,15 +361,22 @@ body{
     }
   }
   
-  // Auth state listener
-  supabase.auth.onAuthStateChange((event, session) => {
+  // Auth state listener - handles OAuth redirects
+  supabase.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth state change:', event);
     
     if (event === 'SIGNED_IN' && session) {
-      showSuccess('Login successful! Redirecting...');
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1500);
+      try {
+        // Create or update user profile (for OAuth users)
+        await createUserProfile(session.user);
+        
+        showSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      } catch (error) {
+        console.error('Error in auth state change:', error);
+      }
     }
   });
   
@@ -375,6 +440,8 @@ body{
         showError('Please confirm your email address before logging in. Check your inbox.');
       } else if (error.message.includes('too many requests')) {
         showError('Too many login attempts. Please try again in a few minutes.');
+      } else if (error.message.includes('User not found')) {
+        showError('No account found with this email. Please <a href="sign-up.html">sign up</a> instead.');
       } else {
         showError('Login failed. Please try again.');
       }
@@ -383,7 +450,7 @@ body{
     }
   });
   
-  // ✅ FIXED: Google login with correct redirect
+  // ✅ FIXED: Google login with proper handling
   googleLogin.addEventListener('click', async () => {
     try {
       showLoading();
@@ -391,7 +458,7 @@ body{
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/index.html', // ✅ FIXED: Redirect to homepage
+          redirectTo: window.location.origin + '/index.html',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -399,7 +466,16 @@ body{
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('already registered') || 
+            error.message.includes('User already registered')) {
+          showError('This Google account is already registered. Please try logging in with email or use the correct Google account.');
+        } else {
+          throw error;
+        }
+      }
+      
+      // The auth state listener will handle the redirect and profile creation
       
     } catch (error) {
       console.error('Google login error:', error);

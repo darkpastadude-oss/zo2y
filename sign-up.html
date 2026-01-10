@@ -292,7 +292,7 @@ body {
   
   // Helper functions
   function showError(msg) {
-    errorMessage.textContent = msg;
+    errorMessage.innerHTML = msg;
     errorMessage.classList.add('show');
     successMessage.classList.remove('show');
     setTimeout(() => errorMessage.classList.remove('show'), 5000);
@@ -313,6 +313,64 @@ body {
   function hideLoading() {
     submitBtn.disabled = false;
     submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Create Account</span>';
+  }
+  
+  // Function to create user profile
+  async function createUserProfile(user) {
+    try {
+      const userData = user.user_metadata || {};
+      const username = userData.full_name || userData.name || user.email?.split('@')[0] || 'User';
+      
+      // Check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking profile:', checkError);
+        return null;
+      }
+      
+      // If profile doesn't exist, create it
+      if (!existingProfile) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              id: user.id,
+              username: username,
+              full_name: userData.full_name || userData.name || username,
+              avatar_url: userData.avatar_url || userData.picture || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              is_private: false,
+              visited_count: 0,
+              favorites_count: 0,
+              followers_count: 0,
+              following_count: 0
+            }
+          ])
+          .select()
+          .single();
+        
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return null;
+        }
+        
+        console.log('✅ User profile created:', newProfile);
+        return newProfile;
+      } else {
+        console.log('✅ User profile already exists:', existingProfile);
+        return existingProfile;
+      }
+      
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      return null;
+    }
   }
   
   // Password strength indicator
@@ -358,21 +416,30 @@ body {
     passwordHint.classList.add('show');
   });
   
-  // Auth state listener
-  supabase.auth.onAuthStateChange((event, session) => {
+  // Auth state listener - handles OAuth redirects
+  supabase.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth state change:', event);
     
     if (event === 'SIGNED_IN' && session) {
-      // Check if this is email confirmation or direct signup
-      if (session.user.email_confirmed_at) {
-        showSuccess('Welcome! Redirecting to homepage...');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1500);
-      } else {
-        // Email verification needed
-        showSuccess('Check your email to confirm your account.');
+      try {
+        // Create or update user profile
+        await createUserProfile(session.user);
+        
+        // Check if this is email confirmation or direct signup
+        if (session.user.email_confirmed_at || session.user.app_metadata.provider === 'google') {
+          showSuccess('Welcome! Redirecting to homepage...');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+        } else {
+          // Email verification needed for email signup
+          showSuccess('Please check your email to confirm your account.');
+        }
+      } catch (error) {
+        console.error('Error in auth state change:', error);
       }
+    } else if (event === 'USER_UPDATED') {
+      // Handle user updates if needed
     }
   });
   
@@ -415,6 +482,15 @@ body {
     showLoading();
     
     try {
+      // First check if user already exists with this email
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .ilike('email', email);
+      
+      // Note: We can't check auth.users directly, so we'll try to sign up
+      // and handle the error if user exists
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -427,10 +503,26 @@ body {
       });
       
       if (error) {
-        throw error;
+        // Handle specific errors
+        if (error.message.includes('already registered') || 
+            error.message.includes('User already registered') ||
+            error.message.includes('A user with this email')) {
+          showError('This email is already registered. Please <a href="login.html">log in</a> instead.');
+        } else if (error.message.includes('Invalid email')) {
+          showError('Please enter a valid email address');
+        } else if (error.message.includes('Password')) {
+          showError('Password must be at least 6 characters');
+        } else {
+          showError('Signup failed. Please try again.');
+        }
+        console.error('Signup error:', error);
+        return;
       }
       
       if (data.user) {
+        // Create user profile
+        await createUserProfile(data.user);
+        
         if (data.session) {
           // User created and logged in automatically
           showSuccess('Account created successfully! Redirecting...');
@@ -448,23 +540,13 @@ body {
       
     } catch (error) {
       console.error('Signup error:', error);
-      
-      // User-friendly error messages
-      if (error.message.includes('already registered')) {
-        showError('This email is already registered. Please try logging in instead.');
-      } else if (error.message.includes('Invalid email')) {
-        showError('Please enter a valid email address');
-      } else if (error.message.includes('Password')) {
-        showError('Password must be at least 6 characters');
-      } else {
-        showError('Signup failed. Please try again.');
-      }
+      showError('Signup failed. Please try again.');
     } finally {
       hideLoading();
     }
   });
   
-  // ✅ FIXED: Google signup with correct redirect
+  // ✅ FIXED: Google signup with proper handling
   googleSignup.addEventListener('click', async () => {
     try {
       showLoading();
@@ -472,7 +554,7 @@ body {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/index.html', // ✅ FIXED: Redirect to homepage
+          redirectTo: window.location.origin + '/index.html',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -480,7 +562,15 @@ body {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('already registered')) {
+          showError('This Google account is already registered. Please <a href="login.html">log in</a> instead.');
+        } else {
+          throw error;
+        }
+      }
+      
+      // The auth state listener will handle the redirect and profile creation
       
     } catch (error) {
       console.error('Google signup error:', error);
