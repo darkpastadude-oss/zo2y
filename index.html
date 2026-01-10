@@ -2736,6 +2736,7 @@
             // ---------- CONFIG ----------
             const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
             const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+            const INIT_TIMEOUT = 30000; // 30 seconds
             
             // Initialize Supabase
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -2748,6 +2749,7 @@
             });
             
             let currentUser = null;
+            let initTimeout;
             
             // ---------- GLOBAL STATE ----------
             const state = {
@@ -2934,34 +2936,52 @@
                 }
             };
             
+            // ---------- TIMEOUT PROTECTION ----------
+            function setupInitTimeout() {
+                initTimeout = setTimeout(() => {
+                    console.error('❌ Initialization timeout - showing fallback UI');
+                    showNotification('Page loading timed out', 'error');
+                    
+                    const featuredSlider = document.getElementById('featuredSlider');
+                    const nearbySlider = document.getElementById('nearbySlider');
+                    if (featuredSlider && featuredSlider.classList.contains('skeleton-grid')) {
+                        featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Content unavailable</div>';
+                        featuredSlider.classList.remove('skeleton-grid');
+                    }
+                    if (nearbySlider && nearbySlider.classList.contains('skeleton-grid')) {
+                        nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Content unavailable</div>';
+                        nearbySlider.classList.remove('skeleton-grid');
+                    }
+                }, INIT_TIMEOUT);
+            }
+            
+            function clearInitTimeout() {
+                if (initTimeout) {
+                    clearTimeout(initTimeout);
+                }
+            }
+            
             // ---------- INITIALIZATION ----------
             async function init() {
                 console.log('🚀 Initializing homepage...');
+                setupInitTimeout();
                 
                 try {
-                    // Setup event listeners first
                     setupEventListeners();
-                    
-                    // Initialize guest banner
                     guestBanner.init();
                     
-                    // Initialize auth - WAIT for this to complete
                     console.log('🔐 Starting auth initialization...');
                     await initializeAuth();
                     console.log('✅ Auth initialization complete, user logged in:', state.isLoggedIn);
                     
-                    // Initialize image loader AFTER auth
                     initImageLoader();
                     
-                    // Load restaurant data - WAIT for this
                     console.log('🍽️ Starting restaurant data load...');
                     await loadRestaurantsData();
                     console.log('✅ Restaurant data loaded');
                     
-                    // Setup UI elements
                     populateFilters();
                     
-                    // Force observe images after everything loads
                     setTimeout(() => {
                         if (state.imageObserver) {
                             const images = document.querySelectorAll('img[data-src]');
@@ -2975,9 +2995,23 @@
                         }
                     }, 500);
                     
+                    clearInitTimeout();
+                    
                 } catch (error) {
                     console.error('❌ Initialization error:', error);
+                    clearInitTimeout();
                     showNotification('Failed to initialize page', 'error');
+                    
+                    const featuredSlider = document.getElementById('featuredSlider');
+                    const nearbySlider = document.getElementById('nearbySlider');
+                    if (featuredSlider) {
+                        featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+                        featuredSlider.classList.remove('skeleton-grid');
+                    }
+                    if (nearbySlider) {
+                        nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+                        nearbySlider.classList.remove('skeleton-grid');
+                    }
                 }
             }
             
@@ -2986,11 +3020,6 @@
                 console.log('🔐 Initializing auth...');
                 
                 try {
-                    // Clear any existing state first
-                    state.isLoggedIn = false;
-                    currentUser = null;
-                    
-                    // Get current session
                     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
                     
                     if (sessionError) {
@@ -3004,13 +3033,8 @@
                         currentUser = session.user;
                         state.isLoggedIn = true;
                         
-                        // Ensure user profile exists
                         await ensureUserProfile(currentUser);
-                        
-                        // Initialize list manager for logged-in users
                         await state.listManager.init();
-                        
-                        // Set UI to logged-in state
                         setLoggedInState(currentUser);
                         
                     } else {
@@ -3086,7 +3110,6 @@
                     guestBanner.show();
                     state.selectedLists.clear();
                     
-                    // Refresh UI
                     if (state.restaurants.length > 0) {
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
@@ -3101,7 +3124,6 @@
                     await state.listManager.init();
                     setLoggedInState(currentUser);
                     
-                    // Refresh UI to show list badges
                     if (state.restaurants.length > 0) {
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
@@ -3165,70 +3187,85 @@
                 console.log('🍽️ Loading restaurant data...');
                 
                 try {
-                    // Clear existing data
                     state.restaurants = [];
                     state.restaurantImages.clear();
                     
-                    // Step 1: Load restaurant images first
-                    await loadRestaurantImages();
-                    console.log('✅ Images loaded');
+                    const [imagesResult, cloudResult] = await Promise.allSettled([
+                        loadRestaurantImages(),
+                        loadCloudKitchens()
+                    ]);
                     
-                    // Step 2: Load cloud kitchens
-                    await loadCloudKitchens();
-                    console.log('✅ Cloud kitchens loaded');
+                    console.log('✅ Images and cloud kitchens loaded');
                     
-                    // Step 3: Load restaurants with categories
                     console.log('📋 Loading restaurant data...');
-                    const { data, error } = await supabase
-                        .from('restraunts')
-                        .select(`
-                            id, 
-                            slug, 
-                            name, 
-                            category,
-                            description, 
-                            rating, 
-                            logo_url, 
-                            image,
-                            categories!inner (
-                                name,
-                                icon
-                            )
-                        `)
-                        .order('rating', { ascending: false })
-                        .limit(48);
+                    let restaurants = [];
+                    let categoriesError = false;
                     
-                    if (error) {
-                        console.warn('⚠️ Could not load with categories join:', error.message);
-                        console.log('🔄 Trying to load basic restaurant data...');
-                        await loadBasicRestaurantData();
-                    } else {
-                        console.log(`✅ Loaded ${data?.length || 0} restaurants with categories`);
+                    try {
+                        const { data, error } = await supabase
+                            .from('restraunts')
+                            .select(`
+                                id, 
+                                slug, 
+                                name, 
+                                category,
+                                description, 
+                                rating, 
+                                logo_url, 
+                                image,
+                                categories!inner (
+                                    name,
+                                    icon
+                                )
+                            `)
+                            .order('rating', { ascending: false })
+                            .limit(48);
                         
-                        if (!data || data.length === 0) {
-                            console.warn('⚠️ No restaurants found with categories');
-                            showNotification('No restaurants available', 'info');
-                            // Try basic data as fallback
-                            await loadBasicRestaurantData();
-                            return;
+                        if (error) {
+                            console.warn('⚠️ Could not load with categories join:', error.message);
+                            categoriesError = true;
+                        } else if (data && data.length > 0) {
+                            restaurants = data;
+                            console.log(`✅ Loaded ${data.length} restaurants with categories`);
+                        }
+                    } catch (catError) {
+                        console.warn('⚠️ Categories join failed:', catError);
+                        categoriesError = true;
+                    }
+                    
+                    if (categoriesError || restaurants.length === 0) {
+                        console.log('🔄 Trying basic restaurant data...');
+                        const { data: basicData, error: basicError } = await supabase
+                            .from('restraunts')
+                            .select('id, slug, name, category, description, rating, logo_url, image')
+                            .order('rating', { ascending: false })
+                            .limit(48);
+                        
+                        if (basicError) {
+                            console.error('❌ Basic data load error:', basicError);
+                            throw basicError;
                         }
                         
-                        state.restaurants = data.map(restaurant => ({
-                            id: restaurant.id,
-                            slug: restaurant.slug,
-                            name: restaurant.name,
-                            category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
-                            description: restaurant.description,
-                            rating: restaurant.rating,
-                            logo_url: restaurant.logo_url,
-                            coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
-                            isCloudKitchen: state.cloudKitchens.has(restaurant.id)
-                        }));
+                        if (basicData && basicData.length > 0) {
+                            restaurants = basicData;
+                            console.log(`✅ Loaded ${basicData.length} basic restaurant records`);
+                        }
                     }
+                    
+                    state.restaurants = restaurants.map(restaurant => ({
+                        id: restaurant.id,
+                        slug: restaurant.slug,
+                        name: restaurant.name,
+                        category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
+                        description: restaurant.description,
+                        rating: restaurant.rating,
+                        logo_url: restaurant.logo_url,
+                        coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
+                        isCloudKitchen: state.cloudKitchens.has(restaurant.id)
+                    }));
                     
                     console.log(`📊 Total restaurants in state: ${state.restaurants.length}`);
                     
-                    // Step 4: Render UI components
                     if (state.restaurants.length > 0) {
                         console.log('🎨 Rendering UI components...');
                         renderFeaturedRestaurants();
@@ -3240,7 +3277,6 @@
                         console.warn('⚠️ No restaurants to display');
                         showNotification('No restaurants available', 'info');
                         
-                        // Show empty states
                         const featuredSlider = document.getElementById('featuredSlider');
                         const nearbySlider = document.getElementById('nearbySlider');
                         if (featuredSlider) {
@@ -3257,61 +3293,16 @@
                     console.error('❌ Error loading restaurants:', error);
                     showNotification('Failed to load restaurants', 'error');
                     
-                    // Try to load at least basic data as fallback
-                    try {
-                        await loadBasicRestaurantData();
-                    } catch (fallbackError) {
-                        console.error('❌ Fallback data load also failed:', fallbackError);
+                    const featuredSlider = document.getElementById('featuredSlider');
+                    const nearbySlider = document.getElementById('nearbySlider');
+                    if (featuredSlider) {
+                        featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Error loading restaurants</div>';
+                        featuredSlider.classList.remove('skeleton-grid');
                     }
-                }
-            }
-            
-            async function loadBasicRestaurantData() {
-                console.log('🔄 Loading basic restaurant data...');
-                
-                try {
-                    const { data, error } = await supabase
-                        .from('restraunts')
-                        .select('id, slug, name, category, description, rating, logo_url, image')
-                        .order('rating', { ascending: false })
-                        .limit(48);
-                    
-                    if (error) {
-                        console.error('❌ Basic data load error:', error);
-                        throw error;
+                    if (nearbySlider) {
+                        nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Error loading restaurants</div>';
+                        nearbySlider.classList.remove('skeleton-grid');
                     }
-                    
-                    if (!data || data.length === 0) {
-                        console.warn('⚠️ No restaurants in basic data');
-                        return;
-                    }
-                    
-                    console.log(`✅ Loaded ${data.length} basic restaurant records`);
-                    
-                    state.restaurants = data.map(restaurant => ({
-                        id: restaurant.id,
-                        slug: restaurant.slug,
-                        name: restaurant.name,
-                        category: restaurant.category || 'Restaurant',
-                        description: restaurant.description,
-                        rating: restaurant.rating,
-                        logo_url: restaurant.logo_url,
-                        coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
-                        isCloudKitchen: state.cloudKitchens.has(restaurant.id)
-                    }));
-                    
-                    // Render UI even with basic data
-                    if (state.restaurants.length > 0) {
-                        renderFeaturedRestaurants();
-                        renderNearbyRestaurants();
-                        setupSpotlight();
-                        setupRestaurantOfTheDay();
-                        populateFilters();
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Basic data load failed:', error);
-                    throw error;
                 }
             }
             
@@ -3344,7 +3335,6 @@
                 try {
                     console.log('🖼️ Loading restaurant images...');
                     
-                    // Load from restaurant_gallery first
                     const { data: galleryData, error: galleryError } = await supabase
                         .from('restaurant_gallery')
                         .select('restaurant_slug, image_url, image_type, is_primary')
@@ -3376,7 +3366,6 @@
                         console.warn('⚠️ Gallery image load warning:', galleryError.message);
                     }
                     
-                    // Load from restaurants table as fallback
                     const { data: restaurantsData, error: restaurantsError } = await supabase
                         .from('restraunts')
                         .select('slug, image, logo_url')
@@ -3747,10 +3736,8 @@
                 
                 console.log(`📊 Rendering ${Math.min(8, state.restaurants.length)} featured restaurants`);
                 
-                // Remove skeleton class
                 grid.classList.remove('skeleton-grid');
                 
-                // Get featured restaurants (first 8 or less)
                 const featured = state.restaurants.slice(0, Math.min(8, state.restaurants.length));
                 const fragment = document.createDocumentFragment();
                 
@@ -3759,13 +3746,11 @@
                     fragment.appendChild(card);
                 }
                 
-                // Clear and append
                 grid.innerHTML = '';
                 grid.appendChild(fragment);
                 
                 console.log('✅ Featured restaurants rendered');
                 
-                // Setup image lazy loading
                 if (state.imageObserver) {
                     setTimeout(() => {
                         const images = grid.querySelectorAll('img[data-src]');
@@ -3798,10 +3783,8 @@
                 
                 console.log(`📊 Rendering ${Math.min(8, Math.max(0, state.restaurants.length - 8))} nearby restaurants`);
                 
-                // Remove skeleton class
                 grid.classList.remove('skeleton-grid');
                 
-                // Get nearby restaurants (next 8 after featured)
                 const startIndex = Math.min(8, state.restaurants.length);
                 const nearby = state.restaurants.slice(startIndex, Math.min(startIndex + 8, state.restaurants.length));
                 const fragment = document.createDocumentFragment();
@@ -3811,13 +3794,11 @@
                     fragment.appendChild(card);
                 }
                 
-                // Clear and append
                 grid.innerHTML = '';
                 grid.appendChild(fragment);
                 
                 console.log('✅ Nearby restaurants rendered');
                 
-                // Setup image lazy loading
                 if (state.imageObserver) {
                     setTimeout(() => {
                         const images = grid.querySelectorAll('img[data-src]');
