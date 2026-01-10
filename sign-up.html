@@ -259,521 +259,97 @@ body {
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// INITIALIZATION for zo2y.com domain
-const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+const supabase = window.supabase.createClient(
+  'https://gfkhjbztayjyojsgdpgk.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
+  {
+    auth: {
+      flowType: 'pkce',
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
+);
 
-// Create Supabase client with domain-specific config
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    storage: localStorage,
-    flowType: 'pkce',
-    redirectTo: window.location.origin + window.location.pathname // Dynamic redirect
+/* =============================
+   HELPERS
+============================= */
+function showError(msg) {
+  errorMessage.innerHTML = msg;
+}
+
+function showSuccess(msg) {
+  successMessage.textContent = msg;
+}
+
+/* =============================
+   AUTH STATE
+============================= */
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    window.location.href = 'index.html';
   }
 });
 
-// Utility functions
-function showError(message) {
-  const errorDiv = document.getElementById('errorMessage');
-  
-  // Check if message contains HTML tags
-  if (message.includes('<')) {
-    errorDiv.innerHTML = message;
-  } else {
-    errorDiv.textContent = message;
+/* =============================
+   REDIRECT IF LOGGED IN
+============================= */
+(async () => {
+  const { data } = await supabase.auth.getSession();
+  if (data.session) {
+    window.location.href = 'index.html';
   }
-  
-  errorDiv.classList.add('show');
-  const successDiv = document.getElementById('successMessage');
-  successDiv.classList.remove('show');
-  
-  // Auto-hide after 5 seconds
-  setTimeout(() => {
-    errorDiv.classList.remove('show');
-  }, 5000);
-}
+})();
 
-function showSuccess(message) {
-  const successDiv = document.getElementById('successMessage');
-  successDiv.textContent = message;
-  successDiv.classList.add('show');
-  const errorDiv = document.getElementById('errorMessage');
-  errorDiv.classList.remove('show');
-  
-  // Auto-hide after 5 seconds
-  setTimeout(() => {
-    successDiv.classList.remove('show');
-  }, 5000);
-}
+/* =============================
+   EMAIL SIGN UP
+============================= */
+signupForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-// Password strength checker
-function checkPasswordStrength(password) {
-  const meter = document.getElementById('strengthMeter');
-  const hint = document.getElementById('passwordHint');
-  
-  if (!password) {
-    meter.style.width = '0%';
-    meter.className = 'strength-meter';
-    hint.classList.remove('show');
+  const fullName = fullNameInput.value.trim();
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!fullName || !email || !password) {
+    showError('All fields are required');
     return;
   }
-  
-  let strength = 0;
-  let hintText = '';
-  
-  // Length check
-  if (password.length >= 6) strength += 25;
-  if (password.length >= 8) strength += 25;
-  
-  // Complexity checks
-  if (/[A-Z]/.test(password)) strength += 25;
-  if (/[0-9]/.test(password)) strength += 25;
-  if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-  
-  // Cap at 100
-  strength = Math.min(strength, 100);
-  
-  meter.style.width = strength + '%';
-  
-  // Set color and hint
-  if (strength < 50) {
-    meter.className = 'strength-meter strength-weak';
-    hintText = 'Weak password';
-  } else if (strength < 75) {
-    meter.className = 'strength-meter strength-fair';
-    hintText = 'Fair password';
-  } else if (strength < 90) {
-    meter.className = 'strength-meter strength-good';
-    hintText = 'Good password';
-  } else {
-    meter.className = 'strength-meter strength-strong';
-    hintText = 'Strong password';
-  }
-  
-  hint.textContent = hintText;
-  hint.classList.add('show');
-}
 
-// FIXED: Ensure user profile exists
-async function ensureUserProfile(user, fullName = null) {
-  try {
-    console.log('🔍 Checking profile for user:', user.id);
-    
-    // Check if profile exists
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (profileError && profileError.code === 'PGRST116') {
-      console.log('📝 Creating new profile...');
-      
-      // Generate unique username with random suffix
-      const usernameBase = user.email?.split('@')[0] || 'user';
-      const randomSuffix = Math.random().toString(36).substring(2, 6);
-      const username = `${usernameBase}_${randomSuffix}`;
-      
-      // For Google OAuth, extract metadata
-      const finalFullName = fullName || 
-                           user.user_metadata?.full_name || 
-                           user.user_metadata?.name || 
-                           user.user_metadata?.displayName || 
-                           usernameBase;
-      
-      const avatarUrl = user.user_metadata?.avatar_url || 
-                       user.user_metadata?.picture;
-      
-      // Create profile
-      const { error: insertError } = await supabaseClient
-        .from('user_profiles')
-        .insert([
-          {
-            id: user.id,
-            username: username,
-            full_name: finalFullName,
-            avatar_url: avatarUrl,
-            bio: '',
-            is_private: false,
-            visited_count: 0,
-            favorites_count: 0,
-            followers_count: 0,
-            following_count: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ]);
-      
-      if (insertError) {
-        console.error('Failed to create profile:', insertError);
-        
-        // If it's a duplicate key error, profile might have been created by trigger
-        if (!insertError.message.includes('duplicate key')) {
-          console.log('⚠️ Trying minimal profile creation...');
-          
-          // Try a simpler insert
-          const { error: simpleError } = await supabaseClient
-            .from('user_profiles')
-            .insert([
-              {
-                id: user.id,
-                username: username,
-                full_name: finalFullName
-              }
-            ]);
-          
-          if (simpleError) {
-            console.error('Minimal profile creation also failed:', simpleError);
-          } else {
-            console.log('✅ Minimal profile created');
-          }
-        } else {
-          console.log('✅ Profile already exists (duplicate key)');
-        }
-      } else {
-        console.log('✅ Profile created successfully');
-      }
-    } else if (profile) {
-      console.log('✅ Profile already exists');
-    }
-  } catch (error) {
-    console.error('Error ensuring profile:', error);
-  }
-}
-
-// FIXED: Function to handle OAuth callbacks
-async function initializeAuth() {
-  console.log('🔍 Initializing auth for signup page...');
-  
-  try {
-    // Check if we already have a session FIRST
-    const { data: { session }, error: sessionCheckError } = await supabaseClient.auth.getSession();
-    
-    if (sessionCheckError) {
-      console.error('Session check error:', sessionCheckError);
-    }
-    
-    // If we have a session, redirect to homepage immediately
-    if (session) {
-      console.log('✅ Existing session found for:', session.user.email);
-      console.log('Redirecting to homepage...');
-      window.location.href = 'index.html';
-      return;
-    }
-    
-    // Check URL for OAuth callback parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
-    const error = urlParams.get('error');
-    const errorDescription = urlParams.get('error_description');
-    
-    // Clear URL parameters immediately
-    if (accessToken || refreshToken || error || errorDescription) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-    
-    if (error) {
-      console.error('OAuth error:', error, errorDescription);
-      
-      // Check if this is a "user already exists" type error
-      if (errorDescription && errorDescription.toLowerCase().includes('already exists')) {
-        showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
-      } else {
-        showError('Authentication failed: ' + (errorDescription || error));
-      }
-      return;
-    }
-    
-    if (accessToken && refreshToken) {
-      console.log('🔄 Processing OAuth callback...');
-      
-      // Set the session manually
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      });
-      
-      if (sessionError) {
-        console.error('Error setting session:', sessionError);
-        
-        // Check if this is a "user already exists" error
-        if (sessionError.message && (
-            sessionError.message.includes('already registered') ||
-            sessionError.message.includes('already exists') ||
-            sessionError.message.includes('duplicate')
-        )) {
-          showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
-        } else {
-          showError('Authentication error: ' + sessionError.message);
-        }
-        return;
-      }
-      
-      if (sessionData.session) {
-        console.log('✅ OAuth successful! User:', sessionData.session.user.email);
-        
-        // Wait a moment for database trigger
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Check if user already has a profile (which means they already signed up)
-        const { data: profile, error: profileError } = await supabaseClient
-          .from('user_profiles')
-          .select('created_at')
-          .eq('id', sessionData.session.user.id)
-          .single();
-        
-        // If profile exists and was created more than 1 minute ago, 
-        // they probably already have an account
-        if (profile && profile.created_at) {
-          const profileAge = Date.now() - new Date(profile.created_at).getTime();
-          if (profileAge > 60000) { // More than 1 minute old
-            showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
-            
-            // Sign them out since they should use the login page
-            setTimeout(async () => {
-              await supabaseClient.auth.signOut();
-            }, 3000);
-            return;
-          }
-        }
-        
-        // Ensure profile exists
-        await ensureUserProfile(sessionData.session.user);
-        
-        // Show success and redirect
-        showSuccess('Login successful! Redirecting...');
-        
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1000);
-        return;
-      }
-    }
-    
-    console.log('ℹ️ No active session or OAuth callback detected');
-    
-  } catch (error) {
-    console.error('Auth initialization error:', error);
-    
-    // Check for duplicate user errors
-    if (error.message && error.message.includes('duplicate') || 
-        error.message.includes('already exists') ||
-        error.message.includes('already registered')) {
-      showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
-    } else {
-      showError('Failed to initialize authentication');
-    }
-  }
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', async () => {
-  // Handle auth first
-  await initializeAuth();
-  
-  // Get DOM elements
-  const signupForm = document.getElementById('signupForm');
-  const googleBtn = document.getElementById('googleSignup');
-  const submitBtn = document.getElementById('submitBtn');
-  const passwordInput = document.getElementById('password');
-  
-  // Password strength indicator
-  passwordInput.addEventListener('input', (e) => {
-    checkPasswordStrength(e.target.value);
-  });
-  
-  // FIXED: EMAIL/PASSWORD SIGNUP
-  signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const fullName = document.getElementById('fullName').value.trim();
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    const password = document.getElementById('password').value;
-    
-    // Validation
-    if (!fullName || !email || !password) {
-      showError('Please fill all fields');
-      return;
-    }
-    
-    if (password.length < 6) {
-      showError('Password must be at least 6 characters long');
-      return;
-    }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      showError('Please enter a valid email address');
-      return;
-    }
-    
-    // Show loading state
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<div class="loading"></div>';
-    submitBtn.disabled = true;
-    
-    // Clear any existing messages
-    const errorDiv = document.getElementById('errorMessage');
-    const successDiv = document.getElementById('successMessage');
-    errorDiv.classList.remove('show');
-    successDiv.classList.remove('show');
-
-    try {
-      console.log('📧 Signing up with email:', email);
-      
-      const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: { 
-          data: { 
-            full_name: fullName,
-            name: fullName
-          }, 
-          emailRedirectTo: window.location.origin + '/index.html'
-        }
-      });
-
-      if (error) {
-        console.error('Signup error details:', error);
-        
-        // User-friendly error messages
-        if (error.message.includes('User already registered') || 
-            error.message.includes('already exists') ||
-            error.message.includes('duplicate')) {
-          
-          // Create a nice message with a link to login
-          showError(`
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <span>An account with this email already exists.</span>
-              <div>
-                <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600; margin-right: 12px;">
-                  Sign in to your account
-                </a>
-                <a href="#" onclick="document.getElementById('password').value = ''; return false;" 
-                   style="color: var(--text-secondary); text-decoration: none;">
-                  Forgot password?
-                </a>
-              </div>
-            </div>
-          `);
-          
-        } else if (error.message.includes('Invalid email')) {
-          showError('Please enter a valid email address.');
-        } else if (error.message.includes('Password should be at least')) {
-          showError('Password must be at least 6 characters long.');
-        } else if (error.message.includes('rate limit')) {
-          showError('Too many signup attempts. Please try again in a few minutes.');
-        } else {
-          showError('Signup failed: ' + error.message);
-        }
-        
-        throw error;
-      }
-      
-      console.log('Signup response:', data);
-      
-      // If session exists (auto-confirmed), redirect to homepage
-      if (data.session) {
-        console.log('✅ Email signup successful! User:', data.user.email);
-        
-        // Wait a moment for database trigger
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Ensure profile exists
-        await ensureUserProfile(data.user, fullName);
-        
-        // Show success message
-        showSuccess('Account created successfully! Redirecting...');
-        
-        // Small delay for user to see success message
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1500);
-        
-      } else {
-        // Email confirmation required
-        showSuccess('🎉 Account created! Please check your email to confirm your account. Check your spam folder if you don\'t see it.');
-        signupForm.reset();
-        
-        // Reset password strength meter
-        const meter = document.getElementById('strengthMeter');
-        meter.style.width = '0%';
-        meter.className = 'strength-meter';
-        document.getElementById('passwordHint').classList.remove('show');
-      }
-    } catch (error) {
-      console.error('Signup error:', error);
-      // Error already handled above
-    } finally {
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
+  const { error, data } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+      emailRedirectTo: 'https://zo2y.com/index.html'
     }
   });
 
-  // FIXED: GOOGLE SIGNUP with better error handling
-  googleBtn.addEventListener('click', async () => {
-    const btn = document.getElementById('googleSignup');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<div class="loading"></div>';
-    btn.disabled = true;
-    
-    // Clear any existing messages
-    const errorDiv = document.getElementById('errorMessage');
-    const successDiv = document.getElementById('successMessage');
-    errorDiv.classList.remove('show');
-    successDiv.classList.remove('show');
-    
-    try {
-      console.log('🔵 Starting Google OAuth...');
-      
-      // First, check if we're already logged in
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) {
-        console.log('✅ Already logged in, redirecting...');
-        window.location.href = 'index.html';
-        return;
-      }
-      
-      // Start OAuth flow with EXACT redirect URL
-      const redirectUrl = window.location.origin + '/sign-up.html';
-      console.log('Using redirect URL:', redirectUrl);
-      
-      const { data, error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          queryParams: { 
-            access_type: 'offline',
-            prompt: 'consent' 
-          },
-          skipBrowserRedirect: false // Make sure it redirects
-        }
-      });
-      
-      if (error) {
-        console.error('Google OAuth error:', error);
-        throw error;
-      }
-      
-      console.log('Google OAuth initiated - browser should redirect');
-      // The browser will redirect to Google, then back to sign-up.html
-      // The initializeAuth() function will handle the callback
-      
-    } catch (err) {
-      console.error('Google signup error:', err);
-      showError('Google signup failed. Please try again.');
-      btn.innerHTML = originalText;
-      btn.disabled = false;
+  if (error) {
+    showError(error.message);
+    return;
+  }
+
+  if (!data.session) {
+    showSuccess('Check your email to confirm your account.');
+  }
+});
+
+/* =============================
+   GOOGLE SIGN UP
+============================= */
+googleSignup.addEventListener('click', async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: 'https://zo2y.com/sign-up.html'
     }
   });
 });
 </script>
+
 </body>
 </html>
