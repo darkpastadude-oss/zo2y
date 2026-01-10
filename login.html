@@ -232,80 +232,237 @@ body{
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const supabase = window.supabase.createClient(
-  'https://gfkhjbztayjyojsgdpgk.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
-  {
-    auth: {
-      flowType: 'pkce',
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
+(function() {
+  'use strict';
+  
+  // ✅ SINGLE Supabase declaration (moved to top)
+  const supabase = window.supabase.createClient(
+    'https://gfkhjbztayjyojsgdpgk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
+    {
+      auth: {
+        flowType: 'pkce',
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+  
+  // DOM Elements
+  const loginForm = document.getElementById('loginForm');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const googleLogin = document.getElementById('googleLogin');
+  const loginBtn = document.getElementById('loginBtn');
+  const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
+  const rememberCheckbox = document.getElementById('remember');
+  const forgotPasswordLink = document.getElementById('forgotPassword');
+  
+  // Helper functions
+  function showError(msg) {
+    errorMessage.textContent = msg;
+    errorMessage.classList.add('show');
+    successMessage.classList.remove('show');
+    setTimeout(() => errorMessage.classList.remove('show'), 5000);
+  }
+  
+  function showSuccess(msg) {
+    successMessage.textContent = msg;
+    successMessage.classList.add('show');
+    errorMessage.classList.remove('show');
+    setTimeout(() => successMessage.classList.remove('show'), 3000);
+  }
+  
+  function showLoading() {
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<div class="loading"></div>';
+  }
+  
+  function hideLoading() {
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
+  }
+  
+  // Check for existing session data in localStorage
+  function checkRememberMe() {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      emailInput.value = rememberedEmail;
+      rememberCheckbox.checked = true;
     }
   }
-);
-
-/* =============================
-   HELPERS
-============================= */
-function showError(msg) {
-  errorMessage.textContent = msg;
-}
-
-/* =============================
-   AUTH STATE
-============================= */
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    window.location.href = 'index.html';
+  
+  // Save email to localStorage if "Remember me" is checked
+  function handleRememberMe(email) {
+    if (rememberCheckbox.checked) {
+      localStorage.setItem('rememberedEmail', email);
+    } else {
+      localStorage.removeItem('rememberedEmail');
+    }
   }
-});
-
-/* =============================
-   REDIRECT IF LOGGED IN
-============================= */
-(async () => {
-  const { data } = await supabase.auth.getSession();
-  if (data.session) {
-    window.location.href = 'index.html';
+  
+  // Auth state listener
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth state change:', event);
+    
+    if (event === 'SIGNED_IN' && session) {
+      showSuccess('Login successful! Redirecting...');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1500);
+    }
+  });
+  
+  // Redirect if already logged in
+  (async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        window.location.href = 'index.html';
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+    }
+  })();
+  
+  // Email login
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    // Validation
+    if (!email || !password) {
+      showError('Email and password are required');
+      return;
+    }
+    
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      showError('Please enter a valid email address');
+      return;
+    }
+    
+    showLoading();
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.user) {
+        // Save email if "Remember me" is checked
+        handleRememberMe(email);
+        
+        // Login successful - auth state listener will handle redirect
+        showSuccess('Login successful! Redirecting...');
+      }
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      // User-friendly error messages
+      if (error.message.includes('Invalid login credentials')) {
+        showError('Invalid email or password. Please try again.');
+      } else if (error.message.includes('Email not confirmed')) {
+        showError('Please confirm your email address before logging in. Check your inbox.');
+      } else if (error.message.includes('too many requests')) {
+        showError('Too many login attempts. Please try again in a few minutes.');
+      } else {
+        showError('Login failed. Please try again.');
+      }
+    } finally {
+      hideLoading();
+    }
+  });
+  
+  // Google login
+  googleLogin.addEventListener('click', async () => {
+    try {
+      showLoading();
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/login.html',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error('Google login error:', error);
+      showError('Google login failed. Please try again.');
+      hideLoading();
+    }
+  });
+  
+  // Forgot password
+  forgotPasswordLink.addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    const email = emailInput.value.trim();
+    
+    if (!email) {
+      showError('Please enter your email address to reset your password');
+      emailInput.focus();
+      return;
+    }
+    
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      showError('Please enter a valid email address');
+      emailInput.focus();
+      return;
+    }
+    
+    showLoading();
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password.html'
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      showSuccess('Password reset email sent! Check your inbox for instructions.');
+      
+    } catch (error) {
+      console.error('Password reset error:', error);
+      
+      if (error.message.includes('User not found')) {
+        showError('No account found with this email address.');
+      } else {
+        showError('Failed to send reset email. Please try again.');
+      }
+    } finally {
+      hideLoading();
+    }
+  });
+  
+  // Check for remembered email on page load
+  checkRememberMe();
+  
+  // Focus email input if empty
+  if (!emailInput.value) {
+    emailInput.focus();
+  } else {
+    passwordInput.focus();
   }
+  
 })();
-
-/* =============================
-   EMAIL LOGIN
-============================= */
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
-  if (!email || !password) {
-    showError('Email and password required');
-    return;
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    showError(error.message);
-  }
-});
-
-/* =============================
-   GOOGLE LOGIN
-============================= */
-googleLogin.addEventListener('click', async () => {
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://zo2y.com/login.html'
-    }
-  });
-});
 </script>
 
 </body>

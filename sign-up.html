@@ -261,94 +261,238 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const supabase = window.supabase.createClient(
-  'https://gfkhjbztayjyojsgdpgk.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
-  {
-    auth: {
-      flowType: 'pkce',
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
+(function() {
+  'use strict';
+  
+  // ✅ SINGLE Supabase declaration (moved to top)
+  const supabase = window.supabase.createClient(
+    'https://gfkhjbztayjyojsgdpgk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
+    {
+      auth: {
+        flowType: 'pkce',
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
     }
+  );
+  
+  // DOM Elements
+  const signupForm = document.getElementById('signupForm');
+  const fullNameInput = document.getElementById('fullName');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const googleSignup = document.getElementById('googleSignup');
+  const submitBtn = document.getElementById('submitBtn');
+  const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
+  const strengthMeter = document.getElementById('strengthMeter');
+  const passwordHint = document.getElementById('passwordHint');
+  
+  // Helper functions
+  function showError(msg) {
+    errorMessage.textContent = msg;
+    errorMessage.classList.add('show');
+    successMessage.classList.remove('show');
+    setTimeout(() => errorMessage.classList.remove('show'), 5000);
   }
-);
-
-/* =============================
-   HELPERS
-============================= */
-function showError(msg) {
-  errorMessage.innerHTML = msg;
-}
-
-function showSuccess(msg) {
-  successMessage.textContent = msg;
-}
-
-/* =============================
-   AUTH STATE
-============================= */
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    window.location.href = 'index.html';
+  
+  function showSuccess(msg) {
+    successMessage.textContent = msg;
+    successMessage.classList.add('show');
+    errorMessage.classList.remove('show');
+    setTimeout(() => successMessage.classList.remove('show'), 5000);
   }
-});
-
-/* =============================
-   REDIRECT IF LOGGED IN
-============================= */
-(async () => {
-  const { data } = await supabase.auth.getSession();
-  if (data.session) {
-    window.location.href = 'index.html';
+  
+  function showLoading() {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="loading"></div>';
   }
+  
+  function hideLoading() {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Create Account</span>';
+  }
+  
+  // Password strength indicator
+  passwordInput.addEventListener('input', function() {
+    const password = this.value;
+    let strength = 0;
+    
+    if (password.length >= 6) strength += 1;
+    if (password.length >= 8) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    
+    let width = 0;
+    let color = '';
+    let hint = '';
+    
+    if (strength === 0) {
+      width = 0;
+      color = '';
+      hint = 'Password must be at least 6 characters';
+    } else if (strength <= 2) {
+      width = 33;
+      color = 'strength-weak';
+      hint = 'Weak password';
+    } else if (strength === 3) {
+      width = 66;
+      color = 'strength-fair';
+      hint = 'Fair password';
+    } else if (strength === 4) {
+      width = 83;
+      color = 'strength-good';
+      hint = 'Good password';
+    } else {
+      width = 100;
+      color = 'strength-strong';
+      hint = 'Strong password';
+    }
+    
+    strengthMeter.style.width = width + '%';
+    strengthMeter.className = 'strength-meter ' + color;
+    passwordHint.textContent = hint;
+    passwordHint.classList.add('show');
+  });
+  
+  // Auth state listener
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth state change:', event);
+    
+    if (event === 'SIGNED_IN' && session) {
+      // Check if this is email confirmation or direct signup
+      if (session.user.email_confirmed_at) {
+        showSuccess('Welcome! Redirecting to homepage...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      } else {
+        // Email verification needed
+        showSuccess('Check your email to confirm your account.');
+      }
+    }
+  });
+  
+  // Redirect if already logged in
+  (async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        window.location.href = 'index.html';
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+    }
+  })();
+  
+  // Email signup
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const fullName = fullNameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    // Validation
+    if (!fullName || !email || !password) {
+      showError('All fields are required');
+      return;
+    }
+    
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters');
+      return;
+    }
+    
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      showError('Please enter a valid email address');
+      return;
+    }
+    
+    showLoading();
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { 
+            full_name: fullName 
+          },
+          emailRedirectTo: window.location.origin + '/index.html'
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.user) {
+        if (data.session) {
+          // User created and logged in automatically
+          showSuccess('Account created successfully! Redirecting...');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+        } else {
+          // Email confirmation required
+          showSuccess('Please check your email to confirm your account.');
+          signupForm.reset();
+          strengthMeter.style.width = '0%';
+          passwordHint.classList.remove('show');
+        }
+      }
+      
+    } catch (error) {
+      console.error('Signup error:', error);
+      
+      // User-friendly error messages
+      if (error.message.includes('already registered')) {
+        showError('This email is already registered. Please try logging in instead.');
+      } else if (error.message.includes('Invalid email')) {
+        showError('Please enter a valid email address');
+      } else if (error.message.includes('Password')) {
+        showError('Password must be at least 6 characters');
+      } else {
+        showError('Signup failed. Please try again.');
+      }
+    } finally {
+      hideLoading();
+    }
+  });
+  
+  // Google signup
+  googleSignup.addEventListener('click', async () => {
+    try {
+      showLoading();
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/sign-up.html',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error('Google signup error:', error);
+      showError('Google signup failed. Please try again.');
+      hideLoading();
+    }
+  });
+  
+  // Focus first input
+  fullNameInput.focus();
+  
 })();
-
-/* =============================
-   EMAIL SIGN UP
-============================= */
-signupForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const fullName = fullNameInput.value.trim();
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
-  if (!fullName || !email || !password) {
-    showError('All fields are required');
-    return;
-  }
-
-  const { error, data } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: fullName },
-      emailRedirectTo: 'https://zo2y.com/index.html'
-    }
-  });
-
-  if (error) {
-    showError(error.message);
-    return;
-  }
-
-  if (!data.session) {
-    showSuccess('Check your email to confirm your account.');
-  }
-});
-
-/* =============================
-   GOOGLE SIGN UP
-============================= */
-googleSignup.addEventListener('click', async () => {
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://zo2y.com/sign-up.html'
-    }
-  });
-});
 </script>
 
 </body>
