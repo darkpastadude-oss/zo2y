@@ -464,7 +464,7 @@ body {
     }
   });
   
-  // Google signup
+  // ✅ FIXED: Google signup with correct redirect
   googleSignup.addEventListener('click', async () => {
     try {
       showLoading();
@@ -472,7 +472,7 @@ body {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/sign-up.html',
+          redirectTo: window.location.origin + '/index.html', // ✅ FIXED: Redirect to homepage
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -494,6 +494,5 @@ body {
   
 })();
 </script>
-
 </body>
 </html>
