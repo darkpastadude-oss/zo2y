@@ -2767,122 +2767,231 @@
                 restaurantOfTheDay: null
             };
             
-            // ---------- ✅ FIXED AUTH BOOTSTRAP ----------
-            async function bootstrapAuth() {
-                console.log('🔐 Bootstrapping auth');
-
-                const { data: { session } } = await supabase.auth.getSession();
-
-                if (!session?.user) {
-                    setGuestState();
-                    authReady = true;
-                    return;
-                }
-
-                currentUser = session.user;
-
-                // Verify profile exists (do NOT create it)
-                const { data: profile, error } = await supabase
-                    .from('user_profiles')
-                    .select('id, username')
-                    .eq('id', currentUser.id)
-                    .single();
-
-                if (error || !profile) {
-                    console.error('🚨 Profile missing, forcing logout');
-                    await supabase.auth.signOut();
-                    setGuestState();
-                    return;
-                }
-
-                setLoggedInState(profile);
+           // ✅ FIXED AUTH BOOTSTRAP ----------
+async function bootstrapAuth() {
+    console.log('🔐 Bootstrapping auth');
+    
+    try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+            console.error('Session error:', sessionError);
+            setGuestState();
+            authReady = true;
+            return;
+        }
+        
+        if (!session?.user) {
+            console.log('No session found, setting guest state');
+            setGuestState();
+            authReady = true;
+            return;
+        }
+        
+        currentUser = session.user;
+        console.log('✅ User found in session:', currentUser.email);
+        
+        // Check if profile exists
+        const { data: profile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('id, username, full_name')
+            .eq('id', currentUser.id)
+            .single();
+        
+        if (profileError && profileError.code === 'PGRST116') {
+            console.log('📝 Profile missing, creating now...');
+            
+            // Create profile for new user
+            const userData = session.user.user_metadata || {};
+            const username = userData.full_name || 
+                            userData.name || 
+                            currentUser.email.split('@')[0];
+            
+            const { data: newProfile, error: createError } = await supabase
+                .from('user_profiles')
+                .insert([
+                    {
+                        id: currentUser.id,
+                        username: username,
+                        full_name: userData.full_name || userData.name || username,
+                        avatar_url: userData.avatar_url || userData.picture,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        is_private: false,
+                        visited_count: 0,
+                        favorites_count: 0,
+                        followers_count: 0,
+                        following_count: 0
+                    }
+                ])
+                .select()
+                .single();
+            
+            if (createError) {
+                console.error('Error creating profile:', createError);
+                // Still allow login even if profile creation fails
+                setLoggedInState(null);
                 authReady = true;
-
-                initUserFeatures();
-            }
-
-            // ---------- ✅ FIXED AUTH STATE LISTENER ----------
-            supabase.auth.onAuthStateChange((event, session) => {
-                console.log('🔄 Auth state change:', event);
-                
-                if (event === 'SIGNED_OUT') {
-                    currentUser = null;
-                    state.isLoggedIn = false;
-                    setGuestState();
-                    guestBanner.show();
-                    
-                    // Clear user-specific data
-                    state.selectedLists.clear();
-                    
-                    // Re-render without user data
-                    renderFeaturedRestaurants();
-                    renderNearbyRestaurants();
-                    updateSpotlight();
-                    setupRestaurantOfTheDay();
-                } else if (event === 'SIGNED_IN' && session?.user) {
-                    console.log('✅ User signed in:', session.user.email);
-                    currentUser = session.user;
-                    state.isLoggedIn = true;
-                    
-                    // Check and create profile via database trigger
-                    checkAndCreateProfile(session.user);
-                    
-                    // Update UI
-                    setLoggedInState(session.user);
-                    
-                    // Initialize user features
-                    initUserFeatures();
-                }
-            });
-
-            // ---------- HELPER FUNCTIONS ----------
-            function setLoggedInState(profile) {
-                try {
-                    let displayName = 'User';
-                    if (profile) {
-                        displayName = profile.username || profile.full_name || currentUser?.email?.split('@')[0] || 'User';
-                    } else {
-                        displayName = currentUser?.email?.split('@')[0] || 'User';
-                    }
-                    
-                    // Update account button
-                    const authBtn = document.getElementById('userAccountBtn');
-                    if (authBtn) {
-                        authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
-                        authBtn.onclick = () => {
-                            window.location.href = 'profile.html';
-                        };
-                    }
-                    
-                    // Show logged-in button, hide start journey button
-                    const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
-                    const loggedInBtn = document.querySelector('.btn-primary.logged-in');
-                    if (startJourneyBtn) startJourneyBtn.style.display = 'none';
-                    if (loggedInBtn) loggedInBtn.style.display = 'flex';
-                    
-                    // Hide guest banner
-                    guestBanner.hide();
-                    
-                } catch (error) {
-                    console.error('Error setting logged in state:', error);
-                }
+                return;
             }
             
-            function setGuestState() {
-                const authBtn = document.getElementById('userAccountBtn');
-                if (authBtn) {
-                    authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
-                    authBtn.onclick = () => window.location.href = 'login.html';
+            console.log('✅ Profile created successfully');
+            setLoggedInState(newProfile);
+            
+        } else if (profileError) {
+            console.error('Error checking profile:', profileError);
+            // Still allow login even if profile check fails
+            setLoggedInState(null);
+            
+        } else {
+            console.log('✅ Profile exists:', profile.username);
+            setLoggedInState(profile);
+        }
+        
+        authReady = true;
+        
+        // Initialize user features
+        await initUserFeatures();
+        
+    } catch (error) {
+        console.error('Auth bootstrap error:', error);
+        setGuestState();
+        authReady = true;
+    }
+}
+
+            // ---------- ✅ FIXED AUTH STATE LISTENER ----------
+// ✅ FIXED AUTH STATE LISTENER ----------
+supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('🔄 Auth state change:', event);
+    
+    if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        currentUser = null;
+        state.isLoggedIn = false;
+        setGuestState();
+        guestBanner.show();
+        
+        // Clear user-specific data
+        state.selectedLists.clear();
+        
+        // Re-render without user data
+        renderFeaturedRestaurants();
+        renderNearbyRestaurants();
+        updateSpotlight();
+        setupRestaurantOfTheDay();
+        
+    } else if (event === 'SIGNED_IN' && session?.user) {
+        console.log('✅ User signed in:', session.user.email, 'Provider:', session.user.app_metadata?.provider);
+        
+        currentUser = session.user;
+        state.isLoggedIn = true;
+        
+        // Handle new users (especially from Google)
+        if (event === 'SIGNED_IN') {
+            // Check if profile exists, create if not
+            const { data: profile, error } = await supabase
+                .from('user_profiles')
+                .select('id')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (error && error.code === 'PGRST116') {
+                console.log('🆕 New user detected, creating profile...');
+                
+                const userData = session.user.user_metadata || {};
+                const username = userData.full_name || 
+                                userData.name || 
+                                currentUser.email.split('@')[0];
+                
+                const { data: newProfile, error: createError } = await supabase
+                    .from('user_profiles')
+                    .insert([
+                        {
+                            id: currentUser.id,
+                            username: username,
+                            full_name: userData.full_name || userData.name || username,
+                            avatar_url: userData.avatar_url || userData.picture,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            is_private: false,
+                            visited_count: 0,
+                            favorites_count: 0,
+                            followers_count: 0,
+                            following_count: 0
+                        }
+                    ])
+                    .select()
+                    .single();
+                
+                if (createError) {
+                    console.error('Failed to create profile:', createError);
+                } else {
+                    console.log('✅ Profile created for new user');
                 }
-                
-                const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
-                const loggedInBtn = document.querySelector('.btn-primary.logged-in');
-                if (startJourneyBtn) startJourneyBtn.style.display = 'flex';
-                if (loggedInBtn) loggedInBtn.style.display = 'none';
-                
-                // Show guest banner
-                guestBanner.show();
             }
+        }
+        
+        // Update UI
+        const userData = session.user.user_metadata || {};
+        const displayName = userData.full_name || 
+                           userData.name || 
+                           currentUser.email.split('@')[0] || 
+                           'User';
+        
+        setLoggedInState({ username: displayName });
+        
+        // Initialize user features
+        await initUserFeatures();
+        
+    } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed');
+        // Session is still valid
+    } else if (event === 'USER_UPDATED') {
+        console.log('User updated');
+    }
+});
+
+            // ---------- HELPER FUNCTIONS ----------
+        function setLoggedInState(profile) {
+    try {
+        let displayName = 'User';
+        
+        if (profile) {
+            displayName = profile.username || profile.full_name || currentUser?.email?.split('@')[0] || 'User';
+        } else if (currentUser) {
+            // Fallback to user metadata if no profile
+            const userData = currentUser.user_metadata || {};
+            displayName = userData.full_name || 
+                         userData.name || 
+                         currentUser.email.split('@')[0] || 
+                         'User';
+        }
+        
+        // Update account button
+        const authBtn = document.getElementById('userAccountBtn');
+        if (authBtn) {
+            authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+            authBtn.onclick = () => {
+                window.location.href = 'profile.html';
+            };
+        }
+        
+        // Show logged-in button, hide start journey button
+        const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
+        const loggedInBtn = document.querySelector('.btn-primary.logged-in');
+        if (startJourneyBtn) startJourneyBtn.style.display = 'none';
+        if (loggedInBtn) loggedInBtn.style.display = 'flex';
+        
+        // Hide guest banner
+        guestBanner.hide();
+        
+    } catch (error) {
+        console.error('Error setting logged in state:', error);
+        // Fallback to guest state
+        setGuestState();
+    }
+}
             
             async function checkAndCreateProfile(user) {
                 try {
@@ -4858,40 +4967,46 @@
                 });
             }
             
-            // ---------- INITIALIZATION ----------
-            async function init() {
-                // Initialize fixes
-                initFixedImageLoader();
-                
-                setupEventListeners();
-                await searchManager.loadAllRestaurantsForSearch();
-                await loadRestaurantsData();
-                
-                // ✅ FIXED: Check auth state FIRST
-                console.log('🔍 Initial auth check on homepage...');
-                await bootstrapAuth();
-                
-                // Force observe images after everything loads
-                setTimeout(() => {
-                    if (state.imageObserver) {
-                        const images = document.querySelectorAll('img[data-src]');
-                        images.forEach(img => {
-                            if (!img.classList.contains('observed')) {
-                                state.imageObserver.observe(img);
-                                img.classList.add('observed');
-                            }
-                        });
-                    }
-                }, 500);
-            }
+ // ---------- INITIALIZATION ----------
+        async function init() {
+            // Initialize fixes
+            initFixedImageLoader();
             
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
+            // Setup event listeners first
+            setupEventListeners();
             
-        })();
-    </script>
+            // Initialize guest banner
+            guestBanner.init();
+            
+            // Load data
+            await searchManager.loadAllRestaurantsForSearch();
+            await loadRestaurantsData();
+            
+            // ✅ FIXED: Check auth state
+            console.log('🔍 Initial auth check on homepage...');
+            await bootstrapAuth();
+            
+            // Force observe images after everything loads
+            setTimeout(() => {
+                if (state.imageObserver) {
+                    const images = document.querySelectorAll('img[data-src]');
+                    images.forEach(img => {
+                        if (!img.classList.contains('observed')) {
+                            state.imageObserver.observe(img);
+                            img.classList.add('observed');
+                        }
+                    });
+                }
+            }, 500);
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+        
+    })();
+</script>
 </body>
 </html>
