@@ -221,6 +221,8 @@ body{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
 // INITIALIZATION for zo2y.com domain
+<script>
+// INITIALIZATION for zo2y.com domain
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
@@ -263,7 +265,94 @@ function showSuccess(message) {
   }, 5000);
 }
 
-// Function to handle OAuth callbacks and existing sessions
+// FIXED: Ensure user profile exists (without email column)
+async function ensureUserProfile(user) {
+  try {
+    console.log('🔍 Checking profile for user:', user.id);
+    
+    // Check if profile exists
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (profileError && profileError.code === 'PGRST116') {
+      console.log('📝 Creating new profile...');
+      
+      // Generate unique username with random suffix
+      const usernameBase = user.email?.split('@')[0] || 'user';
+      const randomSuffix = Math.random().toString(36).substring(2, 6);
+      const username = `${usernameBase}_${randomSuffix}`;
+      
+      // For Google OAuth, extract metadata
+      const fullName = user.user_metadata?.full_name || 
+                      user.user_metadata?.name || 
+                      user.user_metadata?.displayName || 
+                      usernameBase;
+      
+      const avatarUrl = user.user_metadata?.avatar_url || 
+                       user.user_metadata?.picture;
+      
+      // Create profile WITHOUT email column
+      const { error: insertError } = await supabaseClient
+        .from('user_profiles')
+        .insert([
+          {
+            id: user.id,
+            username: username,
+            full_name: fullName,
+            avatar_url: avatarUrl,
+            bio: '',
+            is_private: false,
+            visited_count: 0,
+            favorites_count: 0,
+            followers_count: 0,
+            following_count: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ]);
+      
+      if (insertError) {
+        console.error('Failed to create profile:', insertError);
+        
+        // If it's a duplicate key error, profile might have been created by trigger
+        if (!insertError.message.includes('duplicate key')) {
+          console.log('⚠️ Trying minimal profile creation...');
+          
+          // Try a simpler insert
+          const { error: simpleError } = await supabaseClient
+            .from('user_profiles')
+            .insert([
+              {
+                id: user.id,
+                username: username,
+                full_name: fullName
+              }
+            ]);
+          
+          if (simpleError) {
+            console.error('Minimal profile creation also failed:', simpleError);
+          } else {
+            console.log('✅ Minimal profile created');
+          }
+        } else {
+          console.log('✅ Profile already exists (duplicate key)');
+        }
+      } else {
+        console.log('✅ Profile created successfully');
+      }
+    } else if (profile) {
+      console.log('✅ Profile already exists');
+    }
+  } catch (error) {
+    console.error('Error ensuring profile:', error);
+    // Don't throw error - allow user to continue
+  }
+}
+
+// FIXED: Function to handle OAuth callbacks
 async function initializeAuth() {
   console.log('🔍 Initializing auth for login page...');
   
@@ -273,13 +362,16 @@ async function initializeAuth() {
     const accessToken = urlParams.get('access_token');
     const refreshToken = urlParams.get('refresh_token');
     const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    // Clear URL parameters immediately
+    if (accessToken || refreshToken || error || errorDescription) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
     
     if (error) {
-      console.error('OAuth error in URL:', error);
-      showError('Authentication failed: ' + error);
-      
-      // Clear URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
+      console.error('OAuth error:', error, errorDescription);
+      showError('Authentication failed: ' + (errorDescription || error));
       return;
     }
     
@@ -300,13 +392,21 @@ async function initializeAuth() {
       
       if (sessionData.session) {
         console.log('✅ OAuth successful! User:', sessionData.session.user.email);
+        console.log('User metadata:', sessionData.session.user.user_metadata);
+        console.log('App metadata:', sessionData.session.user.app_metadata);
+        
+        // Wait a moment for database trigger
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Ensure profile exists
         await ensureUserProfile(sessionData.session.user);
         
-        // Clear URL parameters and redirect
-        window.history.replaceState({}, document.title, window.location.pathname);
-        window.location.href = 'index.html';
+        // Show success and redirect
+        showSuccess('Login successful! Redirecting...');
+        
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
         return;
       }
     }
@@ -336,56 +436,6 @@ async function initializeAuth() {
   } catch (error) {
     console.error('Auth initialization error:', error);
     showError('Failed to initialize authentication');
-  }
-}
-
-// Function to ensure user profile exists
-async function ensureUserProfile(user) {
-  try {
-    console.log('🔍 Checking profile for user:', user.id);
-    
-    // Check if profile exists
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (profileError && profileError.code === 'PGRST116') {
-      console.log('📝 Creating new profile...');
-      
-      // Generate unique username with random suffix
-      const usernameBase = user.email?.split('@')[0] || 'user';
-      const randomSuffix = Math.random().toString(36).substring(2, 6);
-      const username = `${usernameBase}_${randomSuffix}`;
-      
-      // Create profile
-      const { error: insertError } = await supabaseClient
-        .from('user_profiles')
-        .insert([
-          {
-            id: user.id,
-            email: user.email,
-            username: username,
-            full_name: user.user_metadata?.full_name || 
-                      user.user_metadata?.name || 
-                      usernameBase,
-            avatar_url: user.user_metadata?.avatar_url || null
-          }
-        ]);
-      
-      if (insertError) {
-        console.error('Failed to create profile:', insertError);
-        // Don't throw error - allow user to continue without profile
-      } else {
-        console.log('✅ Profile created successfully');
-      }
-    } else if (profile) {
-      console.log('✅ Profile already exists');
-    }
-  } catch (error) {
-    console.error('Error ensuring profile:', error);
-    // Don't throw error - allow user to continue
   }
 }
 
@@ -445,6 +495,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.removeItem('rememberEmail');
       }
       
+      // Wait a moment for database trigger
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Ensure profile exists
       await ensureUserProfile(data.user);
       
@@ -453,7 +506,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Small delay for user to see success message
       setTimeout(() => {
-        // Redirect to main page
         window.location.href = 'index.html';
       }, 1000);
       
@@ -466,7 +518,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // GOOGLE LOGIN
+  // FIXED: GOOGLE LOGIN with better error handling
   document.getElementById('googleLogin').addEventListener('click', async () => {
     const btn = document.getElementById('googleLogin');
     const originalText = btn.innerHTML;
@@ -482,14 +534,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       console.log('🔵 Starting Google OAuth...');
       
+      // First, clear any existing session
+      await supabaseClient.auth.signOut();
+      
+      // Start OAuth flow with EXACT redirect URL
+      const redirectUrl = window.location.origin + '/login.html';
+      console.log('Using redirect URL:', redirectUrl);
+      
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/login.html',
+          redirectTo: redirectUrl,
           queryParams: { 
-            access_type: 'offline', 
+            access_type: 'offline',
             prompt: 'consent' 
-          }
+          },
+          skipBrowserRedirect: false // Make sure it redirects
         }
       });
       
@@ -498,12 +558,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw error;
       }
       
-      console.log('Google OAuth initiated');
+      console.log('Google OAuth initiated - browser should redirect');
       // The browser will redirect to Google, then back to login.html
+      // The initializeAuth() function will handle the callback
       
     } catch (err) {
       console.error('Google login error:', err);
-      showError('Google login failed: ' + err.message);
+      showError('Google login failed. Please try again.');
       btn.innerHTML = originalText;
       btn.disabled = false;
     }
