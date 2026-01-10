@@ -2754,22 +2754,17 @@ async function checkSessionOnLoad() {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     
+    console.log('🔍 Checking session on homepage load...');
+    
     if (error) {
       console.error('Session check error:', error);
       return;
     }
     
     if (session) {
-      console.log('✅ Session found:', session.user.email);
-      // We DO NOT check/create the profile here anymore.
-      // The Database Trigger guarantees it exists.
-    } else {
-      console.log('ℹ️ No active session');
-    }
-  } catch (error) {
-    console.error('Error in checkSessionOnLoad:', error);
-  }
-}
+      console.log('✅ Session found for user:', session.user.email);
+      console.log('Session expires at:', new Date(session.expires_at * 1000));
+      
       // Check if profile exists
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
