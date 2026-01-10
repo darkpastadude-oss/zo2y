@@ -2747,12 +2747,13 @@
                     detectSessionInUrl: true
                 }
             });
+            
             // Prevent multiple initialization
-            let isInitializing = false;
-            let hasInitialized = false;
-            let isLoadingRestaurants = false; 
             let currentUser = null;
             let initTimeout;
+            let isLoadingRestaurants = false;  // ← ADDED THIS FLAG
+            let isInitializing = false;         // ← ADDED THIS FLAG
+            let hasInitialized = false;          // ← ADDED THIS FLAG
             
             // ---------- GLOBAL STATE ----------
             const state = {
@@ -2966,68 +2967,69 @@
             
             // ---------- INITIALIZATION ----------
             async function init() {
-    // Prevent multiple initializations
-    if (isInitializing || hasInitialized) {
-        console.warn('⚠️ Init already in progress or completed');
-        return;
-    }
-    
-    isInitializing = true;
-    console.log('🚀 Initializing homepage...');
-    setupInitTimeout();
-    
-    try {
-        setupEventListeners();
-        guestBanner.init();
-        
-        console.log('🔐 Starting auth initialization...');
-        await initializeAuth();
-        console.log('✅ Auth initialization complete, user logged in:', state.isLoggedIn);
-        
-        initImageLoader();
-        
-        console.log('🍽️ Starting restaurant data load...');
-        await loadRestaurantsData();
-        console.log('✅ Restaurant data loaded');
-        
-        populateFilters();
-        
-        setTimeout(() => {
-            if (state.imageObserver) {
-                const images = document.querySelectorAll('img[data-src]');
-                console.log(`🖼️ Observing ${images.length} images...`);
-                images.forEach(img => {
-                    if (!img.classList.contains('observed')) {
-                        state.imageObserver.observe(img);
-                        img.classList.add('observed');
+                // Prevent multiple initializations
+                if (isInitializing || hasInitialized) {
+                    console.warn('⚠️ Init already in progress or completed');
+                    return;
+                }
+                
+                isInitializing = true;
+                console.log('🚀 Initializing homepage...');
+                setupInitTimeout();
+                
+                try {
+                    setupEventListeners();
+                    guestBanner.init();
+                    
+                    console.log('🔐 Starting auth initialization...');
+                    await initializeAuth();
+                    console.log('✅ Auth initialization complete, user logged in:', state.isLoggedIn);
+                    
+                    initImageLoader();
+                    
+                    console.log('🍽️ Starting restaurant data load...');
+                    await loadRestaurantsData();
+                    console.log('✅ Restaurant data loaded');
+                    
+                    populateFilters();
+                    
+                    setTimeout(() => {
+                        if (state.imageObserver) {
+                            const images = document.querySelectorAll('img[data-src]');
+                            console.log(`🖼️ Observing ${images.length} images...`);
+                            images.forEach(img => {
+                                if (!img.classList.contains('observed')) {
+                                    state.imageObserver.observe(img);
+                                    img.classList.add('observed');
+                                }
+                            });
+                        }
+                    }, 500);
+                    
+                    clearInitTimeout();
+                    hasInitialized = true;
+                    isInitializing = false;
+                    console.log('✅ Initialization complete');
+                    
+                } catch (error) {
+                    console.error('❌ Initialization error:', error);
+                    clearInitTimeout();
+                    isInitializing = false;
+                    showNotification('Failed to initialize page', 'error');
+                    
+                    const featuredSlider = document.getElementById('featuredSlider');
+                    const nearbySlider = document.getElementById('nearbySlider');
+                    if (featuredSlider) {
+                        featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+                        featuredSlider.classList.remove('skeleton-grid');
                     }
-                });
+                    if (nearbySlider) {
+                        nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+                        nearbySlider.classList.remove('skeleton-grid');
+                    }
+                }
             }
-        }, 500);
-        
-        clearInitTimeout();
-        hasInitialized = true;
-        isInitializing = false;
-        console.log('✅ Initialization complete');
-        
-    } catch (error) {
-        console.error('❌ Initialization error:', error);
-        clearInitTimeout();
-        isInitializing = false;
-        showNotification('Failed to initialize page', 'error');
-        
-        const featuredSlider = document.getElementById('featuredSlider');
-        const nearbySlider = document.getElementById('nearbySlider');
-        if (featuredSlider) {
-            featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
-            featuredSlider.classList.remove('skeleton-grid');
-        }
-        if (nearbySlider) {
-            nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
-            nearbySlider.classList.remove('skeleton-grid');
-        }
-    }
-}
+            
             // ---------- AUTH MANAGEMENT ----------
             async function initializeAuth() {
                 console.log('🔐 Initializing auth...');
@@ -3197,6 +3199,13 @@
             
             // ---------- RESTAURANT DATA LOADING ----------
             async function loadRestaurantsData() {
+                // Prevent concurrent calls
+                if (isLoadingRestaurants) {
+                    console.warn('⚠️ Restaurant loading already in progress');
+                    return;
+                }
+                
+                isLoadingRestaurants = true;
                 console.log('🍽️ Loading restaurant data...');
                 
                 try {
@@ -3316,6 +3325,8 @@
                         nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Error loading restaurants</div>';
                         nearbySlider.classList.remove('skeleton-grid');
                     }
+                } finally {
+                    isLoadingRestaurants = false;  // ← IMPORTANT: Always reset the flag
                 }
             }
             
