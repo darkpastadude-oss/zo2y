@@ -2938,33 +2938,47 @@
             async function init() {
                 console.log('🚀 Initializing homepage...');
                 
-                // Initialize image loader
-                initImageLoader();
-                
-                // Setup event listeners
-                setupEventListeners();
-                
-                // Initialize guest banner
-                guestBanner.init();
-                
-                // Initialize auth
-                await initializeAuth();
-                
-                // Load restaurant data
-                await loadRestaurantsData();
-                
-                // Force observe images after everything loads
-                setTimeout(() => {
-                    if (state.imageObserver) {
-                        const images = document.querySelectorAll('img[data-src]');
-                        images.forEach(img => {
-                            if (!img.classList.contains('observed')) {
-                                state.imageObserver.observe(img);
-                                img.classList.add('observed');
-                            }
-                        });
-                    }
-                }, 500);
+                try {
+                    // Setup event listeners first
+                    setupEventListeners();
+                    
+                    // Initialize guest banner
+                    guestBanner.init();
+                    
+                    // Initialize auth - WAIT for this to complete
+                    console.log('🔐 Starting auth initialization...');
+                    await initializeAuth();
+                    console.log('✅ Auth initialization complete, user logged in:', state.isLoggedIn);
+                    
+                    // Initialize image loader AFTER auth
+                    initImageLoader();
+                    
+                    // Load restaurant data - WAIT for this
+                    console.log('🍽️ Starting restaurant data load...');
+                    await loadRestaurantsData();
+                    console.log('✅ Restaurant data loaded');
+                    
+                    // Setup UI elements
+                    populateFilters();
+                    
+                    // Force observe images after everything loads
+                    setTimeout(() => {
+                        if (state.imageObserver) {
+                            const images = document.querySelectorAll('img[data-src]');
+                            console.log(`🖼️ Observing ${images.length} images...`);
+                            images.forEach(img => {
+                                if (!img.classList.contains('observed')) {
+                                    state.imageObserver.observe(img);
+                                    img.classList.add('observed');
+                                }
+                            });
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('❌ Initialization error:', error);
+                    showNotification('Failed to initialize page', 'error');
+                }
             }
             
             // ---------- AUTH MANAGEMENT ----------
@@ -2972,24 +2986,40 @@
                 console.log('🔐 Initializing auth...');
                 
                 try {
-                    const { data: { session } } = await supabase.auth.getSession();
+                    // Clear any existing state first
+                    state.isLoggedIn = false;
+                    currentUser = null;
+                    
+                    // Get current session
+                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                    
+                    if (sessionError) {
+                        console.error('❌ Session error:', sessionError);
+                        setGuestState();
+                        return;
+                    }
                     
                     if (session?.user) {
                         console.log('✅ User found in session:', session.user.email);
                         currentUser = session.user;
                         state.isLoggedIn = true;
                         
+                        // Ensure user profile exists
                         await ensureUserProfile(currentUser);
+                        
+                        // Initialize list manager for logged-in users
                         await state.listManager.init();
+                        
+                        // Set UI to logged-in state
                         setLoggedInState(currentUser);
                         
                     } else {
-                        console.log('No active session, setting guest state');
+                        console.log('👤 No active session, setting guest state');
                         setGuestState();
                     }
                     
                 } catch (error) {
-                    console.error('Auth initialization error:', error);
+                    console.error('❌ Auth initialization error:', error);
                     setGuestState();
                 }
             }
@@ -3055,10 +3085,14 @@
                     setGuestState();
                     guestBanner.show();
                     state.selectedLists.clear();
-                    renderFeaturedRestaurants();
-                    renderNearbyRestaurants();
-                    updateSpotlight();
-                    setupRestaurantOfTheDay();
+                    
+                    // Refresh UI
+                    if (state.restaurants.length > 0) {
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
+                    }
                     
                 } else if (event === 'SIGNED_IN' && session?.user) {
                     currentUser = session.user;
@@ -3066,6 +3100,14 @@
                     await ensureUserProfile(currentUser);
                     await state.listManager.init();
                     setLoggedInState(currentUser);
+                    
+                    // Refresh UI to show list badges
+                    if (state.restaurants.length > 0) {
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
+                    }
                 }
             });
             
@@ -3095,12 +3137,6 @@
                     
                     guestBanner.hide();
                     
-                    // Refresh UI to show list badges
-                    renderFeaturedRestaurants();
-                    renderNearbyRestaurants();
-                    updateSpotlight();
-                    setupRestaurantOfTheDay();
-                    
                 } catch (error) {
                     console.error('Error setting logged in state:', error);
                     setGuestState();
@@ -3127,10 +3163,22 @@
             // ---------- RESTAURANT DATA LOADING ----------
             async function loadRestaurantsData() {
                 console.log('🍽️ Loading restaurant data...');
+                
                 try {
-                    await loadCloudKitchens();
-                    await loadRestaurantImages();
+                    // Clear existing data
+                    state.restaurants = [];
+                    state.restaurantImages.clear();
                     
+                    // Step 1: Load restaurant images first
+                    await loadRestaurantImages();
+                    console.log('✅ Images loaded');
+                    
+                    // Step 2: Load cloud kitchens
+                    await loadCloudKitchens();
+                    console.log('✅ Cloud kitchens loaded');
+                    
+                    // Step 3: Load restaurants with categories
+                    console.log('📋 Loading restaurant data...');
                     const { data, error } = await supabase
                         .from('restraunts')
                         .select(`
@@ -3151,24 +3199,100 @@
                         .limit(48);
                     
                     if (error) {
-                        console.warn('Could not load with categories join, loading basic data:', error);
+                        console.warn('⚠️ Could not load with categories join:', error.message);
+                        console.log('🔄 Trying to load basic restaurant data...');
                         await loadBasicRestaurantData();
-                        return;
+                    } else {
+                        console.log(`✅ Loaded ${data?.length || 0} restaurants with categories`);
+                        
+                        if (!data || data.length === 0) {
+                            console.warn('⚠️ No restaurants found with categories');
+                            showNotification('No restaurants available', 'info');
+                            // Try basic data as fallback
+                            await loadBasicRestaurantData();
+                            return;
+                        }
+                        
+                        state.restaurants = data.map(restaurant => ({
+                            id: restaurant.id,
+                            slug: restaurant.slug,
+                            name: restaurant.name,
+                            category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
+                            description: restaurant.description,
+                            rating: restaurant.rating,
+                            logo_url: restaurant.logo_url,
+                            coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
+                            isCloudKitchen: state.cloudKitchens.has(restaurant.id)
+                        }));
+                    }
+                    
+                    console.log(`📊 Total restaurants in state: ${state.restaurants.length}`);
+                    
+                    // Step 4: Render UI components
+                    if (state.restaurants.length > 0) {
+                        console.log('🎨 Rendering UI components...');
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        setupSpotlight();
+                        setupRestaurantOfTheDay();
+                        populateFilters();
+                    } else {
+                        console.warn('⚠️ No restaurants to display');
+                        showNotification('No restaurants available', 'info');
+                        
+                        // Show empty states
+                        const featuredSlider = document.getElementById('featuredSlider');
+                        const nearbySlider = document.getElementById('nearbySlider');
+                        if (featuredSlider) {
+                            featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
+                            featuredSlider.classList.remove('skeleton-grid');
+                        }
+                        if (nearbySlider) {
+                            nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
+                            nearbySlider.classList.remove('skeleton-grid');
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error loading restaurants:', error);
+                    showNotification('Failed to load restaurants', 'error');
+                    
+                    // Try to load at least basic data as fallback
+                    try {
+                        await loadBasicRestaurantData();
+                    } catch (fallbackError) {
+                        console.error('❌ Fallback data load also failed:', fallbackError);
+                    }
+                }
+            }
+            
+            async function loadBasicRestaurantData() {
+                console.log('🔄 Loading basic restaurant data...');
+                
+                try {
+                    const { data, error } = await supabase
+                        .from('restraunts')
+                        .select('id, slug, name, category, description, rating, logo_url, image')
+                        .order('rating', { ascending: false })
+                        .limit(48);
+                    
+                    if (error) {
+                        console.error('❌ Basic data load error:', error);
+                        throw error;
                     }
                     
                     if (!data || data.length === 0) {
-                        console.warn('No restaurants found');
-                        showNotification('No restaurants available', 'info');
+                        console.warn('⚠️ No restaurants in basic data');
                         return;
                     }
                     
-                    console.log(`✅ Loaded ${data.length} restaurants`);
+                    console.log(`✅ Loaded ${data.length} basic restaurant records`);
                     
                     state.restaurants = data.map(restaurant => ({
                         id: restaurant.id,
                         slug: restaurant.slug,
                         name: restaurant.name,
-                        category: restaurant.categories ? restaurant.categories.name : restaurant.category || 'Restaurant',
+                        category: restaurant.category || 'Restaurant',
                         description: restaurant.description,
                         rating: restaurant.rating,
                         logo_url: restaurant.logo_url,
@@ -3176,49 +3300,19 @@
                         isCloudKitchen: state.cloudKitchens.has(restaurant.id)
                     }));
                     
-                    renderFeaturedRestaurants();
-                    renderNearbyRestaurants();
-                    setupSpotlight();
-                    setupRestaurantOfTheDay();
-                    populateFilters();
+                    // Render UI even with basic data
+                    if (state.restaurants.length > 0) {
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        setupSpotlight();
+                        setupRestaurantOfTheDay();
+                        populateFilters();
+                    }
                     
                 } catch (error) {
-                    console.error('Error loading restaurants:', error);
-                    showNotification('Failed to load restaurants', 'error');
+                    console.error('❌ Basic data load failed:', error);
+                    throw error;
                 }
-            }
-            
-            async function loadBasicRestaurantData() {
-                const { data, error } = await supabase
-                    .from('restraunts')
-                    .select('id, slug, name, category, description, rating, logo_url, image')
-                    .order('rating', { ascending: false })
-                    .limit(48);
-                
-                if (error) throw error;
-                
-                if (!data || data.length === 0) {
-                    showNotification('No restaurants available', 'info');
-                    return;
-                }
-                
-                state.restaurants = data.map(restaurant => ({
-                    id: restaurant.id,
-                    slug: restaurant.slug,
-                    name: restaurant.name,
-                    category: restaurant.category || 'Restaurant',
-                    description: restaurant.description,
-                    rating: restaurant.rating,
-                    logo_url: restaurant.logo_url,
-                    coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
-                    isCloudKitchen: state.cloudKitchens.has(restaurant.id)
-                }));
-                
-                renderFeaturedRestaurants();
-                renderNearbyRestaurants();
-                setupSpotlight();
-                setupRestaurantOfTheDay();
-                populateFilters();
             }
             
             async function loadCloudKitchens() {
@@ -3237,6 +3331,9 @@
                         cloudKitchens.forEach(ck => {
                             state.cloudKitchens.add(ck.restaurant_id);
                         });
+                        console.log(`✅ Loaded ${cloudKitchens.length} cloud kitchens`);
+                    } else {
+                        console.log('ℹ️ No cloud kitchens found');
                     }
                 } catch (error) {
                     console.error('Error loading cloud kitchens:', error);
@@ -3245,12 +3342,18 @@
             
             async function loadRestaurantImages() {
                 try {
+                    console.log('🖼️ Loading restaurant images...');
+                    
+                    // Load from restaurant_gallery first
                     const { data: galleryData, error: galleryError } = await supabase
                         .from('restaurant_gallery')
                         .select('restaurant_slug, image_url, image_type, is_primary')
-                        .order('sort_order');
+                        .order('sort_order')
+                        .limit(200);
                     
                     if (!galleryError && galleryData) {
+                        console.log(`📸 Loaded ${galleryData.length} gallery images`);
+                        
                         galleryData.forEach(item => {
                             if (!state.restaurantImages.has(item.restaurant_slug)) {
                                 state.restaurantImages.set(item.restaurant_slug, {
@@ -3269,13 +3372,19 @@
                                 images.logo = item.image_url;
                             }
                         });
+                    } else if (galleryError) {
+                        console.warn('⚠️ Gallery image load warning:', galleryError.message);
                     }
                     
-                    const { data: restaurantsData } = await supabase
+                    // Load from restaurants table as fallback
+                    const { data: restaurantsData, error: restaurantsError } = await supabase
                         .from('restraunts')
-                        .select('slug, image, logo_url');
+                        .select('slug, image, logo_url')
+                        .limit(100);
                     
-                    if (restaurantsData) {
+                    if (!restaurantsError && restaurantsData) {
+                        console.log(`🏪 Loaded ${restaurantsData.length} restaurant image references`);
+                        
                         restaurantsData.forEach(restaurant => {
                             if (!state.restaurantImages.has(restaurant.slug)) {
                                 state.restaurantImages.set(restaurant.slug, {
@@ -3292,10 +3401,14 @@
                                 }
                             }
                         });
+                    } else if (restaurantsError) {
+                        console.warn('⚠️ Restaurant image load warning:', restaurantsError.message);
                     }
                     
+                    console.log(`📊 Total restaurant images loaded: ${state.restaurantImages.size}`);
+                    
                 } catch (error) {
-                    console.error('Error loading images:', error);
+                    console.error('❌ Error loading restaurant images:', error);
                 }
             }
             
@@ -3617,17 +3730,28 @@
             
             // ---------- RENDERING ----------
             function renderFeaturedRestaurants() {
-                const grid = document.getElementById('featuredSlider');
-                if (!grid) return;
+                console.log('🎨 Rendering featured restaurants...');
                 
-                if (state.restaurants.length === 0) {
-                    grid.innerHTML = '<div class="empty-state">No restaurants found</div>';
+                const grid = document.getElementById('featuredSlider');
+                if (!grid) {
+                    console.warn('⚠️ Featured slider grid not found');
                     return;
                 }
                 
+                if (state.restaurants.length === 0) {
+                    console.warn('⚠️ No restaurants to display in featured');
+                    grid.innerHTML = '<div class="empty-state" style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
+                    grid.classList.remove('skeleton-grid');
+                    return;
+                }
+                
+                console.log(`📊 Rendering ${Math.min(8, state.restaurants.length)} featured restaurants`);
+                
+                // Remove skeleton class
                 grid.classList.remove('skeleton-grid');
                 
-                const featured = state.restaurants.slice(0, 8);
+                // Get featured restaurants (first 8 or less)
+                const featured = state.restaurants.slice(0, Math.min(8, state.restaurants.length));
                 const fragment = document.createDocumentFragment();
                 
                 for (const restaurant of featured) {
@@ -3635,12 +3759,17 @@
                     fragment.appendChild(card);
                 }
                 
+                // Clear and append
                 grid.innerHTML = '';
                 grid.appendChild(fragment);
                 
+                console.log('✅ Featured restaurants rendered');
+                
+                // Setup image lazy loading
                 if (state.imageObserver) {
                     setTimeout(() => {
                         const images = grid.querySelectorAll('img[data-src]');
+                        console.log(`👀 Setting up lazy loading for ${images.length} images`);
                         images.forEach(img => {
                             if (!img.classList.contains('observed')) {
                                 state.imageObserver.observe(img);
@@ -3652,17 +3781,29 @@
             }
             
             function renderNearbyRestaurants() {
-                const grid = document.getElementById('nearbySlider');
-                if (!grid) return;
+                console.log('🎨 Rendering nearby restaurants...');
                 
-                if (state.restaurants.length === 0) {
-                    grid.innerHTML = '<div class="empty-state">No restaurants found</div>';
+                const grid = document.getElementById('nearbySlider');
+                if (!grid) {
+                    console.warn('⚠️ Nearby slider grid not found');
                     return;
                 }
                 
+                if (state.restaurants.length === 0) {
+                    console.warn('⚠️ No restaurants to display in nearby');
+                    grid.innerHTML = '<div class="empty-state" style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
+                    grid.classList.remove('skeleton-grid');
+                    return;
+                }
+                
+                console.log(`📊 Rendering ${Math.min(8, Math.max(0, state.restaurants.length - 8))} nearby restaurants`);
+                
+                // Remove skeleton class
                 grid.classList.remove('skeleton-grid');
                 
-                const nearby = state.restaurants.slice(8, 16);
+                // Get nearby restaurants (next 8 after featured)
+                const startIndex = Math.min(8, state.restaurants.length);
+                const nearby = state.restaurants.slice(startIndex, Math.min(startIndex + 8, state.restaurants.length));
                 const fragment = document.createDocumentFragment();
                 
                 for (const restaurant of nearby) {
@@ -3670,12 +3811,17 @@
                     fragment.appendChild(card);
                 }
                 
+                // Clear and append
                 grid.innerHTML = '';
                 grid.appendChild(fragment);
                 
+                console.log('✅ Nearby restaurants rendered');
+                
+                // Setup image lazy loading
                 if (state.imageObserver) {
                     setTimeout(() => {
                         const images = grid.querySelectorAll('img[data-src]');
+                        console.log(`👀 Setting up lazy loading for ${images.length} images`);
                         images.forEach(img => {
                             if (!img.classList.contains('observed')) {
                                 state.imageObserver.observe(img);
@@ -3840,12 +3986,19 @@
                         location.href = `restaurant.html?slug=${restaurant.slug}`;
                     }
                 };
+                
+                console.log('✅ Restaurant of the Day set up');
             }
             
             // ---------- FILTERS ----------
             function populateFilters() {
                 const filterBar = document.getElementById('filterBar');
                 if (!filterBar) return;
+                
+                if (state.restaurants.length === 0) {
+                    filterBar.innerHTML = '';
+                    return;
+                }
                 
                 const categories = [...new Set(state.restaurants.slice(0, 8).map(r => r.category).filter(Boolean))];
                 
@@ -3866,9 +4019,13 @@
                         filterFeaturedRestaurants(this.dataset.filter);
                     });
                 });
+                
+                console.log('✅ Filters populated');
             }
             
             function filterFeaturedRestaurants(filter) {
+                if (state.restaurants.length === 0) return;
+                
                 let filtered = state.restaurants.slice(0, 8);
                 
                 if (filter === 'top-rated') {
@@ -4038,6 +4195,8 @@
             
             // ---------- EVENT LISTENERS ----------
             function setupEventListeners() {
+                console.log('🔧 Setting up event listeners...');
+                
                 // Mobile search toggle
                 const mobileSearchToggle = document.getElementById('mobileSearchToggle');
                 if (mobileSearchToggle) {
@@ -4189,6 +4348,8 @@
                         document.body.style.overflow = 'auto';
                     });
                 }
+                
+                console.log('✅ Event listeners set up');
             }
             
             // Start initialization
