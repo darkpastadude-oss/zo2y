@@ -2768,7 +2768,170 @@
                 searchDebounceTimer: null,
                 selectedSearchIndex: -1,
                 isMobileSearchOpen: false,
-                restaurantOfTheDay: null
+                restaurantOfTheDay: null,
+                listManager: {
+                    userLists: [],
+                    currentLists: {
+                        favorites: null,
+                        visited: null,
+                        wantToGo: null
+                    },
+                    
+                    async init() { 
+                        if (!state.isLoggedIn || !currentUser) return;
+                        
+                        await this.loadUserLists();
+                    },
+                    
+                    async loadUserLists() {
+                        try {
+                            if (!currentUser) return;
+
+                            const { data: lists, error } = await supabase
+                                .from('lists')
+                                .select('*')
+                                .eq('user_id', currentUser.id);
+                            
+                            if (error) throw error;
+                            
+                            this.userLists = lists || [];
+                            await this.setupDefaultLists();
+                            await this.loadListRestaurants();
+                            
+                        } catch (error) {
+                            console.error('Error loading lists:', error);
+                        }
+                    },
+                    
+                    async setupDefaultLists() {
+                        if (!currentUser) return;
+                        
+                        this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+                        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+                        this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                        
+                        if (!this.currentLists.favorites) {
+                            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+                        }
+                        if (!this.currentLists.visited) {
+                            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+                        }
+                        if (!this.currentLists.wantToGo) {
+                            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+                        }
+                    },
+                    
+                    async createList(title, description) {
+                        if (!currentUser) return null;
+                        
+                        const { data: newList, error } = await supabase
+                            .from('lists')
+                            .insert([
+                                {
+                                    user_id: currentUser.id,
+                                    title: title,
+                                    description: description
+                                }
+                            ])
+                            .select()
+                            .single();
+                        
+                        if (error) {
+                            console.error('Error creating list:', error);
+                            return null;
+                        }
+                        
+                        this.userLists.push(newList);
+                        return newList;
+                    },
+                    
+                    async loadListRestaurants() {
+                        for (const listType in this.currentLists) {
+                            const list = this.currentLists[listType];
+                            if (list) {
+                                const { data: listRestaurants, error } = await supabase
+                                    .from('lists_restraunts')
+                                    .select('restraunt_id')
+                                    .eq('list_id', list.id);
+                                
+                                if (!error && listRestaurants) {
+                                    list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                                } else {
+                                    list.restaurants = [];
+                                }
+                            }
+                        }
+                    },
+                    
+                    async toggleInList(listType, restaurantId) {
+                        const list = this.currentLists[listType];
+                        if (!list) return false;
+                        
+                        const isInList = list.restaurants?.includes(restaurantId);
+                        
+                        try {
+                            if (isInList) {
+                                const { error } = await supabase
+                                    .from('lists_restraunts')
+                                    .delete()
+                                    .match({
+                                        list_id: list.id,
+                                        restraunt_id: restaurantId
+                                    });
+                                
+                                if (error) throw error;
+                                
+                                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                                showNotification(`Removed from ${list.title}`, 'info');
+                                return false;
+                                
+                            } else {
+                                const { error } = await supabase
+                                    .from('lists_restraunts')
+                                    .insert([
+                                        {
+                                            list_id: list.id,
+                                            restraunt_id: restaurantId,
+                                            added_at: new Date().toISOString()
+                                        }
+                                    ]);
+                                
+                                if (error) throw error;
+                                
+                                if (!list.restaurants) list.restaurants = [];
+                                list.restaurants.push(restaurantId);
+                                showNotification(`Added to ${list.title}`, 'success');
+                                return true;
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error updating list:', error);
+                            showNotification('Failed to update list', 'error');
+                            return isInList;
+                        }
+                    },
+                    
+                    isInList(listType, restaurantId) {
+                        const list = this.currentLists[listType];
+                        return list?.restaurants?.includes(restaurantId) || false;
+                    },
+                    
+                    getRestaurantListStatus(restaurantId) {
+                        if (!state.isLoggedIn) {
+                            return {
+                                favorites: false,
+                                wantToGo: false,
+                                visited: false
+                            };
+                        }
+                        
+                        return {
+                            favorites: this.isInList('favorites', restaurantId),
+                            wantToGo: this.isInList('wantToGo', restaurantId),
+                            visited: this.isInList('visited', restaurantId)
+                        };
+                    }
+                }
             };
             
             // ---------- INITIALIZATION ----------
@@ -2817,8 +2980,9 @@
                         state.isLoggedIn = true;
                         
                         await ensureUserProfile(currentUser);
+                        await state.listManager.init();
                         setLoggedInState(currentUser);
-                        await initUserFeatures();
+                        
                     } else {
                         console.log('No active session, setting guest state');
                         setGuestState();
@@ -2881,6 +3045,7 @@
                 }
             }
             
+            // Set up auth state change listener
             supabase.auth.onAuthStateChange(async (event, session) => {
                 console.log('🔄 Auth state change:', event);
                 
@@ -2899,8 +3064,8 @@
                     currentUser = session.user;
                     state.isLoggedIn = true;
                     await ensureUserProfile(currentUser);
+                    await state.listManager.init();
                     setLoggedInState(currentUser);
-                    await initUserFeatures();
                 }
             });
             
@@ -2929,6 +3094,12 @@
                     if (loggedInBtn) loggedInBtn.style.display = 'flex';
                     
                     guestBanner.hide();
+                    
+                    // Refresh UI to show list badges
+                    renderFeaturedRestaurants();
+                    renderNearbyRestaurants();
+                    updateSpotlight();
+                    setupRestaurantOfTheDay();
                     
                 } catch (error) {
                     console.error('Error setting logged in state:', error);
@@ -3308,10 +3479,10 @@
                 const categoryIcon = getCategoryIconFallback(restaurant.category);
                 const category = restaurant.category || 'Restaurant';
                 const logoUrl = getLogoUrl(restaurant);
-                const status = listManager.getRestaurantListStatus(restaurant.id);
+                const status = state.listManager.getRestaurantListStatus(restaurant.id);
                 const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
                 const isCloudKitchen = restaurant.isCloudKitchen || false;
-                const cloudBadge = isCloudKitchen ? cloudKitchenManager.createCloudBadge(restaurant.id) : '';
+                const cloudBadge = isCloudKitchen ? createCloudBadge(restaurant.id) : '';
                 
                 let listBadges = '';
                 
@@ -3408,6 +3579,19 @@
                 }
                 
                 return card;
+            }
+            
+            function createCloudBadge(restaurantId) {
+                if (!state.cloudKitchens.has(restaurantId)) return '';
+                
+                return `
+                    <div class="cloud-badge" aria-label="Cloud Kitchen">
+                        <i class="fas fa-cloud"></i>
+                        <div class="cloud-tooltip">
+                            Cloud Kitchen
+                        </div>
+                    </div>
+                `;
             }
             
             function getCategoryIconFallback(categoryName) {
@@ -3528,8 +3712,8 @@
                 ` : '';
                 
                 let listBadges = '';
-                if (state.isLoggedIn && listManager) {
-                    const status = listManager.getRestaurantListStatus(restaurant.id);
+                if (state.isLoggedIn && state.listManager) {
+                    const status = state.listManager.getRestaurantListStatus(restaurant.id);
                     if (status.favorites) listBadges += `
                         <div class="list-badge" style="top: 70px;">
                             ❤️
@@ -3719,239 +3903,6 @@
                 }
             }
             
-            // ---------- CLOUD KITCHEN MANAGER ----------
-            const cloudKitchenManager = {
-                isCloudKitchen(restaurantId) {
-                    return state.cloudKitchens.has(restaurantId);
-                },
-                
-                createCloudBadge(restaurantId) {
-                    if (!this.isCloudKitchen(restaurantId)) return '';
-                    
-                    return `
-                        <div class="cloud-badge" aria-label="Cloud Kitchen">
-                            <i class="fas fa-cloud"></i>
-                            <div class="cloud-tooltip">
-                                Cloud Kitchen
-                            </div>
-                        </div>
-                    `;
-                }
-            };
-            
-            // ---------- LIST MANAGER ----------
-            const listManager = {
-                userLists: [],
-                currentLists: {
-                    favorites: null,
-                    visited: null,
-                    wantToGo: null
-                },
-                
-                async init() { 
-                    if (!state.isLoggedIn) return;
-                    
-                    await this.loadUserLists();
-                },
-                
-                async loadUserLists() {
-                    try {
-                        if (!currentUser) return;
-
-                        const { data: lists, error } = await supabase
-                            .from('lists')
-                            .select('*')
-                            .eq('user_id', currentUser.id);
-                        
-                        if (error) throw error;
-                        
-                        this.userLists = lists || [];
-                        await this.setupDefaultLists();
-                        await this.loadListRestaurants();
-                        
-                    } catch (error) {
-                        console.error('Error loading lists:', error);
-                    }
-                },
-                
-                async setupDefaultLists() {
-                    if (!currentUser) return;
-                    
-                    this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-                    this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-                    this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-                    
-                    if (!this.currentLists.favorites) {
-                        this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-                    }
-                    if (!this.currentLists.visited) {
-                        this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-                    }
-                    if (!this.currentLists.wantToGo) {
-                        this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-                    }
-                },
-                
-                async createList(title, description) {
-                    if (!currentUser) return null;
-                    
-                    const { data: newList, error } = await supabase
-                        .from('lists')
-                        .insert([
-                            {
-                                user_id: currentUser.id,
-                                title: title,
-                                description: description
-                            }
-                        ])
-                        .select()
-                        .single();
-                    
-                    if (error) {
-                        console.error('Error creating list:', error);
-                        return null;
-                    }
-                    
-                    this.userLists.push(newList);
-                    return newList;
-                },
-                
-                async loadListRestaurants() {
-                    for (const listType in this.currentLists) {
-                        const list = this.currentLists[listType];
-                        if (list) {
-                            const { data: listRestaurants, error } = await supabase
-                                .from('lists_restraunts')
-                                .select('restraunt_id')
-                                .eq('list_id', list.id);
-                            
-                            if (!error && listRestaurants) {
-                                list.restaurants = listRestaurants.map(item => item.restraunt_id);
-                            } else {
-                                list.restaurants = [];
-                            }
-                        }
-                    }
-                },
-                
-                async toggleInList(listType, restaurantId) {
-                    const list = this.currentLists[listType];
-                    if (!list) return false;
-                    
-                    const isInList = list.restaurants?.includes(restaurantId);
-                    
-                    try {
-                        if (isInList) {
-                            const { error } = await supabase
-                                .from('lists_restraunts')
-                                .delete()
-                                .match({
-                                    list_id: list.id,
-                                    restraunt_id: restaurantId
-                                });
-                            
-                            if (error) throw error;
-                            
-                            list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                            showNotification(`Removed from ${list.title}`, 'info');
-                            return false;
-                            
-                        } else {
-                            const { error } = await supabase
-                                .from('lists_restraunts')
-                                .insert([
-                                    {
-                                        list_id: list.id,
-                                        restraunt_id: restaurantId,
-                                        added_at: new Date().toISOString()
-                                    }
-                                ]);
-                            
-                            if (error) throw error;
-                            
-                            if (!list.restaurants) list.restaurants = [];
-                            list.restaurants.push(restaurantId);
-                            showNotification(`Added to ${list.title}`, 'success');
-                            return true;
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error updating list:', error);
-                        showNotification('Failed to update list', 'error');
-                        return isInList;
-                    }
-                },
-                
-                isInList(listType, restaurantId) {
-                    const list = this.currentLists[listType];
-                    return list?.restaurants?.includes(restaurantId) || false;
-                },
-                
-                getRestaurantListStatus(restaurantId) {
-                    if (!state.isLoggedIn) {
-                        return {
-                            favorites: false,
-                            wantToGo: false,
-                            visited: false
-                        };
-                    }
-                    
-                    return {
-                        favorites: this.isInList('favorites', restaurantId),
-                        wantToGo: this.isInList('wantToGo', restaurantId),
-                        visited: this.isInList('visited', restaurantId)
-                    };
-                }
-            };
-            
-            // ---------- MODAL FUNCTIONS ----------
-            function showModal(restaurantData) {
-                if (!restaurantData) return;
-                
-                if (!state.isLoggedIn) {
-                    showAuthPrompt();
-                    return;
-                }
-                
-                state.currentModalRestaurant = restaurantData;
-                document.getElementById('modalRestaurantName').textContent = restaurantData.name;
-                
-                updateModalButtons(restaurantData.id);
-                
-                const modal = document.getElementById('actionsModal');
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-            
-            function hideModal() {
-                const modal = document.getElementById('actionsModal');
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-            
-            function updateModalButtons(restaurantId) {
-                const status = listManager.getRestaurantListStatus(restaurantId);
-                
-                const favoritesBtn = document.getElementById('modalFavoritesBtn');
-                const wantToGoBtn = document.getElementById('modalWantToGoBtn');
-                const visitedBtn = document.getElementById('modalVisitedBtn');
-                
-                if (favoritesBtn) {
-                    favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
-                    favoritesBtn.classList.toggle('active', status.favorites);
-                }
-                
-                if (wantToGoBtn) {
-                    wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
-                    wantToGoBtn.classList.toggle('active', status.wantToGo);
-                }
-                
-                if (visitedBtn) {
-                    visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
-                    visitedBtn.classList.toggle('active', status.visited);
-                }
-            }
-            
             // ---------- NOTIFICATION SYSTEM ----------
             function showNotification(message, type = "info", duration = 2500) {
                 const container = document.getElementById("notificationContainer");
@@ -4037,20 +3988,51 @@
                 document.body.style.overflow = 'hidden';
             }
             
-            // ---------- INITIALIZE USER FEATURES ----------
-            async function initUserFeatures() {
-                if (!currentUser) return;
+            // ---------- MODAL FUNCTIONS ----------
+            function showModal(restaurantData) {
+                if (!restaurantData) return;
                 
-                try {
-                    await listManager.init();
-                    
-                    renderFeaturedRestaurants();
-                    renderNearbyRestaurants();
-                    updateSpotlight();
-                    setupRestaurantOfTheDay();
-                    
-                } catch (error) {
-                    console.error('Error initializing user features:', error);
+                if (!state.isLoggedIn) {
+                    showAuthPrompt();
+                    return;
+                }
+                
+                state.currentModalRestaurant = restaurantData;
+                document.getElementById('modalRestaurantName').textContent = restaurantData.name;
+                
+                updateModalButtons(restaurantData.id);
+                
+                const modal = document.getElementById('actionsModal');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function hideModal() {
+                const modal = document.getElementById('actionsModal');
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            
+            function updateModalButtons(restaurantId) {
+                const status = state.listManager.getRestaurantListStatus(restaurantId);
+                
+                const favoritesBtn = document.getElementById('modalFavoritesBtn');
+                const wantToGoBtn = document.getElementById('modalWantToGoBtn');
+                const visitedBtn = document.getElementById('modalVisitedBtn');
+                
+                if (favoritesBtn) {
+                    favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+                    favoritesBtn.classList.toggle('active', status.favorites);
+                }
+                
+                if (wantToGoBtn) {
+                    wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+                    wantToGoBtn.classList.toggle('active', status.wantToGo);
+                }
+                
+                if (visitedBtn) {
+                    visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+                    visitedBtn.classList.toggle('active', status.visited);
                 }
             }
             
@@ -4118,7 +4100,7 @@
                 if (modalFavoritesBtn) {
                     modalFavoritesBtn.addEventListener('click', async () => {
                         if (!state.currentModalRestaurant) return;
-                        await listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+                        await state.listManager.toggleInList('favorites', state.currentModalRestaurant.id);
                         updateModalButtons(state.currentModalRestaurant.id);
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
@@ -4131,7 +4113,7 @@
                 if (modalWantToGoBtn) {
                     modalWantToGoBtn.addEventListener('click', async () => {
                         if (!state.currentModalRestaurant) return;
-                        await listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+                        await state.listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
                         updateModalButtons(state.currentModalRestaurant.id);
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
@@ -4144,7 +4126,7 @@
                 if (modalVisitedBtn) {
                     modalVisitedBtn.addEventListener('click', async () => {
                         if (!state.currentModalRestaurant) return;
-                        await listManager.toggleInList('visited', state.currentModalRestaurant.id);
+                        await state.listManager.toggleInList('visited', state.currentModalRestaurant.id);
                         updateModalButtons(state.currentModalRestaurant.id);
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
@@ -4182,6 +4164,31 @@
                         nav.classList.remove('scrolled');
                     }
                 });
+                
+                // Auth prompt modal buttons
+                const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
+                const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
+                const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
+                
+                if (authPromptSignupBtn) {
+                    authPromptSignupBtn.addEventListener('click', () => {
+                        window.location.href = 'sign-up.html';
+                    });
+                }
+                
+                if (authPromptLoginBtn) {
+                    authPromptLoginBtn.addEventListener('click', () => {
+                        window.location.href = 'login.html';
+                    });
+                }
+                
+                if (authPromptCloseBtn) {
+                    authPromptCloseBtn.addEventListener('click', () => {
+                        const modal = document.getElementById('authPromptModal');
+                        modal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    });
+                }
             }
             
             // Start initialization
