@@ -2748,12 +2748,8 @@
                 }
             });
             
-            // Prevent multiple initialization
             let currentUser = null;
             let initTimeout;
-            let isLoadingRestaurants = false;  // ← ADDED THIS FLAG
-            let isInitializing = false;         // ← ADDED THIS FLAG
-            let hasInitialized = false;          // ← ADDED THIS FLAG
             
             // ---------- GLOBAL STATE ----------
             const state = {
@@ -2967,13 +2963,6 @@
             
             // ---------- INITIALIZATION ----------
             async function init() {
-                // Prevent multiple initializations
-                if (isInitializing || hasInitialized) {
-                    console.warn('⚠️ Init already in progress or completed');
-                    return;
-                }
-                
-                isInitializing = true;
                 console.log('🚀 Initializing homepage...');
                 setupInitTimeout();
                 
@@ -3007,14 +2996,10 @@
                     }, 500);
                     
                     clearInitTimeout();
-                    hasInitialized = true;
-                    isInitializing = false;
-                    console.log('✅ Initialization complete');
                     
                 } catch (error) {
                     console.error('❌ Initialization error:', error);
                     clearInitTimeout();
-                    isInitializing = false;
                     showNotification('Failed to initialize page', 'error');
                     
                     const featuredSlider = document.getElementById('featuredSlider');
@@ -3199,13 +3184,6 @@
             
             // ---------- RESTAURANT DATA LOADING ----------
             async function loadRestaurantsData() {
-                // Prevent concurrent calls
-                if (isLoadingRestaurants) {
-                    console.warn('⚠️ Restaurant loading already in progress');
-                    return;
-                }
-                
-                isLoadingRestaurants = true;
                 console.log('🍽️ Loading restaurant data...');
                 
                 try {
@@ -3325,8 +3303,6 @@
                         nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Error loading restaurants</div>';
                         nearbySlider.classList.remove('skeleton-grid');
                     }
-                } finally {
-                    isLoadingRestaurants = false;  // ← IMPORTANT: Always reset the flag
                 }
             }
             
