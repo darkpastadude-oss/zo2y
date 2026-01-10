@@ -221,333 +221,76 @@ body{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
 <script>
 // INITIALIZATION for zo2y.com domain
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+<script>
+// INITIALIZATION
 const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
-// Create Supabase client with domain-specific config
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    storage: localStorage,
-    flowType: 'pkce',
-    redirectTo: window.location.origin + window.location.pathname // Dynamic redirect
-  }
-});
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Utility functions
+// Utility: Show Error
 function showError(message) {
   const errorDiv = document.getElementById('errorMessage');
   errorDiv.textContent = message;
   errorDiv.classList.add('show');
-  const successDiv = document.getElementById('successMessage');
-  successDiv.classList.remove('show');
-  
-  // Auto-hide after 5 seconds
-  setTimeout(() => {
-    errorDiv.classList.remove('show');
-  }, 5000);
+  setTimeout(() => errorDiv.classList.remove('show'), 5000);
 }
 
-function showSuccess(message) {
-  const successDiv = document.getElementById('successMessage');
-  successDiv.textContent = message;
-  successDiv.classList.add('show');
-  const errorDiv = document.getElementById('errorMessage');
-  errorDiv.classList.remove('show');
-  
-  // Auto-hide after 5 seconds
-  setTimeout(() => {
-    successDiv.classList.remove('show');
-  }, 5000);
-}
-
-// Function to handle OAuth callbacks and existing sessions
-async function initializeAuth() {
-  console.log('🔍 Initializing auth for login page...');
-  
-  try {
-    // Check URL for OAuth callback parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
-    const error = urlParams.get('error');
-    
-    if (error) {
-      console.error('OAuth error in URL:', error);
-      showError('Authentication failed: ' + error);
-      
-      // Clear URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
-      return;
-    }
-    
-    if (accessToken && refreshToken) {
-      console.log('🔄 Processing OAuth callback...');
-      
-      // Set the session manually
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      });
-      
-      if (sessionError) {
-        console.error('Error setting session:', sessionError);
-        showError('Authentication error: ' + sessionError.message);
-        return;
-      }
-      
-      if (sessionData.session) {
-        console.log('✅ OAuth successful! User:', sessionData.session.user.email);
-        
-        // Ensure profile exists
-        await ensureUserProfile(sessionData.session.user);
-        
-        // Clear URL parameters and redirect
-        window.history.replaceState({}, document.title, window.location.pathname);
-        window.location.href = 'index.html';
-        return;
-      }
-    }
-    
-    // Check if we already have a session
-    const { data: { session }, error: sessionCheckError } = await supabaseClient.auth.getSession();
-    
-    if (sessionCheckError) {
-      console.error('Session check error:', sessionCheckError);
-      return;
-    }
-    
-    // If we have a session, redirect to homepage
-    if (session) {
-      console.log('✅ Existing session found for:', session.user.email);
-      
-      // Ensure profile exists
-      await ensureUserProfile(session.user);
-      
-      // Redirect to homepage
-      window.location.href = 'index.html';
-      return;
-    }
-    
-    console.log('ℹ️ No active session or OAuth callback detected');
-    
-  } catch (error) {
-    console.error('Auth initialization error:', error);
-    showError('Failed to initialize authentication');
+// 1. Handle Google Login & Auth State Changes
+// This single listener handles BOTH page loads (checking if logged in) AND Google redirects
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    console.log('✅ User signed in:', session.user.email);
+    // Redirect to home immediately. The SQL Trigger handles the profile!
+    window.location.href = 'index.html';
   }
-}
+});
 
-// Function to ensure user profile exists
-async function ensureUserProfile(user) {
-  try {
-    console.log('🔍 Checking profile for user:', user.id);
-    
-    // Check if profile exists
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (profileError && profileError.code === 'PGRST116') {
-      console.log('📝 Creating new profile...');
-      
-      // Generate unique username with random suffix
-      const usernameBase = user.email?.split('@')[0] || 'user';
-      const randomSuffix = Math.random().toString(36).substring(2, 6);
-      const username = `${usernameBase}_${randomSuffix}`;
-      
-      // Create profile
-      const { error: insertError } = await supabaseClient
-        .from('user_profiles')
-        .insert([
-          {
-            id: user.id,
-            email: user.email,
-            username: username,
-            full_name: user.user_metadata?.full_name || 
-                      user.user_metadata?.name || 
-                      usernameBase,
-            avatar_url: user.user_metadata?.avatar_url || null
-          }
-        ]);
-      
-      if (insertError) {
-        console.error('Failed to create profile:', insertError);
-        // Don't throw error - allow user to continue without profile
-      } else {
-        console.log('✅ Profile created successfully');
-      }
-    } else if (profile) {
-      console.log('✅ Profile already exists');
-    }
-  } catch (error) {
-    console.error('Error ensuring profile:', error);
-    // Don't throw error - allow user to continue
-  }
-}
-
-// Initialize on page load
+// 2. Initialize: Check if we are already logged in (e.g. returning user)
 document.addEventListener('DOMContentLoaded', async () => {
-  // Handle auth first
-  await initializeAuth();
-  
-  // EMAIL/PASSWORD LOGIN
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    window.location.href = 'index.html';
+  }
+
+  // Handle Email Login
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value.trim().toLowerCase();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const rememberMe = document.getElementById('remember').checked;
-
-    if (!email || !password) {
-      showError('Please fill all fields');
-      return;
-    }
-
     const loginBtn = document.getElementById('loginBtn');
-    const originalText = loginBtn.innerHTML;
+
+    if (!email || !password) return showError('Please fill all fields');
+
     loginBtn.innerHTML = '<div class="loading"></div>';
     loginBtn.disabled = true;
-    
-    // Clear any existing messages
-    const errorDiv = document.getElementById('errorMessage');
-    const successDiv = document.getElementById('successMessage');
-    errorDiv.classList.remove('show');
-    successDiv.classList.remove('show');
 
     try {
-      console.log('🔐 Logging in:', email);
-      
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        console.error('Login error:', error);
-        
-        // User-friendly error messages
-        if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Invalid email or password');
-        } else if (error.message.includes('Email not confirmed')) {
-          throw new Error('Please confirm your email address before logging in');
-        } else if (error.message.includes('Email rate limit exceeded')) {
-          throw new Error('Too many login attempts. Please try again later');
-        } else {
-          throw error;
-        }
-      }
-      
-      console.log('✅ Login successful! User:', data.user.email);
-      
-      // Handle "Remember Me"
-      if (rememberMe) {
-        localStorage.setItem('rememberEmail', email);
-      } else {
-        localStorage.removeItem('rememberEmail');
-      }
-      
-      // Ensure profile exists
-      await ensureUserProfile(data.user);
-      
-      // Show success message briefly before redirect
-      showSuccess('Login successful! Redirecting...');
-      
-      // Small delay for user to see success message
-      setTimeout(() => {
-        // Redirect to main page
-        window.location.href = 'index.html';
-      }, 1000);
-      
+      if (error) throw error;
+      // onAuthStateChange above will handle the redirect
     } catch (err) {
       console.error('Login error:', err);
-      showError(err.message || 'Login failed. Please try again.');
-    } finally {
-      loginBtn.innerHTML = originalText;
+      showError(err.message);
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
       loginBtn.disabled = false;
     }
   });
 
-  // GOOGLE LOGIN
+  // Handle Google Login
   document.getElementById('googleLogin').addEventListener('click', async () => {
-    const btn = document.getElementById('googleLogin');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<div class="loading"></div>';
-    btn.disabled = true;
-    
-    // Clear any existing messages
-    const errorDiv = document.getElementById('errorMessage');
-    const successDiv = document.getElementById('successMessage');
-    errorDiv.classList.remove('show');
-    successDiv.classList.remove('show');
-    
     try {
-      console.log('🔵 Starting Google OAuth...');
-      
-      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/login.html',
-          queryParams: { 
-            access_type: 'offline', 
-            prompt: 'consent' 
-          }
+          // Redirect to index.html directly is usually smoother
+          redirectTo: window.location.origin + '/index.html'
         }
       });
-      
-      if (error) {
-        console.error('Google OAuth error:', error);
-        throw error;
-      }
-      
-      console.log('Google OAuth initiated');
-      // The browser will redirect to Google, then back to login.html
-      
+      if (error) throw error;
     } catch (err) {
-      console.error('Google login error:', err);
       showError('Google login failed: ' + err.message);
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }
-  });
-
-  // REMEMBER EMAIL CHECK
-  const rememberedEmail = localStorage.getItem('rememberEmail');
-  if (rememberedEmail) {
-    document.getElementById('email').value = rememberedEmail;
-    document.getElementById('remember').checked = true;
-  } else {
-    document.getElementById('email').focus();
-  }
-
-  // FORGOT PASSWORD
-  document.getElementById('forgotPassword').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    
-    if (!email) {
-      showError('Please enter your email address first');
-      return;
-    }
-    
-    // Clear any existing messages
-    const errorDiv = document.getElementById('errorMessage');
-    const successDiv = document.getElementById('successMessage');
-    errorDiv.classList.remove('show');
-    successDiv.classList.remove('show');
-    
-    try {
-      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password.html'
-      });
-      
-      if (error) {
-        console.error('Password reset error:', error);
-        showError('Error sending reset email: ' + error.message);
-      } else {
-        showSuccess('Password reset email sent! Please check your inbox (and spam folder).');
-      }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      showError('Failed to send reset email. Please try again.');
     }
   });
 });

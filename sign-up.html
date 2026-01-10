@@ -569,18 +569,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           const randomSuffix = Math.random().toString(36).substring(2, 6);
           const username = `${usernameBase}_${randomSuffix}`;
           
-          const { error: profileError } = await supabaseClient
-            .from('user_profiles')
-            .upsert([
-              {
-                id: data.user.id,
-                email: data.user.email,
-                username: username,
-                full_name: fullName,
-                avatar_url: null
-              }
-            ]);
-          
           if (profileError) {
             console.warn('Profile creation had issue:', profileError);
             // Continue anyway - profile might have been created by trigger
