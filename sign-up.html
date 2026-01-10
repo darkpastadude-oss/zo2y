@@ -190,6 +190,18 @@ body {
   display: block;
   animation: fadeIn 0.3s ease-out;
 }
+
+/* HTML in error messages */
+.error-message a {
+  color: #fbbf24 !important;
+  text-decoration: underline !important;
+  font-weight: 600 !important;
+}
+
+.error-message a:hover {
+  color: #fcd34d !important;
+  text-decoration: none !important;
+}
 </style>
 </head>
 <body>
@@ -268,7 +280,14 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
 // Utility functions
 function showError(message) {
   const errorDiv = document.getElementById('errorMessage');
-  errorDiv.textContent = message;
+  
+  // Check if message contains HTML tags
+  if (message.includes('<')) {
+    errorDiv.innerHTML = message;
+  } else {
+    errorDiv.textContent = message;
+  }
+  
   errorDiv.classList.add('show');
   const successDiv = document.getElementById('successMessage');
   successDiv.classList.remove('show');
@@ -340,84 +359,8 @@ function checkPasswordStrength(password) {
   hint.classList.add('show');
 }
 
-// Function to handle OAuth callbacks and existing sessions
-async function initializeAuth() {
-  console.log('🔍 Initializing auth for signup page...');
-  
-  try {
-    // Check URL for OAuth callback parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
-    const error = urlParams.get('error');
-    
-    if (error) {
-      console.error('OAuth error in URL:', error);
-      showError('Authentication failed: ' + error);
-      
-      // Clear URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
-      return;
-    }
-    
-    if (accessToken && refreshToken) {
-      console.log('🔄 Processing OAuth callback...');
-      
-      // Set the session manually
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      });
-      
-      if (sessionError) {
-        console.error('Error setting session:', sessionError);
-        showError('Authentication error: ' + sessionError.message);
-        return;
-      }
-      
-      if (sessionData.session) {
-        console.log('✅ OAuth successful! User:', sessionData.session.user.email);
-        
-        // Ensure profile exists
-        await ensureUserProfile(sessionData.session.user);
-        
-        // Clear URL parameters and redirect
-        window.history.replaceState({}, document.title, window.location.pathname);
-        window.location.href = 'index.html';
-        return;
-      }
-    }
-    
-    // Check if we already have a session
-    const { data: { session }, error: sessionCheckError } = await supabaseClient.auth.getSession();
-    
-    if (sessionCheckError) {
-      console.error('Session check error:', sessionCheckError);
-      return;
-    }
-    
-    // If we have a session, redirect to homepage
-    if (session) {
-      console.log('✅ Existing session found for:', session.user.email);
-      
-      // Ensure profile exists
-      await ensureUserProfile(session.user);
-      
-      // Redirect to homepage
-      window.location.href = 'index.html';
-      return;
-    }
-    
-    console.log('ℹ️ No active session or OAuth callback detected');
-    
-  } catch (error) {
-    console.error('Auth initialization error:', error);
-    showError('Failed to initialize authentication');
-  }
-}
-
-// Function to ensure user profile exists
-async function ensureUserProfile(user) {
+// FIXED: Ensure user profile exists
+async function ensureUserProfile(user, fullName = null) {
   try {
     console.log('🔍 Checking profile for user:', user.id);
     
@@ -436,24 +379,62 @@ async function ensureUserProfile(user) {
       const randomSuffix = Math.random().toString(36).substring(2, 6);
       const username = `${usernameBase}_${randomSuffix}`;
       
+      // For Google OAuth, extract metadata
+      const finalFullName = fullName || 
+                           user.user_metadata?.full_name || 
+                           user.user_metadata?.name || 
+                           user.user_metadata?.displayName || 
+                           usernameBase;
+      
+      const avatarUrl = user.user_metadata?.avatar_url || 
+                       user.user_metadata?.picture;
+      
       // Create profile
       const { error: insertError } = await supabaseClient
         .from('user_profiles')
         .insert([
           {
             id: user.id,
-            email: user.email,
             username: username,
-            full_name: user.user_metadata?.full_name || 
-                      user.user_metadata?.name || 
-                      usernameBase,
-            avatar_url: user.user_metadata?.avatar_url || null
+            full_name: finalFullName,
+            avatar_url: avatarUrl,
+            bio: '',
+            is_private: false,
+            visited_count: 0,
+            favorites_count: 0,
+            followers_count: 0,
+            following_count: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           }
         ]);
       
       if (insertError) {
         console.error('Failed to create profile:', insertError);
-        // Don't throw error - allow user to continue without profile
+        
+        // If it's a duplicate key error, profile might have been created by trigger
+        if (!insertError.message.includes('duplicate key')) {
+          console.log('⚠️ Trying minimal profile creation...');
+          
+          // Try a simpler insert
+          const { error: simpleError } = await supabaseClient
+            .from('user_profiles')
+            .insert([
+              {
+                id: user.id,
+                username: username,
+                full_name: finalFullName
+              }
+            ]);
+          
+          if (simpleError) {
+            console.error('Minimal profile creation also failed:', simpleError);
+          } else {
+            console.log('✅ Minimal profile created');
+          }
+        } else {
+          console.log('✅ Profile already exists (duplicate key)');
+        }
       } else {
         console.log('✅ Profile created successfully');
       }
@@ -462,7 +443,132 @@ async function ensureUserProfile(user) {
     }
   } catch (error) {
     console.error('Error ensuring profile:', error);
-    // Don't throw error - allow user to continue
+  }
+}
+
+// FIXED: Function to handle OAuth callbacks
+async function initializeAuth() {
+  console.log('🔍 Initializing auth for signup page...');
+  
+  try {
+    // Check if we already have a session FIRST
+    const { data: { session }, error: sessionCheckError } = await supabaseClient.auth.getSession();
+    
+    if (sessionCheckError) {
+      console.error('Session check error:', sessionCheckError);
+    }
+    
+    // If we have a session, redirect to homepage immediately
+    if (session) {
+      console.log('✅ Existing session found for:', session.user.email);
+      console.log('Redirecting to homepage...');
+      window.location.href = 'index.html';
+      return;
+    }
+    
+    // Check URL for OAuth callback parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    // Clear URL parameters immediately
+    if (accessToken || refreshToken || error || errorDescription) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (error) {
+      console.error('OAuth error:', error, errorDescription);
+      
+      // Check if this is a "user already exists" type error
+      if (errorDescription && errorDescription.toLowerCase().includes('already exists')) {
+        showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
+      } else {
+        showError('Authentication failed: ' + (errorDescription || error));
+      }
+      return;
+    }
+    
+    if (accessToken && refreshToken) {
+      console.log('🔄 Processing OAuth callback...');
+      
+      // Set the session manually
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      
+      if (sessionError) {
+        console.error('Error setting session:', sessionError);
+        
+        // Check if this is a "user already exists" error
+        if (sessionError.message && (
+            sessionError.message.includes('already registered') ||
+            sessionError.message.includes('already exists') ||
+            sessionError.message.includes('duplicate')
+        )) {
+          showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
+        } else {
+          showError('Authentication error: ' + sessionError.message);
+        }
+        return;
+      }
+      
+      if (sessionData.session) {
+        console.log('✅ OAuth successful! User:', sessionData.session.user.email);
+        
+        // Wait a moment for database trigger
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Check if user already has a profile (which means they already signed up)
+        const { data: profile, error: profileError } = await supabaseClient
+          .from('user_profiles')
+          .select('created_at')
+          .eq('id', sessionData.session.user.id)
+          .single();
+        
+        // If profile exists and was created more than 1 minute ago, 
+        // they probably already have an account
+        if (profile && profile.created_at) {
+          const profileAge = Date.now() - new Date(profile.created_at).getTime();
+          if (profileAge > 60000) { // More than 1 minute old
+            showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
+            
+            // Sign them out since they should use the login page
+            setTimeout(async () => {
+              await supabaseClient.auth.signOut();
+            }, 3000);
+            return;
+          }
+        }
+        
+        // Ensure profile exists
+        await ensureUserProfile(sessionData.session.user);
+        
+        // Show success and redirect
+        showSuccess('Login successful! Redirecting...');
+        
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+        return;
+      }
+    }
+    
+    console.log('ℹ️ No active session or OAuth callback detected');
+    
+  } catch (error) {
+    console.error('Auth initialization error:', error);
+    
+    // Check for duplicate user errors
+    if (error.message && error.message.includes('duplicate') || 
+        error.message.includes('already exists') ||
+        error.message.includes('already registered')) {
+      showError('An account with this email already exists. <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600;">Please sign in instead.</a>');
+    } else {
+      showError('Failed to initialize authentication');
+    }
   }
 }
 
@@ -482,7 +588,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkPasswordStrength(e.target.value);
   });
   
-  // EMAIL/PASSWORD SIGNUP
+  // FIXED: EMAIL/PASSWORD SIGNUP
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -538,8 +644,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Signup error details:', error);
         
         // User-friendly error messages
-        if (error.message.includes('User already registered')) {
-          showError('An account with this email already exists. Please sign in instead.');
+        if (error.message.includes('User already registered') || 
+            error.message.includes('already exists') ||
+            error.message.includes('duplicate')) {
+          
+          // Create a nice message with a link to login
+          showError(`
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <span>An account with this email already exists.</span>
+              <div>
+                <a href="login.html" style="color: #fbbf24; text-decoration: underline; font-weight: 600; margin-right: 12px;">
+                  Sign in to your account
+                </a>
+                <a href="#" onclick="document.getElementById('password').value = ''; return false;" 
+                   style="color: var(--text-secondary); text-decoration: none;">
+                  Forgot password?
+                </a>
+              </div>
+            </div>
+          `);
+          
         } else if (error.message.includes('Invalid email')) {
           showError('Please enter a valid email address.');
         } else if (error.message.includes('Password should be at least')) {
@@ -559,30 +683,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (data.session) {
         console.log('✅ Email signup successful! User:', data.user.email);
         
-        // Give the trigger a moment to create the profile
+        // Wait a moment for database trigger
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Manually create profile if trigger failed
-        try {
-          // Generate unique username with random suffix
-          const usernameBase = email.split('@')[0];
-          const randomSuffix = Math.random().toString(36).substring(2, 6);
-          const username = `${usernameBase}_${randomSuffix}`;
-          
-          if (profileError) {
-            console.warn('Profile creation had issue:', profileError);
-            // Continue anyway - profile might have been created by trigger
-          }
-        } catch (profileErr) {
-          console.warn('Failed to manually create profile:', profileErr);
-        }
+        // Ensure profile exists
+        await ensureUserProfile(data.user, fullName);
         
         // Show success message
         showSuccess('Account created successfully! Redirecting...');
         
         // Small delay for user to see success message
         setTimeout(() => {
-          // Redirect to homepage
           window.location.href = 'index.html';
         }, 1500);
         
@@ -606,11 +717,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // GOOGLE SIGNUP
+  // FIXED: GOOGLE SIGNUP with better error handling
   googleBtn.addEventListener('click', async () => {
-    googleBtn.disabled = true;
-    const originalText = googleBtn.innerHTML;
-    googleBtn.innerHTML = '<div class="loading"></div>';
+    const btn = document.getElementById('googleSignup');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<div class="loading"></div>';
+    btn.disabled = true;
     
     // Clear any existing messages
     const errorDiv = document.getElementById('errorMessage');
@@ -621,14 +733,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       console.log('🔵 Starting Google OAuth...');
       
+      // First, check if we're already logged in
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        console.log('✅ Already logged in, redirecting...');
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // Start OAuth flow with EXACT redirect URL
+      const redirectUrl = window.location.origin + '/sign-up.html';
+      console.log('Using redirect URL:', redirectUrl);
+      
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/sign-up.html',
-          queryParams: {
+          redirectTo: redirectUrl,
+          queryParams: { 
             access_type: 'offline',
-            prompt: 'consent'
-          }
+            prompt: 'consent' 
+          },
+          skipBrowserRedirect: false // Make sure it redirects
         }
       });
       
@@ -637,15 +762,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw error;
       }
       
-      console.log('Google OAuth initiated');
+      console.log('Google OAuth initiated - browser should redirect');
       // The browser will redirect to Google, then back to sign-up.html
       // The initializeAuth() function will handle the callback
       
-    } catch (error) {
-      console.error('Google sign up error:', error);
-      showError('Google sign up failed: ' + error.message);
-      googleBtn.innerHTML = originalText;
-      googleBtn.disabled = false;
+    } catch (err) {
+      console.error('Google signup error:', err);
+      showError('Google signup failed. Please try again.');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
     }
   });
 });

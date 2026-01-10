@@ -4458,77 +4458,199 @@ async function checkSessionOnLoad() {
             };
             
             // ---------- AUTH MANAGEMENT ----------
-            async function updateAuthUI() {
-                try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    
-                    if (session && session.user) {
-                        state.isLoggedIn = true;
-                        state.currentUser = session.user;
-                        
-                        guestBanner.hide();
-                        
-                        let profile = null;
-                        try {
-                            const { data: profileData, error: profileError } = await supabase
-                                .from('user_profiles')
-                                .select('username, full_name, avatar_url')
-                                .eq('id', session.user.id)
-                                .single();
-                            
-                            if (!profileError) {
-                                profile = profileData;
-                            }
-                        } catch (err) {
-                            console.warn('Profile fetch error:', err);
-                        }
-                        
-                        const displayName = profile?.username || 
-                                          profile?.full_name || 
-                                          session.user.email?.split('@')[0] || 
-                                          'Profile';
-                        
-                        const authBtn = document.getElementById('userAccountBtn');
-                        if (authBtn) {
-                            authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
-                            authBtn.onclick = () => {
-                                window.location.href = 'profile.html';
-                            };
-                        }
-                        
-                        // Hide start journey button, show explore button
-                        const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
-                        const loggedInBtn = document.querySelector('.btn-primary.logged-in');
-                        if (startJourneyBtn) startJourneyBtn.style.display = 'none';
-                        if (loggedInBtn) loggedInBtn.style.display = 'flex';
-                        
-                        await listManager.init();
-                        await customListsManager.init();
-                        
-                        // Re-render with user lists
-                        renderFeaturedRestaurants();
-                        renderNearbyRestaurants();
-                        updateSpotlight();
-                        setupRestaurantOfTheDay();
-                        
-                    } else {
-                        state.isLoggedIn = false;
-                        state.currentUser = null;
-                        
-                        guestBanner.show();
-                        
-                        const authBtn = document.getElementById('userAccountBtn');
-                        if (authBtn) {
-                            authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
-                            authBtn.onclick = () => window.location.href = 'login.html';
-                        }
-                        
-                        // Show start journey button
-                        const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
-                        const loggedInBtn = document.querySelector('.btn-primary.logged-in');
-                        if (startJourneyBtn) startJourneyBtn.style.display = 'flex';
-                        if (loggedInBtn) loggedInBtn.style.display = 'none';
-                    }
+async function updateAuthUI() {
+  try {
+    console.log('🔄 Checking auth state...');
+    
+    // First, get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Session check error:', sessionError);
+      state.isLoggedIn = false;
+      state.currentUser = null;
+      setGuestState();
+      return;
+    }
+    
+    console.log('Session check result:', session ? 'Session exists' : 'No session');
+    
+    if (session && session.user) {
+      console.log('✅ User authenticated:', session.user.email);
+      console.log('Session expires at:', new Date(session.expires_at * 1000));
+      
+      state.isLoggedIn = true;
+      state.currentUser = session.user;
+      
+      // Hide guest banner
+      guestBanner.hide();
+      
+      // Check and create profile if needed
+      await checkAndCreateProfile(session.user);
+      
+      // Update UI for logged-in user
+      await setLoggedInState(session.user);
+      
+      // Initialize user-specific features
+      await Promise.all([
+        listManager.init(),
+        customListsManager.init()
+      ]);
+      
+      // Re-render with user data
+      renderFeaturedRestaurants();
+      renderNearbyRestaurants();
+      updateSpotlight();
+      setupRestaurantOfTheDay();
+      
+    } else {
+      console.log('❌ No active session');
+      state.isLoggedIn = false;
+      state.currentUser = null;
+      setGuestState();
+      guestBanner.show();
+    }
+    
+    state.authChecked = true;
+    
+  } catch (error) {
+    console.error('Auth UI update error:', error);
+    state.isLoggedIn = false;
+    state.currentUser = null;
+    setGuestState();
+    guestBanner.show();
+    state.authChecked = true;
+  }
+}
+
+// Add this helper function for profile creation
+async function checkAndCreateProfile(user) {
+  try {
+    console.log('🔍 Checking profile for user:', user.id);
+    
+    // Check if profile exists
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (profileError && profileError.code === 'PGRST116') {
+      console.log('📝 Creating new profile...');
+      
+      // Generate unique username
+      const usernameBase = user.email?.split('@')[0] || 'user';
+      const randomSuffix = Math.random().toString(36).substring(2, 6);
+      const username = `${usernameBase}_${randomSuffix}`;
+      
+      // Extract metadata
+      const fullName = user.user_metadata?.full_name || 
+                      user.user_metadata?.name || 
+                      user.user_metadata?.displayName || 
+                      usernameBase;
+      
+      const avatarUrl = user.user_metadata?.avatar_url || 
+                       user.user_metadata?.picture;
+      
+      // Create profile
+      const { error: insertError } = await supabase
+        .from('user_profiles')
+        .insert([
+          {
+            id: user.id,
+            username: username,
+            full_name: fullName,
+            avatar_url: avatarUrl,
+            bio: '',
+            is_private: false,
+            visited_count: 0,
+            favorites_count: 0,
+            followers_count: 0,
+            following_count: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ]);
+      
+      if (insertError) {
+        console.error('Profile creation error:', insertError);
+        
+        // Try minimal profile
+        if (!insertError.message.includes('duplicate key')) {
+          const { error: simpleError } = await supabase
+            .from('user_profiles')
+            .insert([
+              {
+                id: user.id,
+                username: username,
+                full_name: fullName
+              }
+            ]);
+          
+          if (simpleError) {
+            console.error('Minimal profile also failed:', simpleError);
+          }
+        }
+      } else {
+        console.log('✅ Profile created');
+      }
+    } else if (profile) {
+      console.log('✅ Profile exists:', profile);
+    }
+  } catch (error) {
+    console.error('Error in checkAndCreateProfile:', error);
+  }
+}
+
+// Add these helper functions
+async function setLoggedInState(user) {
+  try {
+    // Get profile info
+    let displayName = 'User';
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('username, full_name')
+      .eq('id', user.id)
+      .single();
+    
+    if (profile) {
+      displayName = profile.username || profile.full_name || user.email?.split('@')[0] || 'User';
+    } else {
+      displayName = user.email?.split('@')[0] || 'User';
+    }
+    
+    // Update account button
+    const authBtn = document.getElementById('userAccountBtn');
+    if (authBtn) {
+      authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+      authBtn.onclick = () => {
+        window.location.href = 'profile.html';
+      };
+    }
+    
+    // Show logged-in button, hide start journey button
+    const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
+    const loggedInBtn = document.querySelector('.btn-primary.logged-in');
+    if (startJourneyBtn) startJourneyBtn.style.display = 'none';
+    if (loggedInBtn) loggedInBtn.style.display = 'flex';
+    
+  } catch (error) {
+    console.error('Error setting logged in state:', error);
+  }
+}
+
+function setGuestState() {
+  const authBtn = document.getElementById('userAccountBtn');
+  if (authBtn) {
+    authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i><span>Sign In</span>`;
+    authBtn.onclick = () => window.location.href = 'login.html';
+  }
+  
+  const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
+  const loggedInBtn = document.querySelector('.btn-primary.logged-in');
+  if (startJourneyBtn) startJourneyBtn.style.display = 'flex';
+  if (loggedInBtn) loggedInBtn.style.display = 'none';
+}
                     
                     state.authChecked = true;
                     
@@ -4835,35 +4957,85 @@ async function checkSessionOnLoad() {
             }
             
             // ---------- INITIALIZATION ----------
-            async function init() {
-                if (!supabase) {
-                    showNotification('Failed to connect to server', 'error');
-                    return;
-                }
-                
-                // Initialize fixes
-                initFixedImageLoader();
-                
-                setupEventListeners();
-                await searchManager.loadAllRestaurantsForSearch();
-                await loadRestaurantsData();
-                await updateAuthUI();
-                
-                supabase.auth.onAuthStateChange(updateAuthUI);
-                
-                // Force observe images after everything loads
-                setTimeout(() => {
-                    if (state.imageObserver) {
-                        const images = document.querySelectorAll('img[data-src]');
-                        images.forEach(img => {
-                            if (!img.classList.contains('observed')) {
-                                state.imageObserver.observe(img);
-                                img.classList.add('observed');
-                            }
-                        });
-                    }
-                }, 500);
-            }
+async function init() {
+  if (!supabase) {
+    showNotification('Failed to connect to server', 'error');
+    return;
+  }
+  
+  // Initialize fixes
+  initFixedImageLoader();
+  
+  setupEventListeners();
+  await searchManager.loadAllRestaurantsForSearch();
+  await loadRestaurantsData();
+  
+  // Check auth state FIRST
+  console.log('🔍 Initial auth check on homepage...');
+  await updateAuthUI();
+  
+  // Set up auth state change listener
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('🔄 Auth state changed:', event, session ? 'Session exists' : 'No session');
+    
+    if (event === 'SIGNED_IN' && session) {
+      console.log('✅ User signed in:', session.user.email);
+      state.currentUser = session.user;
+      state.isLoggedIn = true;
+      
+      // Check and create profile
+      await checkAndCreateProfile(session.user);
+      
+      // Update UI
+      await setLoggedInState(session.user);
+      
+      // Initialize user features
+      await listManager.init();
+      await customListsManager.init();
+      
+      // Re-render with user data
+      renderFeaturedRestaurants();
+      renderNearbyRestaurants();
+      updateSpotlight();
+      setupRestaurantOfTheDay();
+      
+      showNotification(`Welcome back, ${session.user.email?.split('@')[0] || 'User'}!`, 'success');
+      
+    } else if (event === 'SIGNED_OUT') {
+      console.log('👋 User signed out');
+      state.currentUser = null;
+      state.isLoggedIn = false;
+      setGuestState();
+      guestBanner.show();
+      
+      // Clear user-specific data
+      state.selectedLists.clear();
+      
+      // Re-render without user data
+      renderFeaturedRestaurants();
+      renderNearbyRestaurants();
+      updateSpotlight();
+      setupRestaurantOfTheDay();
+      
+    } else if (event === 'USER_UPDATED') {
+      console.log('🔄 User updated');
+      await updateAuthUI();
+    }
+  });
+  
+  // Force observe images after everything loads
+  setTimeout(() => {
+    if (state.imageObserver) {
+      const images = document.querySelectorAll('img[data-src]');
+      images.forEach(img => {
+        if (!img.classList.contains('observed')) {
+          state.imageObserver.observe(img);
+          img.classList.add('observed');
+        }
+      });
+    }
+  }, 500);
+}
             
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
