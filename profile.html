@@ -2956,7 +2956,387 @@
             // Food icons for avatar selection
             const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
 
-            // ===== INITIALIZATION =====
+            // 1. FIX: Replace handleListSubmit function (prevents double creation)
+            async function handleListSubmit(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('listName').value.trim();
+                const description = document.getElementById('listDescription').value.trim();
+                const icon = document.getElementById('selectedIcon').value;
+                
+                if (!title) {
+                    showToast('Please enter a list name', 'error');
+                    return;
+                }
+                
+                // Check if already submitting
+                if (this.isSubmitting) {
+                    console.log('Already submitting, ignoring duplicate request');
+                    return;
+                }
+                
+                this.isSubmitting = true;
+                
+                // Disable form
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const form = document.getElementById('createListForm');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+                }
+                if (form) {
+                    form.style.pointerEvents = 'none';
+                }
+                
+                try {
+                    if (isEditingList && editingListId) {
+                        // UPDATE existing list
+                        console.log('Updating list:', editingListId);
+                        
+                        const { error } = await supabase
+                            .from('lists')
+                            .update({ 
+                                title: title, 
+                                description: description, 
+                                icon: icon,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', editingListId);
+
+                        if (error) throw error;
+                        
+                        // Update in local arrays
+                        const listIndex = customLists.findIndex(l => l.id === editingListId);
+                        if (listIndex > -1) {
+                            customLists[listIndex] = { 
+                                ...customLists[listIndex], 
+                                title, 
+                                description, 
+                                icon 
+                            };
+                        }
+                        
+                        const userListIndex = listManager.userLists.findIndex(l => l.id === editingListId);
+                        if (userListIndex > -1) {
+                            listManager.userLists[userListIndex] = { 
+                                ...listManager.userLists[userListIndex], 
+                                title, 
+                                description, 
+                                icon 
+                            };
+                        }
+                        
+                        showToast('List updated successfully', 'success');
+                        
+                    } else {
+                        // CREATE new list
+                        console.log('Creating new list:', title);
+                        
+                        const { data: newList, error } = await supabase
+                            .from('lists')
+                            .insert([{
+                                user_id: currentUser.id,
+                                title: title,
+                                description: description,
+                                is_default: false,
+                                icon: icon,
+                                created_at: new Date().toISOString()
+                            }])
+                            .select()
+                            .single();
+                        
+                        if (error) throw error;
+                        
+                        console.log('List created:', newList);
+                        
+                        // Add to local arrays
+                        customLists.push(newList);
+                        listManager.userLists.push(newList);
+                        
+                        showToast(`Created list "${title}"`, 'success');
+                    }
+                    
+                    // Close modal and reset form
+                    closeModal('createListModal');
+                    
+                    if (form) form.reset();
+                    document.getElementById('selectedIcon').value = '📋';
+                    
+                    // Reset editing state
+                    isEditingList = false;
+                    editingListId = null;
+                    
+                    const modalTitle = document.querySelector('#createListModal .modal-title');
+                    if (modalTitle) modalTitle.textContent = "Create New List";
+                    
+                    // Re-render lists
+                    listManager.renderLists();
+                    
+                    // Update stats
+                    await updateStats();
+                    
+                } catch (error) {
+                    console.error('Error saving list:', error);
+                    showToast('Error saving list: ' + error.message, 'error');
+                } finally {
+                    // Re-enable form
+                    this.isSubmitting = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = isEditingList ? 'Update List' : 'Create List';
+                    }
+                    if (form) {
+                        form.style.pointerEvents = '';
+                    }
+                }
+            }
+
+            // 2. FIX: Update setupEventListeners to prevent multiple bindings
+            function setupEventListeners() {
+                console.log('🔧 Setting up event listeners...');
+                
+                // Remove existing listener before adding new one
+                const createListForm = document.getElementById('createListForm');
+                if (createListForm) {
+                    // Clone and replace to remove all listeners
+                    const newForm = createListForm.cloneNode(true);
+                    createListForm.parentNode.replaceChild(newForm, createListForm);
+                    
+                    // Add single listener
+                    newForm.addEventListener('submit', handleListSubmit.bind({ isSubmitting: false }));
+                }
+                
+                // Rest of your event listeners...
+                document.querySelectorAll('.nav-tab').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        showTab(tabName);
+                    });
+                });
+                
+                // Filter buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        journalFilter = this.getAttribute('data-filter');
+                        foodJournal.loadJournalEntries();
+                    });
+                });
+                
+                // Journal entry form
+                const journalEntryForm = document.getElementById('journalEntryForm');
+                if (journalEntryForm) {
+                    journalEntryForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        foodJournal.saveJournalEntry();
+                    });
+                }
+                
+                // Edit profile form
+                const editProfileForm = document.getElementById('editProfileForm');
+                if (editProfileForm) {
+                    editProfileForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await saveProfileChanges();
+                    });
+                }
+                
+                // Rating stars
+                document.querySelectorAll('.rating-star').forEach(star => {
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        setRating(rating);
+                    });
+                });
+                
+                // List icon selection
+                document.querySelectorAll('.list-icon-option').forEach(icon => {
+                    icon.addEventListener('click', function() {
+                        document.querySelectorAll('.list-icon-option').forEach(i => {
+                            i.style.background = 'transparent';
+                            i.style.border = '1px solid transparent';
+                        });
+                        this.style.background = 'rgba(245, 158, 11, 0.1)';
+                        this.style.border = '1px solid var(--accent)';
+                        const selectedIcon = document.getElementById('selectedIcon');
+                        if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
+                    });
+                });
+                
+                // Logout button
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        showConfirmModal(
+                            'Logout',
+                            'Are you sure you want to logout?',
+                            () => logout()
+                        );
+                    });
+                }
+                
+                // Modal close buttons
+                document.querySelectorAll('.modal-close').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const modal = this.closest('.modal');
+                        if (modal) {
+                            closeModal(modal.id);
+                        }
+                    });
+                });
+                
+                // Click outside modal to close
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeModal(this.id);
+                        }
+                    });
+                });
+                
+                // ESC key to close modals
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        document.querySelectorAll('.modal.active').forEach(modal => {
+                            closeModal(modal.id);
+                        });
+                    }
+                });
+            }
+
+            // 3. FIX: Optimize loadProfile function (faster loading)
+            async function loadProfile() {
+                targetUserId = getUserIdFromUrl();
+                isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
+
+                if (isViewingOwnProfile) {
+                    await loadOwnProfile();
+                } else {
+                    await loadOtherUserProfile();
+                }
+            }
+
+            async function loadOwnProfile() {
+                // Show/hide UI elements
+                const editProfileBtn = document.getElementById('editProfileBtn');
+                const settingsBtn = document.getElementById('settingsBtn');
+                const followButton = document.getElementById('followButton');
+                const logoutBtn = document.getElementById('logoutBtn');
+                const viewingIndicator = document.getElementById('viewingOtherProfile');
+                const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
+                const addEntryBtn = document.getElementById('addEntryBtn');
+                const createListBtn = document.getElementById('createListBtn');
+                const addJournalBtn = document.getElementById('addJournalBtn');
+                
+                if (editProfileBtn) editProfileBtn.style.display = 'flex';
+                if (settingsBtn) settingsBtn.style.display = 'flex';
+                if (followButton) followButton.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'block';
+                if (viewingIndicator) viewingIndicator.style.display = 'none';
+                if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'none';
+                if (addEntryBtn) addEntryBtn.style.display = 'flex';
+                if (createListBtn) createListBtn.style.display = 'flex';
+                if (addJournalBtn) addJournalBtn.style.display = 'flex';
+
+                // Load profile - use cached if available
+                if (!userProfile) {
+                    await loadUserProfile();
+                }
+                
+                updateProfileUI();
+                
+                // Load stats in background (don't block UI)
+                updateStats().catch(err => console.error('Stats error:', err));
+            }
+
+            // 4. FIX: Update avatar system to use avatar_icon column
+            function showAvatarModal() {
+                if (!isViewingOwnProfile) return;
+                
+                const avatarIconGrid = document.getElementById('avatarIconGrid');
+                if (!avatarIconGrid) return;
+                
+                // Food emoji icons
+                const foodIcons = [
+                    '🍔', '🍕', '🍣', '🍜', '🍱', '🍛', '🍝', '🥗', '🥘', '🌮',
+                    '🌯', '🥙', '🥪', '🍖', '🍗', '🥩', '🥓', '🍤', '🦐', '🦀',
+                    '🍰', '🎂', '🧁', '🍩', '🍪', '🥐', '🥨', '🥯', '🍞', '🧀',
+                    '🥚', '🍳', '🥞', '🧇', '🥤', '☕', '🧃', '🧋', '🍵', '🥛',
+                    '🍦', '🍧', '🍨', '🍡', '🍢', '🍭', '🍬', '🍫', '🍿', '🍩'
+                ];
+                
+                avatarIconGrid.innerHTML = '';
+                
+                foodIcons.forEach(icon => {
+                    const iconOption = document.createElement('div');
+                    iconOption.className = 'avatar-icon-option';
+                    iconOption.textContent = icon;
+                    iconOption.onclick = () => {
+                        document.querySelectorAll('.avatar-icon-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        iconOption.classList.add('selected');
+                        selectedAvatarIcon = icon;
+                    };
+                    
+                    if (icon === (userProfile?.avatar_icon || "🍔")) {
+                        iconOption.classList.add('selected');
+                        selectedAvatarIcon = icon;
+                    }
+                    
+                    avatarIconGrid.appendChild(iconOption);
+                });
+                
+                showModal('avatarModal');
+            }
+
+            async function saveAvatar() {
+                if (!selectedAvatarIcon || !isViewingOwnProfile) {
+                    showToast('Please select an avatar', 'error');
+                    return;
+                }
+
+                try {
+                    console.log('Saving avatar:', selectedAvatarIcon);
+                    
+                    const { error } = await supabase
+                        .from('user_profiles')
+                        .update({ 
+                            avatar_icon: selectedAvatarIcon,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+
+                    if (error) throw error;
+
+                    // Update UI
+                    const avatar = document.getElementById('profileAvatar');
+                    if (avatar) {
+                        avatar.textContent = selectedAvatarIcon;
+                    }
+                    
+                    const mobileAvatar = document.getElementById('mobileAvatar');
+                    if (mobileAvatar) {
+                        mobileAvatar.textContent = selectedAvatarIcon;
+                    }
+                    
+                    // Update local profile
+                    if (userProfile) {
+                        userProfile.avatar_icon = selectedAvatarIcon;
+                    }
+                    
+                    showToast('Avatar updated successfully!', 'success');
+                    closeModal('avatarModal');
+                    
+                } catch (error) {
+                    console.error('Error saving avatar:', error);
+                    showToast('Error saving avatar', 'error');
+                }
+            }
+
+            // 5. FIX: Optimize initialization to load faster
             async function initialize() {
                 try {
                     if (!window.supabase) {
@@ -2966,6 +3346,7 @@
                     
                     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
+                    // Get user
                     const { data: { user }, error } = await supabase.auth.getUser();
                     if (error || !user) { 
                         window.location.href = "login.html"; 
@@ -2974,13 +3355,21 @@
                     
                     currentUser = user;
                     
+                    // Load critical data first
                     await loadProfile();
-                    await loadRestaurants();
                     
+                    // Load restaurants in background
+                    loadRestaurants().catch(err => console.error('Restaurant load error:', err));
+                    
+                    // Initialize systems
                     communitySystem = createCommunitySystem();
-                    await listManager.init();
-                    await communitySystem.init();
-                    await foodJournal.init();
+                    
+                    // Initialize list manager and community in background
+                    Promise.all([
+                        listManager.init(),
+                        communitySystem.init(),
+                        foodJournal.init()
+                    ]).catch(err => console.error('Initialization error:', err));
                     
                     setupEventListeners();
                     
@@ -2988,6 +3377,7 @@
                         initializeMobile();
                     }
                     
+                    // Handle click outside dropdown
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.list-card-actions')) {
                             document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('show'));
@@ -2999,6 +3389,35 @@
                     showToast('Error loading profile', 'error');
                 }
             }
+
+            // 6. ADD: Debug function to check for duplicate lists
+            window.checkDuplicateLists = async function() {
+                console.log('=== CHECKING FOR DUPLICATE LISTS ===');
+                
+                const { data: lists } = await supabase
+                    .from('lists')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at');
+                
+                console.log('Total lists:', lists.length);
+                console.log('Lists:', lists);
+                
+                const titleCounts = {};
+                lists.forEach(list => {
+                    titleCounts[list.title] = (titleCounts[list.title] || 0) + 1;
+                });
+                
+                console.log('Title counts:', titleCounts);
+                
+                Object.entries(titleCounts).forEach(([title, count]) => {
+                    if (count > 1) {
+                        console.warn(`⚠️ DUPLICATE: "${title}" appears ${count} times!`);
+                    }
+                });
+                
+                console.log('=== END CHECK ===');
+            };
 
             // ===== MOBILE INITIALIZATION =====
             function initializeMobile() {
@@ -3109,43 +3528,6 @@
             }
 
             // ===== PROFILE MANAGEMENT =====
-            async function loadProfile() {
-                targetUserId = getUserIdFromUrl();
-                isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
-
-                if (isViewingOwnProfile) {
-                    await loadOwnProfile();
-                } else {
-                    await loadOtherUserProfile();
-                }
-            }
-
-            async function loadOwnProfile() {
-                const editProfileBtn = document.getElementById('editProfileBtn');
-                const settingsBtn = document.getElementById('settingsBtn');
-                const followButton = document.getElementById('followButton');
-                const logoutBtn = document.getElementById('logoutBtn');
-                const viewingIndicator = document.getElementById('viewingOtherProfile');
-                const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
-                const addEntryBtn = document.getElementById('addEntryBtn');
-                const createListBtn = document.getElementById('createListBtn');
-                const addJournalBtn = document.getElementById('addJournalBtn');
-                
-                if (editProfileBtn) editProfileBtn.style.display = 'flex';
-                if (settingsBtn) settingsBtn.style.display = 'flex';
-                if (followButton) followButton.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'block';
-                if (viewingIndicator) viewingIndicator.style.display = 'none';
-                if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'none';
-                if (addEntryBtn) addEntryBtn.style.display = 'flex';
-                if (createListBtn) createListBtn.style.display = 'flex';
-                if (addJournalBtn) addJournalBtn.style.display = 'flex';
-
-                await loadUserProfile();
-                updateProfileUI();
-                await updateStats();
-            }
-
             async function loadOtherUserProfile() {
                 const editProfileBtn = document.getElementById('editProfileBtn');
                 const settingsBtn = document.getElementById('settingsBtn');
@@ -3663,7 +4045,7 @@
                         else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
                     } else {
                         list = customLists.find(l => l.id === listId) || 
-                               this.userLists.find(l => l.id === listId);
+                            this.userLists.find(l => l.id === listId);
                     }
                     
                     if (!list) return false;
@@ -3827,9 +4209,8 @@
                                         <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                             🍽️
                                         </div>
-                                    </div>
-                                `);
-                            }
+                                    `);
+                                }
                         }
                         
                         const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
@@ -3957,9 +4338,8 @@
                                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                             🍽️
                                         </div>
-                                    </div>
-                                `);
-                            }
+                                    `);
+                                }
                         }
                         
                         const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
@@ -4054,7 +4434,7 @@
                     list = listManager.currentLists.wantToGo;
                 } else {
                     list = customLists.find(l => l.id == listId) || 
-                           listManager.userLists.find(l => l.id == listId);
+                        listManager.userLists.find(l => l.id == listId);
                 }
                 
                 if (!list) {
@@ -4185,7 +4565,7 @@
                     list = listManager.currentLists.wantToGo;
                 } else {
                     list = customLists.find(l => l.id == listId) || 
-                           listManager.userLists.find(l => l.id == listId);
+                        listManager.userLists.find(l => l.id == listId);
                 }
                 
                 if (!list) {
@@ -5083,7 +5463,7 @@
 
             function prepareEditList(listId) {
                 const list = customLists.find(l => l.id === listId) || 
-                           listManager.userLists.find(l => l.id === listId);
+                        listManager.userLists.find(l => l.id === listId);
                 
                 if (!list) return;
                 
@@ -5106,80 +5486,6 @@
                 document.querySelector('#createListModal .modal-title').textContent = "Edit List";
                 
                 showModal('createListModal');
-            }
-
-            async function handleListSubmit(e) {
-                e.preventDefault();
-                
-                const title = document.getElementById('listName').value;
-                const description = document.getElementById('listDescription').value;
-                const icon = document.getElementById('selectedIcon').value;
-                
-                if (!title) {
-                    showToast('Please enter a list name', 'error');
-                    return;
-                }
-                
-                try {
-                    if (isEditingList && editingListId) {
-                        const { error } = await supabase
-                            .from('lists')
-                            .update({ 
-                                title: title, 
-                                description: description, 
-                                icon: icon 
-                            })
-                            .eq('id', editingListId);
-
-                        if (error) throw error;
-                        
-                        const listIndex = customLists.findIndex(l => l.id === editingListId);
-                        if (listIndex > -1) {
-                            customLists[listIndex] = { ...customLists[listIndex], title, description, icon };
-                        }
-                        
-                        const userListIndex = listManager.userLists.findIndex(l => l.id === editingListId);
-                        if (userListIndex > -1) {
-                            listManager.userLists[userListIndex] = { ...listManager.userLists[userListIndex], title, description, icon };
-                        }
-                        
-                        showToast('List updated successfully', 'success');
-                    } else {
-                        const { data: newList, error } = await supabase
-                            .from('lists')
-                            .insert([{
-                                user_id: currentUser.id,
-                                title: title,
-                                description: description,
-                                is_default: false,
-                                icon: icon,
-                                created_at: new Date().toISOString()
-                            }])
-                            .select()
-                            .single();
-                        
-                        if (error) throw error;
-                        
-                        customLists.push(newList);
-                        listManager.userLists.push(newList);
-                        showToast(`Created list "${title}"`, 'success');
-                    }
-                    
-                    closeModal('createListModal');
-                    listManager.renderLists();
-                    
-                    const form = document.getElementById('createListForm');
-                    if (form) form.reset();
-                    document.getElementById('selectedIcon').value = '📋';
-                    
-                    isEditingList = false;
-                    editingListId = null;
-                    document.querySelector('#createListModal .modal-title').textContent = "Create New List";
-                    
-                } catch (error) {
-                    console.error('Error saving list:', error);
-                    showToast('Error saving list', 'error');
-                }
             }
 
             // ===== UTILITY FUNCTIONS =====
@@ -5424,48 +5730,6 @@
                 }
             }
 
-            // ===== AVATAR FUNCTIONS =====
-            function showAvatarModal() {
-                if (!isViewingOwnProfile) return;
-                
-                showModal('avatarModal');
-            }
-
-            async function saveAvatar() {
-                if (!selectedAvatarIcon || !isViewingOwnProfile) {
-                    showToast('Please select an avatar', 'error');
-                    return;
-                }
-
-                try {
-                    const { error } = await supabase
-                        .from('user_profiles')
-                        .update({ avatar_icon: selectedAvatarIcon })
-                        .eq('id', currentUser.id);
-
-                    if (error) throw error;
-
-                    const avatar = document.getElementById('profileAvatar');
-                    if (avatar) {
-                        avatar.textContent = selectedAvatarIcon;
-                    }
-                    
-                    const mobileAvatar = document.getElementById('mobileAvatar');
-                    if (mobileAvatar) {
-                        mobileAvatar.textContent = selectedAvatarIcon;
-                    }
-                    
-                    userProfile.avatar_icon = selectedAvatarIcon;
-                    
-                    showToast('Avatar updated successfully!', 'success');
-                    closeModal('avatarModal');
-                    
-                } catch (error) {
-                    console.error('Error saving avatar:', error);
-                    showToast('Error saving avatar', 'error');
-                }
-            }
-
             // ===== RATING FUNCTIONS =====
             function setRating(stars) {
                 const starsElements = document.querySelectorAll('#ratingStars span');
@@ -5482,101 +5746,6 @@
             }
 
             // ===== SETUP EVENT LISTENERS =====
-            function setupEventListeners() {
-                document.querySelectorAll('.nav-tab').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const tabName = this.getAttribute('data-tab');
-                        showTab(tabName);
-                    });
-                });
-                
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        journalFilter = this.getAttribute('data-filter');
-                        foodJournal.loadJournalEntries();
-                    });
-                });
-                
-                const journalEntryForm = document.getElementById('journalEntryForm');
-                if (journalEntryForm) {
-                    journalEntryForm.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        foodJournal.saveJournalEntry();
-                    });
-                }
-                
-                const editProfileForm = document.getElementById('editProfileForm');
-                if (editProfileForm) {
-                    editProfileForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        await saveProfileChanges();
-                    });
-                }
-                
-                const createListForm = document.getElementById('createListForm');
-                if (createListForm) {
-                    createListForm.addEventListener('submit', handleListSubmit);
-                }
-                
-                document.querySelectorAll('.rating-star').forEach(star => {
-                    star.addEventListener('click', function() {
-                        const rating = parseInt(this.getAttribute('data-rating'));
-                        setRating(rating);
-                    });
-                });
-                
-                document.querySelectorAll('.list-icon-option').forEach(icon => {
-                    icon.addEventListener('click', function() {
-                        document.querySelectorAll('.list-icon-option').forEach(i => {
-                            i.style.background = 'transparent';
-                            i.style.border = '1px solid transparent';
-                        });
-                        this.style.background = 'rgba(245, 158, 11, 0.1)';
-                        this.style.border = '1px solid var(--accent)';
-                        const selectedIcon = document.getElementById('selectedIcon');
-                        if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
-                    });
-                });
-                
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        showConfirmModal(
-                            'Logout',
-                            'Are you sure you want to logout?',
-                            () => logout()
-                        );
-                    });
-                }
-                
-                document.querySelectorAll('.modal-close').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const modal = this.closest('.modal');
-                        if (modal) {
-                            closeModal(modal.id);
-                        }
-                    });
-                });
-                
-                document.querySelectorAll('.modal').forEach(modal => {
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            closeModal(this.id);
-                        }
-                    });
-                });
-                
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        document.querySelectorAll('.modal.active').forEach(modal => {
-                            closeModal(modal.id);
-                        });
-                    }
-                });
-            }
 
             // ===== SAVE PROFILE CHANGES =====
             async function saveProfileChanges() {
