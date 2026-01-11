@@ -235,7 +235,7 @@ body{
 (function() {
   'use strict';
   
-  // ✅ SINGLE Supabase declaration (moved to top)
+  // ✅ SINGLE Supabase declaration
   const supabase = window.supabase.createClient(
     'https://gfkhjbztayjyojsgdpgk.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
@@ -285,60 +285,87 @@ body{
     loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
   }
   
-  // Function to create/update user profile (same as sign-up)
+  // ✅ FIXED: Function to create user profile
   async function createUserProfile(user) {
     try {
+      console.log('🔄 Creating profile for user:', user.id);
+      
       const userData = user.user_metadata || {};
-      const username = userData.full_name || userData.name || user.email?.split('@')[0] || 'User';
       
-      // Check if profile already exists
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('Error checking profile:', checkError);
-        return null;
+      // Generate username
+      let username;
+      if (userData.full_name) {
+        username = userData.full_name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').substring(0, 30);
+      } else if (userData.name) {
+        username = userData.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').substring(0, 30);
+      } else if (user.email) {
+        username = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 30);
+      } else {
+        username = 'user_' + Math.random().toString(36).substring(2, 10);
       }
       
-      // If profile doesn't exist, create it (for OAuth users)
-      if (!existingProfile) {
-        const { data: newProfile, error: createError } = await supabase
+      // First, check if profile already exists
+      const { data: existingProfiles, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('id', user.id);
+      
+      if (checkError) {
+        console.warn('Error checking profile:', checkError);
+      }
+      
+      if (existingProfiles && existingProfiles.length > 0) {
+        console.log('✅ Profile already exists');
+        return existingProfiles[0];
+      }
+      
+      // Create new profile with minimal required fields
+      const newProfile = {
+        id: user.id,
+        username: username,
+        full_name: userData.full_name || userData.name || 'User'
+      };
+      
+      console.log('Creating profile with:', newProfile);
+      
+      // Insert the profile
+      const { data: createdProfile, error: createError } = await supabase
+        .from('user_profiles')
+        .insert([newProfile])
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('❌ Profile creation failed:', createError);
+        
+        // Try even simpler insert
+        const simpleProfile = {
+          id: user.id,
+          username: username
+        };
+        
+        console.log('Trying simpler insert:', simpleProfile);
+        
+        const { data: simpleData, error: simpleError } = await supabase
           .from('user_profiles')
-          .insert([
-            {
-              id: user.id,
-              username: username,
-              full_name: userData.full_name || userData.name || username,
-              avatar_url: userData.avatar_url || userData.picture || null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              is_private: false,
-              visited_count: 0,
-              favorites_count: 0,
-              followers_count: 0,
-              following_count: 0
-            }
-          ])
+          .insert([simpleProfile])
           .select()
           .single();
         
-        if (createError) {
-          console.error('Error creating profile:', createError);
+        if (simpleError) {
+          console.error('❌ Even simple insert failed:', simpleError);
           return null;
         }
         
-        console.log('✅ User profile created for OAuth login:', newProfile);
-        return newProfile;
-      } else {
-        console.log('✅ User profile exists:', existingProfile);
-        return existingProfile;
+        console.log('✅ Simple profile created');
+        return simpleData;
       }
       
+      console.log('✅ Profile created successfully:', createdProfile);
+      return createdProfile;
+      
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      console.error('❌ Unexpected error in createUserProfile:', error);
       return null;
     }
   }
@@ -361,21 +388,32 @@ body{
     }
   }
   
-  // Auth state listener - handles OAuth redirects
+  // ✅ FIXED: Auth state listener with proper error handling
   supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth state change:', event);
+    console.log('🔐 Auth state change:', event);
     
     if (event === 'SIGNED_IN' && session) {
       try {
-        // Create or update user profile (for OAuth users)
-        await createUserProfile(session.user);
+        console.log('👤 User signed in, creating profile...');
+        
+        // Create user profile
+        const profile = await createUserProfile(session.user);
+        
+        if (!profile) {
+          console.warn('⚠️ Profile creation returned null, but continuing login...');
+        }
         
         showSuccess('Login successful! Redirecting...');
         setTimeout(() => {
           window.location.href = 'index.html';
         }, 1500);
       } catch (error) {
-        console.error('Error in auth state change:', error);
+        console.error('❌ Error in auth state change:', error);
+        // Still redirect on error
+        showSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
       }
     }
   });
@@ -427,6 +465,7 @@ body{
         handleRememberMe(email);
         
         // Login successful - auth state listener will handle redirect
+        console.log('✅ Login successful for user:', data.user.id);
         showSuccess('Login successful! Redirecting...');
       }
       
@@ -450,7 +489,7 @@ body{
     }
   });
   
-  // ✅ FIXED: Google login with proper handling
+  // ✅ Google login
   googleLogin.addEventListener('click', async () => {
     try {
       showLoading();
@@ -474,8 +513,6 @@ body{
           throw error;
         }
       }
-      
-      // The auth state listener will handle the redirect and profile creation
       
     } catch (error) {
       console.error('Google login error:', error);
@@ -537,6 +574,20 @@ body{
   } else {
     passwordInput.focus();
   }
+  
+  // Debug function
+  window.debugAuth = async function() {
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    
+    if (user) {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id);
+      console.log('User profile:', profile);
+    }
+  };
   
 })();
 </script>
