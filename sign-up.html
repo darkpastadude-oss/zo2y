@@ -315,27 +315,58 @@ body {
     submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Create Account</span>';
   }
   
-  // ✅ FIXED: Function to create user profile (SAME AS LOGIN PAGE)
+  // ✅ FIXED: Better user profile creation function
   async function createUserProfile(user) {
     try {
       console.log('🔄 Creating profile for user:', user.id);
       
       const userData = user.user_metadata || {};
       
-      // Generate username
+      // Generate a clean username
       let username;
       if (userData.full_name) {
-        username = userData.full_name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').substring(0, 30);
+        username = userData.full_name.toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^a-z0-9_]/g, '')
+          .substring(0, 30);
       } else if (userData.name) {
-        username = userData.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').substring(0, 30);
+        username = userData.name.toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^a-z0-9_]/g, '')
+          .substring(0, 30);
       } else if (user.email) {
-        username = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_').substring(0, 30);
+        username = user.email.split('@')[0].toLowerCase()
+          .replace(/[^a-z0-9_]/g, '_')
+          .substring(0, 30);
       } else {
         username = 'user_' + Math.random().toString(36).substring(2, 10);
       }
       
+      // Ensure username is unique by checking and appending numbers if needed
+      let finalUsername = username;
+      let counter = 1;
+      
+      while (counter < 100) { // Prevent infinite loop
+        const { data: existing, error } = await supabase
+          .from('user_profiles')
+          .select('username')
+          .eq('username', finalUsername);
+          
+        if (error) {
+          console.warn('Error checking username:', error);
+          break;
+        }
+        
+        if (!existing || existing.length === 0) {
+          break;
+        }
+        
+        finalUsername = `${username}_${counter}`;
+        counter++;
+      }
+      
       // First, check if profile already exists
-      const { data: existingProfiles, error: checkError } = await supabase
+      const { data: existingProfile, error: checkError } = await supabase
         .from('user_profiles')
         .select('id')
         .eq('id', user.id);
@@ -344,16 +375,17 @@ body {
         console.warn('Error checking profile:', checkError);
       }
       
-      if (existingProfiles && existingProfiles.length > 0) {
+      if (existingProfile && existingProfile.length > 0) {
         console.log('✅ Profile already exists');
-        return existingProfiles[0];
+        return existingProfile[0];
       }
       
-      // Create new profile with minimal required fields
+      // Create new profile
       const newProfile = {
         id: user.id,
-        username: username,
-        full_name: userData.full_name || userData.name || 'User'
+        username: finalUsername,
+        full_name: userData.full_name || userData.name || user.email?.split('@')[0] || 'User',
+        avatar_url: userData.avatar_url || null
       };
       
       console.log('Creating profile with:', newProfile);
@@ -361,34 +393,41 @@ body {
       // Insert the profile
       const { data: createdProfile, error: createError } = await supabase
         .from('user_profiles')
-        .insert([newProfile])
+        .upsert([newProfile], {
+          onConflict: 'id'
+        })
         .select()
         .single();
       
       if (createError) {
         console.error('❌ Profile creation failed:', createError);
         
-        // Try even simpler insert
-        const simpleProfile = {
-          id: user.id,
-          username: username
-        };
-        
-        console.log('Trying simpler insert:', simpleProfile);
-        
-        const { data: simpleData, error: simpleError } = await supabase
-          .from('user_profiles')
-          .insert([simpleProfile])
-          .select()
-          .single();
-        
-        if (simpleError) {
-          console.error('❌ Even simple insert failed:', simpleError);
+        // Try a simpler approach - just insert basic data
+        try {
+          const simpleProfile = {
+            id: user.id,
+            username: finalUsername
+          };
+          
+          const { data: simpleData, error: simpleError } = await supabase
+            .from('user_profiles')
+            .upsert([simpleProfile], {
+              onConflict: 'id'
+            })
+            .select()
+            .single();
+          
+          if (simpleError) {
+            console.error('❌ Even simple insert failed:', simpleError);
+            return null;
+          }
+          
+          console.log('✅ Simple profile created');
+          return simpleData;
+        } catch (fallbackError) {
+          console.error('❌ Fallback also failed:', fallbackError);
           return null;
         }
-        
-        console.log('✅ Simple profile created');
-        return simpleData;
       }
       
       console.log('✅ Profile created successfully:', createdProfile);
@@ -445,17 +484,22 @@ body {
   
   // ✅ FIXED: Auth state listener
   supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('🔐 Auth state change:', event);
+    console.log('🔐 Auth state change:', event, session?.user?.email);
     
     if (event === 'SIGNED_IN' && session) {
       try {
         console.log('👤 User signed in, creating profile...');
+        
+        // Wait a moment for metadata to be available
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Create user profile
         const profile = await createUserProfile(session.user);
         
         if (!profile) {
           console.warn('⚠️ Profile creation returned null, but continuing...');
+        } else {
+          console.log('✅ Profile created/retrieved:', profile);
         }
         
         // Check if this is email confirmation or direct signup
@@ -486,7 +530,7 @@ body {
     }
   })();
   
-  // ✅ FIXED: Email signup
+  // ✅ FIXED: Email signup with better error handling
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -531,12 +575,15 @@ body {
         
         // Handle specific errors
         if (error.message.includes('already registered') || 
-            error.message.includes('User already registered')) {
+            error.message.includes('User already registered') ||
+            error.message.includes('already exists')) {
           showError('This email is already registered. Please <a href="login.html">log in</a> instead.');
         } else if (error.message.includes('Invalid email')) {
           showError('Please enter a valid email address');
         } else if (error.message.includes('Password')) {
           showError('Password must be at least 6 characters');
+        } else if (error.message.includes('rate limit')) {
+          showError('Too many attempts. Please try again in a few minutes.');
         } else {
           showError('Signup failed: ' + error.message);
         }
@@ -546,15 +593,7 @@ body {
       if (data.user) {
         console.log('✅ User created:', data.user.id);
         
-        // Try to create user profile
-        const profile = await createUserProfile(data.user);
-        
-        if (profile) {
-          console.log('✅ Profile created successfully');
-        } else {
-          console.warn('⚠️ Profile creation returned null');
-        }
-        
+        // Wait for auth state change to handle profile creation
         if (data.session) {
           // User created and logged in automatically
           showSuccess('Account created successfully! Redirecting...');
@@ -563,11 +602,13 @@ body {
           }, 1500);
         } else {
           // Email confirmation required
-          showSuccess('Please check your email to confirm your account.');
+          showSuccess('Please check your email to confirm your account. Once confirmed, you can log in.');
           signupForm.reset();
           strengthMeter.style.width = '0%';
           passwordHint.classList.remove('show');
         }
+      } else {
+        showError('Something went wrong. Please try again.');
       }
       
     } catch (error) {
@@ -578,7 +619,7 @@ body {
     }
   });
   
-  // ✅ Google signup
+  // ✅ FIXED: Google signup with proper OAuth setup
   googleSignup.addEventListener('click', async () => {
     try {
       showLoading();
@@ -590,17 +631,22 @@ body {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
-          }
+          },
+          // ✅ IMPORTANT: Pass user metadata to Google
+          scopes: 'email profile'
         }
       });
       
       if (error) {
+        console.error('Google OAuth error:', error);
         if (error.message.includes('already registered')) {
           showError('This Google account is already registered. Please <a href="login.html">log in</a> instead.');
         } else {
-          throw error;
+          showError('Google signup failed: ' + error.message);
         }
+        hideLoading();
       }
+      // No need to hide loading here - auth state change will handle it
       
     } catch (error) {
       console.error('Google signup error:', error);
@@ -623,6 +669,12 @@ body {
         .select('*')
         .eq('id', user.id);
       console.log('User profile:', profile);
+      
+      const { data: allProfiles } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .limit(10);
+      console.log('First 10 profiles:', allProfiles);
     }
   };
   
