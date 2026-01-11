@@ -166,6 +166,29 @@ body {
   color: #fcd34d !important;
   text-decoration: none !important;
 }
+
+/* Debug console */
+.debug-console {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #00ff00;
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 400px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 12px;
+  display: none;
+  z-index: 9999;
+}
+.debug-console.show { display: block; }
+.debug-line { margin-bottom: 5px; }
+.debug-error { color: #ff0000; }
+.debug-success { color: #00ff00; }
+.debug-info { color: #00aaff; }
 </style>
 </head>
 <body>
@@ -219,16 +242,38 @@ body {
   </div>
 </div>
 
+<!-- Debug Console -->
+<div id="debugConsole" class="debug-console"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function() {
   'use strict';
   
+  // Debug console
+  const debugConsole = document.getElementById('debugConsole');
+  let debugEnabled = window.location.search.includes('debug=true');
+  
+  function log(message, type = 'info') {
+    console.log(`[${type.toUpperCase()}]`, message);
+    
+    if (debugEnabled) {
+      debugConsole.classList.add('show');
+      const line = document.createElement('div');
+      line.className = `debug-line debug-${type}`;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      debugConsole.appendChild(line);
+      debugConsole.scrollTop = debugConsole.scrollHeight;
+    }
+  }
+  
   // Supabase configuration
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   
-  // Initialize Supabase with PKCE flow
+  log('Initializing Supabase client...', 'info');
+  
+  // Initialize Supabase
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: {
       flowType: 'pkce',
@@ -237,6 +282,8 @@ body {
       detectSessionInUrl: true
     }
   });
+  
+  log('Supabase client initialized', 'success');
   
   // DOM Elements
   const signupForm = document.getElementById('signupForm');
@@ -250,6 +297,7 @@ body {
   
   // Helper functions
   function showError(msg) {
+    log(`Error: ${msg}`, 'error');
     errorMessage.innerHTML = msg;
     errorMessage.classList.add('show');
     successMessage.classList.remove('show');
@@ -257,6 +305,7 @@ body {
   }
   
   function showSuccess(msg) {
+    log(`Success: ${msg}`, 'success');
     successMessage.innerHTML = msg;
     successMessage.classList.add('show');
     errorMessage.classList.remove('show');
@@ -272,85 +321,117 @@ body {
     submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Create Account</span>';
   }
   
-  // SIMPLIFIED: Create user profile - database trigger will handle it
-  // But we still try to create it explicitly for reliability
-  async function ensureUserProfile(user) {
-    try {
-      console.log('🔄 Ensuring profile for user:', user.id);
+  // Verify profile creation with retry
+  async function verifyAndCreateProfile(user, retries = 3) {
+    log(`Verifying profile for user ${user.id}...`, 'info');
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      log(`Attempt ${attempt}/${retries}`, 'info');
       
-      // Check if profile exists
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('user_profiles')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-      if (existingProfile) {
-        console.log('✅ Profile already exists');
-        return true;
+      try {
+        // Wait a bit for trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        
+        // Check if profile exists
+        const { data: profile, error: checkError } = await supabase
+          .from('user_profiles')
+          .select('id, username, full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (profile) {
+          log(`Profile found: ${JSON.stringify(profile)}`, 'success');
+          return true;
+        }
+        
+        if (checkError) {
+          log(`Check error: ${checkError.message}`, 'error');
+        }
+        
+        // Try to create profile manually
+        log('Profile not found, creating manually...', 'info');
+        
+        const userData = user.user_metadata || {};
+        const username = (userData.full_name || userData.name || user.email?.split('@')[0] || 'user')
+          .toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^a-z0-9_]/g, '')
+          .substring(0, 30);
+        
+        const profileData = {
+          id: user.id,
+          username: username,
+          full_name: userData.full_name || userData.name || username,
+          avatar_icon: '🍔'
+        };
+        
+        log(`Creating profile: ${JSON.stringify(profileData)}`, 'info');
+        
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([profileData])
+          .select()
+          .maybeSingle();
+        
+        if (createError) {
+          log(`Create error: ${createError.message}`, 'error');
+          if (attempt === retries) {
+            log('All retry attempts failed', 'error');
+            return false;
+          }
+          continue;
+        }
+        
+        if (newProfile) {
+          log(`Profile created: ${JSON.stringify(newProfile)}`, 'success');
+          return true;
+        }
+        
+      } catch (error) {
+        log(`Unexpected error: ${error.message}`, 'error');
+        if (attempt === retries) return false;
       }
-      
-      // Create profile with minimal data
-      const userData = user.user_metadata || {};
-      const username = (userData.full_name || userData.name || user.email?.split('@')[0] || 'user')
-        .toLowerCase()
-        .replace(/\s+/g, '_')
-        .replace(/[^a-z0-9_]/g, '')
-        .substring(0, 30);
-      
-      const profileData = {
-        id: user.id,
-        username: username,
-        full_name: userData.full_name || userData.name || username,
-        avatar_icon: '🍔'
-      };
-      
-      console.log('Creating profile:', profileData);
-      
-      const { data: newProfile, error: createError } = await supabase
-        .from('user_profiles')
-        .insert([profileData])
-        .select()
-        .single();
-      
-      if (createError) {
-        console.error('❌ Profile creation error:', createError);
-        // Don't throw - let the trigger handle it
-        return false;
-      }
-      
-      console.log('✅ Profile created successfully');
-      return true;
-      
-    } catch (error) {
-      console.error('❌ Unexpected error:', error);
-      return false;
     }
+    
+    return false;
   }
   
   // Auth state listener
   supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('🔐 Auth state:', event);
+    log(`Auth state change: ${event}`, 'info');
     
     if (event === 'SIGNED_IN' && session?.user) {
-      console.log('✅ User signed in:', session.user.email);
+      log(`User signed in: ${session.user.email}`, 'success');
+      log(`User ID: ${session.user.id}`, 'info');
       
-      // Try to ensure profile exists
-      await ensureUserProfile(session.user);
+      // Verify and create profile
+      const profileCreated = await verifyAndCreateProfile(session.user);
       
-      // Redirect after a short delay
-      showSuccess('Account created! Redirecting...');
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1500);
+      if (profileCreated) {
+        log('Profile verified/created successfully', 'success');
+        showSuccess('Account created! Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      } else {
+        log('Profile creation failed, but redirecting anyway', 'error');
+        showSuccess('Account created! Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      }
     }
   });
   
   // Check if already logged in
   (async () => {
+    log('Checking for existing session...', 'info');
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
+      log('User already logged in, redirecting...', 'info');
       window.location.href = 'index.html';
+    } else {
+      log('No existing session', 'info');
     }
   })();
   
@@ -361,6 +442,8 @@ body {
     const fullName = fullNameInput.value.trim();
     const email = emailInput.value.trim();
     const password = passwordInput.value;
+    
+    log(`Signup attempt: ${email}`, 'info');
     
     // Validation
     if (!fullName || !email || !password) {
@@ -381,7 +464,7 @@ body {
     showLoading();
     
     try {
-      console.log('🔄 Starting signup for:', email);
+      log('Calling Supabase signUp...', 'info');
       
       const { data, error } = await supabase.auth.signUp({
         email: email,
@@ -395,14 +478,10 @@ body {
       });
       
       if (error) {
-        console.error('❌ Signup error:', error);
+        log(`Signup error: ${error.message}`, 'error');
         
         if (error.message.includes('already registered')) {
           showError('This email is already registered. Please <a href="login.html">log in</a> instead.');
-        } else if (error.message.includes('Invalid email')) {
-          showError('Please enter a valid email address');
-        } else if (error.message.includes('Password')) {
-          showError('Password must be at least 6 characters');
         } else {
           showError('Signup failed: ' + error.message);
         }
@@ -410,24 +489,21 @@ body {
         return;
       }
       
-      console.log('✅ Signup successful');
+      log(`Signup response received`, 'success');
+      log(`User ID: ${data.user?.id}`, 'info');
+      log(`Session exists: ${!!data.session}`, 'info');
       
-      if (data.user) {
-        // User created successfully
-        if (data.session) {
-          // Auto-confirmed and logged in
-          showSuccess('Account created! Redirecting...');
-        } else {
-          // Email confirmation required
-          showSuccess('Success! Please check your email to confirm your account.');
-          signupForm.reset();
-        }
+      if (data.user && !data.session) {
+        // Email confirmation required
+        log('Email confirmation required', 'info');
+        showSuccess('Success! Please check your email to confirm your account.');
+        signupForm.reset();
+        hideLoading();
       }
       
     } catch (error) {
-      console.error('❌ Unexpected error:', error);
+      log(`Unexpected error: ${error.message}`, 'error');
       showError('An unexpected error occurred. Please try again.');
-    } finally {
       hideLoading();
     }
   });
@@ -436,8 +512,7 @@ body {
   googleSignup.addEventListener('click', async () => {
     try {
       showLoading();
-      
-      console.log('🔄 Starting Google OAuth...');
+      log('Starting Google OAuth...', 'info');
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -451,17 +526,28 @@ body {
       });
       
       if (error) {
-        console.error('❌ Google OAuth error:', error);
+        log(`Google OAuth error: ${error.message}`, 'error');
         showError('Google signup failed: ' + error.message);
         hideLoading();
       }
       
     } catch (error) {
-      console.error('❌ Unexpected Google error:', error);
+      log(`Google error: ${error.message}`, 'error');
       showError('Google signup failed. Please try again.');
       hideLoading();
     }
   });
+  
+  // Add debug mode toggle with keyboard shortcut
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+      debugEnabled = !debugEnabled;
+      debugConsole.classList.toggle('show', debugEnabled);
+      log('Debug mode ' + (debugEnabled ? 'enabled' : 'disabled'), 'info');
+    }
+  });
+  
+  log('Page fully loaded', 'success');
   
 })();
 </script>
