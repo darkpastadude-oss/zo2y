@@ -2919,85 +2919,262 @@
             };
             
             // ---------- INITIALIZATION ----------
-            async function init() {
-                console.log('🚀 Initializing homepage...');
-                
-                try {
-                    // Setup basic functionality
-                    setupEventListeners();
-                    guestBanner.init();
-                    initImageLoader();
-                    
-                    // Initialize auth - SIMPLE and RELIABLE approach
-                    await initializeAuth();
-                    
-                    // Load restaurant data
-                    await loadRestaurantsData();
-                    
-                    console.log('✅ Homepage initialization complete');
-                    
-                } catch (error) {
-                    console.error('❌ Initialization error:', error);
-                    showNotification('Failed to initialize page', 'error');
-                    
-                    // Show fallback UI
-                    const featuredSlider = document.getElementById('featuredSlider');
-                    const nearbySlider = document.getElementById('nearbySlider');
-                    if (featuredSlider) {
-                        featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
-                        featuredSlider.classList.remove('skeleton-grid');
-                    }
-                    if (nearbySlider) {
-                        nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
-                        nearbySlider.classList.remove('skeleton-grid');
-                    }
-                }
+            // ===== FIXED AUTHENTICATION FOR INDEX.HTML =====
+// Replace the auth initialization section in your index.html
+
+async function initializeAuth() {
+    console.log('🔐 Initializing auth...');
+    
+    try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+            console.error('Session error:', sessionError);
+            setGuestState();
+            return;
+        }
+        
+        if (!session?.user) {
+            console.log('👤 No active session, setting guest state');
+            setGuestState();
+            return;
+        }
+        
+        console.log('✅ User found in session:', session.user.email);
+        state.currentUser = session.user;
+        state.isLoggedIn = true;
+        
+        // CRITICAL: Verify and create profile if needed
+        const profileReady = await ensureUserProfileExists(session.user);
+        
+        if (profileReady) {
+            await state.listManager.init();
+            setLoggedInState(session.user);
+        } else {
+            console.warn('⚠️ Profile verification failed, but allowing login');
+            setLoggedInState(session.user);
+        }
+        
+    } catch (error) {
+        console.error('❌ Auth initialization error:', error);
+        setGuestState();
+    }
+    
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔄 Auth state change:', event);
+        
+        if (event === 'SIGNED_OUT') {
+            state.currentUser = null;
+            state.isLoggedIn = false;
+            setGuestState();
+            guestBanner.show();
+            
+        } else if (event === 'SIGNED_IN' && session?.user) {
+            state.currentUser = session.user;
+            state.isLoggedIn = true;
+            
+            // Ensure profile exists
+            await ensureUserProfileExists(session.user);
+            await state.listManager.init();
+            setLoggedInState(session.user);
+        }
+    });
+}
+
+// NEW: Function to ensure user profile exists
+async function ensureUserProfileExists(user, retries = 3) {
+    console.log('🔍 Ensuring profile exists for:', user.id);
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        console.log(`Attempt ${attempt}/${retries}`);
+        
+        try {
+            // Wait for trigger to complete
+            if (attempt > 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
             }
             
-            // ---------- AUTH MANAGEMENT (Simplified but WORKING) ----------
-            async function initializeAuth() {
-                console.log('🔐 Initializing auth...');
-                
-                try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    
-                    if (session?.user) {
-                        console.log('✅ User found in session:', session.user.email);
-                        state.currentUser = session.user;
-                        state.isLoggedIn = true;
-                        
-                        await state.listManager.init();
-                        setLoggedInState(session.user);
-                        
-                    } else {
-                        console.log('👤 No active session, setting guest state');
-                        setGuestState();
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Auth initialization error:', error);
-                    setGuestState();
-                }
-                
-                // Listen for auth changes
-                supabase.auth.onAuthStateChange(async (event, session) => {
-                    console.log('🔄 Auth state change:', event);
-                    
-                    if (event === 'SIGNED_OUT') {
-                        state.currentUser = null;
-                        state.isLoggedIn = false;
-                        setGuestState();
-                        guestBanner.show();
-                        
-                    } else if (event === 'SIGNED_IN' && session?.user) {
-                        state.currentUser = session.user;
-                        state.isLoggedIn = true;
-                        await state.listManager.init();
-                        setLoggedInState(session.user);
-                    }
-                });
+            // Check if profile exists
+            const { data: profile, error: checkError } = await supabase
+                .from('user_profiles')
+                .select('id, username, full_name, avatar_icon')
+                .eq('id', user.id)
+                .maybeSingle();
+            
+            if (profile) {
+                console.log('✅ Profile exists:', profile);
+                return true;
             }
             
+            if (checkError && checkError.code !== 'PGRST116') {
+                console.error('Profile check error:', checkError);
+            }
+            
+            // Profile doesn't exist, try to create it
+            console.log('📝 Creating profile for user...');
+            
+            const userData = user.user_metadata || {};
+            const email = user.email || '';
+            
+            // Generate clean username
+            let username = (
+                userData.full_name || 
+                userData.name || 
+                email.split('@')[0] || 
+                'user'
+            ).toLowerCase()
+              .replace(/\s+/g, '_')
+              .replace(/[^a-z0-9_]/g, '')
+              .substring(0, 30);
+            
+            // Ensure unique username
+            const timestamp = Date.now().toString(36).substring(-4);
+            username = `${username}_${timestamp}`;
+            
+            const profileData = {
+                id: user.id,
+                username: username,
+                full_name: userData.full_name || userData.name || username,
+                avatar_icon: '🍔',
+                bio: '',
+                location: '',
+                is_private: false
+            };
+            
+            console.log('Profile data:', profileData);
+            
+            const { data: newProfile, error: createError } = await supabase
+                .from('user_profiles')
+                .insert([profileData])
+                .select()
+                .maybeSingle();
+            
+            if (createError) {
+                console.error('❌ Profile creation error:', createError);
+                
+                // If it's a duplicate key error, profile might have been created by trigger
+                if (createError.code === '23505') {
+                    console.log('Profile already exists (created by trigger)');
+                    return true;
+                }
+                
+                if (attempt === retries) {
+                    console.error('All retry attempts failed');
+                    return false;
+                }
+                continue;
+            }
+            
+            if (newProfile) {
+                console.log('✅ Profile created successfully:', newProfile);
+                return true;
+            }
+            
+        } catch (error) {
+            console.error('Unexpected error:', error);
+            if (attempt === retries) {
+                return false;
+            }
+        }
+    }
+    
+    return false;
+}
+
+// Update setLoggedInState to handle missing profiles gracefully
+function setLoggedInState(user) {
+    try {
+        let displayName = 'User';
+        const userData = user.user_metadata || {};
+        
+        displayName = userData.full_name || 
+                     userData.name || 
+                     user.email?.split('@')[0] || 
+                     'User';
+        
+        const authBtn = document.getElementById('userAccountBtn');
+        if (authBtn) {
+            authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+            authBtn.onclick = () => {
+                window.location.href = 'profile.html';
+            };
+        }
+        
+        const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
+        const loggedInBtn = document.querySelector('.btn-primary.logged-in');
+        if (startJourneyBtn) startJourneyBtn.style.display = 'none';
+        if (loggedInBtn) loggedInBtn.style.display = 'flex';
+        
+        guestBanner.hide();
+        
+    } catch (error) {
+        console.error('Error setting logged in state:', error);
+        setGuestState();
+    }
+}
+
+// Add this debug function to window for testing
+window.debugAuth = async function() {
+    console.log('=== AUTH DEBUG ===');
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    
+    if (user) {
+        const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', user.id);
+        console.log('User profile:', profile);
+        console.log('Profile error:', error);
+        
+        // Try to create profile if missing
+        if (!profile || profile.length === 0) {
+            console.log('Profile missing, attempting to create...');
+            const result = await ensureUserProfileExists(user);
+            console.log('Creation result:', result);
+        }
+    }
+    
+    console.log('=== END DEBUG ===');
+};
+
+// Add this to your existing init() function
+async function init() {
+    console.log('🚀 Initializing homepage...');
+    
+    try {
+        // Setup basic functionality
+        setupEventListeners();
+        guestBanner.init();
+        initImageLoader();
+        
+        // Initialize auth - WITH PROFILE VERIFICATION
+        await initializeAuth();
+        
+        // Load restaurant data
+        await loadRestaurantsData();
+        
+        console.log('✅ Homepage initialization complete');
+        
+    } catch (error) {
+        console.error('❌ Initialization error:', error);
+        showNotification('Failed to initialize page', 'error');
+        
+        // Show fallback UI
+        const featuredSlider = document.getElementById('featuredSlider');
+        const nearbySlider = document.getElementById('nearbySlider');
+        if (featuredSlider) {
+            featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+            featuredSlider.classList.remove('skeleton-grid');
+        }
+        if (nearbySlider) {
+            nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+            nearbySlider.classList.remove('skeleton-grid');
+        }
+    }
+} 
             // ---------- UI STATE MANAGEMENT ----------
             function setLoggedInState(user) {
                 try {
