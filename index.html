@@ -2794,6 +2794,7 @@
                 restaurantListStatuses: new Map(),
                 listManager: {
                     userLists: [],
+                    customLists: [], // ADDED: Separate storage for custom lists
                     currentLists: {
                         favorites: null,
                         visited: null,
@@ -2820,6 +2821,9 @@
                             if (error) throw error;
                             
                             this.userLists = lists || [];
+                            this.customLists = this.userLists.filter(list => 
+                                !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+                            );
                             await this.setupDefaultLists();
                             await this.loadListRestaurants();
                             
@@ -2855,7 +2859,9 @@
                                 {
                                     user_id: state.currentUser.id,
                                     title: title,
-                                    description: description
+                                    description: description,
+                                    icon: '📋',
+                                    is_default: title === 'Favorites' || title === 'Visited' || title === 'Want to Go'
                                 }
                             ])
                             .select()
@@ -2867,6 +2873,9 @@
                         }
                         
                         this.userLists.push(newList);
+                        if (!newList.is_default) {
+                            this.customLists.push(newList);
+                        }
                         return newList;
                     },
                     
@@ -2888,22 +2897,45 @@
                                 }
                             }
                         }
+                        
+                        // Also load custom lists restaurants
+                        for (const list of this.customLists) {
+                            const { data: listRestaurants, error } = await supabase
+                                .from('lists_restraunts')
+                                .select('restraunt_id')
+                                .eq('list_id', list.id);
+                            
+                            if (!error && listRestaurants) {
+                                list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                            } else {
+                                list.restaurants = [];
+                            }
+                        }
                     },
                     
-                    // NEW: Load all restaurant statuses at once
+                    // FIXED: Load all restaurant statuses at once - with better performance
                     async loadAllRestaurantStatuses() {
                         if (!supabase || !state.isLoggedIn || !state.currentUser) return;
                         
                         try {
-                            // Get all restaurants in user's lists
+                            // Get list IDs for the current user
+                            const listIds = [
+                                this.currentLists.favorites?.id,
+                                this.currentLists.visited?.id,
+                                this.currentLists.wantToGo?.id,
+                                ...this.customLists.map(list => list.id)
+                            ].filter(Boolean);
+                            
+                            if (listIds.length === 0) {
+                                console.log('No lists found for user');
+                                return;
+                            }
+                            
+                            // Get all restaurants in user's lists in a single query
                             const { data: allListRestaurants, error } = await supabase
                                 .from('lists_restraunts')
                                 .select('list_id, restraunt_id')
-                                .in('list_id', [
-                                    this.currentLists.favorites?.id,
-                                    this.currentLists.visited?.id,
-                                    this.currentLists.wantToGo?.id
-                                ].filter(Boolean));
+                                .in('list_id', listIds);
                             
                             if (error) throw error;
                             
@@ -2918,7 +2950,8 @@
                                     restaurantStatuses[restaurantId] = {
                                         favorites: false,
                                         visited: false,
-                                        wantToGo: false
+                                        wantToGo: false,
+                                        customLists: [] // Store custom list IDs and names
                                     };
                                 }
                                 
@@ -2932,6 +2965,16 @@
                                 if (item.list_id === this.currentLists.wantToGo?.id) {
                                     restaurantStatuses[restaurantId].wantToGo = true;
                                 }
+                                
+                                // Check if it's in any custom lists
+                                const customList = this.customLists.find(l => l.id === item.list_id);
+                                if (customList) {
+                                    restaurantStatuses[restaurantId].customLists.push({
+                                        id: customList.id,
+                                        name: customList.title,
+                                        icon: customList.icon || '📋'
+                                    });
+                                }
                             });
                             
                             // Store in state for instant access
@@ -2941,6 +2984,9 @@
                             
                             console.log(`✅ Loaded list statuses for ${Object.keys(restaurantStatuses).length} restaurants`);
                             
+                            // Immediately update all UI elements
+                            updateAllRestaurantCards();
+                            
                         } catch (error) {
                             console.error('Error loading restaurant statuses:', error);
                         }
@@ -2949,8 +2995,22 @@
                     async toggleInList(listType, restaurantId) {
                         if (!supabase) return false;
                         
-                        const list = this.currentLists[listType];
-                        if (!list) return false;
+                        let list;
+                        if (listType === 'favorites') {
+                            list = this.currentLists.favorites;
+                        } else if (listType === 'visited') {
+                            list = this.currentLists.visited;
+                        } else if (listType === 'wantToGo') {
+                            list = this.currentLists.wantToGo;
+                        } else {
+                            // For custom lists, listType is the list ID
+                            list = this.customLists.find(l => l.id === listType);
+                        }
+                        
+                        if (!list) {
+                            console.error('List not found:', listType);
+                            return false;
+                        }
                         
                         const isInList = this.isInList(listType, restaurantId);
                         
@@ -2997,12 +3057,13 @@
                         }
                     },
                     
-                    // NEW: Update local status immediately
+                    // FIXED: Update local status immediately with custom lists support
                     updateLocalStatus(listType, restaurantId, isAdded) {
                         const currentStatus = state.restaurantListStatuses.get(restaurantId) || {
                             favorites: false,
                             visited: false,
-                            wantToGo: false
+                            wantToGo: false,
+                            customLists: []
                         };
                         
                         if (listType === 'favorites') {
@@ -3011,14 +3072,30 @@
                             currentStatus.visited = isAdded;
                         } else if (listType === 'wantToGo') {
                             currentStatus.wantToGo = isAdded;
+                        } else {
+                            // Handle custom lists
+                            const list = this.customLists.find(l => l.id === listType);
+                            if (list) {
+                                if (isAdded) {
+                                    // Add to custom lists if not already there
+                                    if (!currentStatus.customLists.some(l => l.id === list.id)) {
+                                        currentStatus.customLists.push({
+                                            id: list.id,
+                                            name: list.title,
+                                            icon: list.icon || '📋'
+                                        });
+                                    }
+                                } else {
+                                    // Remove from custom lists
+                                    currentStatus.customLists = currentStatus.customLists.filter(l => l.id !== list.id);
+                                }
+                            }
                         }
                         
                         state.restaurantListStatuses.set(restaurantId, currentStatus);
                         
                         // Immediately update the UI
-                        updateRestaurantCardStatus(restaurantId);
-                        updateSpotlightStatus(restaurantId);
-                        updateDayCardStatus(restaurantId);
+                        updateAllRestaurantCards();
                     },
                     
                     isInList(listType, restaurantId) {
@@ -3028,10 +3105,24 @@
                             if (listType === 'favorites') return status.favorites;
                             if (listType === 'visited') return status.visited;
                             if (listType === 'wantToGo') return status.wantToGo;
+                            // For custom lists, check by ID
+                            if (typeof listType === 'string' && listType !== 'favorites' && listType !== 'visited' && listType !== 'wantToGo') {
+                                return status.customLists.some(list => list.id === listType);
+                            }
                         }
                         
                         // Fallback to checking lists
-                        const list = this.currentLists[listType];
+                        let list;
+                        if (listType === 'favorites') {
+                            list = this.currentLists.favorites;
+                        } else if (listType === 'visited') {
+                            list = this.currentLists.visited;
+                        } else if (listType === 'wantToGo') {
+                            list = this.currentLists.wantToGo;
+                        } else {
+                            list = this.customLists.find(l => l.id === listType);
+                        }
+                        
                         return list?.restaurants?.includes(restaurantId) || false;
                     },
                     
@@ -3040,7 +3131,8 @@
                             return {
                                 favorites: false,
                                 wantToGo: false,
-                                visited: false
+                                visited: false,
+                                customLists: []
                             };
                         }
                         
@@ -3050,88 +3142,94 @@
                             return cachedStatus;
                         }
                         
-                        // If not in cache, check lists (should be rare)
+                        // If not in cache, return empty status
                         return {
-                            favorites: this.isInList('favorites', restaurantId),
-                            wantToGo: this.isInList('wantToGo', restaurantId),
-                            visited: this.isInList('visited', restaurantId)
+                            favorites: false,
+                            wantToGo: false,
+                            visited: false,
+                            customLists: []
                         };
                     }
                 }
             };
             
             // ---------- UI UPDATE FUNCTIONS ----------
-            function updateRestaurantCardStatus(restaurantId) {
-                // Update all restaurant cards that match this ID
-                const cards = document.querySelectorAll(`.restaurant-card[data-id="${restaurantId}"]`);
+            function updateAllRestaurantCards() {
+                // Update all restaurant cards
+                const cards = document.querySelectorAll('.restaurant-card');
                 cards.forEach(card => {
-                    updateCardBadges(card, restaurantId);
+                    const restaurantId = parseInt(card.dataset.id);
+                    if (restaurantId) {
+                        updateCardBadges(card, restaurantId);
+                    }
                 });
-            }
-            
-            function updateSpotlightStatus(restaurantId) {
-                // Update spotlight if it contains this restaurant
+                
+                // Update spotlight if it exists
                 const spotlightCard = document.getElementById('spotlightCard');
-                if (spotlightCard && state.spotlightRestaurants[state.spotlightIndex]?.id === restaurantId) {
-                    updateSpotlightBadges(restaurantId);
-                }
-            }
-            
-            function updateDayCardStatus(restaurantId) {
-                // Update restaurant of the day if it's this restaurant
-                const dayCard = document.getElementById('dayCard');
-                if (dayCard) {
-                    // We need to check if this is the restaurant of the day
-                    const topRestaurants = [...state.restaurants]
-                        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-                        .slice(0, 10);
-                    
-                    const today = new Date().getDate();
-                    const restaurantIndex = today % topRestaurants.length;
-                    const restaurant = topRestaurants[restaurantIndex];
-                    
-                    if (restaurant && restaurant.id === restaurantId) {
-                        updateDayCardBadges(restaurantId);
+                if (spotlightCard) {
+                    const currentRestaurant = state.spotlightRestaurants[state.spotlightIndex];
+                    if (currentRestaurant) {
+                        updateSpotlightBadges(currentRestaurant.id);
                     }
                 }
+                
+                // Update restaurant of the day
+                updateDayCardStatus();
             }
             
             function updateCardBadges(card, restaurantId) {
                 const status = state.listManager.getRestaurantListStatus(restaurantId);
                 const badgesContainer = card.querySelector('.list-badges-container');
                 
-                if (badgesContainer) {
-                    let badgesHTML = '';
-                    
-                    if (status.favorites) {
-                        badgesHTML += `
-                            <div class="list-badge">
-                                ❤️
-                                <div class="list-badge-tooltip">Favorited</div>
-                            </div>
-                        `;
-                    }
-                    
-                    if (status.wantToGo) {
-                        badgesHTML += `
-                            <div class="list-badge">
-                                📍
-                                <div class="list-badge-tooltip">Want to go to</div>
-                            </div>
-                        `;
-                    }
-                    
-                    if (status.visited) {
-                        badgesHTML += `
-                            <div class="list-badge">
-                                ✓
-                                <div class="list-badge-tooltip">Visited</div>
-                            </div>
-                        `;
-                    }
-                    
-                    badgesContainer.innerHTML = badgesHTML;
+                if (!badgesContainer) return;
+                
+                let badgesHTML = '';
+                
+                // Add default list badges
+                if (status.favorites) {
+                    badgesHTML += `
+                        <div class="list-badge">
+                            ❤️
+                            <div class="list-badge-tooltip">Favorited</div>
+                        </div>
+                    `;
                 }
+                
+                if (status.wantToGo) {
+                    badgesHTML += `
+                        <div class="list-badge">
+                            📍
+                            <div class="list-badge-tooltip">Want to go to</div>
+                        </div>
+                    `;
+                }
+                
+                if (status.visited) {
+                    badgesHTML += `
+                        <div class="list-badge">
+                            ✓
+                            <div class="list-badge-tooltip">Visited</div>
+                        </div>
+                    `;
+                }
+                
+                // Add custom list badges (max 2 to avoid clutter)
+                const customListCount = status.customLists.length;
+                if (customListCount > 0) {
+                    // Show first custom list with count badge
+                    const firstList = status.customLists[0];
+                    badgesHTML += `
+                        <div class="list-badge">
+                            ${firstList.icon || '📋'}
+                            <div class="list-badge-tooltip">
+                                <strong>${firstList.name}</strong>
+                                ${customListCount > 1 ? `<br>+ ${customListCount - 1} more list${customListCount > 2 ? 's' : ''}` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                badgesContainer.innerHTML = badgesHTML;
             }
             
             function updateSpotlightBadges(restaurantId) {
@@ -3176,16 +3274,42 @@
                         `;
                     }
                     
+                    // Add custom list badges
+                    const customListCount = status.customLists.length;
+                    if (customListCount > 0) {
+                        const firstList = status.customLists[0];
+                        badgesHTML += `
+                            <div class="list-badge">
+                                ${firstList.icon || '📋'}
+                                <div class="list-badge-tooltip">
+                                    <strong>${firstList.name}</strong>
+                                    ${customListCount > 1 ? `<br>+ ${customListCount - 1} more list${customListCount > 2 ? 's' : ''}` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
                     badgesContainer.innerHTML = badgesHTML;
                 }
             }
             
-            function updateDayCardBadges(restaurantId) {
-                const status = state.listManager.getRestaurantListStatus(restaurantId);
+            function updateDayCardStatus() {
                 const dayCard = document.getElementById('dayCard');
+                if (!dayCard) return;
                 
-                if (dayCard) {
+                // We need to check if this is the restaurant of the day
+                const topRestaurants = [...state.restaurants]
+                    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                    .slice(0, 10);
+                
+                const today = new Date().getDate();
+                const restaurantIndex = today % topRestaurants.length;
+                const restaurant = topRestaurants[restaurantIndex];
+                
+                if (restaurant) {
+                    const status = state.listManager.getRestaurantListStatus(restaurant.id);
                     let badgesContainer = dayCard.querySelector('.list-badges-container');
+                    
                     if (!badgesContainer) {
                         badgesContainer = document.createElement('div');
                         badgesContainer.className = 'list-badges-container';
@@ -3221,6 +3345,22 @@
                             <div class="list-badge" style="top: ${topPosition}px;">
                                 ✓
                                 <div class="list-badge-tooltip">Visited</div>
+                            </div>
+                        `;
+                        topPosition += 44;
+                    }
+                    
+                    // Add custom list badges
+                    const customListCount = status.customLists.length;
+                    if (customListCount > 0) {
+                        const firstList = status.customLists[0];
+                        badgesHTML += `
+                            <div class="list-badge" style="top: ${topPosition}px;">
+                                ${firstList.icon || '📋'}
+                                <div class="list-badge-tooltip">
+                                    <strong>${firstList.name}</strong>
+                                    ${customListCount > 1 ? `<br>+ ${customListCount - 1} more list${customListCount > 2 ? 's' : ''}` : ''}
+                                </div>
                             </div>
                         `;
                     }
@@ -3499,6 +3639,11 @@
                     if (profileReady) {
                         await state.listManager.init();
                         setLoggedInState(session.user);
+                        
+                        // FIXED: Immediately update UI with list badges
+                        setTimeout(() => {
+                            updateAllRestaurantCards();
+                        }, 100);
                     } else {
                         setLoggedInState(session.user);
                     }
@@ -3984,6 +4129,7 @@
                 
                 let listBadges = '';
                 
+                // Add default list badges
                 if (status.favorites) {
                     listBadges += `
                         <div class="list-badge">
@@ -4007,6 +4153,22 @@
                         <div class="list-badge">
                             ✓
                             <div class="list-badge-tooltip">Visited</div>
+                        </div>
+                    `;
+                }
+                
+                // Add custom list badges (max 2 to avoid clutter)
+                const customListCount = status.customLists.length;
+                if (customListCount > 0) {
+                    // Show first custom list with count badge
+                    const firstList = status.customLists[0];
+                    listBadges += `
+                        <div class="list-badge">
+                            ${firstList.icon || '📋'}
+                            <div class="list-badge-tooltip">
+                                <strong>${firstList.name}</strong>
+                                ${customListCount > 1 ? `<br>+ ${customListCount - 1} more list${customListCount > 2 ? 's' : ''}` : ''}
+                            </div>
                         </div>
                     `;
                 }
@@ -4247,6 +4409,22 @@
                         <div class="list-badge" style="top: ${topPosition}px;">
                             ✓
                             <div class="list-badge-tooltip">Visited</div>
+                        </div>
+                    `;
+                    topPosition += 44;
+                }
+                
+                // Add custom list badges
+                const customListCount = status.customLists.length;
+                if (customListCount > 0) {
+                    const firstList = status.customLists[0];
+                    listBadges += `
+                        <div class="list-badge" style="top: ${topPosition}px;">
+                            ${firstList.icon || '📋'}
+                            <div class="list-badge-tooltip">
+                                <strong>${firstList.name}</strong>
+                                ${customListCount > 1 ? `<br>+ ${customListCount - 1} more list${customListCount > 2 ? 's' : ''}` : ''}
+                            </div>
                         </div>
                     `;
                 }
@@ -4549,6 +4727,7 @@
                 const favoritesBtn = document.getElementById('modalFavoritesBtn');
                 const wantToGoBtn = document.getElementById('modalWantToGoBtn');
                 const visitedBtn = document.getElementById('modalVisitedBtn');
+                const customListsBtn = document.getElementById('modalCustomListsBtn');
                 
                 if (favoritesBtn) {
                     favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
@@ -4563,6 +4742,210 @@
                 if (visitedBtn) {
                     visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
                     visitedBtn.classList.toggle('active', status.visited);
+                }
+                
+                if (customListsBtn) {
+                    const customListCount = status.customLists.length;
+                    customListsBtn.innerHTML = `<i class="fas fa-list"></i><span>Custom Lists ${customListCount > 0 ? `(${customListCount})` : ''}</span><i class="fas fa-chevron-right"></i>`;
+                }
+            }
+            
+            // FIXED: Custom Lists Modal - No freezing
+            function setupCustomListsModal() {
+                const customListsBtn = document.getElementById('modalCustomListsBtn');
+                const closeListsBtn = document.getElementById('closeListsBtn');
+                const createListBtn = document.getElementById('createListBtn');
+                const saveListsBtn = document.getElementById('saveListsBtn');
+                const newListNameInput = document.getElementById('newListName');
+                const listsListContainer = document.getElementById('listsListContainer');
+                
+                if (!customListsBtn || !listsListContainer) return;
+                
+                let selectedLists = new Set();
+                
+                customListsBtn.addEventListener('click', async () => {
+                    if (!state.currentModalRestaurant) return;
+                    
+                    // Hide the main actions modal
+                    hideModal();
+                    
+                    // Load custom lists
+                    await loadCustomListsForModal();
+                    
+                    // Show custom lists modal
+                    const modal = document.getElementById('customListsModal');
+                    if (modal) {
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+                
+                if (closeListsBtn) {
+                    closeListsBtn.addEventListener('click', () => {
+                        const modal = document.getElementById('customListsModal');
+                        if (modal) {
+                            modal.classList.remove('active');
+                            document.body.style.overflow = 'auto';
+                        }
+                    });
+                }
+                
+                async function loadCustomListsForModal() {
+                    if (!state.currentModalRestaurant || !listsListContainer) return;
+                    
+                    const restaurantId = state.currentModalRestaurant.id;
+                    listsListContainer.innerHTML = '';
+                    
+                    // Get current status
+                    const status = state.listManager.getRestaurantListStatus(restaurantId);
+                    selectedLists.clear();
+                    
+                    // Add custom lists to selectedLists
+                    status.customLists.forEach(list => {
+                        selectedLists.add(list.id);
+                    });
+                    
+                    if (state.listManager.customLists.length === 0) {
+                        listsListContainer.innerHTML = `
+                            <div class="empty-lists">
+                                <i class="fas fa-list"></i>
+                                <h4>No custom lists yet</h4>
+                                <p>Create your first custom list to organize restaurants by occasion, cuisine, or mood!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const listsList = document.createElement('div');
+                    listsList.className = 'lists-list';
+                    
+                    state.listManager.customLists.forEach(list => {
+                        const listItem = document.createElement('div');
+                        listItem.className = 'list-item';
+                        if (selectedLists.has(list.id)) {
+                            listItem.classList.add('active');
+                        }
+                        
+                        const isChecked = selectedLists.has(list.id);
+                        
+                        listItem.innerHTML = `
+                            <div class="list-info">
+                                <div class="list-icon">${list.icon || '📋'}</div>
+                                <div class="list-name">${list.title}</div>
+                            </div>
+                            <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
+                        `;
+                        
+                        listItem.addEventListener('click', () => {
+                            if (selectedLists.has(list.id)) {
+                                selectedLists.delete(list.id);
+                                listItem.classList.remove('active');
+                                listItem.querySelector('.list-checkbox').classList.remove('checked');
+                            } else {
+                                selectedLists.add(list.id);
+                                listItem.classList.add('active');
+                                listItem.querySelector('.list-checkbox').classList.add('checked');
+                            }
+                        });
+                        
+                        listsList.appendChild(listItem);
+                    });
+                    
+                    listsListContainer.appendChild(listsList);
+                }
+                
+                if (createListBtn) {
+                    createListBtn.addEventListener('click', async () => {
+                        if (!newListNameInput || !state.currentUser || !supabase) return;
+                        
+                        const listName = newListNameInput.value.trim();
+                        if (!listName) {
+                            showNotification('Please enter a list name', 'error');
+                            return;
+                        }
+                        
+                        try {
+                            const { data: newList, error } = await supabase
+                                .from('lists')
+                                .insert([
+                                    {
+                                        user_id: state.currentUser.id,
+                                        title: listName,
+                                        description: `My ${listName} list`,
+                                        icon: '📋',
+                                        is_default: false,
+                                        created_at: new Date().toISOString()
+                                    }
+                                ])
+                                .select()
+                                .single();
+                            
+                            if (error) throw error;
+                            
+                            // Add to local lists
+                            state.listManager.customLists.push(newList);
+                            state.listManager.userLists.push(newList);
+                            
+                            // Clear input
+                            newListNameInput.value = '';
+                            
+                            // Reload the lists
+                            await loadCustomListsForModal();
+                            
+                            showNotification(`Created list "${listName}"`, 'success');
+                            
+                        } catch (error) {
+                            console.error('Error creating list:', error);
+                            showNotification('Error creating list', 'error');
+                        }
+                    });
+                }
+                
+                if (saveListsBtn) {
+                    saveListsBtn.addEventListener('click', async () => {
+                        if (!state.currentModalRestaurant) return;
+                        
+                        const restaurantId = state.currentModalRestaurant.id;
+                        const restaurantName = state.currentModalRestaurant.name;
+                        
+                        try {
+                            // Get current status to compare
+                            const currentStatus = state.listManager.getRestaurantListStatus(restaurantId);
+                            const currentListIds = currentStatus.customLists.map(list => list.id);
+                            
+                            // Find lists to add and remove
+                            const listsToAdd = Array.from(selectedLists).filter(listId => 
+                                !currentListIds.includes(listId)
+                            );
+                            
+                            const listsToRemove = currentListIds.filter(listId => 
+                                !selectedLists.has(listId)
+                            );
+                            
+                            // Process additions
+                            for (const listId of listsToAdd) {
+                                await state.listManager.toggleInList(listId, restaurantId);
+                            }
+                            
+                            // Process removals
+                            for (const listId of listsToRemove) {
+                                await state.listManager.toggleInList(listId, restaurantId);
+                            }
+                            
+                            // Close modal
+                            const modal = document.getElementById('customListsModal');
+                            if (modal) {
+                                modal.classList.remove('active');
+                                document.body.style.overflow = 'auto';
+                            }
+                            
+                            showNotification(`Updated lists for ${restaurantName}`, 'success');
+                            
+                        } catch (error) {
+                            console.error('Error saving lists:', error);
+                            showNotification('Error saving lists', 'error');
+                        }
+                    });
                 }
             }
             
@@ -4620,7 +5003,6 @@
                 const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
                 const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
                 const modalVisitedBtn = document.getElementById('modalVisitedBtn');
-                const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
                 const modalCancelBtn = document.getElementById('modalCancelBtn');
                 
                 if (modalFavoritesBtn) {
@@ -4662,21 +5044,6 @@
                     });
                 }
                 
-                if (modalCustomListsBtn) {
-                    modalCustomListsBtn.addEventListener('click', () => {
-                        if (!state.currentModalRestaurant) {
-                            showNotification('No restaurant selected', 'error');
-                            return;
-                        }
-                        
-                        hideModal();
-                        
-                        setTimeout(() => {
-                            showNotification('Custom lists feature coming soon!', 'info');
-                        }, 100);
-                    });
-                }
-                
                 if (modalCancelBtn) {
                     modalCancelBtn.addEventListener('click', hideModal);
                 }
@@ -4713,6 +5080,9 @@
                         document.body.style.overflow = 'auto';
                     });
                 }
+                
+                // Set up custom lists modal
+                setupCustomListsModal();
                 
                 console.log('✅ Event listeners set up');
             }
