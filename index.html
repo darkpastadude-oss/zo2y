@@ -1220,7 +1220,7 @@
             margin: 0 0 16px 0; 
             display: -webkit-box; 
             -webkit-line-clamp: 3; 
-            -webkit-box-orient: vertical; 
+            -webkit-box-orvent: vertical; 
             overflow: hidden; 
             flex: 1; 
             min-height: 60px; 
@@ -2790,6 +2790,8 @@
                 currentUser: null,
                 // Search data cache with limit
                 searchData: [],
+                // Store restaurant list statuses for instant access
+                restaurantListStatuses: new Map(),
                 listManager: {
                     userLists: [],
                     currentLists: {
@@ -2802,6 +2804,8 @@
                         if (!state.isLoggedIn || !state.currentUser || !supabase) return;
                         
                         await this.loadUserLists();
+                        // Load all restaurant statuses immediately
+                        await this.loadAllRestaurantStatuses();
                     },
                     
                     async loadUserLists() {
@@ -2886,13 +2890,69 @@
                         }
                     },
                     
+                    // NEW: Load all restaurant statuses at once
+                    async loadAllRestaurantStatuses() {
+                        if (!supabase || !state.isLoggedIn || !state.currentUser) return;
+                        
+                        try {
+                            // Get all restaurants in user's lists
+                            const { data: allListRestaurants, error } = await supabase
+                                .from('lists_restraunts')
+                                .select('list_id, restraunt_id')
+                                .in('list_id', [
+                                    this.currentLists.favorites?.id,
+                                    this.currentLists.visited?.id,
+                                    this.currentLists.wantToGo?.id
+                                ].filter(Boolean));
+                            
+                            if (error) throw error;
+                            
+                            // Clear existing statuses
+                            state.restaurantListStatuses.clear();
+                            
+                            // Group by restaurant ID
+                            const restaurantStatuses = {};
+                            allListRestaurants?.forEach(item => {
+                                const restaurantId = item.restraunt_id;
+                                if (!restaurantStatuses[restaurantId]) {
+                                    restaurantStatuses[restaurantId] = {
+                                        favorites: false,
+                                        visited: false,
+                                        wantToGo: false
+                                    };
+                                }
+                                
+                                // Check which list this restaurant is in
+                                if (item.list_id === this.currentLists.favorites?.id) {
+                                    restaurantStatuses[restaurantId].favorites = true;
+                                }
+                                if (item.list_id === this.currentLists.visited?.id) {
+                                    restaurantStatuses[restaurantId].visited = true;
+                                }
+                                if (item.list_id === this.currentLists.wantToGo?.id) {
+                                    restaurantStatuses[restaurantId].wantToGo = true;
+                                }
+                            });
+                            
+                            // Store in state for instant access
+                            Object.entries(restaurantStatuses).forEach(([restaurantId, status]) => {
+                                state.restaurantListStatuses.set(parseInt(restaurantId), status);
+                            });
+                            
+                            console.log(`✅ Loaded list statuses for ${Object.keys(restaurantStatuses).length} restaurants`);
+                            
+                        } catch (error) {
+                            console.error('Error loading restaurant statuses:', error);
+                        }
+                    },
+                    
                     async toggleInList(listType, restaurantId) {
                         if (!supabase) return false;
                         
                         const list = this.currentLists[listType];
                         if (!list) return false;
                         
-                        const isInList = list.restaurants?.includes(restaurantId);
+                        const isInList = this.isInList(listType, restaurantId);
                         
                         try {
                             if (isInList) {
@@ -2906,7 +2966,8 @@
                                 
                                 if (error) throw error;
                                 
-                                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                                // Update local state immediately
+                                this.updateLocalStatus(listType, restaurantId, false);
                                 showNotification(`Removed from ${list.title}`, 'info');
                                 return false;
                                 
@@ -2923,8 +2984,8 @@
                                 
                                 if (error) throw error;
                                 
-                                if (!list.restaurants) list.restaurants = [];
-                                list.restaurants.push(restaurantId);
+                                // Update local state immediately
+                                this.updateLocalStatus(listType, restaurantId, true);
                                 showNotification(`Added to ${list.title}`, 'success');
                                 return true;
                             }
@@ -2936,7 +2997,40 @@
                         }
                     },
                     
+                    // NEW: Update local status immediately
+                    updateLocalStatus(listType, restaurantId, isAdded) {
+                        const currentStatus = state.restaurantListStatuses.get(restaurantId) || {
+                            favorites: false,
+                            visited: false,
+                            wantToGo: false
+                        };
+                        
+                        if (listType === 'favorites') {
+                            currentStatus.favorites = isAdded;
+                        } else if (listType === 'visited') {
+                            currentStatus.visited = isAdded;
+                        } else if (listType === 'wantToGo') {
+                            currentStatus.wantToGo = isAdded;
+                        }
+                        
+                        state.restaurantListStatuses.set(restaurantId, currentStatus);
+                        
+                        // Immediately update the UI
+                        updateRestaurantCardStatus(restaurantId);
+                        updateSpotlightStatus(restaurantId);
+                        updateDayCardStatus(restaurantId);
+                    },
+                    
                     isInList(listType, restaurantId) {
+                        // Check local cache first for instant response
+                        const status = state.restaurantListStatuses.get(restaurantId);
+                        if (status) {
+                            if (listType === 'favorites') return status.favorites;
+                            if (listType === 'visited') return status.visited;
+                            if (listType === 'wantToGo') return status.wantToGo;
+                        }
+                        
+                        // Fallback to checking lists
                         const list = this.currentLists[listType];
                         return list?.restaurants?.includes(restaurantId) || false;
                     },
@@ -2950,6 +3044,13 @@
                             };
                         }
                         
+                        // Get from cache for instant response
+                        const cachedStatus = state.restaurantListStatuses.get(restaurantId);
+                        if (cachedStatus) {
+                            return cachedStatus;
+                        }
+                        
+                        // If not in cache, check lists (should be rare)
                         return {
                             favorites: this.isInList('favorites', restaurantId),
                             wantToGo: this.isInList('wantToGo', restaurantId),
@@ -2958,6 +3059,175 @@
                     }
                 }
             };
+            
+            // ---------- UI UPDATE FUNCTIONS ----------
+            function updateRestaurantCardStatus(restaurantId) {
+                // Update all restaurant cards that match this ID
+                const cards = document.querySelectorAll(`.restaurant-card[data-id="${restaurantId}"]`);
+                cards.forEach(card => {
+                    updateCardBadges(card, restaurantId);
+                });
+            }
+            
+            function updateSpotlightStatus(restaurantId) {
+                // Update spotlight if it contains this restaurant
+                const spotlightCard = document.getElementById('spotlightCard');
+                if (spotlightCard && state.spotlightRestaurants[state.spotlightIndex]?.id === restaurantId) {
+                    updateSpotlightBadges(restaurantId);
+                }
+            }
+            
+            function updateDayCardStatus(restaurantId) {
+                // Update restaurant of the day if it's this restaurant
+                const dayCard = document.getElementById('dayCard');
+                if (dayCard) {
+                    // We need to check if this is the restaurant of the day
+                    const topRestaurants = [...state.restaurants]
+                        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                        .slice(0, 10);
+                    
+                    const today = new Date().getDate();
+                    const restaurantIndex = today % topRestaurants.length;
+                    const restaurant = topRestaurants[restaurantIndex];
+                    
+                    if (restaurant && restaurant.id === restaurantId) {
+                        updateDayCardBadges(restaurantId);
+                    }
+                }
+            }
+            
+            function updateCardBadges(card, restaurantId) {
+                const status = state.listManager.getRestaurantListStatus(restaurantId);
+                const badgesContainer = card.querySelector('.list-badges-container');
+                
+                if (badgesContainer) {
+                    let badgesHTML = '';
+                    
+                    if (status.favorites) {
+                        badgesHTML += `
+                            <div class="list-badge">
+                                ❤️
+                                <div class="list-badge-tooltip">Favorited</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (status.wantToGo) {
+                        badgesHTML += `
+                            <div class="list-badge">
+                                📍
+                                <div class="list-badge-tooltip">Want to go to</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (status.visited) {
+                        badgesHTML += `
+                            <div class="list-badge">
+                                ✓
+                                <div class="list-badge-tooltip">Visited</div>
+                            </div>
+                        `;
+                    }
+                    
+                    badgesContainer.innerHTML = badgesHTML;
+                }
+            }
+            
+            function updateSpotlightBadges(restaurantId) {
+                const status = state.listManager.getRestaurantListStatus(restaurantId);
+                const spotlightCard = document.getElementById('spotlightCard');
+                
+                if (spotlightCard) {
+                    // Create badges container if it doesn't exist
+                    let badgesContainer = spotlightCard.querySelector('.list-badges-container');
+                    if (!badgesContainer) {
+                        badgesContainer = document.createElement('div');
+                        badgesContainer.className = 'list-badges-container';
+                        spotlightCard.querySelector('.spotlight-img-container').appendChild(badgesContainer);
+                    }
+                    
+                    let badgesHTML = '';
+                    
+                    if (status.favorites) {
+                        badgesHTML += `
+                            <div class="list-badge">
+                                ❤️
+                                <div class="list-badge-tooltip">Favorited</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (status.wantToGo) {
+                        badgesHTML += `
+                            <div class="list-badge">
+                                📍
+                                <div class="list-badge-tooltip">Want to go to</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (status.visited) {
+                        badgesHTML += `
+                            <div class="list-badge">
+                                ✓
+                                <div class="list-badge-tooltip">Visited</div>
+                            </div>
+                        `;
+                    }
+                    
+                    badgesContainer.innerHTML = badgesHTML;
+                }
+            }
+            
+            function updateDayCardBadges(restaurantId) {
+                const status = state.listManager.getRestaurantListStatus(restaurantId);
+                const dayCard = document.getElementById('dayCard');
+                
+                if (dayCard) {
+                    let badgesContainer = dayCard.querySelector('.list-badges-container');
+                    if (!badgesContainer) {
+                        badgesContainer = document.createElement('div');
+                        badgesContainer.className = 'list-badges-container';
+                        badgesContainer.style.top = '70px';
+                        dayCard.querySelector('.card-image').appendChild(badgesContainer);
+                    }
+                    
+                    let badgesHTML = '';
+                    let topPosition = 70;
+                    
+                    if (status.favorites) {
+                        badgesHTML += `
+                            <div class="list-badge" style="top: ${topPosition}px;">
+                                ❤️
+                                <div class="list-badge-tooltip">Favorited</div>
+                            </div>
+                        `;
+                        topPosition += 44;
+                    }
+                    
+                    if (status.wantToGo) {
+                        badgesHTML += `
+                            <div class="list-badge" style="top: ${topPosition}px;">
+                                📍
+                                <div class="list-badge-tooltip">Want to go to</div>
+                            </div>
+                        `;
+                        topPosition += 44;
+                    }
+                    
+                    if (status.visited) {
+                        badgesHTML += `
+                            <div class="list-badge" style="top: ${topPosition}px;">
+                                ✓
+                                <div class="list-badge-tooltip">Visited</div>
+                            </div>
+                        `;
+                    }
+                    
+                    badgesContainer.innerHTML = badgesHTML;
+                }
+            }
             
             // ---------- OPTIMIZED SEARCH FUNCTIONALITY ----------
             function setupSearch() {
@@ -3244,6 +3514,7 @@
                     if (event === 'SIGNED_OUT') {
                         state.currentUser = null;
                         state.isLoggedIn = false;
+                        state.restaurantListStatuses.clear();
                         setGuestState();
                         guestBanner.show();
                         
@@ -3254,6 +3525,12 @@
                         await ensureUserProfileExists(session.user);
                         await state.listManager.init();
                         setLoggedInState(session.user);
+                        
+                        // Refresh UI to show list badges
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
                     }
                 });
             }
@@ -3441,7 +3718,7 @@
                         
                         console.log(`✅ Loaded ${state.restaurants.length} restaurants`);
                         
-                        // OPTIMIZATION: Immediate rendering
+                        // OPTIMIZATION: Immediate rendering with list statuses
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
                         setupSpotlight();
@@ -3635,6 +3912,9 @@
                 document.getElementById('spotlightCard').onclick = () => {
                     location.href = `restaurant.html?slug=${restaurant.slug}`;
                 };
+                
+                // Add list badges to spotlight
+                updateSpotlightBadges(restaurant.id);
                 
                 const indicators = document.getElementById('slideIndicators');
                 indicators.innerHTML = state.spotlightRestaurants.map((_, i) => 
@@ -3938,23 +4218,33 @@
                     </div>
                 ` : '';
                 
+                const status = state.listManager.getRestaurantListStatus(restaurant.id);
                 let listBadges = '';
-                if (state.isLoggedIn && state.listManager) {
-                    const status = state.listManager.getRestaurantListStatus(restaurant.id);
-                    if (status.favorites) listBadges += `
-                        <div class="list-badge" style="top: 70px;">
+                let topPosition = 70;
+                
+                if (status.favorites) {
+                    listBadges += `
+                        <div class="list-badge" style="top: ${topPosition}px;">
                             ❤️
                             <div class="list-badge-tooltip">Favorited</div>
                         </div>
                     `;
-                    if (status.wantToGo) listBadges += `
-                        <div class="list-badge" style="top: 70px; margin-top: 44px;">
+                    topPosition += 44;
+                }
+                
+                if (status.wantToGo) {
+                    listBadges += `
+                        <div class="list-badge" style="top: ${topPosition}px;">
                             📍
                             <div class="list-badge-tooltip">Want to go to</div>
                         </div>
                     `;
-                    if (status.visited) listBadges += `
-                        <div class="list-badge" style="top: 70px; margin-top: 88px;">
+                    topPosition += 44;
+                }
+                
+                if (status.visited) {
+                    listBadges += `
+                        <div class="list-badge" style="top: ${topPosition}px;">
                             ✓
                             <div class="list-badge-tooltip">Visited</div>
                         </div>
