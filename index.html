@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-
+    
     <!-- Favicon for all devices -->
     <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico?v=3" type="image/x-icon">
@@ -192,7 +192,7 @@
         .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
         .clear-search:hover { color: var(--white); }
         
-        /* Search Dropdown */
+        /* Search Dropdown - FIXED: Removed lazy loading */
         .search-dropdown {
             position: absolute;
             top: 100%;
@@ -260,7 +260,7 @@
             flex-shrink: 0;
         }
         
-        /* OPTIMIZATION 3: Fix search logo loading - REMOVED opacity transition */
+        /* FIXED: Direct src loading, no opacity transition for instant display */
         .search-result-logo img {
             width: 100%;
             height: 100%;
@@ -423,7 +423,7 @@
             .ghost {
                 padding: 8px 12px;
                 font-size: 13px;
-                display: none; /* Hide Explore All on mobile */
+                display: none;
             }
             
             .account-btn {
@@ -2779,696 +2779,174 @@
                 spotlightRestaurants: [],
                 imageObserver: null,
                 currentUser: null,
-                searchData: [] // Cache for search
+                // Search data cache with limit
+                searchData: [],
+                listManager: {
+                    userLists: [],
+                    currentLists: {
+                        favorites: null,
+                        visited: null,
+                        wantToGo: null
+                    },
+                    
+                    async init() { 
+                        if (!state.isLoggedIn || !state.currentUser) return;
+                        
+                        await this.loadUserLists();
+                    },
+                    
+                    async loadUserLists() {
+                        try {
+                            if (!state.currentUser) return;
+
+                            const { data: lists, error } = await supabase
+                                .from('lists')
+                                .select('*')
+                                .eq('user_id', state.currentUser.id);
+                            
+                            if (error) throw error;
+                            
+                            this.userLists = lists || [];
+                            await this.setupDefaultLists();
+                            await this.loadListRestaurants();
+                            
+                        } catch (error) {
+                            console.error('Error loading lists:', error);
+                        }
+                    },
+                    
+                    async setupDefaultLists() {
+                        if (!state.currentUser) return;
+                        
+                        this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
+                        this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
+                        this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
+                        
+                        if (!this.currentLists.favorites) {
+                            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+                        }
+                        if (!this.currentLists.visited) {
+                            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+                        }
+                        if (!this.currentLists.wantToGo) {
+                            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+                        }
+                    },
+                    
+                    async createList(title, description) {
+                        if (!state.currentUser) return null;
+                        
+                        const { data: newList, error } = await supabase
+                            .from('lists')
+                            .insert([
+                                {
+                                    user_id: state.currentUser.id,
+                                    title: title,
+                                    description: description
+                                }
+                            ])
+                            .select()
+                            .single();
+                        
+                        if (error) {
+                            console.error('Error creating list:', error);
+                            return null;
+                        }
+                        
+                        this.userLists.push(newList);
+                        return newList;
+                    },
+                    
+                    async loadListRestaurants() {
+                        for (const listType in this.currentLists) {
+                            const list = this.currentLists[listType];
+                            if (list) {
+                                const { data: listRestaurants, error } = await supabase
+                                    .from('lists_restraunts')
+                                    .select('restraunt_id')
+                                    .eq('list_id', list.id);
+                                
+                                if (!error && listRestaurants) {
+                                    list.restaurants = listRestaurants.map(item => item.restraunt_id);
+                                } else {
+                                    list.restaurants = [];
+                                }
+                            }
+                        }
+                    },
+                    
+                    async toggleInList(listType, restaurantId) {
+                        const list = this.currentLists[listType];
+                        if (!list) return false;
+                        
+                        const isInList = list.restaurants?.includes(restaurantId);
+                        
+                        try {
+                            if (isInList) {
+                                const { error } = await supabase
+                                    .from('lists_restraunts')
+                                    .delete()
+                                    .match({
+                                        list_id: list.id,
+                                        restraunt_id: restaurantId
+                                    });
+                                
+                                if (error) throw error;
+                                
+                                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
+                                showNotification(`Removed from ${list.title}`, 'info');
+                                return false;
+                                
+                            } else {
+                                const { error } = await supabase
+                                    .from('lists_restraunts')
+                                    .insert([
+                                        {
+                                            list_id: list.id,
+                                            restraunt_id: restaurantId,
+                                            added_at: new Date().toISOString()
+                                        }
+                                    ]);
+                                
+                                if (error) throw error;
+                                
+                                if (!list.restaurants) list.restaurants = [];
+                                list.restaurants.push(restaurantId);
+                                showNotification(`Added to ${list.title}`, 'success');
+                                return true;
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error updating list:', error);
+                            showNotification('Failed to update list', 'error');
+                            return isInList;
+                        }
+                    },
+                    
+                    isInList(listType, restaurantId) {
+                        const list = this.currentLists[listType];
+                        return list?.restaurants?.includes(restaurantId) || false;
+                    },
+                    
+                    getRestaurantListStatus(restaurantId) {
+                        if (!state.isLoggedIn) {
+                            return {
+                                favorites: false,
+                                wantToGo: false,
+                                visited: false
+                            };
+                        }
+                        
+                        return {
+                            favorites: this.isInList('favorites', restaurantId),
+                            wantToGo: this.isInList('wantToGo', restaurantId),
+                            visited: this.isInList('visited', restaurantId)
+                        };
+                    }
+                }
             };
             
-            // ---------- OPTIMIZATION 4: Search logos load instantly ----------
-            function renderSearchResults(results) {
-                const searchDropdown = document.getElementById('searchDropdown');
-                if (!searchDropdown) return;
-                
-                searchDropdown.innerHTML = '';
-                
-                results.forEach((restaurant, index) => {
-                    const resultItem = document.createElement('div');
-                    resultItem.className = 'search-result-item';
-                    resultItem.dataset.index = index;
-                    resultItem.tabIndex = 0;
-                    
-                    const logoUrl = restaurant.logo_url || 'images/default-logo.jpg';
-                    
-                    // CHANGED: Direct src, no lazy loading, loading="eager"
-                    resultItem.innerHTML = `
-                        <div class="search-result-logo">
-                            <img src="${logoUrl}" alt="${restaurant.name} logo" width="36" height="36" loading="eager">
-                        </div>
-                        <div class="search-result-info">
-                            <div class="search-result-name">${restaurant.name}</div>
-                            <div class="search-result-category">
-                                <span>${restaurant.category || 'Restaurant'}</span>
-                            </div>
-                        </div>
-                        <div class="search-result-rating">
-                            <i class="fas fa-star"></i>
-                            ${restaurant.rating ? restaurant.rating.toFixed(1) : 'N/A'}
-                        </div>
-                    `;
-                    
-                    // Add click event
-                    resultItem.addEventListener('click', () => {
-                        selectRestaurant(restaurant);
-                    });
-                    
-                    searchDropdown.appendChild(resultItem);
-                });
-            }
-            
-            // OPTIMIZATION 5: Load search data in background with limit
-            async function loadSearchData() {
-                try {
-                    const { data, error } = await supabase
-                        .from('restraunts')
-                        .select('id, slug, name, category, rating, logo_url')
-                        .order('name')
-                        .limit(100); // OPTIMIZATION: Limit for performance
-                    
-                    if (error) throw error;
-                    return data || [];
-                } catch (error) {
-                    console.error('Error loading search data:', error);
-                    return [];
-                }
-            }
-            
-            // OPTIMIZATION 6: Parallel data loading ----------
-            async function loadRestaurantsData() {
-                console.log('🍽️ Loading restaurant data (optimized)...');
-                
-                try {
-                    // OPTIMIZATION: Load everything in parallel
-                    const [cloudKitchensResult, restaurantImagesResult, restaurantsResult] = 
-                        await Promise.allSettled([
-                            loadCloudKitchens(),
-                            loadRestaurantImages(),
-                            supabase
-                                .from('restraunts')
-                                .select('id, slug, name, category, description, rating, logo_url, image')
-                                .order('rating', { ascending: false })
-                                .limit(32) // OPTIMIZATION: Reduced from 48
-                        ]);
-                    
-                    if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
-                        const data = restaurantsResult.value.data;
-                        
-                        state.restaurants = data.map(restaurant => ({
-                            id: restaurant.id,
-                            slug: restaurant.slug,
-                            name: restaurant.name,
-                            category: restaurant.category || 'Restaurant',
-                            description: restaurant.description || 'Delicious food served with care',
-                            rating: restaurant.rating || 0,
-                            logo_url: restaurant.logo_url,
-                            coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
-                            isCloudKitchen: state.cloudKitchens.has(restaurant.id)
-                        }));
-                        
-                        console.log(`✅ Loaded ${state.restaurants.length} restaurants (parallel loading)`);
-                        
-                        // OPTIMIZATION: Immediate rendering
-                        renderFeaturedRestaurants();
-                        renderNearbyRestaurants();
-                        setupSpotlight();
-                        setupRestaurantOfTheDay();
-                        populateFilters();
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Error loading restaurants:', error);
-                    showNotification('Failed to load restaurants', 'error');
-                    showEmptyState();
-                }
-            }
-            
-            // OPTIMIZATION 7: Immediate image loading ----------
-            function renderFeaturedRestaurants() {
-                console.log('🎨 Rendering featured restaurants (optimized)...');
-                
-                const grid = document.getElementById('featuredSlider');
-                if (!grid) return;
-                
-                if (state.restaurants.length === 0) {
-                    showEmptyState();
-                    return;
-                }
-                
-                grid.classList.remove('skeleton-grid');
-                
-                const featured = state.restaurants.slice(0, Math.min(8, state.restaurants.length));
-                const fragment = document.createDocumentFragment();
-                
-                for (const restaurant of featured) {
-                    const card = createRestaurantCard(restaurant);
-                    fragment.appendChild(card);
-                }
-                
-                grid.innerHTML = '';
-                grid.appendChild(fragment);
-                
-                console.log('✅ Featured restaurants rendered');
-                
-                // OPTIMIZATION: Immediate image loading with requestAnimationFrame
-                requestAnimationFrame(() => {
-                    const images = grid.querySelectorAll('img[data-src]');
-                    images.forEach(img => {
-                        if (img.dataset.src) {
-                            img.src = img.dataset.src;
-                        }
-                    });
-                });
-            }
-            
-            function renderNearbyRestaurants() {
-                console.log('🎨 Rendering nearby restaurants (optimized)...');
-                
-                const grid = document.getElementById('nearbySlider');
-                if (!grid) return;
-                
-                if (state.restaurants.length === 0) {
-                    showEmptyState();
-                    return;
-                }
-                
-                grid.classList.remove('skeleton-grid');
-                
-                const startIndex = Math.min(8, state.restaurants.length);
-                const nearby = state.restaurants.slice(startIndex, Math.min(startIndex + 8, state.restaurants.length));
-                const fragment = document.createDocumentFragment();
-                
-                for (const restaurant of nearby) {
-                    const card = createRestaurantCard(restaurant);
-                    fragment.appendChild(card);
-                }
-                
-                grid.innerHTML = '';
-                grid.appendChild(fragment);
-                
-                console.log('✅ Nearby restaurants rendered');
-                
-                // OPTIMIZATION: Immediate image loading
-                requestAnimationFrame(() => {
-                    const images = grid.querySelectorAll('img[data-src]');
-                    images.forEach(img => {
-                        if (img.dataset.src) {
-                            img.src = img.dataset.src;
-                        }
-                    });
-                });
-            }
-            
-            // Original helper functions (modified for optimization)
-            async function loadCloudKitchens() {
-                try {
-                    const { data: cloudKitchens, error } = await supabase
-                        .from('cloud_kitchens')
-                        .select('restaurant_id')
-                        .limit(50); // OPTIMIZATION: Added limit
-                    
-                    if (error) {
-                        console.warn('Error loading cloud kitchens:', error);
-                        return;
-                    }
-                    
-                    if (cloudKitchens && cloudKitchens.length > 0) {
-                        state.cloudKitchens.clear();
-                        cloudKitchens.forEach(ck => {
-                            state.cloudKitchens.add(ck.restaurant_id);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error loading cloud kitchens:', error);
-                }
-            }
-            
-            async function loadRestaurantImages() {
-                try {
-                    const [galleryResult, restaurantsResult] = await Promise.allSettled([
-                        supabase
-                            .from('restaurant_gallery')
-                            .select('restaurant_slug, image_url, image_type')
-                            .limit(200),
-                        supabase
-                            .from('restraunts')
-                            .select('slug, image, logo_url')
-                            .limit(100)
-                    ]);
-                    
-                    state.restaurantImages.clear();
-                    
-                    if (galleryResult.status === 'fulfilled' && galleryResult.value.data) {
-                        galleryResult.value.data.forEach(item => {
-                            if (!state.restaurantImages.has(item.restaurant_slug)) {
-                                state.restaurantImages.set(item.restaurant_slug, {
-                                    cover: null,
-                                    logo: null
-                                });
-                            }
-                            
-                            const images = state.restaurantImages.get(item.restaurant_slug);
-                            
-                            if (item.image_type === 'cover' && item.image_url) {
-                                images.cover = item.image_url;
-                            }
-                            
-                            if (item.image_type === 'logo' && item.image_url) {
-                                images.logo = item.image_url;
-                            }
-                        });
-                    }
-                    
-                    if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
-                        restaurantsResult.value.data.forEach(restaurant => {
-                            if (!state.restaurantImages.has(restaurant.slug)) {
-                                state.restaurantImages.set(restaurant.slug, {
-                                    cover: restaurant.image || null,
-                                    logo: restaurant.logo_url || null
-                                });
-                            }
-                        });
-                    }
-                    
-                } catch (error) {
-                    console.error('Error loading restaurant images:', error);
-                }
-            }
-            
-            function getCoverImageUrl(restaurantSlug) {
-                const images = state.restaurantImages.get(restaurantSlug);
-                return images?.cover || null;
-            }
-            
-            function getLogoUrl(restaurant) {
-                const images = state.restaurantImages.get(restaurant.slug);
-                if (images?.logo) {
-                    return images.logo;
-                }
-                
-                if (restaurant.logo_url) {
-                    return restaurant.logo_url;
-                }
-                
-                return null;
-            }
-            
-            function showEmptyState() {
-                const featuredSlider = document.getElementById('featuredSlider');
-                const nearbySlider = document.getElementById('nearbySlider');
-                
-                if (featuredSlider) {
-                    featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
-                    featuredSlider.classList.remove('skeleton-grid');
-                }
-                if (nearbySlider) {
-                    nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
-                    nearbySlider.classList.remove('skeleton-grid');
-                }
-            }
-            
-            // ---------- SPOTLIGHT ----------
-            function setupSpotlight() {
-                if (state.restaurants.length === 0) return;
-                
-                state.spotlightRestaurants = [...state.restaurants]
-                    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-                    .slice(0, 6);
-                
-                updateSpotlight();
-                startSpotlightRotation();
-            }
-            
-            function updateSpotlight() {
-                if (!state.spotlightRestaurants.length) return;
-                
-                const restaurant = state.spotlightRestaurants[state.spotlightIndex];
-                
-                document.getElementById('spotName').textContent = restaurant.name;
-                document.getElementById('spotDesc').textContent = restaurant.description || 'Delicious food served with care';
-                document.getElementById('spotRating').innerHTML = `⭐ ${(restaurant.rating || 0).toFixed(1)}`;
-                
-                const foodImage = document.getElementById('spotFoodImage');
-                const logoImage = document.getElementById('spotLogo');
-                const logoOverlay = document.getElementById('spotLogoOverlay');
-                
-                // OPTIMIZATION: Direct loading, no opacity transitions
-                if (restaurant.coverImage) {
-                    foodImage.src = restaurant.coverImage;
-                    foodImage.style.opacity = '1';
-                } else {
-                    foodImage.style.display = 'none';
-                }
-                
-                const logoUrl = getLogoUrl(restaurant);
-                if (logoUrl) {
-                    logoOverlay.style.display = 'flex';
-                    logoImage.src = logoUrl;
-                    logoImage.style.opacity = '1';
-                } else {
-                    logoOverlay.style.display = 'none';
-                }
-                
-                document.getElementById('spotlightViewBtn').onclick = () => {
-                    location.href = `restaurant.html?slug=${restaurant.slug}`;
-                };
-                
-                document.getElementById('spotlightCard').onclick = () => {
-                    location.href = `restaurant.html?slug=${restaurant.slug}`;
-                };
-                
-                const indicators = document.getElementById('slideIndicators');
-                indicators.innerHTML = state.spotlightRestaurants.map((_, i) => 
-                    `<div class="slide-indicator ${i === state.spotlightIndex ? 'active' : ''}" data-index="${i}"></div>`
-                ).join('');
-                
-                indicators.querySelectorAll('.slide-indicator').forEach((dot, i) => {
-                    dot.onclick = (e) => { 
-                        e.stopPropagation(); 
-                        state.spotlightIndex = i; 
-                        updateSpotlight(); 
-                        resetSpotlightInterval(); 
-                    };
-                });
-            }
-            
-            function startSpotlightRotation() {
-                resetSpotlightInterval();
-                
-                if (state.spotlightRestaurants.length > 1) {
-                    state.spotlightInterval = setInterval(() => {
-                        state.spotlightIndex = (state.spotlightIndex + 1) % state.spotlightRestaurants.length;
-                        updateSpotlight();
-                    }, 5000);
-                }
-                
-                const spotlightCard = document.getElementById('spotlightCard');
-                if (spotlightCard) {
-                    spotlightCard.onmouseenter = () => {
-                        if (state.spotlightInterval) {
-                            clearInterval(state.spotlightInterval);
-                            state.spotlightInterval = null;
-                        }
-                    };
-                    spotlightCard.onmouseleave = resetSpotlightInterval;
-                }
-            }
-            
-            function resetSpotlightInterval() {
-                if (state.spotlightInterval) {
-                    clearInterval(state.spotlightInterval);
-                    state.spotlightInterval = null;
-                }
-                
-                if (state.spotlightRestaurants.length > 1) {
-                    state.spotlightInterval = setInterval(() => {
-                        state.spotlightIndex = (state.spotlightIndex + 1) % state.spotlightRestaurants.length;
-                        updateSpotlight();
-                    }, 5000);
-                }
-            }
-            
-            // ---------- RESTAURANT CARD CREATION ----------
-            function createRestaurantCard(restaurant) {
-                const card = document.createElement('div');
-                card.className = 'restaurant-card';
-                card.dataset.id = restaurant.id;
-                
-                const rating = restaurant.rating || 0;
-                const categoryIcon = getCategoryIconFallback(restaurant.category);
-                const category = restaurant.category || 'Restaurant';
-                const logoUrl = getLogoUrl(restaurant);
-                const isCloudKitchen = restaurant.isCloudKitchen || false;
-                const cloudBadge = isCloudKitchen ? createCloudBadge(restaurant.id) : '';
-                
-                card.innerHTML = `
-                    <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
-                        <div class="card-image">
-                            ${restaurant.coverImage ? `
-                                <img class="restaurant-image" 
-                                     src="${restaurant.coverImage}" 
-                                     alt="${restaurant.name}" 
-                                     width="300" 
-                                     height="200"
-                                     style="opacity: 1;">
-                            ` : ''}
-                            ${logoUrl ? `
-                                <div class="logo-overlay">
-                                    <img src="${logoUrl}" 
-                                         alt="${restaurant.name} logo" 
-                                         width="48" 
-                                         height="48"
-                                         style="opacity: 1;">
-                                </div>
-                            ` : ''}
-                            
-                            ${cloudBadge}
-                            
-                            <div class="menu-btn-container">
-                                <button class="menu-btn" aria-label="Restaurant actions">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                    <div class="menu-btn-tooltip">Save to lists</div>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <div class="card-title-wrapper">
-                                    <h3 class="card-title">${restaurant.name}</h3>
-                                </div>
-                                <div class="card-rating">
-                                    <i class="fas fa-star"></i>
-                                    ${rating.toFixed(1)}
-                                </div>
-                            </div>
-                            <div class="card-category">
-                                <span>${categoryIcon}</span>
-                                ${category}
-                            </div>
-                            <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
-                            <div class="card-footer">
-                                <div class="card-location">Click to view details</div>
-                            </div>
-                        </div>
-                    </a>
-                `;
-                
-                const menuBtn = card.querySelector('.menu-btn');
-                if (menuBtn) {
-                    menuBtn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showModal({
-                            id: restaurant.id,
-                            name: restaurant.name,
-                            slug: restaurant.slug
-                        });
-                    });
-                }
-                
-                return card;
-            }
-            
-            function createCloudBadge(restaurantId) {
-                if (!state.cloudKitchens.has(restaurantId)) return '';
-                
-                return `
-                    <div class="cloud-badge" aria-label="Cloud Kitchen">
-                        <i class="fas fa-cloud"></i>
-                        <div class="cloud-tooltip">
-                            Cloud Kitchen
-                        </div>
-                    </div>
-                `;
-            }
-            
-            function getCategoryIconFallback(categoryName) {
-                const icons = {
-                    'Burgers': '🍔',
-                    'Chicken': '🍗',
-                    'Middle Eastern': '🥙',
-                    'Pizza': '🍕',
-                    'Asian': '🍜',
-                    'Mexican': '🌮',
-                    'Cafe & Bakery': '☕',
-                    'Fast Food': '🍟',
-                    'Seafood': '🐟',
-                    'Breakfast': '🥞',
-                    'Desserts': '🍰',
-                    'Indian': '🍛',
-                    'BBQ & Ribs': '🥩',
-                    'International': '🌍'
-                };
-                
-                return icons[categoryName] || '🍴';
-            }
-            
-            // ---------- RESTAURANT OF THE DAY ----------
-            async function setupRestaurantOfTheDay() {
-                if (state.restaurants.length === 0) return;
-                
-                const topRestaurants = [...state.restaurants]
-                    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-                    .slice(0, 10);
-                
-                const today = new Date().getDate();
-                const restaurantIndex = today % topRestaurants.length;
-                const restaurant = topRestaurants[restaurantIndex];
-                
-                const categoryIcon = getCategoryIconFallback(restaurant.category);
-                const isCloudKitchen = restaurant.isCloudKitchen || false;
-                const cloudBadge = isCloudKitchen ? `
-                    <div class="cloud-badge" aria-label="Cloud Kitchen" style="top: 70px; right: 56px;">
-                        <i class="fas fa-cloud"></i>
-                        <div class="cloud-tooltip">
-                            Cloud Kitchen
-                        </div>
-                    </div>
-                ` : '';
-                
-                const dayCard = document.getElementById('dayCard');
-                dayCard.innerHTML = `
-                    <div class="day-card-badge">Restaurant of the Day</div>
-                    <div class="card-image">
-                        ${restaurant.coverImage ? `
-                            <img class="restaurant-image" 
-                                 src="${restaurant.coverImage}" 
-                                 alt="${restaurant.name}" 
-                                 loading="eager"
-                                 style="height: 300px; opacity: 1;">
-                        ` : ''}
-                        ${cloudBadge}
-                        ${restaurant.logo_url ? `
-                            <div class="logo-overlay" style="bottom: 20px; left: 20px; width: 60px; height: 60px;">
-                                <img src="${restaurant.logo_url}" 
-                                     alt="${restaurant.name} logo"
-                                     style="opacity: 1;">
-                            </div>
-                        ` : ''}
-                        <div class="menu-btn-container">
-                            <button class="menu-btn" aria-label="Restaurant actions">
-                                <i class="fas fa-ellipsis-h"></i>
-                                <div class="menu-btn-tooltip">Save to lists</div>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-header">
-                            <div class="card-title-wrapper">
-                                <h3 class="card-title">${restaurant.name}</h3>
-                            </div>
-                            <div class="card-rating" style="padding: 8px 16px; font-size: 16px;">
-                                <i class="fas fa-star"></i>
-                                ${(restaurant.rating || 0).toFixed(1)}
-                            </div>
-                        </div>
-                        <div class="card-category" style="font-size: 16px; margin-bottom: 20px;">
-                            <span>${categoryIcon}</span>
-                            ${restaurant.category || 'Restaurant'}
-                        </div>
-                        <p class="card-description" style="font-size: 16px; line-height: 1.6; margin-bottom: 30px; -webkit-line-clamp: 3; color: #c3d1e8;">
-                            ${restaurant.description || 'Delicious food served with care'}
-                        </p>
-                        
-                        <div class="day-card-stats">
-                            <div class="day-stat">
-                                <div class="day-stat-value">${(restaurant.rating || 0).toFixed(1)}</div>
-                                <div class="day-stat-label">Rating</div>
-                            </div>
-                            <div class="day-stat">
-                                <div class="day-stat-value">${categoryIcon}</div>
-                                <div class="day-stat-label">Category</div>
-                            </div>
-                            <div class="day-stat">
-                                <div class="day-stat-value">${isCloudKitchen ? '☁️' : '🏠'}</div>
-                                <div class="day-stat-label">${isCloudKitchen ? 'Cloud Kitchen' : 'Restaurant'}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="day-card-actions">
-                            <button class="day-card-btn day-card-btn-primary" onclick="location.href='restaurant.html?slug=${restaurant.slug}'">
-                                <i class="fas fa-external-link-alt"></i>
-                                View Restaurant
-                            </button>
-                            <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">
-                                <i class="fas fa-bookmark"></i>
-                                Save to Lists
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                const saveBtn = dayCard.querySelector('#dayCardSaveBtn');
-                if (saveBtn) {
-                    saveBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        showModal(restaurant);
-                    });
-                }
-                
-                const menuBtn = dayCard.querySelector('.menu-btn');
-                if (menuBtn) {
-                    menuBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showModal(restaurant);
-                    });
-                }
-                
-                dayCard.onclick = (e) => {
-                    if (!e.target.closest('.day-card-btn-outline') && !e.target.closest('.menu-btn')) {
-                        location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    }
-                };
-                
-                console.log('✅ Restaurant of the Day set up');
-            }
-            
-            // ---------- FILTERS ----------
-            function populateFilters() {
-                const filterBar = document.getElementById('filterBar');
-                if (!filterBar) return;
-                
-                if (state.restaurants.length === 0) {
-                    filterBar.innerHTML = '';
-                    return;
-                }
-                
-                const categories = [...new Set(state.restaurants.slice(0, 8).map(r => r.category).filter(Boolean))];
-                
-                let filterHTML = `<div class="filter-btn active" data-filter="all">All</div>`;
-                
-                categories.slice(0, 5).forEach(category => {
-                    filterHTML += `<div class="filter-btn" data-filter="${category}">${category}</div>`;
-                });
-                
-                filterHTML += `<div class="filter-btn" data-filter="top-rated">Top Rated</div>`;
-                
-                filterBar.innerHTML = filterHTML;
-                
-                filterBar.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        filterFeaturedRestaurants(this.dataset.filter);
-                    });
-                });
-                
-                console.log('✅ Filters populated');
-            }
-            
-            function filterFeaturedRestaurants(filter) {
-                if (state.restaurants.length === 0) return;
-                
-                let filtered = state.restaurants.slice(0, 8);
-                
-                if (filter === 'top-rated') {
-                    filtered = filtered.filter(r => (r.rating || 0) >= 4.5);
-                } else if (filter !== 'all') {
-                    filtered = filtered.filter(r => r.category === filter);
-                }
-                
-                const grid = document.getElementById('featuredSlider');
-                if (!grid) return;
-                
-                const fragment = document.createDocumentFragment();
-                
-                for (const restaurant of filtered) {
-                    const card = createRestaurantCard(restaurant);
-                    fragment.appendChild(card);
-                }
-                
-                grid.innerHTML = '';
-                grid.appendChild(fragment);
-            }
-            
-            // ---------- SEARCH FUNCTIONALITY ----------
+            // ---------- SEARCH FUNCTIONALITY WITH OPTIMIZATIONS ----------
             function setupSearch() {
                 const searchInput = document.getElementById('search');
                 const searchDropdown = document.getElementById('searchDropdown');
@@ -3482,11 +2960,28 @@
                 let searchResults = [];
                 let selectedResultIndex = -1;
                 
+                // Load search data in background (reduced payload)
+                async function loadSearchData() {
+                    try {
+                        const { data, error } = await supabase
+                            .from('restraunts')
+                            .select('id, slug, name, category, rating, logo_url')
+                            .order('name')
+                            .limit(100); // Reduced from unlimited for performance
+                        
+                        if (error) throw error;
+                        return data || [];
+                    } catch (error) {
+                        console.error('Error loading search data:', error);
+                        return [];
+                    }
+                }
+                
                 // Initialize search data in background
                 setTimeout(() => {
                     loadSearchData().then(data => {
                         state.searchData = data;
-                        console.log(`✅ Loaded ${data.length} restaurants for search (optimized)`);
+                        console.log(`✅ Loaded ${data.length} restaurants for search`);
                     });
                 }, 100);
                 
@@ -3516,6 +3011,49 @@
                         renderNoResults();
                         searchDropdown.classList.add('active');
                     }
+                }
+                
+                // OPTIMIZED: Search logos load instantly
+                function renderSearchResults(results) {
+                    searchDropdown.innerHTML = '';
+                    
+                    results.forEach((restaurant, index) => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.dataset.index = index;
+                        resultItem.tabIndex = 0;
+                        
+                        const logoUrl = restaurant.logo_url || 'images/default-logo.jpg';
+                        
+                        // FIXED: Direct src loading, no lazy loading
+                        resultItem.innerHTML = `
+                            <div class="search-result-logo">
+                                <img src="${logoUrl}" alt="${restaurant.name} logo" loading="eager">
+                            </div>
+                            <div class="search-result-info">
+                                <div class="search-result-name">${restaurant.name}</div>
+                                <div class="search-result-category">
+                                    <span>${restaurant.category || 'Restaurant'}</span>
+                                </div>
+                            </div>
+                            <div class="search-result-rating">
+                                <i class="fas fa-star"></i>
+                                ${restaurant.rating ? restaurant.rating.toFixed(1) : 'N/A'}
+                            </div>
+                        `;
+                        
+                        resultItem.addEventListener('click', () => {
+                            selectRestaurant(restaurant);
+                        });
+                        
+                        resultItem.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                selectRestaurant(restaurant);
+                            }
+                        });
+                        
+                        searchDropdown.appendChild(resultItem);
+                    });
                 }
                 
                 function renderNoResults() {
@@ -3606,7 +3144,6 @@
                     if (currentItem) {
                         currentItem.classList.add('active');
                         currentItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                        
                         searchInput.value = searchResults[selectedResultIndex].name;
                     }
                 }
@@ -3640,76 +3177,40 @@
                     }
                 });
                 
-                console.log('✅ Search functionality initialized (optimized)');
+                console.log('✅ Search functionality initialized');
             }
             
-            // ---------- NOTIFICATION SYSTEM ----------
-            function showNotification(message, type = "info", duration = 2500) {
-                const container = document.getElementById("notificationContainer");
-                if (!container) return;
-                
-                const notification = document.createElement("div");
-                notification.className = `custom-notification notification-${type}`;
-                
-                let iconClass;
-                if (type === "success") {
-                    iconClass = "fas fa-check-circle";
-                } else if (type === "error") {
-                    iconClass = "fas fa-exclamation-circle";
-                } else if (type === "warning") {
-                    iconClass = "fas fa-exclamation-triangle";
-                } else {
-                    iconClass = "fas fa-info-circle";
-                }
-                
-                notification.innerHTML = `
-                    <i class="notification-icon ${iconClass}"></i>
-                    <span class="notification-message">${message}</span>
-                    <button class="notification-close" aria-label="Close notification">×</button>
-                `;
-                
-                container.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.classList.add("notification-show");
-                }, 10);
-                
-                notification.querySelector('.notification-close').addEventListener('click', () => {
-                    notification.classList.remove("notification-show");
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.parentNode.removeChild(notification);
-                        }
-                    }, 400);
-                });
-                
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.classList.remove("notification-show");
-                        setTimeout(() => notification.remove(), 400);
-                    }
-                }, duration);
-            }
-            
-            // ---------- AUTHENTICATION ----------
+            // ---------- OPTIMIZED INITIALIZATION ----------
             async function initializeAuth() {
-                console.log('🔐 Initializing auth (optimized)...');
+                console.log('🔐 Initializing auth...');
                 
                 try {
-                    const { data: { session } } = await supabase.auth.getSession();
+                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
                     
-                    if (!session?.user) {
+                    if (sessionError) {
+                        console.error('Session error:', sessionError);
                         setGuestState();
                         return;
                     }
                     
+                    if (!session?.user) {
+                        console.log('👤 No active session, setting guest state');
+                        setGuestState();
+                        return;
+                    }
+                    
+                    console.log('✅ User found in session:', session.user.email);
                     state.currentUser = session.user;
                     state.isLoggedIn = true;
                     
-                    // Verify and create profile if needed
-                    await ensureUserProfileExists(session.user);
+                    const profileReady = await ensureUserProfileExists(session.user);
                     
-                    setLoggedInState(session.user);
+                    if (profileReady) {
+                        await state.listManager.init();
+                        setLoggedInState(session.user);
+                    } else {
+                        setLoggedInState(session.user);
+                    }
                     
                 } catch (error) {
                     console.error('❌ Auth initialization error:', error);
@@ -3717,6 +3218,8 @@
                 }
                 
                 supabase.auth.onAuthStateChange(async (event, session) => {
+                    console.log('🔄 Auth state change:', event);
+                    
                     if (event === 'SIGNED_OUT') {
                         state.currentUser = null;
                         state.isLoggedIn = false;
@@ -3728,27 +3231,39 @@
                         state.isLoggedIn = true;
                         
                         await ensureUserProfileExists(session.user);
+                        await state.listManager.init();
                         setLoggedInState(session.user);
                     }
                 });
             }
             
             async function ensureUserProfileExists(user, retries = 3) {
+                console.log('🔍 Ensuring profile exists for:', user.id);
+                
                 for (let attempt = 1; attempt <= retries; attempt++) {
+                    console.log(`Attempt ${attempt}/${retries}`);
+                    
                     try {
                         if (attempt > 1) {
                             await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
                         }
                         
-                        const { data: profile } = await supabase
+                        const { data: profile, error: checkError } = await supabase
                             .from('user_profiles')
                             .select('id, username, full_name, avatar_icon')
                             .eq('id', user.id)
                             .maybeSingle();
                         
                         if (profile) {
+                            console.log('✅ Profile exists:', profile);
                             return true;
                         }
+                        
+                        if (checkError && checkError.code !== 'PGRST116') {
+                            console.error('Profile check error:', checkError);
+                        }
+                        
+                        console.log('📝 Creating profile for user...');
                         
                         const userData = user.user_metadata || {};
                         const email = user.email || '';
@@ -3776,6 +3291,8 @@
                             is_private: false
                         };
                         
+                        console.log('Profile data:', profileData);
+                        
                         const { data: newProfile, error: createError } = await supabase
                             .from('user_profiles')
                             .insert([profileData])
@@ -3783,17 +3300,22 @@
                             .maybeSingle();
                         
                         if (createError) {
+                            console.error('❌ Profile creation error:', createError);
+                            
                             if (createError.code === '23505') {
+                                console.log('Profile already exists (created by trigger)');
                                 return true;
                             }
                             
                             if (attempt === retries) {
+                                console.error('All retry attempts failed');
                                 return false;
                             }
                             continue;
                         }
                         
                         if (newProfile) {
+                            console.log('✅ Profile created successfully:', newProfile);
                             return true;
                         }
                         
@@ -3856,6 +3378,807 @@
                 guestBanner.show();
             }
             
+            // ---------- IMAGE LOADER ----------
+            function initImageLoader() {
+                if (state.imageObserver) return;
+                
+                state.imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            if (img.dataset.src) {
+                                img.src = img.dataset.src;
+                                img.classList.add('loaded');
+                                observer.unobserve(img);
+                            }
+                        }
+                    });
+                }, {
+                    rootMargin: '100px 0px',
+                    threshold: 0.01
+                });
+            }
+            
+            // ---------- OPTIMIZED RESTAURANT DATA LOADING ----------
+            async function loadRestaurantsData() {
+                console.log('🍽️ Loading restaurant data...');
+                
+                try {
+                    // OPTIMIZATION: Load everything in parallel
+                    const [cloudKitchensResult, restaurantImagesResult, restaurantsResult] = 
+                        await Promise.allSettled([
+                            loadCloudKitchens(),
+                            loadRestaurantImages(),
+                            supabase
+                                .from('restraunts')
+                                .select('id, slug, name, category, description, rating, logo_url, image')
+                                .order('rating', { ascending: false })
+                                .limit(32) // Reduced from 48 for faster loading
+                        ]);
+                    
+                    if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
+                        const data = restaurantsResult.value.data;
+                        
+                        state.restaurants = data.map(restaurant => ({
+                            id: restaurant.id,
+                            slug: restaurant.slug,
+                            name: restaurant.name,
+                            category: restaurant.category || 'Restaurant',
+                            description: restaurant.description || 'Delicious food served with care',
+                            rating: restaurant.rating || 0,
+                            logo_url: restaurant.logo_url,
+                            coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
+                            isCloudKitchen: state.cloudKitchens.has(restaurant.id)
+                        }));
+                        
+                        console.log(`✅ Loaded ${state.restaurants.length} restaurants`);
+                        
+                        // OPTIMIZATION: Immediate rendering
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        setupSpotlight();
+                        setupRestaurantOfTheDay();
+                        populateFilters();
+                        
+                    } else {
+                        showEmptyState();
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error loading restaurants:', error);
+                    showNotification('Failed to load restaurants', 'error');
+                    showEmptyState();
+                }
+            }
+            
+            async function loadCloudKitchens() {
+                try {
+                    const { data: cloudKitchens, error } = await supabase
+                        .from('cloud_kitchens')
+                        .select('restaurant_id')
+                        .limit(50); // Reduced limit
+                    
+                    if (error) {
+                        console.warn('Error loading cloud kitchens:', error);
+                        return;
+                    }
+                    
+                    if (cloudKitchens && cloudKitchens.length > 0) {
+                        state.cloudKitchens.clear();
+                        cloudKitchens.forEach(ck => {
+                            state.cloudKitchens.add(ck.restaurant_id);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading cloud kitchens:', error);
+                }
+            }
+            
+            async function loadRestaurantImages() {
+                try {
+                    const [galleryData, restaurantsData] = await Promise.all([
+                        supabase
+                            .from('restaurant_gallery')
+                            .select('restaurant_slug, image_url, image_type')
+                            .limit(100), // Reduced from 200
+                        supabase
+                            .from('restraunts')
+                            .select('slug, image, logo_url')
+                            .limit(50) // Reduced from 100
+                    ]);
+                    
+                    state.restaurantImages.clear();
+                    
+                    if (galleryData.data) {
+                        galleryData.data.forEach(item => {
+                            if (!state.restaurantImages.has(item.restaurant_slug)) {
+                                state.restaurantImages.set(item.restaurant_slug, {
+                                    cover: null,
+                                    logo: null
+                                });
+                            }
+                            
+                            const images = state.restaurantImages.get(item.restaurant_slug);
+                            
+                            if (item.image_type === 'cover' && item.image_url) {
+                                images.cover = item.image_url;
+                            }
+                            
+                            if (item.image_type === 'logo' && item.image_url) {
+                                images.logo = item.image_url;
+                            }
+                        });
+                    }
+                    
+                    if (restaurantsData.data) {
+                        restaurantsData.data.forEach(restaurant => {
+                            if (!state.restaurantImages.has(restaurant.slug)) {
+                                state.restaurantImages.set(restaurant.slug, {
+                                    cover: restaurant.image || null,
+                                    logo: restaurant.logo_url || null
+                                });
+                            }
+                        });
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading restaurant images:', error);
+                }
+            }
+            
+            function getCoverImageUrl(restaurantSlug) {
+                const images = state.restaurantImages.get(restaurantSlug);
+                return images?.cover || null;
+            }
+            
+            function getLogoUrl(restaurant) {
+                const images = state.restaurantImages.get(restaurant.slug);
+                if (images?.logo) {
+                    return images.logo;
+                }
+                
+                if (restaurant.logo_url) {
+                    return restaurant.logo_url;
+                }
+                
+                return null;
+            }
+            
+            function showEmptyState() {
+                const featuredSlider = document.getElementById('featuredSlider');
+                const nearbySlider = document.getElementById('nearbySlider');
+                
+                if (featuredSlider) {
+                    featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
+                    featuredSlider.classList.remove('skeleton-grid');
+                }
+                if (nearbySlider) {
+                    nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">No restaurants found</div>';
+                    nearbySlider.classList.remove('skeleton-grid');
+                }
+            }
+            
+            // ---------- SPOTLIGHT ----------
+            function setupSpotlight() {
+                if (state.restaurants.length === 0) return;
+                
+                state.spotlightRestaurants = [...state.restaurants]
+                    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                    .slice(0, 6);
+                
+                updateSpotlight();
+                startSpotlightRotation();
+            }
+            
+            function updateSpotlight() {
+                if (!state.spotlightRestaurants.length) return;
+                
+                const restaurant = state.spotlightRestaurants[state.spotlightIndex];
+                
+                document.getElementById('spotName').textContent = restaurant.name;
+                document.getElementById('spotDesc').textContent = restaurant.description || 'Delicious food served with care';
+                document.getElementById('spotRating').innerHTML = `⭐ ${(restaurant.rating || 0).toFixed(1)}`;
+                
+                const foodImage = document.getElementById('spotFoodImage');
+                const logoImage = document.getElementById('spotLogo');
+                const logoOverlay = document.getElementById('spotLogoOverlay');
+                
+                foodImage.src = '';
+                foodImage.classList.remove('loaded');
+                logoImage.src = '';
+                logoImage.classList.remove('loaded');
+                
+                if (restaurant.coverImage) {
+                    foodImage.dataset.src = restaurant.coverImage;
+                    foodImage.onload = () => {
+                        foodImage.classList.add('loaded');
+                    };
+                    foodImage.onerror = () => {
+                        foodImage.style.display = 'none';
+                    };
+                    foodImage.src = restaurant.coverImage; // Immediate loading
+                } else {
+                    foodImage.style.display = 'none';
+                }
+                
+                const logoUrl = getLogoUrl(restaurant);
+                if (logoUrl) {
+                    logoOverlay.style.display = 'flex';
+                    logoImage.dataset.src = logoUrl;
+                    logoImage.onload = () => {
+                        logoImage.classList.add('loaded');
+                    };
+                    logoImage.onerror = () => {
+                        logoOverlay.style.display = 'none';
+                    };
+                    logoImage.src = logoUrl; // Immediate loading
+                } else {
+                    logoOverlay.style.display = 'none';
+                }
+                
+                document.getElementById('spotlightViewBtn').onclick = () => {
+                    location.href = `restaurant.html?slug=${restaurant.slug}`;
+                };
+                
+                document.getElementById('spotlightCard').onclick = () => {
+                    location.href = `restaurant.html?slug=${restaurant.slug}`;
+                };
+                
+                const indicators = document.getElementById('slideIndicators');
+                indicators.innerHTML = state.spotlightRestaurants.map((_, i) => 
+                    `<div class="slide-indicator ${i === state.spotlightIndex ? 'active' : ''}" data-index="${i}"></div>`
+                ).join('');
+                
+                indicators.querySelectorAll('.slide-indicator').forEach((dot, i) => {
+                    dot.onclick = (e) => { 
+                        e.stopPropagation(); 
+                        state.spotlightIndex = i; 
+                        updateSpotlight(); 
+                        resetSpotlightInterval(); 
+                    };
+                });
+            }
+            
+            function startSpotlightRotation() {
+                resetSpotlightInterval();
+                
+                if (state.spotlightRestaurants.length > 1) {
+                    state.spotlightInterval = setInterval(() => {
+                        state.spotlightIndex = (state.spotlightIndex + 1) % state.spotlightRestaurants.length;
+                        updateSpotlight();
+                    }, 5000);
+                }
+                
+                const spotlightCard = document.getElementById('spotlightCard');
+                if (spotlightCard) {
+                    spotlightCard.onmouseenter = () => {
+                        if (state.spotlightInterval) {
+                            clearInterval(state.spotlightInterval);
+                            state.spotlightInterval = null;
+                        }
+                    };
+                    spotlightCard.onmouseleave = resetSpotlightInterval;
+                }
+            }
+            
+            function resetSpotlightInterval() {
+                if (state.spotlightInterval) {
+                    clearInterval(state.spotlightInterval);
+                    state.spotlightInterval = null;
+                }
+                
+                if (state.spotlightRestaurants.length > 1) {
+                    state.spotlightInterval = setInterval(() => {
+                        state.spotlightIndex = (state.spotlightIndex + 1) % state.spotlightRestaurants.length;
+                        updateSpotlight();
+                    }, 5000);
+                }
+            }
+            
+            // ---------- RESTAURANT CARD CREATION ----------
+            function createRestaurantCard(restaurant) {
+                const card = document.createElement('div');
+                card.className = 'restaurant-card';
+                card.dataset.id = restaurant.id;
+                
+                const rating = restaurant.rating || 0;
+                const categoryIcon = getCategoryIconFallback(restaurant.category);
+                const category = restaurant.category || 'Restaurant';
+                const logoUrl = getLogoUrl(restaurant);
+                const status = state.listManager.getRestaurantListStatus(restaurant.id);
+                const hasCoverImage = restaurant.coverImage && restaurant.coverImage !== '';
+                const isCloudKitchen = restaurant.isCloudKitchen || false;
+                const cloudBadge = isCloudKitchen ? createCloudBadge(restaurant.id) : '';
+                
+                let listBadges = '';
+                
+                if (status.favorites) {
+                    listBadges += `
+                        <div class="list-badge">
+                            ❤️
+                            <div class="list-badge-tooltip">Favorited</div>
+                        </div>
+                    `;
+                }
+                
+                if (status.wantToGo) {
+                    listBadges += `
+                        <div class="list-badge">
+                            📍
+                            <div class="list-badge-tooltip">Want to go to</div>
+                        </div>
+                    `;
+                }
+                
+                if (status.visited) {
+                    listBadges += `
+                        <div class="list-badge">
+                            ✓
+                            <div class="list-badge-tooltip">Visited</div>
+                        </div>
+                    `;
+                }
+                
+                card.innerHTML = `
+                    <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
+                        <div class="card-image">
+                            ${hasCoverImage ? `
+                                <img class="restaurant-image" 
+                                     data-src="${restaurant.coverImage}" 
+                                     alt="${restaurant.name}" 
+                                     width="300" 
+                                     height="200">
+                            ` : ''}
+                            ${logoUrl ? `
+                                <div class="logo-overlay">
+                                    <img data-src="${logoUrl}" 
+                                         alt="${restaurant.name} logo" 
+                                         width="48" 
+                                         height="48">
+                                </div>
+                            ` : ''}
+                            
+                            ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
+                            
+                            ${cloudBadge}
+                            
+                            <div class="menu-btn-container">
+                                <button class="menu-btn" aria-label="Restaurant actions">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                    <div class="menu-btn-tooltip">Save to lists</div>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-header">
+                                <div class="card-title-wrapper">
+                                    <h3 class="card-title">${restaurant.name}</h3>
+                                </div>
+                                <div class="card-rating">
+                                    <i class="fas fa-star"></i>
+                                    ${rating.toFixed(1)}
+                                </div>
+                            </div>
+                            <div class="card-category">
+                                <span>${categoryIcon}</span>
+                                ${category}
+                            </div>
+                            <p class="card-description">${restaurant.description || 'Delicious food served with care'}</p>
+                            <div class="card-footer">
+                                <div class="card-location">Click to view details</div>
+                            </div>
+                        </div>
+                    </a>
+                `;
+                
+                const menuBtn = card.querySelector('.menu-btn');
+                if (menuBtn) {
+                    menuBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showModal({
+                            id: restaurant.id,
+                            name: restaurant.name,
+                            slug: restaurant.slug
+                        });
+                    });
+                }
+                
+                return card;
+            }
+            
+            function createCloudBadge(restaurantId) {
+                if (!state.cloudKitchens.has(restaurantId)) return '';
+                
+                return `
+                    <div class="cloud-badge" aria-label="Cloud Kitchen">
+                        <i class="fas fa-cloud"></i>
+                        <div class="cloud-tooltip">
+                            Cloud Kitchen
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function getCategoryIconFallback(categoryName) {
+                const icons = {
+                    'Burgers': '🍔',
+                    'Chicken': '🍗',
+                    'Middle Eastern': '🥙',
+                    'Pizza': '🍕',
+                    'Asian': '🍜',
+                    'Mexican': '🌮',
+                    'Cafe & Bakery': '☕',
+                    'Fast Food': '🍟',
+                    'Seafood': '🐟',
+                    'Breakfast': '🥞',
+                    'Desserts': '🍰',
+                    'Indian': '🍛',
+                    'BBQ & Ribs': '🥩',
+                    'International': '🌍'
+                };
+                
+                return icons[categoryName] || '🍴';
+            }
+            
+            // ---------- OPTIMIZED RENDERING ----------
+            function renderFeaturedRestaurants() {
+                console.log('🎨 Rendering featured restaurants...');
+                
+                const grid = document.getElementById('featuredSlider');
+                if (!grid) return;
+                
+                if (state.restaurants.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+                
+                grid.classList.remove('skeleton-grid');
+                
+                const featured = state.restaurants.slice(0, Math.min(8, state.restaurants.length));
+                const fragment = document.createDocumentFragment();
+                
+                for (const restaurant of featured) {
+                    const card = createRestaurantCard(restaurant);
+                    fragment.appendChild(card);
+                }
+                
+                grid.innerHTML = '';
+                grid.appendChild(fragment);
+                
+                console.log('✅ Featured restaurants rendered');
+                
+                // OPTIMIZATION: Immediate image loading
+                requestAnimationFrame(() => {
+                    const images = grid.querySelectorAll('img[data-src]');
+                    images.forEach(img => {
+                        if (img.dataset.src && !img.src) {
+                            img.src = img.dataset.src;
+                            img.onload = () => {
+                                img.classList.add('loaded');
+                            };
+                        }
+                    });
+                });
+            }
+            
+            function renderNearbyRestaurants() {
+                console.log('🎨 Rendering nearby restaurants...');
+                
+                const grid = document.getElementById('nearbySlider');
+                if (!grid) return;
+                
+                if (state.restaurants.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+                
+                grid.classList.remove('skeleton-grid');
+                
+                const startIndex = Math.min(8, state.restaurants.length);
+                const nearby = state.restaurants.slice(startIndex, Math.min(startIndex + 8, state.restaurants.length));
+                const fragment = document.createDocumentFragment();
+                
+                for (const restaurant of nearby) {
+                    const card = createRestaurantCard(restaurant);
+                    fragment.appendChild(card);
+                }
+                
+                grid.innerHTML = '';
+                grid.appendChild(fragment);
+                
+                console.log('✅ Nearby restaurants rendered');
+                
+                // OPTIMIZATION: Immediate image loading
+                requestAnimationFrame(() => {
+                    const images = grid.querySelectorAll('img[data-src]');
+                    images.forEach(img => {
+                        if (img.dataset.src && !img.src) {
+                            img.src = img.dataset.src;
+                            img.onload = () => {
+                                img.classList.add('loaded');
+                            };
+                        }
+                    });
+                });
+            }
+            
+            // ---------- RESTAURANT OF THE DAY ----------
+            async function setupRestaurantOfTheDay() {
+                if (state.restaurants.length === 0) return;
+                
+                const topRestaurants = [...state.restaurants]
+                    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+                    .slice(0, 10);
+                
+                const today = new Date().getDate();
+                const restaurantIndex = today % topRestaurants.length;
+                const restaurant = topRestaurants[restaurantIndex];
+                
+                const categoryIcon = getCategoryIconFallback(restaurant.category);
+                const isCloudKitchen = restaurant.isCloudKitchen || false;
+                const cloudBadge = isCloudKitchen ? `
+                    <div class="cloud-badge" aria-label="Cloud Kitchen" style="top: 70px; right: 56px;">
+                        <i class="fas fa-cloud"></i>
+                        <div class="cloud-tooltip">
+                            Cloud Kitchen
+                        </div>
+                    </div>
+                ` : '';
+                
+                let listBadges = '';
+                if (state.isLoggedIn && state.listManager) {
+                    const status = state.listManager.getRestaurantListStatus(restaurant.id);
+                    if (status.favorites) listBadges += `
+                        <div class="list-badge" style="top: 70px;">
+                            ❤️
+                            <div class="list-badge-tooltip">Favorited</div>
+                        </div>
+                    `;
+                    if (status.wantToGo) listBadges += `
+                        <div class="list-badge" style="top: 70px; margin-top: 44px;">
+                            📍
+                            <div class="list-badge-tooltip">Want to go to</div>
+                        </div>
+                    `;
+                    if (status.visited) listBadges += `
+                        <div class="list-badge" style="top: 70px; margin-top: 88px;">
+                            ✓
+                            <div class="list-badge-tooltip">Visited</div>
+                        </div>
+                    `;
+                }
+                
+                const dayCard = document.getElementById('dayCard');
+                dayCard.innerHTML = `
+                    <div class="day-card-badge">Restaurant of the Day</div>
+                    <div class="card-image">
+                        ${restaurant.coverImage ? `
+                            <img class="restaurant-image" 
+                                 data-src="${restaurant.coverImage}" 
+                                 alt="${restaurant.name}" 
+                                 loading="lazy"
+                                 style="height: 300px;">
+                        ` : ''}
+                        ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
+                        ${cloudBadge}
+                        ${restaurant.logo_url ? `
+                            <div class="logo-overlay" style="bottom: 20px; left: 20px; width: 60px; height: 60px;">
+                                <img data-src="${restaurant.logo_url}" 
+                                     alt="${restaurant.name} logo">
+                            </div>
+                        ` : ''}
+                        <div class="menu-btn-container">
+                            <button class="menu-btn" aria-label="Restaurant actions">
+                                <i class="fas fa-ellipsis-h"></i>
+                                <div class="menu-btn-tooltip">Save to lists</div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div class="card-title-wrapper">
+                                <h3 class="card-title">${restaurant.name}</h3>
+                            </div>
+                            <div class="card-rating" style="padding: 8px 16px; font-size: 16px;">
+                                <i class="fas fa-star"></i>
+                                ${(restaurant.rating || 0).toFixed(1)}
+                            </div>
+                        </div>
+                        <div class="card-category" style="font-size: 16px; margin-bottom: 20px;">
+                            <span>${categoryIcon}</span>
+                            ${restaurant.category || 'Restaurant'}
+                        </div>
+                        <p class="card-description" style="font-size: 16px; line-height: 1.6; margin-bottom: 30px; -webkit-line-clamp: 3; color: #c3d1e8;">
+                            ${restaurant.description || 'Delicious food served with care'}
+                        </p>
+                        
+                        <div class="day-card-stats">
+                            <div class="day-stat">
+                                <div class="day-stat-value">${(restaurant.rating || 0).toFixed(1)}</div>
+                                <div class="day-stat-label">Rating</div>
+                            </div>
+                            <div class="day-stat">
+                                <div class="day-stat-value">${categoryIcon}</div>
+                                <div class="day-stat-label">Category</div>
+                            </div>
+                            <div class="day-stat">
+                                <div class="day-stat-value">${isCloudKitchen ? '☁️' : '🏠'}</div>
+                                <div class="day-stat-label">${isCloudKitchen ? 'Cloud Kitchen' : 'Restaurant'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="day-card-actions">
+                            <button class="day-card-btn day-card-btn-primary" onclick="location.href='restaurant.html?slug=${restaurant.slug}'">
+                                <i class="fas fa-external-link-alt"></i>
+                                View Restaurant
+                            </button>
+                            <button class="day-card-btn day-card-btn-outline" id="dayCardSaveBtn">
+                                <i class="fas fa-bookmark"></i>
+                                Save to Lists
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // OPTIMIZATION: Immediate image loading
+                const mainImage = dayCard.querySelector('.restaurant-image');
+                if (mainImage && mainImage.dataset.src) {
+                    mainImage.src = mainImage.dataset.src;
+                    mainImage.onload = () => mainImage.classList.add('loaded');
+                }
+                
+                const logoImage = dayCard.querySelector('.logo-overlay img');
+                if (logoImage && logoImage.dataset.src) {
+                    logoImage.src = logoImage.dataset.src;
+                    logoImage.onload = () => logoImage.classList.add('loaded');
+                }
+                
+                const saveBtn = dayCard.querySelector('#dayCardSaveBtn');
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showModal(restaurant);
+                    });
+                }
+                
+                const menuBtn = dayCard.querySelector('.menu-btn');
+                if (menuBtn) {
+                    menuBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showModal(restaurant);
+                    });
+                }
+                
+                dayCard.onclick = (e) => {
+                    if (!e.target.closest('.day-card-btn-outline') && !e.target.closest('.menu-btn')) {
+                        location.href = `restaurant.html?slug=${restaurant.slug}`;
+                    }
+                };
+                
+                console.log('✅ Restaurant of the Day set up');
+            }
+            
+            // ---------- FILTERS ----------
+            function populateFilters() {
+                const filterBar = document.getElementById('filterBar');
+                if (!filterBar) return;
+                
+                if (state.restaurants.length === 0) {
+                    filterBar.innerHTML = '';
+                    return;
+                }
+                
+                const categories = [...new Set(state.restaurants.slice(0, 8).map(r => r.category).filter(Boolean))];
+                
+                let filterHTML = `<div class="filter-btn active" data-filter="all">All</div>`;
+                
+                categories.slice(0, 5).forEach(category => {
+                    filterHTML += `<div class="filter-btn" data-filter="${category}">${category}</div>`;
+                });
+                
+                filterHTML += `<div class="filter-btn" data-filter="top-rated">Top Rated</div>`;
+                
+                filterBar.innerHTML = filterHTML;
+                
+                filterBar.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        filterFeaturedRestaurants(this.dataset.filter);
+                    });
+                });
+                
+                console.log('✅ Filters populated');
+            }
+            
+            function filterFeaturedRestaurants(filter) {
+                if (state.restaurants.length === 0) return;
+                
+                let filtered = state.restaurants.slice(0, 8);
+                
+                if (filter === 'top-rated') {
+                    filtered = filtered.filter(r => (r.rating || 0) >= 4.5);
+                } else if (filter !== 'all') {
+                    filtered = filtered.filter(r => r.category === filter);
+                }
+                
+                const grid = document.getElementById('featuredSlider');
+                if (!grid) return;
+                
+                const fragment = document.createDocumentFragment();
+                
+                for (const restaurant of filtered) {
+                    const card = createRestaurantCard(restaurant);
+                    fragment.appendChild(card);
+                }
+                
+                grid.innerHTML = '';
+                grid.appendChild(fragment);
+                
+                // OPTIMIZATION: Immediate image loading
+                requestAnimationFrame(() => {
+                    const images = grid.querySelectorAll('img[data-src]');
+                    images.forEach(img => {
+                        if (img.dataset.src && !img.src) {
+                            img.src = img.dataset.src;
+                            img.onload = () => {
+                                img.classList.add('loaded');
+                            };
+                        }
+                    });
+                });
+            }
+            
+            // ---------- NOTIFICATION SYSTEM ----------
+            function showNotification(message, type = "info", duration = 2500) {
+                const container = document.getElementById("notificationContainer");
+                if (!container) return;
+                
+                const notification = document.createElement("div");
+                notification.className = `custom-notification notification-${type}`;
+                
+                let iconClass;
+                if (type === "success") {
+                    iconClass = "fas fa-check-circle";
+                } else if (type === "error") {
+                    iconClass = "fas fa-exclamation-circle";
+                } else if (type === "warning") {
+                    iconClass = "fas fa-exclamation-triangle";
+                } else {
+                    iconClass = "fas fa-info-circle";
+                }
+                
+                notification.innerHTML = `
+                    <i class="notification-icon ${iconClass}"></i>
+                    <span class="notification-message">${message}</span>
+                    <button class="notification-close" aria-label="Close notification">×</button>
+                `;
+                
+                container.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add("notification-show");
+                }, 10);
+                
+                notification.querySelector('.notification-close').addEventListener('click', () => {
+                    notification.classList.remove("notification-show");
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 400);
+                });
+                
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.classList.remove("notification-show");
+                        setTimeout(() => notification.remove(), 400);
+                    }
+                }, duration);
+            }
+            
             // ---------- GUEST BANNER ----------
             const guestBanner = {
                 init: function() {
@@ -3905,6 +4228,8 @@
                 state.currentModalRestaurant = restaurantData;
                 document.getElementById('modalRestaurantName').textContent = restaurantData.name;
                 
+                updateModalButtons(restaurantData.id);
+                
                 const modal = document.getElementById('actionsModal');
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
@@ -3916,9 +4241,32 @@
                 document.body.style.overflow = 'auto';
             }
             
+            function updateModalButtons(restaurantId) {
+                const status = state.listManager.getRestaurantListStatus(restaurantId);
+                
+                const favoritesBtn = document.getElementById('modalFavoritesBtn');
+                const wantToGoBtn = document.getElementById('modalWantToGoBtn');
+                const visitedBtn = document.getElementById('modalVisitedBtn');
+                
+                if (favoritesBtn) {
+                    favoritesBtn.innerHTML = `<i class="fas fa-heart"></i><span>${status.favorites ? 'Remove from Favorites' : 'Add to Favorites'}</span>`;
+                    favoritesBtn.classList.toggle('active', status.favorites);
+                }
+                
+                if (wantToGoBtn) {
+                    wantToGoBtn.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${status.wantToGo ? 'Remove from Want to Go' : 'Add to Want to Go'}</span>`;
+                    wantToGoBtn.classList.toggle('active', status.wantToGo);
+                }
+                
+                if (visitedBtn) {
+                    visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+                    visitedBtn.classList.toggle('active', status.visited);
+                }
+            }
+            
             // ---------- EVENT LISTENERS ----------
             function setupEventListeners() {
-                console.log('🔧 Setting up event listeners (optimized)...');
+                console.log('🔧 Setting up event listeners...');
                 
                 const mobileSearchToggle = document.getElementById('mobileSearchToggle');
                 if (mobileSearchToggle) {
@@ -3967,10 +4315,78 @@
                 
                 guestBanner.init();
                 
+                const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
+                const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
+                const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+                const modalCustomListsBtn = document.getElementById('modalCustomListsBtn');
                 const modalCancelBtn = document.getElementById('modalCancelBtn');
+                
+                if (modalFavoritesBtn) {
+                    modalFavoritesBtn.addEventListener('click', async () => {
+                        if (!state.currentModalRestaurant) return;
+                        await state.listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+                        updateModalButtons(state.currentModalRestaurant.id);
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
+                        hideModal();
+                    });
+                }
+                
+                if (modalWantToGoBtn) {
+                    modalWantToGoBtn.addEventListener('click', async () => {
+                        if (!state.currentModalRestaurant) return;
+                        await state.listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+                        updateModalButtons(state.currentModalRestaurant.id);
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
+                        hideModal();
+                    });
+                }
+                
+                if (modalVisitedBtn) {
+                    modalVisitedBtn.addEventListener('click', async () => {
+                        if (!state.currentModalRestaurant) return;
+                        await state.listManager.toggleInList('visited', state.currentModalRestaurant.id);
+                        updateModalButtons(state.currentModalRestaurant.id);
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
+                        hideModal();
+                    });
+                }
+                
+                if (modalCustomListsBtn) {
+                    modalCustomListsBtn.addEventListener('click', () => {
+                        if (!state.currentModalRestaurant) {
+                            showNotification('No restaurant selected', 'error');
+                            return;
+                        }
+                        
+                        hideModal();
+                        
+                        setTimeout(() => {
+                            showNotification('Custom lists feature coming soon!', 'info');
+                        }, 100);
+                    });
+                }
+                
                 if (modalCancelBtn) {
                     modalCancelBtn.addEventListener('click', hideModal);
                 }
+                
+                window.addEventListener('scroll', () => {
+                    const nav = document.querySelector('.nav');
+                    if (window.scrollY > 10) {
+                        nav.classList.add('scrolled');
+                    } else {
+                        nav.classList.remove('scrolled');
+                    }
+                });
                 
                 const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
                 const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
@@ -3996,37 +4412,29 @@
                     });
                 }
                 
-                window.addEventListener('scroll', () => {
-                    const nav = document.querySelector('.nav');
-                    if (window.scrollY > 10) {
-                        nav.classList.add('scrolled');
-                    } else {
-                        nav.classList.remove('scrolled');
-                    }
-                });
-                
                 console.log('✅ Event listeners set up');
             }
             
-            // OPTIMIZATION 8: Parallel initialization ----------
+            // ---------- OPTIMIZED INIT FUNCTION ----------
             async function init() {
-                console.log('🚀 Initializing homepage (optimized)...');
+                console.log('🚀 Initializing homepage...');
                 
                 try {
-                    // Setup basic functionality immediately
-                    setupEventListeners();
-                    guestBanner.init();
-                    
-                    // Initialize search EARLY
-                    setupSearch();
-                    
-                    // Run auth and data loading in parallel
+                    // OPTIMIZATION: Parallel initialization
                     await Promise.allSettled([
-                        initializeAuth(),
-                        loadRestaurantsData()
+                        (async () => {
+                            setupEventListeners();
+                            guestBanner.init();
+                            initImageLoader();
+                            setupSearch();
+                        })(),
+                        (async () => {
+                            await initializeAuth();
+                            await loadRestaurantsData();
+                        })()
                     ]);
                     
-                    console.log('✅ Homepage initialization complete (optimized)');
+                    console.log('✅ Homepage initialization complete');
                     
                 } catch (error) {
                     console.error('❌ Initialization error:', error);
@@ -4045,11 +4453,11 @@
                 }
             }
             
-            // CHANGED: Execute immediately if DOM ready
+            // OPTIMIZATION: Execute immediately if DOM ready, no delays
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
-                init(); // No setTimeout delay
+                init();
             }
             
         })();
