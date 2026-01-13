@@ -948,17 +948,15 @@
             color: #0b1633;
         }
         
-        /* List badge tooltips */
+        /* List badge tooltips - FIXED positioning */
         .list-badge .list-badge-tooltip {
-            position: absolute;
-            top: 50%;
-            left: 100%;
-            transform: translateY(-50%) translateX(10px);
+            position: fixed; /* Changed from absolute */
             background: var(--card);
             border: 2px solid var(--accent);
             border-radius: 12px;
             padding: 10px 14px;
-            width: 140px;
+            width: max-content;
+            max-width: 200px;
             z-index: 1001;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             backdrop-filter: blur(10px);
@@ -969,14 +967,14 @@
             text-align: left;
             font-size: 12px;
             line-height: 1.4;
-            margin-left: 8px;
             color: var(--white);
+            white-space: normal;
+            word-wrap: break-word;
         }
         
         .list-badge:hover .list-badge-tooltip {
             opacity: 1;
             visibility: visible;
-            transform: translateY(-50%) translateX(20px);
             pointer-events: auto;
         }
         
@@ -1017,17 +1015,15 @@
             transform: scale(1.05);
         }
         
-        /* Cloud Kitchen Tooltip */
+        /* Cloud Kitchen Tooltip - FIXED */
         .cloud-badge .cloud-tooltip {
-            position: absolute;
-            top: -10px;
-            right: 0;
-            transform: translateX(0) translateY(-100%);
+            position: fixed; /* Changed from absolute */
             background: var(--card);
             border: 2px solid var(--cloud-color);
             border-radius: 12px;
             padding: 12px 16px;
-            width: 160px;
+            width: max-content;
+            max-width: 160px;
             z-index: 1001;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             backdrop-filter: blur(10px);
@@ -1038,12 +1034,13 @@
             color: var(--white);
             text-align: center;
             font-weight: 600;
+            white-space: normal;
+            word-wrap: break-word;
         }
         
         .cloud-badge:hover .cloud-tooltip {
             opacity: 1;
             visibility: visible;
-            transform: translateX(0) translateY(-120%);
             pointer-events: auto;
         }
         
@@ -1097,12 +1094,9 @@
             color: #0b1633;
         }
         
-        /* Menu button tooltip */
+        /* Menu button tooltip - FIXED */
         .menu-btn .menu-btn-tooltip {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
+            position: fixed; /* Changed from absolute */
             background: var(--card);
             border: 2px solid var(--accent);
             border-radius: 12px;
@@ -1125,7 +1119,6 @@
         .menu-btn:hover .menu-btn-tooltip {
             opacity: 1;
             visibility: visible;
-            transform: translateY(0);
         }
         
         /* Hide tooltips on mobile */
@@ -1135,6 +1128,47 @@
             .menu-btn-tooltip {
                 display: none !important;
             }
+        }
+        
+        /* Emoji picker for lists */
+        .emoji-option {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .emoji-option:hover {
+            background: var(--bg-hover);
+            transform: scale(1.1);
+        }
+        
+        .emoji-option.selected {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--accent);
+        }
+        
+        /* Scrollbar for emoji grid */
+        .emoji-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .emoji-grid::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .emoji-grid::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
         }
         
         .card-content { 
@@ -1215,7 +1249,7 @@
             margin: 0 0 16px 0; 
             display: -webkit-box; 
             -webkit-line-clamp: 3; 
-            -webkit-box-orvent: vertical; 
+            -webkit-box-orient: vertical; 
             overflow: hidden; 
             flex: 1; 
             min-height: 60px; 
@@ -2695,6 +2729,7 @@
         </div>
     </div>
 
+    <!-- UPDATED: Custom Lists Modal with Emoji Picker -->
     <div id="customListsModal" class="custom-lists-modal">
         <div class="custom-lists-content">
             <div class="lists-header">
@@ -2708,11 +2743,39 @@
             
             <div class="new-list-section">
                 <div class="new-list-input">
-                    <input type="text" id="newListName" placeholder="Enter new list name..." maxlength="50">
+                    <div style="position: relative; flex: 1;">
+                        <input type="text" id="newListName" placeholder="Enter list name..." maxlength="30">
+                        <span id="charCounter" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); pointer-events: none;">0/30</span>
+                    </div>
                     <button class="create-list-btn" id="createListBtn">
                         <i class="fas fa-plus"></i> Create
                     </button>
                 </div>
+                
+                <!-- ADDED: Emoji picker for custom lists -->
+                <div class="emoji-picker-section" style="margin-top: 12px;">
+                    <label style="font-size: 13px; color: var(--muted); margin-bottom: 8px; display: block;">Choose an icon:</label>
+                    <div class="emoji-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; max-height: 120px; overflow-y: auto; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                        <button type="button" class="emoji-option" data-emoji="📋">📋</button>
+                        <button type="button" class="emoji-option" data-emoji="❤️">❤️</button>
+                        <button type="button" class="emoji-option" data-emoji="⭐">⭐</button>
+                        <button type="button" class="emoji-option" data-emoji="📍">📍</button>
+                        <button type="button" class="emoji-option" data-emoji="🍽️">🍽️</button>
+                        <button type="button" class="emoji-option" data-emoji="🔥">🔥</button>
+                        <button type="button" class="emoji-option" data-emoji="🎉">🎉</button>
+                        <button type="button" class="emoji-option" data-emoji="💎">💎</button>
+                        <button type="button" class="emoji-option" data-emoji="🌟">🌟</button>
+                        <button type="button" class="emoji-option" data-emoji="🎯">🎯</button>
+                        <button type="button" class="emoji-option" data-emoji="🏆">🏆</button>
+                        <button type="button" class="emoji-option" data-emoji="💯">💯</button>
+                        <button type="button" class="emoji-option" data-emoji="🍕">🍕</button>
+                        <button type="button" class="emoji-option" data-emoji="🍔">🍔</button>
+                        <button type="button" class="emoji-option" data-emoji="🍜">🍜</button>
+                        <button type="button" class="emoji-option" data-emoji="🍣">🍣</button>
+                    </div>
+                    <input type="hidden" id="selectedListEmoji" value="📋">
+                </div>
+                
                 <div class="lists-actions">
                     <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
                 </div>
@@ -4764,7 +4827,7 @@
                 }
             }
             
-            // FIXED: Custom Lists Modal - No freezing with proper initialization
+            // FIXED: Custom Lists Modal with Emoji Picker
             function setupCustomListsModal() {
                 const customListsBtn = document.getElementById('modalCustomListsBtn');
                 const closeListsBtn = document.getElementById('closeListsBtn');
@@ -4772,6 +4835,7 @@
                 const saveListsBtn = document.getElementById('saveListsBtn');
                 const newListNameInput = document.getElementById('newListName');
                 const listsListContainer = document.getElementById('listsListContainer');
+                const charCounter = document.getElementById('charCounter');
                 
                 // FIXED: Add proper initialization check
                 if (!customListsBtn || !listsListContainer) {
@@ -4812,6 +4876,12 @@
                     
                     // Render the lists
                     renderCustomLists();
+                    
+                    // Setup emoji picker
+                    setupEmojiPicker();
+                    
+                    // Setup character counter
+                    setupCharacterCounter();
                     
                     // Show modal
                     const modal = document.getElementById('customListsModal');
@@ -4885,13 +4955,74 @@
                     listsListContainer.appendChild(listsList);
                 }
                 
+                // NEW: Setup emoji picker
+                function setupEmojiPicker() {
+                    const emojiOptions = document.querySelectorAll('.emoji-option');
+                    const selectedEmojiInput = document.getElementById('selectedListEmoji');
+                    
+                    emojiOptions.forEach(option => {
+                        option.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            // Remove selected from all
+                            emojiOptions.forEach(opt => opt.classList.remove('selected'));
+                            
+                            // Add selected to clicked
+                            this.classList.add('selected');
+                            
+                            // Update hidden input
+                            const emoji = this.getAttribute('data-emoji');
+                            if (selectedEmojiInput) {
+                                selectedEmojiInput.value = emoji;
+                            }
+                        });
+                    });
+                    
+                    // Set default selection
+                    const defaultEmoji = document.querySelector('.emoji-option[data-emoji="📋"]');
+                    if (defaultEmoji) {
+                        defaultEmoji.classList.add('selected');
+                    }
+                }
+                
+                // NEW: Setup character counter
+                function setupCharacterCounter() {
+                    if (newListNameInput && charCounter) {
+                        newListNameInput.addEventListener('input', () => {
+                            const length = newListNameInput.value.length;
+                            charCounter.textContent = `${length}/30`;
+                            
+                            if (length > 25) {
+                                charCounter.style.color = 'var(--error)';
+                            } else if (length > 20) {
+                                charCounter.style.color = 'var(--warning)';
+                            } else {
+                                charCounter.style.color = 'var(--muted)';
+                            }
+                        });
+                        
+                        // Initialize counter
+                        const length = newListNameInput.value.length;
+                        charCounter.textContent = `${length}/30`;
+                    }
+                }
+                
                 if (createListBtn) {
                     createListBtn.addEventListener('click', async () => {
                         if (!newListNameInput || !state.currentUser || !supabase) return;
                         
                         const listName = newListNameInput.value.trim();
+                        const selectedEmoji = document.getElementById('selectedListEmoji')?.value || '📋';
+                        
+                        // Validation
                         if (!listName) {
                             showNotification('Please enter a list name', 'error');
+                            return;
+                        }
+                        
+                        if (listName.length > 30) {
+                            showNotification('List name must be 30 characters or less', 'error');
                             return;
                         }
                         
@@ -4903,7 +5034,7 @@
                                         user_id: state.currentUser.id,
                                         title: listName,
                                         description: `My ${listName} list`,
-                                        icon: '📋',
+                                        icon: selectedEmoji,
                                         is_default: false,
                                         created_at: new Date().toISOString()
                                     }
@@ -4917,13 +5048,22 @@
                             state.listManager.customLists.push(newList);
                             state.listManager.userLists.push(newList);
                             
-                            // Clear input
+                            // Clear input and reset emoji
                             newListNameInput.value = '';
+                            document.getElementById('selectedListEmoji').value = '📋';
+                            document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('selected'));
+                            document.querySelector('.emoji-option[data-emoji="📋"]')?.classList.add('selected');
+                            
+                            // Reset character counter
+                            if (charCounter) {
+                                charCounter.textContent = '0/30';
+                                charCounter.style.color = 'var(--muted)';
+                            }
                             
                             // Reload the lists
                             renderCustomLists();
                             
-                            showNotification(`Created list "${listName}"`, 'success');
+                            showNotification(`Created list "${listName}" ${selectedEmoji}`, 'success');
                             
                         } catch (error) {
                             console.error('Error creating list:', error);
@@ -5111,6 +5251,72 @@
                         document.body.style.overflow = 'auto';
                     });
                 }
+                
+                // FIXED: Kebab menu click handling
+                document.addEventListener('click', (e) => {
+                    // Close all dropdowns if clicking outside
+                    if (!e.target.closest('.menu-btn-container')) {
+                        document.querySelectorAll('.kebab-dropdown').forEach(d => {
+                            d.classList.remove('show');
+                        });
+                    }
+                });
+                
+                // Prevent dropdown from closing when clicking inside it
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.kebab-dropdown')) {
+                        e.stopPropagation();
+                    }
+                });
+                
+                // Smart tooltip positioning to keep them on screen
+                function positionTooltip(tooltipElement, triggerElement) {
+                    if (!tooltipElement || !triggerElement) return;
+                    
+                    const triggerRect = triggerElement.getBoundingClientRect();
+                    const tooltipRect = tooltipElement.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    let left = triggerRect.right + 10;
+                    let top = triggerRect.top + (triggerRect.height / 2) - (tooltipRect.height / 2);
+                    
+                    // Check if tooltip goes off right edge
+                    if (left + tooltipRect.width > viewportWidth - 20) {
+                        left = triggerRect.left - tooltipRect.width - 10;
+                    }
+                    
+                    // Check if tooltip goes off left edge
+                    if (left < 20) {
+                        left = 20;
+                    }
+                    
+                    // Check if tooltip goes off bottom
+                    if (top + tooltipRect.height > viewportHeight - 20) {
+                        top = viewportHeight - tooltipRect.height - 20;
+                    }
+                    
+                    // Check if tooltip goes off top
+                    if (top < 20) {
+                        top = 20;
+                    }
+                    
+                    tooltipElement.style.left = left + 'px';
+                    tooltipElement.style.top = top + 'px';
+                }
+                
+                // Apply to all tooltips on hover
+                document.addEventListener('mouseover', (e) => {
+                    const badge = e.target.closest('.list-badge, .cloud-badge, .menu-btn');
+                    if (badge) {
+                        const tooltip = badge.querySelector('.list-badge-tooltip, .cloud-tooltip, .menu-btn-tooltip');
+                        if (tooltip) {
+                            requestAnimationFrame(() => {
+                                positionTooltip(tooltip, badge);
+                            });
+                        }
+                    }
+                });
                 
                 // Set up custom lists modal
                 setupCustomListsModal();
