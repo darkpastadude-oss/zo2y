@@ -2784,11 +2784,11 @@
                 currentUser: null,
                 // Search data cache with limit
                 searchData: [],
-                // Store restaurant list statuses for instant access
+                // Store restaurant list statuses for instant access - FIXED: Initialize as empty Map
                 restaurantListStatuses: new Map(),
                 listManager: {
                     userLists: [],
-                    customLists: [], // ADDED: Separate storage for custom lists
+                    customLists: [],
                     currentLists: {
                         favorites: null,
                         visited: null,
@@ -2796,15 +2796,21 @@
                     },
                     
                     async init() { 
-                        if (!state.isLoggedIn || !state.currentUser || !supabase) return;
+                        console.log('🔄 Initializing list manager...');
+                        if (!state.isLoggedIn || !state.currentUser || !supabase) {
+                            console.log('❌ List manager not initialized: Not logged in');
+                            return;
+                        }
                         
                         await this.loadUserLists();
-                        // Load all restaurant statuses immediately
+                        // Load all restaurant statuses immediately - THIS IS THE FIX
                         await this.loadAllRestaurantStatuses();
+                        console.log('✅ List manager initialized');
                     },
                     
                     async loadUserLists() {
                         try {
+                            console.log('📋 Loading user lists...');
                             if (!state.currentUser || !supabase) return;
 
                             const { data: lists, error } = await supabase
@@ -2818,6 +2824,8 @@
                             this.customLists = this.userLists.filter(list => 
                                 !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
                             );
+                            console.log(`📋 Found ${this.userLists.length} lists (${this.customLists.length} custom)`);
+                            
                             await this.setupDefaultLists();
                             await this.loadListRestaurants();
                             
@@ -2907,9 +2915,13 @@
                         }
                     },
                     
-                    // FIXED: Load all restaurant statuses at once - with better performance
+                    // FIXED: Load all restaurant statuses at once - CRITICAL FIX
                     async loadAllRestaurantStatuses() {
-                        if (!supabase || !state.isLoggedIn || !state.currentUser) return;
+                        console.log('📊 Loading all restaurant statuses...');
+                        if (!supabase || !state.isLoggedIn || !state.currentUser) {
+                            console.log('❌ Cannot load statuses: Not authenticated');
+                            return;
+                        }
                         
                         try {
                             // Get list IDs for the current user
@@ -2921,7 +2933,16 @@
                             ].filter(Boolean);
                             
                             if (listIds.length === 0) {
-                                console.log('No lists found for user');
+                                console.log('📊 No lists found for user');
+                                // Initialize empty statuses for all restaurants
+                                state.restaurants.forEach(restaurant => {
+                                    state.restaurantListStatuses.set(restaurant.id, {
+                                        favorites: false,
+                                        visited: false,
+                                        wantToGo: false,
+                                        customLists: []
+                                    });
+                                });
                                 return;
                             }
                             
@@ -2933,56 +2954,70 @@
                             
                             if (error) throw error;
                             
-                            // Clear existing statuses
-                            state.restaurantListStatuses.clear();
+                            // Initialize statuses for all restaurants first
+                            state.restaurants.forEach(restaurant => {
+                                state.restaurantListStatuses.set(restaurant.id, {
+                                    favorites: false,
+                                    visited: false,
+                                    wantToGo: false,
+                                    customLists: []
+                                });
+                            });
                             
-                            // Group by restaurant ID
-                            const restaurantStatuses = {};
+                            // Group by restaurant ID and update statuses
                             allListRestaurants?.forEach(item => {
                                 const restaurantId = item.restraunt_id;
-                                if (!restaurantStatuses[restaurantId]) {
-                                    restaurantStatuses[restaurantId] = {
+                                let status = state.restaurantListStatuses.get(restaurantId);
+                                
+                                if (!status) {
+                                    status = {
                                         favorites: false,
                                         visited: false,
                                         wantToGo: false,
-                                        customLists: [] // Store custom list IDs and names
+                                        customLists: []
                                     };
                                 }
                                 
                                 // Check which list this restaurant is in
                                 if (item.list_id === this.currentLists.favorites?.id) {
-                                    restaurantStatuses[restaurantId].favorites = true;
+                                    status.favorites = true;
                                 }
                                 if (item.list_id === this.currentLists.visited?.id) {
-                                    restaurantStatuses[restaurantId].visited = true;
+                                    status.visited = true;
                                 }
                                 if (item.list_id === this.currentLists.wantToGo?.id) {
-                                    restaurantStatuses[restaurantId].wantToGo = true;
+                                    status.wantToGo = true;
                                 }
                                 
                                 // Check if it's in any custom lists
                                 const customList = this.customLists.find(l => l.id === item.list_id);
                                 if (customList) {
-                                    restaurantStatuses[restaurantId].customLists.push({
+                                    status.customLists.push({
                                         id: customList.id,
                                         name: customList.title,
                                         icon: customList.icon || '📋'
                                     });
                                 }
+                                
+                                state.restaurantListStatuses.set(restaurantId, status);
                             });
                             
-                            // Store in state for instant access
-                            Object.entries(restaurantStatuses).forEach(([restaurantId, status]) => {
-                                state.restaurantListStatuses.set(parseInt(restaurantId), status);
-                            });
+                            console.log(`✅ Loaded list statuses for ${Object.keys(state.restaurantListStatuses).length} restaurants`);
                             
-                            console.log(`✅ Loaded list statuses for ${Object.keys(restaurantStatuses).length} restaurants`);
-                            
-                            // Immediately update all UI elements
+                            // Immediately update all UI elements - CRITICAL
                             updateAllRestaurantCards();
                             
                         } catch (error) {
                             console.error('Error loading restaurant statuses:', error);
+                            // Initialize empty statuses as fallback
+                            state.restaurants.forEach(restaurant => {
+                                state.restaurantListStatuses.set(restaurant.id, {
+                                    favorites: false,
+                                    visited: false,
+                                    wantToGo: false,
+                                    customLists: []
+                                });
+                            });
                         }
                     },
                     
@@ -3130,7 +3165,7 @@
                             };
                         }
                         
-                        // Get from cache for instant response
+                        // Get from cache for instant response - FIXED: Always return something
                         const cachedStatus = state.restaurantListStatuses.get(restaurantId);
                         if (cachedStatus) {
                             return cachedStatus;
@@ -3149,6 +3184,8 @@
             
             // ---------- UI UPDATE FUNCTIONS ----------
             function updateAllRestaurantCards() {
+                console.log('🎨 Updating all restaurant cards with list badges...');
+                
                 // Update all restaurant cards
                 const cards = document.querySelectorAll('.restaurant-card');
                 cards.forEach(card => {
@@ -3169,13 +3206,23 @@
                 
                 // Update restaurant of the day
                 updateDayCardStatus();
+                
+                console.log(`✅ Updated ${cards.length} restaurant cards`);
             }
             
             function updateCardBadges(card, restaurantId) {
                 const status = state.listManager.getRestaurantListStatus(restaurantId);
-                const badgesContainer = card.querySelector('.list-badges-container');
+                let badgesContainer = card.querySelector('.list-badges-container');
                 
-                if (!badgesContainer) return;
+                // Create badges container if it doesn't exist
+                if (!badgesContainer) {
+                    badgesContainer = document.createElement('div');
+                    badgesContainer.className = 'list-badges-container';
+                    const cardImage = card.querySelector('.card-image');
+                    if (cardImage) {
+                        cardImage.appendChild(badgesContainer);
+                    }
+                }
                 
                 let badgesHTML = '';
                 
@@ -3631,13 +3678,14 @@
                     const profileReady = await ensureUserProfileExists(session.user);
                     
                     if (profileReady) {
+                        // FIXED: Initialize list manager and load statuses BEFORE rendering
                         await state.listManager.init();
                         setLoggedInState(session.user);
                         
-                        // FIXED: Immediately update UI with list badges
-                        setTimeout(() => {
-                            updateAllRestaurantCards();
-                        }, 100);
+                        // Now render restaurants with badges
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        setupRestaurantOfTheDay();
                     } else {
                         setLoggedInState(session.user);
                     }
@@ -3857,7 +3905,25 @@
                         
                         console.log(`✅ Loaded ${state.restaurants.length} restaurants`);
                         
-                        // OPTIMIZATION: Immediate rendering with list statuses
+                        // Initialize empty statuses for all restaurants
+                        state.restaurants.forEach(restaurant => {
+                            if (!state.restaurantListStatuses.has(restaurant.id)) {
+                                state.restaurantListStatuses.set(restaurant.id, {
+                                    favorites: false,
+                                    visited: false,
+                                    wantToGo: false,
+                                    customLists: []
+                                });
+                            }
+                        });
+                        
+                        // Now load list statuses if user is logged in
+                        if (state.isLoggedIn) {
+                            // This will update the badges after statuses are loaded
+                            await state.listManager.loadAllRestaurantStatuses();
+                        }
+                        
+                        // Render restaurants - badges will be added after statuses are loaded
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
                         setupSpotlight();
