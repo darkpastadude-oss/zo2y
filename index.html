@@ -192,7 +192,7 @@
         .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
         .clear-search:hover { color: var(--white); }
         
-        /* Search Dropdown - FIXED: Removed lazy loading */
+        /* Search Dropdown */
         .search-dropdown {
             position: absolute;
             top: 100%;
@@ -260,13 +260,11 @@
             flex-shrink: 0;
         }
         
-        /* FIXED: Direct src loading, no opacity transition for instant display */
         .search-result-logo img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             border-radius: 6px;
-            /* REMOVED: opacity: 0; transition: opacity 0.3s ease; */
         }
         
         .search-result-info {
@@ -800,28 +798,21 @@
             background: var(--accent); 
         }
         
-        /* Enhanced Image Loading - FIXED: Removed opacity transitions for instant loading */
+        /* Enhanced Image Loading */
         .restaurant-image { 
             display: block; 
             width: 100%; 
             height: 200px; 
             object-fit: cover; 
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); 
-            /* REMOVED: opacity: 0; transition: opacity 0.5s ease; */
         }
         
-        /* REMOVED: .restaurant-image.loaded class since we don't need opacity transitions anymore */
-        
-        /* FIXED: Logo overlay - direct loading without opacity transitions */
         .logo-overlay img { 
             width: 100%; 
             height: 100%; 
             object-fit: contain; 
             border-radius: 8px; 
-            /* REMOVED: opacity: 0; transition: opacity 0.5s ease; */
         }
-        
-        /* REMOVED: .logo-overlay img.loaded class since we don't need opacity transitions anymore */
         
         /* Restaurant Cards with Mobile Slider Layout */
         .restaurant-card { 
@@ -853,7 +844,7 @@
             flex-shrink: 0; 
         }
         
-        /* Logo overlay - EXACTLY LIKE RESTAURANTS.HTML */
+        /* Logo overlay */
         .logo-overlay { 
             position: absolute; 
             bottom: 12px; 
@@ -948,15 +939,17 @@
             color: #0b1633;
         }
         
-        /* List badge tooltips - FIXED positioning */
+        /* List badge tooltips */
         .list-badge .list-badge-tooltip {
-            position: fixed; /* Changed from absolute */
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%) translateX(10px);
             background: var(--card);
             border: 2px solid var(--accent);
             border-radius: 12px;
             padding: 10px 14px;
-            width: max-content;
-            max-width: 200px;
+            width: 140px;
             z-index: 1001;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             backdrop-filter: blur(10px);
@@ -967,14 +960,14 @@
             text-align: left;
             font-size: 12px;
             line-height: 1.4;
+            margin-left: 8px;
             color: var(--white);
-            white-space: normal;
-            word-wrap: break-word;
         }
         
         .list-badge:hover .list-badge-tooltip {
             opacity: 1;
             visibility: visible;
+            transform: translateY(-50%) translateX(20px);
             pointer-events: auto;
         }
         
@@ -1015,15 +1008,17 @@
             transform: scale(1.05);
         }
         
-        /* Cloud Kitchen Tooltip - FIXED */
+        /* Cloud Kitchen Tooltip */
         .cloud-badge .cloud-tooltip {
-            position: fixed; /* Changed from absolute */
+            position: absolute;
+            top: -10px;
+            right: 0;
+            transform: translateX(0) translateY(-100%);
             background: var(--card);
             border: 2px solid var(--cloud-color);
             border-radius: 12px;
             padding: 12px 16px;
-            width: max-content;
-            max-width: 160px;
+            width: 160px;
             z-index: 1001;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             backdrop-filter: blur(10px);
@@ -1034,13 +1029,12 @@
             color: var(--white);
             text-align: center;
             font-weight: 600;
-            white-space: normal;
-            word-wrap: break-word;
         }
         
         .cloud-badge:hover .cloud-tooltip {
             opacity: 1;
             visibility: visible;
+            transform: translateX(0) translateY(-120%);
             pointer-events: auto;
         }
         
@@ -1094,9 +1088,12 @@
             color: #0b1633;
         }
         
-        /* Menu button tooltip - FIXED */
+        /* Menu button tooltip */
         .menu-btn .menu-btn-tooltip {
-            position: fixed; /* Changed from absolute */
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
             background: var(--card);
             border: 2px solid var(--accent);
             border-radius: 12px;
@@ -1119,6 +1116,7 @@
         .menu-btn:hover .menu-btn-tooltip {
             opacity: 1;
             visibility: visible;
+            transform: translateY(0);
         }
         
         /* Hide tooltips on mobile */
@@ -1128,47 +1126,6 @@
             .menu-btn-tooltip {
                 display: none !important;
             }
-        }
-        
-        /* Emoji picker for lists */
-        .emoji-option {
-            width: 100%;
-            aspect-ratio: 1;
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .emoji-option:hover {
-            background: var(--bg-hover);
-            transform: scale(1.1);
-        }
-        
-        .emoji-option.selected {
-            background: rgba(245, 158, 11, 0.2);
-            border-color: var(--accent);
-        }
-        
-        /* Scrollbar for emoji grid */
-        .emoji-grid::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .emoji-grid::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-        
-        .emoji-grid::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 10px;
         }
         
         .card-content { 
@@ -1216,7 +1173,7 @@
             flex: 1; 
         }
         
-        /* Rating badge - subtle exactly like restaurants.html */
+        /* Rating badge */
         .card-rating {
             padding: 3px 6px;
             font-size: 11px;
@@ -1249,7 +1206,7 @@
             margin: 0 0 16px 0; 
             display: -webkit-box; 
             -webkit-line-clamp: 3; 
-            -webkit-box-orient: vertical; 
+            -webkit-box-orvent: vertical; 
             overflow: hidden; 
             flex: 1; 
             min-height: 60px; 
@@ -1901,8 +1858,8 @@
             margin: 0 auto; 
         }
         
-        /* Modals */
-        .actions-modal, .auth-prompt-modal, .custom-lists-modal { 
+        /* ===== IMPROVED CUSTOM LISTS MODAL ===== */
+        .custom-lists-modal { 
             display: none; 
             position: fixed; 
             top: 0; 
@@ -1911,7 +1868,7 @@
             bottom: 0; 
             background: rgba(11, 22, 51, 0.95); 
             backdrop-filter: blur(20px); 
-            z-index: 1000; 
+            z-index: 1002; 
             align-items: center; 
             justify-content: center; 
             padding: 20px; 
@@ -1919,112 +1876,36 @@
             transition: opacity 0.3s ease; 
         }
         
-        .actions-modal.active, .auth-prompt-modal.active, .custom-lists-modal.active { 
+        .custom-lists-modal.active { 
             display: flex; 
             opacity: 1; 
         }
         
-        .actions-content, .auth-prompt-content, .custom-lists-content { 
+        .custom-lists-content { 
             background: var(--card); 
             border-radius: 20px; 
             padding: 30px; 
-            max-width: 400px; 
-            width: 100%; 
-            border: 2px solid var(--accent); 
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); 
-            animation: modalSlideIn 0.3s ease-out; 
-            text-align: center; 
-        }
-        
-        .custom-lists-content { 
             max-width: 500px; 
             max-height: 80vh; 
             display: flex; 
             flex-direction: column; 
+            border: 2px solid var(--accent); 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); 
+            animation: modalSlideIn 0.3s ease-out; 
         }
         
-        @keyframes modalSlideIn { 
-            from { 
-                opacity: 0; 
-                transform: translateY(-20px); 
-            } 
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            } 
-        }
-        
-        .actions-header, .lists-header { 
-            margin-bottom: 24px; 
-        }
-        
-        .actions-header h3, .lists-header h3 { 
-            font-size: 22px; 
-            margin-bottom: 8px; 
-            color: var(--white); 
-            font-weight: 600; 
-        }
-        
-        .actions-header p { 
-            color: var(--muted); 
-            font-size: 14px; 
-        }
-        
-        .action-buttons { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            margin-bottom: 24px; 
-        }
-        
-        .action-btn-modal { 
-            background: var(--bg); 
-            border: 1px solid var(--border); 
-            color: var(--white); 
-            padding: 16px 20px; 
-            border-radius: 16px; 
-            font-weight: 500; 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            text-align: left; 
-            font-size: 15px; 
-            justify-content: space-between; 
-        }
-        
-        .action-btn-modal:hover { 
-            background: var(--accent); 
-            color: #0b1633; 
-            transform: translateY(-2px); 
-            border-color: var(--accent); 
-            box-shadow: 0 4px 12px rgba(245,158,11,0.3); 
-        }
-        
-        .action-btn-modal.active { 
-            background: var(--accent); 
-            color: #0b1633; 
-            border-color: var(--accent); 
-        }
-        
-        .action-btn-modal.custom-lists-btn { 
-            border: 1px solid var(--accent); 
-        }
-        
-        .action-btn-modal i { 
-            font-size: 18px; 
-            width: 24px; 
-        }
-        
-        /* Custom Lists Modal */
         .lists-header { 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
+            margin-bottom: 24px;
         }
         
         .lists-header h3 { 
+            font-size: 22px; 
+            margin-bottom: 0; 
+            color: var(--white); 
+            font-weight: 600; 
             display: flex; 
             align-items: center; 
             gap: 10px; 
@@ -2185,32 +2066,93 @@
             color: var(--white); 
         }
         
-        .new-list-section { 
-            padding-top: 20px; 
-            border-top: 1px solid var(--border); 
+        /* NEW: Create List Section */
+        .create-list-section {
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
         }
         
-        .new-list-input { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 15px; 
+        .create-list-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .new-list-input input { 
-            flex: 1; 
-            padding: 12px 16px; 
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid var(--border); 
-            border-radius: 12px; 
-            color: var(--white); 
-            font-size: 14px; 
-            outline: none; 
-            transition: all 0.3s ease; 
+        .create-list-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
         
-        .new-list-input input:focus { 
-            border-color: var(--accent); 
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); 
+        .form-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        
+        .list-name-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .list-name-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        
+        /* Icon Selection Grid */
+        .icon-selection-section {
+            margin-top: 8px;
+        }
+        
+        .icon-grid-title {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+        
+        .icon-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .icon-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+            border: 2px solid transparent;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .icon-option:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .icon-option.selected {
+            background: var(--accent);
+            color: #0b1633;
+            border-color: var(--accent);
+            transform: scale(1.1);
         }
         
         .create-list-btn { 
@@ -2222,9 +2164,9 @@
             font-weight: 600; 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            white-space: nowrap; 
             display: flex; 
             align-items: center; 
+            justify-content: center; 
             gap: 8px; 
         }
         
@@ -2239,10 +2181,26 @@
             transform: none; 
         }
         
+        /* Character Count */
+        .char-count {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+        
+        .char-count.warning {
+            color: var(--accent);
+        }
+        
+        .char-count.error {
+            color: var(--error);
+        }
+        
         .lists-actions { 
             display: flex; 
             gap: 12px; 
-            margin-top: 10px; 
+            margin-top: 20px; 
         }
         
         .lists-save-btn { 
@@ -2266,6 +2224,115 @@
             opacity: 0.5; 
             cursor: not-allowed; 
             transform: none; 
+        }
+        
+        /* Modals */
+        .actions-modal, .auth-prompt-modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: rgba(11, 22, 51, 0.95); 
+            backdrop-filter: blur(20px); 
+            z-index: 1000; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+        }
+        
+        .actions-modal.active, .auth-prompt-modal.active { 
+            display: flex; 
+            opacity: 1; 
+        }
+        
+        .actions-content, .auth-prompt-content { 
+            background: var(--card); 
+            border-radius: 20px; 
+            padding: 30px; 
+            max-width: 400px; 
+            width: 100%; 
+            border: 2px solid var(--accent); 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); 
+            animation: modalSlideIn 0.3s ease-out; 
+            text-align: center; 
+        }
+        
+        @keyframes modalSlideIn { 
+            from { 
+                opacity: 0; 
+                transform: translateY(-20px); 
+            } 
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            } 
+        }
+        
+        .actions-header { 
+            margin-bottom: 24px; 
+        }
+        
+        .actions-header h3 { 
+            font-size: 22px; 
+            margin-bottom: 8px; 
+            color: var(--white); 
+            font-weight: 600; 
+        }
+        
+        .actions-header p { 
+            color: var(--muted); 
+            font-size: 14px; 
+        }
+        
+        .action-buttons { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            margin-bottom: 24px; 
+        }
+        
+        .action-btn-modal { 
+            background: var(--bg); 
+            border: 1px solid var(--border); 
+            color: var(--white); 
+            padding: 16px 20px; 
+            border-radius: 16px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            text-align: left; 
+            font-size: 15px; 
+            justify-content: space-between; 
+        }
+        
+        .action-btn-modal:hover { 
+            background: var(--accent); 
+            color: #0b1633; 
+            transform: translateY(-2px); 
+            border-color: var(--accent); 
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3); 
+        }
+        
+        .action-btn-modal.active { 
+            background: var(--accent); 
+            color: #0b1633; 
+            border-color: var(--accent); 
+        }
+        
+        .action-btn-modal.custom-lists-btn { 
+            border: 1px solid var(--accent); 
+        }
+        
+        .action-btn-modal i { 
+            font-size: 18px; 
+            width: 24px; 
         }
         
         .cancel-btn { 
@@ -2295,7 +2362,7 @@
             bottom: 0; 
             background: rgba(11, 22, 51, 0.98); 
             backdrop-filter: blur(20px); 
-            z-index: 1002; 
+            z-index: 1003; 
             align-items: center; 
             justify-content: center; 
             padding: 20px; 
@@ -2476,6 +2543,26 @@
         
         .notification-close:hover { 
             opacity: 1; 
+        }
+        
+        /* Loading State */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -2729,7 +2816,7 @@
         </div>
     </div>
 
-    <!-- UPDATED: Custom Lists Modal with Emoji Picker -->
+    <!-- IMPROVED Custom Lists Modal -->
     <div id="customListsModal" class="custom-lists-modal">
         <div class="custom-lists-content">
             <div class="lists-header">
@@ -2741,43 +2828,35 @@
                 <!-- Lists will be populated here -->
             </div>
             
-            <div class="new-list-section">
-                <div class="new-list-input">
-                    <div style="position: relative; flex: 1;">
-                        <input type="text" id="newListName" placeholder="Enter list name..." maxlength="30">
-                        <span id="charCounter" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted); pointer-events: none;">0/30</span>
-                    </div>
-                    <button class="create-list-btn" id="createListBtn">
-                        <i class="fas fa-plus"></i> Create
-                    </button>
+            <!-- Create New List Section -->
+            <div class="create-list-section">
+                <div class="create-list-header">
+                    <i class="fas fa-plus-circle"></i>
+                    Create New List
                 </div>
                 
-                <!-- ADDED: Emoji picker for custom lists -->
-                <div class="emoji-picker-section" style="margin-top: 12px;">
-                    <label style="font-size: 13px; color: var(--muted); margin-bottom: 8px; display: block;">Choose an icon:</label>
-                    <div class="emoji-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; max-height: 120px; overflow-y: auto; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px;">
-                        <button type="button" class="emoji-option" data-emoji="📋">📋</button>
-                        <button type="button" class="emoji-option" data-emoji="❤️">❤️</button>
-                        <button type="button" class="emoji-option" data-emoji="⭐">⭐</button>
-                        <button type="button" class="emoji-option" data-emoji="📍">📍</button>
-                        <button type="button" class="emoji-option" data-emoji="🍽️">🍽️</button>
-                        <button type="button" class="emoji-option" data-emoji="🔥">🔥</button>
-                        <button type="button" class="emoji-option" data-emoji="🎉">🎉</button>
-                        <button type="button" class="emoji-option" data-emoji="💎">💎</button>
-                        <button type="button" class="emoji-option" data-emoji="🌟">🌟</button>
-                        <button type="button" class="emoji-option" data-emoji="🎯">🎯</button>
-                        <button type="button" class="emoji-option" data-emoji="🏆">🏆</button>
-                        <button type="button" class="emoji-option" data-emoji="💯">💯</button>
-                        <button type="button" class="emoji-option" data-emoji="🍕">🍕</button>
-                        <button type="button" class="emoji-option" data-emoji="🍔">🍔</button>
-                        <button type="button" class="emoji-option" data-emoji="🍜">🍜</button>
-                        <button type="button" class="emoji-option" data-emoji="🍣">🍣</button>
+                <div class="create-list-form">
+                    <div class="form-row">
+                        <input type="text" id="newListName" class="list-name-input" placeholder="Enter list name (max 30 characters)" maxlength="30">
+                        <button class="create-list-btn" id="createListBtn">
+                            <i class="fas fa-plus"></i> Create
+                        </button>
                     </div>
-                    <input type="hidden" id="selectedListEmoji" value="📋">
-                </div>
-                
-                <div class="lists-actions">
-                    <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
+                    
+                    <div id="listNameCharCount" class="char-count">0/30</div>
+                    
+                    <!-- Icon Selection -->
+                    <div class="icon-selection-section">
+                        <div class="icon-grid-title">Choose an icon:</div>
+                        <div class="icon-selection-grid" id="iconSelectionGrid">
+                            <!-- Icons will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Save Actions -->
+                    <div class="lists-actions">
+                        <button class="lists-save-btn" id="saveListsBtn">Save to Selected Lists</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2845,10 +2924,13 @@
                 spotlightIndex: 0,
                 spotlightRestaurants: [],
                 currentUser: null,
-                // Search data cache with limit
                 searchData: [],
-                // Store restaurant list statuses for instant access - FIXED: Initialize as empty Map
                 restaurantListStatuses: new Map(),
+                // Modal state
+                currentModalRestaurant: null,
+                selectedLists: new Set(),
+                selectedIcon: '📋',
+                isCreatingList: false,
                 listManager: {
                     userLists: [],
                     customLists: [],
@@ -2866,7 +2948,6 @@
                         }
                         
                         await this.loadUserLists();
-                        // Load all restaurant statuses immediately - THIS IS THE FIX
                         await this.loadAllRestaurantStatuses();
                         console.log('✅ List manager initialized');
                     },
@@ -2963,7 +3044,6 @@
                             }
                         }
                         
-                        // Also load custom lists restaurants
                         for (const list of this.customLists) {
                             const { data: listRestaurants, error } = await supabase
                                 .from('lists_restraunts')
@@ -2978,7 +3058,6 @@
                         }
                     },
                     
-                    // FIXED: Load all restaurant statuses at once - CRITICAL FIX
                     async loadAllRestaurantStatuses() {
                         console.log('📊 Loading all restaurant statuses...');
                         if (!supabase || !state.isLoggedIn || !state.currentUser) {
@@ -2987,7 +3066,6 @@
                         }
                         
                         try {
-                            // Get list IDs for the current user
                             const listIds = [
                                 this.currentLists.favorites?.id,
                                 this.currentLists.visited?.id,
@@ -2997,7 +3075,6 @@
                             
                             if (listIds.length === 0) {
                                 console.log('📊 No lists found for user');
-                                // Initialize empty statuses for all restaurants
                                 state.restaurants.forEach(restaurant => {
                                     state.restaurantListStatuses.set(restaurant.id, {
                                         favorites: false,
@@ -3009,7 +3086,6 @@
                                 return;
                             }
                             
-                            // Get all restaurants in user's lists in a single query
                             const { data: allListRestaurants, error } = await supabase
                                 .from('lists_restraunts')
                                 .select('list_id, restraunt_id')
@@ -3017,7 +3093,6 @@
                             
                             if (error) throw error;
                             
-                            // Initialize statuses for all restaurants first
                             state.restaurants.forEach(restaurant => {
                                 state.restaurantListStatuses.set(restaurant.id, {
                                     favorites: false,
@@ -3027,7 +3102,6 @@
                                 });
                             });
                             
-                            // Group by restaurant ID and update statuses
                             allListRestaurants?.forEach(item => {
                                 const restaurantId = item.restraunt_id;
                                 let status = state.restaurantListStatuses.get(restaurantId);
@@ -3041,7 +3115,6 @@
                                     };
                                 }
                                 
-                                // Check which list this restaurant is in
                                 if (item.list_id === this.currentLists.favorites?.id) {
                                     status.favorites = true;
                                 }
@@ -3052,7 +3125,6 @@
                                     status.wantToGo = true;
                                 }
                                 
-                                // Check if it's in any custom lists
                                 const customList = this.customLists.find(l => l.id === item.list_id);
                                 if (customList) {
                                     status.customLists.push({
@@ -3066,13 +3138,10 @@
                             });
                             
                             console.log(`✅ Loaded list statuses for ${Object.keys(state.restaurantListStatuses).length} restaurants`);
-                            
-                            // Immediately update all UI elements - CRITICAL
                             updateAllRestaurantCards();
                             
                         } catch (error) {
                             console.error('Error loading restaurant statuses:', error);
-                            // Initialize empty statuses as fallback
                             state.restaurants.forEach(restaurant => {
                                 state.restaurantListStatuses.set(restaurant.id, {
                                     favorites: false,
@@ -3095,7 +3164,6 @@
                         } else if (listType === 'wantToGo') {
                             list = this.currentLists.wantToGo;
                         } else {
-                            // For custom lists, listType is the list ID
                             list = this.customLists.find(l => l.id === listType);
                         }
                         
@@ -3118,7 +3186,6 @@
                                 
                                 if (error) throw error;
                                 
-                                // Update local state immediately
                                 this.updateLocalStatus(listType, restaurantId, false);
                                 showNotification(`Removed from ${list.title}`, 'info');
                                 return false;
@@ -3136,7 +3203,6 @@
                                 
                                 if (error) throw error;
                                 
-                                // Update local state immediately
                                 this.updateLocalStatus(listType, restaurantId, true);
                                 showNotification(`Added to ${list.title}`, 'success');
                                 return true;
@@ -3149,7 +3215,6 @@
                         }
                     },
                     
-                    // FIXED: Update local status immediately with custom lists support
                     updateLocalStatus(listType, restaurantId, isAdded) {
                         const currentStatus = state.restaurantListStatuses.get(restaurantId) || {
                             favorites: false,
@@ -3165,11 +3230,9 @@
                         } else if (listType === 'wantToGo') {
                             currentStatus.wantToGo = isAdded;
                         } else {
-                            // Handle custom lists
                             const list = this.customLists.find(l => l.id === listType);
                             if (list) {
                                 if (isAdded) {
-                                    // Add to custom lists if not already there
                                     if (!currentStatus.customLists.some(l => l.id === list.id)) {
                                         currentStatus.customLists.push({
                                             id: list.id,
@@ -3178,32 +3241,26 @@
                                         });
                                     }
                                 } else {
-                                    // Remove from custom lists
                                     currentStatus.customLists = currentStatus.customLists.filter(l => l.id !== list.id);
                                 }
                             }
                         }
                         
                         state.restaurantListStatuses.set(restaurantId, currentStatus);
-                        
-                        // Immediately update the UI
                         updateAllRestaurantCards();
                     },
                     
                     isInList(listType, restaurantId) {
-                        // Check local cache first for instant response
                         const status = state.restaurantListStatuses.get(restaurantId);
                         if (status) {
                             if (listType === 'favorites') return status.favorites;
                             if (listType === 'visited') return status.visited;
                             if (listType === 'wantToGo') return status.wantToGo;
-                            // For custom lists, check by ID
                             if (typeof listType === 'string' && listType !== 'favorites' && listType !== 'visited' && listType !== 'wantToGo') {
                                 return status.customLists.some(list => list.id === listType);
                             }
                         }
                         
-                        // Fallback to checking lists
                         let list;
                         if (listType === 'favorites') {
                             list = this.currentLists.favorites;
@@ -3228,13 +3285,11 @@
                             };
                         }
                         
-                        // Get from cache for instant response - FIXED: Always return something
                         const cachedStatus = state.restaurantListStatuses.get(restaurantId);
                         if (cachedStatus) {
                             return cachedStatus;
                         }
                         
-                        // If not in cache, return empty status
                         return {
                             favorites: false,
                             wantToGo: false,
@@ -3249,7 +3304,6 @@
             function updateAllRestaurantCards() {
                 console.log('🎨 Updating all restaurant cards with list badges...');
                 
-                // Update all restaurant cards
                 const cards = document.querySelectorAll('.restaurant-card');
                 cards.forEach(card => {
                     const restaurantId = parseInt(card.dataset.id);
@@ -3258,7 +3312,6 @@
                     }
                 });
                 
-                // Update spotlight if it exists
                 const spotlightCard = document.getElementById('spotlightCard');
                 if (spotlightCard) {
                     const currentRestaurant = state.spotlightRestaurants[state.spotlightIndex];
@@ -3267,9 +3320,7 @@
                     }
                 }
                 
-                // Update restaurant of the day
                 updateDayCardStatus();
-                
                 console.log(`✅ Updated ${cards.length} restaurant cards`);
             }
             
@@ -3277,7 +3328,6 @@
                 const status = state.listManager.getRestaurantListStatus(restaurantId);
                 let badgesContainer = card.querySelector('.list-badges-container');
                 
-                // Create badges container if it doesn't exist
                 if (!badgesContainer) {
                     badgesContainer = document.createElement('div');
                     badgesContainer.className = 'list-badges-container';
@@ -3289,7 +3339,6 @@
                 
                 let badgesHTML = '';
                 
-                // Add default list badges
                 if (status.favorites) {
                     badgesHTML += `
                         <div class="list-badge">
@@ -3317,10 +3366,8 @@
                     `;
                 }
                 
-                // Add custom list badges (max 2 to avoid clutter)
                 const customListCount = status.customLists.length;
                 if (customListCount > 0) {
-                    // Show first custom list with count badge
                     const firstList = status.customLists[0];
                     badgesHTML += `
                         <div class="list-badge">
@@ -3341,7 +3388,6 @@
                 const spotlightCard = document.getElementById('spotlightCard');
                 
                 if (spotlightCard) {
-                    // Create badges container if it doesn't exist
                     let badgesContainer = spotlightCard.querySelector('.list-badges-container');
                     if (!badgesContainer) {
                         badgesContainer = document.createElement('div');
@@ -3378,7 +3424,6 @@
                         `;
                     }
                     
-                    // Add custom list badges
                     const customListCount = status.customLists.length;
                     if (customListCount > 0) {
                         const firstList = status.customLists[0];
@@ -3401,7 +3446,6 @@
                 const dayCard = document.getElementById('dayCard');
                 if (!dayCard) return;
                 
-                // We need to check if this is the restaurant of the day
                 const topRestaurants = [...state.restaurants]
                     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
                     .slice(0, 10);
@@ -3454,7 +3498,6 @@
                         topPosition += 44;
                     }
                     
-                    // Add custom list badges
                     const customListCount = status.customLists.length;
                     if (customListCount > 0) {
                         const firstList = status.customLists[0];
@@ -3487,7 +3530,6 @@
                 let searchResults = [];
                 let selectedResultIndex = -1;
                 
-                // OPTIMIZATION: Load search data in background (reduced payload)
                 async function loadSearchData() {
                     try {
                         if (!supabase) return [];
@@ -3496,7 +3538,7 @@
                             .from('restraunts')
                             .select('id, slug, name, category, rating, logo_url')
                             .order('name')
-                            .limit(100); // Reduced from unlimited for performance
+                            .limit(100);
                         
                         if (error) throw error;
                         return data || [];
@@ -3506,7 +3548,6 @@
                     }
                 }
                 
-                // Initialize search data in background
                 setTimeout(() => {
                     loadSearchData().then(data => {
                         state.searchData = data;
@@ -3542,7 +3583,6 @@
                     }
                 }
                 
-                // FIXED: Search logos load instantly with direct src
                 function renderSearchResults(results) {
                     searchDropdown.innerHTML = '';
                     
@@ -3554,7 +3594,6 @@
                         
                         const logoUrl = restaurant.logo_url || 'images/default-logo.jpg';
                         
-                        // FIXED: Direct src loading, no lazy loading - logos load instantly
                         resultItem.innerHTML = `
                             <div class="search-result-logo">
                                 <img src="${logoUrl}" alt="${restaurant.name} logo" loading="eager">
@@ -3741,11 +3780,9 @@
                     const profileReady = await ensureUserProfileExists(session.user);
                     
                     if (profileReady) {
-                        // FIXED: Initialize list manager and load statuses BEFORE rendering
                         await state.listManager.init();
                         setLoggedInState(session.user);
                         
-                        // Now render restaurants with badges
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
                         setupRestaurantOfTheDay();
@@ -3776,7 +3813,6 @@
                         await state.listManager.init();
                         setLoggedInState(session.user);
                         
-                        // Refresh UI to show list badges
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
                         updateSpotlight();
@@ -3939,7 +3975,6 @@
                 }
                 
                 try {
-                    // OPTIMIZATION: Load everything in parallel
                     const [cloudKitchensResult, restaurantImagesResult, restaurantsResult] = 
                         await Promise.allSettled([
                             loadCloudKitchens(),
@@ -3948,7 +3983,7 @@
                                 .from('restraunts')
                                 .select('id, slug, name, category, description, rating, logo_url, image')
                                 .order('rating', { ascending: false })
-                                .limit(32) // Reduced from 48 for faster loading
+                                .limit(32)
                         ]);
                     
                     if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
@@ -3968,7 +4003,6 @@
                         
                         console.log(`✅ Loaded ${state.restaurants.length} restaurants`);
                         
-                        // Initialize empty statuses for all restaurants
                         state.restaurants.forEach(restaurant => {
                             if (!state.restaurantListStatuses.has(restaurant.id)) {
                                 state.restaurantListStatuses.set(restaurant.id, {
@@ -3980,13 +4014,10 @@
                             }
                         });
                         
-                        // Now load list statuses if user is logged in
                         if (state.isLoggedIn) {
-                            // This will update the badges after statuses are loaded
                             await state.listManager.loadAllRestaurantStatuses();
                         }
                         
-                        // Render restaurants - badges will be added after statuses are loaded
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
                         setupSpotlight();
@@ -4011,7 +4042,7 @@
                     const { data: cloudKitchens, error } = await supabase
                         .from('cloud_kitchens')
                         .select('restaurant_id')
-                        .limit(50); // Reduced limit
+                        .limit(50);
                     
                     if (error) {
                         console.warn('Error loading cloud kitchens:', error);
@@ -4037,11 +4068,11 @@
                         supabase
                             .from('restaurant_gallery')
                             .select('restaurant_slug, image_url, image_type')
-                            .limit(100), // Reduced from 200
+                            .limit(100),
                         supabase
                             .from('restraunts')
                             .select('slug, image, logo_url')
-                            .limit(50) // Reduced from 100
+                            .limit(50)
                     ]);
                     
                     state.restaurantImages.clear();
@@ -4146,7 +4177,6 @@
                 logoImage.classList.remove('loaded');
                 
                 if (restaurant.coverImage) {
-                    // FIXED: Direct src loading with eager loading for spotlight
                     foodImage.src = restaurant.coverImage;
                     foodImage.loading = 'eager';
                     foodImage.onload = () => {
@@ -4162,7 +4192,6 @@
                 const logoUrl = getLogoUrl(restaurant);
                 if (logoUrl) {
                     logoOverlay.style.display = 'flex';
-                    // FIXED: Direct src loading with eager loading for spotlight
                     logoImage.src = logoUrl;
                     logoImage.loading = 'eager';
                     logoImage.onload = () => {
@@ -4183,7 +4212,6 @@
                     location.href = `restaurant.html?slug=${restaurant.slug}`;
                 };
                 
-                // Add list badges to spotlight
                 updateSpotlightBadges(restaurant.id);
                 
                 const indicators = document.getElementById('slideIndicators');
@@ -4254,7 +4282,6 @@
                 
                 let listBadges = '';
                 
-                // Add default list badges
                 if (status.favorites) {
                     listBadges += `
                         <div class="list-badge">
@@ -4282,10 +4309,8 @@
                     `;
                 }
                 
-                // Add custom list badges (max 2 to avoid clutter)
                 const customListCount = status.customLists.length;
                 if (customListCount > 0) {
-                    // Show first custom list with count badge
                     const firstList = status.customLists[0];
                     listBadges += `
                         <div class="list-badge">
@@ -4298,7 +4323,6 @@
                     `;
                 }
                 
-                // FIXED: Changed all data-src to src with loading="eager" for instant loading
                 card.innerHTML = `
                     <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
                         <div class="card-image">
@@ -4516,7 +4540,6 @@
                     topPosition += 44;
                 }
                 
-                // Add custom list badges
                 const customListCount = status.customLists.length;
                 if (customListCount > 0) {
                     const firstList = status.customLists[0];
@@ -4827,7 +4850,7 @@
                 }
             }
             
-            // FIXED: Custom Lists Modal with Emoji Picker
+            // ===== IMPROVED CUSTOM LISTS MODAL =====
             function setupCustomListsModal() {
                 const customListsBtn = document.getElementById('modalCustomListsBtn');
                 const closeListsBtn = document.getElementById('closeListsBtn');
@@ -4835,72 +4858,64 @@
                 const saveListsBtn = document.getElementById('saveListsBtn');
                 const newListNameInput = document.getElementById('newListName');
                 const listsListContainer = document.getElementById('listsListContainer');
-                const charCounter = document.getElementById('charCounter');
+                const iconSelectionGrid = document.getElementById('iconSelectionGrid');
+                const listNameCharCount = document.getElementById('listNameCharCount');
                 
-                // FIXED: Add proper initialization check
                 if (!customListsBtn || !listsListContainer) {
                     console.warn('Custom lists modal elements not found');
                     return;
                 }
                 
-                let selectedLists = new Set();
+                // Available icons for lists
+                const availableIcons = ['📋', '❤️', '⭐', '📍', '🍽️', '🔥', '💎', '🌟', '🎯', '💫', '✨', '🎨', '🎪', '🏆', '🎭', '🍕', '🍔', '🍟', '🌮', '🍣', '🍜', '🥗', '☕', '🍰', '🎉'];
                 
-                customListsBtn.addEventListener('click', async () => {
-                    if (!state.currentModalRestaurant) {
-                        showNotification('No restaurant selected', 'error');
-                        return;
-                    }
+                // Populate icon grid
+                function populateIconGrid() {
+                    if (!iconSelectionGrid) return;
                     
-                    // FIXED: ALWAYS hide the main modal first
-                    hideModal();
-                    
-                    // FIXED: ALWAYS refresh lists before showing
-                    if (state.isLoggedIn && state.listManager) {
-                        await state.listManager.loadUserLists();
-                    }
-                    
-                    // Load restaurant status
-                    try {
-                        const restaurantId = state.currentModalRestaurant.id;
-                        const status = state.listManager.getRestaurantListStatus(restaurantId);
+                    iconSelectionGrid.innerHTML = '';
+                    availableIcons.forEach(icon => {
+                        const iconOption = document.createElement('div');
+                        iconOption.className = 'icon-option';
+                        iconOption.textContent = icon;
+                        iconOption.dataset.icon = icon;
+                        iconOption.onclick = () => {
+                            document.querySelectorAll('.icon-option').forEach(opt => {
+                                opt.classList.remove('selected');
+                            });
+                            iconOption.classList.add('selected');
+                            state.selectedIcon = icon;
+                        };
                         
-                        selectedLists.clear();
-                        // Add custom lists to selectedLists
-                        status.customLists.forEach(list => {
-                            selectedLists.add(list.id);
-                        });
-                    } catch (error) {
-                        console.error('Error loading list status:', error);
-                        selectedLists.clear();
-                    }
-                    
-                    // Render the lists
-                    renderCustomLists();
-                    
-                    // Setup emoji picker
-                    setupEmojiPicker();
-                    
-                    // Setup character counter
-                    setupCharacterCounter();
-                    
-                    // Show modal
-                    const modal = document.getElementById('customListsModal');
-                    if (modal) {
-                        modal.classList.add('active');
-                        document.body.style.overflow = 'hidden';
-                    }
-                });
-                
-                if (closeListsBtn) {
-                    closeListsBtn.addEventListener('click', () => {
-                        const modal = document.getElementById('customListsModal');
-                        if (modal) {
-                            modal.classList.remove('active');
-                            document.body.style.overflow = 'auto';
+                        // Select default icon
+                        if (icon === '📋') {
+                            iconOption.classList.add('selected');
+                            state.selectedIcon = '📋';
                         }
+                        
+                        iconSelectionGrid.appendChild(iconOption);
                     });
                 }
                 
+                // Character count for list name
+                function updateCharCount() {
+                    if (!newListNameInput || !listNameCharCount) return;
+                    
+                    const length = newListNameInput.value.length;
+                    const maxLength = parseInt(newListNameInput.maxLength) || 30;
+                    listNameCharCount.textContent = `${length}/${maxLength}`;
+                    
+                    // Update styling based on length
+                    listNameCharCount.className = 'char-count';
+                    if (length >= maxLength * 0.9) {
+                        listNameCharCount.classList.add('warning');
+                    }
+                    if (length > maxLength) {
+                        listNameCharCount.classList.add('error');
+                    }
+                }
+                
+                // Render custom lists
                 function renderCustomLists() {
                     if (!state.currentModalRestaurant || !listsListContainer) return;
                     
@@ -4920,14 +4935,26 @@
                     const listsList = document.createElement('div');
                     listsList.className = 'lists-list';
                     
+                    // Clear selected lists when re-rendering
+                    state.selectedLists.clear();
+                    
+                    // Get current restaurant status to pre-select lists
+                    const restaurantId = state.currentModalRestaurant.id;
+                    const status = state.listManager.getRestaurantListStatus(restaurantId);
+                    
+                    // Pre-select lists that already contain this restaurant
+                    status.customLists.forEach(list => {
+                        state.selectedLists.add(list.id);
+                    });
+                    
                     state.listManager.customLists.forEach(list => {
                         const listItem = document.createElement('div');
                         listItem.className = 'list-item';
-                        if (selectedLists.has(list.id)) {
+                        const isChecked = state.selectedLists.has(list.id);
+                        
+                        if (isChecked) {
                             listItem.classList.add('active');
                         }
-                        
-                        const isChecked = selectedLists.has(list.id);
                         
                         listItem.innerHTML = `
                             <div class="list-info">
@@ -4938,12 +4965,12 @@
                         `;
                         
                         listItem.addEventListener('click', () => {
-                            if (selectedLists.has(list.id)) {
-                                selectedLists.delete(list.id);
+                            if (state.selectedLists.has(list.id)) {
+                                state.selectedLists.delete(list.id);
                                 listItem.classList.remove('active');
                                 listItem.querySelector('.list-checkbox').classList.remove('checked');
                             } else {
-                                selectedLists.add(list.id);
+                                state.selectedLists.add(list.id);
                                 listItem.classList.add('active');
                                 listItem.querySelector('.list-checkbox').classList.add('checked');
                             }
@@ -4955,172 +4982,351 @@
                     listsListContainer.appendChild(listsList);
                 }
                 
-                // NEW: Setup emoji picker
-                function setupEmojiPicker() {
-                    const emojiOptions = document.querySelectorAll('.emoji-option');
-                    const selectedEmojiInput = document.getElementById('selectedListEmoji');
+                // Create new list function
+                async function createNewList() {
+                    if (!newListNameInput || !state.currentUser || !supabase) return;
                     
-                    emojiOptions.forEach(option => {
-                        option.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
-                            // Remove selected from all
-                            emojiOptions.forEach(opt => opt.classList.remove('selected'));
-                            
-                            // Add selected to clicked
-                            this.classList.add('selected');
-                            
-                            // Update hidden input
-                            const emoji = this.getAttribute('data-emoji');
-                            if (selectedEmojiInput) {
-                                selectedEmojiInput.value = emoji;
-                            }
+                    const listName = newListNameInput.value.trim();
+                    if (!listName) {
+                        showNotification('Please enter a list name', 'error');
+                        return;
+                    }
+                    
+                    if (listName.length > 30) {
+                        showNotification('List name must be 30 characters or less', 'error');
+                        return;
+                    }
+                    
+                    // Check if list name already exists
+                    const listExists = state.listManager.customLists.some(list => 
+                        list.title.toLowerCase() === listName.toLowerCase()
+                    );
+                    
+                    if (listExists) {
+                        showNotification('A list with this name already exists', 'error');
+                        return;
+                    }
+                    
+                    // Prevent multiple clicks
+                    if (state.isCreatingList) {
+                        console.log('Already creating a list, please wait');
+                        return;
+                    }
+                    
+                    state.isCreatingList = true;
+                    
+                    // Update button state
+                    if (createListBtn) {
+                        createListBtn.disabled = true;
+                        createListBtn.innerHTML = '<div class="loading-spinner"></div>';
+                    }
+                    
+                    try {
+                        const { data: newList, error } = await supabase
+                            .from('lists')
+                            .insert([
+                                {
+                                    user_id: state.currentUser.id,
+                                    title: listName,
+                                    description: `My ${listName} list`,
+                                    icon: state.selectedIcon || '📋',
+                                    is_default: false,
+                                    created_at: new Date().toISOString()
+                                }
+                            ])
+                            .select()
+                            .single();
+                        
+                        if (error) throw error;
+                        
+                        console.log('List created:', newList);
+                        
+                        // Add to local arrays
+                        state.listManager.customLists.push(newList);
+                        state.listManager.userLists.push(newList);
+                        
+                        // Automatically select the new list
+                        state.selectedLists.add(newList.id);
+                        
+                        // Clear input
+                        newListNameInput.value = '';
+                        updateCharCount();
+                        
+                        // Reset icon selection
+                        document.querySelectorAll('.icon-option').forEach(opt => {
+                            opt.classList.remove('selected');
                         });
-                    });
-                    
-                    // Set default selection
-                    const defaultEmoji = document.querySelector('.emoji-option[data-emoji="📋"]');
-                    if (defaultEmoji) {
-                        defaultEmoji.classList.add('selected');
+                        const defaultIcon = document.querySelector('.icon-option[data-icon="📋"]');
+                        if (defaultIcon) {
+                            defaultIcon.classList.add('selected');
+                            state.selectedIcon = '📋';
+                        }
+                        
+                        // Re-render lists
+                        renderCustomLists();
+                        
+                        showNotification(`Created list "${listName}"`, 'success');
+                        
+                    } catch (error) {
+                        console.error('Error creating list:', error);
+                        showNotification('Error creating list: ' + error.message, 'error');
+                    } finally {
+                        // Reset button state
+                        state.isCreatingList = false;
+                        if (createListBtn) {
+                            createListBtn.disabled = false;
+                            createListBtn.innerHTML = '<i class="fas fa-plus"></i> Create';
+                        }
                     }
                 }
                 
-                // NEW: Setup character counter
-                function setupCharacterCounter() {
-                    if (newListNameInput && charCounter) {
-                        newListNameInput.addEventListener('input', () => {
-                            const length = newListNameInput.value.length;
-                            charCounter.textContent = `${length}/30`;
-                            
-                            if (length > 25) {
-                                charCounter.style.color = 'var(--error)';
-                            } else if (length > 20) {
-                                charCounter.style.color = 'var(--warning)';
-                            } else {
-                                charCounter.style.color = 'var(--muted)';
-                            }
-                        });
-                        
-                        // Initialize counter
-                        const length = newListNameInput.value.length;
-                        charCounter.textContent = `${length}/30`;
+                // Save to selected lists
+                async function saveToSelectedLists() {
+                    if (!state.currentModalRestaurant) return;
+                    
+                    const restaurantId = state.currentModalRestaurant.id;
+                    const restaurantName = state.currentModalRestaurant.name;
+                    
+                    if (state.selectedLists.size === 0) {
+                        showNotification('Please select at least one list', 'info');
+                        return;
                     }
+                    
+                    // Update save button state
+                    if (saveListsBtn) {
+                        saveListsBtn.disabled = true;
+                        saveListsBtn.innerHTML = '<div class="loading-spinner"></div>';
+                    }
+                    
+                    try {
+                        const currentStatus = state.listManager.getRestaurantListStatus(restaurantId);
+                        const currentListIds = currentStatus.customLists.map(list => list.id);
+                        
+                        // Lists to add (selected but not currently in)
+                        const listsToAdd = Array.from(state.selectedLists).filter(listId => 
+                            !currentListIds.includes(listId)
+                        );
+                        
+                        // Lists to remove (currently in but not selected)
+                        const listsToRemove = currentListIds.filter(listId => 
+                            !state.selectedLists.has(listId)
+                        );
+                        
+                        let successCount = 0;
+                        let errorCount = 0;
+                        
+                        // Process additions
+                        for (const listId of listsToAdd) {
+                            try {
+                                const success = await state.listManager.toggleInList(listId, restaurantId);
+                                if (success) successCount++;
+                            } catch (error) {
+                                console.error('Error adding to list:', error);
+                                errorCount++;
+                            }
+                        }
+                        
+                        // Process removals
+                        for (const listId of listsToRemove) {
+                            try {
+                                const success = await state.listManager.toggleInList(listId, restaurantId);
+                                if (success) successCount++;
+                            } catch (error) {
+                                console.error('Error removing from list:', error);
+                                errorCount++;
+                            }
+                        }
+                        
+                        // Close modal
+                        closeCustomListsModal();
+                        
+                        // Show success message
+                        if (errorCount === 0) {
+                            if (successCount > 0) {
+                                showNotification(`Updated lists for ${restaurantName}`, 'success');
+                            } else {
+                                showNotification(`No changes needed for ${restaurantName}`, 'info');
+                            }
+                        } else {
+                            showNotification(`Updated ${successCount} lists, ${errorCount} failed`, 'warning');
+                        }
+                        
+                        // Update the main modal buttons
+                        updateModalButtons(restaurantId);
+                        
+                    } catch (error) {
+                        console.error('Error saving lists:', error);
+                        showNotification('Error saving lists: ' + error.message, 'error');
+                    } finally {
+                        // Reset save button
+                        if (saveListsBtn) {
+                            saveListsBtn.disabled = false;
+                            saveListsBtn.innerHTML = 'Save to Selected Lists';
+                        }
+                    }
+                }
+                
+                // Close custom lists modal
+                function closeCustomListsModal() {
+                    const modal = document.getElementById('customListsModal');
+                    if (modal) {
+                        modal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    }
+                    
+                    // Reset state
+                    state.selectedLists.clear();
+                    if (newListNameInput) newListNameInput.value = '';
+                    updateCharCount();
+                    
+                    // Reset icon selection
+                    document.querySelectorAll('.icon-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    const defaultIcon = document.querySelector('.icon-option[data-icon="📋"]');
+                    if (defaultIcon) {
+                        defaultIcon.classList.add('selected');
+                        state.selectedIcon = '📋';
+                    }
+                }
+                
+                // Initialize modal
+                customListsBtn.addEventListener('click', async () => {
+                    if (!state.currentModalRestaurant) {
+                        showNotification('No restaurant selected', 'error');
+                        return;
+                    }
+                    
+                    // Hide the main modal
+                    hideModal();
+                    
+                    // Refresh lists before showing
+                    if (state.isLoggedIn && state.listManager) {
+                        await state.listManager.loadUserLists();
+                    }
+                    
+                    // Render lists and icons
+                    renderCustomLists();
+                    populateIconGrid();
+                    
+                    // Show modal
+                    const modal = document.getElementById('customListsModal');
+                    if (modal) {
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+                
+                if (closeListsBtn) {
+                    closeListsBtn.addEventListener('click', closeCustomListsModal);
                 }
                 
                 if (createListBtn) {
-                    createListBtn.addEventListener('click', async () => {
-                        if (!newListNameInput || !state.currentUser || !supabase) return;
-                        
-                        const listName = newListNameInput.value.trim();
-                        const selectedEmoji = document.getElementById('selectedListEmoji')?.value || '📋';
-                        
-                        // Validation
-                        if (!listName) {
-                            showNotification('Please enter a list name', 'error');
-                            return;
-                        }
-                        
-                        if (listName.length > 30) {
-                            showNotification('List name must be 30 characters or less', 'error');
-                            return;
-                        }
-                        
-                        try {
-                            const { data: newList, error } = await supabase
-                                .from('lists')
-                                .insert([
-                                    {
-                                        user_id: state.currentUser.id,
-                                        title: listName,
-                                        description: `My ${listName} list`,
-                                        icon: selectedEmoji,
-                                        is_default: false,
-                                        created_at: new Date().toISOString()
-                                    }
-                                ])
-                                .select()
-                                .single();
-                            
-                            if (error) throw error;
-                            
-                            // Add to local lists
-                            state.listManager.customLists.push(newList);
-                            state.listManager.userLists.push(newList);
-                            
-                            // Clear input and reset emoji
-                            newListNameInput.value = '';
-                            document.getElementById('selectedListEmoji').value = '📋';
-                            document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('selected'));
-                            document.querySelector('.emoji-option[data-emoji="📋"]')?.classList.add('selected');
-                            
-                            // Reset character counter
-                            if (charCounter) {
-                                charCounter.textContent = '0/30';
-                                charCounter.style.color = 'var(--muted)';
-                            }
-                            
-                            // Reload the lists
-                            renderCustomLists();
-                            
-                            showNotification(`Created list "${listName}" ${selectedEmoji}`, 'success');
-                            
-                        } catch (error) {
-                            console.error('Error creating list:', error);
-                            showNotification('Error creating list', 'error');
+                    createListBtn.addEventListener('click', createNewList);
+                }
+                
+                if (saveListsBtn) {
+                    saveListsBtn.addEventListener('click', saveToSelectedLists);
+                }
+                
+                if (newListNameInput) {
+                    newListNameInput.addEventListener('input', updateCharCount);
+                    newListNameInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            createNewList();
                         }
                     });
                 }
                 
-                if (saveListsBtn) {
-                    saveListsBtn.addEventListener('click', async () => {
-                        if (!state.currentModalRestaurant) return;
-                        
-                        const restaurantId = state.currentModalRestaurant.id;
-                        const restaurantName = state.currentModalRestaurant.name;
-                        
-                        try {
-                            // Get current status to compare
-                            const currentStatus = state.listManager.getRestaurantListStatus(restaurantId);
-                            const currentListIds = currentStatus.customLists.map(list => list.id);
-                            
-                            // Find lists to add and remove
-                            const listsToAdd = Array.from(selectedLists).filter(listId => 
-                                !currentListIds.includes(listId)
-                            );
-                            
-                            const listsToRemove = currentListIds.filter(listId => 
-                                !selectedLists.has(listId)
-                            );
-                            
-                            // Process additions
-                            for (const listId of listsToAdd) {
-                                await state.listManager.toggleInList(listId, restaurantId);
-                            }
-                            
-                            // Process removals
-                            for (const listId of listsToRemove) {
-                                await state.listManager.toggleInList(listId, restaurantId);
-                            }
-                            
-                            // Close modal
-                            const modal = document.getElementById('customListsModal');
-                            if (modal) {
-                                modal.classList.remove('active');
-                                document.body.style.overflow = 'auto';
-                            }
-                            
-                            showNotification(`Updated lists for ${restaurantName}`, 'success');
-                            
-                        } catch (error) {
-                            console.error('Error saving lists:', error);
-                            showNotification('Error saving lists', 'error');
-                        }
-                    });
-                }
+                // Initialize character count
+                updateCharCount();
             }
             
             // ---------- EVENT LISTENERS ----------
+            function setupEventListeners() {
+                console.log('🔧 Setting up event listeners...');
+                
+                const mobileSearchToggle = document.getElementById('mobileSearchToggle');
+                if (mobileSearchToggle) {
+                    mobileSearchToggle.addEventListener('click', () => {
+                        const searchWrapper = document.getElementById('searchWrapper');
+                        if (searchWrapper) {
+                            searchWrapper.classList.toggle('active');
+                        }
+                    });
+                }
+                
+                const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
+                if (startJourneyBtn) {
+                    startJourneyBtn.addEventListener('click', () => {
+                        window.location.href = 'sign-up.html';
+                    });
+                }
+                
+                const searchFooterLink = document.getElementById('searchFooterLink');
+                if (searchFooterLink) {
+                    searchFooterLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const searchInput = document.getElementById('search');
+                        if (searchInput) {
+                            searchInput.focus();
+                        }
+                    });
+                }
+                
+                const iosAppButton = document.getElementById('iosAppButton');
+                const androidAppButton = document.getElementById('androidAppButton');
+                
+                if (iosAppButton) {
+                    iosAppButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showNotification('Zo2y iOS app coming soon!', 'info');
+                    });
+                }
+                
+                if (androidAppButton) {
+                    androidAppButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showNotification('Zo2y Android app coming soon!', 'info');
+                    });
+                }
+                
+                guestBanner.init();
+                
+                const modalFavoritesBtn = document.getElementById('modalFavoritesBtn');
+                const modalWantToGoBtn = document.getElementById('modalWantToGoBtn');
+                const modalVisitedBtn = document.getElementById('modalVisitedBtn');
+                const modalCancelBtn = document.getElementById('modalCancelBtn');
+                
+                if (modalFavoritesBtn) {
+                    modalFavoritesBtn.addEventListener('click', async () => {
+                        if (!state.currentModalRestaurant) return;
+                        await state.listManager.toggleInList('favorites', state.currentModalRestaurant.id);
+                        updateModalButtons(state.currentModalRestaurant.id);
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
+                        hideModal();
+                    });
+                }
+                
+                if (modalWantToGoBtn) {
+                    modalWantToGoBtn.addEventListener('click', async () => {
+                        if (!state.currentModalRestaurant) return;
+                        await state.listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
+                        updateModalButtons(state.currentModalRestaurant.id);
+                        renderFeaturedRestaurants();
+                        renderNearbyRestaurants();
+                        updateSpotlight();
+                        setupRestaurantOfTheDay();
+                        hideModal();
+                    });
+                }
+                
+                if (modalVisitedBtn) {
+                    modalVisitedBtn.addEventListener('click', async ()            // ---------- EVENT LISTENERS ----------
             function setupEventListeners() {
                 console.log('🔧 Setting up event listeners...');
                 
@@ -5219,15 +5425,38 @@
                     modalCancelBtn.addEventListener('click', hideModal);
                 }
                 
-                window.addEventListener('scroll', () => {
-                    const nav = document.querySelector('.nav');
-                    if (window.scrollY > 10) {
-                        nav.classList.add('scrolled');
-                    } else {
-                        nav.classList.remove('scrolled');
-                    }
-                });
+                // Close modal when clicking outside
+                const actionsModal = document.getElementById('actionsModal');
+                const customListsModal = document.getElementById('customListsModal');
+                const authPromptModal = document.getElementById('authPromptModal');
                 
+                if (actionsModal) {
+                    actionsModal.addEventListener('click', (e) => {
+                        if (e.target === actionsModal) {
+                            hideModal();
+                        }
+                    });
+                }
+                
+                if (customListsModal) {
+                    customListsModal.addEventListener('click', (e) => {
+                        if (e.target === customListsModal) {
+                            customListsModal.classList.remove('active');
+                            document.body.style.overflow = 'auto';
+                        }
+                    });
+                }
+                
+                if (authPromptModal) {
+                    authPromptModal.addEventListener('click', (e) => {
+                        if (e.target === authPromptModal) {
+                            authPromptModal.classList.remove('active');
+                            document.body.style.overflow = 'auto';
+                        }
+                    });
+                }
+                
+                // Auth prompt buttons
                 const authPromptSignupBtn = document.getElementById('authPromptSignupBtn');
                 const authPromptLoginBtn = document.getElementById('authPromptLoginBtn');
                 const authPromptCloseBtn = document.getElementById('authPromptCloseBtn');
@@ -5246,89 +5475,58 @@
                 
                 if (authPromptCloseBtn) {
                     authPromptCloseBtn.addEventListener('click', () => {
-                        const modal = document.getElementById('authPromptModal');
-                        modal.classList.remove('active');
+                        authPromptModal.classList.remove('active');
                         document.body.style.overflow = 'auto';
                     });
                 }
                 
-                // FIXED: Kebab menu click handling
-                document.addEventListener('click', (e) => {
-                    // Close all dropdowns if clicking outside
-                    if (!e.target.closest('.menu-btn-container')) {
-                        document.querySelectorAll('.kebab-dropdown').forEach(d => {
-                            d.classList.remove('show');
-                        });
-                    }
-                });
-                
-                // Prevent dropdown from closing when clicking inside it
-                document.addEventListener('click', (e) => {
-                    if (e.target.closest('.kebab-dropdown')) {
-                        e.stopPropagation();
-                    }
-                });
-                
-                // Smart tooltip positioning to keep them on screen
-                function positionTooltip(tooltipElement, triggerElement) {
-                    if (!tooltipElement || !triggerElement) return;
-                    
-                    const triggerRect = triggerElement.getBoundingClientRect();
-                    const tooltipRect = tooltipElement.getBoundingClientRect();
-                    const viewportWidth = window.innerWidth;
-                    const viewportHeight = window.innerHeight;
-                    
-                    let left = triggerRect.right + 10;
-                    let top = triggerRect.top + (triggerRect.height / 2) - (tooltipRect.height / 2);
-                    
-                    // Check if tooltip goes off right edge
-                    if (left + tooltipRect.width > viewportWidth - 20) {
-                        left = triggerRect.left - tooltipRect.width - 10;
-                    }
-                    
-                    // Check if tooltip goes off left edge
-                    if (left < 20) {
-                        left = 20;
-                    }
-                    
-                    // Check if tooltip goes off bottom
-                    if (top + tooltipRect.height > viewportHeight - 20) {
-                        top = viewportHeight - tooltipRect.height - 20;
-                    }
-                    
-                    // Check if tooltip goes off top
-                    if (top < 20) {
-                        top = 20;
-                    }
-                    
-                    tooltipElement.style.left = left + 'px';
-                    tooltipElement.style.top = top + 'px';
+                // Featured link
+                const featuredLink = document.getElementById('featuredLink');
+                if (featuredLink) {
+                    featuredLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        document.querySelector('.section').scrollIntoView({ behavior: 'smooth' });
+                    });
                 }
                 
-                // Apply to all tooltips on hover
-                document.addEventListener('mouseover', (e) => {
-                    const badge = e.target.closest('.list-badge, .cloud-badge, .menu-btn');
-                    if (badge) {
-                        const tooltip = badge.querySelector('.list-badge-tooltip, .cloud-tooltip, .menu-btn-tooltip');
-                        if (tooltip) {
-                            requestAnimationFrame(() => {
-                                positionTooltip(tooltip, badge);
-                            });
+                // Setup improved custom lists modal
+                setupCustomListsModal();
+                
+                // Close modals with Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        if (actionsModal && actionsModal.classList.contains('active')) {
+                            hideModal();
+                        }
+                        if (customListsModal && customListsModal.classList.contains('active')) {
+                            customListsModal.classList.remove('active');
+                            document.body.style.overflow = 'auto';
+                        }
+                        if (authPromptModal && authPromptModal.classList.contains('active')) {
+                            authPromptModal.classList.remove('active');
+                            document.body.style.overflow = 'auto';
                         }
                     }
                 });
                 
-                // Set up custom lists modal
-                setupCustomListsModal();
+                // Nav scroll effect
+                window.addEventListener('scroll', () => {
+                    const nav = document.querySelector('.nav');
+                    if (window.scrollY > 10) {
+                        nav.classList.add('scrolled');
+                    } else {
+                        nav.classList.remove('scrolled');
+                    }
+                });
                 
                 console.log('✅ Event listeners set up');
             }
             
-            // ---------- OPTIMIZED INIT FUNCTION ----------
+            // ---------- INITIALIZATION ----------
             async function init() {
                 console.log('🚀 Initializing homepage...');
                 
-                // Wait for Supabase to load first
+                // Wait for Supabase to load
                 if (!initSupabase()) {
                     console.warn('⚠️ Supabase not loaded yet, retrying...');
                     setTimeout(init, 100);
@@ -5336,7 +5534,7 @@
                 }
                 
                 try {
-                    // OPTIMIZATION: Parallel initialization
+                    // Initialize in parallel for better performance
                     setupEventListeners();
                     guestBanner.init();
                     setupSearch();
@@ -5353,20 +5551,21 @@
                     console.error('❌ Initialization error:', error);
                     showNotification('Failed to initialize page', 'error');
                     
+                    // Show error state
                     const featuredSlider = document.getElementById('featuredSlider');
                     const nearbySlider = document.getElementById('nearbySlider');
                     if (featuredSlider) {
-                        featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+                        featuredSlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content. Please refresh the page.</div>';
                         featuredSlider.classList.remove('skeleton-grid');
                     }
                     if (nearbySlider) {
-                        nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content</div>';
+                        nearbySlider.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted)">Failed to load content. Please refresh the page.</div>';
                         nearbySlider.classList.remove('skeleton-grid');
                     }
                 }
             }
             
-            // OPTIMIZATION: Execute immediately if DOM ready, no delays
+            // Start initialization
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
