@@ -4,24 +4,107 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Zo2y — All Restaurants</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- OPTIMIZATION: Preconnect to external resources -->
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  
+  <!-- CRITICAL FIX: Preload Font Awesome icons -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+  
+  <!-- Favicon for all devices -->
+  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico?v=3" type="image/x-icon">
+  
+  <!-- For modern browsers -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  
+  <!-- For Apple devices -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+  
+  <!-- For Windows Metro -->
+  <meta name="msapplication-TileColor" content="#0b1633">
+  <meta name="msapplication-TileImage" content="/mstile-144x144.png?v=3">
+  <meta name="theme-color" content="#0b1633">
+  
+  <!-- Safari pinned tab -->
+  <link rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#f59e0b">
+
+  <!-- Search Engine Optimization -->
+  <meta name="description" content="Browse all restaurants on Zo2y. Discover hidden gems and local favorites based on authentic reviews from the food lover community.">
+  <meta name="keywords" content="restaurants, food, dining, reviews, local favorites, food discovery">
+  <meta name="author" content="Zo2y">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.zo2y.com/restraunts.html">
+  <meta property="og:title" content="Zo2y — All Restaurants">
+  <meta property="og:description" content="Browse all restaurants on Zo2y. Discover hidden gems and local favorites based on authentic reviews.">
+  <meta property="og:image" content="https://www.zo2y.com/images/logo.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Zo2y Logo">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://www.zo2y.com/restraunts.html">
+  <meta property="twitter:title" content="Zo2y — All Restaurants">
+  <meta property="twitter:description" content="Browse all restaurants on Zo2y. Discover hidden gems and local favorites based on authentic reviews.">
+  <meta property="twitter:image" content="https://www.zo2y.com/images/logo.png">
+  <meta property="twitter:image:alt" content="Zo2y Logo">
+
+  <!-- OPTIMIZATION: Async load external scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
   :root { 
-    --bg: #0b1633; --card: #132347; --muted: #8ca3c7; --accent: #f59e0b; 
-    --glass: rgba(255,255,255,0.03); --white: #ffffff; --border: rgba(255,255,255,0.1);
+    --bg: #0b1633; 
+    --card: #132347; 
+    --muted: #8ca3c7; 
+    --accent: #f59e0b; 
+    --glass: rgba(255,255,255,0.03); 
+    --white: #ffffff; 
+    --border: rgba(255,255,255,0.1);
     --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
     --shadow: 0 10px 30px rgba(0,0,0,0.3);
-    --success: #10b981; --error: #ef4444; --info: #3b82f6;
+    --success: #10b981; 
+    --error: #ef4444; 
+    --info: #3b82f6;
     --surface: rgba(19, 35, 71, 0.6);
     --cloud-color: #3b82f6;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; } 
-  html, body { height: 100%; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; } 
-  a { color: inherit; text-decoration: none; } 
-  img { display: block; max-width: 100%; height: auto; }
+  * { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+  } 
+  
+  html, body { 
+    height: 100%; 
+    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+    background: var(--bg); 
+    color: var(--white); 
+    line-height: 1.6; 
+    overflow-x: hidden; 
+  } 
+  
+  a { 
+    color: inherit; 
+    text-decoration: none; 
+  } 
+  
+  img { 
+    display: block; 
+    max-width: 100%; 
+    height: auto; 
+  }
 
   /* Enhanced Guest Banner - Fixed Position */
   .guest-banner {
@@ -42,22 +125,73 @@
     z-index: 999;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  
   .guest-banner.show { 
     display: block;
     transform: translateX(-50%) translateY(0);
   }
+  
   .guest-banner.hidden {
     transform: translateX(-50%) translateY(-100%);
   }
-  @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  
+  @keyframes slideDown { 
+    from { 
+      opacity: 0; 
+      transform: translateX(-50%) translateY(-20px); 
+    } 
+    to { 
+      opacity: 1; 
+      transform: translateX(-50%) translateY(0); 
+    } 
+  }
 
-  .banner-content { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 14px; }
-  .banner-actions { display: flex; gap: 8px; align-items: center; }
-  .banner-btn { padding: 6px 14px; border-radius: 8px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; border: none; }
-  .banner-btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-  .banner-btn-outline:hover { background: rgba(245, 158, 11, 0.1); }
-  .banner-btn-primary { background: var(--accent); color: #111; border: 1px solid var(--accent); }
-  .banner-btn-primary:hover { background: #ffb84d; transform: translateY(-1px); }
+  .banner-content { 
+    display: flex; 
+    flex-wrap: wrap; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px; 
+    color: var(--muted); 
+    font-size: 14px; 
+  }
+  
+  .banner-actions { 
+    display: flex; 
+    gap: 8px; 
+    align-items: center; 
+  }
+  
+  .banner-btn { 
+    padding: 6px 14px; 
+    border-radius: 8px; 
+    font-weight: 500; 
+    font-size: 13px; 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+    border: none; 
+  }
+  
+  .banner-btn-outline { 
+    background: transparent; 
+    color: var(--accent); 
+    border: 1px solid var(--accent); 
+  }
+  
+  .banner-btn-outline:hover { 
+    background: rgba(245, 158, 11, 0.1); 
+  }
+  
+  .banner-btn-primary { 
+    background: var(--accent); 
+    color: #111; 
+    border: 1px solid var(--accent); 
+  }
+  
+  .banner-btn-primary:hover { 
+    background: #ffb84d; 
+    transform: translateY(-1px); 
+  }
 
   /* Enhanced Header */
   header { 
@@ -74,7 +208,10 @@
     transition: all 0.3s ease;
   } 
 
-  header.scrolled { background: rgba(19, 35, 71, 0.95); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); }
+  header.scrolled { 
+    background: rgba(19, 35, 71, 0.95); 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); 
+  }
 
   .logo { 
     height: 40px; 
@@ -1143,7 +1280,7 @@
     right: 0;
     bottom: 0;
     background: rgba(11, 22, 51, 0.95);
-    backdrop-filter: none;
+    backdrop-filter: blur(20px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -1278,7 +1415,7 @@
     right: 0;
     bottom: 0;
     background: rgba(11, 22, 51, 0.95);
-    backdrop-filter: none;
+    backdrop-filter: blur(20px);
     z-index: 1001;
     align-items: center;
     justify-content: center;
@@ -1563,7 +1700,7 @@
     right: 0;
     bottom: 0;
     background: rgba(11, 22, 51, 0.98);
-    backdrop-filter: none;
+    backdrop-filter: blur(20px);
     z-index: 1002;
     align-items: center;
     justify-content: center;
@@ -1791,8 +1928,6 @@
     margin-top: 20px;
   }
   </style>
-    
-  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
 </head>
 <body>
   <!-- Guest Banner -->
@@ -2026,7 +2161,7 @@
         currentModalRestaurant: null,
         currentUser: null,
         isLoggedIn: false,
-        // NEW: Store restaurant list statuses for instant access
+        // Store restaurant list statuses for instant access
         restaurantListStatuses: new Map(),
         listManager: {
           userLists: [],
@@ -2328,7 +2463,7 @@
             }
           },
           
-          // NEW: Update local status immediately with custom lists support
+          // Update local status immediately with custom lists support
           updateLocalStatus(listType, restaurantId, isAdded) {
             const currentStatus = state.restaurantListStatuses.get(restaurantId) || {
               favorites: false,
@@ -2424,7 +2559,8 @@
         },
         showAllMode: false,
         isPaginationVisible: false,
-        lastScrollPosition: 0
+        lastScrollPosition: 0,
+        sentinelObserver: null
       };
       
       // ---------- OPTIMIZED INITIALIZATION ----------
