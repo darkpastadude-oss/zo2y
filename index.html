@@ -11,6 +11,10 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     
+    <!-- CRITICAL FIX: Preload Font Awesome icons -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+    
     <!-- Favicon for all devices -->
     <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
     <link rel="shortcut icon" href="/favicon.ico?v=3" type="image/x-icon">
@@ -2857,7 +2861,7 @@
                         
                         const { data: newList, error } = await supabase
                             .from('lists')
-                            .insert([
+                                .insert([
                                 {
                                     user_id: state.currentUser.id,
                                     title: title,
@@ -4764,7 +4768,7 @@
                 }
             }
             
-            // FIXED: Custom Lists Modal - No freezing with proper initialization
+            // FIXED: Custom Lists Modal - Optimized for instant loading
             function setupCustomListsModal() {
                 const customListsBtn = document.getElementById('modalCustomListsBtn');
                 const closeListsBtn = document.getElementById('closeListsBtn');
@@ -4773,7 +4777,6 @@
                 const newListNameInput = document.getElementById('newListName');
                 const listsListContainer = document.getElementById('listsListContainer');
                 
-                // FIXED: Add proper initialization check
                 if (!customListsBtn || !listsListContainer) {
                     console.warn('Custom lists modal elements not found');
                     return;
@@ -4787,37 +4790,52 @@
                         return;
                     }
                     
-                    // FIXED: ALWAYS hide the main modal first
+                    // Hide main modal first
                     hideModal();
                     
-                    // FIXED: ALWAYS refresh lists before showing
-                    if (state.isLoggedIn && state.listManager) {
-                        await state.listManager.loadUserLists();
-                    }
-                    
-                    // Load restaurant status
-                    try {
-                        const restaurantId = state.currentModalRestaurant.id;
-                        const status = state.listManager.getRestaurantListStatus(restaurantId);
-                        
-                        selectedLists.clear();
-                        // Add custom lists to selectedLists
-                        status.customLists.forEach(list => {
-                            selectedLists.add(list.id);
-                        });
-                    } catch (error) {
-                        console.error('Error loading list status:', error);
-                        selectedLists.clear();
-                    }
-                    
-                    // Render the lists
-                    renderCustomLists();
-                    
-                    // Show modal
+                    // Show modal immediately with loading state - INSTANT DISPLAY
                     const modal = document.getElementById('customListsModal');
                     if (modal) {
                         modal.classList.add('active');
                         document.body.style.overflow = 'hidden';
+                    }
+                    
+                    // Show loading spinner - USER SEES THIS IMMEDIATELY
+                    listsListContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--muted);">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 12px;"></i>
+                            <p>Loading your lists...</p>
+                        </div>
+                    `;
+                    
+                    try {
+                        // Load from cache (instant)
+                        const restaurantId = state.currentModalRestaurant.id;
+                        const status = state.listManager.getRestaurantListStatus(restaurantId);
+                        
+                        selectedLists.clear();
+                        status.customLists.forEach(list => {
+                            selectedLists.add(list.id);
+                        });
+                        
+                        // Only refresh if cache is empty - SKIPS DATABASE IF POSSIBLE
+                        if (state.listManager.customLists.length === 0 && state.isLoggedIn) {
+                            await state.listManager.loadUserLists();
+                        }
+                        
+                        // Render immediately
+                        renderCustomLists();
+                        
+                    } catch (error) {
+                        // Error handling with visual feedback
+                        listsListContainer.innerHTML = `
+                            <div class="empty-lists">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <h4>Error Loading Lists</h4>
+                                <p>Failed to load your lists. Please try again.</p>
+                            </div>
+                        `;
+                        console.error('Error loading custom lists:', error);
                     }
                 });
                 
@@ -4939,6 +4957,10 @@
                         const restaurantId = state.currentModalRestaurant.id;
                         const restaurantName = state.currentModalRestaurant.name;
                         
+                        // Disable button + show loading - VISUAL FEEDBACK
+                        saveListsBtn.disabled = true;
+                        saveListsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                        
                         try {
                             // Get current status to compare
                             const currentStatus = state.listManager.getRestaurantListStatus(restaurantId);
@@ -4953,15 +4975,56 @@
                                 !selectedLists.has(listId)
                             );
                             
-                            // Process additions
+                            // OPTIMIZED: Process ALL changes in parallel - FAST
+                            const operations = [];
+                            
+                            // Queue all additions
                             for (const listId of listsToAdd) {
-                                await state.listManager.toggleInList(listId, restaurantId);
+                                operations.push(
+                                    supabase
+                                        .from('lists_restraunts')
+                                        .insert([
+                                            {
+                                                list_id: listId,
+                                                restraunt_id: restaurantId,
+                                                added_at: new Date().toISOString()
+                                            }
+                                        ])
+                                );
                             }
                             
-                            // Process removals
+                            // Queue all removals
                             for (const listId of listsToRemove) {
-                                await state.listManager.toggleInList(listId, restaurantId);
+                                operations.push(
+                                    supabase
+                                        .from('lists_restraunts')
+                                        .delete()
+                                        .match({
+                                            list_id: listId,
+                                            restraunt_id: restaurantId
+                                        })
+                                );
                             }
+                            
+                            // Execute ALL at once - PARALLEL DATABASE CALLS
+                            await Promise.all(operations);
+                            
+                            // Update local cache immediately - INSTANT UI UPDATE
+                            const newCustomLists = state.listManager.customLists
+                                .filter(list => selectedLists.has(list.id))
+                                .map(list => ({
+                                    id: list.id,
+                                    name: list.title,
+                                    icon: list.icon || '📋'
+                                }));
+                            
+                            state.restaurantListStatuses.set(restaurantId, {
+                                ...currentStatus,
+                                customLists: newCustomLists
+                            });
+                            
+                            // Update UI instantly
+                            updateAllRestaurantCards();
                             
                             // Close modal
                             const modal = document.getElementById('customListsModal');
@@ -4975,6 +5038,10 @@
                         } catch (error) {
                             console.error('Error saving lists:', error);
                             showNotification('Error saving lists', 'error');
+                        } finally {
+                            // Re-enable button - CLEANUP
+                            saveListsBtn.disabled = false;
+                            saveListsBtn.innerHTML = 'Save Changes';
                         }
                     });
                 }
