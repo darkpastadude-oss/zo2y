@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Restaurant Details</title>
@@ -11,6 +10,9 @@
 
 <!-- Preload critical assets -->
 <link rel="preload" href="images/talabat.png" as="image">
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 /* Reset and Base Styles */
@@ -2347,6 +2349,10 @@ let lazyLoadObserver = null;
 let supabaseClient = null;
 let restaurantId = null;
 
+// ========== SUPABASE CONFIG ==========
+const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+
 // ========== UTILITY FUNCTIONS ==========
 function getRestaurantSlug() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -2562,72 +2568,81 @@ function createSectionNavigation() {
     });
 }
 
-// ========== ENHANCED RESTAURANT IMAGE LOADING ==========
+// ========== RESTAURANT IMAGE LOADING ==========
 async function loadRestaurantImages(slug) {
     try {
         console.log('📸 Loading images for restaurant:', slug);
         
-        // Load all gallery images including logo and cover
+        // Load gallery images from restaurant_gallery table
         const { data: galleryData, error: galleryError } = await supabaseClient
             .from('restaurant_gallery')
             .select('*')
             .eq('restaurant_slug', slug)
             .order('display_order', { ascending: true });
         
-        if (galleryError) throw galleryError;
+        if (galleryError) {
+            console.error('Error loading gallery images:', galleryError);
+            return {
+                gallery: [],
+                logo: null,
+                cover: null
+            };
+        }
         
-        // Also get restaurant data for fallback images
-        const { data: restaurantData } = await supabaseClient
-            .from('restraunts')
-            .select('logo_url, image')
-            .eq('slug', slug)
-            .single();
+        // Get logo and cover images from gallery
+        let logoUrl = null;
+        let coverUrl = null;
+        const galleryImages = [];
         
-        const images = {
-            gallery: galleryData || [],
-            logo: null,
-            cover: null
-        };
-        
-        // Extract logo and cover from gallery
         if (galleryData && galleryData.length > 0) {
-            const logoImage = galleryData.find(img => 
-                img.image_type === 'logo' || 
-                img.category === 'logo' ||
-                img.caption?.toLowerCase().includes('logo')
-            );
-            
-            const coverImage = galleryData.find(img => 
-                img.image_type === 'cover' || 
-                img.category === 'cover' ||
-                img.caption?.toLowerCase().includes('cover')
-            );
-            
-            if (logoImage) {
-                images.logo = logoImage.image_url;
-            }
-            
-            if (coverImage) {
-                images.cover = coverImage.image_url;
-            }
+            // Find logo and cover images
+            galleryData.forEach(image => {
+                if (image.image_type === 'logo') {
+                    logoUrl = image.image_url;
+                } else if (image.image_type === 'cover') {
+                    coverUrl = image.image_url;
+                } else {
+                    // Add to gallery images for display
+                    galleryImages.push({
+                        id: image.id,
+                        image_url: image.image_url,
+                        caption: image.caption || '',
+                        category: image.category || 'all',
+                        image_type: image.image_type || 'gallery'
+                    });
+                }
+            });
         }
         
-        // Use fallback from restaurant table
-        if (!images.logo && restaurantData?.logo_url) {
-            images.logo = restaurantData.logo_url;
-        }
-        
-        if (!images.cover && restaurantData?.image) {
-            images.cover = restaurantData.image;
+        // Fallback: Get restaurant data for logo
+        if (!logoUrl) {
+            const { data: restaurantData } = await supabaseClient
+                .from('restraunts')
+                .select('logo_url, image')
+                .eq('slug', slug)
+                .single();
+            
+            if (restaurantData) {
+                if (!logoUrl && restaurantData.logo_url) {
+                    logoUrl = restaurantData.logo_url;
+                }
+                if (!coverUrl && restaurantData.image) {
+                    coverUrl = restaurantData.image;
+                }
+            }
         }
         
         console.log('✅ Loaded restaurant images:', {
-            galleryCount: images.gallery.length,
-            logo: images.logo,
-            cover: images.cover
+            galleryCount: galleryImages.length,
+            logo: logoUrl,
+            cover: coverUrl
         });
         
-        return images;
+        return {
+            gallery: galleryImages,
+            logo: logoUrl,
+            cover: coverUrl
+        };
         
     } catch (error) {
         console.error('Error loading restaurant images:', error);
@@ -2642,6 +2657,10 @@ async function loadRestaurantImages(slug) {
 // ========== LOAD RESTAURANT DATA ==========
 async function loadRestaurantData() {
     const slug = getRestaurantSlug();
+    
+    if (!slug) {
+        throw new Error('No restaurant slug found');
+    }
     
     try {
         console.log('Loading data for slug:', slug);
@@ -2681,9 +2700,9 @@ function renderRestaurantData(data) {
     
     createSectionNavigation();
     
-    // Set logo - use from images data first, then fallback
+    // Set logo from restaurant_gallery table
     const logoImg = document.getElementById('restaurant-logo');
-    const logoUrl = images.logo || restaurant.logo_url || restaurant.image || 'images/default-logo.jpg';
+    const logoUrl = images.logo || restaurant.logo_url || 'images/default-logo.jpg';
     logoImg.src = logoUrl;
     logoImg.alt = `${restaurant.name} Logo`;
     logoImg.classList.remove('lazy-img');
@@ -2694,7 +2713,7 @@ function renderRestaurantData(data) {
     
     const ratingElement = document.getElementById('restaurant-rating');
     if (restaurant.rating) {
-        ratingElement.innerHTML = `⭐ ${restaurant.rating}/5`;
+        ratingElement.innerHTML = `⭐ ${restaurant.rating.toFixed(1)}/5`;
     } else {
         ratingElement.innerHTML = '⭐ Rating not available';
     }
@@ -2737,7 +2756,7 @@ function renderRestaurantData(data) {
             <div class="overview-details" style="margin-top: 20px;">
                 ${restaurant.rating ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <strong style="color: var(--text);">Rating:</strong>
-                    <span class="rating" style="color: #FF9800;">⭐ ${restaurant.rating}/5</span>
+                    <span class="rating" style="color: #FF9800;">⭐ ${restaurant.rating.toFixed(1)}/5</span>
                 </div>` : ''}
                 ${restaurant.hotline ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <strong style="color: var(--text);">Hotline:</strong>
@@ -2841,7 +2860,7 @@ function renderRestaurantData(data) {
     
     updateTalabatDisplay(restaurant.slug);
     
-    // Render gallery with loaded images
+    // Render gallery with images from restaurant_gallery
     if (images.gallery && images.gallery.length > 0) {
         galleryImages = images.gallery;
         renderGallery(galleryImages, 'all');
@@ -2857,7 +2876,7 @@ function renderGallery(images, category = 'all') {
     const emptyMsg = document.getElementById('gallery-empty');
     
     const filteredImages = category === 'all' 
-        ? images.filter(img => img.image_type !== 'logo' && img.image_type !== 'cover')
+        ? images
         : images.filter(img => img.category && img.category.toLowerCase() === category.toLowerCase());
     
     if (!filteredImages || filteredImages.length === 0) {
@@ -2907,7 +2926,7 @@ function setupGalleryTabs() {
 
 function openLightbox(index, category = 'all') {
     const filteredImages = category === 'all' 
-        ? galleryImages.filter(img => img.image_type !== 'logo' && img.image_type !== 'cover')
+        ? galleryImages
         : galleryImages.filter(img => img.category && img.category.toLowerCase() === category.toLowerCase());
     
     if (!filteredImages || filteredImages.length === 0) return;
@@ -3417,7 +3436,7 @@ function setupSortControls() {
     }
 }
 
-// ========== ENHANCED LIST MANAGER WITH SCROLL ==========
+// ========== LIST MANAGER ==========
 class RestaurantListManager {
     constructor() {
         this.restaurantId = null;
@@ -3430,14 +3449,13 @@ class RestaurantListManager {
         };
         this.currentUser = null;
         this.isLoading = false;
-        this.init();
     }
 
     async init() {
         // Get restaurant ID immediately
         this.restaurantId = await getRestaurantIdFromSlug();
         
-        // Inject UI immediately (don't wait for auth check)
+        // Inject UI immediately
         this.injectListMenu();
         
         // Check auth in background
@@ -3445,7 +3463,7 @@ class RestaurantListManager {
         
         if (this.currentUser && this.restaurantId) {
             await this.loadUserLists();
-            this.updateDropdown(); // Update with actual data
+            this.updateDropdown();
         } else {
             // Still show UI but with login prompt
             this.updateDropdown();
@@ -3454,11 +3472,9 @@ class RestaurantListManager {
 
     async checkAuth() {
         try {
-            // Quick check for existing session first
             const { data: { session } } = await supabaseClient.auth.getSession();
             this.currentUser = session?.user || null;
             
-            // If we have a session, set up auth state listener
             if (this.currentUser) {
                 supabaseClient.auth.onAuthStateChange((event, session) => {
                     this.currentUser = session?.user || null;
@@ -3487,7 +3503,6 @@ class RestaurantListManager {
                 return;
             }
 
-            // Load all lists for this user
             const { data: lists, error } = await supabaseClient
                 .from('lists')
                 .select('*')
@@ -3497,15 +3512,11 @@ class RestaurantListManager {
             
             this.userLists = lists || [];
             
-            // Separate default and custom lists
             this.customLists = this.userLists.filter(list => 
                 !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
             );
             
-            // Setup default lists (create if they don't exist)
             await this.setupDefaultLists();
-            
-            // Load restaurant associations for all lists
             await this.loadListRestaurants();
             
         } catch (error) {
@@ -3521,7 +3532,6 @@ class RestaurantListManager {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return;
         
-        // Find existing default lists
         this.currentLists.favorites = this.userLists.find(list => 
             list.title.toLowerCase() === 'favorites'
         );
@@ -3532,7 +3542,6 @@ class RestaurantListManager {
             list.title.toLowerCase() === 'want to go'
         );
         
-        // Create missing default lists
         if (!this.currentLists.favorites) {
             this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
             if (this.currentLists.favorites) this.userLists.push(this.currentLists.favorites);
@@ -3567,7 +3576,6 @@ class RestaurantListManager {
             
             if (error) throw error;
             
-            // Initialize empty restaurants array for the new list
             newList.restaurants = [];
             
             showNotification(`Created "${title}" list`, 'success');
@@ -3581,7 +3589,6 @@ class RestaurantListManager {
     }
     
     async loadListRestaurants() {
-        // Load restaurants for all user lists in one query
         const listIds = this.userLists.map(list => list.id);
         if (listIds.length === 0) return;
         
@@ -3593,7 +3600,6 @@ class RestaurantListManager {
             
             if (error) throw error;
             
-            // Organize by list ID
             const restaurantsByList = {};
             listRestaurants?.forEach(item => {
                 if (!restaurantsByList[item.list_id]) {
@@ -3602,12 +3608,10 @@ class RestaurantListManager {
                 restaurantsByList[item.list_id].push(item.restraunt_id);
             });
             
-            // Assign to lists
             this.userLists.forEach(list => {
                 list.restaurants = restaurantsByList[list.id] || [];
             });
             
-            // Update custom lists
             this.customLists = this.userLists.filter(list => 
                 !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
             );
@@ -3642,7 +3646,6 @@ class RestaurantListManager {
             const isInList = await this.checkIfInList(listId);
             
             if (isInList) {
-                // Remove from list
                 const { error } = await supabaseClient
                     .from('lists_restraunts')
                     .delete()
@@ -3653,7 +3656,6 @@ class RestaurantListManager {
                 
                 if (error) throw error;
                 
-                // Update local state
                 if (list.restaurants) {
                     list.restaurants = list.restaurants.filter(id => id !== this.restaurantId);
                 }
@@ -3661,7 +3663,6 @@ class RestaurantListManager {
                 showNotification(`Removed from "${list.title}"`, 'info');
                 return false;
             } else {
-                // Add to list
                 const { error } = await supabaseClient
                     .from('lists_restraunts')
                     .insert([
@@ -3674,7 +3675,6 @@ class RestaurantListManager {
                 
                 if (error) throw error;
                 
-                // Update local state
                 if (!list.restaurants) list.restaurants = [];
                 list.restaurants.push(this.restaurantId);
                 
@@ -3693,7 +3693,6 @@ class RestaurantListManager {
         const dropdown = document.querySelector('.list-dropdown');
         if (!dropdown) return;
         
-        // Show loading state if still loading
         if (this.isLoading) {
             dropdown.innerHTML = `
                 <div class="dropdown-header">
@@ -3725,7 +3724,6 @@ class RestaurantListManager {
             return;
         }
         
-        // Get current status for all lists
         const statusPromises = this.userLists.map(async (list) => ({
             ...list,
             isChecked: await this.checkIfInList(list.id)
@@ -3733,7 +3731,6 @@ class RestaurantListManager {
         
         const listsWithStatus = await Promise.all(statusPromises);
         
-        // Separate default and custom lists
         const defaultLists = listsWithStatus.filter(list => 
             ['Favorites', 'Visited', 'Want to Go'].includes(list.title)
         );
@@ -3788,33 +3785,28 @@ class RestaurantListManager {
             </div>
         `;
         
-        // Add event listeners
         dropdown.querySelectorAll('.list-item').forEach(item => {
             item.addEventListener('click', async () => {
                 const listId = item.dataset.listId;
                 const wasAdded = await this.toggleInList(listId);
                 
                 if (wasAdded === false || wasAdded === true) {
-                    // Update checkbox immediately
                     const checkbox = item.querySelector('.list-checkbox');
                     if (checkbox) {
                         checkbox.classList.toggle('checked', wasAdded);
                         
-                        // Add animation
                         checkbox.style.animation = 'none';
                         setTimeout(() => {
                             checkbox.style.animation = 'checkPop 0.3s ease';
                         }, 10);
                     }
                     
-                    // Refresh custom lists section if needed
                     await this.loadUserLists();
                     this.updateDropdown();
                 }
             });
         });
         
-        // Create new list functionality
         const createBtn = dropdown.querySelector('#createListBtn');
         const nameInput = dropdown.querySelector('#newListName');
         
@@ -3825,7 +3817,6 @@ class RestaurantListManager {
                 return;
             }
             
-            // Check if list already exists
             const existingList = this.userLists.find(list => 
                 list.title.toLowerCase() === name.toLowerCase()
             );
@@ -3837,19 +3828,15 @@ class RestaurantListManager {
             
             const newList = await this.createList(name, 'Custom list');
             if (newList) {
-                // Clear input
                 nameInput.value = '';
                 
-                // Add to user lists and reload
                 this.userLists.push(newList);
                 this.customLists = this.userLists.filter(list => 
                     !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
                 );
                 
-                // Update dropdown to show new list
                 await this.updateDropdown();
                 
-                // Auto-add to the new list if user wants
                 const addToNewList = confirm(`Would you like to add this restaurant to "${name}"?`);
                 if (addToNewList) {
                     await this.toggleInList(newList.id);
@@ -3858,7 +3845,6 @@ class RestaurantListManager {
             }
         });
         
-        // Allow pressing Enter to create list
         nameInput.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 createBtn.click();
@@ -3867,14 +3853,12 @@ class RestaurantListManager {
     }
     
     injectListMenu() {
-        // Remove existing FAB if it exists
         const existingFab = document.querySelector('.list-manager-fab');
         if (existingFab) existingFab.remove();
         
         const existingDropdown = document.querySelector('.list-dropdown');
         if (existingDropdown) existingDropdown.remove();
         
-        // Create FAB
         const fab = document.createElement('div');
         fab.className = 'list-manager-fab';
         fab.innerHTML = `
@@ -3885,11 +3869,9 @@ class RestaurantListManager {
             </button>
         `;
         
-        // Create dropdown
         const dropdown = document.createElement('div');
         dropdown.className = 'list-dropdown';
         
-        // Add event listeners
         const manager = this;
         fab.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -3899,7 +3881,6 @@ class RestaurantListManager {
             }
         });
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!fab.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.classList.remove('show');
@@ -3908,7 +3889,6 @@ class RestaurantListManager {
         
         dropdown.addEventListener('click', (e) => e.stopPropagation());
         
-        // Append to document
         document.body.appendChild(fab);
         document.body.appendChild(dropdown);
         
@@ -3919,7 +3899,6 @@ class RestaurantListManager {
 // ========== SUPABASE INITIALIZATION ==========
 async function initSupabase() {
     try {
-        // Check if Supabase is already loaded
         if (typeof supabase === 'undefined') {
             console.warn('Supabase library not loaded yet, waiting...');
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -3929,16 +3908,12 @@ async function initSupabase() {
             }
         }
         
-        const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-        
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         console.log('✅ Supabase initialized successfully');
         return supabaseClient;
     } catch (error) {
         console.error('❌ Failed to initialize Supabase:', error);
         
-        // Create a mock client to prevent crashes
         supabaseClient = {
             from: () => ({ 
                 select: () => ({ 
