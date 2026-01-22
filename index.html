@@ -428,7 +428,7 @@
                 top: calc(100% + 8px);
                 left: 16px;
                 right: 16px;
-                max-height: 50vh;
+                max-height: calc(50vh - 60px);
                 z-index: 1001;
             }
             
@@ -2457,6 +2457,83 @@
         .notification-close:hover { 
             opacity: 1; 
         }
+        
+        /* Mobile search improvements */
+        @media (max-width: 768px) {
+            .search-dropdown {
+                position: fixed !important;
+                top: calc(100% + 8px) !important;
+                left: 16px !important;
+                right: 16px !important;
+                max-height: calc(50vh - 60px) !important;
+                z-index: 1001;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            }
+            
+            .search-wrapper.active {
+                display: flex !important;
+                flex-direction: column;
+                animation: slideDown 0.3s ease;
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+                padding: 16px;
+                background: rgba(19, 35, 71, 0.98);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+            }
+            
+            /* Prevent body scroll when search is open */
+            body.search-open {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+            
+            /* Better touch targets for search results */
+            .search-result-item {
+                min-height: 60px;
+                padding: 14px 16px;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .search-result-item:active {
+                background: rgba(245, 158, 11, 0.2) !important;
+                transform: scale(0.99);
+                transition: transform 0.1s ease;
+            }
+            
+            /* Clear button sizing */
+            .clear-search {
+                width: 30px;
+                height: 30px;
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+        
+        /* Improve search dropdown scroll on iOS */
+        .search-dropdown {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+        
+        .search-dropdown::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Edge */
+        }
+        
+        /* Better focus states for accessibility */
+        .search:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+        
+        .search-result-item:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: -2px;
+        }
     </style>
 </head>
 <body>
@@ -2871,7 +2948,7 @@
                         
                         const { data: newList, error } = await supabase
                             .from('lists')
-                                .insert([
+                            .insert([
                                 {
                                     user_id: state.currentUser.id,
                                     title: title,
@@ -3431,7 +3508,7 @@
                 }
             }
             
-            // ---------- OPTIMIZED SEARCH FUNCTIONALITY ----------
+            // ---------- OPTIMIZED SEARCH FUNCTIONALITY (Fixed for Mobile) ----------
             function setupSearch() {
                 const searchInput = document.getElementById('search');
                 const searchDropdown = document.getElementById('searchDropdown');
@@ -3444,6 +3521,12 @@
                 let searchTimeout;
                 let searchResults = [];
                 let selectedResultIndex = -1;
+                let isMobile = window.innerWidth <= 768;
+                
+                // Check for mobile on resize
+                window.addEventListener('resize', () => {
+                    isMobile = window.innerWidth <= 768;
+                });
                 
                 // FIXED: Optimized search data loading
                 async function loadSearchData() {
@@ -3454,7 +3537,7 @@
                             .from('restraunts')
                             .select('id, slug, name, category, rating, logo_url')
                             .order('name')
-                            .limit(100); // Reduced for performance
+                            .limit(100);
                         
                         if (error) throw error;
                         return data || [];
@@ -3494,13 +3577,30 @@
                     if (results.length > 0) {
                         renderSearchResults(results);
                         searchDropdown.classList.add('active');
+                        
+                        // FIXED: Position dropdown correctly for mobile
+                        if (isMobile && searchWrapper.classList.contains('active')) {
+                            // Mobile search is fullscreen, position dropdown within it
+                            searchDropdown.style.position = 'fixed';
+                            searchDropdown.style.top = 'calc(100% + 8px)';
+                            searchDropdown.style.left = '16px';
+                            searchDropdown.style.right = '16px';
+                            searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
+                        } else {
+                            // Desktop positioning
+                            searchDropdown.style.position = 'absolute';
+                            searchDropdown.style.top = '100%';
+                            searchDropdown.style.left = '0';
+                            searchDropdown.style.right = '0';
+                            searchDropdown.style.maxHeight = '400px';
+                        }
                     } else {
                         renderNoResults();
                         searchDropdown.classList.add('active');
                     }
                 }
                 
-                // FIXED: Mobile touch support
+                // FIXED: Mobile touch support with better event handling
                 function renderSearchResults(results) {
                     searchDropdown.innerHTML = '';
                     
@@ -3530,20 +3630,34 @@
                             </div>
                         `;
                         
-                        // FIXED: Mobile touch support with proper event handling
+                        // FIXED: Combined click and touch event handler
                         const selectRestaurantHandler = (e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             selectRestaurant(restaurant);
                         };
                         
+                        // Add both mouse and touch events
                         resultItem.addEventListener('click', selectRestaurantHandler);
-                        resultItem.addEventListener('touchend', selectRestaurantHandler);
+                        resultItem.addEventListener('touchend', selectRestaurantHandler, { passive: false });
                         
+                        // Handle keyboard navigation
                         resultItem.addEventListener('keydown', (e) => {
-                            if (e.key === 'Enter') {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
                                 selectRestaurant(restaurant);
                             }
+                        });
+                        
+                        // Improve mobile touch feedback
+                        resultItem.addEventListener('touchstart', () => {
+                            resultItem.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+                        });
+                        
+                        resultItem.addEventListener('touchend', () => {
+                            setTimeout(() => {
+                                resultItem.style.backgroundColor = '';
+                            }, 150);
                         });
                         
                         searchDropdown.appendChild(resultItem);
@@ -3567,6 +3681,8 @@
                         if (searchWrapper.classList.contains('active')) {
                             searchWrapper.classList.remove('active');
                             document.body.style.overflow = '';
+                            // Also hide keyboard on mobile
+                            searchInput.blur();
                         }
                         
                         // Close dropdown
@@ -3582,6 +3698,7 @@
                     }
                 }
                 
+                // Search input handler
                 searchInput.addEventListener('input', (e) => {
                     const query = e.target.value;
                     
@@ -3595,6 +3712,14 @@
                     }, 300);
                 });
                 
+                // Focus handler to show recent searches or popular
+                searchInput.addEventListener('focus', () => {
+                    if (!searchInput.value.trim()) {
+                        // Could show recent searches here if implemented
+                        searchDropdown.classList.remove('active');
+                    }
+                });
+                
                 if (clearSearchBtn) {
                     clearSearchBtn.addEventListener('click', () => {
                         searchInput.value = '';
@@ -3606,6 +3731,7 @@
                     });
                 }
                 
+                // Keyboard navigation
                 searchInput.addEventListener('keydown', (e) => {
                     if (!searchDropdown.classList.contains('active')) return;
                     
@@ -3625,8 +3751,14 @@
                             }
                             break;
                         case 'Escape':
+                            e.preventDefault();
                             searchDropdown.classList.remove('active');
                             selectedResultIndex = -1;
+                            // On mobile, also close the search wrapper
+                            if (isMobile && searchWrapper.classList.contains('active')) {
+                                searchWrapper.classList.remove('active');
+                                document.body.style.overflow = '';
+                            }
                             break;
                     }
                 });
@@ -3657,25 +3789,52 @@
                     }
                 }
                 
-                // FIXED: Better mobile touch handling
+                // FIXED: Better click outside handling
                 document.addEventListener('click', (e) => {
-                    if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                    const isSearchInput = searchInput.contains(e.target);
+                    const isSearchDropdown = searchDropdown.contains(e.target);
+                    const isClearButton = clearSearchBtn && clearSearchBtn.contains(e.target);
+                    const isMobileToggle = mobileSearchToggle && mobileSearchToggle.contains(e.target);
+                    
+                    if (!isSearchInput && !isSearchDropdown && !isClearButton && !isMobileToggle) {
                         searchDropdown.classList.remove('active');
                         selectedResultIndex = -1;
+                        
+                        // On mobile, also close the search wrapper if clicking outside
+                        if (isMobile && searchWrapper.classList.contains('active') && 
+                            !searchWrapper.contains(e.target)) {
+                            searchWrapper.classList.remove('active');
+                            document.body.style.overflow = '';
+                        }
                     }
                 });
                 
-                // FIXED: Mobile search toggle with touch support
+                // FIXED: Mobile search toggle with better touch handling
                 if (mobileSearchToggle && searchWrapper) {
                     const toggleSearch = () => {
+                        const wasActive = searchWrapper.classList.contains('active');
                         searchWrapper.classList.toggle('active');
                         
-                        if (searchWrapper.classList.contains('active')) {
+                        if (!wasActive) {
+                            // Opening search
                             searchInput.focus();
                             document.body.style.overflow = 'hidden';
+                            
+                            // Position dropdown correctly
+                            setTimeout(() => {
+                                if (searchDropdown.classList.contains('active')) {
+                                    searchDropdown.style.position = 'fixed';
+                                    searchDropdown.style.top = 'calc(100% + 8px)';
+                                    searchDropdown.style.left = '16px';
+                                    searchDropdown.style.right = '16px';
+                                    searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
+                                }
+                            }, 10);
                         } else {
+                            // Closing search
                             document.body.style.overflow = '';
                             searchDropdown.classList.remove('active');
+                            searchInput.blur();
                         }
                     };
                     
@@ -3686,18 +3845,38 @@
                     });
                 }
                 
+                // FIXED: Handle escape key for mobile
                 document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && searchWrapper.classList.contains('active')) {
-                        searchWrapper.classList.remove('active');
-                        document.body.style.overflow = '';
-                        searchDropdown.classList.remove('active');
+                    if (e.key === 'Escape') {
+                        if (searchWrapper.classList.contains('active')) {
+                            searchWrapper.classList.remove('active');
+                            document.body.style.overflow = '';
+                            searchDropdown.classList.remove('active');
+                            searchInput.blur();
+                        }
                     }
                 });
                 
                 // FIXED: Prevent body scroll when interacting with search on mobile
-                searchInput.addEventListener('touchstart', (e) => {
-                    e.stopPropagation();
-                }, { passive: true });
+                searchInput.addEventListener('touchmove', (e) => {
+                    if (searchWrapper.classList.contains('active')) {
+                        e.stopPropagation();
+                    }
+                }, { passive: false });
+                
+                // Handle input focus on mobile to prevent zoom
+                searchInput.addEventListener('focus', () => {
+                    if (isMobile) {
+                        // Add a small timeout to ensure the dropdown is positioned correctly
+                        setTimeout(() => {
+                            searchDropdown.style.position = 'fixed';
+                            searchDropdown.style.top = 'calc(100% + 8px)';
+                            searchDropdown.style.left = '16px';
+                            searchDropdown.style.right = '16px';
+                            searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
+                        }, 50);
+                    }
+                });
                 
                 console.log('✅ Search functionality initialized');
             }
