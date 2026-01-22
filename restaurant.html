@@ -15,7 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* Reset and Base Styles */
+/* ========== RESET AND BASE STYLES ========== */
 * {
     margin: 0;
     padding: 0;
@@ -39,6 +39,8 @@
     --error: #ef4444;
     --warning: #f59e0b;
     --info: #3b82f6;
+    --fab-color: #f59e0b;
+    --fab-hover: #d97706;
 }
 
 body {
@@ -46,11 +48,12 @@ body {
     color: var(--text);
     transition: background-color 0.3s ease, color 0.3s ease;
     line-height: 1.6;
-    padding-top: 100px; /* Compensate for fixed header + nav */
+    padding-top: 100px;
     min-height: 100vh;
+    position: relative;
 }
 
-/* Top Stripe */
+/* ========== TOP STRIPE ========== */
 .top-stripe {
     background: #FF9800;
     height: 50px;
@@ -87,7 +90,7 @@ body {
     transform: translateX(-3px);
 }
 
-/* Hero Section */
+/* ========== HERO SECTION ========== */
 .hero {
     text-align: center;
     padding: 60px 20px 40px;
@@ -151,7 +154,7 @@ body {
     z-index: 1;
 }
 
-/* Buttons */
+/* ========== BUTTONS ========== */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -190,7 +193,7 @@ body {
     transform: none !important;
 }
 
-/* Section Navigation */
+/* ========== SECTION NAVIGATION ========== */
 .section-nav {
     background: var(--nav-bg);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -267,7 +270,7 @@ body {
     background: var(--btn-bg);
 }
 
-/* Sections */
+/* ========== SECTIONS ========== */
 .section {
     max-width: 900px;
     margin: 0 auto;
@@ -293,7 +296,7 @@ h2::after {
     border-radius: 2px;
 }
 
-/* Contact Info */
+/* ========== CONTACT INFO ========== */
 .hotline {
     font-size: 1.2rem;
     margin-bottom: 20px;
@@ -319,7 +322,7 @@ h2::after {
     color: var(--btn-text);
 }
 
-/* Branches */
+/* ========== BRANCHES ========== */
 .branches {
     display: flex;
     flex-wrap: wrap;
@@ -369,7 +372,7 @@ h2::after {
     color: var(--accent);
 }
 
-/* Talabat Section */
+/* ========== TALABAT SECTION ========== */
 .talabat-section {
     margin: 40px auto;
     max-width: 900px;
@@ -548,7 +551,7 @@ h2::after {
     border-color: var(--btn-bg);
 }
 
-/* Menu Item Expand/Collapse Styles */
+/* ========== MENU ITEM EXPAND/COLLAPSE ========== */
 .menu-item-header {
     display: flex;
     justify-content: space-between;
@@ -608,7 +611,6 @@ h2::after {
     color: var(--accent);
 }
 
-/* Update existing .menu-item styles to work with new structure */
 .menu-item {
     padding: 10px 15px;
     border-bottom: 1px solid var(--nav-shadow);
@@ -634,43 +636,7 @@ h2::after {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Menu */
-.menu-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 10px;
-    border-bottom: 1px solid var(--nav-shadow);
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-    flex-wrap: wrap;
-}
-
-.menu-item:hover {
-    background: var(--card);
-    border-radius: 8px;
-    padding-left: 15px;
-    transform: translateY(-2px);
-}
-
-.menu-item span {
-    color: var(--text2);
-    font-size: 1rem;
-}
-
-.menu-item span:last-child {
-    font-weight: 600;
-    color: var(--text);
-}
-
-.menu-item-description {
-    font-size: 0.85rem;
-    color: var(--text2);
-    margin-top: 5px;
-    width: 100%;
-    flex-basis: 100%;
-}
-
+/* ========== MENU ========== */
 .menu-category {
     margin-top: 30px;
 }
@@ -681,7 +647,7 @@ h2::after {
     font-size: 1.3rem;
 }
 
-/* Gallery Styles */
+/* ========== GALLERY STYLES ========== */
 .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -737,7 +703,7 @@ h2::after {
     transform: translateY(0);
 }
 
-/* Lightbox Modal */
+/* ========== LIGHTBOX MODAL ========== */
 .lightbox {
     display: none;
     position: fixed;
@@ -751,11 +717,6 @@ h2::after {
     justify-content: center;
     padding: 20px;
     animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 .lightbox.active {
@@ -847,7 +808,7 @@ h2::after {
     right: 20px;
 }
 
-/* Gallery Tabs */
+/* ========== GALLERY TABS ========== */
 .gallery-tabs {
     display: flex;
     gap: 10px;
@@ -879,7 +840,7 @@ h2::after {
     border-color: var(--accent);
 }
 
-/* Footer */
+/* ========== FOOTER ========== */
 footer {
     text-align: center;
     padding: 40px 20px;
@@ -889,7 +850,7 @@ footer {
     margin-top: 20px;
 }
 
-/* Loading States */
+/* ========== LOADING STATES ========== */
 .loading {
     text-align: center;
     padding: 60px 20px;
@@ -933,7 +894,7 @@ footer {
     margin: 20px 0;
 }
 
-/* Lazy Loading */
+/* ========== LAZY LOADING ========== */
 .lazy {
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -954,7 +915,7 @@ footer {
     100% { background-position: -200% 0; }
 }
 
-/* Notification System */
+/* ========== NOTIFICATION SYSTEM ========== */
 .notification {
     position: fixed;
     top: 100px;
@@ -994,7 +955,7 @@ footer {
     color: white;
 }
 
-/* Review System Styles */
+/* ========== REVIEW SYSTEM STYLES ========== */
 .reviews-stats {
     background: var(--card);
     padding: 20px;
@@ -1323,7 +1284,7 @@ footer {
     border: 1px solid var(--nav-shadow);
 }
 
-/* Review Sort Controls */
+/* ========== REVIEW SORT CONTROLS ========== */
 .reviews-sort-controls {
     display: flex;
     align-items: center;
@@ -1359,19 +1320,31 @@ footer {
     box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
 }
 
-/* List Manager Styles */
+/* ========== FAB BUTTON STYLES ========== */
 .list-manager-fab {
     position: fixed !important;
     bottom: 30px !important;
     right: 30px !important;
     z-index: 10000 !important;
     font-family: inherit !important;
+    animation: fabEntry 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@keyframes fabEntry {
+    from {
+        opacity: 0;
+        transform: scale(0.5) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .fab-main {
     width: 60px !important;
     height: 60px !important;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    background: linear-gradient(135deg, var(--fab-color) 0%, var(--fab-hover) 100%) !important;
     border-radius: 50% !important;
     display: flex !important;
     align-items: center !important;
@@ -1383,10 +1356,22 @@ footer {
     color: white !important;
     position: relative !important;
     overflow: hidden !important;
+    outline: none !important;
+}
+
+.fab-main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.2) 100%);
+    border-radius: 50%;
 }
 
 .fab-main:hover {
-    transform: scale(1.05) rotate(90deg) !important;
+    transform: scale(1.05) !important;
     box-shadow: 0 12px 35px rgba(245, 158, 11, 0.6) !important;
 }
 
@@ -1394,6 +1379,47 @@ footer {
     transform: scale(0.95) !important;
 }
 
+.fab-main .fab-icon {
+    width: 24px;
+    height: 24px;
+    stroke: white;
+    stroke-width: 2;
+    transition: transform 0.3s ease;
+}
+
+.fab-main:hover .fab-icon {
+    transform: rotate(90deg);
+}
+
+.fab-pulse {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--fab-color);
+    animation: pulse 2s infinite;
+    opacity: 0.3;
+    z-index: -1;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+}
+
+/* ========== LIST DROPDOWN STYLES ========== */
 .list-dropdown {
     position: fixed;
     bottom: 100px;
@@ -1443,8 +1469,15 @@ footer {
 .dropdown-title {
     font-size: 18px;
     font-weight: 700;
-    color: #f59e0b;
+    color: var(--fab-color);
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdown-title::before {
+    content: '📋';
 }
 
 .close-btn {
@@ -1455,11 +1488,18 @@ footer {
     padding: 8px;
     border-radius: 8px;
     transition: all 0.2s ease;
+    font-size: 24px;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close-btn:hover {
     background: #1e293b;
-    color: #f59e0b;
+    color: var(--fab-color);
 }
 
 /* Scrollable lists section */
@@ -1482,7 +1522,7 @@ footer {
 }
 
 .lists-scroll-container::-webkit-scrollbar-thumb {
-    background: #f59e0b;
+    background: var(--fab-color);
     border-radius: 10px;
 }
 
@@ -1532,8 +1572,8 @@ footer {
 }
 
 .list-checkbox.checked {
-    background: #f59e0b;
-    border-color: #f59e0b;
+    background: var(--fab-color);
+    border-color: var(--fab-color);
     animation: checkPop 0.3s ease;
 }
 
@@ -1576,12 +1616,12 @@ footer {
 
 .new-list-input:focus {
     outline: none;
-    border-color: #f59e0b;
+    border-color: var(--fab-color);
     box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
 }
 
 .add-list-btn {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, var(--fab-color) 0%, var(--fab-hover) 100%);
     color: #0f172a;
     border: none;
     padding: 12px 20px;
@@ -1608,9 +1648,12 @@ footer {
     font-size: 13px;
     padding: 20px;
     font-style: italic;
+    border: 1px dashed #475569;
+    border-radius: 10px;
+    margin: 10px 0;
 }
 
-/* Login/Signup Modal */
+/* ========== LOGIN/SIGNUP MODAL ========== */
 .login-modal {
     display: none;
     position: fixed;
@@ -1732,7 +1775,7 @@ footer {
     color: var(--accent);
 }
 
-/* Mobile Responsiveness */
+/* ========== MOBILE RESPONSIVENESS ========== */
 @media (max-width: 768px) {
     body {
         padding-top: 94px;
@@ -1990,7 +2033,7 @@ footer {
     }
 }
 
-/* Touch-friendly improvements */
+/* ========== TOUCH-FRIENDLY IMPROVEMENTS ========== */
 @media (hover: none) and (pointer: coarse) {
     .btn:hover,
     .branch-card:hover,
@@ -2022,7 +2065,7 @@ footer {
     }
 }
 
-/* Safe area insets for notch phones */
+/* ========== SAFE AREA INSETS FOR NOTCH PHONES ========== */
 @supports (padding: max(0px)) {
     .top-stripe {
         padding-left: max(20px, env(safe-area-inset-left));
@@ -2048,7 +2091,7 @@ footer {
     }
 }
 
-/* Reduced motion preferences */
+/* ========== REDUCED MOTION PREFERENCES ========== */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -2063,7 +2106,7 @@ footer {
     }
 }
 
-/* Dark mode optimizations */
+/* ========== DARK MODE OPTIMIZATIONS ========== */
 @media (prefers-color-scheme: dark) {
     .talabat-card,
     .website-card {
@@ -2077,7 +2120,7 @@ footer {
     }
 }
 
-/* Prevent horizontal scroll */
+/* ========== PREVENT HORIZONTAL SCROLL ========== */
 html,
 body {
     overflow-x: hidden;
@@ -2085,12 +2128,12 @@ body {
     position: relative;
 }
 
-/* Smooth scrolling */
+/* ========== SMOOTH SCROLLING ========== */
 html {
     scroll-behavior: smooth;
 }
 
-/* Better touch targets */
+/* ========== BETTER TOUCH TARGETS ========== */
 button,
 a.btn,
 .star,
@@ -2348,10 +2391,606 @@ let imageCache = new Map();
 let lazyLoadObserver = null;
 let supabaseClient = null;
 let restaurantId = null;
+let listManager = null;
 
 // ========== SUPABASE CONFIG ==========
 const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+
+// ========== RESTAURANT LIST MANAGER ==========
+class RestaurantListManager {
+    constructor() {
+        this.restaurantId = null;
+        this.userLists = [];
+        this.customLists = [];
+        this.currentLists = {
+            favorites: null,
+            visited: null,
+            wantToGo: null
+        };
+        this.currentUser = null;
+        this.isLoading = false;
+        this.dropdownVisible = false;
+        
+        console.log('📋 List Manager Initialized');
+    }
+
+    async init() {
+        try {
+            // Get restaurant ID
+            this.restaurantId = await getRestaurantIdFromSlug();
+            console.log('📋 Restaurant ID:', this.restaurantId);
+            
+            // Inject UI immediately
+            this.injectListMenu();
+            
+            // Check auth in background
+            await this.checkAuth();
+            
+            if (this.currentUser && this.restaurantId) {
+                await this.loadUserLists();
+                this.updateDropdown();
+            } else {
+                // Still show UI but with login prompt
+                this.updateDropdown();
+            }
+        } catch (error) {
+            console.error('Error initializing list manager:', error);
+        }
+    }
+
+    async checkAuth() {
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            this.currentUser = session?.user || null;
+            
+            if (this.currentUser) {
+                console.log('📋 User authenticated:', this.currentUser.id);
+                
+                // Listen for auth changes
+                supabaseClient.auth.onAuthStateChange((event, session) => {
+                    console.log('📋 Auth state changed:', event);
+                    this.currentUser = session?.user || null;
+                    if (this.currentUser && this.restaurantId) {
+                        this.loadUserLists().then(() => this.updateDropdown());
+                    } else {
+                        this.updateDropdown();
+                    }
+                });
+            } else {
+                console.log('📋 No user authenticated');
+            }
+        } catch (error) {
+            console.error('📋 Auth error:', error);
+            this.currentUser = null;
+        }
+    }
+
+    async loadUserLists() {
+        if (this.isLoading) return;
+        this.isLoading = true;
+        console.log('📋 Loading user lists...');
+        
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                console.log('📋 No user found');
+                this.userLists = [];
+                this.customLists = [];
+                return;
+            }
+
+            // Load user's lists
+            const { data: lists, error } = await supabaseClient
+                .from('lists')
+                .select('*')
+                .eq('user_id', user.id);
+            
+            if (error) {
+                console.error('📋 Error loading lists:', error);
+                throw error;
+            }
+            
+            this.userLists = lists || [];
+            console.log('📋 Loaded user lists:', this.userLists.length);
+            
+            // Filter custom lists
+            this.customLists = this.userLists.filter(list => 
+                !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+            );
+            
+            // Setup default lists if they don't exist
+            await this.setupDefaultLists();
+            
+            // Load restaurants in lists
+            await this.loadListRestaurants();
+            
+        } catch (error) {
+            console.error('📋 Error loading user lists:', error);
+            this.userLists = [];
+            this.customLists = [];
+        } finally {
+            this.isLoading = false;
+        }
+    }
+    
+    async setupDefaultLists() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return;
+        
+        console.log('📋 Setting up default lists...');
+        
+        // Find or create default lists
+        this.currentLists.favorites = this.userLists.find(list => 
+            list.title.toLowerCase() === 'favorites'
+        );
+        this.currentLists.visited = this.userLists.find(list => 
+            list.title.toLowerCase() === 'visited'
+        ); 
+        this.currentLists.wantToGo = this.userLists.find(list => 
+            list.title.toLowerCase() === 'want to go'
+        );
+        
+        // Create missing default lists
+        if (!this.currentLists.favorites) {
+            console.log('📋 Creating Favorites list...');
+            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
+            if (this.currentLists.favorites) this.userLists.push(this.currentLists.favorites);
+        }
+        if (!this.currentLists.visited) {
+            console.log('📋 Creating Visited list...');
+            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
+            if (this.currentLists.visited) this.userLists.push(this.currentLists.visited);
+        }
+        if (!this.currentLists.wantToGo) {
+            console.log('📋 Creating Want to Go list...');
+            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
+            if (this.currentLists.wantToGo) this.userLists.push(this.currentLists.wantToGo);
+        }
+    }
+    
+    async createList(title, description) {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return null;
+        
+        try {
+            console.log(`📋 Creating list: ${title}`);
+            
+            const { data: newList, error } = await supabaseClient
+                .from('lists')
+                .insert([
+                    {
+                        user_id: user.id,
+                        title: title,
+                        description: description,
+                        created_at: new Date().toISOString()
+                    }
+                ])
+                .select()
+                .single();
+            
+            if (error) {
+                console.error('📋 Error creating list:', error);
+                throw error;
+            }
+            
+            // Initialize empty restaurants array
+            newList.restaurants = [];
+            
+            showNotification(`Created "${title}" list`, 'success');
+            console.log(`📋 List created:`, newList);
+            return newList;
+            
+        } catch (error) {
+            console.error('Error creating list:', error);
+            showNotification('Error creating list', 'error');
+            return null;
+        }
+    }
+    
+    async loadListRestaurants() {
+        const listIds = this.userLists.map(list => list.id);
+        if (listIds.length === 0) {
+            console.log('📋 No lists to load restaurants for');
+            return;
+        }
+        
+        console.log('📋 Loading restaurants for lists:', listIds);
+        
+        try {
+            const { data: listRestaurants, error } = await supabaseClient
+                .from('lists_restraunts')
+                .select('list_id, restraunt_id')
+                .in('list_id', listIds);
+            
+            if (error) {
+                console.error('📋 Error loading list restaurants:', error);
+                throw error;
+            }
+            
+            // Group restaurants by list
+            const restaurantsByList = {};
+            listRestaurants?.forEach(item => {
+                if (!restaurantsByList[item.list_id]) {
+                    restaurantsByList[item.list_id] = [];
+                }
+                restaurantsByList[item.list_id].push(item.restraunt_id);
+            });
+            
+            // Assign restaurants to each list
+            this.userLists.forEach(list => {
+                list.restaurants = restaurantsByList[list.id] || [];
+            });
+            
+            // Update custom lists
+            this.customLists = this.userLists.filter(list => 
+                !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+            );
+            
+            console.log('📋 Loaded list restaurants');
+            
+        } catch (error) {
+            console.error('Error loading list restaurants:', error);
+        }
+    }
+    
+    async checkIfInList(listId) {
+        if (!this.currentUser || !this.restaurantId) {
+            console.log('📋 Cannot check list: no user or restaurant ID');
+            return false;
+        }
+        
+        const list = this.userLists.find(l => l.id === listId);
+        if (!list || !list.restaurants) {
+            console.log(`📋 List ${listId} not found or has no restaurants`);
+            return false;
+        }
+        
+        const isInList = list.restaurants.includes(this.restaurantId);
+        console.log(`📋 Restaurant ${this.restaurantId} in list ${listId}: ${isInList}`);
+        return isInList;
+    }
+    
+    async toggleInList(listId) {
+        if (!this.currentUser || !this.restaurantId) {
+            console.log('📋 Cannot toggle list: no user or restaurant ID');
+            showLoginModal();
+            return false;
+        }
+        
+        const list = this.userLists.find(l => l.id === listId);
+        if (!list) {
+            console.error(`📋 List ${listId} not found`);
+            return false;
+        }
+        
+        try {
+            const isInList = await this.checkIfInList(listId);
+            
+            if (isInList) {
+                // Remove from list
+                console.log(`📋 Removing restaurant ${this.restaurantId} from list ${listId}`);
+                
+                const { error } = await supabaseClient
+                    .from('lists_restraunts')
+                    .delete()
+                    .match({
+                        list_id: list.id,
+                        restraunt_id: this.restaurantId
+                    });
+                
+                if (error) {
+                    console.error('📋 Error removing from list:', error);
+                    throw error;
+                }
+                
+                // Update local state
+                if (list.restaurants) {
+                    list.restaurants = list.restaurants.filter(id => id !== this.restaurantId);
+                }
+                
+                showNotification(`Removed from "${list.title}"`, 'info');
+                console.log(`📋 Successfully removed from list`);
+                return false;
+            } else {
+                // Add to list
+                console.log(`📋 Adding restaurant ${this.restaurantId} to list ${listId}`);
+                
+                const { error } = await supabaseClient
+                    .from('lists_restraunts')
+                    .insert([
+                        {
+                            list_id: list.id,
+                            restraunt_id: this.restaurantId,
+                            added_at: new Date().toISOString()
+                        }
+                    ]);
+                
+                if (error) {
+                    console.error('📋 Error adding to list:', error);
+                    throw error;
+                }
+                
+                // Update local state
+                if (!list.restaurants) list.restaurants = [];
+                list.restaurants.push(this.restaurantId);
+                
+                showNotification(`Added to "${list.title}"`, 'success');
+                console.log(`📋 Successfully added to list`);
+                return true;
+            }
+            
+        } catch (error) {
+            console.error('Error updating list:', error);
+            showNotification('Error saving changes', 'error');
+            return null;
+        }
+    }
+    
+    updateDropdown() {
+        const dropdown = document.querySelector('.list-dropdown');
+        if (!dropdown) {
+            console.error('📋 Dropdown element not found');
+            return;
+        }
+        
+        if (this.isLoading) {
+            dropdown.innerHTML = `
+                <div class="dropdown-header">
+                    <h3 class="dropdown-title">Save to Lists</h3>
+                    <button class="close-btn" onclick="window.listManager?.hideDropdown()">×</button>
+                </div>
+                <div style="padding: 40px; text-align: center; color: var(--text2);">
+                    <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto 10px;"></div>
+                    Loading lists...
+                </div>
+            `;
+            return;
+        }
+        
+        if (!this.currentUser) {
+            dropdown.innerHTML = `
+                <div class="dropdown-header">
+                    <h3 class="dropdown-title">Save to Lists</h3>
+                    <button class="close-btn" onclick="window.listManager?.hideDropdown()">×</button>
+                </div>
+                <div class="auth-prompt" style="padding: 30px; text-align: center;">
+                    <div class="auth-icon" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.7;">🔐</div>
+                    <div style="color: var(--text2); margin-bottom: 20px; line-height: 1.5;">
+                        Sign in to save restaurants to your lists and organize your favorites
+                    </div>
+                    <button class="btn" onclick="showLoginModal()" style="width: 100%;">
+                        <span>→</span> Sign In
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Render lists
+        this.renderListsContent(dropdown);
+    }
+    
+    async renderListsContent(dropdown) {
+        // Get status for all lists
+        const listsWithStatus = await Promise.all(
+            this.userLists.map(async (list) => ({
+                ...list,
+                isChecked: await this.checkIfInList(list.id)
+            }))
+        );
+        
+        const defaultLists = listsWithStatus.filter(list => 
+            ['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+        );
+        const customLists = listsWithStatus.filter(list => 
+            !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+        );
+        
+        dropdown.innerHTML = `
+            <div class="dropdown-header">
+                <h3 class="dropdown-title">Save to Lists</h3>
+                <button class="close-btn" onclick="window.listManager?.hideDropdown()">×</button>
+            </div>
+            
+            <div class="lists-scroll-container">
+                <div class="list-section">
+                    <div class="list-section-title">🌟 Quick Actions</div>
+                    ${defaultLists.map(list => `
+                        <div class="list-item" data-list-id="${list.id}">
+                            <div class="list-checkbox ${list.isChecked ? 'checked' : ''}"></div>
+                            <span class="list-item-text">
+                                ${list.title === 'Favorites' ? '❤️' : 
+                                list.title === 'Want to Go' ? '📍' : '🍽️'}
+                                ${list.title}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${customLists.length > 0 ? `
+                <div class="list-section">
+                    <div class="list-section-title">📋 Your Lists (${customLists.length})</div>
+                    ${customLists.map(list => `
+                        <div class="list-item" data-list-id="${list.id}">
+                            <div class="list-checkbox ${list.isChecked ? 'checked' : ''}"></div>
+                            <span class="list-item-text">${list.title}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : `
+                <div class="empty-custom-lists">
+                    No custom lists yet. Create one below!
+                </div>
+                `}
+            </div>
+            
+            <div class="list-section">
+                <div class="list-section-title">🆕 Create New</div>
+                <input type="text" class="new-list-input" placeholder="Enter list name..." id="newListName">
+                <button class="add-list-btn" id="createListBtn">
+                    <span>+</span> Create Custom List
+                </button>
+            </div>
+        `;
+        
+        // Add event listeners
+        this.setupDropdownEventListeners(dropdown);
+    }
+    
+    setupDropdownEventListeners(dropdown) {
+        // List item clicks
+        dropdown.querySelectorAll('.list-item').forEach(item => {
+            item.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const listId = item.dataset.listId;
+                const wasAdded = await this.toggleInList(listId);
+                
+                if (wasAdded !== null) {
+                    const checkbox = item.querySelector('.list-checkbox');
+                    if (checkbox) {
+                        checkbox.classList.toggle('checked', wasAdded);
+                        
+                        // Add animation
+                        checkbox.style.animation = 'none';
+                        setTimeout(() => {
+                            checkbox.style.animation = 'checkPop 0.3s ease';
+                        }, 10);
+                    }
+                    
+                    // Reload lists to update counts
+                    await this.loadUserLists();
+                    this.updateDropdown();
+                }
+            });
+        });
+        
+        // Create list button
+        const createBtn = dropdown.querySelector('#createListBtn');
+        const nameInput = dropdown.querySelector('#newListName');
+        
+        createBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const name = nameInput.value.trim();
+            if (!name) {
+                showNotification('Please enter a list name', 'warning');
+                return;
+            }
+            
+            const existingList = this.userLists.find(list => 
+                list.title.toLowerCase() === name.toLowerCase()
+            );
+            
+            if (existingList) {
+                showNotification(`"${name}" list already exists`, 'warning');
+                return;
+            }
+            
+            const newList = await this.createList(name, 'Custom list');
+            if (newList) {
+                nameInput.value = '';
+                
+                // Add to user lists
+                this.userLists.push(newList);
+                this.customLists = this.userLists.filter(list => 
+                    !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
+                );
+                
+                // Update dropdown
+                await this.updateDropdown();
+                
+                // Ask if user wants to add current restaurant
+                const addToNewList = confirm(`Would you like to add this restaurant to "${name}"?`);
+                if (addToNewList) {
+                    await this.toggleInList(newList.id);
+                    await this.updateDropdown();
+                }
+            }
+        });
+        
+        // Enter key for input
+        nameInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                e.stopPropagation();
+                createBtn.click();
+            }
+        });
+    }
+    
+    showDropdown() {
+        const dropdown = document.querySelector('.list-dropdown');
+        if (dropdown) {
+            dropdown.classList.add('show');
+            this.dropdownVisible = true;
+            this.updateDropdown();
+        }
+    }
+    
+    hideDropdown() {
+        const dropdown = document.querySelector('.list-dropdown');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+            this.dropdownVisible = false;
+        }
+    }
+    
+    toggleDropdown() {
+        if (this.dropdownVisible) {
+            this.hideDropdown();
+        } else {
+            this.showDropdown();
+        }
+    }
+    
+    injectListMenu() {
+        // Remove existing FAB if any
+        const existingFab = document.querySelector('.list-manager-fab');
+        if (existingFab) existingFab.remove();
+        
+        const existingDropdown = document.querySelector('.list-dropdown');
+        if (existingDropdown) existingDropdown.remove();
+        
+        // Create FAB button
+        const fab = document.createElement('div');
+        fab.className = 'list-manager-fab';
+        fab.innerHTML = `
+            <button class="fab-main" title="Save to lists">
+                <svg class="fab-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        `;
+        
+        // Create dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'list-dropdown';
+        
+        // Store reference to this manager instance
+        const manager = this;
+        
+        // FAB click handler
+        fab.addEventListener('click', (e) => {
+            e.stopPropagation();
+            manager.toggleDropdown();
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!fab.contains(e.target) && !dropdown.contains(e.target)) {
+                manager.hideDropdown();
+            }
+        });
+        
+        // Prevent dropdown clicks from closing
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+        
+        // Add to DOM
+        document.body.appendChild(fab);
+        document.body.appendChild(dropdown);
+        
+        console.log('✅ List manager UI injected');
+    }
+}
 
 // ========== UTILITY FUNCTIONS ==========
 function getRestaurantSlug() {
@@ -3436,466 +4075,6 @@ function setupSortControls() {
     }
 }
 
-// ========== LIST MANAGER ==========
-class RestaurantListManager {
-    constructor() {
-        this.restaurantId = null;
-        this.userLists = [];
-        this.customLists = [];
-        this.currentLists = {
-            favorites: null,
-            visited: null,
-            wantToGo: null
-        };
-        this.currentUser = null;
-        this.isLoading = false;
-    }
-
-    async init() {
-        // Get restaurant ID immediately
-        this.restaurantId = await getRestaurantIdFromSlug();
-        
-        // Inject UI immediately
-        this.injectListMenu();
-        
-        // Check auth in background
-        await this.checkAuth();
-        
-        if (this.currentUser && this.restaurantId) {
-            await this.loadUserLists();
-            this.updateDropdown();
-        } else {
-            // Still show UI but with login prompt
-            this.updateDropdown();
-        }
-    }
-
-    async checkAuth() {
-        try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            this.currentUser = session?.user || null;
-            
-            if (this.currentUser) {
-                supabaseClient.auth.onAuthStateChange((event, session) => {
-                    this.currentUser = session?.user || null;
-                    if (this.currentUser && this.restaurantId) {
-                        this.loadUserLists().then(() => this.updateDropdown());
-                    } else {
-                        this.updateDropdown();
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Auth error:', error);
-            this.currentUser = null;
-        }
-    }
-
-    async loadUserLists() {
-        if (this.isLoading) return;
-        this.isLoading = true;
-        
-        try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) {
-                this.userLists = [];
-                this.customLists = [];
-                return;
-            }
-
-            const { data: lists, error } = await supabaseClient
-                .from('lists')
-                .select('*')
-                .eq('user_id', user.id);
-            
-            if (error) throw error;
-            
-            this.userLists = lists || [];
-            
-            this.customLists = this.userLists.filter(list => 
-                !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-            );
-            
-            await this.setupDefaultLists();
-            await this.loadListRestaurants();
-            
-        } catch (error) {
-            console.error('Error loading lists:', error);
-            this.userLists = [];
-            this.customLists = [];
-        } finally {
-            this.isLoading = false;
-        }
-    }
-    
-    async setupDefaultLists() {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) return;
-        
-        this.currentLists.favorites = this.userLists.find(list => 
-            list.title.toLowerCase() === 'favorites'
-        );
-        this.currentLists.visited = this.userLists.find(list => 
-            list.title.toLowerCase() === 'visited'
-        ); 
-        this.currentLists.wantToGo = this.userLists.find(list => 
-            list.title.toLowerCase() === 'want to go'
-        );
-        
-        if (!this.currentLists.favorites) {
-            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
-            if (this.currentLists.favorites) this.userLists.push(this.currentLists.favorites);
-        }
-        if (!this.currentLists.visited) {
-            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
-            if (this.currentLists.visited) this.userLists.push(this.currentLists.visited);
-        }
-        if (!this.currentLists.wantToGo) {
-            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
-            if (this.currentLists.wantToGo) this.userLists.push(this.currentLists.wantToGo);
-        }
-    }
-    
-    async createList(title, description) {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) return null;
-        
-        try {
-            const { data: newList, error } = await supabaseClient
-                .from('lists')
-                .insert([
-                    {
-                        user_id: user.id,
-                        title: title,
-                        description: description,
-                        created_at: new Date().toISOString()
-                    }
-                ])
-                .select()
-                .single();
-            
-            if (error) throw error;
-            
-            newList.restaurants = [];
-            
-            showNotification(`Created "${title}" list`, 'success');
-            return newList;
-            
-        } catch (error) {
-            console.error('Error creating list:', error);
-            showNotification('Error creating list', 'error');
-            return null;
-        }
-    }
-    
-    async loadListRestaurants() {
-        const listIds = this.userLists.map(list => list.id);
-        if (listIds.length === 0) return;
-        
-        try {
-            const { data: listRestaurants, error } = await supabaseClient
-                .from('lists_restraunts')
-                .select('list_id, restraunt_id')
-                .in('list_id', listIds);
-            
-            if (error) throw error;
-            
-            const restaurantsByList = {};
-            listRestaurants?.forEach(item => {
-                if (!restaurantsByList[item.list_id]) {
-                    restaurantsByList[item.list_id] = [];
-                }
-                restaurantsByList[item.list_id].push(item.restraunt_id);
-            });
-            
-            this.userLists.forEach(list => {
-                list.restaurants = restaurantsByList[list.id] || [];
-            });
-            
-            this.customLists = this.userLists.filter(list => 
-                !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-            );
-            
-        } catch (error) {
-            console.error('Error loading list restaurants:', error);
-        }
-    }
-    
-    async checkIfInList(listId) {
-        if (!this.currentUser || !this.restaurantId) return false;
-        
-        const list = this.userLists.find(l => l.id === listId);
-        if (!list || !list.restaurants) return false;
-        
-        return list.restaurants.includes(this.restaurantId);
-    }
-    
-    async toggleInList(listId) {
-        if (!this.currentUser || !this.restaurantId) {
-            showLoginModal();
-            return false;
-        }
-        
-        const list = this.userLists.find(l => l.id === listId);
-        if (!list) {
-            console.error(`List ${listId} not found`);
-            return false;
-        }
-        
-        try {
-            const isInList = await this.checkIfInList(listId);
-            
-            if (isInList) {
-                const { error } = await supabaseClient
-                    .from('lists_restraunts')
-                    .delete()
-                    .match({
-                        list_id: list.id,
-                        restraunt_id: this.restaurantId
-                    });
-                
-                if (error) throw error;
-                
-                if (list.restaurants) {
-                    list.restaurants = list.restaurants.filter(id => id !== this.restaurantId);
-                }
-                
-                showNotification(`Removed from "${list.title}"`, 'info');
-                return false;
-            } else {
-                const { error } = await supabaseClient
-                    .from('lists_restraunts')
-                    .insert([
-                        {
-                            list_id: list.id,
-                            restraunt_id: this.restaurantId,
-                            added_at: new Date().toISOString()
-                        }
-                    ]);
-                
-                if (error) throw error;
-                
-                if (!list.restaurants) list.restaurants = [];
-                list.restaurants.push(this.restaurantId);
-                
-                showNotification(`Added to "${list.title}"`, 'success');
-                return true;
-            }
-            
-        } catch (error) {
-            console.error('Error updating list:', error);
-            showNotification('Error saving changes', 'error');
-            return null;
-        }
-    }
-    
-    async updateDropdown() {
-        const dropdown = document.querySelector('.list-dropdown');
-        if (!dropdown) return;
-        
-        if (this.isLoading) {
-            dropdown.innerHTML = `
-                <div class="dropdown-header">
-                    <h3 class="dropdown-title">💫 Save to Lists</h3>
-                    <button class="close-btn" onclick="this.closest('.list-dropdown').classList.remove('show')">×</button>
-                </div>
-                <div style="padding: 20px; text-align: center; color: var(--text2);">
-                    <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto 10px;"></div>
-                    Loading lists...
-                </div>
-            `;
-            return;
-        }
-        
-        if (!this.currentUser) {
-            dropdown.innerHTML = `
-                <div class="dropdown-header">
-                    <h3 class="dropdown-title">💫 Save to Lists</h3>
-                    <button class="close-btn" onclick="this.closest('.list-dropdown').classList.remove('show')">×</button>
-                </div>
-                <div class="auth-prompt" style="padding: 20px; text-align: center;">
-                    <div class="auth-icon" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.7;">🔐</div>
-                    <div style="color: var(--text2); margin-bottom: 15px;">Sign in to save restaurants to your lists</div>
-                    <button class="btn" onclick="showLoginModal()" style="width: 100%;">
-                        Sign In
-                    </button>
-                </div>
-            `;
-            return;
-        }
-        
-        const statusPromises = this.userLists.map(async (list) => ({
-            ...list,
-            isChecked: await this.checkIfInList(list.id)
-        }));
-        
-        const listsWithStatus = await Promise.all(statusPromises);
-        
-        const defaultLists = listsWithStatus.filter(list => 
-            ['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-        );
-        const customLists = listsWithStatus.filter(list => 
-            !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-        );
-        
-        dropdown.innerHTML = `
-            <div class="dropdown-header">
-                <h3 class="dropdown-title">💫 Save to Lists</h3>
-                <button class="close-btn" onclick="this.closest('.list-dropdown').classList.remove('show')">×</button>
-            </div>
-            
-            <div class="lists-scroll-container">
-                <div class="list-section">
-                    <div class="list-section-title">🌟 Quick Actions</div>
-                    ${defaultLists.map(list => `
-                        <div class="list-item" data-list-id="${list.id}">
-                            <div class="list-checkbox ${list.isChecked ? 'checked' : ''}"></div>
-                            <span class="list-item-text">
-                                ${list.title === 'Favorites' ? '❤️' : 
-                                list.title === 'Want to Go' ? '📍' : '🍽️'}
-                                ${list.title}
-                            </span>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                ${customLists.length > 0 ? `
-                <div class="list-section">
-                    <div class="list-section-title">📋 Your Lists (${customLists.length})</div>
-                    ${customLists.map(list => `
-                        <div class="list-item" data-list-id="${list.id}">
-                            <div class="list-checkbox ${list.isChecked ? 'checked' : ''}"></div>
-                            <span class="list-item-text">${list.title}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                ` : `
-                <div class="empty-custom-lists">
-                    No custom lists yet. Create one below!
-                </div>
-                `}
-            </div>
-            
-            <div class="list-section">
-                <div class="list-section-title">🆕 Create New</div>
-                <input type="text" class="new-list-input" placeholder="Enter list name..." id="newListName">
-                <button class="add-list-btn" id="createListBtn">
-                    <span>+</span> Create Custom List
-                </button>
-            </div>
-        `;
-        
-        dropdown.querySelectorAll('.list-item').forEach(item => {
-            item.addEventListener('click', async () => {
-                const listId = item.dataset.listId;
-                const wasAdded = await this.toggleInList(listId);
-                
-                if (wasAdded === false || wasAdded === true) {
-                    const checkbox = item.querySelector('.list-checkbox');
-                    if (checkbox) {
-                        checkbox.classList.toggle('checked', wasAdded);
-                        
-                        checkbox.style.animation = 'none';
-                        setTimeout(() => {
-                            checkbox.style.animation = 'checkPop 0.3s ease';
-                        }, 10);
-                    }
-                    
-                    await this.loadUserLists();
-                    this.updateDropdown();
-                }
-            });
-        });
-        
-        const createBtn = dropdown.querySelector('#createListBtn');
-        const nameInput = dropdown.querySelector('#newListName');
-        
-        createBtn.addEventListener('click', async () => {
-            const name = nameInput.value.trim();
-            if (!name) {
-                showNotification('Please enter a list name', 'warning');
-                return;
-            }
-            
-            const existingList = this.userLists.find(list => 
-                list.title.toLowerCase() === name.toLowerCase()
-            );
-            
-            if (existingList) {
-                showNotification(`"${name}" list already exists`, 'warning');
-                return;
-            }
-            
-            const newList = await this.createList(name, 'Custom list');
-            if (newList) {
-                nameInput.value = '';
-                
-                this.userLists.push(newList);
-                this.customLists = this.userLists.filter(list => 
-                    !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
-                );
-                
-                await this.updateDropdown();
-                
-                const addToNewList = confirm(`Would you like to add this restaurant to "${name}"?`);
-                if (addToNewList) {
-                    await this.toggleInList(newList.id);
-                    await this.updateDropdown();
-                }
-            }
-        });
-        
-        nameInput.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-                createBtn.click();
-            }
-        });
-    }
-    
-    injectListMenu() {
-        const existingFab = document.querySelector('.list-manager-fab');
-        if (existingFab) existingFab.remove();
-        
-        const existingDropdown = document.querySelector('.list-dropdown');
-        if (existingDropdown) existingDropdown.remove();
-        
-        const fab = document.createElement('div');
-        fab.className = 'list-manager-fab';
-        fab.innerHTML = `
-            <button class="fab-main">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14"/>
-                </svg>
-            </button>
-        `;
-        
-        const dropdown = document.createElement('div');
-        dropdown.className = 'list-dropdown';
-        
-        const manager = this;
-        fab.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.classList.toggle('show');
-            if (dropdown.classList.contains('show')) {
-                manager.updateDropdown();
-            }
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!fab.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
-        });
-        
-        dropdown.addEventListener('click', (e) => e.stopPropagation());
-        
-        document.body.appendChild(fab);
-        document.body.appendChild(dropdown);
-        
-        console.log('✅ List manager UI injected');
-    }
-}
-
 // ========== SUPABASE INITIALIZATION ==========
 async function initSupabase() {
     try {
@@ -3914,6 +4093,7 @@ async function initSupabase() {
     } catch (error) {
         console.error('❌ Failed to initialize Supabase:', error);
         
+        // Fallback mock client
         supabaseClient = {
             from: () => ({ 
                 select: () => ({ 
@@ -3943,13 +4123,11 @@ async function initPage() {
         
         await initReviewSystem();
         
-        setTimeout(() => {
-            try {
-                new RestaurantListManager();
-            } catch (error) {
-                console.error('Error initializing list manager:', error);
-            }
-        }, 100);
+        // Initialize list manager
+        listManager = new RestaurantListManager();
+        await listManager.init();
+        
+        console.log('✅ Page initialized successfully');
         
     } catch (error) {
         console.error('Page initialization error:', error);
@@ -3962,6 +4140,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeLightbox();
         closeLoginModal();
+        if (listManager) listManager.hideDropdown();
     } else if (e.key === 'ArrowLeft') {
         changeImage(-1);
     } else if (e.key === 'ArrowRight') {
@@ -3998,6 +4177,9 @@ window.closeLightbox = closeLightbox;
 window.changeImage = changeImage;
 window.showLoginModal = showLoginModal;
 window.closeLoginModal = closeLoginModal;
+
+// Expose list manager for global access
+window.listManager = listManager;
 </script>
 </body>
 </html>
