@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     
-    <!-- CRITICAL FIX: Preload Font Awesome icons -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- CRITICAL FIX: Font Awesome with swap -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'; this.onload=null;">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     
     <!-- Favicon for all devices -->
     <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
@@ -59,7 +59,6 @@
 
     <!-- OPTIMIZATION 2: Async load external scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
@@ -79,6 +78,12 @@
             --surface: rgba(19, 35, 71, 0.6);
             --cloud-color: #3b82f6;
             --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+        }
+        
+        /* Font Awesome optimization */
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-display: swap;
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -196,7 +201,7 @@
         .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
         .clear-search:hover { color: var(--white); }
         
-        /* Search Dropdown - FIXED: Removed lazy loading */
+        /* Search Dropdown */
         .search-dropdown {
             position: absolute;
             top: 100%;
@@ -264,13 +269,12 @@
             flex-shrink: 0;
         }
         
-        /* FIXED: Direct src loading, no opacity transition for instant display */
+        /* FIXED: Direct src loading for instant display */
         .search-result-logo img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             border-radius: 6px;
-            /* REMOVED: opacity: 0; transition: opacity 0.3s ease; */
         }
         
         .search-result-info {
@@ -346,7 +350,28 @@
             font-size: 14px; 
             white-space: nowrap; 
         }
-        .account-btn:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--accent); }
+        
+        /* FIXED: Orange profile icon for logged in users */
+        .account-btn.logged-in {
+            color: var(--accent);
+            border-color: rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .account-btn:hover { 
+            background: rgba(245, 158, 11, 0.1); 
+            border-color: var(--accent); 
+        }
+        
+        .account-btn.logged-in:hover {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--accent);
+        }
+        
+        .account-btn.logged-in i {
+            color: var(--accent);
+        }
+        
         .nav a.ghost { color: var(--muted); padding: 8px 14px; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; }
         .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
         
@@ -394,6 +419,8 @@
             .search-wrapper.active {
                 display: block;
                 animation: slideDown 0.3s ease;
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
             }
             
             .search-dropdown {
@@ -406,7 +433,15 @@
             }
             
             .search-result-item {
-                padding: 10px 14px;
+                padding: 14px 16px;
+                min-height: 60px;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* Better touch handling for mobile */
+            .search-result-item:active {
+                background: rgba(245, 158, 11, 0.2);
+                transform: scale(0.98);
             }
             
             .search-result-logo {
@@ -687,11 +722,6 @@
             object-fit: cover; 
             display: block; 
             transition: transform 0.5s ease; 
-            opacity: 0; 
-        }
-        
-        .spotlight-food-image.loaded { 
-            opacity: 1; 
         }
         
         .spotlight:hover .spotlight-food-image { 
@@ -721,12 +751,6 @@
             width: 100%; 
             height: 100%; 
             object-fit: contain; 
-            opacity: 0; 
-            transition: opacity 0.5s ease; 
-        }
-        
-        .spotlight-logo-overlay img.loaded { 
-            opacity: 1; 
         }
         
         .spotlight-content { 
@@ -804,28 +828,14 @@
             background: var(--accent); 
         }
         
-        /* Enhanced Image Loading - FIXED: Removed opacity transitions for instant loading */
+        /* Enhanced Image Loading - Optimized for performance */
         .restaurant-image { 
             display: block; 
             width: 100%; 
             height: 200px; 
             object-fit: cover; 
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); 
-            /* REMOVED: opacity: 0; transition: opacity 0.5s ease; */
         }
-        
-        /* REMOVED: .restaurant-image.loaded class since we don't need opacity transitions anymore */
-        
-        /* FIXED: Logo overlay - direct loading without opacity transitions */
-        .logo-overlay img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-            border-radius: 8px; 
-            /* REMOVED: opacity: 0; transition: opacity 0.5s ease; */
-        }
-        
-        /* REMOVED: .logo-overlay img.loaded class since we don't need opacity transitions anymore */
         
         /* Restaurant Cards with Mobile Slider Layout */
         .restaurant-card { 
@@ -1219,7 +1229,7 @@
             margin: 0 0 16px 0; 
             display: -webkit-box; 
             -webkit-line-clamp: 3; 
-            -webkit-box-orvent: vertical; 
+            -webkit-box-orient: vertical; 
             overflow: hidden; 
             flex: 1; 
             min-height: 60px; 
@@ -2788,7 +2798,7 @@
                 currentUser: null,
                 // Search data cache with limit
                 searchData: [],
-                // Store restaurant list statuses for instant access - FIXED: Initialize as empty Map
+                // Store restaurant list statuses for instant access
                 restaurantListStatuses: new Map(),
                 listManager: {
                     userLists: [],
@@ -2807,7 +2817,7 @@
                         }
                         
                         await this.loadUserLists();
-                        // Load all restaurant statuses immediately - THIS IS THE FIX
+                        // Load all restaurant statuses immediately
                         await this.loadAllRestaurantStatuses();
                         console.log('✅ List manager initialized');
                     },
@@ -2919,7 +2929,7 @@
                         }
                     },
                     
-                    // FIXED: Load all restaurant statuses at once - CRITICAL FIX
+                    // FIXED: Load all restaurant statuses at once - OPTIMIZED
                     async loadAllRestaurantStatuses() {
                         console.log('📊 Loading all restaurant statuses...');
                         if (!supabase || !state.isLoggedIn || !state.currentUser) {
@@ -3006,10 +3016,7 @@
                                 state.restaurantListStatuses.set(restaurantId, status);
                             });
                             
-                            console.log(`✅ Loaded list statuses for ${Object.keys(state.restaurantListStatuses).length} restaurants`);
-                            
-                            // Immediately update all UI elements - CRITICAL
-                            updateAllRestaurantCards();
+                            console.log(`✅ Loaded list statuses for ${state.restaurantListStatuses.size} restaurants`);
                             
                         } catch (error) {
                             console.error('Error loading restaurant statuses:', error);
@@ -3090,7 +3097,7 @@
                         }
                     },
                     
-                    // FIXED: Update local status immediately with custom lists support
+                    // FIXED: Update local status immediately
                     updateLocalStatus(listType, restaurantId, isAdded) {
                         const currentStatus = state.restaurantListStatuses.get(restaurantId) || {
                             favorites: false,
@@ -3127,8 +3134,8 @@
                         
                         state.restaurantListStatuses.set(restaurantId, currentStatus);
                         
-                        // Immediately update the UI
-                        updateAllRestaurantCards();
+                        // Debounced UI update
+                        scheduleUIUpdate();
                     },
                     
                     isInList(listType, restaurantId) {
@@ -3169,7 +3176,7 @@
                             };
                         }
                         
-                        // Get from cache for instant response - FIXED: Always return something
+                        // Get from cache for instant response
                         const cachedStatus = state.restaurantListStatuses.get(restaurantId);
                         if (cachedStatus) {
                             return cachedStatus;
@@ -3185,6 +3192,16 @@
                     }
                 }
             };
+            
+            // ---------- OPTIMIZATION: Debounce function ----------
+            let updateUITimeout = null;
+            function scheduleUIUpdate() {
+                if (updateUITimeout) clearTimeout(updateUITimeout);
+                updateUITimeout = setTimeout(() => {
+                    updateAllRestaurantCards();
+                    updateUITimeout = null;
+                }, 50);
+            }
             
             // ---------- UI UPDATE FUNCTIONS ----------
             function updateAllRestaurantCards() {
@@ -3340,7 +3357,7 @@
             
             function updateDayCardStatus() {
                 const dayCard = document.getElementById('dayCard');
-                if (!dayCard) return;
+                if (!dayCard || !dayCard.querySelector('.card-image')) return;
                 
                 // We need to check if this is the restaurant of the day
                 const topRestaurants = [...state.restaurants]
@@ -3428,7 +3445,7 @@
                 let searchResults = [];
                 let selectedResultIndex = -1;
                 
-                // OPTIMIZATION: Load search data in background (reduced payload)
+                // FIXED: Optimized search data loading
                 async function loadSearchData() {
                     try {
                         if (!supabase) return [];
@@ -3437,7 +3454,7 @@
                             .from('restraunts')
                             .select('id, slug, name, category, rating, logo_url')
                             .order('name')
-                            .limit(100); // Reduced from unlimited for performance
+                            .limit(100); // Reduced for performance
                         
                         if (error) throw error;
                         return data || [];
@@ -3483,7 +3500,7 @@
                     }
                 }
                 
-                // FIXED: Search logos load instantly with direct src
+                // FIXED: Mobile touch support
                 function renderSearchResults(results) {
                     searchDropdown.innerHTML = '';
                     
@@ -3492,10 +3509,11 @@
                         resultItem.className = 'search-result-item';
                         resultItem.dataset.index = index;
                         resultItem.tabIndex = 0;
+                        resultItem.setAttribute('role', 'option');
+                        resultItem.setAttribute('aria-selected', 'false');
                         
                         const logoUrl = restaurant.logo_url || 'images/default-logo.jpg';
                         
-                        // FIXED: Direct src loading, no lazy loading - logos load instantly
                         resultItem.innerHTML = `
                             <div class="search-result-logo">
                                 <img src="${logoUrl}" alt="${restaurant.name} logo" loading="eager">
@@ -3512,9 +3530,15 @@
                             </div>
                         `;
                         
-                        resultItem.addEventListener('click', () => {
+                        // FIXED: Mobile touch support with proper event handling
+                        const selectRestaurantHandler = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             selectRestaurant(restaurant);
-                        });
+                        };
+                        
+                        resultItem.addEventListener('click', selectRestaurantHandler);
+                        resultItem.addEventListener('touchend', selectRestaurantHandler);
                         
                         resultItem.addEventListener('keydown', (e) => {
                             if (e.key === 'Enter') {
@@ -3536,13 +3560,24 @@
                     `;
                 }
                 
+                // FIXED: Mobile search navigation
                 function selectRestaurant(restaurant) {
                     if (restaurant && restaurant.slug) {
+                        // Close mobile search if open
                         if (searchWrapper.classList.contains('active')) {
                             searchWrapper.classList.remove('active');
                             document.body.style.overflow = '';
                         }
                         
+                        // Close dropdown
+                        searchDropdown.classList.remove('active');
+                        searchInput.value = '';
+                        
+                        if (clearSearchBtn) {
+                            clearSearchBtn.style.display = 'none';
+                        }
+                        
+                        // Navigate to restaurant page
                         window.location.href = `restaurant.html?slug=${restaurant.slug}`;
                     }
                 }
@@ -3600,7 +3635,10 @@
                     if (searchResults.length === 0) return;
                     
                     const prevItem = searchDropdown.querySelector('.search-result-item.active');
-                    if (prevItem) prevItem.classList.remove('active');
+                    if (prevItem) {
+                        prevItem.classList.remove('active');
+                        prevItem.setAttribute('aria-selected', 'false');
+                    }
                     
                     selectedResultIndex += direction;
                     
@@ -3613,11 +3651,13 @@
                     const currentItem = searchDropdown.querySelector(`.search-result-item[data-index="${selectedResultIndex}"]`);
                     if (currentItem) {
                         currentItem.classList.add('active');
+                        currentItem.setAttribute('aria-selected', 'true');
                         currentItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                         searchInput.value = searchResults[selectedResultIndex].name;
                     }
                 }
                 
+                // FIXED: Better mobile touch handling
                 document.addEventListener('click', (e) => {
                     if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
                         searchDropdown.classList.remove('active');
@@ -3625,8 +3665,9 @@
                     }
                 });
                 
+                // FIXED: Mobile search toggle with touch support
                 if (mobileSearchToggle && searchWrapper) {
-                    mobileSearchToggle.addEventListener('click', () => {
+                    const toggleSearch = () => {
                         searchWrapper.classList.toggle('active');
                         
                         if (searchWrapper.classList.contains('active')) {
@@ -3636,6 +3677,12 @@
                             document.body.style.overflow = '';
                             searchDropdown.classList.remove('active');
                         }
+                    };
+                    
+                    mobileSearchToggle.addEventListener('click', toggleSearch);
+                    mobileSearchToggle.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        toggleSearch();
                     });
                 }
                 
@@ -3646,6 +3693,11 @@
                         searchDropdown.classList.remove('active');
                     }
                 });
+                
+                // FIXED: Prevent body scroll when interacting with search on mobile
+                searchInput.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
                 
                 console.log('✅ Search functionality initialized');
             }
@@ -3679,10 +3731,11 @@
                     state.currentUser = session.user;
                     state.isLoggedIn = true;
                     
+                    // FIXED: Optimized profile check
                     const profileReady = await ensureUserProfileExists(session.user);
                     
                     if (profileReady) {
-                        // FIXED: Initialize list manager and load statuses BEFORE rendering
+                        // Initialize list manager and load statuses
                         await state.listManager.init();
                         setLoggedInState(session.user);
                         
@@ -3699,6 +3752,7 @@
                     setGuestState();
                 }
                 
+                // FIXED: Auth state change handler with orange profile icon
                 supabase.auth.onAuthStateChange(async (event, session) => {
                     console.log('🔄 Auth state change:', event);
                     
@@ -3717,6 +3771,11 @@
                         await state.listManager.init();
                         setLoggedInState(session.user);
                         
+                        // Show welcome notification for new signups
+                        if (event === 'SIGNED_IN') {
+                            showNotification('Welcome to Zo2y!', 'success');
+                        }
+                        
                         // Refresh UI to show list badges
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
@@ -3726,53 +3785,42 @@
                 });
             }
             
-            async function ensureUserProfileExists(user, retries = 3) {
-                console.log('🔍 Ensuring profile exists for:', user.id);
+            // FIXED: Optimized profile check
+            async function ensureUserProfileExists(user) {
+                console.log('🔍 Checking profile for:', user.id);
                 
                 if (!supabase) return false;
                 
-                for (let attempt = 1; attempt <= retries; attempt++) {
-                    console.log(`Attempt ${attempt}/${retries}`);
+                try {
+                    // Single quick check, no retries blocking UI
+                    const { data: profile, error } = await supabase
+                        .from('user_profiles')
+                        .select('id, username, full_name, avatar_icon')
+                        .eq('id', user.id)
+                        .maybeSingle();
                     
-                    try {
-                        if (attempt > 1) {
-                            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-                        }
-                        
-                        const { data: profile, error: checkError } = await supabase
-                            .from('user_profiles')
-                            .select('id, username, full_name, avatar_icon')
-                            .eq('id', user.id)
-                            .maybeSingle();
-                        
-                        if (profile) {
-                            console.log('✅ Profile exists:', profile);
-                            return true;
-                        }
-                        
-                        if (checkError && checkError.code !== 'PGRST116') {
-                            console.error('Profile check error:', checkError);
-                        }
-                        
-                        console.log('📝 Creating profile for user...');
-                        
-                        const userData = user.user_metadata || {};
-                        const email = user.email || '';
-                        
-                        let username = (
-                            userData.full_name || 
-                            userData.name || 
-                            email.split('@')[0] || 
-                            'user'
-                        ).toLowerCase()
-                          .replace(/\s+/g, '_')
-                          .replace(/[^a-z0-9_]/g, '')
-                          .substring(0, 30);
-                        
-                        const timestamp = Date.now().toString(36).substring(-4);
-                        username = `${username}_${timestamp}`;
-                        
-                        const profileData = {
+                    if (profile) {
+                        console.log('✅ Profile exists');
+                        return true;
+                    }
+                    
+                    // If no profile, create it quickly (no blocking)
+                    const userData = user.user_metadata || {};
+                    const email = user.email || '';
+                    
+                    let username = (userData.full_name || userData.name || email.split('@')[0] || 'user')
+                        .toLowerCase()
+                        .replace(/\s+/g, '_')
+                        .replace(/[^a-z0-9_]/g, '')
+                        .substring(0, 30);
+                    
+                    const timestamp = Date.now().toString(36).substring(-4);
+                    username = `${username}_${timestamp}`;
+                    
+                    // Fire and forget - don't wait
+                    supabase
+                        .from('user_profiles')
+                        .insert([{
                             id: user.id,
                             username: username,
                             full_name: userData.full_name || userData.name || username,
@@ -3780,47 +3828,19 @@
                             bio: '',
                             location: '',
                             is_private: false
-                        };
-                        
-                        console.log('Profile data:', profileData);
-                        
-                        const { data: newProfile, error: createError } = await supabase
-                            .from('user_profiles')
-                            .insert([profileData])
-                            .select()
-                            .maybeSingle();
-                        
-                        if (createError) {
-                            console.error('❌ Profile creation error:', createError);
-                            
-                            if (createError.code === '23505') {
-                                console.log('Profile already exists (created by trigger)');
-                                return true;
-                            }
-                            
-                            if (attempt === retries) {
-                                console.error('All retry attempts failed');
-                                return false;
-                            }
-                            continue;
-                        }
-                        
-                        if (newProfile) {
-                            console.log('✅ Profile created successfully:', newProfile);
-                            return true;
-                        }
-                        
-                    } catch (error) {
-                        console.error('Unexpected error:', error);
-                        if (attempt === retries) {
-                            return false;
-                        }
-                    }
+                        }])
+                        .then(() => console.log('✅ Profile created'))
+                        .catch(err => console.warn('Profile creation warning:', err));
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Profile check error:', error);
+                    return false;
                 }
-                
-                return false;
             }
             
+            // FIXED: Orange profile icon for logged in users
             function setLoggedInState(user) {
                 try {
                     let displayName = 'User';
@@ -3834,6 +3854,7 @@
                     const authBtn = document.getElementById('userAccountBtn');
                     if (authBtn) {
                         authBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+                        authBtn.classList.add('logged-in');
                         authBtn.onclick = () => {
                             window.location.href = 'profile.html';
                         };
@@ -3856,6 +3877,7 @@
                 const authBtn = document.getElementById('userAccountBtn');
                 if (authBtn) {
                     authBtn.innerHTML = `<i class="fas fa-user"></i><span>Account</span>`;
+                    authBtn.classList.remove('logged-in');
                     authBtn.onclick = () => {
                         window.location.href = 'login.html';
                     };
@@ -3889,7 +3911,7 @@
                                 .from('restraunts')
                                 .select('id, slug, name, category, description, rating, logo_url, image')
                                 .order('rating', { ascending: false })
-                                .limit(32) // Reduced from 48 for faster loading
+                                .limit(16) // OPTIMIZATION: Reduced from 32 for faster loading
                         ]);
                     
                     if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
@@ -3952,7 +3974,7 @@
                     const { data: cloudKitchens, error } = await supabase
                         .from('cloud_kitchens')
                         .select('restaurant_id')
-                        .limit(50); // Reduced limit
+                        .limit(50);
                     
                     if (error) {
                         console.warn('Error loading cloud kitchens:', error);
@@ -3978,11 +4000,11 @@
                         supabase
                             .from('restaurant_gallery')
                             .select('restaurant_slug, image_url, image_type')
-                            .limit(100), // Reduced from 200
+                            .limit(100),
                         supabase
                             .from('restraunts')
                             .select('slug, image, logo_url')
-                            .limit(50) // Reduced from 100
+                            .limit(50)
                     ]);
                     
                     state.restaurantImages.clear();
@@ -4082,17 +4104,12 @@
                 const logoOverlay = document.getElementById('spotLogoOverlay');
                 
                 foodImage.src = '';
-                foodImage.classList.remove('loaded');
                 logoImage.src = '';
-                logoImage.classList.remove('loaded');
                 
                 if (restaurant.coverImage) {
-                    // FIXED: Direct src loading with eager loading for spotlight
+                    // OPTIMIZATION: Direct src loading with eager loading for spotlight
                     foodImage.src = restaurant.coverImage;
                     foodImage.loading = 'eager';
-                    foodImage.onload = () => {
-                        foodImage.classList.add('loaded');
-                    };
                     foodImage.onerror = () => {
                         foodImage.style.display = 'none';
                     };
@@ -4103,12 +4120,9 @@
                 const logoUrl = getLogoUrl(restaurant);
                 if (logoUrl) {
                     logoOverlay.style.display = 'flex';
-                    // FIXED: Direct src loading with eager loading for spotlight
+                    // OPTIMIZATION: Direct src loading with eager loading for spotlight
                     logoImage.src = logoUrl;
                     logoImage.loading = 'eager';
-                    logoImage.onload = () => {
-                        logoImage.classList.add('loaded');
-                    };
                     logoImage.onerror = () => {
                         logoOverlay.style.display = 'none';
                     };
@@ -4239,7 +4253,9 @@
                     `;
                 }
                 
-                // FIXED: Changed all data-src to src with loading="eager" for instant loading
+                // OPTIMIZATION: Direct src loading with lazy loading for images below fold
+                const imageLoading = state.restaurants.indexOf(restaurant) < 8 ? 'eager' : 'lazy';
+                
                 card.innerHTML = `
                     <a href="restaurant.html?slug=${restaurant.slug}" class="card-link">
                         <div class="card-image">
@@ -4247,7 +4263,7 @@
                                 <img class="restaurant-image" 
                                      src="${restaurant.coverImage}" 
                                      alt="${restaurant.name}" 
-                                     loading="eager"
+                                     loading="${imageLoading}"
                                      width="300" 
                                      height="200">
                             ` : ''}
@@ -4257,7 +4273,7 @@
                                          alt="${restaurant.name} logo" 
                                          width="48" 
                                          height="48"
-                                         loading="eager">
+                                         loading="${imageLoading}">
                                 </div>
                             ` : ''}
                             
@@ -4768,7 +4784,7 @@
                 }
             }
             
-            // FIXED: Custom Lists Modal - Optimized for instant loading
+            // ---------- CUSTOM LISTS MODAL ----------
             function setupCustomListsModal() {
                 const customListsBtn = document.getElementById('modalCustomListsBtn');
                 const closeListsBtn = document.getElementById('closeListsBtn');
@@ -4793,14 +4809,14 @@
                     // Hide main modal first
                     hideModal();
                     
-                    // Show modal immediately with loading state - INSTANT DISPLAY
+                    // Show modal immediately with loading state
                     const modal = document.getElementById('customListsModal');
                     if (modal) {
                         modal.classList.add('active');
                         document.body.style.overflow = 'hidden';
                     }
                     
-                    // Show loading spinner - USER SEES THIS IMMEDIATELY
+                    // Show loading spinner
                     listsListContainer.innerHTML = `
                         <div style="text-align: center; padding: 40px; color: var(--muted);">
                             <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 12px;"></i>
@@ -4818,7 +4834,7 @@
                             selectedLists.add(list.id);
                         });
                         
-                        // Only refresh if cache is empty - SKIPS DATABASE IF POSSIBLE
+                        // Only refresh if cache is empty
                         if (state.listManager.customLists.length === 0 && state.isLoggedIn) {
                             await state.listManager.loadUserLists();
                         }
@@ -4827,7 +4843,6 @@
                         renderCustomLists();
                         
                     } catch (error) {
-                        // Error handling with visual feedback
                         listsListContainer.innerHTML = `
                             <div class="empty-lists">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -4957,7 +4972,7 @@
                         const restaurantId = state.currentModalRestaurant.id;
                         const restaurantName = state.currentModalRestaurant.name;
                         
-                        // Disable button + show loading - VISUAL FEEDBACK
+                        // Disable button + show loading
                         saveListsBtn.disabled = true;
                         saveListsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
                         
@@ -4975,7 +4990,7 @@
                                 !selectedLists.has(listId)
                             );
                             
-                            // OPTIMIZED: Process ALL changes in parallel - FAST
+                            // Process ALL changes in parallel
                             const operations = [];
                             
                             // Queue all additions
@@ -5006,10 +5021,10 @@
                                 );
                             }
                             
-                            // Execute ALL at once - PARALLEL DATABASE CALLS
+                            // Execute ALL at once
                             await Promise.all(operations);
                             
-                            // Update local cache immediately - INSTANT UI UPDATE
+                            // Update local cache immediately
                             const newCustomLists = state.listManager.customLists
                                 .filter(list => selectedLists.has(list.id))
                                 .map(list => ({
@@ -5024,7 +5039,7 @@
                             });
                             
                             // Update UI instantly
-                            updateAllRestaurantCards();
+                            scheduleUIUpdate();
                             
                             // Close modal
                             const modal = document.getElementById('customListsModal');
@@ -5039,7 +5054,7 @@
                             console.error('Error saving lists:', error);
                             showNotification('Error saving lists', 'error');
                         } finally {
-                            // Re-enable button - CLEANUP
+                            // Re-enable button
                             saveListsBtn.disabled = false;
                             saveListsBtn.innerHTML = 'Save Changes';
                         }
@@ -5108,10 +5123,7 @@
                         if (!state.currentModalRestaurant) return;
                         await state.listManager.toggleInList('favorites', state.currentModalRestaurant.id);
                         updateModalButtons(state.currentModalRestaurant.id);
-                        renderFeaturedRestaurants();
-                        renderNearbyRestaurants();
-                        updateSpotlight();
-                        setupRestaurantOfTheDay();
+                        scheduleUIUpdate();
                         hideModal();
                     });
                 }
@@ -5121,10 +5133,7 @@
                         if (!state.currentModalRestaurant) return;
                         await state.listManager.toggleInList('wantToGo', state.currentModalRestaurant.id);
                         updateModalButtons(state.currentModalRestaurant.id);
-                        renderFeaturedRestaurants();
-                        renderNearbyRestaurants();
-                        updateSpotlight();
-                        setupRestaurantOfTheDay();
+                        scheduleUIUpdate();
                         hideModal();
                     });
                 }
@@ -5134,10 +5143,7 @@
                         if (!state.currentModalRestaurant) return;
                         await state.listManager.toggleInList('visited', state.currentModalRestaurant.id);
                         updateModalButtons(state.currentModalRestaurant.id);
-                        renderFeaturedRestaurants();
-                        renderNearbyRestaurants();
-                        updateSpotlight();
-                        setupRestaurantOfTheDay();
+                        scheduleUIUpdate();
                         hideModal();
                     });
                 }
@@ -5197,16 +5203,16 @@
                 }
                 
                 try {
-                    // OPTIMIZATION: Parallel initialization
+                    // OPTIMIZATION: Show content immediately, auth runs in background
                     setupEventListeners();
                     guestBanner.init();
                     setupSearch();
                     
-                    // Run auth and data loading in parallel
-                    await Promise.allSettled([
-                        initializeAuth(),
-                        loadRestaurantsData()
-                    ]);
+                    // Load restaurants FIRST (don't wait for auth)
+                    loadRestaurantsData();
+                    
+                    // Auth runs separately in background
+                    initializeAuth();
                     
                     console.log('✅ Homepage initialization complete');
                     
@@ -5227,7 +5233,7 @@
                 }
             }
             
-            // OPTIMIZATION: Execute immediately if DOM ready, no delays
+            // Execute immediately if DOM ready, no delays
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
