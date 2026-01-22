@@ -2146,6 +2146,40 @@ a.btn,
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
+
+/* ========== ADDED GALLERY LOADING STYLES ========== */
+.gallery-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.gallery-item:hover {
+    transform: scale(1.05);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 </head>
 <body>
@@ -2264,7 +2298,7 @@ a.btn,
         </div>
     </section>
 
-    <!-- Gallery Section (MOVED BEFORE MENU) -->
+    <!-- Gallery Section -->
     <section id="gallery-section" class="section gallery">
         <h2>Gallery</h2>
         <div class="gallery-tabs" id="gallery-tabs">
@@ -2392,12 +2426,241 @@ let lazyLoadObserver = null;
 let supabaseClient = null;
 let restaurantId = null;
 let listManager = null;
+let listModuleLoadAttempts = 0;
+const MAX_LOAD_ATTEMPTS = 5;
+const RETRY_DELAY = 500;
 
 // ========== SUPABASE CONFIG ==========
 const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
-// ========== RESTAURANT LIST MANAGER ==========
+// ============================================
+// FIX 1: Enhanced Gallery Image Loading
+// ============================================
+async function loadRestaurantImages(restaurantSlug) {
+    try {
+        console.log('🖼️ Loading gallery images for:', restaurantSlug);
+        
+        // Use sort_order instead of display_order
+        const { data, error } = await supabaseClient
+            .from('restaurant_gallery')
+            .select('*')
+            .eq('restaurant_slug', restaurantSlug)
+            .order('sort_order', { ascending: true }); // Changed from display_order
+        
+        if (error) {
+            console.error('Error loading gallery images:', error);
+            return [];
+        }
+        
+        console.log('✅ Gallery images loaded:', data?.length || 0);
+        return data || [];
+    } catch (err) {
+        console.error('Exception loading gallery images:', err);
+        return [];
+    }
+}
+
+// ============================================
+// FIX 2: List FAB Module Loading System
+// ============================================
+function waitForElement(selector, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(() => {
+            if (document.querySelector(selector)) {
+                observer.disconnect();
+                resolve(document.querySelector(selector));
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        setTimeout(() => {
+            observer.disconnect();
+            reject(new Error(`Timeout waiting for ${selector}`));
+        }, timeout);
+    });
+}
+
+async function ensureListModuleLoaded() {
+    console.log('🔄 Ensuring list module is loaded...');
+    
+    // Check if already loaded
+    if (window.restaurantListManager && typeof window.restaurantListManager.init === 'function') {
+        console.log('✅ List module already loaded');
+        return true;
+    }
+    
+    listModuleLoadAttempts++;
+    
+    if (listModuleLoadAttempts > MAX_LOAD_ATTEMPTS) {
+        console.error('❌ Failed to load list module after', MAX_LOAD_ATTEMPTS, 'attempts');
+        return false;
+    }
+    
+    console.log(`🔄 List module load attempt ${listModuleLoadAttempts}/${MAX_LOAD_ATTEMPTS}`);
+    
+    // Wait a bit and try again
+    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+    
+    // Check again
+    if (window.restaurantListManager && typeof window.restaurantListManager.init === 'function') {
+        console.log('✅ List module loaded successfully');
+        return true;
+    }
+    
+    // Retry
+    return ensureListModuleLoaded();
+}
+
+// ============================================
+// FIX 3: Enhanced Gallery Display Function
+// ============================================
+function displayGalleryImages(images, restaurantName) {
+    const allTab = document.getElementById('gallery-all');
+    const foodTab = document.getElementById('gallery-food');
+    const interiorTab = document.getElementById('gallery-interior');
+    const menuTab = document.getElementById('gallery-menu');
+    
+    // Create tab containers if they don't exist
+    if (!allTab && document.getElementById('gallery-container')) {
+        const container = document.getElementById('gallery-container');
+        container.innerHTML = `
+            <div id="gallery-all" class="gallery-tab-content"></div>
+            <div id="gallery-food" class="gallery-tab-content" style="display:none;"></div>
+            <div id="gallery-interior" class="gallery-tab-content" style="display:none;"></div>
+            <div id="gallery-menu" class="gallery-tab-content" style="display:none;"></div>
+        `;
+    }
+    
+    if (!images || images.length === 0) {
+        const noPhotosHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <p>📷 No photos available yet</p>
+            </div>
+        `;
+        
+        const container = document.getElementById('gallery-container');
+        if (container) container.innerHTML = noPhotosHTML;
+        return;
+    }
+    
+    // Sort by sort_order (already sorted from query, but just in case)
+    const sortedImages = [...images].sort((a, b) => 
+        (a.sort_order || 999) - (b.sort_order || 999)
+    );
+    
+    // Create image HTML
+    function createImageHTML(image) {
+        const isPrimary = image.is_primary ? ' (Primary)' : '';
+        return `
+            <div class="gallery-item" data-image-type="${image.image_type}">
+                <img src="${image.image_url}" 
+                     alt="${restaurantName} - ${image.image_type}${isPrimary}"
+                     loading="lazy"
+                     onclick="openImageModal('${image.image_url}', '${restaurantName}')">
+            </div>
+        `;
+    }
+    
+    // Filter and display images
+    const allImages = sortedImages.map(createImageHTML).join('');
+    const foodImages = sortedImages.filter(img => img.image_type === 'food').map(createImageHTML).join('');
+    const interiorImages = sortedImages.filter(img => img.image_type === 'interior').map(createImageHTML).join('');
+    const menuImages = sortedImages.filter(img => img.image_type === 'menu').map(createImageHTML).join('');
+    
+    const allTabEl = document.getElementById('gallery-all');
+    const foodTabEl = document.getElementById('gallery-food');
+    const interiorTabEl = document.getElementById('gallery-interior');
+    const menuTabEl = document.getElementById('gallery-menu');
+    
+    if (allTabEl) allTabEl.innerHTML = allImages || '<p>No photos available</p>';
+    if (foodTabEl) foodTabEl.innerHTML = foodImages || '<p>No food photos available</p>';
+    if (interiorTabEl) interiorTabEl.innerHTML = interiorImages || '<p>No interior photos available</p>';
+    if (menuTabEl) menuTabEl.innerHTML = menuImages || '<p>No menu photos available</p>';
+}
+
+// ============================================
+// ENHANCED RESTAURANT PAGE INITIALIZATION
+// ============================================
+async function initializeRestaurantPage() {
+    try {
+        console.log('🚀 Starting restaurant page initialization...');
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            await new Promise(resolve => {
+                document.addEventListener('DOMContentLoaded', resolve);
+            });
+        }
+        
+        // Initialize Supabase
+        await initSupabase();
+        
+        if (!window.supabase || !supabaseClient) {
+            console.error('❌ Supabase not initialized');
+            showErrorMessage('Failed to initialize database connection');
+            return;
+        }
+        
+        // Load list module with retry logic
+        const listModuleLoaded = await ensureListModuleLoaded();
+        
+        if (!listModuleLoaded) {
+            console.warn('⚠️ List module failed to load, continuing without it');
+        }
+        
+        // Get restaurant slug from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        let restaurantSlug = urlParams.get('slug');
+        
+        if (!restaurantSlug) {
+            const path = window.location.pathname;
+            const filename = path.split('/').pop();
+            restaurantSlug = filename.replace('.html', '').toLowerCase();
+        }
+        
+        if (!restaurantSlug) {
+            console.error('❌ No restaurant slug in URL');
+            showNotFoundMessage();
+            return;
+        }
+        
+        // Decode and clean slug
+        restaurantSlug = decodeURIComponent(restaurantSlug).toLowerCase().trim();
+        
+        // Load restaurant data
+        await loadRestaurantData(restaurantSlug);
+        
+        // Initialize list manager if available
+        if (listModuleLoaded && window.restaurantListManager) {
+            try {
+                console.log('🎯 Initializing list manager...');
+                await window.restaurantListManager.init();
+                console.log('✅ List manager initialized');
+            } catch (err) {
+                console.error('❌ Error initializing list manager:', err);
+            }
+        }
+        
+        console.log('✅ Restaurant page initialization complete');
+        
+    } catch (err) {
+        console.error('❌ Fatal error during initialization:', err);
+        showErrorMessage('Failed to load restaurant page');
+    }
+}
+
+// ============================================
+// RESTAURANT LIST MANAGER (Updated)
+// ============================================
 class RestaurantListManager {
     constructor() {
         this.restaurantId = null;
@@ -3124,6 +3387,15 @@ function showError() {
     document.getElementById('error').style.display = 'block';
 }
 
+function showNotFoundMessage() {
+    showError();
+}
+
+function showErrorMessage(message) {
+    showNotification(message, 'error');
+    showError();
+}
+
 // ========== SECTION NAVIGATION ==========
 function createSectionNavigation() {
     const navList = document.getElementById('sectionNavList');
@@ -3207,95 +3479,11 @@ function createSectionNavigation() {
     });
 }
 
-// ========== RESTAURANT IMAGE LOADING ==========
-async function loadRestaurantImages(slug) {
-    try {
-        console.log('📸 Loading images for restaurant:', slug);
-        
-        // Load gallery images from restaurant_gallery table
-        const { data: galleryData, error: galleryError } = await supabaseClient
-            .from('restaurant_gallery')
-            .select('*')
-            .eq('restaurant_slug', slug)
-            .order('display_order', { ascending: true });
-        
-        if (galleryError) {
-            console.error('Error loading gallery images:', galleryError);
-            return {
-                gallery: [],
-                logo: null,
-                cover: null
-            };
-        }
-        
-        // Get logo and cover images from gallery
-        let logoUrl = null;
-        let coverUrl = null;
-        const galleryImages = [];
-        
-        if (galleryData && galleryData.length > 0) {
-            // Find logo and cover images
-            galleryData.forEach(image => {
-                if (image.image_type === 'logo') {
-                    logoUrl = image.image_url;
-                } else if (image.image_type === 'cover') {
-                    coverUrl = image.image_url;
-                } else {
-                    // Add to gallery images for display
-                    galleryImages.push({
-                        id: image.id,
-                        image_url: image.image_url,
-                        caption: image.caption || '',
-                        category: image.category || 'all',
-                        image_type: image.image_type || 'gallery'
-                    });
-                }
-            });
-        }
-        
-        // Fallback: Get restaurant data for logo
-        if (!logoUrl) {
-            const { data: restaurantData } = await supabaseClient
-                .from('restraunts')
-                .select('logo_url, image')
-                .eq('slug', slug)
-                .single();
-            
-            if (restaurantData) {
-                if (!logoUrl && restaurantData.logo_url) {
-                    logoUrl = restaurantData.logo_url;
-                }
-                if (!coverUrl && restaurantData.image) {
-                    coverUrl = restaurantData.image;
-                }
-            }
-        }
-        
-        console.log('✅ Loaded restaurant images:', {
-            galleryCount: galleryImages.length,
-            logo: logoUrl,
-            cover: coverUrl
-        });
-        
-        return {
-            gallery: galleryImages,
-            logo: logoUrl,
-            cover: coverUrl
-        };
-        
-    } catch (error) {
-        console.error('Error loading restaurant images:', error);
-        return {
-            gallery: [],
-            logo: null,
-            cover: null
-        };
-    }
-}
-
 // ========== LOAD RESTAURANT DATA ==========
-async function loadRestaurantData() {
-    const slug = getRestaurantSlug();
+async function loadRestaurantData(slug) {
+    if (!slug) {
+        slug = getRestaurantSlug();
+    }
     
     if (!slug) {
         throw new Error('No restaurant slug found');
@@ -3339,9 +3527,9 @@ function renderRestaurantData(data) {
     
     createSectionNavigation();
     
-    // Set logo from restaurant_gallery table
+    // Set logo
     const logoImg = document.getElementById('restaurant-logo');
-    const logoUrl = images.logo || restaurant.logo_url || 'images/default-logo.jpg';
+    const logoUrl = restaurant.logo_url || restaurant.image || 'images/default-logo.jpg';
     logoImg.src = logoUrl;
     logoImg.alt = `${restaurant.name} Logo`;
     logoImg.classList.remove('lazy-img');
@@ -3500,9 +3688,9 @@ function renderRestaurantData(data) {
     updateTalabatDisplay(restaurant.slug);
     
     // Render gallery with images from restaurant_gallery
-    if (images.gallery && images.gallery.length > 0) {
-        galleryImages = images.gallery;
-        renderGallery(galleryImages, 'all');
+    if (images && images.length > 0) {
+        galleryImages = images;
+        displayGalleryImages(galleryImages, restaurant.name);
         setupGalleryTabs();
     } else {
         document.getElementById('gallery-empty').style.display = 'block';
@@ -3510,45 +3698,6 @@ function renderRestaurantData(data) {
 }
 
 // ========== GALLERY FUNCTIONS ==========
-function renderGallery(images, category = 'all') {
-    const container = document.getElementById('gallery-container');
-    const emptyMsg = document.getElementById('gallery-empty');
-    
-    const filteredImages = category === 'all' 
-        ? images
-        : images.filter(img => img.category && img.category.toLowerCase() === category.toLowerCase());
-    
-    if (!filteredImages || filteredImages.length === 0) {
-        container.innerHTML = '';
-        emptyMsg.style.display = 'block';
-        return;
-    }
-    
-    emptyMsg.style.display = 'none';
-    container.innerHTML = '';
-    
-    filteredImages.forEach((image, index) => {
-        if (!image.image_url) return;
-        
-        const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item';
-        
-        galleryItem.innerHTML = `
-            <img src="" 
-                alt="${image.caption || 'Restaurant image'}" 
-                class="gallery-image lazy"
-                loading="lazy"
-                data-src="${image.image_url}"
-                onclick="openLightbox(${index}, '${category}')">
-            ${image.caption ? `<div class="gallery-caption">${image.caption}</div>` : ''}
-        `;
-        container.appendChild(galleryItem);
-        
-        const img = galleryItem.querySelector('img');
-        lazyLoadObserver.observe(img);
-    });
-}
-
 function setupGalleryTabs() {
     const tabs = document.querySelectorAll('.gallery-tab');
     tabs.forEach(tab => {
@@ -3558,55 +3707,27 @@ function setupGalleryTabs() {
             
             const category = tab.dataset.category;
             currentGalleryCategory = category;
-            renderGallery(galleryImages, category);
+            
+            // Filter and display images
+            const filteredImages = category === 'all' 
+                ? galleryImages
+                : galleryImages.filter(img => img.image_type === category);
+            
+            displayGalleryImages(filteredImages, document.getElementById('restaurant-name').textContent);
         });
     });
 }
 
-function openLightbox(index, category = 'all') {
-    const filteredImages = category === 'all' 
-        ? galleryImages
-        : galleryImages.filter(img => img.category && img.category.toLowerCase() === category.toLowerCase());
-    
-    if (!filteredImages || filteredImages.length === 0) return;
-    
-    const image = filteredImages[index];
-    const actualIndex = galleryImages.findIndex(img => img.id === image.id);
-    
-    currentGalleryIndex = actualIndex;
-    currentGalleryCategory = category;
-    
+function openImageModal(imageUrl, caption) {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightbox-image');
     const lightboxCaption = document.getElementById('lightbox-caption');
     
-    lightboxImage.src = image.image_url || '';
-    lightboxCaption.textContent = image.caption || '';
+    lightboxImage.src = imageUrl;
+    lightboxCaption.textContent = caption;
     
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
-}
-
-function closeLightbox() {
-    const lightbox = document.getElementById('lightbox');
-    lightbox.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-function changeImage(direction) {
-    let newIndex = currentGalleryIndex + direction;
-    
-    if (newIndex < 0) newIndex = galleryImages.length - 1;
-    if (newIndex >= galleryImages.length) newIndex = 0;
-    
-    currentGalleryIndex = newIndex;
-    
-    const image = galleryImages[currentGalleryIndex];
-    const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxCaption = document.getElementById('lightbox-caption');
-    
-    lightboxImage.src = image.image_url || '';
-    lightboxCaption.textContent = image.caption || '';
 }
 
 // ========== TALABAT FUNCTIONS ==========
@@ -4112,35 +4233,12 @@ async function initSupabase() {
     }
 }
 
-// ========== MAIN INITIALIZATION ==========
-async function initPage() {
-    try {
-        await initSupabase();
-        initLazyLoading();
-        
-        const data = await loadRestaurantData();
-        renderRestaurantData(data);
-        
-        await initReviewSystem();
-        
-        // Initialize list manager
-        listManager = new RestaurantListManager();
-        await listManager.init();
-        
-        console.log('✅ Page initialized successfully');
-        
-    } catch (error) {
-        console.error('Page initialization error:', error);
-        showError();
-    }
-}
-
 // ========== EVENT LISTENERS ==========
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeLightbox();
         closeLoginModal();
-        if (listManager) listManager.hideDropdown();
+        if (window.listManager) window.listManager.hideDropdown();
     } else if (e.key === 'ArrowLeft') {
         changeImage(-1);
     } else if (e.key === 'ArrowRight') {
@@ -4161,12 +4259,14 @@ document.getElementById('loginModal').addEventListener('click', (e) => {
 });
 
 // ========== START APPLICATION ==========
+// Remove any existing initialization
+document.removeEventListener('DOMContentLoaded', initPage);
+
+// Use the new enhanced initialization
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initPage();
-    });
+    document.addEventListener('DOMContentLoaded', initializeRestaurantPage);
 } else {
-    initPage();
+    initializeRestaurantPage();
 }
 
 // ========== EXPOSE FUNCTIONS TO GLOBAL SCOPE ==========
@@ -4177,9 +4277,17 @@ window.closeLightbox = closeLightbox;
 window.changeImage = changeImage;
 window.showLoginModal = showLoginModal;
 window.closeLoginModal = closeLoginModal;
+window.openImageModal = openImageModal;
 
 // Expose list manager for global access
-window.listManager = listManager;
+window.restaurantListManager = RestaurantListManager;
+window.listManager = null;
+
+// Initialize list manager when page loads
+window.addEventListener('load', () => {
+    listManager = new RestaurantListManager();
+    window.listManager = listManager;
+});
 </script>
 </body>
 </html>
