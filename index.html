@@ -3508,6 +3508,46 @@
                 }
             }
             
+            // ========================================
+            // FIX 1: OPTIMIZED MOBILE SEARCH TOGGLE
+            // ========================================
+            // FIXED: Mobile search toggle with better touch handling
+            if (mobileSearchToggle && searchWrapper) {
+                const toggleSearch = (e) => {
+                    e.stopPropagation();
+                    
+                    const wasActive = searchWrapper.classList.contains('active');
+                    searchWrapper.classList.toggle('active');
+                    
+                    if (!wasActive) {
+                        // Opening search
+                        setTimeout(() => {
+                            searchInput.focus();
+                        }, 100);
+                        document.body.style.overflow = 'hidden';
+                        
+                        // Position dropdown correctly
+                        setTimeout(() => {
+                            if (searchDropdown.classList.contains('active')) {
+                                searchDropdown.style.position = 'fixed';
+                                searchDropdown.style.top = 'calc(100% + 8px)';
+                                searchDropdown.style.left = '16px';
+                                searchDropdown.style.right = '16px';
+                                searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
+                            }
+                        }, 50);
+                    } else {
+                        // Closing search
+                        document.body.style.overflow = '';
+                        searchDropdown.classList.remove('active');
+                        searchInput.blur();
+                    }
+                };
+                
+                mobileSearchToggle.addEventListener('click', toggleSearch);
+                mobileSearchToggle.addEventListener('touchstart', toggleSearch, { passive: false });
+            }
+            
             // ---------- OPTIMIZED SEARCH FUNCTIONALITY (Fixed for Mobile) ----------
             function setupSearch() {
                 const searchInput = document.getElementById('search');
@@ -3811,13 +3851,17 @@
                 
                 // FIXED: Mobile search toggle with better touch handling
                 if (mobileSearchToggle && searchWrapper) {
-                    const toggleSearch = () => {
+                    const toggleSearch = (e) => {
+                        e.stopPropagation();
+                        
                         const wasActive = searchWrapper.classList.contains('active');
                         searchWrapper.classList.toggle('active');
                         
                         if (!wasActive) {
                             // Opening search
-                            searchInput.focus();
+                            setTimeout(() => {
+                                searchInput.focus();
+                            }, 100);
                             document.body.style.overflow = 'hidden';
                             
                             // Position dropdown correctly
@@ -3829,7 +3873,7 @@
                                     searchDropdown.style.right = '16px';
                                     searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
                                 }
-                            }, 10);
+                            }, 50);
                         } else {
                             // Closing search
                             document.body.style.overflow = '';
@@ -3839,10 +3883,7 @@
                     };
                     
                     mobileSearchToggle.addEventListener('click', toggleSearch);
-                    mobileSearchToggle.addEventListener('touchend', (e) => {
-                        e.preventDefault();
-                        toggleSearch();
-                    });
+                    mobileSearchToggle.addEventListener('touchstart', toggleSearch, { passive: false });
                 }
                 
                 // FIXED: Handle escape key for mobile
@@ -3881,7 +3922,11 @@
                 console.log('✅ Search functionality initialized');
             }
             
-            // ---------- OPTIMIZED INITIALIZATION ----------
+            // ========================================
+            // FIX 2: FAST INITIALIZATION (Replace initializeAuth function)
+            // ========================================
+            
+            // ---------- OPTIMIZED INITIALIZATION - NO BLOCKING ----------
             async function initializeAuth() {
                 console.log('🔐 Initializing auth...');
                 
@@ -3910,21 +3955,21 @@
                     state.currentUser = session.user;
                     state.isLoggedIn = true;
                     
-                    // FIXED: Optimized profile check
-                    const profileReady = await ensureUserProfileExists(session.user);
+                    // INSTANT UI UPDATE - Don't wait for profile check
+                    setLoggedInState(session.user);
                     
-                    if (profileReady) {
-                        // Initialize list manager and load statuses
-                        await state.listManager.init();
-                        setLoggedInState(session.user);
-                        
-                        // Now render restaurants with badges
+                    // Profile check runs in background (non-blocking)
+                    ensureUserProfileExists(session.user).catch(err => 
+                        console.warn('Profile check warning:', err)
+                    );
+                    
+                    // Initialize list manager in background (non-blocking)
+                    state.listManager.init().then(() => {
+                        // Refresh UI with badges when ready
                         renderFeaturedRestaurants();
                         renderNearbyRestaurants();
                         setupRestaurantOfTheDay();
-                    } else {
-                        setLoggedInState(session.user);
-                    }
+                    }).catch(err => console.warn('List manager init warning:', err));
                     
                 } catch (error) {
                     console.error('❌ Auth initialization error:', error);
@@ -3946,35 +3991,41 @@
                         state.currentUser = session.user;
                         state.isLoggedIn = true;
                         
-                        await ensureUserProfileExists(session.user);
-                        await state.listManager.init();
+                        // INSTANT UI UPDATE
                         setLoggedInState(session.user);
+                        
+                        // Background tasks
+                        ensureUserProfileExists(session.user);
+                        state.listManager.init().then(() => {
+                            renderFeaturedRestaurants();
+                            renderNearbyRestaurants();
+                            updateSpotlight();
+                            setupRestaurantOfTheDay();
+                        });
                         
                         // Show welcome notification for new signups
                         if (event === 'SIGNED_IN') {
                             showNotification('Welcome to Zo2y!', 'success');
                         }
-                        
-                        // Refresh UI to show list badges
-                        renderFeaturedRestaurants();
-                        renderNearbyRestaurants();
-                        updateSpotlight();
-                        setupRestaurantOfTheDay();
                     }
                 });
             }
             
-            // FIXED: Optimized profile check
+            // ========================================
+            // FIX 3: FAST PROFILE CHECK (Replace ensureUserProfileExists function)
+            // ========================================
+            
+            // FIXED: Super fast profile check - no blocking
             async function ensureUserProfileExists(user) {
                 console.log('🔍 Checking profile for:', user.id);
                 
-                if (!supabase) return false;
+                if (!supabase) return true; // Don't block if no supabase
                 
                 try {
-                    // Single quick check, no retries blocking UI
-                    const { data: profile, error } = await supabase
+                    // Quick check only - don't wait for creation
+                    const { data: profile } = await supabase
                         .from('user_profiles')
-                        .select('id, username, full_name, avatar_icon')
+                        .select('id')
                         .eq('id', user.id)
                         .maybeSingle();
                     
@@ -3983,7 +4034,7 @@
                         return true;
                     }
                     
-                    // If no profile, create it quickly (no blocking)
+                    // If no profile, create it in background (fire and forget)
                     const userData = user.user_metadata || {};
                     const email = user.email || '';
                     
@@ -4008,14 +4059,15 @@
                             location: '',
                             is_private: false
                         }])
-                        .then(() => console.log('✅ Profile created'))
+                        .then(() => console.log('✅ Profile created in background'))
                         .catch(err => console.warn('Profile creation warning:', err));
                     
+                    // Return true immediately to not block UI
                     return true;
                     
                 } catch (error) {
                     console.error('Profile check error:', error);
-                    return false;
+                    return true; // Return true to not block UI
                 }
             }
             
@@ -4104,8 +4156,8 @@
                             description: restaurant.description || 'Delicious food served with care',
                             rating: restaurant.rating || 0,
                             logo_url: restaurant.logo_url,
-                            coverImage: getCoverImageUrl(restaurant.slug) || restaurant.image,
-                            isCloudKitchen: state.cloudKitchens.has(restaurant.id)
+                            coverImage = getCoverImageUrl(restaurant.slug) || restaurant.image,
+                            isCloudKitchen = state.cloudKitchens.has(restaurant.id)
                         }));
                         
                         console.log(`✅ Loaded ${state.restaurants.length} restaurants`);
@@ -5247,12 +5299,7 @@
                 
                 const mobileSearchToggle = document.getElementById('mobileSearchToggle');
                 if (mobileSearchToggle) {
-                    mobileSearchToggle.addEventListener('click', () => {
-                        const searchWrapper = document.getElementById('searchWrapper');
-                        if (searchWrapper) {
-                            searchWrapper.classList.toggle('active');
-                        }
-                    });
+                    // Note: The mobile search toggle is now handled in FIX 1 above
                 }
                 
                 const startJourneyBtn = document.querySelector('.btn-primary.logged-out');
