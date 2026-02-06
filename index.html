@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- CRITICAL FIX: Font Awesome with swap -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'; this.onload=null;">
@@ -696,6 +697,18 @@
                 max-width: 100%; 
             } 
         }
+
+        /* Desktop spotlight alignment: slightly right, still centered in its column */
+        @media (min-width: 993px) {
+            .hero-right {
+                justify-content: flex-end;
+            }
+
+            .spotlight-wrapper {
+                margin-left: auto;
+                transform: translateX(16px);
+            }
+        }
         
         .spotlight-wrapper { 
             width: 100%; 
@@ -1357,6 +1370,8 @@
             position: relative; 
             max-width: 1200px; 
             margin: 0 auto; 
+            content-visibility: auto;
+            contain-intrinsic-size: 800px;
         }
         
         .section-header { 
@@ -2623,7 +2638,7 @@
     <!-- Enhanced Header with Mobile Layout -->
     <header class="nav" role="banner">
         <div class="nav-container">
-            <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
+            <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'" width="160" height="40" decoding="async" fetchpriority="high">
             
             <!-- Mobile Search Toggle Button -->
             <button class="mobile-search-toggle" id="mobileSearchToggle" aria-label="Toggle search">
@@ -2671,9 +2686,9 @@
                 <div class="spotlight-wrapper">
                     <div class="spotlight" id="spotlightCard" role="region" aria-live="polite">
                         <div class="spotlight-img-container">
-                            <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food" fetchpriority="high">
+                            <img id="spotFoodImage" class="spotlight-food-image" src="" alt="Featured restaurant food" fetchpriority="high" decoding="async" width="500" height="260">
                             <div class="spotlight-logo-overlay" id="spotLogoOverlay">
-                                <img id="spotLogo" src="" alt="Restaurant logo">
+                                <img id="spotLogo" src="" alt="Restaurant logo" decoding="async" width="48" height="48">
                             </div>
                         </div>
                         <div class="spotlight-content">
@@ -3670,7 +3685,7 @@
                         
                         resultItem.innerHTML = `
                             <div class="search-result-logo">
-                                <img src="${logoUrl}" alt="${restaurant.name} logo" loading="eager">
+                                <img src="${logoUrl}" alt="${restaurant.name} logo" loading="eager" decoding="async" width="40" height="40">
                             </div>
                             <div class="search-result-info">
                                 <div class="search-result-name">${restaurant.name}</div>
@@ -4467,6 +4482,7 @@
                                      src="${restaurant.coverImage}" 
                                      alt="${restaurant.name}" 
                                      loading="${imageLoading}"
+                                     decoding="async"
                                      width="300" 
                                      height="220">
                             ` : ''}
@@ -4476,7 +4492,8 @@
                                          alt="${restaurant.name} logo" 
                                          width="48" 
                                          height="48"
-                                         loading="${imageLoading}">
+                                         loading="${imageLoading}"
+                                         decoding="async">
                                 </div>
                             ` : ''}
                             
@@ -4699,6 +4716,7 @@
                                  src="${restaurant.coverImage}" 
                                  alt="${restaurant.name}" 
                                  loading="eager"
+                                 decoding="async"
                                  style="height: 320px;">
                         ` : ''}
                         ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
@@ -4707,7 +4725,8 @@
                             <div class="logo-overlay" style="bottom: 20px; left: 20px; width: 60px; height: 60px;">
                                 <img src="${restaurant.logo_url}" 
                                      alt="${restaurant.name} logo"
-                                     loading="eager">
+                                     loading="eager"
+                                     decoding="async">
                             </div>
                         ` : ''}
                         <div class="menu-btn-container">
