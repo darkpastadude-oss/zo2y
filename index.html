@@ -170,10 +170,10 @@
             border-color: var(--accent);
         }
         
-        /* Search */
+        /* Search - IMPROVED: More prominent */
         .search-wrapper { 
             width: 100%; 
-            max-width: 500px; 
+            max-width: 600px; /* Increased from 500px */
             position: relative; 
             margin: 0 24px; 
             order: 4;
@@ -187,18 +187,22 @@
         
         .search { 
             width: 100%; 
-            padding: 10px 16px 10px 40px; 
-            border-radius: 20px; 
+            padding: 12px 18px 12px 44px; /* Increased padding */
+            border-radius: 24px; /* More rounded */
             border: 1px solid var(--border); 
             background: var(--card); 
             color: var(--white); 
             outline: none; 
-            font-size: 14px; 
-            transition: all 0.3s ease; 
+            font-size: 15px; /* Increased from 14px */
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
-        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; }
-        .clear-search { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
+        .search:focus { 
+            border-color: var(--accent); 
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15); 
+            transform: scale(1.02);
+        }
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); opacity: 0.6; pointer-events: none; font-size: 16px; }
+        .clear-search { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; display: none; padding: 4px; }
         .clear-search:hover { color: var(--white); }
         
         /* Search Dropdown */
@@ -243,7 +247,7 @@
             align-items: center;
             padding: 12px 16px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border-bottom: 1px solid var(--border);
             gap: 12px;
         }
@@ -304,13 +308,14 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            background: rgba(245, 158, 11, 0.15);
+            background: rgba(245, 158, 11, 0.25);
             color: var(--accent);
             padding: 4px 8px;
             border-radius: 8px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             flex-shrink: 0;
+            border: 1px solid rgba(245, 158, 11, 0.5);
         }
         
         .no-results {
@@ -346,7 +351,7 @@
             display: flex; 
             align-items: center; 
             gap: 8px; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             font-size: 14px; 
             white-space: nowrap; 
         }
@@ -372,7 +377,7 @@
             color: var(--accent);
         }
         
-        .nav a.ghost { color: var(--muted); padding: 8px 14px; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.3s ease; white-space: nowrap; }
+        .nav a.ghost { color: var(--muted); padding: 8px 14px; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; }
         .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
         
         /* Mobile Responsive Header */
@@ -417,19 +422,20 @@
             }
             
             .search-wrapper.active {
-                display: block;
+                display: flex !important;
+                flex-direction: column;
                 animation: slideDown 0.3s ease;
-                max-height: calc(100vh - 120px);
-                overflow-y: auto;
+                overflow-y: visible;
             }
             
             .search-dropdown {
-                position: fixed;
-                top: calc(100% + 8px);
-                left: 16px;
-                right: 16px;
-                max-height: calc(50vh - 60px);
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                max-height: calc(60vh - 100px);
                 z-index: 1001;
+                margin-top: 8px;
             }
             
             .search-result-item {
@@ -467,7 +473,9 @@
             }
             
             .account-btn {
-                padding: 8px 12px;
+                padding: 10px 14px;
+                min-width: 44px;
+                min-height: 44px;
                 font-size: 13px;
             }
             
@@ -477,6 +485,26 @@
             
             .account-btn i {
                 margin-right: 0;
+            }
+            
+            /* Show text on slightly larger phones */
+            @media (min-width: 400px) and (max-width: 768px) {
+                .account-btn span {
+                    display: inline;
+                    font-size: 12px;
+                }
+            }
+            
+            /* Mobile search input - prevent iOS zoom */
+            .search {
+                padding: 14px 20px 14px 46px;
+                font-size: 16px;
+                border-radius: 16px;
+            }
+            
+            .search-icon {
+                left: 16px;
+                font-size: 18px;
             }
         }
         
@@ -504,14 +532,14 @@
             }
         }
         
-        /* Hero Section */
+        /* Hero Section - IMPROVED: Less cramped */
         .hero { 
             position: relative; 
-            min-height: 80vh; 
+            min-height: auto; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            padding: 60px 16px; 
+            padding: 40px 16px; 
             overflow: hidden;
         }
         
@@ -525,6 +553,7 @@
             background: var(--radial-glow);
             pointer-events: none;
             z-index: 1;
+            background-attachment: fixed;
         }
         
         .hero-container { 
@@ -548,7 +577,8 @@
         
         .hero-left { 
             flex: 1; 
-            min-width: 0; 
+            min-width: 0;
+            max-width: 480px;
         }
         
         @media (max-width: 992px) { 
@@ -584,7 +614,7 @@
         h1 { 
             font-size: clamp(2rem, 6vw, 3.5rem); 
             line-height: 1.1; 
-            margin: 0 0 20px 0; 
+            margin: 0 0 16px 0; 
             font-weight: 900; 
             letter-spacing: -1px; 
             color: var(--white); 
@@ -596,9 +626,9 @@
         
         .lead { 
             color: var(--muted); 
-            font-size: clamp(1rem, 2vw, 1.2rem); 
-            margin-bottom: 32px; 
-            max-width: 500px; 
+            font-size: clamp(1rem, 2vw, 1.1rem); 
+            margin-bottom: 24px; 
+            max-width: 420px; 
             line-height: 1.6; 
             font-weight: 400; 
         }
@@ -622,7 +652,7 @@
             align-items: center; 
             gap: 8px; 
             font-size: 15px; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             position: relative; 
             overflow: hidden; 
             box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
@@ -640,7 +670,7 @@
             border-radius: 12px; 
             border: 1px solid var(--border); 
             font-weight: 500; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             font-size: 15px; 
         }
         
@@ -650,7 +680,7 @@
             transform: translateY(-2px);
         }
         
-        /* Spotlight with Mobile Layout */
+        /* Spotlight with Mobile Layout - IMPROVED: Bigger */
         .hero-right { 
             width: 100%; 
             max-width: 500px; 
@@ -684,14 +714,14 @@
             align-items: center; 
             position: relative; 
             z-index: 2; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             cursor: pointer; 
-            height: 380px; 
+            height: 420px; /* Increased from 380px */
         }
         
         @media (max-width: 480px) { 
             .spotlight { 
-                height: 340px; 
+                height: 380px; 
             } 
         }
         
@@ -703,7 +733,7 @@
         
         .spotlight-img-container { 
             width: 100%; 
-            height: 240px; 
+            height: 260px; 
             border-radius: 0; 
             overflow: hidden; 
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); 
@@ -712,7 +742,7 @@
         
         @media (max-width: 480px) { 
             .spotlight-img-container { 
-                height: 200px; 
+                height: 220px; 
             } 
         }
         
@@ -832,12 +862,12 @@
         .restaurant-image { 
             display: block; 
             width: 100%; 
-            height: 200px; 
+            height: 220px; /* Increased from 200px */
             object-fit: cover; 
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); 
         }
         
-        /* Restaurant Cards with Mobile Slider Layout */
+        /* Restaurant Cards with Mobile Slider Layout - IMPROVED: Better proportions */
         .restaurant-card { 
             background: var(--card); 
             border-radius: 16px; 
@@ -846,7 +876,7 @@
             border: 1px solid var(--border); 
             cursor: pointer; 
             position: relative; 
-            transition: all 0.2s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             display: flex; 
             flex-direction: column; 
             height: 100%; 
@@ -859,8 +889,20 @@
             border-color: var(--accent); 
         }
         
+        /* Better active states for mobile */
+        @media (max-width: 768px) {
+            .restaurant-card:active {
+                transform: scale(0.98);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+            
+            .filter-btn:active {
+                transform: scale(0.95);
+            }
+        }
+        
         .card-image { 
-            height: 200px; 
+            height: 220px; /* Increased from 200px */
             position: relative; 
             overflow: hidden; 
             background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%); 
@@ -932,34 +974,43 @@
             color: var(--accent);
             padding: 8px 10px;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 20px;
             border: 1px solid var(--accent);
             cursor: help;
             white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             position: relative;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         
-        @media (max-width: 768px) {
-            .list-badge {
-                padding: 4px;
-                font-size: 14px;
-                width: 32px;
-                height: 32px;
-                border-radius: 6px;
-            }
+        /* Floating animation for badges */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
         }
         
         .list-badge:hover {
             transform: scale(1.1);
             background: rgba(245, 158, 11, 0.95);
             color: #0b1633;
+            animation: float 0.6s ease-in-out;
+        }
+        
+        @media (max-width: 768px) {
+            .list-badge {
+                padding: 4px;
+                font-size: 16px;
+                width: 36px;
+                height: 36px;
+                border-radius: 6px;
+            }
         }
         
         /* List badge tooltips */
@@ -998,9 +1049,9 @@
         .cloud-badge {
             position: absolute;
             top: 12px;
-            right: 56px;
-            width: 40px;
-            height: 40px;
+            right: 60px;
+            width: 44px;
+            height: 44px;
             background: rgba(59, 130, 246, 0.95);
             border-radius: 8px;
             display: flex;
@@ -1008,20 +1059,22 @@
             justify-content: center;
             cursor: help;
             z-index: 100;
-            transition: all 0.3s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid var(--cloud-color);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             color: white;
-            font-size: 20px;
+            font-size: 22px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         
         @media (max-width: 768px) {
             .cloud-badge {
                 top: 8px;
-                right: 44px;
-                width: 32px;
-                height: 32px;
-                font-size: 16px;
+                right: 48px;
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
                 border-radius: 6px;
             }
         }
@@ -1029,6 +1082,7 @@
         .cloud-badge:hover {
             background: rgba(59, 130, 246, 1);
             transform: scale(1.05);
+            animation: float 0.6s ease-in-out;
         }
         
         /* Cloud Kitchen Tooltip */
@@ -1070,8 +1124,8 @@
         }
         
         .menu-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             background: rgba(11, 22, 51, 0.9);
             border: 1px solid var(--accent);
             border-radius: 8px;
@@ -1080,20 +1134,20 @@
             justify-content: center;
             cursor: pointer;
             backdrop-filter: none;
-            transition: all 0.3s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             position: relative;
         }
         
         @media (max-width: 768px) {
             .menu-btn {
-                width: 32px;
-                height: 32px;
+                width: 36px;
+                height: 36px;
                 border-radius: 6px;
             }
             
             .menu-btn i {
-                font-size: 14px;
+                font-size: 16px;
             }
         }
         
@@ -1104,7 +1158,7 @@
         
         .menu-btn i {
             color: var(--white);
-            font-size: 18px;
+            font-size: 20px;
         }
         
         .menu-btn:hover i {
@@ -1198,13 +1252,13 @@
         
         /* Rating badge - subtle exactly like restaurants.html */
         .card-rating {
-            padding: 3px 6px;
-            font-size: 11px;
-            font-weight: 600;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 700;
             border-radius: 6px;
-            background: rgba(245, 158, 11, 0.15);
+            background: rgba(245, 158, 11, 0.25);
             color: var(--accent);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            border: 1px solid rgba(245, 158, 11, 0.5);
             display: flex;
             align-items: center;
             gap: 4px;
@@ -1258,7 +1312,7 @@
             font-weight: 500; 
         }
         
-        /* Mobile Slider Grid */
+        /* Mobile Slider Grid - IMPROVED: Better mobile cards */
         .slider-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
@@ -1270,7 +1324,7 @@
             .slider-grid { 
                 display: flex; 
                 grid-template-columns: none; 
-                gap: 16px; 
+                gap: 12px; /* Reduced from 16px */
                 overflow-x: auto; 
                 padding: 8px 0 20px 0; 
                 scroll-snap-type: x mandatory; 
@@ -1278,20 +1332,22 @@
                 -webkit-overflow-scrolling: touch; 
                 margin: 0 -16px; 
                 padding-left: 16px; 
+                padding-right: 8px; /* Show peek of next card */
             } 
             .slider-grid::-webkit-scrollbar { display: none; } 
             .restaurant-card { 
-                width: 280px; 
+                width: 260px; /* Reduced from 280px */
                 flex-shrink: 0; 
                 scroll-snap-align: start; 
             } 
-            .card-image { height: 140px; } 
-            .restaurant-image { height: 140px; } 
+            .card-image { height: 160px; } 
+            .restaurant-image { height: 160px; } 
         }
         
         @media (min-width: 769px) {
             .slider-grid {
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(3, 1fr); /* Changed from 4 to 3 */
+                gap: 24px; /* Increased from 20px */
             }
         }
         
@@ -1318,6 +1374,10 @@
             color: var(--white); 
             font-weight: 800; 
             letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .section-subtitle { 
@@ -1334,7 +1394,7 @@
             display: flex; 
             align-items: center; 
             gap: 8px; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             font-size: 15px; 
             white-space: nowrap; 
             padding: 8px 16px;
@@ -1369,7 +1429,7 @@
             color: var(--muted); 
             font-size: 14px; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             white-space: nowrap; 
             flex-shrink: 0; 
         }
@@ -1381,7 +1441,7 @@
             transform: translateY(-2px);
         }
         
-        /* Skeleton */
+        /* Skeleton - IMPROVED: Better shimmer */
         .skeleton-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
@@ -1395,11 +1455,25 @@
             border: 1px solid var(--border); 
         }
         
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+        
         .skeleton-image { 
-            height: 200px; 
-            background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%); 
-            background-size: 200% 100%; 
-            animation: loading 1.5s infinite; 
+            height: 220px; 
+            background: linear-gradient(
+                90deg,
+                var(--card) 0px,
+                rgba(255,255,255,0.08) 50%,
+                var(--card) 100%
+            );
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
         }
         
         .skeleton-content { 
@@ -1408,24 +1482,19 @@
         
         .skeleton-line { 
             height: 12px; 
-            background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,0.05) 50%, var(--card) 75%); 
-            background-size: 200% 100%; 
-            animation: loading 1.5s infinite; 
+            background: linear-gradient(90deg, 
+                var(--card) 0px,
+                rgba(255,255,255,0.08) 50%,
+                var(--card) 100%
+            ); 
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite; 
             margin-bottom: 8px; 
             border-radius: 4px; 
         }
         
         .skeleton-line.short { 
             width: 60%; 
-        }
-        
-        @keyframes loading { 
-            0% { 
-                background-position: 200% 0; 
-            } 
-            100% { 
-                background-position: -200% 0; 
-            } 
         }
         
         .load-more-container { 
@@ -1442,7 +1511,7 @@
             border-radius: 12px; 
             font-weight: 600; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             display: flex; 
             align-items: center; 
             gap: 8px; 
@@ -1457,17 +1526,21 @@
             box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
         }
         
-        /* REDESIGNED Restaurant of Day */
+        /* REDESIGNED Restaurant of Day - IMPROVED: More visual pop */
         .restaurant-of-day { 
             position: relative; 
-            background: linear-gradient(135deg, rgba(19, 35, 71, 0.8) 0%, rgba(11, 22, 51, 0.9) 100%); 
+            background: linear-gradient(135deg, 
+                rgba(245, 158, 11, 0.05) 0%, 
+                rgba(19, 35, 71, 0.8) 50%, 
+                rgba(11, 22, 51, 0.9) 100%); 
             border-radius: 24px; 
-            padding: 60px 20px; 
-            margin: 60px 0; 
+            padding: 80px 40px; 
+            margin: 80px auto; 
             text-align: center; 
-            border: 1px solid rgba(245, 158, 11, 0.2);
+            border: 2px solid rgba(245, 158, 11, 0.3);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             overflow: hidden;
+            max-width: 1200px;
         }
         
         .restaurant-of-day::before {
@@ -1489,7 +1562,7 @@
         }
         
         .day-header h2 { 
-            font-size: 3rem; 
+            font-size: 3.5rem; 
             font-weight: 900; 
             color: var(--white); 
             margin-bottom: 16px; 
@@ -1499,7 +1572,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 4px 30px rgba(245, 158, 11, 0.3);
+            text-shadow: 0 0 60px rgba(245, 158, 11, 0.4);
         }
         
         @media (max-width: 768px) { 
@@ -1591,13 +1664,13 @@
         }
         
         .day-card .card-image { 
-            height: 300px; 
+            height: 320px; 
             position: relative;
         }
         
         @media (max-width: 992px) { 
             .day-card .card-image { 
-                height: 250px; 
+                height: 280px; 
             } 
         }
         
@@ -1673,7 +1746,7 @@
             align-items: center; 
             justify-content: center; 
             gap: 12px; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             font-size: 16px; 
             position: relative;
             overflow: hidden;
@@ -1807,7 +1880,7 @@
             border-radius: 12px; 
             color: var(--white); 
             text-decoration: none; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             cursor: pointer; 
             min-width: 180px;
         }
@@ -1863,7 +1936,7 @@
         .footer-column a { 
             display: block; 
             margin-bottom: 12px; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             padding: 4px 0; 
             font-size: 14px; 
         }
@@ -1965,7 +2038,7 @@
             border-radius: 16px; 
             font-weight: 500; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             display: flex; 
             align-items: center; 
             gap: 12px; 
@@ -2026,7 +2099,7 @@
             align-items: center; 
             justify-content: center; 
             border-radius: 12px; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         
         .close-lists-btn:hover { 
@@ -2070,7 +2143,7 @@
             border-radius: 12px; 
             border: 1px solid var(--border); 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         
         .list-item:hover { 
@@ -2118,7 +2191,7 @@
             align-items: center; 
             justify-content: center; 
             flex-shrink: 0; 
-            transition: all 0.2s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             position: relative; 
         }
         
@@ -2185,7 +2258,7 @@
             color: var(--white); 
             font-size: 14px; 
             outline: none; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         
         .new-list-input input:focus { 
@@ -2201,7 +2274,7 @@
             border-radius: 12px; 
             font-weight: 600; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             white-space: nowrap; 
             display: flex; 
             align-items: center; 
@@ -2234,7 +2307,7 @@
             border-radius: 12px; 
             font-weight: 600; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         
         .lists-save-btn:hover:not(:disabled) { 
@@ -2256,7 +2329,7 @@
             border-radius: 16px; 
             font-weight: 500; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             width: 100%; 
         }
         
@@ -2340,7 +2413,7 @@
             font-weight: 600; 
             font-size: 16px; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             border: none; 
             display: flex; 
             align-items: center; 
@@ -2377,7 +2450,7 @@
             border-radius: 12px; 
             font-weight: 500; 
             cursor: pointer; 
-            transition: all 0.3s ease; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             width: 100%; 
             font-size: 15px; 
         }
@@ -2461,11 +2534,11 @@
         /* Mobile search improvements */
         @media (max-width: 768px) {
             .search-dropdown {
-                position: fixed !important;
-                top: calc(100% + 8px) !important;
-                left: 16px !important;
-                right: 16px !important;
-                max-height: calc(50vh - 60px) !important;
+                position: absolute !important;
+                top: 100% !important;
+                left: 0 !important;
+                right: 0 !important;
+                max-height: calc(60vh - 100px) !important;
                 z-index: 1001;
                 box-shadow: 0 20px 60px rgba(0,0,0,0.6);
             }
@@ -2474,8 +2547,7 @@
                 display: flex !important;
                 flex-direction: column;
                 animation: slideDown 0.3s ease;
-                max-height: calc(100vh - 120px);
-                overflow-y: auto;
+                overflow-y: visible;
                 padding: 16px;
                 background: rgba(19, 35, 71, 0.98);
                 backdrop-filter: blur(20px);
@@ -3577,23 +3649,6 @@
                     if (results.length > 0) {
                         renderSearchResults(results);
                         searchDropdown.classList.add('active');
-                        
-                        // FIXED: Position dropdown correctly for mobile
-                        if (isMobile && searchWrapper.classList.contains('active')) {
-                            // Mobile search is fullscreen, position dropdown within it
-                            searchDropdown.style.position = 'fixed';
-                            searchDropdown.style.top = 'calc(100% + 8px)';
-                            searchDropdown.style.left = '16px';
-                            searchDropdown.style.right = '16px';
-                            searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
-                        } else {
-                            // Desktop positioning
-                            searchDropdown.style.position = 'absolute';
-                            searchDropdown.style.top = '100%';
-                            searchDropdown.style.left = '0';
-                            searchDropdown.style.right = '0';
-                            searchDropdown.style.maxHeight = '400px';
-                        }
                     } else {
                         renderNoResults();
                         searchDropdown.classList.add('active');
@@ -3629,34 +3684,19 @@
                             </div>
                         `;
                         
-                        // FIXED: Combined click and touch event handler
-                        const selectRestaurantHandler = (e) => {
+                        // Simple unified click handler - works on both desktop and mobile
+                        resultItem.addEventListener('click', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             selectRestaurant(restaurant);
-                        };
+                        });
                         
-                        // Add both mouse and touch events
-                        resultItem.addEventListener('click', selectRestaurantHandler);
-                        resultItem.addEventListener('touchend', selectRestaurantHandler, { passive: false });
-                        
-                        // Handle keyboard navigation
+                        // Keyboard navigation
                         resultItem.addEventListener('keydown', (e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 selectRestaurant(restaurant);
                             }
-                        });
-                        
-                        // Improve mobile touch feedback
-                        resultItem.addEventListener('touchstart', () => {
-                            resultItem.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
-                        });
-                        
-                        resultItem.addEventListener('touchend', () => {
-                            setTimeout(() => {
-                                resultItem.style.backgroundColor = '';
-                            }, 150);
                         });
                         
                         searchDropdown.appendChild(resultItem);
@@ -3680,6 +3720,7 @@
                         if (searchWrapper.classList.contains('active')) {
                             searchWrapper.classList.remove('active');
                             document.body.style.overflow = '';
+                            document.body.classList.remove('search-open');
                             // Also hide keyboard on mobile
                             searchInput.blur();
                         }
@@ -3757,6 +3798,7 @@
                             if (isMobile && searchWrapper.classList.contains('active')) {
                                 searchWrapper.classList.remove('active');
                                 document.body.style.overflow = '';
+                                document.body.classList.remove('search-open');
                             }
                             break;
                     }
@@ -3791,6 +3833,7 @@
                 // FIXED: Mobile search toggle with better touch handling
                 if (mobileSearchToggle && searchWrapper) {
                     const toggleSearch = (e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         
                         const wasActive = searchWrapper.classList.contains('active');
@@ -3798,83 +3841,65 @@
                         
                         if (!wasActive) {
                             // Opening search
+                            document.body.style.overflow = 'hidden';
+                            document.body.classList.add('search-open');
+                            
+                            // Focus input after animation
                             setTimeout(() => {
                                 searchInput.focus();
-                            }, 100);
-                            document.body.style.overflow = 'hidden';
-                            
-                            // Position dropdown correctly
-                            setTimeout(() => {
-                                if (searchDropdown.classList.contains('active')) {
-                                    searchDropdown.style.position = 'fixed';
-                                    searchDropdown.style.top = 'calc(100% + 8px)';
-                                    searchDropdown.style.left = '16px';
-                                    searchDropdown.style.right = '16px';
-                                    searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
+                                // Force keyboard to show on iOS
+                                if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                                    searchInput.click();
                                 }
-                            }, 50);
+                            }, 150);
                         } else {
                             // Closing search
                             document.body.style.overflow = '';
+                            document.body.classList.remove('search-open');
                             searchDropdown.classList.remove('active');
                             searchInput.blur();
+                            searchInput.value = '';
+                            if (clearSearchBtn) {
+                                clearSearchBtn.style.display = 'none';
+                            }
                         }
                     };
                     
+                    // Use click only, remove touchstart (causing conflicts)
                     mobileSearchToggle.addEventListener('click', toggleSearch);
-                    mobileSearchToggle.addEventListener('touchstart', toggleSearch, { passive: false });
                 }
                 
-                // FIXED: Better click outside handling
+                // Click outside to close - works same on desktop and mobile
                 document.addEventListener('click', (e) => {
                     const isSearchInput = searchInput.contains(e.target);
                     const isSearchDropdown = searchDropdown.contains(e.target);
                     const isClearButton = clearSearchBtn && clearSearchBtn.contains(e.target);
                     const isMobileToggle = mobileSearchToggle && mobileSearchToggle.contains(e.target);
+                    const isSearchWrapper = searchWrapper.contains(e.target);
                     
-                    if (!isSearchInput && !isSearchDropdown && !isClearButton && !isMobileToggle) {
+                    if (!isSearchInput && !isSearchDropdown && !isClearButton && !isMobileToggle && !isSearchWrapper) {
                         searchDropdown.classList.remove('active');
                         selectedResultIndex = -1;
                         
-                        // On mobile, also close the search wrapper if clicking outside
-                        if (isMobile && searchWrapper.classList.contains('active') && 
-                            !searchWrapper.contains(e.target)) {
+                        // On mobile, close search wrapper
+                        if (searchWrapper.classList.contains('active')) {
                             searchWrapper.classList.remove('active');
                             document.body.style.overflow = '';
+                            document.body.classList.remove('search-open');
                         }
                     }
                 });
                 
-                // FIXED: Handle escape key for mobile
+                // Handle escape key for mobile
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         if (searchWrapper.classList.contains('active')) {
                             searchWrapper.classList.remove('active');
                             document.body.style.overflow = '';
+                            document.body.classList.remove('search-open');
                             searchDropdown.classList.remove('active');
                             searchInput.blur();
                         }
-                    }
-                });
-                
-                // FIXED: Prevent body scroll when interacting with search on mobile
-                searchInput.addEventListener('touchmove', (e) => {
-                    if (searchWrapper.classList.contains('active')) {
-                        e.stopPropagation();
-                    }
-                }, { passive: false });
-                
-                // Handle input focus on mobile to prevent zoom
-                searchInput.addEventListener('focus', () => {
-                    if (isMobile) {
-                        // Add a small timeout to ensure the dropdown is positioned correctly
-                        setTimeout(() => {
-                            searchDropdown.style.position = 'fixed';
-                            searchDropdown.style.top = 'calc(100% + 8px)';
-                            searchDropdown.style.left = '16px';
-                            searchDropdown.style.right = '16px';
-                            searchDropdown.style.maxHeight = 'calc(50vh - 60px)';
-                        }, 50);
                     }
                 });
                 
@@ -3957,11 +3982,6 @@
                             updateSpotlight();
                             setupRestaurantOfTheDay();
                         });
-                        
-                        // Show welcome notification for new signups
-                        if (event === 'SIGNED_IN') {
-                            showNotification('Welcome to Zo2y!', 'success');
-                        }
                     }
                 });
             }
@@ -4448,7 +4468,7 @@
                                      alt="${restaurant.name}" 
                                      loading="${imageLoading}"
                                      width="300" 
-                                     height="200">
+                                     height="220">
                             ` : ''}
                             ${logoUrl ? `
                                 <div class="logo-overlay">
@@ -4614,7 +4634,7 @@
                 const categoryIcon = getCategoryIconFallback(restaurant.category);
                 const isCloudKitchen = restaurant.isCloudKitchen || false;
                 const cloudBadge = isCloudKitchen ? `
-                    <div class="cloud-badge" aria-label="Cloud Kitchen" style="top: 70px; right: 56px;">
+                    <div class="cloud-badge" aria-label="Cloud Kitchen" style="top: 70px; right: 60px;">
                         <i class="fas fa-cloud"></i>
                         <div class="cloud-tooltip">
                             Cloud Kitchen
@@ -4679,7 +4699,7 @@
                                  src="${restaurant.coverImage}" 
                                  alt="${restaurant.name}" 
                                  loading="eager"
-                                 style="height: 300px;">
+                                 style="height: 320px;">
                         ` : ''}
                         ${listBadges ? `<div class="list-badges-container">${listBadges}</div>` : ''}
                         ${cloudBadge}
