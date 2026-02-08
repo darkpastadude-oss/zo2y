@@ -4748,7 +4748,7 @@ header, .top-stripe, .section-nav {
                 
                 grid.classList.remove('skeleton-grid');
                 
-                const featured = state.restaurants.slice(0, Math.min(8, state.restaurants.length));
+                const featured = state.restaurants.slice(0, Math.min(20, state.restaurants.length));
                 const fragment = document.createDocumentFragment();
                 
                 for (const restaurant of featured) {
@@ -4775,8 +4775,8 @@ header, .top-stripe, .section-nav {
                 
                 grid.classList.remove('skeleton-grid');
                 
-                const startIndex = Math.min(8, state.restaurants.length);
-                const nearby = state.restaurants.slice(startIndex, Math.min(startIndex + 8, state.restaurants.length));
+                const startIndex = Math.min(20, state.restaurants.length);
+                const nearby = state.restaurants.slice(startIndex, Math.min(startIndex + 20, state.restaurants.length));
                 const fragment = document.createDocumentFragment();
                 
                 for (const restaurant of nearby) {
