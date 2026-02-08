@@ -2695,7 +2695,77 @@
             outline: 2px solid var(--accent);
             outline-offset: -2px;
         }
-    </style>
+    
+/* ===== Design System Overrides (Safe) ===== */
+:root {
+  --ds-radius: 14px;
+  --ds-radius-sm: 10px;
+  --ds-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  --ds-shadow-soft: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --ds-body-size: 14px;
+  --ds-body-line: 1.6;
+  --ds-title-lg: 28px;
+  --ds-title-md: 22px;
+  --ds-title-sm: 18px;
+  --ds-btn-height: 44px;
+  --ds-card-pad: 18px;
+  --ds-card-gap: 14px;
+}
+
+body {
+  font-size: var(--ds-body-size);
+  line-height: var(--ds-body-line);
+}
+
+h1 { font-size: var(--ds-title-lg); line-height: 1.2; }
+h2 { font-size: var(--ds-title-md); line-height: 1.25; }
+h3 { font-size: var(--ds-title-sm); line-height: 1.3; }
+
+.btn, .banner-btn, .action-btn-modal, .create-list-btn, .lists-save-btn, .top-btn, .add-list-btn {
+  min-height: var(--ds-btn-height);
+  border-radius: var(--ds-radius-sm);
+}
+
+.restaurant-card, .review-card, .list-card, .talabat-card, .website-card, .branch-card {
+  border-radius: var(--ds-radius);
+  box-shadow: var(--ds-shadow-soft);
+}
+
+.restaurant-card:hover, .review-card:hover, .list-card:hover, .talabat-card:hover, .website-card:hover, .branch-card:hover {
+  box-shadow: var(--ds-shadow);
+}
+
+.card-content, .list-card, .review-card {
+  padding: var(--ds-card-pad);
+}
+
+.card-header, .card-footer {
+  gap: var(--ds-card-gap);
+}
+
+.card-title, .list-card-title, .mobile-list-title {
+  letter-spacing: 0.2px;
+}
+
+.card-description, .list-card-description, .section-subtitle {
+  line-height: 1.65;
+}
+
+/* Normalize image aspect ratios where cards have images */
+.card-image img, .list-preview-item img, .mobile-preview-item img {
+  object-fit: cover;
+}
+
+/* Consistent badge positioning */
+.list-badges-container {
+  top: 12px;
+  left: 12px;
+}
+
+/* Consistent header height where applicable */
+header, .top-stripe, .section-nav {
+  min-height: 50px;
+}\n</style>
 </head>
 <body>
     <!-- Guest Banner -->
@@ -5608,4 +5678,5 @@
     </script>
 </body>
 </html>
+
 
