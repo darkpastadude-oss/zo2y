@@ -109,8 +109,8 @@
   /* Enhanced Guest Banner - Fixed Position */
   .guest-banner {
     display: none;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 184, 77, 0.1) 100%);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(255, 184, 77, 0.2) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3);
     padding: 12px 20px;
     margin: 0 auto 20px auto;
     border-radius: 12px;
@@ -118,8 +118,8 @@
     width: calc(100% - 32px);
     text-align: center;
     animation: slideDown 0.3s ease-out;
-    position: fixed;
-    top: 0;
+    position: sticky;
+    top: 60px;
     left: 50%;
     transform: translateX(-50%) translateY(-100%);
     z-index: 999;
@@ -975,15 +975,22 @@
     }
     
     /* Add padding to container to account for fixed header */
-    .container {
-      padding-top: 60px;
-    }
+  .container {
+    padding-top: 60px;
+  }
+
+  body.has-guest-banner .container {
+    padding-top: 120px;
+  }
     
     /* Guest banner adjustment */
     .guest-banner {
-      margin-top: 60px;
-      position: fixed;
-      top: 60px;
+      margin-top: 12px;
+      position: sticky;
+      top: 56px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(255, 184, 77, 0.3) 100%);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
     
     .guest-banner.show {
@@ -3745,6 +3752,7 @@
           if (banner) {
             banner.classList.add('show');
             banner.classList.remove('hidden');
+            document.body.classList.add('has-guest-banner');
           }
         },
         
@@ -3753,6 +3761,7 @@
           if (banner) {
             banner.classList.remove('show');
             banner.classList.add('hidden');
+            document.body.classList.remove('has-guest-banner');
           }
         }
       };
