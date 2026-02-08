@@ -93,6 +93,61 @@
       color: var(--muted);
     }
 
+    .controls {
+      max-width: 1200px;
+      margin: 16px auto 0;
+      padding: 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1 1 280px;
+      min-width: 220px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--text);
+      outline: none;
+    }
+
+    .filter-select {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--text);
+      outline: none;
+      min-width: 200px;
+    }
+
+    .chip-row {
+      max-width: 1200px;
+      margin: 10px auto 0;
+      padding: 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .grid {
       max-width: 1200px;
       margin: 24px auto 60px;
@@ -186,21 +241,80 @@
     <p>Egyptian-focused content sourced from TMDB and cached in Supabase.</p>
   </section>
 
+  <div class="controls">
+    <input id="searchInput" class="search-input" type="text" placeholder="Search movies..." />
+    <select id="genreSelect" class="filter-select">
+      <option value="">All Genres</option>
+    </select>
+    <button class="btn" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div id="activeFilters" class="chip-row"></div>
+
   <div id="moviesGrid" class="grid"></div>
   <div id="emptyState" class="empty" style="display:none;">No movies found.</div>
 
   <script>
     (function () {
-      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      let supabase;
+      const TMDB_API_KEY = '875c0397b1de1c57648fdb62bdd96b49';
+      const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
+      const TMDB_BASE = 'https://api.themoviedb.org/3';
+      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const state = {
+        genres: [],
+        activeGenre: '',
+        query: '',
+        page: 1
+      };
 
-      function initSupabase() {
-        if (window.supabase && window.supabase.createClient) {
-          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-          return true;
-        }
-        return false;
+      async function tmdbFetch(path, params = {}) {
+        const url = new URL(TMDB_BASE + path);
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+        });
+        const res = await fetch(url.toString(), {
+          headers: {
+            Authorization: `Bearer ${TMDB_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!res.ok) throw new Error(`TMDB error ${res.status}`);
+        return res.json();
+      }
+
+      function renderFilters() {
+        const row = document.getElementById('activeFilters');
+        if (!row) return;
+        row.innerHTML = '';
+        const items = [];
+        if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
+        if (state.query) items.push({ label: state.query, type: 'query' });
+        items.forEach(item => {
+          const chip = document.createElement('div');
+          chip.className = 'chip active';
+          chip.textContent = item.label;
+          chip.onclick = () => {
+            if (item.type === 'genre') state.activeGenre = '';
+            if (item.type === 'query') state.query = '';
+            document.getElementById('searchInput').value = state.query;
+            document.getElementById('genreSelect').value = state.activeGenre;
+            renderFilters();
+            loadMovies();
+          };
+          row.appendChild(chip);
+        });
+      }
+
+      async function loadGenres() {
+        const data = await tmdbFetch('/genre/movie/list', { language: 'en' });
+        state.genres = data.genres || [];
+        const select = document.getElementById('genreSelect');
+        if (!select) return;
+        state.genres.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = String(g.id);
+          opt.textContent = g.name;
+          select.appendChild(opt);
+        });
       }
 
       async function loadMovies() {
@@ -208,42 +322,86 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
 
-        const { data, error } = await supabase
-          .from('content')
-          .select('name, description, image_url, release_date, category')
-          .eq('type', 'movie')
-          .order('release_date', { ascending: false })
-          .limit(60);
-
-        if (error || !data || data.length === 0) {
+        let data;
+        try {
+          if (state.query) {
+            data = await tmdbFetch('/search/movie', {
+              query: state.query,
+              language: 'en',
+              include_adult: false,
+              page: 1
+            });
+          } else {
+            data = await tmdbFetch('/movie/popular', {
+              language: 'en',
+              page: 1
+            });
+          }
+        } catch (e) {
           if (empty) empty.style.display = 'block';
           return;
         }
 
+        let results = data.results || [];
+        if (state.activeGenre) {
+          const genreId = parseInt(state.activeGenre, 10);
+          results = results.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(genreId));
+        }
+
+        if (!results.length) {
+          if (empty) empty.style.display = 'block';
+          grid.innerHTML = '';
+          return;
+        }
+
         const fragment = document.createDocumentFragment();
-        data.forEach(item => {
+        results.forEach(item => {
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <img src="${item.image_url || 'images/placeholder.jpg'}" alt="${item.name}">
+            <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${item.title}">
             <div class="card-body">
-              <h3 class="card-title">${item.name}</h3>
-              <div class="card-meta">${item.release_date || ''} ${item.category ? '• ' + item.category : ''}</div>
-              <div class="card-desc">${item.description || 'No description available.'}</div>
+              <h3 class="card-title">${item.title}</h3>
+              <div class="card-meta">${item.release_date || ''}</div>
+              <div class="card-desc">${item.overview || 'No description available.'}</div>
             </div>
           `;
           fragment.appendChild(card);
         });
         grid.innerHTML = '';
         grid.appendChild(fragment);
+        if (empty) empty.style.display = 'none';
       }
 
-      const wait = setInterval(() => {
-        if (initSupabase()) {
-          clearInterval(wait);
-          loadMovies();
+      function wireUI() {
+        const searchInput = document.getElementById('searchInput');
+        const genreSelect = document.getElementById('genreSelect');
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            state.query = e.target.value.trim();
+            renderFilters();
+            loadMovies();
+          });
         }
-      }, 50);
+        if (genreSelect) {
+          genreSelect.addEventListener('change', (e) => {
+            state.activeGenre = e.target.value;
+            renderFilters();
+            loadMovies();
+          });
+        }
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', () => loadMovies());
+        }
+      }
+
+      (async function init() {
+        await loadGenres();
+        wireUI();
+        renderFilters();
+        loadMovies();
+      })();
     })();
   </script>
 </body>
