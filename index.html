@@ -1807,6 +1807,54 @@
             transform: translateY(-3px); 
             box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
         }
+
+        /* Mobile tuning for Restaurant of the Day */
+        @media (max-width: 600px) {
+            .day-card { 
+                border-radius: 16px; 
+            }
+
+            .day-card-badge { 
+                top: 12px; 
+                left: 12px; 
+                padding: 6px 12px; 
+                font-size: 11px; 
+                letter-spacing: 1px; 
+                border-radius: 8px; 
+            }
+
+            .day-card .card-image { 
+                height: 220px; 
+            }
+
+            .day-card .card-content { 
+                padding: 18px; 
+            }
+
+            .day-card .card-title { 
+                font-size: 20px; 
+            }
+
+            .day-card .card-category { 
+                font-size: 14px; 
+                margin-bottom: 12px; 
+            }
+
+            .day-card .card-description { 
+                font-size: 14px; 
+                margin-bottom: 18px; 
+                -webkit-line-clamp: 4; 
+            }
+
+            .day-card-actions { 
+                gap: 10px; 
+            }
+
+            .day-card-btn { 
+                padding: 12px 16px; 
+                font-size: 14px; 
+            }
+        }
         
         .day-card-stats {
             display: flex;
@@ -1967,6 +2015,32 @@
             font-size: 14px; 
             max-width: 1200px; 
             margin: 0 auto; 
+        }
+
+        @media (max-width: 600px) { 
+            footer { 
+                padding: 40px 16px 24px; 
+                margin-top: 40px; 
+            }
+
+            .footer-content { 
+                gap: 24px; 
+            }
+
+            .footer-column h3 { 
+                font-size: 15px; 
+                margin-bottom: 12px; 
+            }
+
+            .footer-column a { 
+                margin-bottom: 8px; 
+                font-size: 13px; 
+            }
+
+            .footer-bottom { 
+                font-size: 12px; 
+                padding-top: 20px; 
+            }
         }
         
         /* Modals */
