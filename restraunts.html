@@ -104,7 +104,7 @@
     display: block; 
     max-width: 100%; 
     height: auto; 
-  }\n/* Enhanced Header */
+  }/* Enhanced Header */
   header { 
     position: sticky; 
     top: 0; 
@@ -1900,7 +1900,7 @@
   </style>
 </head>
 <body>
-  <!-- Guest Banner -->\n</div>
+  <!-- Guest Banner --></div>
   </div>
 
   <header>
@@ -2542,7 +2542,7 @@
         if (!supabase) {
           console.error('Supabase client not initialized');
           setGuestState();
-          return;
+return;
         }
         
         try {
@@ -2551,13 +2551,13 @@
           if (sessionError) {
             console.error('Session error:', sessionError);
             setGuestState();
-            return;
+return;
           }
           
           if (!session?.user) {
             console.log('👤 No active session, setting guest state');
             setGuestState();
-            return;
+return;
           }
           
           console.log('✅ User found in session:', session.user.email);
@@ -2577,7 +2577,7 @@
         } catch (error) {
           console.error('❌ Auth initialization error:', error);
           setGuestState();
-        }
+}
         
         supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('🔄 Auth state change:', event);
@@ -2587,9 +2587,7 @@
             state.isLoggedIn = false;
             state.restaurantListStatuses.clear();
             setGuestState();
-            showGuestPromptOnce();
-            
-          } else if (event === 'SIGNED_IN' && session?.user) {
+} else if (event === 'SIGNED_IN' && session?.user) {
             state.currentUser = session.user;
             state.isLoggedIn = true;
             
@@ -2698,7 +2696,7 @@
         return false;
       }
       
-      function setLoggedInState(user) {
+                  function setLoggedInState(user) {
         try {
           let displayName = 'User';
           const userData = user.user_metadata || {};
@@ -2715,9 +2713,6 @@
               window.location.href = 'profile.html';
             };
           }
-          
-          
-          
         } catch (error) {
           console.error('Error setting logged in state:', error);
           setGuestState();
@@ -2732,10 +2727,8 @@
             window.location.href = 'login.html';
           };
         }
-        
         showGuestPromptOnce();
       }
-      
       // ---------- OPTIMIZED RESTAURANT DATA LOADING ----------
       async function loadRestaurantsData() {
         console.log('🍽️ Loading restaurant data...');
@@ -3600,7 +3593,7 @@
             setTimeout(() => notification.remove(), 400);
           }
         }, duration);
-      }\n\n      // ---------- AUTH PROMPT ----------
+      }      // ---------- AUTH PROMPT ----------
       function showAuthPrompt() {
         const modal = document.getElementById('authPromptModal');
         if (modal) modal.classList.add('active');
@@ -3612,7 +3605,9 @@
         if (state.isLoggedIn || guestPromptShown) return;
         guestPromptShown = true;
         showAuthPrompt();
-      }\n      // ---------- MODAL FUNCTIONS ----------
+      }
+
+      // ---------- MODAL FUNCTIONS ----------
       function showModal(restaurantData) {
         if (!restaurantData) return;
         
@@ -4317,6 +4312,14 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
 
 
 
