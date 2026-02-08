@@ -2235,6 +2235,32 @@
             font-weight: bold; 
         }
         
+        .list-actions { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+
+        .list-edit-btn { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            background: rgba(255,255,255,0.05); 
+            color: var(--white); 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+        }
+
+        .list-edit-btn:hover { 
+            border-color: var(--accent); 
+            color: var(--accent); 
+            background: rgba(245, 158, 11, 0.1); 
+        }
+
         .empty-lists { 
             text-align: center; 
             padding: 40px 20px; 
@@ -2262,6 +2288,7 @@
             display: flex; 
             gap: 10px; 
             margin-bottom: 15px; 
+            align-items: center; 
         }
         
         .new-list-input input { 
@@ -2305,6 +2332,53 @@
             opacity: 0.5; 
             cursor: not-allowed; 
             transform: none; 
+        }
+
+        .cancel-edit-btn { 
+            background: transparent; 
+            border: 1px solid var(--border); 
+            color: var(--white); 
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: none; 
+        }
+
+        .cancel-edit-btn:hover { 
+            border-color: var(--accent); 
+            color: var(--accent); 
+        }
+
+        .list-icon-options { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+            margin-bottom: 12px; 
+        }
+
+        .list-icon-option { 
+            width: 34px; 
+            height: 34px; 
+            border-radius: 10px; 
+            border: 1px solid transparent; 
+            background: rgba(255,255,255,0.05); 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            font-size: 16px; 
+        }
+
+        .list-icon-option:hover { 
+            border-color: var(--accent); 
+        }
+
+        .list-icon-option.selected { 
+            border-color: var(--accent); 
+            background: rgba(245, 158, 11, 0.15); 
         }
         
         .lists-actions { 
@@ -2890,7 +2964,17 @@
                     <button class="create-list-btn" id="createListBtn">
                         <i class="fas fa-plus"></i> Create
                     </button>
+                    <button class="cancel-edit-btn" id="cancelEditListBtn" type="button">Cancel</button>
                 </div>
+                <div class="list-icon-options" id="newListIconOptions">
+                    <div class="list-icon-option selected" data-icon="📋">📋</div>
+                    <div class="list-icon-option" data-icon="❤️">❤️</div>
+                    <div class="list-icon-option" data-icon="⭐">⭐</div>
+                    <div class="list-icon-option" data-icon="📍">📍</div>
+                    <div class="list-icon-option" data-icon="🍽️">🍽️</div>
+                    <div class="list-icon-option" data-icon="🔥">🔥</div>
+                </div>
+                <input type="hidden" id="newListIcon" value="📋">
                 <div class="lists-actions">
                     <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
                 </div>
@@ -2988,6 +3072,41 @@
                     
                     async loadUserLists() {
                         try {
+                            if (editingListId) {
+                                const { error } = await supabase
+                                    .from('lists')
+                                    .update({
+                                        title: listName,
+                                        icon: selectedIcon,
+                                        updated_at: new Date().toISOString()
+                                    })
+                                    .eq('id', editingListId);
+
+                                if (error) throw error;
+
+                                const listIndex = state.listManager.customLists.findIndex(list => list.id === editingListId);
+                                if (listIndex > -1) {
+                                    state.listManager.customLists[listIndex] = {
+                                        ...state.listManager.customLists[listIndex],
+                                        title: listName,
+                                        icon: selectedIcon
+                                    };
+                                }
+
+                                const userListIndex = state.listManager.userLists.findIndex(list => list.id === editingListId);
+                                if (userListIndex > -1) {
+                                    state.listManager.userLists[userListIndex] = {
+                                        ...state.listManager.userLists[userListIndex],
+                                        title: listName,
+                                        icon: selectedIcon
+                                    };
+                                }
+
+                                showNotification(`Updated list "${listName}"`, 'success');
+                                resetListForm();
+                                renderCustomLists();
+                                return;
+                            }
                             console.log('📋 Loading user lists...');
                             if (!state.currentUser || !supabase) return;
 
@@ -5010,9 +5129,13 @@
                 const customListsBtn = document.getElementById('modalCustomListsBtn');
                 const closeListsBtn = document.getElementById('closeListsBtn');
                 const createListBtn = document.getElementById('createListBtn');
+                const cancelEditListBtn = document.getElementById('cancelEditListBtn');
                 const saveListsBtn = document.getElementById('saveListsBtn');
                 const newListNameInput = document.getElementById('newListName');
+                const newListIconInput = document.getElementById('newListIcon');
                 const listsListContainer = document.getElementById('listsListContainer');
+                const customListsModal = document.getElementById('customListsModal');
+                const iconOptions = customListsModal ? customListsModal.querySelectorAll('.list-icon-option') : [];
                 
                 if (!customListsBtn || !listsListContainer) {
                     console.warn('Custom lists modal elements not found');
@@ -5020,6 +5143,51 @@
                 }
                 
                 let selectedLists = new Set();
+                let editingListId = null;
+
+                function setSelectedIcon(icon) {
+                    if (!newListIconInput) return;
+                    newListIconInput.value = icon || '📋';
+                    if (iconOptions && iconOptions.length > 0) {
+                        iconOptions.forEach(option => {
+                            option.classList.toggle('selected', option.getAttribute('data-icon') === newListIconInput.value);
+                        });
+                    }
+                }
+
+                function resetListForm() {
+                    if (newListNameInput) newListNameInput.value = '';
+                    setSelectedIcon('📋');
+                    editingListId = null;
+                    if (createListBtn) {
+                        createListBtn.innerHTML = '<i class="fas fa-plus"></i> Create';
+                    }
+                    if (cancelEditListBtn) {
+                        cancelEditListBtn.style.display = 'none';
+                    }
+                }
+
+                function startEditList(list) {
+                    if (!list || !newListNameInput) return;
+                    editingListId = list.id;
+                    newListNameInput.value = list.title || '';
+                    setSelectedIcon(list.icon || '📋');
+                    if (createListBtn) {
+                        createListBtn.innerHTML = '<i class="fas fa-save"></i> Update';
+                    }
+                    if (cancelEditListBtn) {
+                        cancelEditListBtn.style.display = 'inline-flex';
+                    }
+                    newListNameInput.focus();
+                }
+
+                if (iconOptions && iconOptions.length > 0) {
+                    iconOptions.forEach(option => {
+                        option.addEventListener('click', () => {
+                            setSelectedIcon(option.getAttribute('data-icon'));
+                        });
+                    });
+                }
                 
                 customListsBtn.addEventListener('click', async () => {
                     if (!state.currentModalRestaurant) {
@@ -5061,6 +5229,7 @@
                         }
                         
                         // Render immediately
+                        resetListForm();
                         renderCustomLists();
                         
                     } catch (error) {
@@ -5082,6 +5251,14 @@
                             modal.classList.remove('active');
                             document.body.style.overflow = 'auto';
                         }
+                        resetListForm();
+                    });
+                }
+
+                if (cancelEditListBtn) {
+                    cancelEditListBtn.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        resetListForm();
                     });
                 }
                 
@@ -5118,9 +5295,22 @@
                                 <div class="list-icon">${list.icon || '📋'}</div>
                                 <div class="list-name">${list.title}</div>
                             </div>
-                            <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
+                            <div class="list-actions">
+                                <button class="list-edit-btn" type="button" data-list-id="${list.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <div class="list-checkbox ${isChecked ? 'checked' : ''}"></div>
+                            </div>
                         `;
                         
+                        const editBtn = listItem.querySelector('.list-edit-btn');
+                        if (editBtn) {
+                            editBtn.addEventListener('click', (event) => {
+                                event.stopPropagation();
+                                startEditList(list);
+                            });
+                        }
+
                         listItem.addEventListener('click', () => {
                             if (selectedLists.has(list.id)) {
                                 selectedLists.delete(list.id);
@@ -5148,6 +5338,15 @@
                             showNotification('Please enter a list name', 'error');
                             return;
                         }
+
+                        const selectedIcon = newListIconInput?.value || '📋';
+                        const existingList = state.listManager.customLists.find(list => 
+                            list.title?.toLowerCase() === listName.toLowerCase() && list.id !== editingListId
+                        );
+                        if (existingList) {
+                            showNotification(`"${listName}" already exists`, 'error');
+                            return;
+                        }
                         
                         try {
                             const { data: newList, error } = await supabase
@@ -5157,7 +5356,7 @@
                                         user_id: state.currentUser.id,
                                         title: listName,
                                         description: `My ${listName} list`,
-                                        icon: '📋',
+                                        icon: selectedIcon,
                                         is_default: false,
                                         created_at: new Date().toISOString()
                                     }
@@ -5171,8 +5370,7 @@
                             state.listManager.customLists.push(newList);
                             state.listManager.userLists.push(newList);
                             
-                            // Clear input
-                            newListNameInput.value = '';
+                            resetListForm();
                             
                             // Reload the lists
                             renderCustomLists();
@@ -5180,8 +5378,8 @@
                             showNotification(`Created list "${listName}"`, 'success');
                             
                         } catch (error) {
-                            console.error('Error creating list:', error);
-                            showNotification('Error creating list', 'error');
+                            console.error('Error saving list:', error);
+                            showNotification('Error saving list', 'error');
                         }
                     });
                 }

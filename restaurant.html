@@ -1599,6 +1599,83 @@ footer {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 250px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.list-item-icon {
+    font-size: 16px;
+}
+
+.list-edit-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: rgba(255,255,255,0.04);
+    color: #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: auto;
+}
+
+.list-edit-btn:hover {
+    border-color: var(--fab-color);
+    color: var(--fab-color);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.list-icon-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.list-icon-option {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: rgba(255,255,255,0.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.list-icon-option:hover {
+    border-color: var(--fab-color);
+}
+
+.list-icon-option.selected {
+    border-color: var(--fab-color);
+    background: rgba(245, 158, 11, 0.15);
+}
+
+.cancel-edit-btn {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 8px;
+    display: none;
+}
+
+.cancel-edit-btn:hover {
+    border-color: var(--fab-color);
+    color: var(--fab-color);
 }
 
 .new-list-input {
@@ -3472,6 +3549,7 @@ class RestaurantListManager {
         this.currentUser = null;
         this.isLoading = false;
         this.dropdownVisible = false;
+        this.editingListId = null;
         
         console.log('📋 List Manager Initialized');
     }
@@ -3610,7 +3688,7 @@ class RestaurantListManager {
         }
     }
     
-    async createList(title, description) {
+    async createList(title, description, icon = '📋') {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return null;
         
@@ -3624,6 +3702,7 @@ class RestaurantListManager {
                         user_id: user.id,
                         title: title,
                         description: description,
+                        icon: icon,
                         created_at: new Date().toISOString()
                     }
                 ])
@@ -3872,10 +3951,16 @@ class RestaurantListManager {
                 ${customLists.length > 0 ? `
                 <div class="list-section">
                     <div class="list-section-title">📋 Your Lists (${customLists.length})</div>
-                    ${customLists.map(list => `
+                ${customLists.map(list => `
                         <div class="list-item" data-list-id="${list.id}">
                             <div class="list-checkbox ${list.isChecked ? 'checked' : ''}"></div>
-                            <span class="list-item-text">${list.title}</span>
+                            <span class="list-item-text">
+                                <span class="list-item-icon">${list.icon || '📋'}</span>
+                                ${list.title}
+                            </span>
+                            <button class="list-edit-btn" type="button" data-edit-id="${list.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
                         </div>
                     `).join('')}
                 </div>
@@ -3889,9 +3974,19 @@ class RestaurantListManager {
             <div class="list-section">
                 <div class="list-section-title">🆕 Create New</div>
                 <input type="text" class="new-list-input" placeholder="Enter list name..." id="newListName">
+                <div class="list-icon-options" id="newListIconOptions">
+                    <div class="list-icon-option selected" data-icon="📋">📋</div>
+                    <div class="list-icon-option" data-icon="❤️">❤️</div>
+                    <div class="list-icon-option" data-icon="⭐">⭐</div>
+                    <div class="list-icon-option" data-icon="📍">📍</div>
+                    <div class="list-icon-option" data-icon="🍽️">🍽️</div>
+                    <div class="list-icon-option" data-icon="🔥">🔥</div>
+                </div>
+                <input type="hidden" id="newListIcon" value="📋">
                 <button class="add-list-btn" id="createListBtn">
                     <span>+</span> Create Custom List
                 </button>
+                <button class="cancel-edit-btn" id="cancelEditListBtn" type="button">Cancel Edit</button>
             </div>
         `;
         
@@ -3925,10 +4020,70 @@ class RestaurantListManager {
                 }
             });
         });
+
+        // Edit list buttons
+        dropdown.querySelectorAll('.list-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const listId = btn.dataset.editId;
+                const list = this.customLists.find(l => l.id === listId);
+                if (list) {
+                    startEditList(list);
+                }
+            });
+        });
         
         // Create list button
         const createBtn = dropdown.querySelector('#createListBtn');
         const nameInput = dropdown.querySelector('#newListName');
+        const newListIconInput = dropdown.querySelector('#newListIcon');
+        const cancelEditBtn = dropdown.querySelector('#cancelEditListBtn');
+        const iconOptions = dropdown.querySelectorAll('.list-icon-option');
+
+        const setSelectedIcon = (icon) => {
+            if (!newListIconInput) return;
+            newListIconInput.value = icon || '📋';
+            if (iconOptions && iconOptions.length > 0) {
+                iconOptions.forEach(option => {
+                    option.classList.toggle('selected', option.getAttribute('data-icon') === newListIconInput.value);
+                });
+            }
+        };
+
+        const resetListForm = () => {
+            if (nameInput) nameInput.value = '';
+            setSelectedIcon('📋');
+            this.editingListId = null;
+            if (createBtn) createBtn.innerHTML = '<span>+</span> Create Custom List';
+            if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+        };
+
+        const startEditList = (list) => {
+            if (!list || !nameInput) return;
+            this.editingListId = list.id;
+            nameInput.value = list.title || '';
+            setSelectedIcon(list.icon || '📋');
+            if (createBtn) createBtn.innerHTML = '<i class="fas fa-save"></i> Update List';
+            if (cancelEditBtn) cancelEditBtn.style.display = 'block';
+            nameInput.focus();
+        };
+
+        if (iconOptions && iconOptions.length > 0) {
+            iconOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    setSelectedIcon(option.getAttribute('data-icon'));
+                });
+            });
+        }
+
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                resetListForm();
+            });
+        }
+
+        resetListForm();
         
         createBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -3937,19 +4092,60 @@ class RestaurantListManager {
                 showNotification('Please enter a list name', 'warning');
                 return;
             }
-            
-            const existingList = this.userLists.find(list => 
-                list.title.toLowerCase() === name.toLowerCase()
+
+            const selectedIcon = newListIconInput?.value || '📋';
+            const existingList = this.customLists.find(list => 
+                list.title.toLowerCase() === name.toLowerCase() && list.id !== this.editingListId
             );
             
             if (existingList) {
                 showNotification(`"${name}" list already exists`, 'warning');
                 return;
             }
-            
-            const newList = await this.createList(name, 'Custom list');
+
+            if (this.editingListId) {
+                const { error } = await supabaseClient
+                    .from('lists')
+                    .update({
+                        title: name,
+                        icon: selectedIcon,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', this.editingListId);
+
+                if (error) {
+                    console.error('Error updating list:', error);
+                    showNotification('Error updating list', 'error');
+                    return;
+                }
+
+                const listIndex = this.customLists.findIndex(list => list.id === this.editingListId);
+                if (listIndex > -1) {
+                    this.customLists[listIndex] = {
+                        ...this.customLists[listIndex],
+                        title: name,
+                        icon: selectedIcon
+                    };
+                }
+
+                const userListIndex = this.userLists.findIndex(list => list.id === this.editingListId);
+                if (userListIndex > -1) {
+                    this.userLists[userListIndex] = {
+                        ...this.userLists[userListIndex],
+                        title: name,
+                        icon: selectedIcon
+                    };
+                }
+
+                showNotification(`Updated list "${name}"`, 'success');
+                resetListForm();
+                await this.updateDropdown();
+                return;
+            }
+
+            const newList = await this.createList(name, 'Custom list', selectedIcon);
             if (newList) {
-                nameInput.value = '';
+                resetListForm();
                 
                 // Add to user lists
                 this.userLists.push(newList);
