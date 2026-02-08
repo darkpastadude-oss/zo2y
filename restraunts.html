@@ -104,96 +104,7 @@
     display: block; 
     max-width: 100%; 
     height: auto; 
-  }
-
-  /* Enhanced Guest Banner - Fixed Position */
-  .guest-banner {
-    display: none;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(255, 184, 77, 0.2) 100%);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    padding: 12px 20px;
-    margin: 0 auto 20px auto;
-    border-radius: 12px;
-    max-width: 1200px;
-    width: calc(100% - 32px);
-    text-align: center;
-    animation: slideDown 0.3s ease-out;
-    position: sticky;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100%);
-    z-index: 999;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .guest-banner.show { 
-    display: block;
-    transform: translateX(-50%) translateY(0);
-  }
-  
-  .guest-banner.hidden {
-    transform: translateX(-50%) translateY(-100%);
-  }
-  
-  @keyframes slideDown { 
-    from { 
-      opacity: 0; 
-      transform: translateX(-50%) translateY(-20px); 
-    } 
-    to { 
-      opacity: 1; 
-      transform: translateX(-50%) translateY(0); 
-    } 
-  }
-
-  .banner-content { 
-    display: flex; 
-    flex-wrap: wrap; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 8px; 
-    color: var(--muted); 
-    font-size: 14px; 
-  }
-  
-  .banner-actions { 
-    display: flex; 
-    gap: 8px; 
-    align-items: center; 
-  }
-  
-  .banner-btn { 
-    padding: 6px 14px; 
-    border-radius: 8px; 
-    font-weight: 500; 
-    font-size: 13px; 
-    cursor: pointer; 
-    transition: all 0.3s ease; 
-    border: none; 
-  }
-  
-  .banner-btn-outline { 
-    background: transparent; 
-    color: var(--accent); 
-    border: 1px solid var(--accent); 
-  }
-  
-  .banner-btn-outline:hover { 
-    background: rgba(245, 158, 11, 0.1); 
-  }
-  
-  .banner-btn-primary { 
-    background: var(--accent); 
-    color: #111; 
-    border: 1px solid var(--accent); 
-  }
-  
-  .banner-btn-primary:hover { 
-    background: #ffb84d; 
-    transform: translateY(-1px); 
-  }
-
-  /* Enhanced Header */
+  }\n/* Enhanced Header */
   header { 
     position: sticky; 
     top: 0; 
@@ -979,29 +890,7 @@
     padding-top: 60px;
   }
 
-  body.has-guest-banner .container {
-    padding-top: 120px;
-  }
-    
-    /* Guest banner adjustment */
-    .guest-banner {
-      margin-top: 12px;
-      position: sticky;
-      top: 56px;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(255, 184, 77, 0.3) 100%);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-    }
-    
-    .guest-banner.show {
-      transform: translateX(-50%) translateY(0);
-    }
-    
-    .guest-banner.hidden {
-      transform: translateX(-50%) translateY(-100%);
-    }
-    
-    /* Hide tooltips on mobile */
+      /* Hide tooltips on mobile */
     .cloud-tooltip,
     .list-badge-tooltip,
     .menu-btn-tooltip {
@@ -2011,15 +1900,7 @@
   </style>
 </head>
 <body>
-  <!-- Guest Banner -->
-  <div id="guestBanner" class="guest-banner">
-    <div class="banner-content">
-      <span class="banner-text">Want to save your favorite restaurants?</span>
-      <div class="banner-actions">
-        <button class="banner-btn banner-btn-outline" id="bannerLoginBtn">Sign In</button>
-        <button class="banner-btn banner-btn-primary" id="bannerSignupBtn">Create Account</button>
-      </div>
-    </div>
+  <!-- Guest Banner -->\n</div>
   </div>
 
   <header>
@@ -2706,7 +2587,7 @@
             state.isLoggedIn = false;
             state.restaurantListStatuses.clear();
             setGuestState();
-            guestBanner.show();
+            showGuestPromptOnce();
             
           } else if (event === 'SIGNED_IN' && session?.user) {
             state.currentUser = session.user;
@@ -2835,7 +2716,7 @@
             };
           }
           
-          guestBanner.hide();
+          
           
         } catch (error) {
           console.error('Error setting logged in state:', error);
@@ -2852,7 +2733,7 @@
           };
         }
         
-        guestBanner.show();
+        showGuestPromptOnce();
       }
       
       // ---------- OPTIMIZED RESTAURANT DATA LOADING ----------
@@ -3621,7 +3502,6 @@
       
       function handleHeaderScroll() {
         const header = document.querySelector('header');
-        const guestBanner = document.getElementById('guestBanner');
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         
         if (scrollTop > scrollThreshold) {
@@ -3629,23 +3509,17 @@
             // Scrolling down - hide both
             header.classList.add('header-hidden');
             header.classList.remove('header-visible');
-            if (guestBanner && guestBanner.classList.contains('show')) {
-              guestBanner.classList.add('hidden');
             }
           } else {
             // Scrolling up - show both
             header.classList.remove('header-hidden');
             header.classList.add('header-visible');
-            if (guestBanner && guestBanner.classList.contains('show')) {
-              guestBanner.classList.remove('hidden');
             }
           }
         } else {
           // Near top - always show
           header.classList.remove('header-hidden');
           header.classList.add('header-visible');
-          if (guestBanner && guestBanner.classList.contains('show')) {
-            guestBanner.classList.remove('hidden');
           }
         }
         
@@ -3726,54 +3600,19 @@
             setTimeout(() => notification.remove(), 400);
           }
         }, duration);
-      }
-      
-      // ---------- GUEST BANNER ----------
-      const guestBanner = {
-        init: function() {
-          const loginBtn = document.getElementById('bannerLoginBtn');
-          const signupBtn = document.getElementById('bannerSignupBtn');
-          
-          if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-              window.location.href = 'login.html';
-            });
-          }
-          
-          if (signupBtn) {
-            signupBtn.addEventListener('click', () => {
-              window.location.href = 'sign-up.html';
-            });
-          }
-        },
-        
-        show: function() {
-          const banner = document.getElementById('guestBanner');
-          if (banner) {
-            banner.classList.add('show');
-            banner.classList.remove('hidden');
-            document.body.classList.add('has-guest-banner');
-          }
-        },
-        
-        hide: function() {
-          const banner = document.getElementById('guestBanner');
-          if (banner) {
-            banner.classList.remove('show');
-            banner.classList.add('hidden');
-            document.body.classList.remove('has-guest-banner');
-          }
-        }
-      };
-      
-      // ---------- AUTH PROMPT ----------
+      }\n\n      // ---------- AUTH PROMPT ----------
       function showAuthPrompt() {
         const modal = document.getElementById('authPromptModal');
         if (modal) modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
-      
-      // ---------- MODAL FUNCTIONS ----------
+
+      let guestPromptShown = false;
+      function showGuestPromptOnce() {
+        if (state.isLoggedIn || guestPromptShown) return;
+        guestPromptShown = true;
+        showAuthPrompt();
+      }\n      // ---------- MODAL FUNCTIONS ----------
       function showModal(restaurantData) {
         if (!restaurantData) return;
         
@@ -4350,7 +4189,7 @@
           }
         });
         
-        guestBanner.init();
+        
         initScrollHideShow();
       }
       
@@ -4443,7 +4282,7 @@
         try {
           // OPTIMIZATION: Parallel initialization
           setupEventListeners();
-          guestBanner.init();
+          
           
           showLoadingSkeleton();
           
@@ -4478,3 +4317,9 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
