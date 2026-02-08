@@ -90,6 +90,32 @@ body {
     transform: translateX(-3px);
 }
 
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.top-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.top-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
 /* ========== HERO SECTION ========== */
 .hero {
     text-align: center;
@@ -2302,7 +2328,15 @@ a.btn,
 <div class="top-stripe">
     <button class="back-btn" onclick="window.location.href='restraunts.html'">
         ← Back to Restaurants
-    </button>
+</button>
+    <div class="top-actions">
+        <button class="top-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-home"></i> Home
+        </button>
+        <button class="top-btn" onclick="window.location.href='profile.html'">
+            <i class="fas fa-user"></i> Account
+        </button>
+    </div>
 </div>
 
 <!-- Login/Signup Modal -->
