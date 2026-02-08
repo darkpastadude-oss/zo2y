@@ -29,7 +29,16 @@
     .title { margin: 0 0 8px; font-size: 28px; }
     .meta { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
     .overview { line-height: 1.6; color: var(--muted); }
+    .section-title { margin: 20px 0 8px; font-size: 16px; }
+    .people-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .person-chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+    .meta-item { background: #0f1f40; border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 12px; color: var(--muted); }
     .tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; margin-right: 8px; }
+    .video-frame { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 12px; background: #0f1f40; }
+    .list-stack { display: grid; gap: 6px; }
+    .list-row { display: flex; gap: 8px; align-items: baseline; color: var(--muted); font-size: 12px; }
+    .list-label { color: var(--text); font-weight: 600; }
     @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } .poster { max-width: 360px; } }
   </style>
 </head>
@@ -52,6 +61,17 @@
       <div id="meta" class="meta"></div>
       <div id="tags"></div>
       <p id="overview" class="overview"></p>
+      <div class="meta-grid" id="metaGrid"></div>
+      <h3 class="section-title">Details</h3>
+      <div id="details" class="list-stack"></div>
+      <h3 class="section-title">Trailer</h3>
+      <div id="trailer"></div>
+      <h3 class="section-title">Director</h3>
+      <div id="directors" class="people-list"></div>
+      <h3 class="section-title">Writers</h3>
+      <div id="writers" class="people-list"></div>
+      <h3 class="section-title">Cast</h3>
+      <div id="cast" class="people-list"></div>
     </div>
   </div>
 
@@ -71,9 +91,12 @@
         return res.json();
       }
 
-      async function load() {
+      async function loadOld() {
         if (!id) return;
-        const data = await tmdbFetch(`/movie/${id}?language=en`);
+        const [data, credits] = await Promise.all([
+          tmdbFetch(`/movie/${id}?language=en`),
+          tmdbFetch(`/movie/${id}/credits?language=en`)
+        ]);
         document.getElementById('title').textContent = data.title || 'Untitled';
         document.getElementById('overview').textContent = data.overview || 'No description available.';
         document.getElementById('meta').textContent = `${data.release_date || ''} • ${data.runtime || ''} min`;
@@ -81,6 +104,99 @@
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
           tags.innerHTML = data.genres.map(g => `<span class="tag">${g.name}</span>`).join('');
+        }
+        const metaGrid = document.getElementById('metaGrid');
+        if (metaGrid) {
+          const items = [];
+          if (data.original_language) items.push(`Language: ${data.original_language.toUpperCase()}`);
+          if (data.status) items.push(`Status: ${data.status}`);
+          if (data.budget) items.push(`Budget: $${data.budget.toLocaleString()}`);
+          if (data.revenue) items.push(`Revenue: $${data.revenue.toLocaleString()}`);
+          metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
+        }
+        const directors = (credits.crew || []).filter(p => p.job === 'Director').slice(0, 3);
+        const cast = (credits.cast || []).slice(0, 12);
+        const directorsEl = document.getElementById('directors');
+        if (directorsEl) {
+          directorsEl.innerHTML = directors.length ? directors.map(p => `<span class="person-chip">${p.name}</span>`).join('') : '<span class="person-chip">N/A</span>';
+        }
+        const castEl = document.getElementById('cast');
+        if (castEl) {
+          castEl.innerHTML = cast.length ? cast.map(p => `<span class="person-chip">${p.name}</span>`).join('') : '<span class="person-chip">N/A</span>';
+        }
+      }
+
+      async function load() {
+        if (!id) return;
+        const [data, credits, videos, keywords, externals] = await Promise.all([
+          tmdbFetch(`/movie/${id}?language=en`),
+          tmdbFetch(`/movie/${id}/credits?language=en`),
+          tmdbFetch(`/movie/${id}/videos?language=en`),
+          tmdbFetch(`/movie/${id}/keywords`),
+          tmdbFetch(`/movie/${id}/external_ids`)
+        ]);
+        document.getElementById('title').textContent = data.title || 'Untitled';
+        document.getElementById('overview').textContent = data.overview || 'No description available.';
+        document.getElementById('meta').textContent = `${data.release_date || ''} • ${data.runtime || ''} min`;
+        document.getElementById('poster').src = data.poster_path ? POSTER_BASE + data.poster_path : 'images/placeholder.jpg';
+        const tags = document.getElementById('tags');
+        if (tags && Array.isArray(data.genres)) {
+          tags.innerHTML = data.genres.map(g => `<span class="tag">${g.name}</span>`).join('');
+        }
+        const metaGrid = document.getElementById('metaGrid');
+        if (metaGrid) {
+          const items = [];
+          if (data.original_language) items.push(`Language: ${data.original_language.toUpperCase()}`);
+          if (data.status) items.push(`Status: ${data.status}`);
+          if (typeof data.vote_average === 'number') items.push(`Rating: ${data.vote_average.toFixed(1)} (${data.vote_count || 0})`);
+          if (typeof data.popularity === 'number') items.push(`Popularity: ${Math.round(data.popularity)}`);
+          if (data.budget) items.push(`Budget: $${data.budget.toLocaleString()}`);
+          if (data.revenue) items.push(`Revenue: $${data.revenue.toLocaleString()}`);
+          metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
+        }
+        const detailsEl = document.getElementById('details');
+        if (detailsEl) {
+          const detailRows = [];
+          if (data.tagline) detailRows.push(`<div class="list-row"><span class="list-label">Tagline:</span> ${data.tagline}</div>`);
+          if (Array.isArray(data.production_companies) && data.production_companies.length) {
+            detailRows.push(`<div class="list-row"><span class="list-label">Studios:</span> ${data.production_companies.map(c => c.name).join(', ')}</div>`);
+          }
+          if (Array.isArray(data.production_countries) && data.production_countries.length) {
+            detailRows.push(`<div class="list-row"><span class="list-label">Countries:</span> ${data.production_countries.map(c => c.name).join(', ')}</div>`);
+          }
+          if (Array.isArray(data.spoken_languages) && data.spoken_languages.length) {
+            detailRows.push(`<div class="list-row"><span class="list-label">Languages:</span> ${data.spoken_languages.map(l => l.english_name || l.name).join(', ')}</div>`);
+          }
+          if (externals && externals.imdb_id) {
+            detailRows.push(`<div class="list-row"><span class="list-label">IMDB:</span> <a class="tag" href="https://www.imdb.com/title/${externals.imdb_id}/" target="_blank" rel="noopener">Open</a></div>`);
+          }
+          const keywordList = (keywords.keywords || []).slice(0, 8).map(k => k.name);
+          if (keywordList.length) {
+            detailRows.push(`<div class="list-row"><span class="list-label">Keywords:</span> ${keywordList.join(', ')}</div>`);
+          }
+          detailsEl.innerHTML = detailRows.length ? detailRows.join('') : '<div class="list-row">No extra details available.</div>';
+        }
+        const trailerEl = document.getElementById('trailer');
+        if (trailerEl) {
+          const trailer = (videos.results || []).find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser'));
+          trailerEl.innerHTML = trailer
+            ? `<iframe class="video-frame" src="https://www.youtube.com/embed/${trailer.key}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+            : '<div class="meta-item">No trailer available.</div>';
+        }
+        const directors = (credits.crew || []).filter(p => p.job === 'Director').slice(0, 3);
+        const writers = (credits.crew || []).filter(p => ['Writer', 'Screenplay', 'Story'].includes(p.job)).slice(0, 6);
+        const cast = (credits.cast || []).slice(0, 12);
+        const directorsEl = document.getElementById('directors');
+        if (directorsEl) {
+          directorsEl.innerHTML = directors.length ? directors.map(p => `<span class="person-chip">${p.name}</span>`).join('') : '<span class="person-chip">N/A</span>';
+        }
+        const writersEl = document.getElementById('writers');
+        if (writersEl) {
+          writersEl.innerHTML = writers.length ? writers.map(p => `<span class="person-chip">${p.name}</span>`).join('') : '<span class="person-chip">N/A</span>';
+        }
+        const castEl = document.getElementById('cast');
+        if (castEl) {
+          castEl.innerHTML = cast.length ? cast.map(p => `<span class="person-chip">${p.name}${p.character ? ` as ${p.character}` : ''}</span>`).join('') : '<span class="person-chip">N/A</span>';
         }
       }
 

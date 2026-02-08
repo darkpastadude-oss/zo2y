@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zo2y — Movies</title>
+  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0b1633;
+      --card: #132347;
+      --accent: #f59e0b;
+      --text: #ffffff;
+      --muted: #9fb0cf;
+      --border: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+    header { position: sticky; top: 0; z-index: 10; background: rgba(11,22,51,0.95); border-bottom: 1px solid var(--border); }
+    .header-inner { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
+    .header-title { font-weight: 700; font-size: 16px; display: flex; gap: 8px; align-items: center; }
+    .header-actions { display: flex; gap: 8px; }
+    .btn { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); text-decoration: none; font-size: 12px; }
+    .hero { padding: 16px 14px 0; }
+    .hero h1 { font-size: 20px; margin: 0 0 6px; }
+    .hero p { margin: 0; color: var(--muted); font-size: 13px; }
+    .controls { padding: 12px 14px 0; display: grid; gap: 8px; }
+    .search-input, .filter-select { width: 100%; padding: 12px 12px; border-radius: 10px; border: 1px solid var(--border); background: #0f1f40; color: var(--text); }
+    .grid { padding: 14px; display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: grid; grid-template-columns: 100px 1fr; gap: 10px; }
+    .card img { width: 100px; height: 140px; object-fit: cover; background: #0f1f40; }
+    .card-body { padding: 10px 10px 10px 0; display: flex; flex-direction: column; gap: 6px; }
+    .card-title { font-size: 14px; font-weight: 700; margin: 0; }
+    .card-meta { font-size: 12px; color: var(--muted); }
+    .card-desc { font-size: 12px; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .pagination { padding: 6px 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .page-btn { min-width: 44px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+    .page-info { color: var(--muted); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-title"><i class="fas fa-film"></i> Movies</div>
+      <div class="header-actions">
+        <a class="btn" href="index.html"><i class="fas fa-home"></i></a>
+        <a class="btn" href="profile.html"><i class="fas fa-user"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>Popular Movies</h1>
+    <p>Egyptian-focused content from TMDB.</p>
+  </section>
+
+  <div class="controls">
+    <input id="searchInput" class="search-input" type="text" placeholder="Search movies..." />
+    <select id="genreSelect" class="filter-select">
+      <option value="">All Genres</option>
+    </select>
+  </div>
+
+  <div id="moviesGrid" class="grid"></div>
+
+  <div class="pagination">
+    <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+    <div class="page-info" id="pageInfo">Page 1</div>
+    <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+  </div>
+
+  <script>
+    (function () {
+      const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
+      const TMDB_BASE = 'https://api.themoviedb.org/3';
+      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const state = { page: 1, totalPages: 1, query: '', genre: '' };
+
+      async function tmdbFetch(path, params = {}) {
+        const url = new URL(TMDB_BASE + path);
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+        });
+        const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${TMDB_TOKEN}` } });
+        if (!res.ok) throw new Error('TMDB error');
+        return res.json();
+      }
+
+      async function loadGenres() {
+        const data = await tmdbFetch('/genre/movie/list', { language: 'en' });
+        const select = document.getElementById('genreSelect');
+        (data.genres || []).forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = String(g.id);
+          opt.textContent = g.name;
+          select.appendChild(opt);
+        });
+      }
+
+      async function loadMovies() {
+        const grid = document.getElementById('moviesGrid');
+        let data;
+        if (state.query) {
+          data = await tmdbFetch('/search/movie', { query: state.query, page: state.page });
+        } else {
+          data = await tmdbFetch('/movie/popular', { page: state.page });
+        }
+        let results = data.results || [];
+        if (state.genre) {
+          const gid = parseInt(state.genre, 10);
+          results = results.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(gid));
+        }
+        const fragment = document.createDocumentFragment();
+        results.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${item.title}">
+            <div class="card-body">
+              <h3 class="card-title">${item.title}</h3>
+              <div class="card-meta">${item.release_date || ''}</div>
+              <div class="card-desc">${item.overview || 'No description available.'}</div>
+            </div>
+          `;
+          card.onclick = () => { window.location.href = `movie.html?id=${item.id}`; };
+          fragment.appendChild(card);
+        });
+        grid.innerHTML = '';
+        grid.appendChild(fragment);
+        state.totalPages = Math.min(data.total_pages || 1, 500);
+        updatePagination();
+      }
+
+      function updatePagination() {
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const info = document.getElementById('pageInfo');
+        prevBtn.disabled = state.page <= 1;
+        nextBtn.disabled = state.page >= state.totalPages;
+        info.textContent = `Page ${state.page} of ${state.totalPages}`;
+      }
+
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        state.query = e.target.value.trim();
+        state.page = 1;
+        loadMovies();
+      });
+      document.getElementById('genreSelect').addEventListener('change', (e) => {
+        state.genre = e.target.value;
+        state.page = 1;
+        loadMovies();
+      });
+      document.getElementById('prevPageBtn').addEventListener('click', () => {
+        if (state.page > 1) { state.page -= 1; loadMovies(); }
+      });
+      document.getElementById('nextPageBtn').addEventListener('click', () => {
+        if (state.page < state.totalPages) { state.page += 1; loadMovies(); }
+      });
+
+      (async function init() {
+        await loadGenres();
+        await loadMovies();
+      })();
+    })();
+  </script>
+</body>
+</html>
