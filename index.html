@@ -3107,6 +3107,41 @@
                                 renderCustomLists();
                                 return;
                             }
+                            if (editingListId) {
+                                const { error } = await supabase
+                                    .from('lists')
+                                    .update({
+                                        title: listName,
+                                        icon: selectedIcon,
+                                        updated_at: new Date().toISOString()
+                                    })
+                                    .eq('id', editingListId);
+
+                                if (error) throw error;
+
+                                const listIndex = state.listManager.customLists.findIndex(list => list.id === editingListId);
+                                if (listIndex > -1) {
+                                    state.listManager.customLists[listIndex] = {
+                                        ...state.listManager.customLists[listIndex],
+                                        title: listName,
+                                        icon: selectedIcon
+                                    };
+                                }
+
+                                const userListIndex = state.listManager.userLists.findIndex(list => list.id === editingListId);
+                                if (userListIndex > -1) {
+                                    state.listManager.userLists[userListIndex] = {
+                                        ...state.listManager.userLists[userListIndex],
+                                        title: listName,
+                                        icon: selectedIcon
+                                    };
+                                }
+
+                                showNotification(`Updated list "${listName}"`, 'success');
+                                resetListForm();
+                                renderCustomLists();
+                                return;
+                            }
                             console.log('📋 Loading user lists...');
                             if (!state.currentUser || !supabase) return;
 
@@ -4247,7 +4282,7 @@
                                 .from('restraunts')
                                 .select('id, slug, name, category, description, rating, logo_url, image')
                                 .order('rating', { ascending: false })
-                                .limit(16) // OPTIMIZATION: Reduced from 32 for faster loading
+                                .limit(48)
                         ]);
                     
                     if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
@@ -5198,23 +5233,12 @@
                     // Hide main modal first
                     hideModal();
                     
-                    // Show modal immediately with loading state
-                    const modal = document.getElementById('customListsModal');
-                    if (modal) {
-                        modal.classList.add('active');
-                        document.body.style.overflow = 'hidden';
-                    }
-                    
-                    // Show loading spinner
-                    listsListContainer.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: var(--muted);">
-                            <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 12px;"></i>
-                            <p>Loading your lists...</p>
-                        </div>
-                    `;
-                    
                     try {
-                        // Load from cache (instant)
+                        // Always refresh lists before showing
+                        if (state.isLoggedIn && state.listManager) {
+                            await state.listManager.loadUserLists();
+                        }
+                        
                         const restaurantId = state.currentModalRestaurant.id;
                         const status = state.listManager.getRestaurantListStatus(restaurantId);
                         
@@ -5223,12 +5247,6 @@
                             selectedLists.add(list.id);
                         });
                         
-                        // Only refresh if cache is empty
-                        if (state.listManager.customLists.length === 0 && state.isLoggedIn) {
-                            await state.listManager.loadUserLists();
-                        }
-                        
-                        // Render immediately
                         resetListForm();
                         renderCustomLists();
                         
@@ -5241,6 +5259,13 @@
                             </div>
                         `;
                         console.error('Error loading custom lists:', error);
+                    }
+                    
+                    // Show modal
+                    const modal = document.getElementById('customListsModal');
+                    if (modal) {
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
                     }
                 });
                 
