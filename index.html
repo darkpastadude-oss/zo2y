@@ -3072,77 +3072,7 @@
                     
                     async loadUserLists() {
                         try {
-                            if (editingListId) {
-                                const { error } = await supabase
-                                    .from('lists')
-                                    .update({
-                                        title: listName,
-                                        icon: selectedIcon,
-                                        updated_at: new Date().toISOString()
-                                    })
-                                    .eq('id', editingListId);
-
-                                if (error) throw error;
-
-                                const listIndex = state.listManager.customLists.findIndex(list => list.id === editingListId);
-                                if (listIndex > -1) {
-                                    state.listManager.customLists[listIndex] = {
-                                        ...state.listManager.customLists[listIndex],
-                                        title: listName,
-                                        icon: selectedIcon
-                                    };
-                                }
-
-                                const userListIndex = state.listManager.userLists.findIndex(list => list.id === editingListId);
-                                if (userListIndex > -1) {
-                                    state.listManager.userLists[userListIndex] = {
-                                        ...state.listManager.userLists[userListIndex],
-                                        title: listName,
-                                        icon: selectedIcon
-                                    };
-                                }
-
-                                showNotification(`Updated list "${listName}"`, 'success');
-                                resetListForm();
-                                renderCustomLists();
-                                return;
-                            }
-                            if (editingListId) {
-                                const { error } = await supabase
-                                    .from('lists')
-                                    .update({
-                                        title: listName,
-                                        icon: selectedIcon,
-                                        updated_at: new Date().toISOString()
-                                    })
-                                    .eq('id', editingListId);
-
-                                if (error) throw error;
-
-                                const listIndex = state.listManager.customLists.findIndex(list => list.id === editingListId);
-                                if (listIndex > -1) {
-                                    state.listManager.customLists[listIndex] = {
-                                        ...state.listManager.customLists[listIndex],
-                                        title: listName,
-                                        icon: selectedIcon
-                                    };
-                                }
-
-                                const userListIndex = state.listManager.userLists.findIndex(list => list.id === editingListId);
-                                if (userListIndex > -1) {
-                                    state.listManager.userLists[userListIndex] = {
-                                        ...state.listManager.userLists[userListIndex],
-                                        title: listName,
-                                        icon: selectedIcon
-                                    };
-                                }
-
-                                showNotification(`Updated list "${listName}"`, 'success');
-                                resetListForm();
-                                renderCustomLists();
-                                return;
-                            }
-                            console.log('📋 Loading user lists...');
+                            console.log('?? Loading user lists...');
                             if (!state.currentUser || !supabase) return;
 
                             const { data: lists, error } = await supabase
@@ -4282,7 +4212,7 @@
                                 .from('restraunts')
                                 .select('id, slug, name, category, description, rating, logo_url, image')
                                 .order('rating', { ascending: false })
-                                .limit(48)
+                                .limit(100)
                         ]);
                     
                     if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
@@ -5678,3 +5608,4 @@
     </script>
 </body>
 </html>
+
