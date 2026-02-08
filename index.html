@@ -4282,7 +4282,7 @@ header, .top-stripe, .section-nav {
                                 .from('restraunts')
                                 .select('id, slug, name, category, description, rating, logo_url, image')
                                 .order('rating', { ascending: false })
-                                .limit(100)
+                                .limit(200)
                         ]);
                     
                     if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
