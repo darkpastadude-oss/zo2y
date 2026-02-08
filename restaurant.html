@@ -372,6 +372,44 @@ h2::after {
     color: var(--accent);
 }
 
+.branch-directions {
+    font-size: 0.9rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.branch-directions.disabled {
+    color: var(--text2);
+    opacity: 0.7;
+}
+
+.branch-card.is-hidden {
+    display: none;
+}
+
+.branches-toggle-btn {
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--nav-shadow);
+    background: var(--card);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.branches-toggle-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
 /* ========== TALABAT SECTION ========== */
 .talabat-section {
     margin: 40px auto;
@@ -2814,18 +2852,52 @@ function renderContactInfo(restaurant, branches) {
     }
     
     const branchesContainer = document.getElementById('branches-container');
+    const existingToggleBtn = document.getElementById('branchesToggleBtn');
+    if (existingToggleBtn) existingToggleBtn.remove();
     if (branches.length > 0) {
         branchesContainer.innerHTML = '';
-        branches.forEach(branch => {
+        const maxVisible = 3;
+        branches.forEach((branch, index) => {
             const branchCard = document.createElement('div');
             branchCard.className = 'branch-card';
+            if (index >= maxVisible) {
+                branchCard.classList.add('is-hidden');
+            }
             branchCard.innerHTML = `
                 <h3>${branch.branch_name}</h3>
                 <p>${branch.details || 'Location details not available'}</p>
-                ${branch.directions_link ? `<a href="${branch.directions_link}" target="_blank" rel="noopener">📍 Get Directions</a>` : ''}
+                ${branch.directions_link
+                    ? `<a href="${branch.directions_link}" target="_blank" rel="noopener">📍 Get directions</a>`
+                    : `<span class="branch-directions disabled">📍 Get directions</span>`
+                }
             `;
             branchesContainer.appendChild(branchCard);
         });
+
+        if (branches.length > maxVisible && branchesContainer.parentElement) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.id = 'branchesToggleBtn';
+            toggleBtn.className = 'branches-toggle-btn';
+            toggleBtn.type = 'button';
+            toggleBtn.setAttribute('data-expanded', 'false');
+            toggleBtn.innerHTML = '<span>See more</span><i class="fas fa-chevron-down"></i>';
+
+            toggleBtn.addEventListener('click', () => {
+                const isExpanded = toggleBtn.getAttribute('data-expanded') === 'true';
+                branchesContainer.querySelectorAll('.branch-card').forEach((card, idx) => {
+                    if (idx >= maxVisible) {
+                        card.classList.toggle('is-hidden', isExpanded);
+                    }
+                });
+
+                toggleBtn.setAttribute('data-expanded', (!isExpanded).toString());
+                toggleBtn.innerHTML = isExpanded
+                    ? '<span>See more</span><i class="fas fa-chevron-down"></i>'
+                    : '<span>See less</span><i class="fas fa-chevron-up"></i>';
+            });
+
+            branchesContainer.parentElement.appendChild(toggleBtn);
+        }
     } else {
         branchesContainer.innerHTML = '<p class="no-data">No branch information available</p>';
     }
