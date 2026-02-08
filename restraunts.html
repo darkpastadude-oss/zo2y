@@ -2534,15 +2534,14 @@
         lastScrollPosition: 0,
         sentinelObserver: null
       };
-      
       // ---------- OPTIMIZED INITIALIZATION ----------
       async function initializeAuth() {
-        console.log('🔐 Initializing auth...');
+        console.log('?? Initializing auth...');
         
         if (!supabase) {
           console.error('Supabase client not initialized');
           setGuestState();
-return;
+          return;
         }
         
         try {
@@ -2551,23 +2550,22 @@ return;
           if (sessionError) {
             console.error('Session error:', sessionError);
             setGuestState();
-return;
+            return;
           }
           
           if (!session?.user) {
-            console.log('👤 No active session, setting guest state');
+            console.log('?? No active session, setting guest state');
             setGuestState();
-return;
+            return;
           }
           
-          console.log('✅ User found in session:', session.user.email);
+          console.log('? User found in session:', session.user.email);
           state.currentUser = session.user;
           state.isLoggedIn = true;
           
           const profileReady = await ensureUserProfileExists(session.user);
           
           if (profileReady) {
-            // Initialize list manager and load statuses BEFORE rendering
             await state.listManager.init();
             setLoggedInState(session.user);
           } else {
@@ -2575,19 +2573,19 @@ return;
           }
           
         } catch (error) {
-          console.error('❌ Auth initialization error:', error);
+          console.error('? Auth initialization error:', error);
           setGuestState();
-}
+        }
         
         supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log('🔄 Auth state change:', event);
+          console.log('?? Auth state change:', event);
           
           if (event === 'SIGNED_OUT') {
             state.currentUser = null;
             state.isLoggedIn = false;
             state.restaurantListStatuses.clear();
             setGuestState();
-} else if (event === 'SIGNED_IN' && session?.user) {
+          } else if (event === 'SIGNED_IN' && session?.user) {
             state.currentUser = session.user;
             state.isLoggedIn = true;
             
@@ -2600,7 +2598,6 @@ return;
           }
         });
       }
-      
       async function ensureUserProfileExists(user, retries = 3) {
         console.log('🔍 Ensuring profile exists for:', user.id);
         
@@ -4312,6 +4309,8 @@ return;
   </script>
 </body>
 </html>
+
+
 
 
 
