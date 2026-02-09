@@ -1009,6 +1009,28 @@
             gap: 12px;
         }
 
+        .movie-list-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .movie-list-action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--white);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .movie-list-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .movie-list-action-btn.danger:hover { border-color: var(--error); color: var(--error); }
+
         .movie-list-icon {
             width: 44px;
             height: 44px;
@@ -1038,21 +1060,21 @@
             border-radius: var(--radius);
             overflow: hidden;
             display: grid;
-            grid-template-columns: 120px 1fr;
+            grid-template-columns: 90px 1fr;
             gap: 12px;
             position: relative;
             cursor: pointer;
         }
 
         .movie-list-movie-card img {
-            width: 120px;
-            height: 180px;
+            width: 90px;
+            height: 130px;
             object-fit: cover;
             background: #0f1f40;
         }
 
         .movie-list-movie-body {
-            padding: 12px 12px 12px 0;
+            padding: 10px 10px 10px 0;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -1081,11 +1103,11 @@
 
         @media (max-width: 768px) {
             .movie-list-movie-card {
-                grid-template-columns: 90px 1fr;
+                grid-template-columns: 70px 1fr;
             }
             .movie-list-movie-card img {
-                width: 90px;
-                height: 135px;
+                width: 70px;
+                height: 100px;
             }
         }
 
@@ -2560,6 +2582,14 @@ header, .top-stripe, .section-nav {
                                 <h2 class="section-title" id="movieListDetailTitle">List Title</h2>
                                 <p class="section-subtitle" id="movieListDetailDescription">List description</p>
                             </div>
+                            <div class="section-actions" id="movieListDetailActions" style="display: none;">
+                                <button class="btn btn-secondary btn-sm" id="movieListRenameBtn">
+                                    <i class="fas fa-pen"></i> Rename
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="movieListDeleteBtn">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
                         </div>
                         <div class="cards-grid" id="movieListMoviesGrid"></div>
                     </div>
@@ -2857,6 +2887,14 @@ header, .top-stripe, .section-nav {
                         <span id="mobileMovieListDetailTitle">List</span>
                     </div>
                     <div class="mobile-section-subtitle" id="mobileMovieListDetailDescription"></div>
+                    <div id="mobileMovieListDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
+                        <button class="mobile-action-btn secondary" id="mobileMovieListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Rename
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileMovieListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
                     <div class="cards-grid" id="mobileMovieListMoviesGrid"></div>
                 </div>
             </div>
@@ -5637,9 +5675,14 @@ header, .top-stripe, .section-nav {
                         </div>
                     ` : '';
                     const editBtnHtml = list.type === 'custom' ? `
-                        <button class="list-edit-btn" onclick="event.stopPropagation(); ProfileManager.renameMovieList('${list.id}', '${list.title.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-pen"></i>
-                        </button>
+                        <div class="movie-list-actions">
+                            <button class="movie-list-action-btn" onclick="event.stopPropagation(); ProfileManager.renameMovieList('${list.id}', '${list.title.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="movie-list-action-btn danger" onclick="event.stopPropagation(); ProfileManager.deleteMovieList('${list.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     ` : '';
                     return `
                         <div class="movie-list-card" onclick="ProfileManager.showMovieListDetail('${list.id}', '${list.type}')">
@@ -5674,11 +5717,17 @@ header, .top-stripe, .section-nav {
                 const titleEl = document.getElementById('movieListDetailTitle');
                 const descEl = document.getElementById('movieListDetailDescription');
                 const listGrid = document.getElementById('movieListsGrid');
+                const actions = document.getElementById('movieListDetailActions');
+                const renameBtn = document.getElementById('movieListRenameBtn');
+                const deleteBtn = document.getElementById('movieListDeleteBtn');
                 const mobileDetail = document.getElementById('mobileMovieListDetail');
                 const mobileGrid = document.getElementById('mobileMovieListMoviesGrid');
                 const mobileTitle = document.getElementById('mobileMovieListDetailTitle');
                 const mobileDesc = document.getElementById('mobileMovieListDetailDescription');
                 const mobileListsGrid = document.getElementById('mobileMovieListsGrid');
+                const mobileActions = document.getElementById('mobileMovieListDetailActions');
+                const mobileRenameBtn = document.getElementById('mobileMovieListRenameBtn');
+                const mobileDeleteBtn = document.getElementById('mobileMovieListDeleteBtn');
                 if (isMobileView) {
                     if (mobileDetail) mobileDetail.style.display = 'block';
                     if (mobileListsGrid) mobileListsGrid.style.display = 'none';
@@ -5699,12 +5748,28 @@ header, .top-stripe, .section-nav {
                     if (descEl) descEl.textContent = listDescMap[listId] || '';
                     if (mobileTitle) mobileTitle.textContent = listTitleMap[listId] || 'Movies';
                     if (mobileDesc) mobileDesc.textContent = listDescMap[listId] || '';
+                    if (actions) actions.style.display = 'none';
+                    if (mobileActions) mobileActions.style.display = 'none';
                 } else {
                     const { data } = await supabase.from('movie_lists').select('*').eq('id', listId).single();
                     if (titleEl) titleEl.textContent = data?.title || 'Movies';
                     if (descEl) descEl.textContent = data?.description || 'Custom list';
                     if (mobileTitle) mobileTitle.textContent = data?.title || 'Movies';
                     if (mobileDesc) mobileDesc.textContent = data?.description || 'Custom list';
+                    if (actions) actions.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                    if (mobileActions) mobileActions.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                    if (renameBtn) {
+                        renameBtn.onclick = () => ProfileManager.renameMovieList(listId, data?.title || '');
+                    }
+                    if (deleteBtn) {
+                        deleteBtn.onclick = () => ProfileManager.deleteMovieList(listId);
+                    }
+                    if (mobileRenameBtn) {
+                        mobileRenameBtn.onclick = () => ProfileManager.renameMovieList(listId, data?.title || '');
+                    }
+                    if (mobileDeleteBtn) {
+                        mobileDeleteBtn.onclick = () => ProfileManager.deleteMovieList(listId);
+                    }
                 }
 
                 if (grid) grid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">Loading...</h3></div>';
@@ -5732,7 +5797,6 @@ header, .top-stripe, .section-nav {
                         <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
                         <div class="movie-list-movie-body">
                             <h3 class="card-title">${m?.title || 'Untitled'}</h3>
-                            <div class="card-description">${m?.overview || ''}</div>
                         </div>
                     </div>
                 `).join('');
@@ -5801,6 +5865,29 @@ header, .top-stripe, .section-nav {
                     return;
                 }
                 await loadMovieLists();
+            }
+
+            async function deleteMovieList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                if (!confirm('Delete this movie list? This cannot be undone.')) return;
+                const userId = currentUser.id;
+                await supabase
+                    .from('movie_list_items')
+                    .delete()
+                    .eq('user_id', userId)
+                    .eq('list_id', listId);
+                const { error } = await supabase
+                    .from('movie_lists')
+                    .delete()
+                    .eq('id', listId)
+                    .eq('user_id', userId);
+                if (error) {
+                    showToast('Could not delete list', 'error');
+                    return;
+                }
+                hideMovieListDetail();
+                await loadMovieLists();
+                showToast('List deleted', 'success');
             }
 
             function showTab(tabName) {
@@ -6316,6 +6403,7 @@ header, .top-stripe, .section-nav {
                 hideMovieListDetail,
                 removeMovieFromList,
                 renameMovieList,
+                deleteMovieList,
                 toggleListMenu,
                 confirmDeleteList,
                 prepareEditList,
