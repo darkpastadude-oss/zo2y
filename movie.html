@@ -230,6 +230,75 @@
     .notification.error { background: var(--error); color: white; }
     .notification.info { background: var(--info); color: white; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 20px;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .modal-list {
+      display: grid;
+      gap: 8px;
+      max-height: 240px;
+      overflow: auto;
+      margin-bottom: 12px;
+    }
+    .modal-list-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .modal-list-item.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(245, 158, 11, 0.12);
+    }
+    .modal-input {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .modal-input input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--white);
+      outline: none;
+    }
     .reviews-stats {
       background: var(--card);
       padding: 20px;
@@ -390,6 +459,7 @@
       <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'" width="160" height="40" decoding="async" fetchpriority="high">
       <div class="nav-right">
         <a class="ghost" href="movies.html">Movies</a>
+        <a class="ghost" href="restraunts.html">Restaurants</a>
         <a class="ghost" href="index.html">Home</a>
         <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
       </div>
@@ -408,6 +478,7 @@
             <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
             <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
             <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+            <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
           </div>
         </div>
       </div>
@@ -476,6 +547,23 @@
     </div>
   </section>
 
+  <div class="modal" id="movieListsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Custom Movie Lists</div>
+        <button class="modal-close" id="closeMovieListsBtn">×</button>
+      </div>
+      <div class="modal-list" id="movieListsContainer"></div>
+      <div class="modal-input">
+        <input type="text" id="newMovieListName" placeholder="New list name..." maxlength="50">
+        <button class="btn" id="createMovieListBtn">Create</button>
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn" id="saveMovieListsBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -493,6 +581,8 @@
       let reviews = [];
       let currentSort = 'latest';
       const listStatus = { favorites: false, watched: false, watchlist: false };
+      let customLists = [];
+      let modalSelectedLists = new Set();
 
       async function tmdbFetch(path) {
         const res = await fetch(TMDB_BASE + path, {
@@ -640,6 +730,10 @@
         menu.querySelectorAll('.list-action').forEach(btn => {
           btn.addEventListener('click', async () => {
             const listType = btn.getAttribute('data-list');
+            if (listType === 'custom') {
+              openMovieListsModal();
+              return;
+            }
             await toggleList(listType);
           });
         });
@@ -662,6 +756,108 @@
           }
         });
         updateListMenuUI();
+      }
+
+      async function loadCustomLists() {
+        if (!supabaseClient || !currentUser) return [];
+        const { data, error } = await supabaseClient
+          .from('movie_lists')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false });
+        if (error) return [];
+        return data || [];
+      }
+
+      async function openMovieListsModal() {
+        if (!currentUser) {
+          showNotification('Please sign in to manage lists', 'info');
+          return;
+        }
+        const modal = document.getElementById('movieListsModal');
+        const container = document.getElementById('movieListsContainer');
+        if (!modal || !container) return;
+        container.innerHTML = '<div class="chip">Loading...</div>';
+        customLists = await loadCustomLists();
+        const listIds = customLists.map(l => l.id);
+        modalSelectedLists = new Set();
+        if (listIds.length) {
+          const { data } = await supabaseClient
+            .from('movie_list_items')
+            .select('list_id')
+            .eq('user_id', currentUser.id)
+            .eq('movie_id', movieId)
+            .in('list_id', listIds);
+          (data || []).forEach(row => modalSelectedLists.add(row.list_id));
+        }
+        container.innerHTML = '';
+        if (!customLists.length) {
+          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
+        } else {
+          customLists.forEach(list => {
+            const item = document.createElement('div');
+            item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
+            item.innerHTML = `<span>${list.icon || '🎬'} ${list.title}</span><span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>`;
+            item.onclick = () => {
+              if (modalSelectedLists.has(list.id)) {
+                modalSelectedLists.delete(list.id);
+              } else {
+                modalSelectedLists.add(list.id);
+              }
+              item.classList.toggle('active');
+              item.querySelector('span:last-child').textContent = modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
+            };
+            container.appendChild(item);
+          });
+        }
+        modal.classList.add('active');
+      }
+
+      async function saveMovieListChanges() {
+        if (!supabaseClient || !currentUser || !movieId) return;
+        const listIds = customLists.map(l => l.id);
+        if (listIds.length) {
+          await supabaseClient
+            .from('movie_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('movie_id', movieId)
+            .in('list_id', listIds);
+        }
+        const inserts = [...modalSelectedLists].map(listId => ({
+          user_id: currentUser.id,
+          movie_id: movieId,
+          list_id: listId
+        }));
+        if (inserts.length) {
+          await supabaseClient.from('movie_list_items').insert(inserts);
+        }
+        showNotification('Lists updated', 'success');
+        closeMovieListsModal();
+      }
+
+      function closeMovieListsModal() {
+        const modal = document.getElementById('movieListsModal');
+        if (modal) modal.classList.remove('active');
+      }
+
+      async function createMovieList() {
+        const input = document.getElementById('newMovieListName');
+        if (!input || !input.value.trim()) return;
+        if (!supabaseClient || !currentUser) return;
+        const title = input.value.trim();
+        const { data, error } = await supabaseClient
+          .from('movie_lists')
+          .insert({ user_id: currentUser.id, title, icon: '🎬' })
+          .select('*')
+          .single();
+        if (error) {
+          showNotification('Could not create list', 'error');
+          return;
+        }
+        input.value = '';
+        customLists.unshift(data);
+        openMovieListsModal();
       }
 
       function updateListMenuUI() {
@@ -960,6 +1156,12 @@
       (async function init() {
         await initSupabase();
         wireListMenu();
+        const closeListsBtn = document.getElementById('closeMovieListsBtn');
+        const saveListsBtn = document.getElementById('saveMovieListsBtn');
+        const createListBtn = document.getElementById('createMovieListBtn');
+        if (closeListsBtn) closeListsBtn.addEventListener('click', closeMovieListsModal);
+        if (saveListsBtn) saveListsBtn.addEventListener('click', saveMovieListChanges);
+        if (createListBtn) createListBtn.addEventListener('click', createMovieList);
         await initAuth();
         await load();
         await initReviewSystem();

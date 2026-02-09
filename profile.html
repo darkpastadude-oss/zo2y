@@ -990,7 +990,8 @@
             border: 1px solid var(--border);
             padding: 20px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: stretch;
             justify-content: space-between;
             gap: 12px;
             transition: var(--transition);
@@ -1004,6 +1005,7 @@
         .movie-list-info {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
         }
 
@@ -2491,6 +2493,19 @@ header, .top-stripe, .section-nav {
                             </button>
                         </div>
                     </div>
+
+                    <div class="section" id="movieListDetailView" style="display: none; margin-top: 24px;">
+                        <div class="list-detail-header">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMovieListDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <div class="list-detail-title-section">
+                                <h2 class="section-title" id="movieListDetailTitle">List Title</h2>
+                                <p class="section-subtitle" id="movieListDetailDescription">List description</p>
+                            </div>
+                        </div>
+                        <div class="cards-grid" id="movieListMoviesGrid"></div>
+                    </div>
                 </div>
             </div>
 
@@ -2775,6 +2790,17 @@ header, .top-stripe, .section-nav {
                             <i class="fas fa-film"></i> Explore Movies
                         </button>
                     </div>
+                </div>
+
+                <div id="mobileMovieListDetail" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMovieListDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileMovieListDetailTitle">List</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileMovieListDetailDescription"></div>
+                    <div class="cards-grid" id="mobileMovieListMoviesGrid"></div>
                 </div>
             </div>
 
@@ -3112,6 +3138,9 @@ header, .top-stripe, .section-nav {
             // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
             const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
+            const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s";
+            const TMDB_BASE = "https://api.themoviedb.org/3";
+            const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
 
             // Initialize Supabase client
             let supabase = null;
@@ -3136,6 +3165,7 @@ header, .top-stripe, .section-nav {
             let followStatusCache = new Map();
             let currentSearchDebounce = null;
             let isSubmittingList = false;
+            let movieCache = new Map();
 
             // Food icons for avatar selection
             const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -5460,6 +5490,17 @@ header, .top-stripe, .section-nav {
                 window.location.href = `profile.html?id=${userId}`;
             }
 
+            async function fetchMovieDetails(movieId) {
+                if (movieCache.has(movieId)) return movieCache.get(movieId);
+                const res = await fetch(`${TMDB_BASE}/movie/${movieId}?language=en`, {
+                    headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+                });
+                if (!res.ok) return null;
+                const data = await res.json();
+                movieCache.set(movieId, data);
+                return data;
+            }
+
             async function loadMovieLists() {
                 const grid = document.getElementById('movieListsGrid');
                 const mobileGrid = document.getElementById('mobileMovieListsGrid');
@@ -5468,21 +5509,23 @@ header, .top-stripe, .section-nav {
                 if (!userId || !supabase) return;
                 const loadingHtml = `
                     <div class="empty-state">
-                        <div class="empty-icon">🎬</div>
+                        <div class="empty-icon">??</div>
                         <h3 class="empty-title">Loading...</h3>
                         <p class="empty-description">Fetching your movie lists.</p>
                     </div>
                 `;
                 if (grid) grid.innerHTML = loadingHtml;
                 if (mobileGrid) mobileGrid.innerHTML = loadingHtml;
-                const { data, error } = await supabase
-                    .from('movie_list_items')
-                    .select('list_type')
-                    .eq('user_id', userId);
-                if (error) {
+
+                const [listsRes, itemsRes] = await Promise.all([
+                    supabase.from('movie_lists').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+                    supabase.from('movie_list_items').select('movie_id, list_type, list_id').eq('user_id', userId)
+                ]);
+
+                if (listsRes.error || itemsRes.error) {
                     const errorHtml = `
                         <div class="empty-state">
-                            <div class="empty-icon">⚠️</div>
+                            <div class="empty-icon">??</div>
                             <h3 class="empty-title">Could not load movies</h3>
                             <p class="empty-description">Please try again later.</p>
                         </div>
@@ -5491,46 +5534,149 @@ header, .top-stripe, .section-nav {
                     if (mobileGrid) mobileGrid.innerHTML = errorHtml;
                     return;
                 }
-                const counts = { favorites: 0, watched: 0, watchlist: 0 };
-                (data || []).forEach(row => {
-                    if (counts[row.list_type] !== undefined) {
-                        counts[row.list_type] += 1;
+
+                const customLists = listsRes.data || [];
+                const items = itemsRes.data || [];
+                const defaultLists = [
+                    { id: 'favorites', title: 'Favorites', icon: '??', description: 'Movies you love', type: 'default' },
+                    { id: 'watched', title: 'Watched', icon: '??', description: 'Movies you watched', type: 'default' },
+                    { id: 'watchlist', title: 'Watchlist', icon: '??', description: 'Movies to watch later', type: 'default' }
+                ];
+
+                const allLists = [
+                    ...defaultLists,
+                    ...customLists.map(l => ({ id: l.id, title: l.title, icon: l.icon || '??', description: l.description || 'Custom list', type: 'custom' }))
+                ];
+
+                const listMovieMap = new Map();
+                allLists.forEach(l => listMovieMap.set(l.id, []));
+                items.forEach(item => {
+                    if (item.list_type) {
+                        const list = listMovieMap.get(item.list_type);
+                        if (list) list.push(item.movie_id);
+                    } else if (item.list_id) {
+                        const list = listMovieMap.get(item.list_id);
+                        if (list) list.push(item.movie_id);
                     }
                 });
-                const cardsHtml = `
-                    <div class="movie-list-card">
-                        <div class="movie-list-info">
-                            <div class="movie-list-icon">❤️</div>
-                            <div>
-                                <div class="movie-list-title">Favorites</div>
-                                <div class="movie-list-count">${counts.favorites} movie${counts.favorites === 1 ? '' : 's'}</div>
-                            </div>
+
+                const cards = await Promise.all(allLists.map(async list => {
+                    const movieIds = listMovieMap.get(list.id) || [];
+                    const previewIds = movieIds.slice(0, 4);
+                    const previewData = await Promise.all(previewIds.map(id => fetchMovieDetails(id)));
+                    const previewHtml = previewIds.length ? `
+                        <div class="list-preview-grid">
+                            ${previewData.map(m => `
+                                <div class="list-preview-item">
+                                    <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="Preview">
+                                </div>
+                            `).join('')}
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="window.location.href='movies.html'">View</button>
-                    </div>
-                    <div class="movie-list-card">
-                        <div class="movie-list-info">
-                            <div class="movie-list-icon">👀</div>
-                            <div>
-                                <div class="movie-list-title">Watched</div>
-                                <div class="movie-list-count">${counts.watched} movie${counts.watched === 1 ? '' : 's'}</div>
+                    ` : '';
+                    return `
+                        <div class="movie-list-card" onclick="ProfileManager.showMovieListDetail('${list.id}', '${list.type}')">
+                            <div class="movie-list-info">
+                                <div class="movie-list-icon">${list.icon}</div>
+                                <div>
+                                    <div class="movie-list-title">${list.title}</div>
+                                    <div class="movie-list-count">${movieIds.length} movie${movieIds.length === 1 ? '' : 's'}</div>
+                                </div>
                             </div>
+                            ${previewHtml}
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="window.location.href='movies.html'">View</button>
-                    </div>
-                    <div class="movie-list-card">
-                        <div class="movie-list-info">
-                            <div class="movie-list-icon">🔖</div>
-                            <div>
-                                <div class="movie-list-title">Watchlist</div>
-                                <div class="movie-list-count">${counts.watchlist} movie${counts.watchlist === 1 ? '' : 's'}</div>
-                            </div>
-                        </div>
-                        <button class="btn btn-secondary btn-sm" onclick="window.location.href='movies.html'">View</button>
+                    `;
+                }));
+
+                const cardsHtml = cards.join('') || `
+                    <div class="empty-state">
+                        <div class="empty-icon">??</div>
+                        <h3 class="empty-title">No Movies Yet</h3>
+                        <p class="empty-description">Save movies to see them here.</p>
                     </div>
                 `;
                 if (grid) grid.innerHTML = cardsHtml;
                 if (mobileGrid) mobileGrid.innerHTML = cardsHtml;
+            }
+
+            async function showMovieListDetail(listId, listType) {
+                const isMobileView = window.innerWidth <= 768;
+                const detailView = document.getElementById('movieListDetailView');
+                const grid = document.getElementById('movieListMoviesGrid');
+                const titleEl = document.getElementById('movieListDetailTitle');
+                const descEl = document.getElementById('movieListDetailDescription');
+                const mobileDetail = document.getElementById('mobileMovieListDetail');
+                const mobileGrid = document.getElementById('mobileMovieListMoviesGrid');
+                const mobileTitle = document.getElementById('mobileMovieListDetailTitle');
+                const mobileDesc = document.getElementById('mobileMovieListDetailDescription');
+                const mobileListsGrid = document.getElementById('mobileMovieListsGrid');
+                if (isMobileView) {
+                    if (mobileDetail) mobileDetail.style.display = 'block';
+                    if (mobileListsGrid) mobileListsGrid.style.display = 'none';
+                } else {
+                    if (!detailView || !grid) return;
+                    detailView.style.display = 'block';
+                }
+
+                const listTitleMap = { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' };
+                const listDescMap = {
+                    favorites: 'Movies you love',
+                    watched: 'Movies you watched',
+                    watchlist: 'Movies to watch later'
+                };
+                if (listType === 'default') {
+                    if (titleEl) titleEl.textContent = listTitleMap[listId] || 'Movies';
+                    if (descEl) descEl.textContent = listDescMap[listId] || '';
+                    if (mobileTitle) mobileTitle.textContent = listTitleMap[listId] || 'Movies';
+                    if (mobileDesc) mobileDesc.textContent = listDescMap[listId] || '';
+                } else {
+                    const { data } = await supabase.from('movie_lists').select('*').eq('id', listId).single();
+                    if (titleEl) titleEl.textContent = data?.title || 'Movies';
+                    if (descEl) descEl.textContent = data?.description || 'Custom list';
+                    if (mobileTitle) mobileTitle.textContent = data?.title || 'Movies';
+                    if (mobileDesc) mobileDesc.textContent = data?.description || 'Custom list';
+                }
+
+                if (grid) grid.innerHTML = '<div class="empty-state"><div class="empty-icon">-</div><h3 class="empty-title">Loading...</h3></div>';
+                if (mobileGrid) mobileGrid.innerHTML = '<div class="empty-state"><div class="empty-icon">-</div><h3 class="empty-title">Loading...</h3></div>';
+                const { data: items } = await supabase
+                    .from('movie_list_items')
+                    .select('movie_id, list_type, list_id')
+                    .eq('user_id', isViewingOwnProfile ? currentUser?.id : targetUserId);
+                const filtered = (items || []).filter(item => {
+                    if (listType === 'default') return item.list_type === listId;
+                    return item.list_id === listId;
+                }).map(i => i.movie_id);
+                if (!filtered.length) {
+                    const emptyHtml = '<div class="empty-state"><div class="empty-icon">-</div><h3 class="empty-title">No movies in this list</h3></div>';
+                    if (grid) grid.innerHTML = emptyHtml;
+                    if (mobileGrid) mobileGrid.innerHTML = emptyHtml;
+                    return;
+                }
+                const movies = await Promise.all(filtered.map(id => fetchMovieDetails(id)));
+                const cardsHtml = movies.map(m => `
+                    <div class="restaurant-card" onclick="window.location.href='movie.html?id=${m?.id}'">
+                        <div class="card-image">
+                            <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
+                        </div>
+                        <div class="card-content">
+                            <div class="card-header">
+                                <h3 class="card-title">${m?.title || 'Untitled'}</h3>
+                                <div class="card-description">${m?.overview || ''}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                if (grid) grid.innerHTML = cardsHtml;
+                if (mobileGrid) mobileGrid.innerHTML = cardsHtml;
+            }
+
+            function hideMovieListDetail() {
+                const detailView = document.getElementById('movieListDetailView');
+                const mobileDetail = document.getElementById('mobileMovieListDetail');
+                const mobileListsGrid = document.getElementById('mobileMovieListsGrid');
+                if (detailView) detailView.style.display = 'none';
+                if (mobileDetail) mobileDetail.style.display = 'none';
+                if (mobileListsGrid) mobileListsGrid.style.display = 'grid';
             }
 
             function showTab(tabName) {
@@ -6042,6 +6188,8 @@ header, .top-stripe, .section-nav {
                 showMobileList,
                 hideListDetail,
                 hideMobileListDetail,
+                showMovieListDetail,
+                hideMovieListDetail,
                 toggleListMenu,
                 confirmDeleteList,
                 prepareEditList,
@@ -6063,3 +6211,4 @@ header, .top-stripe, .section-nav {
     </script>
 </body>
 </html>
+
