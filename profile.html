@@ -1032,6 +1032,63 @@
             color: var(--muted);
         }
 
+        .movie-list-movie-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .movie-list-movie-card img {
+            width: 120px;
+            height: 180px;
+            object-fit: cover;
+            background: #0f1f40;
+        }
+
+        .movie-list-movie-body {
+            padding: 12px 12px 12px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .movie-remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(19, 35, 71, 0.9);
+            color: var(--white);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .movie-remove-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        @media (max-width: 768px) {
+            .movie-list-movie-card {
+                grid-template-columns: 90px 1fr;
+            }
+            .movie-list-movie-card img {
+                width: 90px;
+                height: 135px;
+            }
+        }
+
         .list-card:hover {
             transform: translateY(-4px);
             border-color: var(--accent);
@@ -5662,20 +5719,32 @@ header, .top-stripe, .section-nav {
                 }
                 const movies = await Promise.all(filtered.map(id => fetchMovieDetails(id)));
                 const cardsHtml = movies.map(m => `
-                    <div class="restaurant-card" onclick="window.location.href='movie.html?id=${m?.id}'">
-                        <div class="card-image">
-                            <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h3 class="card-title">${m?.title || 'Untitled'}</h3>
-                                <div class="card-description">${m?.overview || ''}</div>
-                            </div>
+                    <div class="movie-list-movie-card" onclick="window.location.href='movie.html?id=${m?.id}'">
+                        <button class="movie-remove-btn" onclick="event.stopPropagation(); ProfileManager.removeMovieFromList('${listId}', '${listType}', ${m?.id})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
+                        <div class="movie-list-movie-body">
+                            <h3 class="card-title">${m?.title || 'Untitled'}</h3>
+                            <div class="card-description">${m?.overview || ''}</div>
                         </div>
                     </div>
                 `).join('');
                 if (grid) grid.innerHTML = cardsHtml;
-                if (mobileGrid) mobileGrid.innerHTML = cardsHtml;
+                if (mobileGrid) {
+                    const mobileCards = movies.map(m => `
+                        <div class="movie-list-movie-card" onclick="window.location.href='movie.html?id=${m?.id}'">
+                            <button class="movie-remove-btn" onclick="event.stopPropagation(); ProfileManager.removeMovieFromList('${listId}', '${listType}', ${m?.id})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
+                            <div class="movie-list-movie-body">
+                                <h3 class="card-title">${m?.title || 'Untitled'}</h3>
+                            </div>
+                        </div>
+                    `).join('');
+                    mobileGrid.innerHTML = mobileCards;
+                }
             }
 
             function hideMovieListDetail() {
@@ -5687,6 +5756,29 @@ header, .top-stripe, .section-nav {
                 if (mobileDetail) mobileDetail.style.display = 'none';
                 if (mobileListsGrid) mobileListsGrid.style.display = 'grid';
                 if (listGrid) listGrid.style.display = 'grid';
+            }
+
+            async function removeMovieFromList(listId, listType, movieId) {
+                if (!supabase || !movieId) return;
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                if (listType === 'default') {
+                    await supabase
+                        .from('movie_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('movie_id', movieId)
+                        .eq('list_type', listId);
+                } else {
+                    await supabase
+                        .from('movie_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('movie_id', movieId)
+                        .eq('list_id', listId);
+                }
+                await showMovieListDetail(listId, listType);
+                await loadMovieLists();
             }
 
             function showTab(tabName) {
@@ -6200,6 +6292,7 @@ header, .top-stripe, .section-nav {
                 hideMobileListDetail,
                 showMovieListDetail,
                 hideMovieListDetail,
+                removeMovieFromList,
                 toggleListMenu,
                 confirmDeleteList,
                 prepareEditList,

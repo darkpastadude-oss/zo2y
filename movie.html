@@ -280,6 +280,20 @@
       justify-content: space-between;
       cursor: pointer;
     }
+    .modal-list-actions { display: inline-flex; gap: 6px; align-items: center; }
+    .list-edit-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .list-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
     .modal-list-item.active {
       border-color: var(--accent);
       color: var(--accent);
@@ -803,7 +817,13 @@
           customLists.forEach(list => {
             const item = document.createElement('div');
             item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
-            item.innerHTML = `<span>${renderListIcon(list.icon)} ${list.title}</span><span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>`;
+            item.innerHTML = `
+              <span>${renderListIcon(list.icon)} ${list.title}</span>
+              <span class="modal-list-actions">
+                <span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
+                <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
+              </span>
+            `;
             item.onclick = () => {
               if (modalSelectedLists.has(list.id)) {
                 modalSelectedLists.delete(list.id);
@@ -811,8 +831,15 @@
                 modalSelectedLists.add(list.id);
               }
               item.classList.toggle('active');
-              item.querySelector('span:last-child').textContent = modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
+              item.querySelector('.modal-list-actions span').textContent = modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
             };
+            const editBtn = item.querySelector('.list-edit-btn');
+            if (editBtn) {
+              editBtn.onclick = (e) => {
+                e.stopPropagation();
+                renameMovieList(list.id, list.title);
+              };
+            }
             container.appendChild(item);
           });
         }
@@ -863,6 +890,23 @@
         }
         input.value = '';
         customLists.unshift(data);
+        openMovieListsModal();
+      }
+
+      async function renameMovieList(listId, currentTitle) {
+        const nextTitle = prompt('Rename list', currentTitle || '');
+        if (!nextTitle || !nextTitle.trim()) return;
+        if (!supabaseClient || !currentUser) return;
+        const { error } = await supabaseClient
+          .from('movie_lists')
+          .update({ title: nextTitle.trim() })
+          .eq('id', listId)
+          .eq('user_id', currentUser.id);
+        if (error) {
+          showNotification('Could not rename list', 'error');
+          return;
+        }
+        customLists = customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
         openMovieListsModal();
       }
 

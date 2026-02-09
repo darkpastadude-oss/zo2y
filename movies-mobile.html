@@ -3,49 +3,169 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y â€” Movies</title>
+  <title>Zo2y - Movies</title>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <style>
     :root {
       --bg: #0b1633;
       --card: #132347;
+      --muted: #8ca3c7;
       --accent: #f59e0b;
-      --text: #ffffff;
-      --muted: #9fb0cf;
-      --border: rgba(255,255,255,0.08);
+      --white: #ffffff;
+      --border: rgba(255,255,255,0.1);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      --surface: rgba(19, 35, 71, 0.6);
+      --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+      --shadow: 0 10px 30px rgba(0,0,0,0.3);
+      --info: #3b82f6;
+      --success: #10b981;
+      --error: #ef4444;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
-    header { position: sticky; top: 0; z-index: 10; background: rgba(11,22,51,0.95); border-bottom: 1px solid var(--border); }
-    .header-inner { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
-    .header-title { font-weight: 700; font-size: 16px; display: flex; gap: 8px; align-items: center; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -20% 0 0 0;
+      background: var(--radial-glow);
+      pointer-events: none;
+      z-index: -2;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: -3;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 12px 14px;
+      backdrop-filter: blur(10px) saturate(180%);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .logo { height: 36px; width: auto; }
     .header-actions { display: flex; gap: 8px; }
-    .btn { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); text-decoration: none; font-size: 12px; }
+    .btn-icon { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--white); display: inline-flex; align-items: center; justify-content: center; }
+
     .hero { padding: 16px 14px 0; }
     .hero h1 { font-size: 20px; margin: 0 0 6px; }
     .hero p { margin: 0; color: var(--muted); font-size: 13px; }
+
     .controls { padding: 12px 14px 0; display: grid; gap: 8px; }
-    .search-input, .filter-select { width: 100%; padding: 12px 12px; border-radius: 10px; border: 1px solid var(--border); background: #0f1f40; color: var(--text); }
-    .grid { padding: 14px; display: grid; grid-template-columns: 1fr; gap: 12px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: grid; grid-template-columns: 100px 1fr; gap: 10px; }
-    .card img { width: 100px; height: 140px; object-fit: cover; background: #0f1f40; }
-    .card-body { padding: 10px 10px 10px 0; display: flex; flex-direction: column; gap: 6px; }
-    .card-title { font-size: 14px; font-weight: 700; margin: 0; }
+    .search-input, .filter-select, .year-input, .actor-input {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--white);
+    }
+
+    .grid { padding: 14px; display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; position: relative; }
+    .card img { width: 100%; height: 240px; object-fit: cover; background: #0f1f40; }
+    .card-body { padding: 12px; display: grid; gap: 6px; }
+    .card-title { font-size: 15px; font-weight: 700; margin: 0; }
     .card-meta { font-size: 12px; color: var(--muted); }
-    .card-desc { font-size: 12px; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-desc.expanded { -webkit-line-clamp: unset; }
+    .desc-toggle { border: none; background: none; color: var(--accent); font-size: 12px; padding: 0; text-align: left; cursor: pointer; }
+
+    .menu-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(19, 35, 71, 0.9);
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .list-menu {
+      position: absolute;
+      right: 10px;
+      top: 50px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      min-width: 220px;
+      box-shadow: var(--shadow);
+      display: none;
+      z-index: 3;
+    }
+    .list-menu.open { display: block; }
+    .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .list-action {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .list-action:last-child { margin-bottom: 0; }
+    .list-action.active { background: rgba(245, 158, 11, 0.12); border-color: var(--accent); color: var(--accent); }
+
     .pagination { padding: 6px 14px 24px; display: flex; align-items: center; justify-content: space-between; }
-    .page-btn { min-width: 44px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+    .page-btn { min-width: 44px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--white); }
     .page-info { color: var(--muted); font-size: 12px; }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 3000; padding: 20px; }
+    .modal.active { display: flex; }
+    .modal-content { width: 100%; max-width: 520px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close { background: none; border: none; color: var(--white); font-size: 22px; cursor: pointer; }
+    .modal-list { display: grid; gap: 8px; max-height: 240px; overflow: auto; margin-bottom: 12px; }
+    .modal-list-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .modal-list-item.active { border-color: var(--accent); color: var(--accent); background: rgba(245, 158, 11, 0.12); }
+    .modal-input { display: flex; gap: 8px; margin-top: 8px; }
+    .modal-input input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: #0f1f40; color: var(--white); }
+
+    .notification { position: fixed; top: 20px; right: 20px; padding: 12px 18px; border-radius: 10px; font-size: 14px; z-index: 2000; box-shadow: var(--shadow); }
+    .notification.success { background: var(--success); color: white; }
+    .notification.error { background: var(--error); color: white; }
+    .notification.info { background: var(--info); color: white; }
   </style>
 </head>
 <body>
   <header>
     <div class="header-inner">
-      <div class="header-title"><i class="fas fa-film"></i> Movies</div>
+      <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
       <div class="header-actions">
-        <a class="btn" href="index.html"><i class="fas fa-home"></i></a>
-        <a class="btn" href="profile.html"><i class="fas fa-user"></i></a>
+        <button class="btn-icon" onclick="location.href='index.html'" aria-label="Home"><i class="fas fa-home"></i></button>
+        <button class="btn-icon" id="mobileAccountBtn" aria-label="Account"><i class="fas fa-user"></i></button>
       </div>
     </div>
   </header>
@@ -60,6 +180,8 @@
     <select id="genreSelect" class="filter-select">
       <option value="">All Genres</option>
     </select>
+    <input id="yearInput" class="year-input" type="number" min="1900" max="2100" placeholder="Year" />
+    <input id="actorInput" class="actor-input" type="text" placeholder="Actor (e.g., Ahmed Helmy)" />
   </div>
 
   <div id="moviesGrid" class="grid"></div>
@@ -70,21 +192,126 @@
     <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
   </div>
 
+  <div class="modal" id="movieListsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Custom Movie Lists</div>
+        <button class="modal-close" id="closeMovieListsBtn">×</button>
+      </div>
+      <div class="modal-list" id="movieListsContainer"></div>
+      <div class="modal-input">
+        <input type="text" id="newMovieListName" placeholder="New list name..." maxlength="50">
+        <button class="btn-icon" id="createMovieListBtn"><i class="fas fa-plus"></i></button>
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-icon" id="saveMovieListsBtn"><i class="fas fa-check"></i></button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
+      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
       const TMDB_BASE = 'https://api.themoviedb.org/3';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
-      const state = { page: 1, totalPages: 1, query: '', genre: '' };
+      const state = { page: 1, totalPages: 1, query: '', genre: '', year: '', actor: '', currentUser: null, listStatusMap: new Map(), customLists: [], activeMovieId: null, modalSelectedLists: new Set() };
+      let supabaseClient = null;
 
       async function tmdbFetch(path, params = {}) {
         const url = new URL(TMDB_BASE + path);
-        Object.entries(params).forEach(([k, v]) => {
-          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
-        });
+        Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v); });
         const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${TMDB_TOKEN}` } });
         if (!res.ok) throw new Error('TMDB error');
         return res.json();
+      }
+
+      function showNotification(message, type = 'info', duration = 3000) {
+        const existing = document.querySelectorAll('.notification');
+        existing.forEach(n => n.remove());
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), duration);
+      }
+
+      function renderListIcon(icon) {
+        if (!icon) return '<i class="fas fa-film"></i>';
+        if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
+        return icon;
+      }
+
+      async function initSupabase() {
+        if (typeof supabase === 'undefined') {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        if (typeof supabase === 'undefined') return null;
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        return supabaseClient;
+      }
+
+      async function initAuth() {
+        if (!supabaseClient) return;
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        state.currentUser = user || null;
+        updateAccountButton();
+        await loadUserListStatus();
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          state.currentUser = session?.user || null;
+          updateAccountButton();
+          loadUserListStatus();
+        });
+      }
+
+      function updateAccountButton() {
+        const btn = document.getElementById('mobileAccountBtn');
+        if (!btn) return;
+        if (state.currentUser) {
+          btn.onclick = () => window.location.href = 'profile.html';
+        } else {
+          btn.onclick = () => window.location.href = 'login.html';
+        }
+      }
+
+      async function loadUserListStatus() {
+        state.listStatusMap = new Map();
+        if (!supabaseClient || !state.currentUser) return;
+        const { data, error } = await supabaseClient
+          .from('movie_list_items')
+          .select('movie_id, list_type')
+          .eq('user_id', state.currentUser.id);
+        if (error) return;
+        (data || []).forEach(row => {
+          if (!state.listStatusMap.has(row.movie_id)) {
+            state.listStatusMap.set(row.movie_id, { favorites: false, watched: false, watchlist: false });
+          }
+          if (row.list_type && state.listStatusMap.get(row.movie_id)[row.list_type] !== undefined) {
+            state.listStatusMap.get(row.movie_id)[row.list_type] = true;
+          }
+        });
+        updateAllCardMenus();
+      }
+
+      function updateAllCardMenus() {
+        document.querySelectorAll('.card').forEach(card => {
+          const movieId = Number(card.getAttribute('data-movie-id'));
+          if (!movieId) return;
+          updateCardMenuUI(card, movieId);
+        });
+      }
+
+      function updateCardMenuUI(card, movieId) {
+        const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
+        card.querySelectorAll('.list-action').forEach(btn => {
+          const listType = btn.getAttribute('data-list');
+          if (!listType) return;
+          const isActive = !!status[listType];
+          btn.classList.toggle('active', isActive);
+          const stateEl = btn.querySelector('.list-action-state');
+          if (stateEl) stateEl.textContent = isActive ? 'Saved' : 'Add';
+        });
       }
 
       async function loadGenres() {
@@ -98,11 +325,29 @@
         });
       }
 
+      async function resolveActorId() {
+        if (!state.actor) return null;
+        const res = await tmdbFetch('/search/person', { query: state.actor, language: 'en', page: 1 });
+        const person = (res.results || [])[0];
+        return person ? person.id : null;
+      }
+
       async function loadMovies() {
         const grid = document.getElementById('moviesGrid');
         let data;
-        if (state.query) {
-          data = await tmdbFetch('/search/movie', { query: state.query, page: state.page });
+        const actorId = await resolveActorId();
+        if (state.query || state.year || state.genre || actorId) {
+          data = await tmdbFetch('/discover/movie', {
+            language: 'en',
+            page: state.page,
+            with_genres: state.genre,
+            primary_release_year: state.year,
+            with_cast: actorId || undefined,
+            sort_by: 'popularity.desc'
+          });
+          if (state.query) {
+            data = await tmdbFetch('/search/movie', { query: state.query, page: state.page });
+          }
         } else {
           data = await tmdbFetch('/movie/popular', { page: state.page });
         }
@@ -115,21 +360,212 @@
         results.forEach(item => {
           const card = document.createElement('div');
           card.className = 'card';
+          card.setAttribute('data-movie-id', item.id);
           card.innerHTML = `
+            <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="list-menu">
+              <div class="list-menu-title">Save to list</div>
+              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+            </div>
             <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${item.title}">
             <div class="card-body">
               <h3 class="card-title">${item.title}</h3>
               <div class="card-meta">${item.release_date || ''}</div>
-              <div class="card-desc">${item.overview || 'No description available.'}</div>
+              <div class="card-desc" id="desc-${item.id}">${item.overview || 'No description available.'}</div>
+              <button class="desc-toggle" data-id="${item.id}">More</button>
             </div>
           `;
-          card.onclick = () => { window.location.href = `movie.html?id=${item.id}`; };
+          card.onclick = (e) => {
+            if (e.target.closest('.menu-btn') || e.target.closest('.list-menu') || e.target.closest('.desc-toggle')) return;
+            window.location.href = `movie.html?id=${item.id}`;
+          };
+          wireCardMenu(card, item.id);
+          updateCardMenuUI(card, item.id);
           fragment.appendChild(card);
         });
         grid.innerHTML = '';
         grid.appendChild(fragment);
         state.totalPages = Math.min(data.total_pages || 1, 500);
         updatePagination();
+
+        grid.querySelectorAll('.desc-toggle').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            const desc = document.getElementById(`desc-${id}`);
+            if (!desc) return;
+            desc.classList.toggle('expanded');
+            btn.textContent = desc.classList.contains('expanded') ? 'Less' : 'More';
+          });
+        });
+      }
+
+      function wireCardMenu(card, movieId) {
+        const menuBtn = card.querySelector('.menu-btn');
+        const menu = card.querySelector('.list-menu');
+        if (!menuBtn || !menu) return;
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
+          menu.classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.list-menu') && !e.target.closest('.menu-btn')) {
+            menu.classList.remove('open');
+          }
+        });
+        menu.querySelectorAll('.list-action').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const listType = btn.getAttribute('data-list');
+            if (listType === 'custom') {
+              openMovieListsModal(movieId);
+              return;
+            }
+            await toggleDefaultList(movieId, listType, card);
+          });
+        });
+      }
+
+      async function toggleDefaultList(movieId, listType, card) {
+        if (!state.currentUser) {
+          showNotification('Please sign in to save movies', 'info');
+          return;
+        }
+        if (!supabaseClient) return;
+        const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
+        const isInList = !!status[listType];
+        if (isInList) {
+          const { error } = await supabaseClient
+            .from('movie_list_items')
+            .delete()
+            .eq('user_id', state.currentUser.id)
+            .eq('movie_id', movieId)
+            .eq('list_type', listType);
+          if (!error) {
+            status[listType] = false;
+            state.listStatusMap.set(movieId, status);
+            updateCardMenuUI(card, movieId);
+            showNotification('Removed from list', 'info');
+          }
+        } else {
+          const { error } = await supabaseClient
+            .from('movie_list_items')
+            .insert({ user_id: state.currentUser.id, movie_id: movieId, list_type: listType });
+          if (!error) {
+            status[listType] = true;
+            state.listStatusMap.set(movieId, status);
+            updateCardMenuUI(card, movieId);
+            showNotification('Saved to list', 'success');
+          }
+        }
+      }
+
+      async function loadCustomLists() {
+        if (!supabaseClient || !state.currentUser) return [];
+        const { data, error } = await supabaseClient
+          .from('movie_lists')
+          .select('*')
+          .eq('user_id', state.currentUser.id)
+          .order('created_at', { ascending: false });
+        if (error) return [];
+        return data || [];
+      }
+
+      async function openMovieListsModal(movieId) {
+        if (!state.currentUser) {
+          showNotification('Please sign in to manage lists', 'info');
+          return;
+        }
+        state.activeMovieId = movieId;
+        const modal = document.getElementById('movieListsModal');
+        const container = document.getElementById('movieListsContainer');
+        if (!modal || !container) return;
+        container.innerHTML = '<div class="chip">Loading...</div>';
+        state.customLists = await loadCustomLists();
+        const listIds = state.customLists.map(l => l.id);
+        state.modalSelectedLists = new Set();
+        if (listIds.length) {
+          const { data } = await supabaseClient
+            .from('movie_list_items')
+            .select('list_id')
+            .eq('user_id', state.currentUser.id)
+            .eq('movie_id', movieId)
+            .in('list_id', listIds);
+          (data || []).forEach(row => state.modalSelectedLists.add(row.list_id));
+        }
+        container.innerHTML = '';
+        if (!state.customLists.length) {
+          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
+        } else {
+          state.customLists.forEach(list => {
+            const item = document.createElement('div');
+            item.className = 'modal-list-item' + (state.modalSelectedLists.has(list.id) ? ' active' : '');
+            item.innerHTML = `<span>${renderListIcon(list.icon)} ${list.title}</span><span>${state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>`;
+            item.onclick = () => {
+              if (state.modalSelectedLists.has(list.id)) {
+                state.modalSelectedLists.delete(list.id);
+              } else {
+                state.modalSelectedLists.add(list.id);
+              }
+              item.classList.toggle('active');
+              item.querySelector('span:last-child').textContent = state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
+            };
+            container.appendChild(item);
+          });
+        }
+        modal.classList.add('active');
+      }
+
+      async function saveMovieListChanges() {
+        if (!supabaseClient || !state.currentUser || !state.activeMovieId) return;
+        const listIds = state.customLists.map(l => l.id);
+        if (listIds.length) {
+          await supabaseClient
+            .from('movie_list_items')
+            .delete()
+            .eq('user_id', state.currentUser.id)
+            .eq('movie_id', state.activeMovieId)
+            .in('list_id', listIds);
+        }
+        const inserts = [...state.modalSelectedLists].map(listId => ({
+          user_id: state.currentUser.id,
+          movie_id: state.activeMovieId,
+          list_id: listId
+        }));
+        if (inserts.length) {
+          await supabaseClient.from('movie_list_items').insert(inserts);
+        }
+        showNotification('Lists updated', 'success');
+        closeMovieListsModal();
+      }
+
+      function closeMovieListsModal() {
+        const modal = document.getElementById('movieListsModal');
+        if (modal) modal.classList.remove('active');
+        state.activeMovieId = null;
+      }
+
+      async function createMovieList() {
+        const input = document.getElementById('newMovieListName');
+        if (!input || !input.value.trim()) return;
+        if (!supabaseClient || !state.currentUser) return;
+        const title = input.value.trim();
+        const { data, error } = await supabaseClient
+          .from('movie_lists')
+          .insert({ user_id: state.currentUser.id, title, icon: 'fas fa-film' })
+          .select('*')
+          .single();
+        if (error) {
+          showNotification('Could not create list', 'error');
+          return;
+        }
+        input.value = '';
+        state.customLists.unshift(data);
+        openMovieListsModal(state.activeMovieId);
       }
 
       function updatePagination() {
@@ -151,15 +587,29 @@
         state.page = 1;
         loadMovies();
       });
+      document.getElementById('yearInput').addEventListener('input', (e) => {
+        state.year = e.target.value.trim();
+        state.page = 1;
+        loadMovies();
+      });
+      document.getElementById('actorInput').addEventListener('change', (e) => {
+        state.actor = e.target.value.trim();
+        state.page = 1;
+        loadMovies();
+      });
       document.getElementById('prevPageBtn').addEventListener('click', () => {
         if (state.page > 1) { state.page -= 1; loadMovies(); }
       });
       document.getElementById('nextPageBtn').addEventListener('click', () => {
         if (state.page < state.totalPages) { state.page += 1; loadMovies(); }
       });
+      document.getElementById('closeMovieListsBtn').addEventListener('click', closeMovieListsModal);
+      document.getElementById('saveMovieListsBtn').addEventListener('click', saveMovieListChanges);
+      document.getElementById('createMovieListBtn').addEventListener('click', createMovieList);
 
       (async function init() {
-        await loadGenres();
+        await initSupabase();
+        await Promise.all([loadGenres(), initAuth()]);
         await loadMovies();
       })();
     })();
