@@ -152,6 +152,9 @@
     .modal-list-item.active { border-color: var(--accent); color: var(--accent); background: rgba(245, 158, 11, 0.12); }
     .modal-input { display: flex; gap: 8px; margin-top: 8px; }
     .modal-input input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: #0f1f40; color: var(--white); }
+    .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .icon-option { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--white); display: inline-flex; align-items: center; justify-content: center; }
+    .icon-option.selected { border-color: var(--accent); color: var(--accent); }
 
     .notification { position: fixed; top: 20px; right: 20px; padding: 12px 18px; border-radius: 10px; font-size: 14px; z-index: 2000; box-shadow: var(--shadow); }
     .notification.success { background: var(--success); color: white; }
@@ -203,6 +206,13 @@
         <input type="text" id="newMovieListName" placeholder="New list name..." maxlength="50">
         <button class="btn-icon" id="createMovieListBtn"><i class="fas fa-plus"></i></button>
       </div>
+      <div class="icon-options" id="movieListIconOptions">
+        <button class="icon-option selected" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+        <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+        <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+        <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+        <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
+      </div>
       <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
         <button class="btn-icon" id="saveMovieListsBtn"><i class="fas fa-check"></i></button>
       </div>
@@ -216,7 +226,7 @@
       const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
       const TMDB_BASE = 'https://api.themoviedb.org/3';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
-      const state = { page: 1, totalPages: 1, query: '', genre: '', year: '', actor: '', currentUser: null, listStatusMap: new Map(), customLists: [], activeMovieId: null, modalSelectedLists: new Set() };
+      const state = { page: 1, totalPages: 1, query: '', genre: '', year: '', actor: '', currentUser: null, listStatusMap: new Map(), customLists: [], activeMovieId: null, modalSelectedLists: new Set(), selectedIcon: 'fas fa-film' };
       let supabaseClient = null;
 
       async function tmdbFetch(path, params = {}) {
@@ -556,7 +566,7 @@
         const title = input.value.trim();
         const { data, error } = await supabaseClient
           .from('movie_lists')
-          .insert({ user_id: state.currentUser.id, title, icon: 'fas fa-film' })
+          .insert({ user_id: state.currentUser.id, title, icon: state.selectedIcon || 'fas fa-film' })
           .select('*')
           .single();
         if (error) {
@@ -606,6 +616,13 @@
       document.getElementById('closeMovieListsBtn').addEventListener('click', closeMovieListsModal);
       document.getElementById('saveMovieListsBtn').addEventListener('click', saveMovieListChanges);
       document.getElementById('createMovieListBtn').addEventListener('click', createMovieList);
+      document.querySelectorAll('#movieListIconOptions .icon-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#movieListIconOptions .icon-option').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          state.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-film';
+        });
+      });
 
       (async function init() {
         await initSupabase();

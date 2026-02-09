@@ -313,6 +313,20 @@
       color: var(--white);
       outline: none;
     }
+    .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .icon-option {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .icon-option.selected { border-color: var(--accent); color: var(--accent); }
     .reviews-stats {
       background: var(--card);
       padding: 20px;
@@ -572,6 +586,13 @@
         <input type="text" id="newMovieListName" placeholder="New list name..." maxlength="50">
         <button class="btn" id="createMovieListBtn">Create</button>
       </div>
+      <div class="icon-options" id="movieListIconOptions">
+        <button class="icon-option selected" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+        <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+        <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+        <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+        <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
+      </div>
       <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
         <button class="btn" id="saveMovieListsBtn">Save Changes</button>
       </div>
@@ -597,6 +618,7 @@
       const listStatus = { favorites: false, watched: false, watchlist: false };
       let customLists = [];
       let modalSelectedLists = new Set();
+      let selectedIcon = 'fas fa-film';
 
       async function tmdbFetch(path) {
         const res = await fetch(TMDB_BASE + path, {
@@ -881,7 +903,7 @@
         const title = input.value.trim();
         const { data, error } = await supabaseClient
           .from('movie_lists')
-          .insert({ user_id: currentUser.id, title, icon: 'fas fa-film' })
+          .insert({ user_id: currentUser.id, title, icon: selectedIcon || 'fas fa-film' })
           .select('*')
           .single();
         if (error) {
@@ -1209,9 +1231,17 @@
         const closeListsBtn = document.getElementById('closeMovieListsBtn');
         const saveListsBtn = document.getElementById('saveMovieListsBtn');
         const createListBtn = document.getElementById('createMovieListBtn');
+        const iconOptions = document.querySelectorAll('#movieListIconOptions .icon-option');
         if (closeListsBtn) closeListsBtn.addEventListener('click', closeMovieListsModal);
         if (saveListsBtn) saveListsBtn.addEventListener('click', saveMovieListChanges);
         if (createListBtn) createListBtn.addEventListener('click', createMovieList);
+        iconOptions.forEach(btn => {
+          btn.addEventListener('click', () => {
+            iconOptions.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedIcon = btn.getAttribute('data-icon') || 'fas fa-film';
+          });
+        });
         await initAuth();
         await load();
         await initReviewSystem();

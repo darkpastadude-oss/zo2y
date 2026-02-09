@@ -5636,6 +5636,11 @@ header, .top-stripe, .section-nav {
                             `).join('')}
                         </div>
                     ` : '';
+                    const editBtnHtml = list.type === 'custom' ? `
+                        <button class="list-edit-btn" onclick="event.stopPropagation(); ProfileManager.renameMovieList('${list.id}', '${list.title.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    ` : '';
                     return `
                         <div class="movie-list-card" onclick="ProfileManager.showMovieListDetail('${list.id}', '${list.type}')">
                             <div class="movie-list-info">
@@ -5644,6 +5649,7 @@ header, .top-stripe, .section-nav {
                                     <div class="movie-list-title">${list.title}</div>
                                     <div class="movie-list-count">${movieIds.length} movie${movieIds.length === 1 ? '' : 's'}</div>
                                 </div>
+                                ${editBtnHtml}
                             </div>
                             ${previewHtml}
                         </div>
@@ -5778,6 +5784,22 @@ header, .top-stripe, .section-nav {
                         .eq('list_id', listId);
                 }
                 await showMovieListDetail(listId, listType);
+                await loadMovieLists();
+            }
+
+            async function renameMovieList(listId, currentTitle) {
+                if (!supabase || !currentUser) return;
+                const nextTitle = prompt('Rename list', currentTitle || '');
+                if (!nextTitle || !nextTitle.trim()) return;
+                const { error } = await supabase
+                    .from('movie_lists')
+                    .update({ title: nextTitle.trim() })
+                    .eq('id', listId)
+                    .eq('user_id', currentUser.id);
+                if (error) {
+                    showToast('Could not rename list', 'error');
+                    return;
+                }
                 await loadMovieLists();
             }
 
@@ -6293,6 +6315,7 @@ header, .top-stripe, .section-nav {
                 showMovieListDetail,
                 hideMovieListDetail,
                 removeMovieFromList,
+                renameMovieList,
                 toggleListMenu,
                 confirmDeleteList,
                 prepareEditList,
