@@ -588,6 +588,12 @@
         setTimeout(() => notification.remove(), duration);
       }
 
+      function renderListIcon(icon) {
+        if (!icon) return '<i class="fas fa-film"></i>';
+        if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
+        return icon;
+      }
+
       async function initSupabase() {
         if (typeof supabase === 'undefined') {
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -904,7 +910,7 @@
           state.customLists.forEach(list => {
             const item = document.createElement('div');
             item.className = 'modal-list-item' + (state.modalSelectedLists.has(list.id) ? ' active' : '');
-            item.innerHTML = `<span>${list.icon || '??'} ${list.title}</span><span>${state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>`;
+            item.innerHTML = `<span>${renderListIcon(list.icon)} ${list.title}</span><span>${state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>`;
             item.onclick = () => {
               if (state.modalSelectedLists.has(list.id)) {
                 state.modalSelectedLists.delete(list.id);
@@ -956,7 +962,7 @@
         const title = input.value.trim();
         const { data, error } = await supabaseClient
           .from('movie_lists')
-          .insert({ user_id: state.currentUser.id, title, icon: '??' })
+          .insert({ user_id: state.currentUser.id, title, icon: 'fas fa-film' })
           .select('*')
           .single();
         if (error) {

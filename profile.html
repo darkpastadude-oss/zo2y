@@ -5501,6 +5501,12 @@ header, .top-stripe, .section-nav {
                 return data;
             }
 
+            function renderMovieListIcon(icon) {
+                if (!icon) return '<i class="fas fa-film"></i>';
+                if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
+                return icon;
+            }
+
             async function loadMovieLists() {
                 const grid = document.getElementById('movieListsGrid');
                 const mobileGrid = document.getElementById('mobileMovieListsGrid');
@@ -5509,7 +5515,7 @@ header, .top-stripe, .section-nav {
                 if (!userId || !supabase) return;
                 const loadingHtml = `
                     <div class="empty-state">
-                        <div class="empty-icon">??</div>
+                        <div class="empty-icon"><i class="fas fa-film"></i></div>
                         <h3 class="empty-title">Loading...</h3>
                         <p class="empty-description">Fetching your movie lists.</p>
                     </div>
@@ -5538,14 +5544,14 @@ header, .top-stripe, .section-nav {
                 const customLists = listsRes.data || [];
                 const items = itemsRes.data || [];
                 const defaultLists = [
-                    { id: 'favorites', title: 'Favorites', icon: '??', description: 'Movies you love', type: 'default' },
-                    { id: 'watched', title: 'Watched', icon: '??', description: 'Movies you watched', type: 'default' },
-                    { id: 'watchlist', title: 'Watchlist', icon: '??', description: 'Movies to watch later', type: 'default' }
+                    { id: 'favorites', title: 'Favorites', icon: 'fas fa-heart', description: 'Movies you love', type: 'default' },
+                    { id: 'watched', title: 'Watched', icon: 'fas fa-eye', description: 'Movies you watched', type: 'default' },
+                    { id: 'watchlist', title: 'Watchlist', icon: 'fas fa-bookmark', description: 'Movies to watch later', type: 'default' }
                 ];
 
                 const allLists = [
                     ...defaultLists,
-                    ...customLists.map(l => ({ id: l.id, title: l.title, icon: l.icon || '??', description: l.description || 'Custom list', type: 'custom' }))
+                    ...customLists.map(l => ({ id: l.id, title: l.title, icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' }))
                 ];
 
                 const listMovieMap = new Map();
@@ -5576,7 +5582,7 @@ header, .top-stripe, .section-nav {
                     return `
                         <div class="movie-list-card" onclick="ProfileManager.showMovieListDetail('${list.id}', '${list.type}')">
                             <div class="movie-list-info">
-                                <div class="movie-list-icon">${list.icon}</div>
+                                <div class="movie-list-icon">${renderMovieListIcon(list.icon)}</div>
                                 <div>
                                     <div class="movie-list-title">${list.title}</div>
                                     <div class="movie-list-count">${movieIds.length} movie${movieIds.length === 1 ? '' : 's'}</div>
@@ -5589,7 +5595,7 @@ header, .top-stripe, .section-nav {
 
                 const cardsHtml = cards.join('') || `
                     <div class="empty-state">
-                        <div class="empty-icon">??</div>
+                        <div class="empty-icon"><i class="fas fa-film"></i></div>
                         <h3 class="empty-title">No Movies Yet</h3>
                         <p class="empty-description">Save movies to see them here.</p>
                     </div>
@@ -5604,6 +5610,7 @@ header, .top-stripe, .section-nav {
                 const grid = document.getElementById('movieListMoviesGrid');
                 const titleEl = document.getElementById('movieListDetailTitle');
                 const descEl = document.getElementById('movieListDetailDescription');
+                const listGrid = document.getElementById('movieListsGrid');
                 const mobileDetail = document.getElementById('mobileMovieListDetail');
                 const mobileGrid = document.getElementById('mobileMovieListMoviesGrid');
                 const mobileTitle = document.getElementById('mobileMovieListDetailTitle');
@@ -5615,6 +5622,7 @@ header, .top-stripe, .section-nav {
                 } else {
                     if (!detailView || !grid) return;
                     detailView.style.display = 'block';
+                    if (listGrid) listGrid.style.display = 'none';
                 }
 
                 const listTitleMap = { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' };
@@ -5636,8 +5644,8 @@ header, .top-stripe, .section-nav {
                     if (mobileDesc) mobileDesc.textContent = data?.description || 'Custom list';
                 }
 
-                if (grid) grid.innerHTML = '<div class="empty-state"><div class="empty-icon">-</div><h3 class="empty-title">Loading...</h3></div>';
-                if (mobileGrid) mobileGrid.innerHTML = '<div class="empty-state"><div class="empty-icon">-</div><h3 class="empty-title">Loading...</h3></div>';
+                if (grid) grid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                if (mobileGrid) mobileGrid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">Loading...</h3></div>';
                 const { data: items } = await supabase
                     .from('movie_list_items')
                     .select('movie_id, list_type, list_id')
@@ -5647,7 +5655,7 @@ header, .top-stripe, .section-nav {
                     return item.list_id === listId;
                 }).map(i => i.movie_id);
                 if (!filtered.length) {
-                    const emptyHtml = '<div class="empty-state"><div class="empty-icon">-</div><h3 class="empty-title">No movies in this list</h3></div>';
+                    const emptyHtml = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">No movies in this list</h3></div>';
                     if (grid) grid.innerHTML = emptyHtml;
                     if (mobileGrid) mobileGrid.innerHTML = emptyHtml;
                     return;
@@ -5674,9 +5682,11 @@ header, .top-stripe, .section-nav {
                 const detailView = document.getElementById('movieListDetailView');
                 const mobileDetail = document.getElementById('mobileMovieListDetail');
                 const mobileListsGrid = document.getElementById('mobileMovieListsGrid');
+                const listGrid = document.getElementById('movieListsGrid');
                 if (detailView) detailView.style.display = 'none';
                 if (mobileDetail) mobileDetail.style.display = 'none';
                 if (mobileListsGrid) mobileListsGrid.style.display = 'grid';
+                if (listGrid) listGrid.style.display = 'grid';
             }
 
             function showTab(tabName) {
