@@ -6376,6 +6376,7 @@ header, .top-stripe, .section-nav {
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
+                const renderToken = ++renderMoviesToken;
 
                 try {
                     const defaultLists = [
