@@ -50,6 +50,380 @@
             padding: 0 20px;
         }
 
+        /* === UNIFIED COLLECTION CARD === */
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .collection-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        .collection-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .collection-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .collection-card-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .collection-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .collection-card-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: var(--radius-sm);
+        }
+
+        .collection-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .collection-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .collection-card-count {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .collection-card-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 10;
+        }
+
+        .collection-kebab-btn {
+            background: rgba(19, 35, 71, 0.9);
+            color: var(--white);
+            border: 1px solid var(--border);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .collection-kebab-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .collection-dropdown {
+            position: absolute;
+            top: 38px;
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            min-width: 140px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .collection-dropdown.show {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+
+        .collection-dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .collection-dropdown-item:hover {
+            background: var(--bg-hover);
+            color: var(--accent);
+        }
+
+        .collection-dropdown-item.danger {
+            color: var(--error);
+        }
+
+        .collection-dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .collection-card-preview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            padding: 4px;
+            background: var(--bg);
+            min-height: 120px;
+        }
+
+        .collection-preview-item {
+            aspect-ratio: 1;
+            background: var(--card);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .collection-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .collection-preview-item-empty {
+            color: var(--muted);
+            font-size: 24px;
+            opacity: 0.5;
+        }
+
+        .collection-card-description {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.5;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .collection-card-footer {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .collection-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .collection-card-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .collection-view-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .collection-view-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* === COLLECTION DETAIL VIEW === */
+        .collection-detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .collection-detail-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collection-detail-title-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .collection-detail-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .collection-detail-subtitle {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .collection-detail-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .collection-item-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 16px;
+        }
+
+        .collection-item-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .collection-item-card {
+                grid-template-columns: 80px 1fr;
+                gap: 12px;
+            }
+        }
+
+        .collection-item-image {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background: var(--bg);
+        }
+
+        @media (max-width: 768px) {
+            .collection-item-image {
+                height: 120px;
+            }
+        }
+
+        .collection-item-body {
+            padding: 16px 16px 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .collection-item-body {
+                padding: 12px 12px 12px 0;
+            }
+        }
+
+        .collection-item-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 4px;
+        }
+
+        .collection-item-meta {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .collection-item-remove {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            opacity: 0;
+        }
+
+        .collection-item-card:hover .collection-item-remove {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .collection-item-remove {
+                opacity: 1;
+            }
+        }
+
+        .collection-item-remove:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
         /* === FIXED HOME BUTTON === */
         .home-button {
             position: fixed;
@@ -2481,8 +2855,8 @@ header, .top-stripe, .section-nav {
                 <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
                     <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
                 </div>
-                <div class="nav-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
-                    <i class="fas fa-list"></i> <span id="listsTabText">My Lists</span>
+                <div class="nav-tab" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
+                    <i class="fas fa-utensils"></i> <span id="restaurantsTabText">Restaurants</span>
                 </div>
                 <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                     <i class="fas fa-film"></i> Movies
@@ -2526,24 +2900,60 @@ header, .top-stripe, .section-nav {
                 </div>
             </div>
 
-            <!-- Lists Tab Content -->
-            <div class="tab-content" id="lists-tab">
+            <!-- Restaurants Tab Content -->
+            <div class="tab-content" id="restaurants-tab">
                 <div class="section">
                     <div class="section-header">
                         <div>
-                            <h2 class="section-title" id="listsTitle">My Lists</h2>
-                            <p class="section-subtitle" id="listsSubtitle">Organize your favorite restaurants</p>
+                            <h2 class="section-title" id="restaurantsTitle">My Restaurants</h2>
+                            <p class="section-subtitle" id="restaurantsSubtitle">Organize your favorite restaurants</p>
                         </div>
                         <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createListBtn">
-                                <i class="fas fa-plus"></i> New List
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createRestaurantListBtn">
+                                <i class="fas fa-plus"></i> New Collection
                             </button>
                         </div>
                     </div>
 
-                    <!-- Lists Grid -->
-                    <div class="lists-grid" id="listsGrid">
-                        <!-- Lists will be populated here -->
+                    <!-- Restaurants Grid -->
+                    <div class="collection-grid" id="restaurantsGrid">
+                        <!-- Collections will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restaurant Detail View -->
+            <div class="tab-content" id="restaurant-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideRestaurantDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="restaurantDetailTitle">
+                                <span id="restaurantDetailIcon"></span>
+                                <span id="restaurantDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="restaurantDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-detail-actions" id="restaurantDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="editRestaurantListBtn">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addToRestaurantListBtn">
+                                <i class="fas fa-plus"></i> Add Restaurant
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="restaurantItemsContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon">🍽️</div>
+                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <p class="empty-description">Start adding restaurants to this collection!</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2554,7 +2964,7 @@ header, .top-stripe, .section-nav {
                     <div class="section-header">
                         <div>
                             <h2 class="section-title">My Movies</h2>
-                            <p class="section-subtitle">Favorites, watched, and watchlist</p>
+                            <p class="section-subtitle">Organize your favorite films</p>
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" onclick="window.location.href='movies.html'">
@@ -2562,71 +2972,45 @@ header, .top-stripe, .section-nav {
                             </button>
                         </div>
                     </div>
-                    <div class="movie-lists-grid" id="movieListsGrid">
+                    <div class="collection-grid" id="moviesGrid">
                         <div class="empty-state">
                             <div class="empty-icon">🎬</div>
                             <h3 class="empty-title">No Movies Yet</h3>
-                            <p class="empty-description">Save movies to Favorites, Watched, or Watchlist to see them here.</p>
+                            <p class="empty-description">Save movies to see them here.</p>
                             <button class="btn btn-primary mt-md" onclick="window.location.href='movies.html'">
                                 <i class="fas fa-film"></i> Explore Movies
                             </button>
                         </div>
                     </div>
-
-                    <div class="section" id="movieListDetailView" style="display: none; margin-top: 24px;">
-                        <div class="list-detail-header">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMovieListDetail()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                            <div class="list-detail-title-section">
-                                <h2 class="section-title" id="movieListDetailTitle">List Title</h2>
-                                <p class="section-subtitle" id="movieListDetailDescription">List description</p>
-                            </div>
-                            <div class="section-actions" id="movieListDetailActions" style="display: none;">
-                                <button class="btn btn-secondary btn-sm" id="movieListRenameBtn">
-                                    <i class="fas fa-pen"></i> Rename
-                                </button>
-                                <button class="btn btn-secondary btn-sm" id="movieListDeleteBtn">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </div>
-                        <div class="cards-grid" id="movieListMoviesGrid"></div>
-                    </div>
                 </div>
             </div>
 
-            <!-- List Detail View -->
-            <div class="tab-content" id="list-detail-view">
+            <!-- Movie Detail View -->
+            <div class="tab-content" id="movie-detail-view">
                 <div class="section">
-                    <div class="list-detail-header">
-                        <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <div class="list-detail-title-section">
-                            <h2 class="section-title" id="listDetailTitle">List Title</h2>
-                            <p class="section-subtitle" id="listDetailDescription">List description</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-secondary btn-sm" id="editListBtn">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addToListBtn">
-                                <i class="fas fa-plus"></i> Add Restaurant
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMovieDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
-                    </div>
-
-                    <div class="cards-grid" id="listRestaurantsGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon">🍽️</div>
-                            <h3 class="empty-title">No Restaurants Yet</h3>
-                            <p class="empty-description">Start adding restaurants to this list!</p>
-                            <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('addEntryModal')">
-                                <i class="fas fa-plus"></i> Add Your First Restaurant
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="movieDetailTitle">
+                                <span id="movieDetailIcon"></span>
+                                <span id="movieDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="movieDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-detail-actions" id="movieDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="movieListRenameBtn">
+                                <i class="fas fa-pen"></i> Rename
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="movieListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
                     </div>
+                    <div id="movieItemsContainer"></div>
                 </div>
             </div>
 
@@ -2770,9 +3154,9 @@ header, .top-stripe, .section-nav {
                 <i class="fas fa-book"></i>
                 <span id="mobileTabJournal">Journal</span>
             </div>
-            <div class="mobile-tab" data-tab="lists" onclick="ProfileManager.showTab('lists')">
-                <i class="fas fa-list"></i>
-                <span id="mobileTabLists">Lists</span>
+            <div class="mobile-tab" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
+                <i class="fas fa-utensils"></i>
+                <span id="mobileTabRestaurants">Restaurants</span>
             </div>
             <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                 <i class="fas fa-film"></i>
@@ -2809,51 +3193,48 @@ header, .top-stripe, .section-nav {
                 </div>
             </div>
 
-            <!-- Lists Section -->
-            <div class="mobile-section" id="mobileListsSection">
+            <!-- Mobile Restaurants Section -->
+            <div class="mobile-section" id="mobileRestaurantsSection">
                 <div class="mobile-section-title">
-                    <span id="mobileListsTitle">My Lists</span>
+                    <span id="mobileRestaurantsTitle">My Restaurants</span>
                     <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showCreateListModal()">
                         <i class="fas fa-plus"></i> New
                     </button>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileListsSubtitle">Organize your favorite restaurants</div>
+                <div class="mobile-section-subtitle" id="mobileRestaurantsSubtitle">Organize your favorite restaurants</div>
                 
-                <div id="mobileLists">
+                <div class="collection-grid" id="mobileRestaurantsGrid">
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon">📋</div>
-                        <div class="mobile-empty-title">No Lists Yet</div>
-                        <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
+                        <div class="mobile-empty-title">No Collections Yet</div>
+                        <div class="mobile-empty-description">Create your first collection!</div>
                         <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
-                            <i class="fas fa-plus"></i> Create List
+                            <i class="fas fa-plus"></i> Create Collection
                         </button>
                     </div>
                 </div>
             </div>
             
-            <!-- Mobile List Detail Section -->
-            <div class="mobile-section" id="mobileListDetailSection">
+            <!-- Mobile Restaurant Detail Section -->
+            <div class="mobile-section" id="mobileRestaurantDetailSection">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMobileListDetail()">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMobileRestaurantDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <div style="flex: 1; text-align: center;">
-                        <span id="mobileListDetailTitle">List Title</span>
+                        <span id="mobileRestaurantDetailTitle">Collection</span>
                     </div>
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0; display: none;" id="mobileAddToListBtn" onclick="ProfileManager.showModal('addEntryModal')">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0; display: none;" id="mobileAddToRestaurantListBtn" onclick="ProfileManager.showModal('addEntryModal')">
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileListDetailDescription">List description</div>
+                <div class="mobile-section-subtitle" id="mobileRestaurantDetailDescription">Collection description</div>
                 
-                <div id="mobileListRestaurants">
+                <div id="mobileRestaurantItems">
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon">🍽️</div>
                         <div class="mobile-empty-title">No Restaurants Yet</div>
-                        <div class="mobile-empty-description">Start adding restaurants to this list!</div>
-                        <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
-                            <i class="fas fa-plus"></i> Add Your First Restaurant
-                        </button>
+                        <div class="mobile-empty-description">Start adding restaurants!</div>
                     </div>
                 </div>
             </div>
@@ -2866,9 +3247,9 @@ header, .top-stripe, .section-nav {
                         <i class="fas fa-film"></i> Browse
                     </button>
                 </div>
-                <div class="mobile-section-subtitle">Favorites, watched, and watchlist</div>
+                <div class="mobile-section-subtitle">Organize your favorite films</div>
                 
-                <div class="movie-lists-grid" id="mobileMovieListsGrid">
+                <div class="collection-grid" id="mobileMoviesGrid">
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon">🎬</div>
                         <div class="mobile-empty-title">No Movies Yet</div>
@@ -2879,15 +3260,15 @@ header, .top-stripe, .section-nav {
                     </div>
                 </div>
 
-                <div id="mobileMovieListDetail" style="display:none; margin-top: 16px;">
+                <div id="mobileMovieDetailSection" style="display:none; margin-top: 16px;">
                     <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMovieListDetail()">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMovieDetail()">
                             <i class="fas fa-arrow-left"></i> Back
                         </button>
-                        <span id="mobileMovieListDetailTitle">List</span>
+                        <span id="mobileMovieDetailTitle">Collection</span>
                     </div>
-                    <div class="mobile-section-subtitle" id="mobileMovieListDetailDescription"></div>
-                    <div id="mobileMovieListDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
+                    <div class="mobile-section-subtitle" id="mobileMovieDetailDescription"></div>
+                    <div id="mobileMovieDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
                         <button class="mobile-action-btn secondary" id="mobileMovieListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Rename
                         </button>
@@ -2895,7 +3276,7 @@ header, .top-stripe, .section-nav {
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
-                    <div class="cards-grid" id="mobileMovieListMoviesGrid"></div>
+                    <div id="mobileMovieItems"></div>
                 </div>
             </div>
 
@@ -3311,6 +3692,9 @@ header, .top-stripe, .section-nav {
                         if (!e.target.closest('.list-card-actions')) {
                             document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('show'));
                         }
+                        if (!e.target.closest('.collection-card-actions')) {
+                            document.querySelectorAll('.collection-dropdown').forEach(d => d.classList.remove('show'));
+                        }
                     });
                     
                 } catch (error) {
@@ -3449,7 +3833,7 @@ header, .top-stripe, .section-nav {
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
                 const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
                 const addEntryBtn = document.getElementById('addEntryBtn');
-                const createListBtn = document.getElementById('createListBtn');
+                const createListBtn = document.getElementById('createRestaurantListBtn');
                 const addJournalBtn = document.getElementById('addJournalBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'flex';
@@ -3481,7 +3865,7 @@ header, .top-stripe, .section-nav {
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
                 const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
                 const addEntryBtn = document.getElementById('addEntryBtn');
-                const createListBtn = document.getElementById('createListBtn');
+                const createListBtn = document.getElementById('createRestaurantListBtn');
                 const addJournalBtn = document.getElementById('addJournalBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'none';
@@ -3577,47 +3961,45 @@ header, .top-stripe, .section-nav {
 
             function updateTabTitlesForOtherUser(userName) {
                 const journalTabText = document.getElementById('journalTabText');
-                const listsTabText = document.getElementById('listsTabText');
+                const restaurantsTabText = document.getElementById('restaurantsTabText');
                 const journalTitle = document.getElementById('journalTitle');
-                const listsTitle = document.getElementById('listsTitle');
+                const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
-                const listsSubtitle = document.getElementById('listsSubtitle');
+                const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
                 
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
-                if (listsTabText) listsTabText.textContent = `${userName}'s Lists`;
+                if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Restaurants`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
-                if (listsTitle) listsTitle.textContent = `${userName}'s Lists`;
+                if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Restaurants`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
-                if (listsSubtitle) listsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
                 
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
-                const mobileListsTabText = document.getElementById('mobileListsTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
-                const mobileTabLists = document.getElementById('mobileTabLists');
+                const mobileTabRestaurants = document.getElementById('mobileTabRestaurants');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
-                const mobileListsTitle = document.getElementById('mobileListsTitle');
+                const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
-                const mobileListsSubtitle = document.getElementById('mobileListsSubtitle');
+                const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
                 const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
-                if (mobileListsTabText) mobileListsTabText.textContent = `${userName}'s Lists`;
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
-                if (mobileTabLists) mobileTabLists.textContent = `${userName}'s Lists`;
+                if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Restaurants`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
-                if (mobileListsTitle) mobileListsTitle.textContent = `${userName}'s Lists`;
+                if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Restaurants`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
-                if (mobileListsSubtitle) mobileListsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
                 if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
             }
 
@@ -4438,7 +4820,7 @@ header, .top-stripe, .section-nav {
                     if (modalTitle) modalTitle.textContent = "Create New List";
                     
                     // Re-render lists
-                    listManager.renderLists();
+                    renderRestaurants();
                     
                     // Update stats
                     await updateStats();
@@ -5848,7 +6230,7 @@ header, .top-stripe, .section-nav {
                         .eq('list_id', listId);
                 }
                 await showMovieListDetail(listId, listType);
-                await loadMovieLists();
+                await renderMovies();
             }
 
             async function renameMovieList(listId, currentTitle) {
@@ -5885,8 +6267,8 @@ header, .top-stripe, .section-nav {
                     showToast('Could not delete list', 'error');
                     return;
                 }
-                hideMovieListDetail();
-                await loadMovieLists();
+                hideMovieDetail();
+                await renderMovies();
                 showToast('List deleted', 'success');
             }
 
@@ -5920,11 +6302,11 @@ header, .top-stripe, .section-nav {
                         case 'journal':
                             foodJournal.loadJournalEntries();
                             break;
-                        case 'lists':
-                            listManager.renderLists();
+                        case 'restaurants':
+                            renderRestaurants();
                             break;
                         case 'movies':
-                            loadMovieLists();
+                            renderMovies();
                             break;
                         case 'community':
                             showCommunitySection('followers');
@@ -5953,17 +6335,637 @@ header, .top-stripe, .section-nav {
                         case 'journal':
                             foodJournal.loadJournalEntries();
                             break;
-                        case 'lists':
-                            listManager.renderLists();
+                        case 'restaurants':
+                            renderRestaurants();
                             break;
                         case 'movies':
-                            loadMovieLists();
+                            renderMovies();
                             break;
                         case 'community':
                             showCommunitySection('followers');
                             break;
                     }
                 }
+            }
+
+            // ===== UNIFIED COLLECTION RENDERING =====
+            async function renderRestaurants() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileRestaurantsGrid') : document.getElementById('restaurantsGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+
+                try {
+                    const { data: lists, error } = await supabase
+                        .from('lists')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!lists || lists.length === 0) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">📋</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Collections Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Create your first collection!</p>
+                                ${isViewingOwnProfile ? `
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="ProfileManager.showCreateListModal()">
+                                        <i class="fas fa-plus"></i> Create Collection
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    for (const list of lists) {
+                        const { data: items } = await supabase
+                            .from('lists_restraunts')
+                            .select('restraunt_id')
+                            .eq('list_id', list.id);
+
+                        list.restaurantIds = items ? items.map(i => i.restraunt_id) : [];
+                    }
+
+                    grid.innerHTML = '';
+
+                    for (const list of lists) {
+                        const card = await createCollectionCard(list, 'restaurant', isMobile);
+                        grid.appendChild(card);
+                    }
+                } catch (error) {
+                    console.error('Error loading restaurants:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">⚠️</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Collections</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your collections</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async function renderMovies() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileMoviesGrid') : document.getElementById('moviesGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+
+                try {
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: '❤️', description: 'Movies you love', type: 'default' },
+                        { id: 'watched', title: 'Watched', icon: '✅', description: 'Movies you watched', type: 'default' },
+                        { id: 'watchlist', title: 'Watchlist', icon: '📍', description: 'Movies to watch', type: 'default' }
+                    ];
+
+                    const { data: customLists, error: customError } = await supabase
+                        .from('movie_lists')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+
+                    if (customError) throw customError;
+
+                    const { data: allItems } = await supabase
+                        .from('movie_list_items')
+                        .select('movie_id, list_type, list_id')
+                        .eq('user_id', userId);
+
+                    const items = allItems || [];
+
+                    for (const list of defaultLists) {
+                        list.movieIds = items.filter(i => i.list_type === list.id).map(i => i.movie_id);
+                    }
+
+                    for (const list of (customLists || [])) {
+                        list.movieIds = items.filter(i => i.list_id === list.id).map(i => i.movie_id);
+                        list.type = 'custom';
+                    }
+
+                    const allLists = [...defaultLists, ...(customLists || [])];
+
+                    if (allLists.length === 0) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">🎬</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Movies Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save movies to see them here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='movies.html'">
+                                    <i class="fas fa-film"></i> Explore Movies
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    grid.innerHTML = '';
+
+                    for (const list of allLists) {
+                        const card = await createCollectionCard(list, 'movie', isMobile);
+                        grid.appendChild(card);
+                    }
+                } catch (error) {
+                    console.error('Error loading movies:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">⚠️</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Movies</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your movies</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async function createCollectionCard(list, contentType, isMobile) {
+                const card = document.createElement('div');
+                card.className = 'collection-card';
+
+                const itemIds = contentType === 'restaurant' ? (list.restaurantIds || []) : (list.movieIds || []);
+                const count = itemIds.length;
+
+                const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
+
+                let previewHtml = '';
+                for (let i = 0; i < 4; i++) {
+                    if (previewItems[i]) {
+                        previewHtml += `
+                            <div class="collection-preview-item">
+                                <img src="${previewItems[i]}" alt="Preview" loading="lazy">
+                            </div>
+                        `;
+                    } else {
+                        previewHtml += `
+                            <div class="collection-preview-item">
+                                <div class="collection-preview-item-empty">${contentType === 'restaurant' ? '🍽️' : '🎬'}</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const kebabHtml = (isViewingOwnProfile && isCustom) ? `
+                    <div class="collection-card-actions">
+                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${contentType}')">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="collection-dropdown" id="collection-${contentType}-${list.id}">
+                            <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${list.id}', '${contentType}')">
+                                <i class="fas fa-edit"></i> Rename
+                            </div>
+                            <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${list.id}', '${contentType}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </div>
+                        </div>
+                    </div>
+                ` : '';
+
+                card.innerHTML = `
+                    ${kebabHtml}
+                    <div class="collection-card-header">
+                        <div class="collection-card-title-group">
+                            <div class="collection-card-icon">${list.icon || (contentType === 'restaurant' ? '🍽️' : '🎬')}</div>
+                            <div class="collection-card-info">
+                                <div class="collection-card-title">${list.title}</div>
+                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : 'movie'}${count !== 1 ? 's' : ''}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collection-card-preview">
+                        ${previewHtml}
+                    </div>
+                    ${list.description ? `
+                        <div class="collection-card-description">${list.description}</div>
+                    ` : ''}
+                    <div class="collection-card-footer">
+                        <div class="collection-card-meta">
+                            <div class="collection-card-meta-item">
+                                <i class="fas fa-calendar"></i>
+                                ${list.created_at ? new Date(list.created_at).toLocaleDateString() : ''}
+                            </div>
+                        </div>
+                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.showCollectionDetail('${list.id}', '${contentType}', ${list.type ? `'${list.type}'` : 'null'})">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
+                `;
+
+                card.onclick = () => ProfileManager.showCollectionDetail(list.id, contentType, list.type || null);
+
+                return card;
+            }
+
+            async function getPreviewItems(ids, contentType) {
+                if (contentType === 'restaurant') {
+                    return Promise.all(ids.map(async id => {
+                        const restaurant = restaurants.find(r => r.id === id);
+                        return restaurant?.image ? `images/${restaurant.image}` : null;
+                    }));
+                }
+                return Promise.all(ids.map(async id => {
+                    const movie = await fetchMovieDetails(id);
+                    return movie?.poster_path ? `${TMDB_POSTER}${movie.poster_path}` : null;
+                }));
+            }
+
+            async function showCollectionDetail(listId, contentType, listType) {
+                const isMobile = window.innerWidth <= 768;
+
+                if (contentType === 'restaurant') {
+                    await showRestaurantDetail(listId, isMobile);
+                } else {
+                    await showMovieDetail(listId, listType, isMobile);
+                }
+            }
+
+            async function showRestaurantDetail(listId, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileRestaurantsSection');
+                    const detailSection = document.getElementById('mobileRestaurantDetailSection');
+                    if (mainSection) mainSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('restaurants-tab');
+                    const detailView = document.getElementById('restaurant-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const { data: list, error } = await supabase
+                    .from('lists')
+                    .select('*')
+                    .eq('id', listId)
+                    .single();
+
+                if (error || !list) {
+                    showToast('Collection not found', 'error');
+                    return;
+                }
+
+                const { data: items } = await supabase
+                    .from('lists_restraunts')
+                    .select('restraunt_id')
+                    .eq('list_id', listId);
+
+                const restaurantIds = items ? items.map(i => i.restraunt_id) : [];
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileRestaurantDetailTitle');
+                    const descEl = document.getElementById('mobileRestaurantDetailDescription');
+                    const addBtn = document.getElementById('mobileAddToRestaurantListBtn');
+                    if (titleEl) titleEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (addBtn) addBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                } else {
+                    const iconEl = document.getElementById('restaurantDetailIcon');
+                    const nameEl = document.getElementById('restaurantDetailName');
+                    const descEl = document.getElementById('restaurantDetailDescription');
+                    const actions = document.getElementById('restaurantDetailActions');
+                    if (iconEl) iconEl.textContent = list.icon || '🍽️';
+                    if (nameEl) nameEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = isViewingOwnProfile && !list.is_default ? 'flex' : 'none';
+                }
+
+                await renderRestaurantItems(restaurantIds, listId, isMobile);
+
+                currentActiveList = { ...list, id: listId, restaurantIds };
+            }
+
+            async function renderRestaurantItems(restaurantIds, listId, isMobile) {
+                const container = isMobile ? document.getElementById('mobileRestaurantItems') : document.getElementById('restaurantItemsContainer');
+                if (!container) return;
+
+                if (!restaurantIds || restaurantIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">🍽️</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Restaurants Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Start adding restaurants!</p>
+                            ${isViewingOwnProfile ? `
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="ProfileManager.showModal('addEntryModal')">
+                                    <i class="fas fa-plus"></i> Add Restaurant
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                const restaurantsData = restaurants.filter(r => restaurantIds.includes(r.id));
+
+                for (const restaurant of restaurantsData) {
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${restaurant.name}</h3>
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-utensils"></i> ${restaurant.category}</span>
+                                <span><i class="fas fa-star"></i> ${restaurant.rating}</span>
+                            </div>
+                        </div>
+                        ${isViewingOwnProfile ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${restaurant.id}, '${listId}', 'restaurant')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+
+                    container.appendChild(itemCard);
+                }
+            }
+
+            async function showMovieDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileMoviesSection');
+                    const detailSection = document.getElementById('mobileMovieDetailSection');
+                    if (mainSection) mainSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('movies-tab');
+                    const detailView = document.getElementById('movie-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+
+                let list = null;
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' };
+                    const icons = { favorites: '❤️', watched: '✅', watchlist: '📍' };
+                    const descriptions = { favorites: 'Movies you love', watched: 'Movies you watched', watchlist: 'Movies to watch' };
+                    list = {
+                        id: listId,
+                        title: titles[listId],
+                        icon: icons[listId],
+                        description: descriptions[listId],
+                        type: 'default'
+                    };
+                } else {
+                    const { data, error } = await supabase
+                        .from('movie_lists')
+                        .select('*')
+                        .eq('id', listId)
+                        .single();
+
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                const { data: items } = await supabase
+                    .from('movie_list_items')
+                    .select('movie_id')
+                    .eq('user_id', userId)
+                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
+
+                const movieIds = items ? items.map(i => i.movie_id) : [];
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileMovieDetailTitle');
+                    const descEl = document.getElementById('mobileMovieDetailDescription');
+                    const actions = document.getElementById('mobileMovieDetailActions');
+                    const renameBtn = document.getElementById('mobileMovieListRenameBtn');
+                    const deleteBtn = document.getElementById('mobileMovieListDeleteBtn');
+                    if (titleEl) titleEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (renameBtn) renameBtn.onclick = () => renameMovieList(listId, list.title);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
+                } else {
+                    const iconEl = document.getElementById('movieDetailIcon');
+                    const nameEl = document.getElementById('movieDetailName');
+                    const descEl = document.getElementById('movieDetailDescription');
+                    const actions = document.getElementById('movieDetailActions');
+                    const renameBtn = document.getElementById('movieListRenameBtn');
+                    const deleteBtn = document.getElementById('movieListDeleteBtn');
+                    if (iconEl) iconEl.textContent = list.icon || '🎬';
+                    if (nameEl) nameEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (renameBtn) renameBtn.onclick = () => renameMovieList(listId, list.title);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
+                }
+
+                await renderMovieItems(movieIds, listId, listType, isMobile);
+            }
+
+            async function renderMovieItems(movieIds, listId, listType, isMobile) {
+                const container = isMobile ? document.getElementById('mobileMovieItems') : document.getElementById('movieItemsContainer');
+                if (!container) return;
+
+                if (!movieIds || movieIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">🎬</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Movies Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add movies to this collection!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+
+                const movies = await Promise.all(movieIds.map(id => fetchMovieDetails(id)));
+
+                container.innerHTML = '';
+
+                for (const movie of movies) {
+                    if (!movie) continue;
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => window.location.href = `movie.html?id=${movie.id}`;
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${movie.poster_path ? TMDB_POSTER + movie.poster_path : 'images/placeholder.jpg'}" alt="${movie.title}" loading="lazy">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${movie.title}</h3>
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-calendar"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
+                                ${movie.vote_average ? `<span><i class="fas fa-star"></i> ${movie.vote_average.toFixed(1)}</span>` : ''}
+                            </div>
+                        </div>
+                        ${isViewingOwnProfile ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movie.id}, '${listId}', 'movie', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+
+                    container.appendChild(itemCard);
+                }
+            }
+
+            function hideRestaurantDetail() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileRestaurantDetailSection');
+                    const mainSection = document.getElementById('mobileRestaurantsSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                    }
+                } else {
+                    const detailView = document.getElementById('restaurant-detail-view');
+                    const mainTab = document.getElementById('restaurants-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function hideMovieDetail() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileMovieDetailSection');
+                    const mainSection = document.getElementById('mobileMoviesSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                    }
+                } else {
+                    const detailView = document.getElementById('movie-detail-view');
+                    const mainTab = document.getElementById('movies-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function toggleCollectionMenu(id, type) {
+                const dropdown = document.getElementById(`collection-${type}-${id}`);
+                if (!dropdown) return;
+                document.querySelectorAll('.collection-dropdown').forEach(d => {
+                    if (d.id !== `collection-${type}-${id}`) {
+                        d.classList.remove('show');
+                    }
+                });
+                dropdown.classList.toggle('show');
+            }
+
+            async function removeFromCollection(itemId, collectionId, type, listType) {
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                try {
+                    if (type === 'restaurant') {
+                        await supabase
+                            .from('lists_restraunts')
+                            .delete()
+                            .eq('list_id', collectionId)
+                            .eq('restraunt_id', itemId);
+
+                        showToast('Removed from collection', 'success');
+                        await showRestaurantDetail(collectionId, window.innerWidth <= 768);
+                    } else {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('movie_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('movie_id', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('movie_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('movie_id', itemId)
+                                .eq('list_id', collectionId);
+                        }
+
+                        showToast('Removed from collection', 'success');
+                        await showMovieDetail(collectionId, listType, window.innerWidth <= 768);
+                    }
+
+                    if (type === 'restaurant') {
+                        await renderRestaurants();
+                    } else {
+                        await renderMovies();
+                    }
+                } catch (error) {
+                    console.error('Error removing item:', error);
+                    showToast('Failed to remove item', 'error');
+                }
+            }
+
+            async function editCollection(id, type) {
+                if (type === 'restaurant') {
+                    if (typeof ProfileManager.prepareEditList === 'function') {
+                        ProfileManager.prepareEditList(id);
+                        return;
+                    }
+                } else {
+                    const list = await supabase.from('movie_lists').select('title').eq('id', id).single();
+                    if (list?.data?.title) {
+                        await renameMovieList(id, list.data.title);
+                        return;
+                    }
+                }
+                showToast('Edit feature coming soon', 'info');
+            }
+
+            async function deleteCollection(id, type) {
+                showConfirmModal(
+                    'Delete Collection',
+                    'Are you sure? This cannot be undone.',
+                    async () => {
+                        try {
+                            if (type === 'restaurant') {
+                                await supabase.from('lists_restraunts').delete().eq('list_id', id);
+                                await supabase.from('lists').delete().eq('id', id);
+                            } else {
+                                await supabase.from('movie_list_items').delete().eq('list_id', id);
+                                await supabase.from('movie_lists').delete().eq('id', id);
+                            }
+
+                            showToast('Collection deleted', 'success');
+
+                            if (type === 'restaurant') {
+                                hideRestaurantDetail();
+                                await renderRestaurants();
+                            } else {
+                                hideMovieDetail();
+                                await renderMovies();
+                            }
+                        } catch (error) {
+                            console.error('Error deleting collection:', error);
+                            showToast('Failed to delete collection', 'error');
+                        }
+                    }
+                );
             }
 
             function showCommunitySection(section) {
@@ -6395,18 +7397,15 @@ header, .top-stripe, .section-nav {
                 closeConfirmModal,
                 showCreateListModal,
                 showAvatarModal,
-                showList,
-                showMobileList,
-                hideListDetail,
-                hideMobileListDetail,
-                showMovieListDetail,
-                hideMovieListDetail,
-                removeMovieFromList,
-                renameMovieList,
-                deleteMovieList,
-                toggleListMenu,
-                confirmDeleteList,
-                prepareEditList,
+                showCollectionDetail,
+                hideRestaurantDetail,
+                hideMobileRestaurantDetail: hideRestaurantDetail,
+                hideMovieDetail,
+                hideMobileMovieDetail: hideMovieDetail,
+                toggleCollectionMenu,
+                removeFromCollection,
+                editCollection,
+                deleteCollection,
                 handleListSubmit,
                 saveAvatar,
                 setRating,
