@@ -3606,6 +3606,9 @@ header, .top-stripe, .section-nav {
                     
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
+
+                    // Ensure initial tab content is rendered without requiring a tab switch.
+                    renderRestaurants().catch(err => console.error('Render restaurants error:', err));
                     
                     // Load restaurants in background
                     loadRestaurants().catch(err => console.error('Restaurant load error:', err));
