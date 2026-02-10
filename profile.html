@@ -2931,7 +2931,10 @@ header, .top-stripe, .section-nav {
                             <p class="section-subtitle">Organize your favorite films</p>
                         </div>
                         <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" onclick="window.location.href='movies.html'">
+                            <button class="btn btn-primary btn-sm" id="createMovieListBtn" onclick="ProfileManager.createMovieList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='movies.html'">
                                 <i class="fas fa-film"></i> Browse Movies
                             </button>
                         </div>
@@ -3181,9 +3184,14 @@ header, .top-stripe, .section-nav {
             <div class="mobile-section" id="mobileMoviesSection">
                 <div class="mobile-section-title">
                     <span>My Movies</span>
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='movies.html'">
-                        <i class="fas fa-film"></i> Browse
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn secondary" id="mobileCreateMovieListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createMovieList()">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='movies.html'">
+                            <i class="fas fa-film"></i> Browse
+                        </button>
+                    </div>
                 </div>
                 <div class="mobile-section-subtitle">Organize your favorite films</div>
                 
@@ -3770,6 +3778,8 @@ header, .top-stripe, .section-nav {
                 const addEntryBtn = document.getElementById('addEntryBtn');
                 const createListBtn = document.getElementById('createRestaurantListBtn');
                 const addJournalBtn = document.getElementById('addJournalBtn');
+                const createMovieListBtn = document.getElementById('createMovieListBtn');
+                const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'flex';
                 if (settingsBtn) settingsBtn.style.display = 'flex';
@@ -3780,6 +3790,8 @@ header, .top-stripe, .section-nav {
                 if (addEntryBtn) addEntryBtn.style.display = 'flex';
                 if (createListBtn) createListBtn.style.display = 'flex';
                 if (addJournalBtn) addJournalBtn.style.display = 'flex';
+                if (createMovieListBtn) createMovieListBtn.style.display = 'inline-flex';
+                if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'inline-flex';
 
                 // Load profile - use cached if available
                 if (!userProfile) {
@@ -3802,6 +3814,8 @@ header, .top-stripe, .section-nav {
                 const addEntryBtn = document.getElementById('addEntryBtn');
                 const createListBtn = document.getElementById('createRestaurantListBtn');
                 const addJournalBtn = document.getElementById('addJournalBtn');
+                const createMovieListBtn = document.getElementById('createMovieListBtn');
+                const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'none';
                 if (settingsBtn) settingsBtn.style.display = 'none';
@@ -3812,6 +3826,8 @@ header, .top-stripe, .section-nav {
                 if (addEntryBtn) addEntryBtn.style.display = 'none';
                 if (createListBtn) createListBtn.style.display = 'none';
                 if (addJournalBtn) addJournalBtn.style.display = 'none';
+                if (createMovieListBtn) createMovieListBtn.style.display = 'none';
+                if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'none';
 
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
@@ -6185,6 +6201,27 @@ header, .top-stripe, .section-nav {
                 await loadMovieLists();
             }
 
+            async function createMovieList() {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const title = prompt('New movie list name');
+                if (!title || !title.trim()) return;
+                const { error } = await supabase
+                    .from('movie_lists')
+                    .insert({
+                        user_id: currentUser.id,
+                        title: title.trim(),
+                        description: '',
+                        icon: 'fas fa-film',
+                        created_at: new Date().toISOString()
+                    });
+                if (error) {
+                    showToast('Could not create list', 'error');
+                    return;
+                }
+                await renderMovies();
+                showToast('Movie list created', 'success');
+            }
+
             async function deleteMovieList(listId) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
                 if (!confirm('Delete this movie list? This cannot be undone.')) return;
@@ -7382,6 +7419,9 @@ header, .top-stripe, .section-nav {
                 hideMovieDetail,
                 hideMobileMovieDetail: hideMovieDetail,
                 toggleCollectionMenu,
+                createMovieList,
+                renameMovieList,
+                deleteMovieList,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,
