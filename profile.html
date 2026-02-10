@@ -2852,10 +2852,7 @@ header, .top-stripe, .section-nav {
 
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
-                <div class="nav-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
-                    <i class="fas fa-book"></i> <span id="journalTabText">Food Journal</span>
-                </div>
-                <div class="nav-tab" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
+                <div class="nav-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                     <i class="fas fa-utensils"></i> <span id="restaurantsTabText">Restaurants</span>
                 </div>
                 <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
@@ -2867,41 +2864,8 @@ header, .top-stripe, .section-nav {
                 </div>
             </div>
 
-            <!-- Journal Tab Content -->
-            <div class="tab-content active" id="journal-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title" id="journalTitle">Food Journal</h2>
-                            <p class="section-subtitle" id="journalSubtitle">Your restaurant reviews and experiences</p>
-                        </div>
-                        <div class="section-actions">
-                            <div class="d-flex gap-sm">
-                                <button class="btn btn-secondary btn-sm active filter-btn" data-filter="all">All</button>
-                                <button class="btn btn-secondary btn-sm filter-btn" data-filter="recent">Recent</button>
-                                <button class="btn btn-secondary btn-sm filter-btn" data-filter="favorites">Favorites</button>
-                            </div>
-                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showModal('addEntryModal')" id="addJournalBtn">
-                                <i class="fas fa-plus"></i> New Entry
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="journalEntries">
-                        <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">No Reviews Yet</h3>
-                            <p class="empty-description">Start reviewing restaurants to build your food journey!</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                <i class="fas fa-utensils"></i> Browse Restaurants
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Restaurants Tab Content -->
-            <div class="tab-content" id="restaurants-tab">
+            <div class="tab-content active" id="restaurants-tab">
                 <div class="section">
                     <div class="section-header">
                         <div>
@@ -3150,11 +3114,7 @@ header, .top-stripe, .section-nav {
 
         <!-- Mobile Tabs Navigation -->
         <div class="mobile-tabs">
-            <div class="mobile-tab active" data-tab="journal" onclick="ProfileManager.showTab('journal')">
-                <i class="fas fa-book"></i>
-                <span id="mobileTabJournal">Journal</span>
-            </div>
-            <div class="mobile-tab" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
+            <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                 <i class="fas fa-utensils"></i>
                 <span id="mobileTabRestaurants">Restaurants</span>
             </div>
@@ -3171,30 +3131,8 @@ header, .top-stripe, .section-nav {
 
         <!-- Mobile Content Area -->
         <div class="mobile-content">
-            <!-- Journal Section -->
-            <div class="mobile-section active" id="mobileJournalSection">
-                <div class="mobile-section-title">
-                    <span id="mobileJournalTitle">Food Journal</span>
-                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showModal('addEntryModal')">
-                        <i class="fas fa-plus"></i> Add
-                    </button>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileJournalSubtitle">Your restaurant reviews and experiences</div>
-                
-                <div id="mobileJournalEntries">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon">📝</div>
-                        <div class="mobile-empty-title">No Reviews Yet</div>
-                        <div class="mobile-empty-description">Start reviewing restaurants to build your food journey!</div>
-                        <button class="mobile-action-btn" onclick="ProfileManager.showModal('addEntryModal')">
-                            <i class="fas fa-plus"></i> Add First Review
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Mobile Restaurants Section -->
-            <div class="mobile-section" id="mobileRestaurantsSection">
+            <div class="mobile-section active" id="mobileRestaurantsSection">
                 <div class="mobile-section-title">
                     <span id="mobileRestaurantsTitle">My Restaurants</span>
                     <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showCreateListModal()">
@@ -3335,7 +3273,7 @@ header, .top-stripe, .section-nav {
                 <i class="fas fa-plus-circle"></i>
                 <span>Add</span>
             </div>
-            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('journal')">
+            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('restaurants')">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
             </div>
@@ -3629,7 +3567,7 @@ header, .top-stripe, .section-nav {
             let isViewingOwnProfile = true;
             let restaurants = [];
             let customLists = [];
-            let currentTab = 'journal';
+            let currentTab = 'restaurants';
             let journalFilter = 'all';
             let currentActiveList = null;
             let selectedAvatarIcon = null;
@@ -3642,6 +3580,8 @@ header, .top-stripe, .section-nav {
             let currentSearchDebounce = null;
             let isSubmittingList = false;
             let movieCache = new Map();
+            let renderMoviesToken = 0;
+            let renderRestaurantsToken = 0;
 
             // Food icons for avatar selection
             const foodIcons = ["🍔", "🍕", "🍣", "🍩", "🍗", "🍜", "🥪", "🥗", "🥞", "🍤", "🌮", "🍦", "🍰", "🍟", "🥐", "🍎", "🍇", "🍓", "🥑", "🥦", "🍉", "🍒", "🥨", "🧀", "🥓"];
@@ -3676,8 +3616,7 @@ header, .top-stripe, .section-nav {
                     // Initialize list manager and community in background
                     Promise.all([
                         listManager.init(),
-                        communitySystem.init(),
-                        foodJournal.init()
+                        communitySystem.init()
                     ]).catch(err => console.error('Initialization error:', err));
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
@@ -3705,13 +3644,6 @@ header, .top-stripe, .section-nav {
 
             // ===== MOBILE INITIALIZATION =====
             function initializeMobile() {
-                document.querySelectorAll('.mobile-tab').forEach(tab => {
-                    tab.addEventListener('click', function() {
-                        const tabName = this.getAttribute('data-tab');
-                        showTab(tabName);
-                    });
-                });
-                
                 document.querySelector('.mobile-menu-btn').addEventListener('click', () => showMobileMenu());
                 updateMobileStats();
             }
@@ -6214,6 +6146,7 @@ header, .top-stripe, .section-nav {
                 if (!supabase || !movieId) return;
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
+                const renderToken = ++renderMoviesToken;
                 if (listType === 'default') {
                     await supabase
                         .from('movie_list_items')
@@ -6299,9 +6232,6 @@ header, .top-stripe, .section-nav {
                     currentTab = tabName;
                     
                     switch(tabName) {
-                        case 'journal':
-                            foodJournal.loadJournalEntries();
-                            break;
                         case 'restaurants':
                             renderRestaurants();
                             break;
@@ -6332,9 +6262,6 @@ header, .top-stripe, .section-nav {
                     currentTab = tabName;
                     
                     switch(tabName) {
-                        case 'journal':
-                            foodJournal.loadJournalEntries();
-                            break;
                         case 'restaurants':
                             renderRestaurants();
                             break;
@@ -6356,6 +6283,7 @@ header, .top-stripe, .section-nav {
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
+                const renderToken = ++renderRestaurantsToken;
 
                 try {
                     const { data: lists, error } = await supabase
@@ -6365,6 +6293,7 @@ header, .top-stripe, .section-nav {
                         .order('created_at', { ascending: false });
 
                     if (error) throw error;
+                    if (renderToken !== renderRestaurantsToken) return;
 
                     if (!lists || lists.length === 0) {
                         grid.innerHTML = `
@@ -6420,6 +6349,8 @@ header, .top-stripe, .section-nav {
                         list.restaurantIds = items ? items.map(i => i.restraunt_id) : [];
                     }
 
+                    if (renderToken !== renderRestaurantsToken) return;
+                    if (renderToken !== renderMoviesToken) return;
                     grid.innerHTML = '';
 
                     for (const list of lists) {
@@ -6460,6 +6391,7 @@ header, .top-stripe, .section-nav {
                         .order('created_at', { ascending: false });
 
                     if (customError) throw customError;
+                    if (renderToken !== renderMoviesToken) return;
 
                     const { data: allItems } = await supabase
                         .from('movie_list_items')
