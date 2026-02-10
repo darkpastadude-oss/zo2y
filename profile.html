@@ -6657,7 +6657,16 @@ header, .top-stripe, .section-nav {
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMoviesSection');
                     const detailSection = document.getElementById('mobileMovieDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileMoviesGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -6815,6 +6824,12 @@ header, .top-stripe, .section-nav {
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileMoviesGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('movie-detail-view');
