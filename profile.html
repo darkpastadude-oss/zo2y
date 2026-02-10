@@ -6382,6 +6382,35 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
+                    const priorityOrder = {
+                        'favorites': 0,
+                        'want to go': 1,
+                        'want to go to': 1,
+                        'visited': 2
+                    };
+                    const priorityIcons = {
+                        'favorites': '❤️',
+                        'want to go': '📍',
+                        'want to go to': '📍',
+                        'visited': '✅'
+                    };
+
+                    lists.forEach(list => {
+                        const key = (list.title || '').trim().toLowerCase();
+                        if (priorityIcons[key]) {
+                            list.icon = priorityIcons[key];
+                        }
+                    });
+
+                    lists.sort((a, b) => {
+                        const aKey = (a.title || '').trim().toLowerCase();
+                        const bKey = (b.title || '').trim().toLowerCase();
+                        const aRank = priorityOrder[aKey] ?? 99;
+                        const bRank = priorityOrder[bKey] ?? 99;
+                        if (aRank !== bRank) return aRank - bRank;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+
                     for (const list of lists) {
                         const { data: items } = await supabase
                             .from('lists_restraunts')
