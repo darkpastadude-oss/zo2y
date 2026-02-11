@@ -1109,10 +1109,25 @@
         const userIds = [...new Set(reviewsToDisplay.map(r => r.user_id))];
         let userMap = {};
         if (userIds.length && supabaseClient) {
-          const { data: users } = await supabaseClient
-            .from('user_profiles')
-            .select('id, display_name, full_name, username')
-            .in('id', userIds);
+          let users = [];
+          const profileSelects = [
+            'id, username, display_name, full_name',
+            'id, username, full_name',
+            'id, username, display_name',
+            'id, username',
+            'id, full_name',
+            'id, display_name'
+          ];
+          for (const cols of profileSelects) {
+            const { data, error } = await supabaseClient
+              .from('user_profiles')
+              .select(cols)
+              .in('id', userIds);
+            if (!error) {
+              users = data || [];
+              break;
+            }
+          }
           (users || []).forEach(u => { userMap[u.id] = u; });
         }
         const escapeHtml = (v) => String(v ?? '')
@@ -1123,13 +1138,11 @@
           .replace(/'/g, '&#039;');
         container.innerHTML = reviewsToDisplay.map(review => {
           const user = userMap[review.user_id];
-          const username = String(user?.username || '').trim();
+          const reviewUsername = String(review?.username || review?.user_name || '').trim();
+          const username = String(user?.username || reviewUsername).trim();
           const fallbackName = String(user?.display_name || user?.full_name || '').trim();
-          const idFallback = String(review.user_id || '').slice(0, 8);
-          const displayName = username
-            ? `@${username}`
-            : (fallbackName || `user-${idFallback}`);
-          const initialsBase = username || fallbackName || idFallback || 'U';
+          const displayName = username ? `@${username}` : (fallbackName || 'User');
+          const initialsBase = username || fallbackName || 'User';
           const initials = initialsBase.split(/\s+/).map(n => n[0]).slice(0, 2).join('').toUpperCase();
           const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
           const canEditDelete = currentUser && currentUser.id === review.user_id;
