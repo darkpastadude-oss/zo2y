@@ -6685,10 +6685,7 @@ header, .top-stripe, .section-nav {
                     normalizeBookImageUrl(links.small) ||
                     normalizeBookImageUrl(links.thumbnail) ||
                     normalizeBookImageUrl(links.smallThumbnail);
-                if (preferred) return preferred;
-                const openLibrary = getOpenLibraryBookFallback(book?.volumeInfo);
-                if (openLibrary) return openLibrary;
-                return FALLBACK_BOOK_IMAGE;
+                return preferred || FALLBACK_BOOK_IMAGE;
             }
 
             async function renderBooks() {
@@ -6847,17 +6844,13 @@ header, .top-stripe, .section-nav {
                     }));
                 }
                 if (contentType === 'book') {
-                    const details = await Promise.all(ids.map(async id => ({ id, book: await fetchBookDetails(id) })));
-                    const missing = details.filter(x => !x.book).map(x => x.id);
+                    const { data } = await supabase
+                        .from('books')
+                        .select('id, thumbnail')
+                        .in('id', ids);
                     const fallbackMap = new Map();
-                    if (missing.length) {
-                        const { data } = await supabase
-                            .from('books')
-                            .select('id, thumbnail')
-                            .in('id', missing);
-                        (data || []).forEach(row => fallbackMap.set(row.id, row.thumbnail || null));
-                    }
-                    return details.map(x => x.book ? getBookThumbnail(x.book) : (fallbackMap.get(x.id) || FALLBACK_BOOK_IMAGE));
+                    (data || []).forEach(row => fallbackMap.set(row.id, row.thumbnail || null));
+                    return ids.map(id => fallbackMap.get(id) || FALLBACK_BOOK_IMAGE);
                 }
                 return Promise.all(ids.map(async id => {
                     const movie = await fetchMovieDetails(id);
@@ -7225,27 +7218,21 @@ header, .top-stripe, .section-nav {
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const books = await Promise.all(bookIds.map(id => fetchBookDetails(id)));
-                const missingIds = bookIds.filter((id, idx) => !books[idx]);
-                const fallbackMap = new Map();
-                if (missingIds.length) {
-                    const { data } = await supabase
-                        .from('books')
-                        .select('id, title, authors, published_date, thumbnail')
-                        .in('id', missingIds);
-                    (data || []).forEach(row => fallbackMap.set(row.id, row));
-                }
+                const { data } = await supabase
+                    .from('books')
+                    .select('id, title, authors, published_date, thumbnail, publisher')
+                    .in('id', bookIds);
+                const bookMap = new Map();
+                (data || []).forEach(row => bookMap.set(row.id, row));
                 container.innerHTML = '';
 
                 for (let i = 0; i < bookIds.length; i++) {
                     const id = bookIds[i];
-                    const book = books[i];
-                    const fallback = fallbackMap.get(id);
-                    const info = book?.volumeInfo || {};
-                    const title = info.title || fallback?.title || 'Untitled';
-                    const subtitle = (info.authors || fallback?.authors || []).join(', ') || (info.publisher || 'Unknown');
-                    const metaYear = info.publishedDate ? String(info.publishedDate).slice(0, 4) : (fallback?.published_date ? String(fallback.published_date).slice(0, 4) : 'N/A');
-                    const image = book ? getBookThumbnail(book) : (fallback?.thumbnail || FALLBACK_BOOK_IMAGE);
+                    const row = bookMap.get(id);
+                    const title = row?.title || 'Untitled';
+                    const subtitle = (row?.authors || []).join(', ') || row?.publisher || 'Unknown';
+                    const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
+                    const image = row?.thumbnail || FALLBACK_BOOK_IMAGE;
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';

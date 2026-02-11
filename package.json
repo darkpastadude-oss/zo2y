@@ -6,7 +6,8 @@
   "main": "backend/index.js",
   "scripts": {
     "start": "cd backend && node index.js",
-    "dev": "cd backend && nodemon index.js"
+    "dev": "cd backend && nodemon index.js",
+    "import:books": "node scripts/import-books.mjs"
   },
   "keywords": [
     "restaurant",
