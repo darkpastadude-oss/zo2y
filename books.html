@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y — Books</title>
+  <title>Zo2y â€” Books</title>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -549,7 +549,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <div class="modal-title">Custom Book Lists</div>
-        <button class="modal-close" id="closeBookListsBtn">×</button>
+        <button class="modal-close" id="closeBookListsBtn">Ã—</button>
       </div>
       <div class="modal-list" id="bookListsContainer"></div>
       <div class="modal-input">
@@ -624,7 +624,35 @@
 
       function normalizeThumbnail(url) {
         if (!url) return null;
-        return url.startsWith('http:') ? url.replace('http:', 'https:') : url;
+        let safe = url.trim();
+        if (safe.startsWith('//')) safe = `https:${safe}`;
+        if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
+        safe = safe.replace(/([?&])zoom=\d+/i, '$1zoom=2');
+        if (!/[?&]zoom=/i.test(safe)) {
+          safe += (safe.includes('?') ? '&' : '?') + 'zoom=2';
+        }
+        safe = safe.replace(/&edge=curl/gi, '');
+        return safe;
+      }
+
+      function getOpenLibraryFallback(info) {
+        const ids = info?.industryIdentifiers || [];
+        const isbn = (ids.find(x => x.type === 'ISBN_13') || ids.find(x => x.type === 'ISBN_10'))?.identifier;
+        return isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg?default=false` : null;
+      }
+
+      function getPreferredBookImage(info) {
+        const links = info?.imageLinks || {};
+        return (
+          normalizeThumbnail(links.extraLarge) ||
+          normalizeThumbnail(links.large) ||
+          normalizeThumbnail(links.medium) ||
+          normalizeThumbnail(links.small) ||
+          normalizeThumbnail(links.thumbnail) ||
+          normalizeThumbnail(links.smallThumbnail) ||
+          getOpenLibraryFallback(info) ||
+          null
+        );
       }
 
       function stripHtml(html) {
@@ -635,7 +663,7 @@
       function truncateText(text, maxLen) {
         if (!text) return '';
         if (text.length <= maxLen) return text;
-        return `${text.slice(0, maxLen - 1)}�`;
+        return `${text.slice(0, maxLen - 1)}…`;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -795,7 +823,7 @@
           id: book.id,
           title: info.title || '',
           authors: info.authors || [],
-          thumbnail: normalizeThumbnail(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail) || '',
+          thumbnail: getPreferredBookImage(info) || '',
           published_date: info.publishedDate || null,
           categories: info.categories || [],
           description: stripHtml(info.description || ''),
@@ -841,7 +869,7 @@
           const authors = info.authors ? info.authors.join(', ') : 'Unknown author';
           const year = info.publishedDate ? info.publishedDate.split('-')[0] : '';
           const desc = truncateText(stripHtml(info.description || ''), 140) || 'No description available.';
-          const thumb = normalizeThumbnail(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail);
+          const thumb = getPreferredBookImage(info);
           state.bookIndex.set(item.id, item);
 
           const card = document.createElement('div');
@@ -856,10 +884,10 @@
               <button class="list-action" data-list="readlist"><span><i class="fas fa-bookmark"></i> Readlist</span><span class="list-action-state">Add</span></button>
               <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
             </div>
-            <img src="${thumb || 'images/placeholder.jpg'}" alt="${info.title || 'Book'}">
+            <img src="${thumb || 'images/placeholder.jpg'}" alt="${info.title || 'Book'}" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
             <div class="card-body">
               <h3 class="card-title">${info.title || 'Untitled'}</h3>
-              <div class="card-meta">${authors}${year ? ` � ${year}` : ''}</div>
+              <div class="card-meta">${authors}${year ? ` • ${year}` : ''}</div>
               <div class="card-desc">${desc}</div>
             </div>
           `;
@@ -1178,6 +1206,7 @@
   </script>
 </body>
 </html>
+
 
 
 

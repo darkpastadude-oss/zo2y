@@ -6640,10 +6640,35 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            function normalizeBookImageUrl(url) {
+                if (!url) return null;
+                let safe = String(url).trim();
+                if (safe.startsWith('//')) safe = `https:${safe}`;
+                if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
+                safe = safe.replace(/([?&])zoom=\d+/i, '$1zoom=2');
+                if (!/[?&]zoom=/i.test(safe)) {
+                    safe += (safe.includes('?') ? '&' : '?') + 'zoom=2';
+                }
+                safe = safe.replace(/&edge=curl/gi, '');
+                return safe;
+            }
+
             function getBookThumbnail(book) {
-                const thumb = book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail || '';
-                if (!thumb) return 'images/placeholder.jpg';
-                return thumb.startsWith('http:') ? thumb.replace('http:', 'https:') : thumb;
+                const links = book?.volumeInfo?.imageLinks || {};
+                const preferred =
+                    normalizeBookImageUrl(links.extraLarge) ||
+                    normalizeBookImageUrl(links.large) ||
+                    normalizeBookImageUrl(links.medium) ||
+                    normalizeBookImageUrl(links.small) ||
+                    normalizeBookImageUrl(links.thumbnail) ||
+                    normalizeBookImageUrl(links.smallThumbnail);
+                if (preferred) return preferred;
+                const ids = book?.volumeInfo?.industryIdentifiers || [];
+                const isbnObj = ids.find(x => x.type === 'ISBN_13') || ids.find(x => x.type === 'ISBN_10');
+                if (isbnObj?.identifier) {
+                    return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbnObj.identifier)}-L.jpg?default=false`;
+                }
+                return 'images/placeholder.jpg';
             }
 
             async function renderBooks() {
@@ -6730,7 +6755,7 @@ header, .top-stripe, .section-nav {
                     if (previewItems[i]) {
                         previewHtml += `
                             <div class="collection-preview-item">
-                                <img src="${previewItems[i]}" alt="Preview" loading="lazy">
+                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                             </div>
                         `;
                     } else {
@@ -6802,10 +6827,17 @@ header, .top-stripe, .section-nav {
                     }));
                 }
                 if (contentType === 'book') {
-                    return Promise.all(ids.map(async id => {
-                        const book = await fetchBookDetails(id);
-                        return getBookThumbnail(book);
-                    }));
+                    const details = await Promise.all(ids.map(async id => ({ id, book: await fetchBookDetails(id) })));
+                    const missing = details.filter(x => !x.book).map(x => x.id);
+                    const fallbackMap = new Map();
+                    if (missing.length) {
+                        const { data } = await supabase
+                            .from('books')
+                            .select('id, thumbnail')
+                            .in('id', missing);
+                        (data || []).forEach(row => fallbackMap.set(row.id, row.thumbnail || null));
+                    }
+                    return details.map(x => x.book ? getBookThumbnail(x.book) : (fallbackMap.get(x.id) || 'images/placeholder.jpg'));
                 }
                 return Promise.all(ids.map(async id => {
                     const movie = await fetchMovieDetails(id);
@@ -7174,22 +7206,33 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
                 const books = await Promise.all(bookIds.map(id => fetchBookDetails(id)));
+                const missingIds = bookIds.filter((id, idx) => !books[idx]);
+                const fallbackMap = new Map();
+                if (missingIds.length) {
+                    const { data } = await supabase
+                        .from('books')
+                        .select('id, title, authors, published_date, thumbnail')
+                        .in('id', missingIds);
+                    (data || []).forEach(row => fallbackMap.set(row.id, row));
+                }
                 container.innerHTML = '';
 
-                for (const book of books) {
-                    if (!book) continue;
-                    const info = book.volumeInfo || {};
-                    const title = info.title || 'Untitled';
-                    const subtitle = (info.authors || []).join(', ') || (info.publisher || 'Unknown');
-                    const metaYear = info.publishedDate ? String(info.publishedDate).slice(0, 4) : 'N/A';
-                    const image = getBookThumbnail(book);
+                for (let i = 0; i < bookIds.length; i++) {
+                    const id = bookIds[i];
+                    const book = books[i];
+                    const fallback = fallbackMap.get(id);
+                    const info = book?.volumeInfo || {};
+                    const title = info.title || fallback?.title || 'Untitled';
+                    const subtitle = (info.authors || fallback?.authors || []).join(', ') || (info.publisher || 'Unknown');
+                    const metaYear = info.publishedDate ? String(info.publishedDate).slice(0, 4) : (fallback?.published_date ? String(fallback.published_date).slice(0, 4) : 'N/A');
+                    const image = book ? getBookThumbnail(book) : (fallback?.thumbnail || 'images/placeholder.jpg');
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
-                    itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(book.id)}`;
+                    itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(id)}`;
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy">
+                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${title}</h3>
                             <div class="collection-item-meta">
@@ -7198,7 +7241,7 @@ header, .top-stripe, .section-nav {
                             </div>
                         </div>
                         ${isViewingOwnProfile ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${book.id}', '${listId}', 'book', '${listType}')">
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
                         ` : ''}
