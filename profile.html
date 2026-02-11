@@ -7408,6 +7408,133 @@ header, .top-stripe, .section-nav {
                 showToast('List deleted', 'success');
             }
 
+            // ===== CREATE/RENAME/DELETE BOOK LIST (OVERRIDES) =====
+            async function createBookList() {
+                if (!supabase || !currentUser || !isViewingOwnProfile) {
+                    showToast('You cannot create lists for other users', 'error');
+                    return;
+                }
+
+                const title = prompt('New book list name');
+                if (!title || !title.trim()) return;
+
+                try {
+                    console.log('Creating book list:', title);
+
+                    // Insert with ONLY the columns that exist in your table
+                    const insertData = {
+                        id: crypto.randomUUID(),
+                        user_id: currentUser.id,
+                        title: title.trim(),
+                        icon: '📚',
+                        created_at: new Date().toISOString()
+                    };
+
+                    console.log('Inserting book list with data:', insertData);
+
+                    let newList = null;
+                    const { data, error } = await supabase
+                        .from('book_lists')
+                        .insert([insertData])
+                        .select()
+                        .single();
+
+                    if (error) {
+                        // If id is auto-generated, try without providing it
+                        if (error.message?.includes('id') || error.code === '23502') {
+                            console.log('ID might be auto-generated, retrying without id...');
+                            delete insertData.id;
+
+                            const { data: retryData, error: retryError } = await supabase
+                                .from('book_lists')
+                                .insert([{
+                                    user_id: currentUser.id,
+                                    title: title.trim(),
+                                    icon: '📚',
+                                    created_at: new Date().toISOString()
+                                }])
+                                .select()
+                                .single();
+
+                            if (retryError) throw retryError;
+                            newList = retryData;
+                        } else {
+                            throw error;
+                        }
+                    } else {
+                        newList = data;
+                    }
+
+                    console.log('Book list created successfully:', newList);
+
+                    // Refresh the books view
+                    await renderBooks();
+                    showToast(`Book list "${title}" created`, 'success');
+                } catch (error) {
+                    console.error('Error creating book list:', error);
+                    showToast('Could not create book list: ' + error.message, 'error');
+                }
+            }
+
+            async function renameBookList(listId, currentTitle) {
+                if (!supabase || !currentUser) return;
+
+                const nextTitle = prompt('Rename list', currentTitle || '');
+                if (!nextTitle || !nextTitle.trim()) return;
+
+                try {
+                    const { error } = await supabase
+                        .from('book_lists')
+                        .update({
+                            title: nextTitle.trim(),
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', listId)
+                        .eq('user_id', currentUser.id);
+
+                    if (error) throw error;
+
+                    await renderBooks();
+                    showToast('List renamed', 'success');
+                } catch (error) {
+                    console.error('Error renaming book list:', error);
+                    showToast('Could not rename list', 'error');
+                }
+            }
+
+            async function deleteBookList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+
+                if (!confirm('Delete this book list? This cannot be undone.')) return;
+
+                try {
+                    const userId = currentUser.id;
+
+                    // First delete all items in the list
+                    await supabase
+                        .from('book_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('list_id', listId);
+
+                    // Then delete the list itself
+                    const { error } = await supabase
+                        .from('book_lists')
+                        .delete()
+                        .eq('id', listId)
+                        .eq('user_id', userId);
+
+                    if (error) throw error;
+
+                    hideBookDetail();
+                    await renderBooks();
+                    showToast('List deleted', 'success');
+                } catch (error) {
+                    console.error('Error deleting book list:', error);
+                    showToast('Could not delete list', 'error');
+                }
+            }
+
             function hideRestaurantDetail() {
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
