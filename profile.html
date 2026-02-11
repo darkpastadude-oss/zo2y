@@ -3677,6 +3677,7 @@ header, .top-stripe, .section-nav {
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
             const GOOGLE_BOOKS_KEY = "AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s";
             const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
+            const FALLBACK_BOOK_IMAGE = "images/logo.png";
 
             // Initialize Supabase client
             let supabase = null;
@@ -6650,6 +6651,10 @@ header, .top-stripe, .section-nav {
                     safe += (safe.includes('?') ? '&' : '?') + 'zoom=2';
                 }
                 safe = safe.replace(/&edge=curl/gi, '');
+                safe = safe.replace(/([?&])fife=[^&]*/i, '$1fife=w800');
+                if (!/[?&]fife=/i.test(safe)) {
+                    safe += (safe.includes('?') ? '&' : '?') + 'fife=w800';
+                }
                 return safe;
             }
 
@@ -6668,7 +6673,7 @@ header, .top-stripe, .section-nav {
                 if (isbnObj?.identifier) {
                     return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbnObj.identifier)}-L.jpg?default=false`;
                 }
-                return 'images/placeholder.jpg';
+                return FALLBACK_BOOK_IMAGE;
             }
 
             async function renderBooks() {
@@ -6755,7 +6760,7 @@ header, .top-stripe, .section-nav {
                     if (previewItems[i]) {
                         previewHtml += `
                             <div class="collection-preview-item">
-                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='images/logo.png';">
                             </div>
                         `;
                     } else {
@@ -6837,7 +6842,7 @@ header, .top-stripe, .section-nav {
                             .in('id', missing);
                         (data || []).forEach(row => fallbackMap.set(row.id, row.thumbnail || null));
                     }
-                    return details.map(x => x.book ? getBookThumbnail(x.book) : (fallbackMap.get(x.id) || 'images/placeholder.jpg'));
+                    return details.map(x => x.book ? getBookThumbnail(x.book) : (fallbackMap.get(x.id) || FALLBACK_BOOK_IMAGE));
                 }
                 return Promise.all(ids.map(async id => {
                     const movie = await fetchMovieDetails(id);
@@ -7225,14 +7230,14 @@ header, .top-stripe, .section-nav {
                     const title = info.title || fallback?.title || 'Untitled';
                     const subtitle = (info.authors || fallback?.authors || []).join(', ') || (info.publisher || 'Unknown');
                     const metaYear = info.publishedDate ? String(info.publishedDate).slice(0, 4) : (fallback?.published_date ? String(fallback.published_date).slice(0, 4) : 'N/A');
-                    const image = book ? getBookThumbnail(book) : (fallback?.thumbnail || 'images/placeholder.jpg');
+                    const image = book ? getBookThumbnail(book) : (fallback?.thumbnail || FALLBACK_BOOK_IMAGE);
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(id)}`;
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='images/logo.png';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${title}</h3>
                             <div class="collection-item-meta">
