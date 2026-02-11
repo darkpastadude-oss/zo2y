@@ -6646,16 +6646,34 @@ header, .top-stripe, .section-nav {
                 let safe = String(url).trim();
                 if (safe.startsWith('//')) safe = `https:${safe}`;
                 if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
-                safe = safe.replace(/([?&])zoom=\d+/i, '$1zoom=2');
-                if (!/[?&]zoom=/i.test(safe)) {
-                    safe += (safe.includes('?') ? '&' : '?') + 'zoom=2';
-                }
                 safe = safe.replace(/&edge=curl/gi, '');
-                safe = safe.replace(/([?&])fife=[^&]*/i, '$1fife=w800');
-                if (!/[?&]fife=/i.test(safe)) {
-                    safe += (safe.includes('?') ? '&' : '?') + 'fife=w800';
+                safe = safe.replace(/([?&])zoom=\d+/i, '');
+                if (safe.includes('books.google')) {
+                    safe = safe.replace(/([?&])(printsec|img|zoom)=[^&]*/gi, '');
+                    const separator = safe.includes('?') ? '&' : '?';
+                    safe += `${separator}fife=w400-h600&source=gbs_api`;
                 }
                 return safe;
+            }
+
+            function getBestBookIdentifier(volumeInfo) {
+                const ids = volumeInfo?.industryIdentifiers || [];
+                const isbn13 = ids.find(x => x.type === 'ISBN_13')?.identifier;
+                if (isbn13) return { type: 'isbn', value: isbn13 };
+                const isbn10 = ids.find(x => x.type === 'ISBN_10')?.identifier;
+                if (isbn10) return { type: 'isbn', value: isbn10 };
+                const other = ids.find(x => x.type === 'OTHER')?.identifier;
+                if (other) return { type: 'oclc', value: other };
+                return null;
+            }
+
+            function getOpenLibraryBookFallback(volumeInfo) {
+                const best = getBestBookIdentifier(volumeInfo);
+                if (!best) return null;
+                if (best.type === 'isbn') {
+                    return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(best.value)}-L.jpg`;
+                }
+                return `https://covers.openlibrary.org/b/oclc/${encodeURIComponent(best.value)}-L.jpg`;
             }
 
             function getBookThumbnail(book) {
@@ -6668,11 +6686,8 @@ header, .top-stripe, .section-nav {
                     normalizeBookImageUrl(links.thumbnail) ||
                     normalizeBookImageUrl(links.smallThumbnail);
                 if (preferred) return preferred;
-                const ids = book?.volumeInfo?.industryIdentifiers || [];
-                const isbnObj = ids.find(x => x.type === 'ISBN_13') || ids.find(x => x.type === 'ISBN_10');
-                if (isbnObj?.identifier) {
-                    return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbnObj.identifier)}-L.jpg?default=false`;
-                }
+                const openLibrary = getOpenLibraryBookFallback(book?.volumeInfo);
+                if (openLibrary) return openLibrary;
                 return FALLBACK_BOOK_IMAGE;
             }
 
@@ -6760,7 +6775,7 @@ header, .top-stripe, .section-nav {
                     if (previewItems[i]) {
                         previewHtml += `
                             <div class="collection-preview-item">
-                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='images/logo.png';">
+                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                             </div>
                         `;
                     } else {
@@ -7237,7 +7252,7 @@ header, .top-stripe, .section-nav {
                     itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(id)}`;
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='images/logo.png';">
+                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${title}</h3>
                             <div class="collection-item-meta">

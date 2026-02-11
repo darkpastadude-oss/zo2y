@@ -242,7 +242,26 @@
       width: 100%;
       height: 160px;
       object-fit: cover;
-      background: #0f1f40;
+      background: linear-gradient(135deg, #0f1f40 0%, #1a2d5f 100%);
+      position: relative;
+    }
+
+    .card img[src=""] {
+      background: linear-gradient(90deg, #0f1f40 0px, rgba(255,255,255,0.05) 50%, #0f1f40 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .card img[src*="logo.png"] {
+      object-fit: contain;
+      padding: 20px;
+      background: linear-gradient(135deg, #132347 0%, #0b1633 100%);
+      opacity: 0.6;
     }
 
     .card-body {
@@ -594,36 +613,69 @@
 
       function normalizeThumbnail(url) {
         if (!url) return null;
-        let safe = url.trim();
+        let safe = String(url).trim();
         if (safe.startsWith('//')) safe = `https:${safe}`;
         if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
-        safe = safe.replace(/([?&])zoom=\d+/i, '$1zoom=2');
-        if (!/[?&]zoom=/i.test(safe)) {
-          safe += (safe.includes('?') ? '&' : '?') + 'zoom=2';
-        }
         safe = safe.replace(/&edge=curl/gi, '');
+        safe = safe.replace(/([?&])zoom=\d+/i, '');
+        if (safe.includes('books.google')) {
+          safe = safe.replace(/([?&])(printsec|img|zoom)=[^&]*/gi, '');
+          const separator = safe.includes('?') ? '&' : '?';
+          safe += `${separator}fife=w400-h600&source=gbs_api`;
+        }
         return safe;
       }
 
-      function getOpenLibraryFallback(info) {
+      function getBestISBN(info) {
         const ids = info?.industryIdentifiers || [];
-        const isbn = (ids.find(x => x.type === 'ISBN_13') || ids.find(x => x.type === 'ISBN_10'))?.identifier;
-        return isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg?default=false` : null;
+        const isbn13 = ids.find(x => x.type === 'ISBN_13')?.identifier;
+        if (isbn13) return { type: 'isbn', value: isbn13 };
+        const isbn10 = ids.find(x => x.type === 'ISBN_10')?.identifier;
+        if (isbn10) return { type: 'isbn', value: isbn10 };
+        const other = ids.find(x => x.type === 'OTHER')?.identifier;
+        if (other) return { type: 'oclc', value: other };
+        return null;
+      }
+
+      function getOpenLibraryFallback(info) {
+        const best = getBestISBN(info);
+        if (!best) return null;
+        if (best.type === 'isbn') {
+          return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(best.value)}-L.jpg`;
+        }
+        return `https://covers.openlibrary.org/b/oclc/${encodeURIComponent(best.value)}-L.jpg`;
       }
 
       function getPreferredBookImage(info) {
         const links = info?.imageLinks || {};
-        return (
+        let bestImage =
           normalizeThumbnail(links.extraLarge) ||
           normalizeThumbnail(links.large) ||
           normalizeThumbnail(links.medium) ||
           normalizeThumbnail(links.small) ||
           normalizeThumbnail(links.thumbnail) ||
-          normalizeThumbnail(links.smallThumbnail) ||
-          getOpenLibraryFallback(info) ||
-          null
-        );
+          normalizeThumbnail(links.smallThumbnail);
+        if (bestImage) {
+          bestImage = bestImage.replace(/([?&])zoom=\d+/i, '');
+          bestImage = bestImage.replace(/&edge=curl/gi, '');
+          const separator = bestImage.includes('?') ? '&' : '?';
+          bestImage += `${separator}fife=w400-h600`;
+        }
+        return bestImage || getOpenLibraryFallback(info) || null;
       }
+
+      window.handleImageError = function(img, fallbackUrl) {
+        if (img.dataset.fallbackTried === 'true') {
+          img.src = FALLBACK_BOOK_IMAGE;
+          return;
+        }
+        img.dataset.fallbackTried = 'true';
+        if (fallbackUrl && fallbackUrl !== FALLBACK_BOOK_IMAGE) {
+          img.src = fallbackUrl;
+        } else {
+          img.src = FALLBACK_BOOK_IMAGE;
+        }
+      };
 
       function stripHtml(html) {
         if (!html) return '';
@@ -840,6 +892,7 @@
           const year = info.publishedDate ? info.publishedDate.split('-')[0] : '';
           const desc = truncateText(stripHtml(info.description || ''), 140) || 'No description available.';
           const thumb = getPreferredBookImage(info);
+          const openLibraryFallback = getOpenLibraryFallback(info) || FALLBACK_BOOK_IMAGE;
           state.bookIndex.set(item.id, item);
 
           const card = document.createElement('div');
@@ -854,7 +907,12 @@
               <button class="list-action" data-list="readlist"><span><i class="fas fa-bookmark"></i> Readlist</span><span class="list-action-state">Add</span></button>
               <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
             </div>
-            <img src="${thumb || FALLBACK_BOOK_IMAGE}" alt="${info.title || 'Book'}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+            <img
+              src="${thumb || FALLBACK_BOOK_IMAGE}"
+              alt="${info.title || 'Book'}"
+              loading="lazy"
+              data-fallback-tried="false"
+              onerror="handleImageError(this, '${openLibraryFallback}')">
             <div class="card-body">
               <h3 class="card-title">${info.title || 'Untitled'}</h3>
               <div class="card-meta">${authors}${year ? ` • ${year}` : ''}</div>
