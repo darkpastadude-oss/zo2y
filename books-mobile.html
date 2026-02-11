@@ -602,10 +602,6 @@
           safe += (safe.includes('?') ? '&' : '?') + 'zoom=2';
         }
         safe = safe.replace(/&edge=curl/gi, '');
-        safe = safe.replace(/([?&])fife=[^&]*/i, '$1fife=w800');
-        if (!/[?&]fife=/i.test(safe)) {
-          safe += (safe.includes('?') ? '&' : '?') + 'fife=w800';
-        }
         return safe;
       }
 
@@ -858,7 +854,7 @@
               <button class="list-action" data-list="readlist"><span><i class="fas fa-bookmark"></i> Readlist</span><span class="list-action-state">Add</span></button>
               <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
             </div>
-            <img src="${thumb || FALLBACK_BOOK_IMAGE}" alt="${info.title || 'Book'}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='images/logo.png';">
+            <img src="${thumb || FALLBACK_BOOK_IMAGE}" alt="${info.title || 'Book'}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
             <div class="card-body">
               <h3 class="card-title">${info.title || 'Untitled'}</h3>
               <div class="card-meta">${authors}${year ? ` • ${year}` : ''}</div>
