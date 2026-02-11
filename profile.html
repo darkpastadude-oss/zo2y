@@ -7285,7 +7285,15 @@ header, .top-stripe, .section-nav {
                     const id = bookIds[i];
                     const row = bookMap.get(id);
                     const title = row?.title || 'Untitled';
-                    const subtitle = (row?.authors || []).join(', ') || row?.publisher || 'Unknown';
+                    const rawAuthors = row?.authors;
+                    let subtitle;
+                    if (Array.isArray(rawAuthors)) {
+                        subtitle = rawAuthors.join(', ');
+                    } else if (typeof rawAuthors === 'string') {
+                        subtitle = rawAuthors;
+                    } else {
+                        subtitle = row?.publisher || 'Unknown';
+                    }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
                     const image = row?.thumbnail || FALLBACK_BOOK_IMAGE;
 
@@ -7296,10 +7304,10 @@ header, .top-stripe, .section-nav {
                     itemCard.innerHTML = `
                         <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                         <div class="collection-item-body">
-                            <h3 class="collection-item-title">${title}</h3>
+                            <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
                             <div class="collection-item-meta">
-                                <span><i class="fas fa-user"></i> ${subtitle}</span>
-                                <span><i class="fas fa-calendar"></i> ${metaYear}</span>
+                                <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(subtitle)}</span>
+                                <span><i class="fas fa-calendar"></i> ${ProfileManager.escapeHtml(metaYear)}</span>
                             </div>
                         </div>
                         ${isViewingOwnProfile ? `
@@ -7310,6 +7318,16 @@ header, .top-stripe, .section-nav {
                     `;
                     container.appendChild(itemCard);
                 }
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
             }
 
             function hideBookDetail() {
@@ -7348,7 +7366,6 @@ header, .top-stripe, .section-nav {
                     .insert({
                         user_id: currentUser.id,
                         title: title.trim(),
-                        description: '',
                         icon: '📚',
                         created_at: new Date().toISOString()
                     });
@@ -8026,7 +8043,8 @@ header, .top-stripe, .section-nav {
                 showMobileMenu,
                 toggleSortLists,
                 logout,
-                removeFromList
+                removeFromList,
+                escapeHtml
             };
         })();
 
@@ -8037,4 +8055,7 @@ header, .top-stripe, .section-nav {
     </script>
 </body>
 </html>
+
+
+
 

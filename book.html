@@ -608,6 +608,7 @@
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const bookId = id || null;
+      const normalizedBookId = bookId ? (bookId.startsWith('/works/') ? bookId.replace('/works/', '') : bookId) : null;
       let supabaseClient = null;
       let currentUser = null;
       let currentRating = 0;
@@ -658,10 +659,9 @@
       }
 
       async function upsertBookRecordLocal() {
-        if (!supabaseClient || !bookId) return null;
-        const normalizedId = bookId.startsWith('/works/') ? bookId.replace('/works/', '') : bookId;
+        if (!supabaseClient || !normalizedBookId) return null;
         const payload = {
-          id: normalizedId,
+          id: normalizedBookId,
           title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
           authors: Array.isArray(bookInfo?.authors) ? bookInfo.authors.map(a => (a.name || a.author?.key || '')).join(', ') : null,
           thumbnail: bookCoverUrl || (document.getElementById('poster')?.src || null),
@@ -864,12 +864,12 @@
       }
 
       async function loadListStatus() {
-        if (!supabaseClient || !currentUser || !bookId) return;
+        if (!supabaseClient || !currentUser || !normalizedBookId) return;
         const { data, error } = await supabaseClient
           .from('book_list_items')
           .select('list_type')
           .eq('user_id', currentUser.id)
-          .eq('book_id', bookId);
+          .eq('book_id', normalizedBookId);
         if (error) {
           console.error('Error loading list status', error);
           showNotification('Could not load saved lists', 'error');
@@ -918,7 +918,7 @@
             .from('book_list_items')
             .select('list_id')
             .eq('user_id', currentUser.id)
-            .eq('book_id', bookId)
+            .eq('book_id', normalizedBookId)
             .in('list_id', listIds);
           if (error) {
             console.error('Error loading list membership', error);
@@ -964,14 +964,14 @@
       }
 
       async function saveMovieListChanges() {
-        if (!supabaseClient || !currentUser || !bookId) return;
+        if (!supabaseClient || !currentUser || !normalizedBookId) return;
         const listIds = customLists.map(l => l.id);
         if (listIds.length) {
           const { error } = await supabaseClient
             .from('book_list_items')
             .delete()
             .eq('user_id', currentUser.id)
-            .eq('book_id', bookId)
+            .eq('book_id', normalizedBookId)
             .in('list_id', listIds);
           if (error) {
             console.error('Error clearing list items', error);
@@ -981,7 +981,7 @@
         }
         const inserts = [...modalSelectedLists].map(listId => ({
           user_id: currentUser.id,
-          book_id: bookId,
+          book_id: normalizedBookId,
           list_id: listId
         }));
         if (inserts.length) {
@@ -1054,14 +1054,14 @@
           showNotification('Please sign in to save books', 'info');
           return;
         }
-        if (!bookId) return;
+        if (!normalizedBookId) return;
         const isInList = listStatus[listType];
         if (isInList) {
           const { error } = await supabaseClient
             .from('book_list_items')
             .delete()
             .eq('user_id', currentUser.id)
-            .eq('book_id', bookId)
+            .eq('book_id', normalizedBookId)
             .eq('list_type', listType);
           if (error) {
             console.error('Error removing from list', error);
@@ -1077,7 +1077,7 @@
             const { data: existing } = await supabaseClient
               .from('book_list_items')
               .select('id')
-              .match({ user_id: currentUser.id, book_id: bookId, list_type: listType })
+              .match({ user_id: currentUser.id, book_id: normalizedBookId, list_type: listType })
               .limit(1)
               .single();
             if (existing && existing.id) {
@@ -1096,7 +1096,7 @@
           await upsertBookRecordLocal();
           const { data, error } = await supabaseClient
             .from('book_list_items')
-            .insert({ user_id: currentUser.id, book_id: bookId, list_type: listType })
+            .insert({ user_id: currentUser.id, book_id: normalizedBookId, list_type: listType })
             .select('*');
           if (error) {
             console.error('Error adding to list', error);
@@ -1110,7 +1110,7 @@
       }
 
       async function initReviewSystem() {
-        if (!supabaseClient || !bookId) return;
+        if (!supabaseClient || !normalizedBookId) return;
         const sortSelect = document.getElementById('sortSelect');
         if (sortSelect) {
           sortSelect.addEventListener('change', (e) => {
@@ -1163,7 +1163,7 @@
         const { data, error } = await supabaseClient
           .from('book_reviews')
           .select('*')
-          .eq('book_id', bookId)
+          .eq('book_id', normalizedBookId)
           .order('created_at', { ascending: false });
         if (error) {
           container.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
@@ -1286,7 +1286,7 @@
           showNotification('Please select a rating', 'info');
           return;
         }
-        const payload = { book_id: bookId, user_id: currentUser.id, rating: currentRating, comment };
+        const payload = { book_id: normalizedBookId, user_id: currentUser.id, rating: currentRating, comment };
         let error = null;
         if (editingReviewId) {
           const { error: updateError } = await supabaseClient
@@ -1384,4 +1384,5 @@
   </script>
 </body>
 </html>
+
 
