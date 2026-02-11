@@ -855,6 +855,24 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
 
+        // Show cached results instantly
+        const cacheKey = `books_search_${state.query}_${state.author}_${state.page}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached && state.page !== 1) {
+          try {
+            const cachedData = JSON.parse(cached);
+            displayBookResults(cachedData.docs, cachedData.numFound);
+            return;
+          } catch (e) {
+            console.warn('Cache read error', e);
+          }
+        }
+
+        // Show fallback first on page 1
+        if (state.page === 1) {
+          displayBookResults(FALLBACK_BOOKS, FALLBACK_BOOKS.length);
+        }
+
         let data;
         try {
           const q = buildQuery();
@@ -864,11 +882,30 @@
             limit: BOOKS_PER_PAGE,
             lang: 'en'
           });
+          // Cache successful results
+          localStorage.setItem(cacheKey, JSON.stringify({ docs: data.docs || [], numFound: data.numFound || 0 }));
         } catch (e) {
           console.error('OpenLibrary fetch error', e);
-          showNotification('Could not load remote books; showing offline fallback', 'error', 4000);
-          data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
+          if (cached) {
+            try {
+              const cachedData = JSON.parse(cached);
+              data = cachedData;
+            } catch {
+              data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
+            }
+          } else {
+            data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
+          }
         }
+
+        displayBookResults(data.docs || [], data.numFound || 0);
+      }
+
+      function displayBookResults(docs, totalFound) {
+        const grid = document.getElementById('booksGrid');
+        const empty = document.getElementById('emptyState');
+        if (!grid) return;
+        const data = { docs: docs || [], numFound: totalFound || 0 };
 
         let results = data.docs || [];
         results = filterByYear(results);

@@ -6704,30 +6704,60 @@ header, .top-stripe, .section-nav {
                         { id: 'readlist', title: 'Readlist', icon: '📍', description: 'Books to read', type: 'default' }
                     ];
 
-                    const { data: customLists, error: customError } = await supabase
-                        .from('book_lists')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-                    if (customError) throw customError;
-                    if (renderToken !== renderBooksToken) return;
+                    // Check cache first
+                    const cacheKey = `profile_books_${userId}`;
+                    const cached = localStorage.getItem(cacheKey);
 
-                    const { data: allItems } = await supabase
-                        .from('book_list_items')
-                        .select('book_id, list_type, list_id')
-                        .eq('user_id', userId);
-                    const items = allItems || [];
+                    let customLists = [];
+                    let allItems = [];
 
-                    for (const list of defaultLists) {
-                        list.bookIds = items.filter(i => i.list_type === list.id).map(i => i.book_id);
+                    if (cached) {
+                        try {
+                            const cachedData = JSON.parse(cached);
+                            customLists = cachedData.customLists || [];
+                            allItems = cachedData.allItems || [];
+                        } catch (e) {
+                            console.warn('Cache parse error', e);
+                        }
                     }
 
-                    for (const list of (customLists || [])) {
-                        list.bookIds = items.filter(i => i.list_id === list.id).map(i => i.book_id);
+                    // Fetch fresh data in background
+                    (async () => {
+                        try {
+                            const { data: customListsData, error: customError } = await supabase
+                                .from('book_lists')
+                                .select('*')
+                                .eq('user_id', userId)
+                                .order('created_at', { ascending: false });
+                            if (!customError) {
+                                customLists = customListsData || [];
+                            }
+
+                            const { data: allItemsData } = await supabase
+                                .from('book_list_items')
+                                .select('book_id, list_type, list_id')
+                                .eq('user_id', userId);
+                            allItems = allItemsData || [];
+
+                            // Cache fresh data
+                            localStorage.setItem(cacheKey, JSON.stringify({ customLists, allItems }));
+                        } catch (error) {
+                            console.error('Background fetch error:', error);
+                        }
+                    })();
+
+                    if (renderToken !== renderBooksToken) return;
+
+                    for (const list of defaultLists) {
+                        list.bookIds = allItems.filter(i => i.list_type === list.id).map(i => i.book_id);
+                    }
+
+                    for (const list of customLists) {
+                        list.bookIds = allItems.filter(i => i.list_id === list.id).map(i => i.book_id);
                         list.type = 'custom';
                     }
 
-                    const allLists = [...defaultLists, ...(customLists || [])];
+                    const allLists = [...defaultLists, ...customLists];
                     if (!allLists.length) {
                         grid.innerHTML = `
                             <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
@@ -7165,11 +7195,12 @@ header, .top-stripe, .section-nav {
                     list = { ...data, type: 'custom' };
                 }
 
+                // Query with proper field name based on list type
                 const { data: items } = await supabase
                     .from('book_list_items')
                     .select('book_id')
                     .eq('user_id', userId)
-                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
+                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId === 'favorites' || listId === 'read' || listId === 'readlist' ? listId : listId);
 
                 const bookIds = items ? items.map(i => i.book_id) : [];
 
@@ -7217,13 +7248,37 @@ header, .top-stripe, .section-nav {
                     return;
                 }
 
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const { data } = await supabase
-                    .from('books')
-                    .select('id, title, authors, published_date, thumbnail, publisher')
-                    .in('id', bookIds);
+                // Check cache first
+                const cacheKey = `profile_books_${listId}_${bookIds.join(',')}`;
+                const cached = localStorage.getItem(cacheKey);
+                let bookData = null;
+                
+                if (cached) {
+                    try {
+                        bookData = JSON.parse(cached);
+                    } catch (e) {
+                        console.warn('Cache parse error', e);
+                    }
+                }
+
+                // Show loading while fetching
+                if (!bookData) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                    
+                    // Fetch fresh data
+                    const { data } = await supabase
+                        .from('books')
+                        .select('id, title, authors, published_date, thumbnail, publisher')
+                        .in('id', bookIds);
+                    
+                    bookData = data || [];
+                    // Cache the results
+                    localStorage.setItem(cacheKey, JSON.stringify(bookData));
+                }
+
                 const bookMap = new Map();
-                (data || []).forEach(row => bookMap.set(row.id, row));
+                (bookData || []).forEach(row => bookMap.set(row.id, row));
+                
                 container.innerHTML = '';
 
                 for (let i = 0; i < bookIds.length; i++) {
