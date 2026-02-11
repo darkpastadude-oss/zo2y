@@ -687,14 +687,14 @@
 
       function updateAllCardMenus() {
         document.querySelectorAll('.card').forEach(card => {
-          const movieId = Number(card.getAttribute('data-tv-id'));
+          const tvId = Number(card.getAttribute('data-tv-id'));
           if (!tvId) return;
           updateCardMenuUI(card, tvId);
         });
       }
 
       function updateCardMenuUI(card, tvId) {
-        const status = state.listStatusMap.get(tvId) || { favorites: false, watched: false, watchlist: false };
+        const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
         card.querySelectorAll('.list-action').forEach(btn => {
           const listType = btn.getAttribute('data-list');
           if (!listType) return;
@@ -813,6 +813,8 @@
           const card = document.createElement('div');
           card.className = 'card';
           card.setAttribute('data-tv-id', item.id);
+          const showTitle = item.name || item.original_name || item.title || 'Untitled';
+          const showDate = item.first_air_date || item.release_date || '';
           card.innerHTML = `
             <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
             <div class="list-menu">
@@ -822,10 +824,10 @@
               <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
               <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
             </div>
-            <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${item.title}">
+            <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}">
             <div class="card-body">
-              <h3 class="card-title">${item.title}</h3>
-              <div class="card-meta">${item.release_date || ''}</div>
+              <h3 class="card-title">${showTitle}</h3>
+              <div class="card-meta">${showDate}</div>
               <div class="card-desc">${item.overview || 'No description available.'}</div>
             </div>
           `;
@@ -874,11 +876,11 @@
 
       async function toggleDefaultList(movieId, listType, card) {
         if (!state.currentUser) {
-          showNotification('Please sign in to save movies', 'info');
+          showNotification('Please sign in to save TV shows', 'info');
           return;
         }
         if (!supabaseClient) return;
-        const status = state.listStatusMap.get(tvId) || { favorites: false, watched: false, watchlist: false };
+        const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
         const isInList = !!status[listType];
         if (isInList) {
           const { error } = await supabaseClient
@@ -890,7 +892,7 @@
           if (!error) {
             status[listType] = false;
             state.listStatusMap.set(movieId, status);
-            updateCardMenuUI(card, tvId);
+            updateCardMenuUI(card, movieId);
             showNotification('Removed from list', 'info');
           }
         } else {
@@ -900,7 +902,7 @@
           if (!error) {
             status[listType] = true;
             state.listStatusMap.set(movieId, status);
-            updateCardMenuUI(card, tvId);
+            updateCardMenuUI(card, movieId);
             showNotification('Saved to list', 'success');
           }
         }

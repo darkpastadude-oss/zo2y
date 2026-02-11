@@ -2859,6 +2859,9 @@ header, .top-stripe, .section-nav {
                 <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                     <i class="fas fa-film"></i> Movies
                 </div>
+                <div class="nav-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')">
+                    <i class="fas fa-tv"></i> <span id="tvTabText">TV Shows</span>
+                </div>
                 <div class="nav-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
                     <i class="fas fa-book"></i> <span id="booksTabText">Books</span>
                 </div>
@@ -2982,6 +2985,65 @@ header, .top-stripe, .section-nav {
                         </div>
                     </div>
                     <div id="movieItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- TV Shows Tab Content -->
+            <div class="tab-content" id="tv-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="tvTitle">My TV Shows</h2>
+                            <p class="section-subtitle" id="tvSubtitle">Organize your favorite series</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createTvListBtn" onclick="ProfileManager.createTvList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='tvshows.html'">
+                                <i class="fas fa-tv"></i> Browse TV Shows
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="tvGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No TV Shows Yet</h3>
+                            <p class="empty-description">Save TV shows to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='tvshows.html'">
+                                <i class="fas fa-tv"></i> Explore TV Shows
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV Show Detail View -->
+            <div class="tab-content" id="tv-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideTvDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="tvDetailTitle">
+                                <span id="tvDetailIcon"></span>
+                                <span id="tvDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="tvDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-detail-actions" id="tvDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="tvListRenameBtn">
+                                <i class="fas fa-pen"></i> Rename
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="tvListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="tvItemsContainer"></div>
                 </div>
             </div>
 
@@ -3188,6 +3250,10 @@ header, .top-stripe, .section-nav {
                 <i class="fas fa-film"></i>
                 <span>Movies</span>
             </div>
+            <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')">
+                <i class="fas fa-tv"></i>
+                <span id="mobileTabTv">TV Shows</span>
+            </div>
             <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
                 <i class="fas fa-book"></i>
                 <span id="mobileTabBooks">Books</span>
@@ -3290,6 +3356,52 @@ header, .top-stripe, .section-nav {
                         </button>
                     </div>
                     <div id="mobileMovieItems"></div>
+                </div>
+            </div>
+
+            <!-- TV Shows Section -->
+            <div class="mobile-section" id="mobileTvSection">
+                <div class="mobile-section-title">
+                    <span>My TV Shows</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn secondary" id="mobileCreateTvListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createTvList()">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='tvshows.html'">
+                            <i class="fas fa-tv"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle">Organize your favorite series</div>
+
+                <div class="collection-grid" id="mobileTvGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No TV Shows Yet</div>
+                        <div class="mobile-empty-description">Save TV shows to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='tvshows.html'">
+                            <i class="fas fa-tv"></i> Explore TV Shows
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileTvDetailSection" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideTvDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileTvDetailTitle">Collection</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileTvDetailDescription"></div>
+                    <div id="mobileTvDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
+                        <button class="mobile-action-btn secondary" id="mobileTvListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Rename
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileTvListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div id="mobileTvItems"></div>
                 </div>
             </div>
 
@@ -3704,8 +3816,10 @@ header, .top-stripe, .section-nav {
             let currentSearchDebounce = null;
             let isSubmittingList = false;
             let movieCache = new Map();
+            let tvCache = new Map();
             let bookCache = new Map();
             let renderMoviesToken = 0;
+            let renderTvToken = 0;
             let renderBooksToken = 0;
             let renderRestaurantsToken = 0;
             let isCreatingBookList = false;
@@ -4046,13 +4160,16 @@ header, .top-stripe, .section-nav {
             function updateTabTitlesForOtherUser(userName) {
                 const journalTabText = document.getElementById('journalTabText');
                 const restaurantsTabText = document.getElementById('restaurantsTabText');
+                const tvTabText = document.getElementById('tvTabText');
                 const booksTabText = document.getElementById('booksTabText');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
+                const tvTitle = document.getElementById('tvTitle');
                 const booksTitle = document.getElementById('booksTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
+                const tvSubtitle = document.getElementById('tvSubtitle');
                 const booksSubtitle = document.getElementById('booksSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
@@ -4060,13 +4177,16 @@ header, .top-stripe, .section-nav {
                 
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
                 if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Restaurants`;
+                if (tvTabText) tvTabText.textContent = `${userName}'s TV Shows`;
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Restaurants`;
+                if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
                 if (booksTitle) booksTitle.textContent = `${userName}'s Books`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
                 if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
@@ -4075,6 +4195,7 @@ header, .top-stripe, .section-nav {
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
                 const mobileTabRestaurants = document.getElementById('mobileTabRestaurants');
+                const mobileTabTv = document.getElementById('mobileTabTv');
                 const mobileTabBooks = document.getElementById('mobileTabBooks');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
@@ -4088,6 +4209,7 @@ header, .top-stripe, .section-nav {
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
                 if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Restaurants`;
+                if (mobileTabTv) mobileTabTv.textContent = `${userName}'s TV Shows`;
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Restaurants`;
@@ -6062,7 +6184,8 @@ header, .top-stripe, .section-nav {
                 if (raw === '?') return 'check';
                 if (raw === '??') return 'list';
                 if (raw === '???') return 'restaurant';
-                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'list' || raw === 'user') return raw;
+                if (raw.includes('fa-tv')) return 'tv';
+                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'list' || raw === 'user') return raw;
                 return raw;
             }
 
@@ -6074,6 +6197,7 @@ header, .top-stripe, .section-nav {
                     bookmark: "\u{1F516}",
                     restaurant: "\u{1F37D}\uFE0F",
                     movie: "\u{1F3AC}",
+                    tv: "\u{1F4FA}",
                     book: "\u{1F4DA}",
                     list: "\u{1F4CB}",
                     user: "\u{1F464}"
@@ -6103,6 +6227,17 @@ header, .top-stripe, .section-nav {
                 if (!res.ok) return null;
                 const data = await res.json();
                 movieCache.set(movieId, data);
+                return data;
+            }
+
+            async function fetchTvDetails(tvId) {
+                if (tvCache.has(tvId)) return tvCache.get(tvId);
+                const res = await fetch(`${TMDB_BASE}/tv/${tvId}?language=en`, {
+                    headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+                });
+                if (!res.ok) return null;
+                const data = await res.json();
+                tvCache.set(tvId, data);
                 return data;
             }
 
@@ -6420,6 +6555,65 @@ header, .top-stripe, .section-nav {
                 showToast('List deleted', 'success');
             }
 
+            async function renameTvList(listId, currentTitle) {
+                if (!supabase || !currentUser) return;
+                const nextTitle = prompt('Rename list', currentTitle || '');
+                if (!nextTitle || !nextTitle.trim()) return;
+                const { error } = await supabase
+                    .from('tv_lists')
+                    .update({ title: nextTitle.trim() })
+                    .eq('id', listId)
+                    .eq('user_id', currentUser.id);
+                if (error) {
+                    showToast('Could not rename list', 'error');
+                    return;
+                }
+                await renderTvShows();
+            }
+
+            async function createTvList() {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const title = prompt('New TV show list name');
+                if (!title || !title.trim()) return;
+                const { error } = await supabase
+                    .from('tv_lists')
+                    .insert({
+                        user_id: currentUser.id,
+                        title: title.trim(),
+                        icon: 'fas fa-tv',
+                        created_at: new Date().toISOString()
+                    });
+                if (error) {
+                    showToast('Could not create list', 'error');
+                    return;
+                }
+                await renderTvShows();
+                showToast('TV list created', 'success');
+            }
+
+            async function deleteTvList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                if (!confirm('Delete this TV show list? This cannot be undone.')) return;
+                const userId = currentUser.id;
+                await supabase
+                    .from('tv_list_items')
+                    .delete()
+                    .eq('user_id', userId)
+                    .eq('list_id', listId);
+                const { error } = await supabase
+                    .from('tv_lists')
+                    .delete()
+                    .eq('id', listId)
+                    .eq('user_id', userId);
+                if (error) {
+                    showToast('Could not delete list', 'error');
+                    return;
+                }
+                hideTvDetail();
+                await renderTvShows();
+                showToast('List deleted', 'success');
+            }
+
             function showTab(tabName) {
                 const isMobile = window.innerWidth <= 768;
                 
@@ -6453,6 +6647,9 @@ header, .top-stripe, .section-nav {
                         case 'movies':
                             renderMovies();
                             break;
+                        case 'tv':
+                            renderTvShows();
+                            break;
                         case 'books':
                             renderBooks();
                             break;
@@ -6485,6 +6682,9 @@ header, .top-stripe, .section-nav {
                             break;
                         case 'movies':
                             renderMovies();
+                            break;
+                        case 'tv':
+                            renderTvShows();
                             break;
                         case 'books':
                             renderBooks();
@@ -6664,6 +6864,81 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function renderTvShows() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileTvGrid') : document.getElementById('tvGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderTvToken;
+
+                try {
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Shows you love', type: 'default' },
+                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Shows you watched', type: 'default' },
+                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Shows to watch', type: 'default' }
+                    ];
+
+                    const { data: customLists, error: customError } = await supabase
+                        .from('tv_lists')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+
+                    if (customError) throw customError;
+                    if (renderToken !== renderTvToken) return;
+
+                    const { data: allItems } = await supabase
+                        .from('tv_list_items')
+                        .select('tv_id, list_type, list_id')
+                        .eq('user_id', userId);
+
+                    const items = allItems || [];
+
+                    for (const list of defaultLists) {
+                        list.tvIds = items.filter(i => i.list_type === list.id).map(i => i.tv_id);
+                    }
+
+                    for (const list of (customLists || [])) {
+                        list.tvIds = items.filter(i => i.list_id === list.id).map(i => i.tv_id);
+                        list.type = 'custom';
+                    }
+
+                    const allLists = [...defaultLists, ...(customLists || [])];
+
+                    if (allLists.length === 0) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No TV Shows Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save TV shows to see them here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='tvshows.html'">
+                                    <i class="fas fa-tv"></i> Explore TV Shows
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    grid.innerHTML = '';
+
+                    for (const list of allLists) {
+                        const card = await createCollectionCard(list, 'tv', isMobile);
+                        grid.appendChild(card);
+                    }
+                } catch (error) {
+                    console.error('Error loading TV shows:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading TV Shows</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your TV shows</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function fetchBookDetails(bookId) {
                 if (bookCache.has(bookId)) return bookCache.get(bookId);
                 try {
@@ -6824,7 +7099,9 @@ header, .top-stripe, .section-nav {
 
                 const itemIds = contentType === 'restaurant'
                     ? (list.restaurantIds || [])
-                    : (contentType === 'movie' ? (list.movieIds || []) : (list.bookIds || []));
+                    : (contentType === 'movie'
+                        ? (list.movieIds || [])
+                        : (contentType === 'tv' ? (list.tvIds || []) : (list.bookIds || [])));
                 const count = itemIds.length;
 
                 const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
@@ -6840,7 +7117,7 @@ header, .top-stripe, .section-nav {
                     } else {
                         previewHtml += `
                             <div class="collection-preview-item">
-                                <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : 'book'))}</div>
+                                <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : 'book')))}</div>
                             </div>
                         `;
                     }
@@ -6867,10 +7144,10 @@ header, .top-stripe, .section-nav {
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : 'book'))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : 'book')))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
-                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : 'book')}${count !== 1 ? 's' : ''}</div>
+                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'TV show' : 'book'))}${count !== 1 ? 's' : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -6914,6 +7191,12 @@ header, .top-stripe, .section-nav {
                     (data || []).forEach(row => fallbackMap.set(row.id, row.thumbnail || null));
                     return ids.map(id => fallbackMap.get(id) || FALLBACK_BOOK_IMAGE);
                 }
+                if (contentType === 'tv') {
+                    return Promise.all(ids.map(async id => {
+                        const tv = await fetchTvDetails(id);
+                        return tv?.poster_path ? `${TMDB_POSTER}${tv.poster_path}` : null;
+                    }));
+                }
                 return Promise.all(ids.map(async id => {
                     const movie = await fetchMovieDetails(id);
                     return movie?.poster_path ? `${TMDB_POSTER}${movie.poster_path}` : null;
@@ -6927,6 +7210,8 @@ header, .top-stripe, .section-nav {
                     await showRestaurantDetail(listId, isMobile);
                 } else if (contentType === 'movie') {
                     await showMovieDetail(listId, listType, isMobile);
+                } else if (contentType === 'tv') {
+                    await showTvDetail(listId, listType, isMobile);
                 } else {
                     await showBookDetail(listId, listType, isMobile);
                 }
@@ -7173,6 +7458,149 @@ header, .top-stripe, .section-nav {
                         </div>
                         ${isViewingOwnProfile ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movie.id}, '${listId}', 'movie', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+
+                    container.appendChild(itemCard);
+                }
+            }
+
+            async function showTvDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileTvSection');
+                    const detailSection = document.getElementById('mobileTvDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileTvGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('tv-tab');
+                    const detailView = document.getElementById('tv-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+
+                let list = null;
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' };
+                    const icons = { favorites: 'heart', watched: 'check', watchlist: 'bookmark' };
+                    const descriptions = { favorites: 'Shows you love', watched: 'Shows you watched', watchlist: 'Shows to watch' };
+                    list = {
+                        id: listId,
+                        title: titles[listId],
+                        icon: icons[listId],
+                        description: descriptions[listId],
+                        type: 'default'
+                    };
+                } else {
+                    const { data, error } = await supabase
+                        .from('tv_lists')
+                        .select('*')
+                        .eq('id', listId)
+                        .single();
+
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                const { data: items } = await supabase
+                    .from('tv_list_items')
+                    .select('tv_id')
+                    .eq('user_id', userId)
+                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
+
+                const tvIds = items ? items.map(i => i.tv_id) : [];
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileTvDetailTitle');
+                    const descEl = document.getElementById('mobileTvDetailDescription');
+                    const actions = document.getElementById('mobileTvDetailActions');
+                    const renameBtn = document.getElementById('mobileTvListRenameBtn');
+                    const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
+                    if (titleEl) titleEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (renameBtn) renameBtn.onclick = () => renameTvList(listId, list.title);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
+                } else {
+                    const iconEl = document.getElementById('tvDetailIcon');
+                    const nameEl = document.getElementById('tvDetailName');
+                    const descEl = document.getElementById('tvDetailDescription');
+                    const actions = document.getElementById('tvDetailActions');
+                    const renameBtn = document.getElementById('tvListRenameBtn');
+                    const deleteBtn = document.getElementById('tvListDeleteBtn');
+                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'tv');
+                    if (nameEl) nameEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (renameBtn) renameBtn.onclick = () => renameTvList(listId, list.title);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
+                }
+
+                await renderTvItems(tvIds, listId, listType, isMobile);
+            }
+
+            async function renderTvItems(tvIds, listId, listType, isMobile) {
+                const container = isMobile ? document.getElementById('mobileTvItems') : document.getElementById('tvItemsContainer');
+                if (!container) return;
+
+                if (!tvIds || tvIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No TV Shows Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add TV shows to this collection!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+
+                const shows = await Promise.all(tvIds.map(id => fetchTvDetails(id)));
+
+                container.innerHTML = '';
+
+                for (const show of shows) {
+                    if (!show) continue;
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => window.location.href = `tvshow.html?id=${show.id}`;
+
+                    const showTitle = show.name || show.original_name || show.title || 'Untitled';
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${showTitle}</h3>
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
+                                <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                            </div>
+                        </div>
+                        ${isViewingOwnProfile ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${show.id}, '${listId}', 'tv', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
                         ` : ''}
@@ -7582,6 +8010,33 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            function hideTvDetail() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileTvDetailSection');
+                    const mainSection = document.getElementById('mobileTvSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileTvGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('tv-detail-view');
+                    const mainTab = document.getElementById('tv-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
             function toggleCollectionMenu(id, type) {
                 const dropdown = document.getElementById(`collection-${type}-${id}`);
                 if (!dropdown) return;
@@ -7624,6 +8079,25 @@ header, .top-stripe, .section-nav {
 
                         showToast('Removed from collection', 'success');
                         await showMovieDetail(collectionId, listType, window.innerWidth <= 768);
+                    } else if (type === 'tv') {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('tv_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('tv_id', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('tv_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('tv_id', itemId)
+                                .eq('list_id', collectionId);
+                        }
+
+                        showToast('Removed from collection', 'success');
+                        await showTvDetail(collectionId, listType, window.innerWidth <= 768);
                     } else {
                         if (listType === 'default') {
                             await supabase
@@ -7648,6 +8122,8 @@ header, .top-stripe, .section-nav {
                         await renderRestaurants();
                     } else if (type === 'movie') {
                         await renderMovies();
+                    } else if (type === 'tv') {
+                        await renderTvShows();
                     } else {
                         await renderBooks();
                     }
@@ -7667,6 +8143,12 @@ header, .top-stripe, .section-nav {
                     const list = await supabase.from('movie_lists').select('title').eq('id', id).single();
                     if (list?.data?.title) {
                         await renameMovieList(id, list.data.title);
+                        return;
+                    }
+                } else if (type === 'tv') {
+                    const list = await supabase.from('tv_lists').select('title').eq('id', id).single();
+                    if (list?.data?.title) {
+                        await renameTvList(id, list.data.title);
                         return;
                     }
                 } else {
@@ -7691,6 +8173,9 @@ header, .top-stripe, .section-nav {
                             } else if (type === 'movie') {
                                 await supabase.from('movie_list_items').delete().eq('list_id', id);
                                 await supabase.from('movie_lists').delete().eq('id', id);
+                            } else if (type === 'tv') {
+                                await supabase.from('tv_list_items').delete().eq('list_id', id);
+                                await supabase.from('tv_lists').delete().eq('id', id);
                             } else {
                                 await supabase.from('book_list_items').delete().eq('list_id', id);
                                 await supabase.from('book_lists').delete().eq('id', id);
@@ -7704,6 +8189,9 @@ header, .top-stripe, .section-nav {
                             } else if (type === 'movie') {
                                 hideMovieDetail();
                                 await renderMovies();
+                            } else if (type === 'tv') {
+                                hideTvDetail();
+                                await renderTvShows();
                             } else {
                                 hideBookDetail();
                                 await renderBooks();
@@ -8150,13 +8638,18 @@ header, .top-stripe, .section-nav {
                 hideMobileRestaurantDetail: hideRestaurantDetail,
                 hideMovieDetail,
                 hideMobileMovieDetail: hideMovieDetail,
+                hideTvDetail,
+                hideMobileTvDetail: hideTvDetail,
                 hideBookDetail,
                 hideMobileBookDetail: hideBookDetail,
                 toggleCollectionMenu,
                 createMovieList,
+                createTvList,
                 createBookList,
                 renameMovieList,
                 deleteMovieList,
+                renameTvList,
+                deleteTvList,
                 renameBookList,
                 deleteBookList,
                 removeFromCollection,
