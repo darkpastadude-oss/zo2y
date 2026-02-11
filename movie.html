@@ -1111,7 +1111,7 @@
         if (userIds.length && supabaseClient) {
           const { data: users } = await supabaseClient
             .from('user_profiles')
-            .select('id, display_name, username')
+            .select('id, display_name, full_name, username')
             .in('id', userIds);
           (users || []).forEach(u => { userMap[u.id] = u; });
         }
@@ -1124,9 +1124,12 @@
         container.innerHTML = reviewsToDisplay.map(review => {
           const user = userMap[review.user_id];
           const username = String(user?.username || '').trim();
-          const fallbackName = String(user?.display_name || 'User').trim();
-          const displayName = username ? `@${username}` : fallbackName;
-          const initialsBase = username || fallbackName;
+          const fallbackName = String(user?.display_name || user?.full_name || '').trim();
+          const idFallback = String(review.user_id || '').slice(0, 8);
+          const displayName = username
+            ? `@${username}`
+            : (fallbackName || `user-${idFallback}`);
+          const initialsBase = username || fallbackName || idFallback || 'U';
           const initials = initialsBase.split(/\s+/).map(n => n[0]).slice(0, 2).join('').toUpperCase();
           const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
           const canEditDelete = currentUser && currentUser.id === review.user_id;
