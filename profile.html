@@ -6752,18 +6752,7 @@ header, .top-stripe, .section-nav {
                     }
 
                     const allLists = [...defaultLists, ...customLists];
-                    
-                    // Deduplicate lists by ID to prevent duplicates from being rendered
-                    const seenListIds = new Set();
-                    const uniqueLists = allLists.filter(list => {
-                        if (seenListIds.has(list.id)) {
-                            return false;
-                        }
-                        seenListIds.add(list.id);
-                        return true;
-                    });
-                    
-                    if (!uniqueLists.length) {
+                    if (!allLists.length) {
                         grid.innerHTML = `
                             <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
                                 <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">Ã°Å¸â€œÅ¡</div>
@@ -6775,7 +6764,7 @@ header, .top-stripe, .section-nav {
                     }
 
                     grid.innerHTML = '';
-                    for (const list of uniqueLists) {
+                    for (const list of allLists) {
                         const card = await createCollectionCard(list, 'book', isMobile);
                         grid.appendChild(card);
                     }
@@ -8154,5 +8143,7 @@ header, .top-stripe, .section-nav {
     </script>
 </body>
 </html>
+
+
 
 
