@@ -6,7 +6,7 @@
   <title>Zo2y â€” Books</title>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -596,9 +596,16 @@
       }
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const OPEN_LIBRARY_BASE = 'https://openlibrary.org/api';
+      const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
       const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
       const FALLBACK_BOOK_IMAGE = 'images/logo.png';
+      const FALLBACK_BOOKS = [
+        { key: '/works/OL1W', title: 'Pride and Prejudice', author_name: ['Jane Austen'], first_publish_year: 1813, isbn: ['9780141199078'] },
+        { key: '/works/OL2W', title: 'Murder on the Orient Express', author_name: ['Agatha Christie'], first_publish_year: 1934, isbn: ['9780007119318'] },
+        { key: '/works/OL3W', title: 'The Hobbit', author_name: ['J.R.R. Tolkien'], first_publish_year: 1937, isbn: ['9780261102217'] },
+        { key: '/works/OL4W', title: 'Sapiens', author_name: ['Yuval Noah Harari'], first_publish_year: 2011, isbn: ['9780062316097'] },
+        { key: '/works/OL5W', title: 'Atomic Habits', author_name: ['James Clear'], first_publish_year: 2018, isbn: ['9780735211292'] }
+      ];
       const BOOKS_PER_PAGE = 20;
       const CATEGORY_OPTIONS = [
         'Fiction',
@@ -632,7 +639,7 @@
       let supabaseClient = null;
 
       async function booksFetch(path, params = {}) {
-        const url = new URL(OPEN_LIBRARY_BASE + path);
+        const url = new URL(path, OPEN_LIBRARY_BASE);
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
         });
@@ -647,8 +654,11 @@
       }
 
       function getPreferredBookImage(doc) {
-        if (doc?.cover_id) {
-          return getBookCoverUrl(doc.cover_id);
+        if (doc?.cover_i) {
+          return getBookCoverUrl(doc.cover_i);
+        }
+        if (doc?.isbn?.[0]) {
+          return `${OPEN_LIBRARY_COVERS}/isbn/${doc.isbn[0]}-M.jpg`;
         }
         return null;
       }
@@ -842,11 +852,13 @@
           data = await booksFetch('/search.json', {
             q,
             page: state.page,
-            limit: BOOKS_PER_PAGE
+            limit: BOOKS_PER_PAGE,
+            lang: 'en'
           });
         } catch (e) {
-          if (empty) empty.style.display = 'block';
-          return;
+          console.error('OpenLibrary fetch error', e);
+          showNotification('Could not load remote books; showing offline fallback', 'error', 4000);
+          data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
         }
 
         let results = data.docs || [];
