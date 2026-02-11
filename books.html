@@ -254,7 +254,7 @@
     .card img {
       width: 100%;
       height: 260px;
-      object-fit: cover;
+      object-fit: contain;
       background: linear-gradient(135deg, #0f1f40 0%, #1a2d5f 100%);
       position: relative;
     }
@@ -650,7 +650,7 @@
 
       function getBookCoverUrl(coverId) {
         if (!coverId) return null;
-        return `${OPEN_LIBRARY_COVERS}/id/${coverId}-M.jpg`;
+        return `${OPEN_LIBRARY_COVERS}/id/${coverId}-L.jpg`;
       }
 
       function getPreferredBookImage(doc) {
@@ -658,7 +658,7 @@
           return getBookCoverUrl(doc.cover_i);
         }
         if (doc?.isbn?.[0]) {
-          return `${OPEN_LIBRARY_COVERS}/isbn/${doc.isbn[0]}-M.jpg`;
+          return `${OPEN_LIBRARY_COVERS}/isbn/${doc.isbn[0]}-L.jpg`;
         }
         return null;
       }
