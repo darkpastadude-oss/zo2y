@@ -635,7 +635,7 @@
         existing.forEach(n => n.remove());
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
-        notification.textContent = message;
+        notification.textContent = (typeof message === 'string') ? message : JSON.stringify(message);
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), duration);
       }
@@ -1021,13 +1021,33 @@
           updateListMenuUI();
           showNotification('Removed from list', 'info');
         } else {
+          // Defensive: check if an identical item already exists to avoid conflicts (409)
+          try {
+            const { data: existing } = await supabaseClient
+              .from('book_list_items')
+              .select('id')
+              .match({ user_id: currentUser.id, book_id: bookId, list_type: listType })
+              .limit(1)
+              .single();
+            if (existing && existing.id) {
+              console.warn('List item already exists', existing);
+              listStatus[listType] = true;
+              updateListMenuUI();
+              showNotification('Already saved', 'info');
+              return;
+            }
+          } catch (e) {
+            // ignore single() not found error and continue to insert
+            if (e && e.message && !/No rows/.test(e.message)) console.warn('Check existing error', e);
+          }
+
           const { data, error } = await supabaseClient
             .from('book_list_items')
             .insert({ user_id: currentUser.id, book_id: bookId, list_type: listType })
             .select('*');
           if (error) {
             console.error('Error adding to list', error);
-            showNotification(`Could not save to list: ${error.message || JSON.stringify(error)}`, 'error');
+            showNotification(error?.message || error || JSON.stringify(error), 'error');
             return;
           }
           listStatus[listType] = true;
