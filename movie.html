@@ -1111,6 +1111,13 @@
         if (userIds.length && supabaseClient) {
           let users = [];
           const profileSelects = [
+            'user_id, id, username, display_name, full_name',
+            'user_id, username, display_name, full_name',
+            'user_id, username, full_name',
+            'user_id, username, display_name',
+            'user_id, username',
+            'user_id, full_name',
+            'user_id, display_name',
             'id, username, display_name, full_name',
             'id, username, full_name',
             'id, username, display_name',
@@ -1122,13 +1129,16 @@
             const { data, error } = await supabaseClient
               .from('user_profiles')
               .select(cols)
-              .in('id', userIds);
+              .in(cols.includes('user_id') ? 'user_id' : 'id', userIds);
             if (!error) {
               users = data || [];
               break;
             }
           }
-          (users || []).forEach(u => { userMap[u.id] = u; });
+          (users || []).forEach(u => {
+            const key = u.user_id || u.id;
+            if (key) userMap[key] = u;
+          });
         }
         const escapeHtml = (v) => String(v ?? '')
           .replace(/&/g, '&amp;')
@@ -1138,7 +1148,9 @@
           .replace(/'/g, '&#039;');
         container.innerHTML = reviewsToDisplay.map(review => {
           const user = userMap[review.user_id];
-          const reviewUsername = String(review?.username || review?.user_name || '').trim();
+          const reviewUsernameRaw = String(review?.username || review?.user_name || '').trim();
+          const isAutoUsername = /^user-[a-f0-9]{6,}$/i.test(reviewUsernameRaw);
+          const reviewUsername = isAutoUsername ? '' : reviewUsernameRaw;
           const username = String(user?.username || reviewUsername).trim();
           const fallbackName = String(user?.display_name || user?.full_name || '').trim();
           const displayName = username ? `@${username}` : (fallbackName || 'User');
